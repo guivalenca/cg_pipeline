@@ -1,0 +1,77 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+    "display_code": "L06",
+    "workbook_row_number": 28,
+    "title": "Heuristics and Biases",
+    "date": "19/05/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "The lesson focuses on heuristics and cognitive biases in decision-making, exploring how these mental shortcuts influence choices in daily life and the professional environment. The aim is to understand that, while useful for simplifying decisions in uncertain contexts, heuristics can generate distortions, misperceptions, and systematic errors. At the same time, analyzing biases allows for the recognition of thought patterns that affect diverse areas such as business, health, and finance, offering insights to improve the quality of individual and organizational decisions."
+  },
+  "self_study": {
+    "self_study_id": "31",
+    "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 31,
+      "week": 5,
+      "sort": 15,
+      "title": "Heuristics and Biases in Judicial Decisions",
+      "description": "The text uses the metaphor of three baseball umpires to discuss the illusion of impartiality in judgments. While one recognizes his human limitations, the others assume infallibility. From this, the article shows that judges, like any person, are also subject to heuristics and cognitive biases, which function as mental shortcuts to save resources, but can generate systematic errors in decisions. These biases influence everything from the analysis of evidence to sentencing, revealing that, despite experience and training, irrelevant factors can predictably distort judgments, casting doubt on the idea of total objectivity in the judicial process.",
+      "url": "https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1428&context=ajacourtreview&",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Heuristics and Biases",
+      "class_date": "19/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed_with_warnings",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0031-article-heuristics-and-biases-in-judicial-decisions.md",
+      "sha256": "77d4412392eeb4ec04e9b3db7e7646189eb5e43540da7cedd2d919ebc3ffb69d",
+      "word_count": 566,
+      "bytes": 4496,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/31/31-heuristics-and-biases-in-judicial-decisions.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/31",
+      "availability_warnings": [
+        "missing_screenshot",
+        "unexpected_content_type"
+      ],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0031-article-heuristics-and-biases-in-judicial-decisions.md",
+    "sha256": "77d4412392eeb4ec04e9b3db7e7646189eb5e43540da7cedd2d919ebc3ffb69d",
+    "word_count": 566,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/31/31-heuristics-and-biases-in-judicial-decisions.md",
+    "markdown": "---\nid: \"31\"\ntitle: \"Heuristics and Biases in Judicial Decisions\"\nsource_url: \"https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1428&context=ajacourtreview&\"\nfetch_url: \"https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1428&context=ajacourtreview\"\nresolved_url: \"https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1428&context=ajacourtreview\"\nfirecrawl_title: \"Heuristics and Biases in Judicial Decisions\"\ndescription: null\nfetched_at: \"2026-05-26T16:45:16.166287Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"1bbfa6b3582b01c9213fc302e4cbf2e8a9ff31fce0d2db5a88d95f938c36ec3b\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"application/pdf\"\nword_count: 477\nchar_count: 3522\ncontent_sha256: \"fee18e1aa6b63a92b5476bb9a34449c46d3a2b950876877f58e90b568215fa14\"\nimage_count: 0\nlink_count: 3\nwarnings:\n  - \"missing_screenshot\"\n  - \"unexpected_content_type\"\ngate_status: \"passed_with_warnings\"\ngate_failures: []\nroute_notes: []\n---\n\n# Heuristics and Biases in Judicial Decisions\n\n**Eyal Peer**  \n*Hebrew University of Jerusalem, Israel*  \n\n**Eyal Gamliel**  \n*the Ruppin Academic Center, Israel*  \n\n[Follow this and additional works at:](https://digitalcommons.unl.edu/ajacourtreview)  \n[Heuristics and Biases in Judicial Decisions](https://digitalcommons.unl.edu/ajacourtreview/422)\n\n---\n\n## Introduction\nThis article briefly reviews evidence suggesting that in some cases judges could be prone to cognitive fallacies and biases that might affect their judicial decisions. Cognitive biases relating to elements of the hearing process, ruling, or sentencing are reviewed.\n\n## Heuristics and Biases\nHeuristics are cognitive shortcuts, or rules of thumb, by which people generate judgments and make decisions without fully considering all relevant information. Various biases such as the availability heuristic and confirmation bias can lead to systemic and predictable biases.\n\n### Cognitive Biases Affecting Judges\n1. **Confirmation Bias**: Judges might favor evidence that confirms their preconceived notions and dismiss contradictory information.\n   - Example: In a study regarding capital punishment, participants favored studies that aligned with their prior beliefs about the issue.\n2. **Hindsight Bias**: People assess outcomes as being more predictable after they have occurred. In legal contexts, this can skew judgments regarding foreseeability.\n   - Example: A physician found guilty of malpractice after failing to diagnose a tumor was unfairly assessed using retrospective knowledge that the tumor existed.\n3. **Conjunction Fallacy**: More detailed descriptions can lead to higher perceived probabilities of events, even when less detailed information may tell a different story.\n\n## Ruling Process Biases\n### Inadmissible Evidence\nStudies show that both jurors and judges struggle to disregard inadmissible evidence, leading to biased verdicts even with instructions to ignore such materials.  \n   - Evidence impacting judgments includes prior criminal records regardless of relevance.\n\n### Sequential Ruling Bias\nJudges making sequential rulings tend to favor the status quo, with their decisions becoming increasingly conservative as they rule through the cases.\n  - Research indicates judges’ decisions can be altered by breaks—rulings are more favorable after breaks compared to decisions made at the end of a session.\n\n## Sentencing Process Biases\n### Modeling Sentencing Decisions\nInvestigations show judges often do not consider all relevant factors due to cognitive constraints influenced by the seriousness of offenses.\n### Anchoring-and-Adjustment\nJudges are susceptible to anchoring effects where the initial numerical estimates can influence sentencing decisions. This occurs even with irrelevant anchors, like those suggested by journalists.\n\n## Conclusion\nHeuristic thinking tends to dominate in judicial decision-making, although it may lead to biases in judgments during various phases of the legal process. Awareness of these cognitive influences is crucial for mitigating bias in judicial decisions.\n\n**Eyal Peer** received his Ph.D. in 2011 from the Hebrew University of Jerusalem, focusing on judgment and decision-making. He is now completing a post-doctoral fellowship at Carnegie Mellon University, concentrating on privacy-related decisions.\n\n**Eyal Gamliel** is an Associate Professor and the Chair of Behavioral Sciences Department at the Ruppin Academic Center, Israel, specializing in judgment and decision-making.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

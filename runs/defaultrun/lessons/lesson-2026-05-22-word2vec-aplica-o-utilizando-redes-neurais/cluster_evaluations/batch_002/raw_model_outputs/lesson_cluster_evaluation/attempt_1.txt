@@ -1,0 +1,89 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Training Data Generation for Word2Vec",
+      "description": "How training samples are created for Word2Vec: using a sliding window to form context-target pairs, representing words with one-hot encoding, and the distinction between CBOW and Skip-gram architectures.",
+      "coverage_criteria": [
+        "Given a short text and window size, generate input-output pairs with context and target words.",
+        "Explain that each word is represented as a one-hot vector of vocabulary size.",
+        "Distinguish CBOW (predict target from context) from Skip-gram (predict context from target)."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_005",
+        "c63_pro_thinking_006",
+        "c63_pro_thinking_008"
+      ],
+      "merge_rationale": "These candidates describe essential aspects of generating training data for Word2Vec: the sliding window mechanism, one-hot representation, and the high-level CBOW/Skip-gram variants. Together they form a single coherent concept about data preparation and architectural choice."
+    },
+    {
+      "id": "lr002",
+      "label": "Word Embeddings as Neural Network Weights",
+      "description": "In Word2Vec, the word embeddings are the learned weights connecting the one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "Indicate that after training, the embedding for a word is extracted from the weight matrix of the neural network."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate alone explains how embeddings are obtained from the training process, demystifying a key output of Word2Vec."
+    },
+    {
+      "id": "lr003",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "Aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_candidate_ids": [
+        "m64_002"
+      ],
+      "merge_rationale": "This metadata-only candidate represents the application side of the lesson, where Word2Vec can be used for sentiment analysis. It fills a gap not covered by the source body candidates."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c63_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "m64_001",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Broad NLP introduction not specific to Word2Vec or the lesson's focus on sentiment analysis application."
+    },
+    {
+      "candidate_id": "m64_002",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "m64_003",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Deep learning for NLP is too broad and not focused on the specific Word2Vec application taught in this lesson."
+    },
+    {
+      "candidate_id": "m64_004",
+      "status": "pruned",
+      "reason": "unsupported_metadata_only",
+      "explanation": "The Word2Vec topic is already covered in detail by source-backed concepts; this metadata-only label adds no distinct teachable content."
+    }
+  ]
+}

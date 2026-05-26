@@ -1,0 +1,89 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+    "display_code": "L12",
+    "workbook_row_number": 76,
+    "title": "Sumarização de texto e Engenharia de Software",
+    "date": "03/06/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Camadas de comunicação linguística",
+      "Determinação do conteúdo em PLN",
+      "Linguagem estruturada",
+      "Modelos probabilísticos para extração de informação",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ],
+    "description": "Este encontro tem por objeto apresentar as técnicas de sumarização de texto e suas aplicações no contexto de PLN."
+  },
+  "self_study": {
+    "self_study_id": "80",
+    "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 80,
+      "week": 7,
+      "sort": 12,
+      "title": "Norma ISO25010",
+      "description": "Este autoestudo apresenta a norma ISO25010 para aspectos de Qualidade de Software, útil para especificação de requisitos não funcionais.",
+      "url": "https://iso25000.com/index.php/en/iso-25000-standards/iso-25010",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Elicitação de requisitos",
+        "Engenharia de requisitos",
+        "Qualidade de Software",
+        "Requisitos funcionais e não funcionais"
+      ],
+      "parent_class": "Sumarização de texto e Engenharia de Software",
+      "class_date": "03/06/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0080-article-norma-iso25010.md",
+      "sha256": "1e86a2cee3c2181bda7ceb33ee231e55c2af2e62734a79e5d0006582f60fb6b5",
+      "word_count": 810,
+      "bytes": 5992,
+      "source_markdown": "article/firecrawl/output/80/80-norma-iso25010.md",
+      "artifact_dir": "article/firecrawl/output/80",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0080-article-norma-iso25010.md",
+    "sha256": "1e86a2cee3c2181bda7ceb33ee231e55c2af2e62734a79e5d0006582f60fb6b5",
+    "word_count": 810,
+    "source_markdown": "article/firecrawl/output/80/80-norma-iso25010.md",
+    "markdown": "---\nid: \"80\"\ntitle: \"Norma ISO25010\"\nsource_url: \"https://iso25000.com/index.php/en/iso-25000-standards/iso-25010\"\nfetch_url: \"https://iso25000.com/index.php/en/iso-25000-standards/iso-25010\"\nresolved_url: \"https://iso25000.com/index.php/en/iso-25000-standards/iso-25010\"\nfirecrawl_title: \"ISO 25010\"\ndescription: \"Portal sobre la familia de normas ISO/IEC 25000 para la evaluacion de la calidad del producto software. Listado de laboratorios de evaluación acreditados y productos certificados.\"\nfetched_at: \"2026-05-12T03:59:52.978693Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"200b3645323208c801ebd22d710f9e5531c5c35db4028e3986ea0133fc25d37d\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 644\nchar_count: 4505\ncontent_sha256: \"0eac25c50d406491e5e0e537c4e81f2c64087166b68c1d520d244c3a1f0d941b\"\nimage_count: 5\nlink_count: 12\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# ISO/IEC 25010\n\nThe quality model is the cornerstone of a product quality evaluation system. The quality model determines which quality characteristics will be taken into account when evaluating the properties of a software product.\n\nThe quality of a system is the degree to which the system satisfies the stated and implied needs of its various stakeholders and thus provides value. Those stakeholders' needs (functionality, performance, security, maintainability, etc.) are precisely what is represented in the quality model, which categorizes the product quality into characteristics and sub-characteristics.\n\nThe product quality model defined in ISO/IEC 25010 comprises the nine quality characteristics shown in the following figure:\n\nImage summary: The ISO/IEC 25010 software product quality model groups quality into nine characteristics: functional suitability, performance efficiency, compatibility, interaction capability, reliability, security, maintainability, flexibility, and safety. The diagram also shows each characteristic’s sub-characteristics, such as functional completeness, time behaviour, interoperability, usability-related traits, faultlessness, confidentiality, modularity, adaptability, and risk-related safety attributes. [Original image: Quality Characterisctics of ISO 25010](https://iso25000.com/images/figures/iso_25010_en.png)\n\nThis characteristic represents the degree to which a product or system provides functions that meet stated and implied needs when used under specified conditions. This characteristic is composed of the following sub-characteristics:\n\n- **Functional completeness -** Degree to which the set of functions covers all the specified tasks and intended users' objectives.\n- **Functional correctness -** Degree to which a product or system provides accurate results when used by intended users.\n- **Functional appropriateness -** Degree to which the functions facilitate the accomplishment of specified tasks and objectives.\n\nThis characteristic represents the degree to which a product performs its functions within specified time and throughput parameters and is efficient in the use of resources (such as CPU, memory, storage, network devices, energy, materials...) under specified conditions. This characteristic is composed of the following sub-characteristics:\n\n- **Time behaviour -** Degree to which the response time and throughput rates of a product or system, when performing its functions, meet requirements.\n- **Resource utilization -** Degree to which the amounts and types of resources used by a product or system, when performing its functions, meet requirements.\n- **Capacity -** Degree to which the maximum limits of a product or system parameter meet requirements.\n\nDegree to which a product, system or component can exchange information with other products, systems or components, and/or perform its required functions while sharing the same common environment and resources. This characteristic is composed of the following sub-characteristics:\n\n- **Co-existence -** Degree to which a product can perform its required functions efficiently while sharing a common environment and resources with other products, without detrimental impact on any other product.\n- **Interoperability -** Degree to which a system, product or component can exchange information with other products and mutually use the information that has been exchanged.\n\nDegree to which a product or system can be interacted with by specified users to exchange information in the user interface to complete specific tasks in a variety of contexts of use. This characteristic is composed of the following sub-characteristics:\n\n- **Appropriateness recognizability -** Degree to which users can recognize whether a product or system is appropriate for their needs.\n- **Learnability -** Degree to which the functions of a product or system can be learnt to be used by specified users within a specified amount of time.\n- **Operability -** Degree to which a product or system has attributes that make it easy to operate and control.\n- **User error protection.** Degree to which a system prevents users against operation errors.\n- **User engagement -** Degree to which a user interface presents functions and information in an inviting and motivating manner encouraging continued interaction.\n- **Inclusivity -** Degree to which a product or system can be used by people of various backgrounds (such as people of various ages, abilities, cultures, ethnicities, languages, genders, economic situations, etc.).\n- **User assistance -** Degree to which a product can be used by people with the widest range of characteristics and capabilities to achieve specified goals in a specified context of use.\n- **Self-descriptiveness -** Degree to which a product presents appropriate information, where needed by the user, to make its capabilities and use immediately obvious to the user without excessive interactions with a product or other resources (such as user documentation, help desks or other users).\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Payoff Table Structure",
+      "description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes.",
+      "coverage_criteria": ["Given a description, construct a payoff table.", "Identify alternatives and states in a payoff table."],
+      "source_candidate_ids": ["c15_pro_thinking_001", "c18_pro_thinking_007"],
+      "merge_rationale": "Both candidates describe the same fundamental structure; merging provides a comprehensive definition."
+    },
+    {
+      "id": "lr002",
+      "label": "Maximax (Optimistic) Criterion",
+      "description": "An optimistic approach: select the alternative with the best possible outcome. For profits, maximize the maximum; for costs, minimize the minimum.",
+      "coverage_criteria": ["Given a payoff table, apply the maximax criterion.", "Explain the optimistic philosophy."],
+      "source_candidate_ids": ["c15_pro_thinking_002", "c16_pro_thinking_002", "c18_pro_thinking_002"],
+      "merge_rationale": "All three teach the same optimistic selection principle applied to different contexts."
+    },
+    {
+      "id": "lr003",
+      "label": "Maximin (Conservative) Criterion",
+      "description": "A conservative approach: select the alternative with the best worst-case outcome. For profits, maximize the minimum; for costs, minimize the maximum.",
+      "coverage_criteria": ["Apply maximin to a payoff table.", "Explain the conservative assumption."],
+      "source_candidate_ids": ["c15_pro_thinking_003", "c16_pro_thinking_003", "c18_pro_thinking_003"],
+      "merge_rationale": "All three teach the same conservative principle applied to different contexts."
+    },
+    {
+      "id": "lr004",
+      "label": "Minimax Regret Criterion",
+      "description": "A decision criterion that minimizes the maximum regret. Regret is the difference between the best possible payoff and the actual payoff for each state. The alternative with the smallest maximum regret is chosen.",
+      "coverage_criteria": ["Construct a regret table from a payoff table.", "Apply the minimax regret criterion."],
+      "source_candidate_ids": ["c15_pro_thinking_004", "c16_pro_thinking_004", "c18_pro_thinking_004"],
+      "merge_rationale": "All three candidates teach the same multi-step procedure, with minor context variations."
+    },
+    {
+      "id": "lr005",
+      "label": "Decision Making Under Uncertainty",
+      "description": "A decision environment where the probabilities of future states of nature are unknown. Decision criteria such as maximax, maximin, and minimax regret are used to choose alternatives.",
+      "coverage_criteria": ["Explain when a decision is under uncertainty.", "Name at least two criteria applicable under uncertainty."],
+      "source_candidate_ids": ["c18_pro_thinking_001", "c16_pro_thinking_001"],
+      "merge_rationale": "c18 defines the environment; c16 introduces the application to costs."
+    },
+    {
+      "id": "lr006",
+      "label": "Laplace Criterion",
+      "description": "A decision criterion that assumes all states of nature are equally likely and selects the alternative with the highest average payoff.",
+      "coverage_criteria": ["Apply the Laplace criterion to a payoff table.", "Explain the equal likelihood assumption."],
+      "source_candidate_ids": ["c18_pro_thinking_005"],
+      "merge_rationale": "A distinct criterion."
+    },
+    {
+      "id": "lr007",
+      "label": "Hurwicz Criterion",
+      "description": "A decision criterion that balances optimism and pessimism using a coefficient of optimism (α). It computes a weighted average of the best and worst payoffs for each alternative.",
+      "coverage_criteria": ["Calculate the Hurwicz value for given alternatives and α.", "Explain how α reflects optimism."],
+      "source_candidate_ids": ["c18_pro_thinking_006"],
+      "merge_rationale": "A distinct criterion."
+    }
+  ],
+  "candidate_assignments": [
+    {"candidate_id": "c15_pro_thinking_001", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c18_pro_thinking_007", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c15_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr002"]},
+    {"candidate_id": "c16_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr002"]},
+    {"candidate_id": "c18_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr002"]},
+    {"candidate_id": "c15_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr003"]},
+    {"candidate_id": "c16_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr003"]},
+    {"candidate_id": "c18_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr003"]},
+    {"candidate_id": "c15_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr004"]},
+    {"candidate_id": "c16_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr004"]},
+    {"candidate_id": "c18_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr004"]},
+    {"candidate_id": "c18_pro_thinking_001", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c16_pro_thinking_001", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c18_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr006"]},
+    {"candidate_id": "c18_pro_thinking_006", "status": "used_in", "accepted_ids": ["lr007"]},
+    {"candidate_id": "c17_pro_thinking_001", "status": "pruned", "reason": "low_teaching_value", "explanation": "This candidate covers a theoretical treatment of minimax regret beyond the scope of an introductory decision-making tools lesson."},
+    {"candidate_id": "c17_pro_thinking_002", "status": "pruned", "reason": "low_teaching_value", "explanation": "Provides an advanced regret formula with discounting, not needed for basic decision tools."},
+    {"candidate_id": "c17_pro_thinking_003", "status": "pruned", "reason": "low_teaching_value", "explanation": "Bernoulli equivalent rules are an advanced bandit technique, off-topic for this lesson."},
+    {"candidate_id": "c17_pro_thinking_004", "status": "pruned", "reason": "low_teaching_value", "explanation": "Worst case prior is a theoretical concept linking to Bayesian optimality, beyond introductory level."},
+    {"candidate_id": "c17_pro_thinking_005", "status": "pruned", "reason": "low_teaching_value", "explanation": "Single-round memory rule for bandits is too specific and advanced for this lesson."},
+    {"candidate_id": "c17_pro_thinking_006", "status": "pruned", "reason": "low_teaching_value", "explanation": "Two-round memory rule (Robbins' rule) is a bandit-specific algorithm, not a basic decision tool."},
+    {"candidate_id": "c17_pro_thinking_007", "status": "pruned", "reason": "low_teaching_value", "explanation": "The equivalence theorem is a theoretical result not required for an introductory lesson."},
+    {"candidate_id": "c17_pro_thinking_008", "status": "pruned", "reason": "low_teaching_value", "explanation": "Continuous payoff model (S-model) is an extension for bandits, beyond the scope of basic decision criteria."}
+  ]
+}

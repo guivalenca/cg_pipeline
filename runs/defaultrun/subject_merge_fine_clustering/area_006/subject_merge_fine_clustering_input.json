@@ -1,0 +1,564 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_006",
+    "area": {
+      "id": "area_006",
+      "label": "Bag-of-Words and Vectorization",
+      "rationale": "All about BOW model, vocabulary construction, vectorization, loss of order, implementations (Keras, CountVectorizer), extensions to n-grams, binary BOW, and sparse vectors.",
+      "candidate_ids": [
+        "lr003_001",
+        "lr003_002",
+        "lr003_003",
+        "lr003_004",
+        "lr003_005",
+        "lr003_006",
+        "lr003_008",
+        "lr003_009",
+        "lr003_010",
+        "lr003_011",
+        "lr003_013",
+        "lr003_015",
+        "lr003_016",
+        "lr003_017",
+        "lr003_018",
+        "lr005_012",
+        "lr005_024",
+        "lr006_011",
+        "lr010_002",
+        "lr010_003",
+        "lr010_004",
+        "lr011_001",
+        "lr011_002",
+        "lr011_003",
+        "lr011_011",
+        "lr011_012",
+        "lr011_013",
+        "lr011_014"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr003_001",
+    "lr003_002",
+    "lr003_003",
+    "lr003_004",
+    "lr003_005",
+    "lr003_006",
+    "lr003_008",
+    "lr003_009",
+    "lr003_010",
+    "lr003_011",
+    "lr003_013",
+    "lr003_015",
+    "lr003_016",
+    "lr003_017",
+    "lr003_018",
+    "lr005_012",
+    "lr005_024",
+    "lr006_011",
+    "lr010_002",
+    "lr010_003",
+    "lr010_004",
+    "lr011_001",
+    "lr011_002",
+    "lr011_003",
+    "lr011_011",
+    "lr011_012",
+    "lr011_013",
+    "lr011_014"
+  ],
+  "candidates": [
+    {
+      "id": "lr003_001",
+      "label": "Bag-of-Words Model Definition",
+      "description": "The bag-of-words (BOW) model is a text representation technique that converts documents into fixed-length vectors by counting word occurrences, disregarding grammar and word order. It treats a document as an unordered collection of words.",
+      "coverage_criteria": [
+        "Define the BOW model and explain how it represents text as word count vectors.",
+        "Identify that BOW disregards word order and context."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_002",
+      "label": "Vocabulary Construction in Bag-of-Words",
+      "description": "The vocabulary is the set of all unique words across the document corpus. It determines the dimensions of the BOW vectors. Each document is represented as a vector of length equal to the vocabulary size, where each position corresponds to a specific word.",
+      "coverage_criteria": [
+        "Define what the vocabulary is in BOW.",
+        "Explain how the vocabulary determines vector size and how out-of-vocabulary words are handled."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_003",
+      "label": "BOW Vectorization Process",
+      "description": "The BOW vectorization process consists of determining the vocabulary (collecting unique words) and then counting the occurrences of each vocabulary word in each document to produce a count vector.",
+      "coverage_criteria": [
+        "List the steps for BOW vectorization (vocabulary construction and counting).",
+        "Apply counting to convert a small document into a BOW vector."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "application"
+    },
+    {
+      "id": "lr003_004",
+      "label": "Loss of Word Order and Context in BOW",
+      "description": "BOW discards the order of words, meaning it cannot capture syntax or semantics that depend on word sequence. This loss of contextual information is a fundamental limitation of the model.",
+      "coverage_criteria": [
+        "State that BOW does not preserve word order.",
+        "Provide an example of how meaning can be lost due to ignoring word order."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr003_005",
+      "label": "Implementing BOW with Keras Tokenizer",
+      "description": "In Python, the Keras Tokenizer class can be used to implement BOW. After fitting on texts to build the vocabulary, texts_to_matrix with mode='count' generates count vectors.",
+      "coverage_criteria": [
+        "Write Python code to use Keras Tokenizer for BOW vectorization.",
+        "Explain the roles of fit_on_texts and texts_to_matrix."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_006",
+      "label": "Applications and Strengths of BOW",
+      "description": "Despite its simplicity, BOW is effective for tasks like text classification and profanity detection. Its strengths are simplicity and low computational cost.",
+      "coverage_criteria": [
+        "Name two NLP applications where BOW is useful.",
+        "Explain why BOW's simplicity can be advantageous."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_008",
+      "label": "Sparse Vectors Problem",
+      "description": "When the vocabulary is large, BOW vectors become mostly zeros (sparse), leading to high memory usage and computational inefficiency.",
+      "coverage_criteria": [
+        "Define a sparse vector in the context of BOW.",
+        "Explain why sparsity is a challenge for machine learning."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr003_009",
+      "label": "Implementing BOW from Scratch in Python",
+      "description": "BOW can be implemented manually by writing functions to tokenize, remove stopwords, build a vocabulary, and generate count vectors using basic Python and NumPy.",
+      "coverage_criteria": [
+        "Describe the key components of a from-scratch BOW implementation.",
+        "Write a simple function to generate a BOW vector from text."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_010",
+      "label": "Using Scikit-learn's CountVectorizer for BOW",
+      "description": "Scikit-learn's CountVectorizer offers a ready-to-use BOW implementation with parameters for preprocessing, tokenization, n-grams, and more, outputting a term-document matrix.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with common parameters.",
+        "Apply fit_transform to a list of texts and interpret the output."
+      ],
+      "source_roles": [
+        "referencing",
+        "demonstrating",
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_011",
+      "label": "N-gram Extension to Bag-of-Words",
+      "description": "BOW can be extended to n-grams (e.g., bigrams) where tokens are sequences of n consecutive words, partially capturing word order.",
+      "coverage_criteria": [
+        "Define an n-gram and give an example of bigrams.",
+        "Explain how n-grams address the loss-of-order limitation."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr003_013",
+      "label": "Binary Bag-of-Words Encoding",
+      "description": "In binary BOW, a sentence is represented by a binary vector where each dimension indicates the presence (1) or absence (0) of a vocabulary word, rather than its count.",
+      "coverage_criteria": [
+        "Differentiate between count-based and binary BOW.",
+        "Given a vocabulary and a sentence, produce a binary BOW vector."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_015",
+      "label": "Multi-label Encoding with Binary Vectors",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each index corresponds to a label, allowing a single example to have multiple 1s, unlike one-hot encoding for multi-class.",
+      "coverage_criteria": [
+        "Encode a set of labels for a given text using a binary vector, and contrast with one-hot encoding for multi-class."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_016",
+      "label": "Sigmoid Activation for Multi-label Classification",
+      "description": "For multi-label text classification with a bag-of-words model, the output layer should use sigmoid activation with binary cross-entropy loss, as it allows independent binary predictions per label, while softmax is for multi-class.",
+      "coverage_criteria": [
+        "Explain why sigmoid activation is preferred over softmax for multi-label classification, and select the appropriate loss function."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_017",
+      "label": "HashVectorizer: Hashing-based Vectorization",
+      "description": "Scikit-learn's HashVectorizer applies a hash function to map terms to numerical indices, saving memory but making it impossible to recover original feature names, unlike CountVectorizer.",
+      "coverage_criteria": [
+        "Explain one advantage and one disadvantage of using HashVectorizer compared to CountVectorizer."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_018",
+      "label": "TfidfVectorizer: TF-IDF Weighting",
+      "description": "Scikit-learn's TfidfVectorizer assigns weights to terms combining term frequency (TF) and inverse document frequency (IDF), giving higher importance to discriminative terms across the corpus, unlike simple count-based BoW.",
+      "coverage_criteria": [
+        "Define TF-IDF and explain how it differs from simple count-based vectorization."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_012",
+      "label": "Bag-of-Words Representation",
+      "description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_024",
+      "label": "Bag of Words with CountVectorizer",
+      "description": "Converting preprocessed text into a numerical matrix of token counts using scikit-learn's CountVectorizer, often with max_features to limit vocabulary size.",
+      "coverage_criteria": [
+        "Transform a list of texts into a BoW matrix using CountVectorizer.",
+        "Explain the role of the max_features parameter."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr006_011",
+      "label": "Limitações do TF-IDF",
+      "description": "O TF-IDF pondera frequência de termos pela inversa da frequência nos documentos, mas produz vetores esparsos de alta dimensionalidade que não capturam semântica complexa.",
+      "coverage_criteria": [
+        "Defina TF-IDF e explique por que é menos eficaz que word embeddings para similaridade semântica."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_002",
+      "label": "Bag of Words (BoW)",
+      "description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr010_003",
+      "label": "TF-IDF",
+      "description": "A weighting scheme that scales term frequency by the inverse of document frequency to highlight words that are important to a specific document within a corpus.",
+      "coverage_criteria": [
+        "Compute the TF-IDF score for a term given term frequency and document frequency.",
+        "Explain why TF-IDF improves over simple term frequency.",
+        "Identify when to use TF-IDF in text analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_004",
+      "label": "One-hot Encoding",
+      "description": "A sparse representation where each word is a vector of zeros with a single 1 at the index corresponding to the word in the vocabulary.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_001",
+      "label": "One-Hot Encoding",
+      "description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_002",
+      "label": "Count-Based Text Representations and Limitations",
+      "description": "Bag-of-Words and TF-IDF represent text by counting words (or n-grams) and weighting them by importance. Preprocessing steps like stemming and stop-word removal are common. These methods yield sparse vectors that ignore word context and cannot handle unknown words.",
+      "coverage_criteria": [
+        "Compute Bag-of-Words and TF-IDF vectors for a small corpus.",
+        "List at least two limitations of count-based representations.",
+        "Explain the purpose of stemming and stop-word removal in text preprocessing."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr011_003",
+      "label": "Word Embeddings as Dense Vectors",
+      "description": "Unlike sparse encodings, word embeddings are dense numerical vectors where each dimension captures latent features. They are lower-dimensional than the vocabulary and enable models to process semantic meaning efficiently.",
+      "coverage_criteria": [
+        "Define word embeddings and contrast them with sparse representations.",
+        "Explain why dense vectors are more efficient than one-hot vectors."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_011",
+      "label": "TF-IDF Definition and Computation",
+      "description": "TF-IDF is a statistical measure of word relevance in a document corpus, computed as the product of Term Frequency (TF) and Inverse Document Frequency (IDF). TF measures how often a term appears in a document, normalized by document length. IDF measures how rare a term is across the corpus, using log(N/df). The product gives a weight that highlights terms that are frequent in a specific document but rare overall, yielding document feature vectors.",
+      "coverage_criteria": [
+        "Define TF-IDF and its purpose.",
+        "Calculate TF, IDF, and TF-IDF for a given term in a small corpus."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_012",
+      "label": "TF-IDF Output: Document Vectors and Applications",
+      "description": "After computing TF-IDF for all terms, each document is represented as a weighted term vector, where high weights indicate discriminative terms. These document vectors are used in data mining tasks such as classification, clustering, and information retrieval, especially document search.",
+      "coverage_criteria": [
+        "Explain how TF-IDF transforms documents into feature vectors.",
+        "List at least three applications of TF-IDF in text analysis."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_013",
+      "label": "TF-IDF Discriminative Power and Comparison with Bag of Words",
+      "description": "TF-IDF assigns higher weights to terms that appear frequently in a specific document but rarely across the corpus, making them discriminative features. A term that appears in every document gets IDF=0 and thus TF-IDF=0, meaning it has no discriminative power. This contrasts with Bag of Words, which merely counts occurrences and does not differentiate important terms from common ones.",
+      "coverage_criteria": [
+        "Explain why a word with IDF=0 is not useful for distinguishing documents.",
+        "Describe the key difference between Bag of Words and TF-IDF."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_014",
+      "label": "Implementing TF-IDF with Scikit-learn: TfidfVectorizer and Preprocessing",
+      "description": "In Python, TF-IDF can be computed using TfidfVectorizer from sklearn. This requires preparing text by splitting into documents (e.g., splitlines) and optionally removing stopwords using NLTK's stopwords list, passed to the stop_words parameter. The fit_transform method returns a TF-IDF matrix.",
+      "coverage_criteria": [
+        "Write code to import TfidfVectorizer, include stopwords from NLTK, and fit_transform a list of documents."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

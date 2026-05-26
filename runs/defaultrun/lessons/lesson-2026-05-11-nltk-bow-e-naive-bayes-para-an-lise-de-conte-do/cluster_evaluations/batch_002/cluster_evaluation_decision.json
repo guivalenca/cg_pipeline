@@ -1,0 +1,549 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:43:57.223520+00:00",
+  "scope_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c36_pro_thinking_004",
+    "c36_pro_thinking_005",
+    "c36_pro_thinking_006",
+    "c36_pro_thinking_007",
+    "c36_pro_thinking_008",
+    "c39_pro_thinking_004",
+    "c36_pro_thinking_009",
+    "c38_pro_thinking_004",
+    "c38_pro_thinking_005",
+    "c38_pro_thinking_006",
+    "c39_pro_thinking_001",
+    "c36_pro_thinking_010",
+    "c36_pro_thinking_011",
+    "c37_pro_thinking_006",
+    "c37_pro_thinking_002",
+    "c37_pro_thinking_003",
+    "c37_pro_thinking_004",
+    "c37_pro_thinking_005",
+    "c37_pro_thinking_007",
+    "c37_pro_thinking_008",
+    "c37_pro_thinking_009",
+    "c38_pro_thinking_002",
+    "c38_pro_thinking_007"
+  ],
+  "accepted": [
+    {
+      "id": "lr001",
+      "label": "Derivation of Naive Bayes Decision Rule",
+      "description": "The step-by-step derivation from Bayes theorem to the final classification formula: select class c that maximizes P(c) * ∏ P(word|c).",
+      "coverage_criteria": [
+        "Write the final decision rule formula.",
+        "Explain the steps: posterior maximization, dropping the denominator, independence assumption."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering the derivation."
+    },
+    {
+      "id": "lr002",
+      "label": "Naive Bayes Training: Prior and Likelihood Computation",
+      "description": "How to compute prior class probabilities P(c) = Nc/N and word likelihoods P(word|c) as relative frequency in class c.",
+      "coverage_criteria": [
+        "Calculate prior from class counts.",
+        "Calculate word likelihoods from training documents."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_005",
+        "c36_pro_thinking_006"
+      ],
+      "merge_rationale": "These two calculations form the components learned during Naive Bayes training."
+    },
+    {
+      "id": "lr003",
+      "label": "Laplace Smoothing in Naive Bayes",
+      "description": "Adding a constant (usually 1) to all word counts to avoid zero probabilities for unseen words, using the formula (count + 1) / (total words + vocabulary size).",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_007",
+        "c39_pro_thinking_004"
+      ],
+      "merge_rationale": "Two candidates describe the same technique with near-identical content."
+    },
+    {
+      "id": "lr004",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Using the log of the Naive Bayes product to convert it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "Explain why log-sum avoids underflow.",
+        "Transform a product expression into a log-sum."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate covering log transformation."
+    },
+    {
+      "id": "lr005",
+      "label": "Stop Words Removal",
+      "description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_009",
+        "c38_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates cover the same preprocessing step with identical intent."
+    },
+    {
+      "id": "lr006",
+      "label": "Basic Text Cleaning",
+      "description": "Lowercasing text and removing HTML tags, special characters, and punctuation to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Explain why lowercasing and removing special characters helps text analysis.",
+        "Apply cleaning to a raw text sample."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering this initial preprocessing step."
+    },
+    {
+      "id": "lr007",
+      "label": "Stemming",
+      "description": "Reducing words to their root form (e.g., 'running' → 'run') to consolidate terms, using algorithms like SnowballStemmer from NLTK.",
+      "coverage_criteria": [
+        "Explain the purpose of stemming.",
+        "Apply a stemmer to a list of words."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate covering stemming."
+    },
+    {
+      "id": "lr008",
+      "label": "Binary Multinomial Naive Bayes",
+      "description": "A variant that uses binary features (word presence/absence) instead of word counts, emphasizing occurrence over frequency.",
+      "coverage_criteria": [
+        "Contrast binary and frequency-based Naive Bayes.",
+        "Explain when binary features might be useful."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate describing this variant."
+    },
+    {
+      "id": "lr009",
+      "label": "Word-level Tokenization",
+      "description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ],
+      "source_candidate_ids": [
+        "c37_pro_thinking_005"
+      ],
+      "merge_rationale": "Single candidate covering tokenization."
+    },
+    {
+      "id": "lr010",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_011",
+        "c37_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates address complementary aspects of managing word sets in text classification."
+    },
+    {
+      "id": "lr011",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of AI focused on enabling computers to process and analyze human language, applied to tasks like text classification and sentiment analysis.",
+      "coverage_criteria": [
+        "Define NLP.",
+        "Give an example of an NLP task."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate providing a foundational definition."
+    },
+    {
+      "id": "lr012",
+      "label": "Bag of Words with CountVectorizer",
+      "description": "Converting preprocessed text into a numerical matrix of token counts using scikit-learn's CountVectorizer, often with max_features to limit vocabulary size.",
+      "coverage_criteria": [
+        "Transform a list of texts into a BoW matrix using CountVectorizer.",
+        "Explain the role of the max_features parameter."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate demonstrating feature extraction."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Derivation of Naive Bayes Decision Rule",
+      "description": "The step-by-step derivation from Bayes theorem to the final classification formula: select class c that maximizes P(c) * ∏ P(word|c).",
+      "coverage_criteria": [
+        "Write the final decision rule formula.",
+        "Explain the steps: posterior maximization, dropping the denominator, independence assumption."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering the derivation."
+    },
+    {
+      "id": "lr002",
+      "label": "Naive Bayes Training: Prior and Likelihood Computation",
+      "description": "How to compute prior class probabilities P(c) = Nc/N and word likelihoods P(word|c) as relative frequency in class c.",
+      "coverage_criteria": [
+        "Calculate prior from class counts.",
+        "Calculate word likelihoods from training documents."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_005",
+        "c36_pro_thinking_006"
+      ],
+      "merge_rationale": "These two calculations form the components learned during Naive Bayes training."
+    },
+    {
+      "id": "lr003",
+      "label": "Laplace Smoothing in Naive Bayes",
+      "description": "Adding a constant (usually 1) to all word counts to avoid zero probabilities for unseen words, using the formula (count + 1) / (total words + vocabulary size).",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_007",
+        "c39_pro_thinking_004"
+      ],
+      "merge_rationale": "Two candidates describe the same technique with near-identical content."
+    },
+    {
+      "id": "lr004",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Using the log of the Naive Bayes product to convert it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "Explain why log-sum avoids underflow.",
+        "Transform a product expression into a log-sum."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate covering log transformation."
+    },
+    {
+      "id": "lr005",
+      "label": "Stop Words Removal",
+      "description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_009",
+        "c38_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates cover the same preprocessing step with identical intent."
+    },
+    {
+      "id": "lr006",
+      "label": "Basic Text Cleaning",
+      "description": "Lowercasing text and removing HTML tags, special characters, and punctuation to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Explain why lowercasing and removing special characters helps text analysis.",
+        "Apply cleaning to a raw text sample."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering this initial preprocessing step."
+    },
+    {
+      "id": "lr007",
+      "label": "Stemming",
+      "description": "Reducing words to their root form (e.g., 'running' → 'run') to consolidate terms, using algorithms like SnowballStemmer from NLTK.",
+      "coverage_criteria": [
+        "Explain the purpose of stemming.",
+        "Apply a stemmer to a list of words."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate covering stemming."
+    },
+    {
+      "id": "lr008",
+      "label": "Binary Multinomial Naive Bayes",
+      "description": "A variant that uses binary features (word presence/absence) instead of word counts, emphasizing occurrence over frequency.",
+      "coverage_criteria": [
+        "Contrast binary and frequency-based Naive Bayes.",
+        "Explain when binary features might be useful."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate describing this variant."
+    },
+    {
+      "id": "lr009",
+      "label": "Word-level Tokenization",
+      "description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ],
+      "source_candidate_ids": [
+        "c37_pro_thinking_005"
+      ],
+      "merge_rationale": "Single candidate covering tokenization."
+    },
+    {
+      "id": "lr010",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_011",
+        "c37_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates address complementary aspects of managing word sets in text classification."
+    },
+    {
+      "id": "lr011",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of AI focused on enabling computers to process and analyze human language, applied to tasks like text classification and sentiment analysis.",
+      "coverage_criteria": [
+        "Define NLP.",
+        "Give an example of an NLP task."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate providing a foundational definition."
+    },
+    {
+      "id": "lr012",
+      "label": "Bag of Words with CountVectorizer",
+      "description": "Converting preprocessed text into a numerical matrix of token counts using scikit-learn's CountVectorizer, often with max_features to limit vocabulary size.",
+      "coverage_criteria": [
+        "Transform a list of texts into a BoW matrix using CountVectorizer.",
+        "Explain the role of the max_features parameter."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate demonstrating feature extraction."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c36_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "Computing prior probabilities is part of the combined training concept."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "Computing likelihoods is part of the combined training concept."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_007",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Near-duplicate of c39_pro_thinking_004, both describe Laplace smoothing."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Near-duplicate of c36_pro_thinking_007, both describe Laplace smoothing."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Near-duplicate of c38_pro_thinking_005, both cover stop words removal."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Near-duplicate of c36_pro_thinking_009, both cover stop words removal."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr007"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_001",
+      "status": "pruned",
+      "reason": "near_duplicate",
+      "explanation": "This general preprocessing overview is fully represented by the specific accepted concepts of text cleaning (lr006), stop words removal (lr005), stemming (lr007), and tokenization (lr009)."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_011",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "OOV handling is part of the combined vocabulary management concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "Vocabulary building with frequency filter is part of the combined vocabulary management concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_002",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Describing the IMDb dataset is incidental; it does not teach a transferable NLP or ML concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_003",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Downloading a dataset is a setup step not essential to understanding NLTK, BoW, or Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_004",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Reading reviews from a specific directory structure is dataset-specific I/O and not a core lesson concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr009"
+      ]
+    },
+    {
+      "candidate_id": "c37_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Padding sequences is a deep learning preparation step not relevant to this lesson's focus on traditional BoW and Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_008",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Creating data iterators is a deep learning concept; this lesson does not cover minibatch training."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_009",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The full deep learning data loading pipeline is off-topic for a lesson on NLTK, BoW, and Naive Bayes."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr012"
+      ]
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c39_pro_thinking_001",
+      "reason": "near_duplicate",
+      "explanation": "This general preprocessing overview is fully represented by the specific accepted concepts of text cleaning (lr006), stop words removal (lr005), stemming (lr007), and tokenization (lr009)."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_002",
+      "reason": "incidental",
+      "explanation": "Describing the IMDb dataset is incidental; it does not teach a transferable NLP or ML concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_003",
+      "reason": "incidental",
+      "explanation": "Downloading a dataset is a setup step not essential to understanding NLTK, BoW, or Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_004",
+      "reason": "incidental",
+      "explanation": "Reading reviews from a specific directory structure is dataset-specific I/O and not a core lesson concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Padding sequences is a deep learning preparation step not relevant to this lesson's focus on traditional BoW and Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_008",
+      "reason": "unrelated",
+      "explanation": "Creating data iterators is a deep learning concept; this lesson does not cover minibatch training."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_009",
+      "reason": "unrelated",
+      "explanation": "The full deep learning data loading pipeline is off-topic for a lesson on NLTK, BoW, and Naive Bayes."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 23,
+    "accepted_count": 12,
+    "pruned_count": 7,
+    "candidate_assignment_count": 23,
+    "review_count": 0
+  }
+}

@@ -1,0 +1,560 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_015",
+    "area": {
+      "id": "area_015",
+      "label": "Keras and TensorFlow Deep Learning",
+      "rationale": "Keras ecosystem: model types, Sequential API, compilation, training, evaluation, prediction, normalization, reshaping, one-hot encoding, inspection, saving, fine-tuning, callbacks, and data loading.",
+      "candidate_ids": [
+        "lr008_001",
+        "lr008_002",
+        "lr008_003",
+        "lr008_004",
+        "lr008_005",
+        "lr008_006",
+        "lr008_007",
+        "lr008_008",
+        "lr008_009",
+        "lr008_010",
+        "lr008_011",
+        "lr008_012",
+        "lr008_013",
+        "lr008_014",
+        "lr008_015",
+        "lr008_016",
+        "lr008_017",
+        "lr008_018",
+        "lr008_019",
+        "lr008_020",
+        "lr008_021",
+        "lr008_022",
+        "lr008_023",
+        "lr008_024",
+        "lr008_025",
+        "lr008_026",
+        "lr008_027",
+        "lr008_028",
+        "lr007_017"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr008_001",
+    "lr008_002",
+    "lr008_003",
+    "lr008_004",
+    "lr008_005",
+    "lr008_006",
+    "lr008_007",
+    "lr008_008",
+    "lr008_009",
+    "lr008_010",
+    "lr008_011",
+    "lr008_012",
+    "lr008_013",
+    "lr008_014",
+    "lr008_015",
+    "lr008_016",
+    "lr008_017",
+    "lr008_018",
+    "lr008_019",
+    "lr008_020",
+    "lr008_021",
+    "lr008_022",
+    "lr008_023",
+    "lr008_024",
+    "lr008_025",
+    "lr008_026",
+    "lr008_027",
+    "lr008_028",
+    "lr007_017"
+  ],
+  "candidates": [
+    {
+      "id": "lr008_001",
+      "label": "What is Keras?",
+      "description": "Keras is a high-level deep learning API, available standalone and integrated into TensorFlow (tf.keras), designed to simplify the implementation of neural networks.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "State that Keras is available standalone and as tf.keras."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_002",
+      "label": "Keras Backend Flexibility",
+      "description": "Keras supports multiple backend computation engines such as TensorFlow, Theano, PlaidML, MXNet, and CNTK, with TensorFlow adopting Keras as its official high-level API.",
+      "coverage_criteria": [
+        "List at least two backend engines supported by Keras.",
+        "Explain that TensorFlow has integrated Keras as its official high-level API."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_003",
+      "label": "Keras Model Types",
+      "description": "Keras provides two primary ways to define a neural network: the Sequential model for linear stacks of layers, and the Functional API for complex architectures with shared layers or multiple inputs/outputs.",
+      "coverage_criteria": [
+        "Differentiate between Sequential and Functional models in Keras.",
+        "Give an example of when to use each model type."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_004",
+      "label": "Building a Sequential Model with Dense Layers",
+      "description": "A simple feedforward neural network in Keras can be constructed using the Sequential model and stacking Dense layers with specified units and activation functions (e.g., ReLU for hidden layers, softmax for the output layer).",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer specifying units and activation.",
+        "Explain the choice of activation functions for hidden and output layers."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_005",
+      "label": "Compiling a Keras Model",
+      "description": "Before training, a Keras model must be compiled using model.compile() to configure the learning process by specifying a loss function (e.g., categorical_crossentropy), an optimizer (e.g., rmsprop), and metrics (e.g., accuracy).",
+      "coverage_criteria": [
+        "Identify the three main arguments to model.compile() and their purposes.",
+        "Choose appropriate loss, optimizer, and metrics for a given classification task."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_006",
+      "label": "Training a Keras Model with fit()",
+      "description": "The model.fit() method trains the compiled model on training data, with key hyperparameters such as epochs (number of passes over the dataset) and batch_size (samples per gradient update).",
+      "coverage_criteria": [
+        "Write a model.fit() call with the required arguments.",
+        "Explain the roles of epochs and batch_size in the training process."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_007",
+      "label": "Evaluating a Keras Model on Test Data",
+      "description": "After training, model.evaluate() computes the loss and any specified metrics (e.g., accuracy) on a held‑out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Write a model.evaluate() call on test data.",
+        "Interpret the printed loss and accuracy values."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_008",
+      "label": "Making Predictions with Keras Models",
+      "description": "Trained Keras models can generate predictions on new data using model.predict() to obtain probability distributions, and np.argmax() (or model.predict_classes()) to get the predicted class labels.",
+      "coverage_criteria": [
+        "Use model.predict() to get predictions on test data.",
+        "Apply np.argmax() to convert probabilities to class labels."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_009",
+      "label": "Normalizing Pixel Values for Neural Networks",
+      "description": "To improve training stability, pixel values of images (originally 0‑255) should be normalized to the [0,1] range by dividing by 255.",
+      "coverage_criteria": [
+        "Explain why pixel normalization is beneficial.",
+        "Demonstrate the normalization step in code (dividing by 255)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_010",
+      "label": "Reshaping and Flattening Image Data for Dense Layers",
+      "description": "Since Dense layers expect 1D input, 2D image arrays must be reshaped into 1D vectors, either manually with .reshape() or by inserting a Flatten layer as the first layer in the model.",
+      "coverage_criteria": [
+        "Perform manual reshaping of image data from 2D to 1D.",
+        "Explain how a Flatten layer can replace manual reshaping."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_011",
+      "label": "One‑Hot Encoding for Categorical Labels",
+      "description": "For multi‑class classification, integer labels must be converted to one‑hot encoded vectors using tf.keras.utils.to_categorical() so that the model output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Describe why one‑hot encoding is necessary for categorical crossentropy loss.",
+        "Use tf.keras.utils.to_categorical() to transform labels."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_012",
+      "label": "Inspecting a Keras Model",
+      "description": "Keras provides several methods to inspect a model's architecture and weights, including summary(), get_config(), and get_weights().",
+      "coverage_criteria": [
+        "Call model.summary() to view layer details.",
+        "Explain what get_config() and get_weights() return."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_013",
+      "label": "Saving and reloading Keras models",
+      "description": "How to persist a trained Keras model to an HDF5 file using model.save() and restore it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can write the code to save a model to a .h5 file.",
+        "Student can reload a saved model and confirm its architecture."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_014",
+      "label": "Fine-tuning with custom optimizer parameters",
+      "description": "How to customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and compiling the model with it.",
+      "coverage_criteria": [
+        "Student can create an optimizer object with custom parameters.",
+        "Student can use the optimizer in model.compile()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr008_015",
+      "label": "Fine-tuning with Early Stopping",
+      "description": "How to use the EarlyStopping callback to stop training when a monitored metric (e.g., validation loss) stops improving after a given patience, preventing overfitting.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_016",
+      "label": "Keras model building workflow",
+      "description": "The sequential pipeline for building a neural network in Keras: import modules, create a Sequential model, add layers, compile with optimizer and loss, fit on data, and make predictions. This high-level process applies to classification tasks.",
+      "coverage_criteria": [
+        "Student can list the steps: define, compile, fit, evaluate, predict.",
+        "Student can explain the role of each step in a basic Keras script."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_017",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb directly from tensorflow.keras.datasets, including splitting into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three available datasets.",
+        "Student can write the code to load one dataset and unpack it into (x_train, y_train), (x_test, y_test)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_018",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset consists of 28x28 grayscale images of handwritten digits 0-9, with 60,000 training and 10,000 test samples. It is a common beginner dataset for deep learning.",
+      "coverage_criteria": [
+        "Student can recall the image size, number of classes, and train/test split.",
+        "Student can explain why MNIST is often used as an introductory dataset."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_019",
+      "label": "Inspecting data shape and labels",
+      "description": "After loading data, how to inspect array shapes (e.g., train_images.shape) and visualize samples using matplotlib to verify the data before modeling.",
+      "coverage_criteria": [
+        "Student can print and interpret the shape of training data and labels.",
+        "Student can display a single image using plt.imshow() or plt.matshow()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_020",
+      "label": "Sequence padding for RNNs",
+      "description": "How to pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, with specification of maxlen, to prepare data for recurrent neural networks.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_021",
+      "label": "Train/test split with sklearn",
+      "description": "How to partition a dataset into training and test subsets using sklearn.model_selection.train_test_split, controlling proportions with test_size and reproducibility with random_state.",
+      "coverage_criteria": [
+        "Student can import and call train_test_split on features and labels.",
+        "Student can explain the purpose of test_size and random_state."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_022",
+      "label": "Standardization with StandardScaler",
+      "description": "How to standardize features by scaling them to have zero mean and unit variance using StandardScaler from sklearn.preprocessing, fitting on training data and transforming both train and test sets.",
+      "coverage_criteria": [
+        "Student can fit and transform data with StandardScaler.",
+        "Student can distinguish standardization from normalization."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_023",
+      "label": "Building an MLP for binary classification",
+      "description": "Constructing a Sequential model with Dense layers for binary classification: relu activation for hidden layers and sigmoid for the output layer.",
+      "coverage_criteria": [
+        "Student can create an MLP with the correct activation functions.",
+        "Student can explain why sigmoid is suitable for binary output."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_024",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "description": "Stacking Dense layers with relu activation, interspersed with Dropout for regularization, and ending with a softmax output layer for multi-class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used for multi-class output."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_025",
+      "label": "Building an MLP for regression",
+      "description": "Construct a regression neural network using Dense layers without activation on the output to predict continuous values.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_026",
+      "label": "Building a CNN in Keras",
+      "description": "Construct a convolutional neural network using Conv2D, Activation, MaxPooling2D, Dropout, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_027",
+      "label": "Building an RNN with LSTM",
+      "description": "Create a recurrent neural network by adding an Embedding layer and an LSTM layer with dropout, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr008_028",
+      "label": "Loading external data from a URL with NumPy",
+      "description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset from a URL and split it into feature matrix and target vector.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+      "lesson_title": "Rede Neural com Keras (Tensorflow)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_017",
+      "label": "Keras for Neural Networks",
+      "description": "Keras is a high-level TensorFlow API that simplifies neural network construction. The Sequential model allows stacking layers; Dense layers are fully-connected; the input_shape argument specifies input dimensions; activation functions (e.g., ReLU) are set per layer.",
+      "coverage_criteria": [
+        "Create a Keras Sequential model, add a Dense layer with a given number of neurons and activation, and specify input_shape."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

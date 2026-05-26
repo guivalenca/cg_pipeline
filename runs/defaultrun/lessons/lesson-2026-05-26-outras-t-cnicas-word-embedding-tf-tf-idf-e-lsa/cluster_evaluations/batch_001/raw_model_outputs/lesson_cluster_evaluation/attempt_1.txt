@@ -1,0 +1,134 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "One-Hot Encoding",
+      "description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_002"],
+      "merge_rationale": "This candidate fully covers the concept and stands alone."
+    },
+    {
+      "id": "lr002",
+      "label": "Count-Based Text Representations and Limitations",
+      "description": "Bag-of-Words and TF-IDF represent text by counting words (or n-grams) and weighting them by importance. Preprocessing steps like stemming and stop-word removal are common. These methods yield sparse vectors that ignore word context and cannot handle unknown words.",
+      "coverage_criteria": [
+        "Compute Bag-of-Words and TF-IDF vectors for a small corpus.",
+        "List at least two limitations of count-based representations.",
+        "Explain the purpose of stemming and stop-word removal in text preprocessing."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_003", "c72_pro_thinking_005", "c71_pro_thinking_004"],
+      "merge_rationale": "These candidates together describe count-based methods (BoW, TF-IDF), necessary preprocessing, and their shortcomings, forming a coherent unit that transitions into the need for dense embeddings."
+    },
+    {
+      "id": "lr003",
+      "label": "Word Embeddings as Dense Vectors",
+      "description": "Unlike sparse encodings, word embeddings are dense numerical vectors where each dimension captures latent features. They are lower-dimensional than the vocabulary and enable models to process semantic meaning efficiently.",
+      "coverage_criteria": [
+        "Define word embeddings and contrast them with sparse representations.",
+        "Explain why dense vectors are more efficient than one-hot vectors."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_001", "c71_pro_thinking_005"],
+      "merge_rationale": "Both candidates introduce embeddings: one gives the general definition, the other focuses on density. Together they provide a complete introductory concept."
+    },
+    {
+      "id": "lr004",
+      "label": "Semantic Similarity and Properties of Embedding Space",
+      "description": "In a distributional framework, words are similar if they share similar contexts. Embedding vectors place these words in a space where distance (e.g., cosine) reflects similarity. Well‑trained embeddings also exhibit clustering of related words and support analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain how word similarity is defined by context rather than spelling.",
+        "Given a 2D plot, identify which words are most similar based on distance.",
+        "Describe the analogy property of ideal embeddings with an example."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_006", "c71_pro_thinking_007", "c71_pro_thinking_008"],
+      "merge_rationale": "These three candidates build a narrative from contextual similarity to distance‑based similarity and finally the desired properties of clustering and analogies, making a cohesive teachable segment."
+    },
+    {
+      "id": "lr005",
+      "label": "Training a Custom Embedding Layer",
+      "description": "A neural network can include an embedding layer initialized randomly and trained end‑to‑end for a specific task, producing specialized word representations. This requires large amounts of data.",
+      "coverage_criteria": [
+        "Describe how a custom embedding layer is trained within a model.",
+        "State one advantage and one disadvantage of training embeddings from scratch."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_009"],
+      "merge_rationale": "The candidate covers the method succinctly and stands alone."
+    },
+    {
+      "id": "lr006",
+      "label": "Word2vec: CBOW and Skip‑gram Architectures",
+      "description": "Word2vec learns embeddings by training a shallow neural network on a prediction task: Continuous Bag‑of‑Words (CBOW) predicts a target word from context, while Skip‑gram predicts context words from a target word.",
+      "coverage_criteria": [
+        "Differentiate CBOW and Skip‑gram and state what each predicts.",
+        "Explain how Word2vec creates dense word vectors from unlabeled text."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_010"],
+      "merge_rationale": "This candidate describes both architectures and forms a single well‑defined technique."
+    },
+    {
+      "id": "lr007",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe improves on Word2vec by leveraging a word co‑occurrence matrix, training vectors such that their dot product approximates the log of co‑occurrence probability, thereby incorporating global corpus statistics.",
+      "coverage_criteria": [
+        "Explain how GloVe differs from Word2vec regarding global information.",
+        "Describe the role of the co‑occurrence matrix in GloVe."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_011"],
+      "merge_rationale": "This candidate specifically addresses GloVe and its unique mechanism; no other candidates cover it."
+    },
+    {
+      "id": "lr008",
+      "label": "fastText: Subword Embeddings",
+      "description": "fastText represents each word as the sum of its character n‑gram embeddings, allowing it to build vectors for out‑of‑vocabulary words and handle morphologically rich languages.",
+      "coverage_criteria": [
+        "Explain how fastText’s subword approach addresses the out‑of‑vocabulary problem.",
+        "Describe the difference between Word2vec and fastText regarding word representation."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_012"],
+      "merge_rationale": "This candidate fully covers the fastText method and its benefits."
+    },
+    {
+      "id": "lr009",
+      "label": "ELMo: Contextualized Word Embeddings",
+      "description": "ELMo uses a bidirectional LSTM to produce word vectors that depend on the entire input sentence, allowing the same word to have different representations in different contexts (e.g., homonyms).",
+      "coverage_criteria": [
+        "Explain why ELMo provides different embeddings for the same word in different sentences.",
+        "Describe the advantage of context‑dependent over static word embeddings."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_013"],
+      "merge_rationale": "This candidate is the only one covering ELMo and stands alone."
+    },
+    {
+      "id": "lr010",
+      "label": "Using Pre‑trained Word Embeddings",
+      "description": "Pre‑trained word vectors can be used in two ways: as static features (fixed during downstream training) or fine‑tuned (adjusted to the task). The Gensim library provides convenient access to pre‑trained models (Word2vec, GloVe, fastText) and similarity operations.",
+      "coverage_criteria": [
+        "List and describe the two modes of using pre‑trained embeddings.",
+        "Write code to load a pre‑trained model from Gensim and find similar words."
+      ],
+      "source_candidate_ids": ["c71_pro_thinking_014", "c71_pro_thinking_015"],
+      "merge_rationale": "c014 covers the theoretical usage modes, while c015 demonstrates a practical tool (Gensim) for working with pre‑trained embeddings; together they form a complete practical concept."
+    }
+  ],
+  "candidate_assignments": [
+    { "candidate_id": "c71_pro_thinking_001", "status": "used_in", "accepted_ids": ["lr003"] },
+    { "candidate_id": "c71_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr003"] },
+    { "candidate_id": "c71_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr001"] },
+    { "candidate_id": "c71_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr002"] },
+    { "candidate_id": "c72_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr002"] },
+    { "candidate_id": "c71_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr002"] },
+    { "candidate_id": "c71_pro_thinking_006", "status": "used_in", "accepted_ids": ["lr004"] },
+    { "candidate_id": "c71_pro_thinking_007", "status": "used_in", "accepted_ids": ["lr004"] },
+    { "candidate_id": "c71_pro_thinking_008", "status": "used_in", "accepted_ids": ["lr004"] },
+    { "candidate_id": "c71_pro_thinking_009", "status": "used_in", "accepted_ids": ["lr005"] },
+    { "candidate_id": "c71_pro_thinking_010", "status": "used_in", "accepted_ids": ["lr006"] },
+    { "candidate_id": "c71_pro_thinking_011", "status": "used_in", "accepted_ids": ["lr007"] },
+    { "candidate_id": "c71_pro_thinking_012", "status": "used_in", "accepted_ids": ["lr008"] },
+    { "candidate_id": "c71_pro_thinking_013", "status": "used_in", "accepted_ids": ["lr009"] },
+    { "candidate_id": "c71_pro_thinking_014", "status": "used_in", "accepted_ids": ["lr010"] },
+    { "candidate_id": "c71_pro_thinking_015", "status": "used_in", "accepted_ids": ["lr010"] }
+  ]
+}

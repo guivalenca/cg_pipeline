@@ -1,0 +1,457 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:53:30.559169+00:00",
+  "scope_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c72_pro_thinking_001",
+    "c72_pro_thinking_002",
+    "c72_pro_thinking_003",
+    "c72_pro_thinking_004",
+    "c73_pro_thinking_001",
+    "c73_pro_thinking_008",
+    "c72_pro_thinking_006",
+    "c72_pro_thinking_007",
+    "c73_pro_thinking_005",
+    "c73_pro_thinking_006",
+    "c72_pro_thinking_008",
+    "c73_pro_thinking_002",
+    "c73_pro_thinking_003",
+    "c73_pro_thinking_004",
+    "c73_pro_thinking_007",
+    "c74_pro_thinking_001",
+    "c74_pro_thinking_002",
+    "c74_pro_thinking_003",
+    "c74_pro_thinking_004",
+    "c75_pro_thinking_001",
+    "c75_pro_thinking_002",
+    "c75_pro_thinking_003",
+    "c75_pro_thinking_004",
+    "c75_pro_thinking_005"
+  ],
+  "accepted": [
+    {
+      "id": "ac_001",
+      "label": "TF-IDF Definition and Computation",
+      "description": "TF-IDF is a statistical measure of word relevance in a document corpus, computed as the product of Term Frequency (TF) and Inverse Document Frequency (IDF). TF measures how often a term appears in a document, normalized by document length. IDF measures how rare a term is across the corpus, using log(N/df). The product gives a weight that highlights terms that are frequent in a specific document but rare overall, yielding document feature vectors.",
+      "coverage_criteria": [
+        "Define TF-IDF and its purpose.",
+        "Calculate TF, IDF, and TF-IDF for a given term in a small corpus."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_001",
+        "c72_pro_thinking_002",
+        "c72_pro_thinking_003",
+        "c72_pro_thinking_004",
+        "c73_pro_thinking_001",
+        "c73_pro_thinking_008"
+      ],
+      "merge_rationale": "All candidates describe the same core idea: the definition, components, and arithmetic of TF-IDF."
+    },
+    {
+      "id": "ac_002",
+      "label": "TF-IDF Output: Document Vectors and Applications",
+      "description": "After computing TF-IDF for all terms, each document is represented as a weighted term vector, where high weights indicate discriminative terms. These document vectors are used in data mining tasks such as classification, clustering, and information retrieval, especially document search.",
+      "coverage_criteria": [
+        "Explain how TF-IDF transforms documents into feature vectors.",
+        "List at least three applications of TF-IDF in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_006",
+        "c72_pro_thinking_007",
+        "c73_pro_thinking_005",
+        "c73_pro_thinking_006"
+      ],
+      "merge_rationale": "All candidates cover the output representation and practical uses of TF-IDF."
+    },
+    {
+      "id": "ac_003",
+      "label": "TF-IDF Discriminative Power and Comparison with Bag of Words",
+      "description": "TF-IDF assigns higher weights to terms that appear frequently in a specific document but rarely across the corpus, making them discriminative features. A term that appears in every document gets IDF=0 and thus TF-IDF=0, meaning it has no discriminative power. This contrasts with Bag of Words, which merely counts occurrences and does not differentiate important terms from common ones.",
+      "coverage_criteria": [
+        "Explain why a word with IDF=0 is not useful for distinguishing documents.",
+        "Describe the key difference between Bag of Words and TF-IDF."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_008",
+        "c73_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates address the weighting behavior of TF-IDF and its advantage over simple counts, covering the special case of zero IDF."
+    },
+    {
+      "id": "ac_004",
+      "label": "Implementing TF-IDF with Scikit-learn: TfidfVectorizer and Preprocessing",
+      "description": "In Python, TF-IDF can be computed using TfidfVectorizer from sklearn. This requires preparing text by splitting into documents (e.g., splitlines) and optionally removing stopwords using NLTK's stopwords list, passed to the stop_words parameter. The fit_transform method returns a TF-IDF matrix.",
+      "coverage_criteria": [
+        "Write code to import TfidfVectorizer, include stopwords from NLTK, and fit_transform a list of documents."
+      ],
+      "source_candidate_ids": [
+        "c73_pro_thinking_003",
+        "c73_pro_thinking_004",
+        "c73_pro_thinking_007"
+      ],
+      "merge_rationale": "All candidates describe practical steps for implementing TF-IDF in Python with scikit-learn: using the vectorizer, stopword removal, and document splitting."
+    },
+    {
+      "id": "ac_005",
+      "label": "NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "description": "In NLP, a document is a single data instance (e.g., a paragraph, tweet). The body (or corpus) is the collection of all documents. The dictionary is the set of all unique words occurring in at least one document. A topic is a collection of co-occurring words that represent a theme.",
+      "coverage_criteria": [
+        "Define the terms document, body (corpus), dictionary, and topic in NLP."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_001"
+      ],
+      "merge_rationale": "This candidate introduces the fundamental NLP vocabulary needed for understanding text representation methods."
+    },
+    {
+      "id": "ac_006",
+      "label": "Latent Semantic Analysis (LSA) Definition",
+      "description": "LSA is an unsupervised NLP technique that discovers latent topics in a corpus by applying dimensionality reduction (via SVD) to the document-term matrix, yielding lower-dimensional encodings of documents as combinations of topics.",
+      "coverage_criteria": [
+        "Explain what LSA is and its purpose in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate provides the core definition of LSA."
+    },
+    {
+      "id": "ac_007",
+      "label": "Document-Term Matrix in LSA",
+      "description": "A document-term matrix is a representation where rows correspond to documents, columns to dictionary words, and cells indicate word presence or frequency. It serves as the input to SVD in LSA.",
+      "coverage_criteria": [
+        "Describe the structure of a document-term matrix."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_003"
+      ],
+      "merge_rationale": "This candidate explains the matrix representation that LSA builds upon."
+    },
+    {
+      "id": "ac_008",
+      "label": "Singular Value Decomposition (SVD) in LSA",
+      "description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce its dimensionality and extract latent topics, analogous to PCA. This transforms the high-dimensional word space into a lower-dimensional topic space.",
+      "coverage_criteria": [
+        "State the role of SVD in LSA and its analogy to PCA."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_004"
+      ],
+      "merge_rationale": "This candidate focuses on the SVD step that gives LSA its latent topic discovery capability."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "ac_001",
+      "label": "TF-IDF Definition and Computation",
+      "description": "TF-IDF is a statistical measure of word relevance in a document corpus, computed as the product of Term Frequency (TF) and Inverse Document Frequency (IDF). TF measures how often a term appears in a document, normalized by document length. IDF measures how rare a term is across the corpus, using log(N/df). The product gives a weight that highlights terms that are frequent in a specific document but rare overall, yielding document feature vectors.",
+      "coverage_criteria": [
+        "Define TF-IDF and its purpose.",
+        "Calculate TF, IDF, and TF-IDF for a given term in a small corpus."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_001",
+        "c72_pro_thinking_002",
+        "c72_pro_thinking_003",
+        "c72_pro_thinking_004",
+        "c73_pro_thinking_001",
+        "c73_pro_thinking_008"
+      ],
+      "merge_rationale": "All candidates describe the same core idea: the definition, components, and arithmetic of TF-IDF."
+    },
+    {
+      "id": "ac_002",
+      "label": "TF-IDF Output: Document Vectors and Applications",
+      "description": "After computing TF-IDF for all terms, each document is represented as a weighted term vector, where high weights indicate discriminative terms. These document vectors are used in data mining tasks such as classification, clustering, and information retrieval, especially document search.",
+      "coverage_criteria": [
+        "Explain how TF-IDF transforms documents into feature vectors.",
+        "List at least three applications of TF-IDF in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_006",
+        "c72_pro_thinking_007",
+        "c73_pro_thinking_005",
+        "c73_pro_thinking_006"
+      ],
+      "merge_rationale": "All candidates cover the output representation and practical uses of TF-IDF."
+    },
+    {
+      "id": "ac_003",
+      "label": "TF-IDF Discriminative Power and Comparison with Bag of Words",
+      "description": "TF-IDF assigns higher weights to terms that appear frequently in a specific document but rarely across the corpus, making them discriminative features. A term that appears in every document gets IDF=0 and thus TF-IDF=0, meaning it has no discriminative power. This contrasts with Bag of Words, which merely counts occurrences and does not differentiate important terms from common ones.",
+      "coverage_criteria": [
+        "Explain why a word with IDF=0 is not useful for distinguishing documents.",
+        "Describe the key difference between Bag of Words and TF-IDF."
+      ],
+      "source_candidate_ids": [
+        "c72_pro_thinking_008",
+        "c73_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates address the weighting behavior of TF-IDF and its advantage over simple counts, covering the special case of zero IDF."
+    },
+    {
+      "id": "ac_004",
+      "label": "Implementing TF-IDF with Scikit-learn: TfidfVectorizer and Preprocessing",
+      "description": "In Python, TF-IDF can be computed using TfidfVectorizer from sklearn. This requires preparing text by splitting into documents (e.g., splitlines) and optionally removing stopwords using NLTK's stopwords list, passed to the stop_words parameter. The fit_transform method returns a TF-IDF matrix.",
+      "coverage_criteria": [
+        "Write code to import TfidfVectorizer, include stopwords from NLTK, and fit_transform a list of documents."
+      ],
+      "source_candidate_ids": [
+        "c73_pro_thinking_003",
+        "c73_pro_thinking_004",
+        "c73_pro_thinking_007"
+      ],
+      "merge_rationale": "All candidates describe practical steps for implementing TF-IDF in Python with scikit-learn: using the vectorizer, stopword removal, and document splitting."
+    },
+    {
+      "id": "ac_005",
+      "label": "NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "description": "In NLP, a document is a single data instance (e.g., a paragraph, tweet). The body (or corpus) is the collection of all documents. The dictionary is the set of all unique words occurring in at least one document. A topic is a collection of co-occurring words that represent a theme.",
+      "coverage_criteria": [
+        "Define the terms document, body (corpus), dictionary, and topic in NLP."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_001"
+      ],
+      "merge_rationale": "This candidate introduces the fundamental NLP vocabulary needed for understanding text representation methods."
+    },
+    {
+      "id": "ac_006",
+      "label": "Latent Semantic Analysis (LSA) Definition",
+      "description": "LSA is an unsupervised NLP technique that discovers latent topics in a corpus by applying dimensionality reduction (via SVD) to the document-term matrix, yielding lower-dimensional encodings of documents as combinations of topics.",
+      "coverage_criteria": [
+        "Explain what LSA is and its purpose in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate provides the core definition of LSA."
+    },
+    {
+      "id": "ac_007",
+      "label": "Document-Term Matrix in LSA",
+      "description": "A document-term matrix is a representation where rows correspond to documents, columns to dictionary words, and cells indicate word presence or frequency. It serves as the input to SVD in LSA.",
+      "coverage_criteria": [
+        "Describe the structure of a document-term matrix."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_003"
+      ],
+      "merge_rationale": "This candidate explains the matrix representation that LSA builds upon."
+    },
+    {
+      "id": "ac_008",
+      "label": "Singular Value Decomposition (SVD) in LSA",
+      "description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce its dimensionality and extract latent topics, analogous to PCA. This transforms the high-dimensional word space into a lower-dimensional topic space.",
+      "coverage_criteria": [
+        "State the role of SVD in LSA and its analogy to PCA."
+      ],
+      "source_candidate_ids": [
+        "c74_pro_thinking_004"
+      ],
+      "merge_rationale": "This candidate focuses on the SVD step that gives LSA its latent topic discovery capability."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c72_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_001"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_002"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_002"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_002"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_002"
+      ]
+    },
+    {
+      "candidate_id": "c72_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_003"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_003"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_004"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_004"
+      ]
+    },
+    {
+      "candidate_id": "c73_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_004"
+      ]
+    },
+    {
+      "candidate_id": "c74_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_005"
+      ]
+    },
+    {
+      "candidate_id": "c74_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_006"
+      ]
+    },
+    {
+      "candidate_id": "c74_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_007"
+      ]
+    },
+    {
+      "candidate_id": "c74_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "ac_008"
+      ]
+    },
+    {
+      "candidate_id": "c75_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The candidate describes entity-level sentiment analysis, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA as implied by the lesson title 'Outras técnicas: Word Embedding, TF, TF-IDF e LSA'. It is off-topic and does not contribute to the lesson's core techniques."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The candidate describes sentiment classes (positive, negative, neutral) for a specific dataset, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The candidate describes dataset split and evaluation metric, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The candidate mentions the dataset license (CC0), which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The candidate is about a Twitter sentiment analysis dataset, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c75_pro_thinking_001",
+      "reason": "unrelated",
+      "explanation": "The candidate describes entity-level sentiment analysis, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA as implied by the lesson title 'Outras técnicas: Word Embedding, TF, TF-IDF e LSA'. It is off-topic and does not contribute to the lesson's core techniques."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_002",
+      "reason": "unrelated",
+      "explanation": "The candidate describes sentiment classes (positive, negative, neutral) for a specific dataset, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_003",
+      "reason": "unrelated",
+      "explanation": "The candidate describes dataset split and evaluation metric, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "The candidate mentions the dataset license (CC0), which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c75_pro_thinking_005",
+      "reason": "unrelated",
+      "explanation": "The candidate is about a Twitter sentiment analysis dataset, which is not a teachable concept about word embedding, TF, TF-IDF, or LSA. It is off-topic for this lesson."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 24,
+    "accepted_count": 8,
+    "pruned_count": 5,
+    "candidate_assignment_count": 24,
+    "review_count": 0
+  }
+}

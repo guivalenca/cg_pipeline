@@ -1,0 +1,1177 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:59:08.359203+00:00",
+  "scope_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c28_pro_thinking_001",
+    "c28_pro_thinking_002",
+    "c28_pro_thinking_003",
+    "c28_pro_thinking_004",
+    "c28_pro_thinking_005",
+    "c28_pro_thinking_006",
+    "c28_pro_thinking_007",
+    "c28_pro_thinking_008",
+    "c28_pro_thinking_009",
+    "c28_pro_thinking_010",
+    "c28_pro_thinking_011",
+    "c28_pro_thinking_012",
+    "c28_pro_thinking_013",
+    "c28_pro_thinking_014",
+    "c28_pro_thinking_015",
+    "c28_pro_thinking_016",
+    "c28_pro_thinking_017",
+    "c29_pro_thinking_001",
+    "c29_pro_thinking_002",
+    "c29_pro_thinking_003",
+    "c29_pro_thinking_004",
+    "c30_pro_thinking_001",
+    "c30_pro_thinking_002",
+    "c30_pro_thinking_003",
+    "c30_pro_thinking_004",
+    "c30_pro_thinking_005",
+    "c30_pro_thinking_006",
+    "c30_pro_thinking_007",
+    "c30_pro_thinking_008",
+    "c30_pro_thinking_009",
+    "c30_pro_thinking_010",
+    "c31_pro_thinking_001",
+    "c31_pro_thinking_002",
+    "c31_pro_thinking_003",
+    "c31_pro_thinking_004",
+    "c31_pro_thinking_005",
+    "c31_pro_thinking_006",
+    "c31_pro_thinking_007",
+    "c31_pro_thinking_008",
+    "c31_pro_thinking_009",
+    "c31_pro_thinking_010",
+    "c32_pro_thinking_001",
+    "c32_pro_thinking_002",
+    "c32_pro_thinking_003",
+    "c32_pro_thinking_004",
+    "c32_pro_thinking_005",
+    "c32_pro_thinking_006",
+    "c32_pro_thinking_007",
+    "c32_pro_thinking_008",
+    "c32_pro_thinking_009",
+    "c32_pro_thinking_010",
+    "c32_pro_thinking_011"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Loading and exploring NLTK's Portuguese text corpora",
+      "description": "How to import and access NLTK's built-in Portuguese corpora, including the examples module, Machado de Assis works, and the MacMorpho tagged corpus, to retrieve text, words, and tagged words.",
+      "coverage_criteria": [
+        "Imports a Portuguese corpus like nltk.corpus.machado.",
+        "Lists file IDs and retrieves raw text or words for a file.",
+        "For MacMorpho, accesses tagged_words and distinguishes between words and tagged tokens."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_001",
+        "c28_pro_thinking_011",
+        "c28_pro_thinking_013"
+      ],
+      "merge_rationale": "These candidates all demonstrate the same pattern of importing a specific NLTK corpus and querying its contents, differing mainly in the corpus name and whether tags are present. They collectively teach how to access Portuguese language resources."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Working with the Floresta treebank",
+      "description": "How to access the Floresta Portuguese treebank, simplify its complex part-of-speech tags, and retrieve parsed syntactic trees.",
+      "coverage_criteria": [
+        "Imports nltk.corpus.floresta and lists words or tagged words.",
+        "Writes a function to simplify tags (e.g., 'H+n' to 'n').",
+        "Accesses parsed_sents() and can explain that they represent syntactic structure."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_014",
+        "c28_pro_thinking_015"
+      ],
+      "merge_rationale": "Both candidates focus on the same treebank, teaching complementary aspects: tag manipulation and parsed sentence access."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Searching text with NLTK's built-in and regex methods",
+      "description": "Using NLTK's concordance, similar, collocations, and findall with regex to locate words and analyze their contexts.",
+      "coverage_criteria": [
+        "Uses concordance() to display a word in context.",
+        "Uses similar() to find words with similar distribution.",
+        "Uses collocations() to extract frequent multi-word expressions.",
+        "Applies findall() with a regex pattern to search text."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_002",
+        "c28_pro_thinking_003",
+        "c28_pro_thinking_004",
+        "c28_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates cover different search tools in NLTK that together form a coherent set of methods for exploring text content, from simple concordances to regex pattern matching."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Tokenization with NLTK",
+      "description": "Understanding tokenization as converting text into a list of words and punctuation, and using nltk.word_tokenize for better handling of contractions than simple regex splitting.",
+      "coverage_criteria": [
+        "Recognizes that NLTK represents tokenized text as a list of string tokens.",
+        "Uses nltk.word_tokenize to split a sentence with contractions and explains why it is advantageous."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_007",
+        "c29_pro_thinking_001"
+      ],
+      "merge_rationale": "These two candidates cover the concept of tokenization from both a representational perspective and a specific function that improves tokenization quality."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Analyzing tokenized text with NLTK and Python",
+      "description": "Performing basic text analysis operations on tokenized lists, including extracting unique vocabulary, filtering/transforming tokens with list comprehensions, computing frequency distributions, and finding n-grams containing a target word.",
+      "coverage_criteria": [
+        "Uses set() and sorted() to obtain the unique vocabulary of a tokenized text.",
+        "Writes a list comprehension to filter tokens by length or case.",
+        "Creates a FreqDist and retrieves the most frequent words.",
+        "Generates n-grams and filters those containing a specific word, displaying the most frequent."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_008",
+        "c28_pro_thinking_009",
+        "c28_pro_thinking_010",
+        "c28_pro_thinking_012"
+      ],
+      "merge_rationale": "These candidates represent a sequence of progressively advanced manipulations on token lists, all essential for exploratory text analysis."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "description": "Awareness that many Portuguese text resources use ISO 8859-1 encoding and how to decode such text in Python when reading files.",
+      "coverage_criteria": [
+        "Explains why specifying encoding is necessary when opening Portuguese text files.",
+        "Decodes bytes using 'ISO 8859-1' encoding in Python."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_016"
+      ],
+      "merge_rationale": "This candidate is a standalone practical detail about text encoding that is specific to Portuguese character sets."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Implementing a custom concordance tool",
+      "description": "Writing a Python function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Defines a function that takes a word and context width, iterates over tokenized sentences, and prints formatted concordance lines."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_017"
+      ],
+      "merge_rationale": "This candidate is a self-contained programming task that deepens understanding of text indexing and formatting."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Stemming with Porter Stemmer in NLTK",
+      "description": "Using the Porter Stemmer algorithm to reduce words to their stems through rule-based suffix stripping.",
+      "coverage_criteria": [
+        "Applies PorterStemmer to a list of words and observes the stemmed outputs.",
+        "Explains that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate covers a specific stemming algorithm, which is a fundamental text normalization technique."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK stemming with Snowball."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK lemmatization."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_001",
+        "c30_pro_thinking_002",
+        "c31_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates cover the practical steps of initializing spaCy, processing text, and understanding the resulting document structure, along with the concept of tokenization. They form a single foundational workflow."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Using lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone technique for lexical pattern detection."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_004",
+        "c30_pro_thinking_005",
+        "c31_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates all relate to the nature and usage of pre-trained spaCy models: what they contain, how to load them, and the different types available."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate; focused on two specific annotation types that are commonly used together."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Named entity recognition and manual correction",
+      "description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_007",
+        "c30_pro_thinking_008"
+      ],
+      "merge_rationale": "Manual correction is a practical complement to NER; teaching them together gives a complete view of entity handling."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Rule-based matching with Matcher",
+      "description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_009",
+        "c30_pro_thinking_010"
+      ],
+      "merge_rationale": "Basic and complex pattern writing are a natural progression of the same tool; they form one concept of using Matcher for rule-based matching."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Introduction to Natural Language Processing (NLP)",
+      "description": "NLP is the field of making computers understand natural language, relying on statistical approximations; applications include information extraction and chatbots.",
+      "coverage_criteria": [
+        "Explain that NLP deals with understanding natural language by machines.",
+        "Mention that approaches are statistical and approximate.",
+        "Give examples of applications such as document information extraction or chatbots."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate; foundational concept providing context for text processing tools."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate; library overview necessary before using spaCy."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_005"
+      ],
+      "merge_rationale": "Conceito individual representando os contêineres básicos do spaCy."
+    },
+    {
+      "id": "batch_003__lr002",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_006"
+      ],
+      "merge_rationale": "Conceito individual sobre atributos básicos de tokens no spaCy."
+    },
+    {
+      "id": "batch_003__lr003",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_007"
+      ],
+      "merge_rationale": "Conceito individual sobre análise gramatical com spaCy."
+    },
+    {
+      "id": "batch_003__lr004",
+      "label": "Lematização – redução à forma canônica",
+      "description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_008"
+      ],
+      "merge_rationale": "Conceito individual sobre lematização no spaCy."
+    },
+    {
+      "id": "batch_003__lr005",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito individual sobre análise sintática com spaCy."
+    },
+    {
+      "id": "batch_003__lr006",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_010"
+      ],
+      "merge_rationale": "Conceito individual sobre NER no spaCy."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Loading and exploring NLTK's Portuguese text corpora",
+      "description": "How to import and access NLTK's built-in Portuguese corpora, including the examples module, Machado de Assis works, and the MacMorpho tagged corpus, to retrieve text, words, and tagged words.",
+      "coverage_criteria": [
+        "Imports a Portuguese corpus like nltk.corpus.machado.",
+        "Lists file IDs and retrieves raw text or words for a file.",
+        "For MacMorpho, accesses tagged_words and distinguishes between words and tagged tokens."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_001",
+        "c28_pro_thinking_011",
+        "c28_pro_thinking_013"
+      ],
+      "merge_rationale": "These candidates all demonstrate the same pattern of importing a specific NLTK corpus and querying its contents, differing mainly in the corpus name and whether tags are present. They collectively teach how to access Portuguese language resources."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Working with the Floresta treebank",
+      "description": "How to access the Floresta Portuguese treebank, simplify its complex part-of-speech tags, and retrieve parsed syntactic trees.",
+      "coverage_criteria": [
+        "Imports nltk.corpus.floresta and lists words or tagged words.",
+        "Writes a function to simplify tags (e.g., 'H+n' to 'n').",
+        "Accesses parsed_sents() and can explain that they represent syntactic structure."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_014",
+        "c28_pro_thinking_015"
+      ],
+      "merge_rationale": "Both candidates focus on the same treebank, teaching complementary aspects: tag manipulation and parsed sentence access."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Searching text with NLTK's built-in and regex methods",
+      "description": "Using NLTK's concordance, similar, collocations, and findall with regex to locate words and analyze their contexts.",
+      "coverage_criteria": [
+        "Uses concordance() to display a word in context.",
+        "Uses similar() to find words with similar distribution.",
+        "Uses collocations() to extract frequent multi-word expressions.",
+        "Applies findall() with a regex pattern to search text."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_002",
+        "c28_pro_thinking_003",
+        "c28_pro_thinking_004",
+        "c28_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates cover different search tools in NLTK that together form a coherent set of methods for exploring text content, from simple concordances to regex pattern matching."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Tokenization with NLTK",
+      "description": "Understanding tokenization as converting text into a list of words and punctuation, and using nltk.word_tokenize for better handling of contractions than simple regex splitting.",
+      "coverage_criteria": [
+        "Recognizes that NLTK represents tokenized text as a list of string tokens.",
+        "Uses nltk.word_tokenize to split a sentence with contractions and explains why it is advantageous."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_007",
+        "c29_pro_thinking_001"
+      ],
+      "merge_rationale": "These two candidates cover the concept of tokenization from both a representational perspective and a specific function that improves tokenization quality."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Analyzing tokenized text with NLTK and Python",
+      "description": "Performing basic text analysis operations on tokenized lists, including extracting unique vocabulary, filtering/transforming tokens with list comprehensions, computing frequency distributions, and finding n-grams containing a target word.",
+      "coverage_criteria": [
+        "Uses set() and sorted() to obtain the unique vocabulary of a tokenized text.",
+        "Writes a list comprehension to filter tokens by length or case.",
+        "Creates a FreqDist and retrieves the most frequent words.",
+        "Generates n-grams and filters those containing a specific word, displaying the most frequent."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_008",
+        "c28_pro_thinking_009",
+        "c28_pro_thinking_010",
+        "c28_pro_thinking_012"
+      ],
+      "merge_rationale": "These candidates represent a sequence of progressively advanced manipulations on token lists, all essential for exploratory text analysis."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "description": "Awareness that many Portuguese text resources use ISO 8859-1 encoding and how to decode such text in Python when reading files.",
+      "coverage_criteria": [
+        "Explains why specifying encoding is necessary when opening Portuguese text files.",
+        "Decodes bytes using 'ISO 8859-1' encoding in Python."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_016"
+      ],
+      "merge_rationale": "This candidate is a standalone practical detail about text encoding that is specific to Portuguese character sets."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Implementing a custom concordance tool",
+      "description": "Writing a Python function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Defines a function that takes a word and context width, iterates over tokenized sentences, and prints formatted concordance lines."
+      ],
+      "source_candidate_ids": [
+        "c28_pro_thinking_017"
+      ],
+      "merge_rationale": "This candidate is a self-contained programming task that deepens understanding of text indexing and formatting."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Stemming with Porter Stemmer in NLTK",
+      "description": "Using the Porter Stemmer algorithm to reduce words to their stems through rule-based suffix stripping.",
+      "coverage_criteria": [
+        "Applies PorterStemmer to a list of words and observes the stemmed outputs.",
+        "Explains that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate covers a specific stemming algorithm, which is a fundamental text normalization technique."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK stemming with Snowball."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK lemmatization."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_001",
+        "c30_pro_thinking_002",
+        "c31_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates cover the practical steps of initializing spaCy, processing text, and understanding the resulting document structure, along with the concept of tokenization. They form a single foundational workflow."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Using lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone technique for lexical pattern detection."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_004",
+        "c30_pro_thinking_005",
+        "c31_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates all relate to the nature and usage of pre-trained spaCy models: what they contain, how to load them, and the different types available."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate; focused on two specific annotation types that are commonly used together."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Named entity recognition and manual correction",
+      "description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_007",
+        "c30_pro_thinking_008"
+      ],
+      "merge_rationale": "Manual correction is a practical complement to NER; teaching them together gives a complete view of entity handling."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Rule-based matching with Matcher",
+      "description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_009",
+        "c30_pro_thinking_010"
+      ],
+      "merge_rationale": "Basic and complex pattern writing are a natural progression of the same tool; they form one concept of using Matcher for rule-based matching."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Introduction to Natural Language Processing (NLP)",
+      "description": "NLP is the field of making computers understand natural language, relying on statistical approximations; applications include information extraction and chatbots.",
+      "coverage_criteria": [
+        "Explain that NLP deals with understanding natural language by machines.",
+        "Mention that approaches are statistical and approximate.",
+        "Give examples of applications such as document information extraction or chatbots."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate; foundational concept providing context for text processing tools."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate; library overview necessary before using spaCy."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_005"
+      ],
+      "merge_rationale": "Conceito individual representando os contêineres básicos do spaCy."
+    },
+    {
+      "id": "batch_003__lr002",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_006"
+      ],
+      "merge_rationale": "Conceito individual sobre atributos básicos de tokens no spaCy."
+    },
+    {
+      "id": "batch_003__lr003",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_007"
+      ],
+      "merge_rationale": "Conceito individual sobre análise gramatical com spaCy."
+    },
+    {
+      "id": "batch_003__lr004",
+      "label": "Lematização – redução à forma canônica",
+      "description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_008"
+      ],
+      "merge_rationale": "Conceito individual sobre lematização no spaCy."
+    },
+    {
+      "id": "batch_003__lr005",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito individual sobre análise sintática com spaCy."
+    },
+    {
+      "id": "batch_003__lr006",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_010"
+      ],
+      "merge_rationale": "Conceito individual sobre NER no spaCy."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c28_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_017",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_006",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Random text generation with generate() is a minor, non-essential feature that does not significantly contribute to the core text manipulation skills taught in this lesson."
+    },
+    {
+      "candidate_id": "c29_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c32_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre copyright padrão em repositórios, não relacionado à manipulação de texto com NLTK/spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre a ferramenta choosealicense.com, irrelevante para o foco da aula em bibliotecas de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre localização convencional de arquivos de licença, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre os Termos de Serviço do GitHub para repositórios públicos, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre filtro de busca por licença no GitHub, não relacionado ao processamento de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_006",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre busca por famílias de licenças, sem conexão com as bibliotecas NLTK ou spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre detecção automatizada de licenças com Licensee, não contribui para o ensino de manipulação de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_008",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre o seletor de licenças ao criar repositório, irrelevante para o objetivo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_009",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre adicionar licença manualmente pelo navegador, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_010",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre aviso de que informações de licenciamento não são aconselhamento jurídico, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_011",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre forks sobreviverem à mudança de visibilidade do repositório, não relacionado a NLTK/spaCy."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c28_pro_thinking_006",
+      "reason": "low_teaching_value",
+      "explanation": "Random text generation with generate() is a minor, non-essential feature that does not significantly contribute to the core text manipulation skills taught in this lesson."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_001",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre copyright padrão em repositórios, não relacionado à manipulação de texto com NLTK/spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_002",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre a ferramenta choosealicense.com, irrelevante para o foco da aula em bibliotecas de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_003",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre localização convencional de arquivos de licença, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre os Termos de Serviço do GitHub para repositórios públicos, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_005",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre filtro de busca por licença no GitHub, não relacionado ao processamento de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_006",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre busca por famílias de licenças, sem conexão com as bibliotecas NLTK ou spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre detecção automatizada de licenças com Licensee, não contribui para o ensino de manipulação de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_008",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre o seletor de licenças ao criar repositório, irrelevante para o objetivo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_009",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre adicionar licença manualmente pelo navegador, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_010",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre aviso de que informações de licenciamento não são aconselhamento jurídico, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_011",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre forks sobreviverem à mudança de visibilidade do repositório, não relacionado a NLTK/spaCy."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 52,
+    "accepted_count": 24,
+    "pruned_count": 12,
+    "candidate_assignment_count": 52,
+    "review_count": 0
+  }
+}

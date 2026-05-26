@@ -1,0 +1,355 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+    "title": "Decision Making in Companies"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-three-types-of-organizational-decisions-d4991c82",
+      "label": "Three types of organizational decisions",
+      "teaching_description": "Organizations face big-bet, cross-cutting, and delegated decisions, each requiring different approaches for success.",
+      "coverage_criteria": [
+        "Define big-bet, cross-cutting, and delegated decisions and give examples."
+      ]
+    },
+    {
+      "concept_id": "concept-widespread-ineffectiveness-of-decision-making-time-e393027f",
+      "label": "Widespread ineffectiveness of decision-making time",
+      "teaching_description": "A majority of respondents spend over 30% of their time on decisions, but 61% say most of that time is used ineffectively, leading to large hidden costs for organizations.",
+      "coverage_criteria": [
+        "State the survey finding about time spent on decisions and the perceived ineffectiveness.",
+        "Explain why this ineffectiveness is costly for organizations."
+      ]
+    },
+    {
+      "concept_id": "concept-speed-and-quality-are-not-trade-offs-9f56b3f6",
+      "label": "Speed and quality are not trade-offs",
+      "teaching_description": "Faster organizational decisions tend to be higher in quality; companies do not need to sacrifice quality for speed.",
+      "coverage_criteria": [
+        "Explain the relationship between decision speed and quality found in the survey.",
+        "Distinguish this finding from the common assumption that speed reduces quality."
+      ]
+    },
+    {
+      "concept_id": "concept-foundational-practice-decide-at-the-right-level-7b99a339",
+      "label": "Foundational practice: decide at the right level",
+      "teaching_description": "Winning organizations delegate decisions to the appropriate level, often with fewer reporting layers, which increases speed and quality.",
+      "coverage_criteria": [
+        "Describe what it means to make decisions at the right level.",
+        "Connect this practice to flatter organizational structures."
+      ]
+    },
+    {
+      "concept_id": "concept-foundational-practice-focus-on-enterprise-level-value-e314e59b",
+      "label": "Foundational practice: focus on enterprise-level value",
+      "teaching_description": "Winning organizations align decisions with corporate strategy and allocate resources to high-value projects.",
+      "coverage_criteria": [
+        "Explain how enterprise value focus relates to decision success.",
+        "Give examples of aligning decisions with strategy."
+      ]
+    },
+    {
+      "concept_id": "concept-foundational-practice-get-commitment-from-stakeholders-14c3772a",
+      "label": "Foundational practice: get commitment from stakeholders",
+      "teaching_description": "Winning organizations build commitment to executing decisions by involving accountable stakeholders and ensuring a robust process.",
+      "coverage_criteria": [
+        "Describe how stakeholder commitment is achieved without requiring unanimity or slowing decisions.",
+        "Explain why commitment matters for execution."
+      ]
+    },
+    {
+      "concept_id": "concept-big-bet-best-practice-quality-of-debate-c1f1a488",
+      "label": "Big-bet best practice: quality of debate",
+      "teaching_description": "For big-bet decisions, winning organizations ensure high-quality debate by exploring alternatives, seeking disconfirming information, and using a devil’s advocate.",
+      "coverage_criteria": [
+        "List the three elements of high-quality debate for big bets.",
+        "Explain why rapid consensus without debate is not successful."
+      ]
+    },
+    {
+      "concept_id": "concept-cross-cutting-best-practice-meeting-process-and-coordination-523a4101",
+      "label": "Cross-cutting best practice: meeting process and coordination",
+      "teaching_description": "For cross-cutting decisions, winning organizations emphasize effective coordination among stakeholders and focus meeting time on the most critical issues.",
+      "coverage_criteria": [
+        "Identify the key success factors for cross-cutting decisions.",
+        "Explain why clearly defined roles alone are insufficient."
+      ]
+    },
+    {
+      "concept_id": "concept-delegated-decisions-best-practice-empowerment-fe0ccc93",
+      "label": "Delegated decisions best practice: empowerment",
+      "teaching_description": "For delegated decisions, winning organizations empower employees through coaching and providing space for safe failure, fostering ownership and a bias for action.",
+      "coverage_criteria": [
+        "List the key ingredients for empowering delegated decision making.",
+        "Distinguish empowerment from simply establishing clear roles or escalation guidelines."
+      ]
+    },
+    {
+      "concept_id": "concept-the-tyranny-of-metrics-faef25e2",
+      "label": "The Tyranny of Metrics",
+      "teaching_description": "A pitfall where quantitative targets and KPIs distort behavior, leading to unintended negative consequences that undermine the original goals.",
+      "coverage_criteria": [
+        "Explain the concept of 'tyranny of metrics' with an example.",
+        "Identify a situation where a metric might cause goal displacement.",
+        "Propose a safeguard to prevent metric-induced behavior distortion."
+      ]
+    },
+    {
+      "concept_id": "concept-misinterpreting-correlations-as-causation-089d4a80",
+      "label": "Misinterpreting Correlations as Causation",
+      "teaching_description": "The error of assuming that a statistical correlation between two variables implies a cause-and-effect relationship, without considering confounding factors.",
+      "coverage_criteria": [
+        "Define the difference between correlation and causation.",
+        "Provide an example where a correlation is mistakenly interpreted as causation.",
+        "Explain why rigorous causal analysis is important in data-driven decisions."
+      ]
+    },
+    {
+      "concept_id": "concept-overgeneralizing-from-limited-data-sets-6ca24ada",
+      "label": "Overgeneralizing from Limited Data Sets",
+      "teaching_description": "The risk of drawing broad conclusions from internal data sets that may not represent the full picture, leading to poor decisions when the data is extrapolated beyond its actual scope.",
+      "coverage_criteria": [
+        "Explain why a company's internal data may not reflect the entire market.",
+        "Identify a scenario where overgeneralizing from a limited data set led to a mistake.",
+        "Describe how to supplement internal data with external perspectives."
+      ]
+    },
+    {
+      "concept_id": "concept-filter-bubbles-and-confirmation-bias-in-data-teams-5afb213a",
+      "label": "Filter Bubbles and Confirmation Bias in Data Teams",
+      "teaching_description": "The tendency for data teams to only seek information that confirms their existing beliefs, creating an echo chamber that overlooks contradictory insights and black swan events.",
+      "coverage_criteria": [
+        "Define 'filter bubble' and 'confirmation bias' in the context of analytics.",
+        "Provide an example where a filter bubble led to flawed strategic planning.",
+        "Suggest a technique to counteract confirmation bias in data analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-losing-the-human-element-in-data-driven-decisions-63fc8aeb",
+      "label": "Losing the Human Element in Data-Driven Decisions",
+      "teaching_description": "The pitfall of overemphasizing quantitative data to the point where important human factors—such as skills, relationships, and cultural fit—are overlooked.",
+      "coverage_criteria": [
+        "Explain why data alone may fail to capture important human aspects of organizations.",
+        "Provide an example where an algorithm overlooked a qualified candidate due to a lack of demographic match.",
+        "Propose a method to blend quantitative data with qualitative human judgment."
+      ]
+    },
+    {
+      "concept_id": "concept-definition-and-properties-of-intuition-in-strategic-decision-making-fc1a80ff",
+      "label": "Definition and Properties of Intuition in Strategic Decision-Making",
+      "teaching_description": "Intuition is rapid, automatic, unconscious, and affectively charged, synthesizing experience and information to provide a holistic 'gut feeling' that guides decisions.",
+      "coverage_criteria": [
+        "Define intuition as described in the article, distinguishing it from rational analysis, instinct, insight, and guessing.",
+        "List the key properties: rapid, automatic, unconscious, affectively charged, holistic, based on experience."
+      ]
+    },
+    {
+      "concept_id": "concept-ceo-core-self-evaluations-as-a-trigger-for-intuition-use-86fe4ee5",
+      "label": "CEO Core Self-Evaluations as a Trigger for Intuition Use",
+      "teaching_description": "Executives with high core self-evaluations (self-esteem, self-efficacy, internal locus of control) are more confident relying on intuition. Hyper CSE can lead to unbridled intuition and risky decisions.",
+      "coverage_criteria": [
+        "Explain how core self-evaluations influence reliance on intuition.",
+        "Describe the concept of hyper core self-evaluations and its risks (hubris, unbridled intuition)."
+      ]
+    },
+    {
+      "concept_id": "concept-cognitive-style-and-cognitive-diversity-in-intuitive-decision-making-a7b9a044",
+      "label": "Cognitive Style and Cognitive Diversity in Intuitive Decision-Making",
+      "teaching_description": "The CEO's cognitive style (preference for intuition vs. analysis) shapes the team's decision process. Cognitive diversity in the TMT can check dominant intuition, promoting integration of perspectives.",
+      "coverage_criteria": [
+        "Explain how cognitive style influences the use of intuition in SDM.",
+        "Describe how cognitive diversity can serve as a check on excessive reliance on one person's intuition."
+      ]
+    },
+    {
+      "concept_id": "concept-expertise-as-a-driver-and-moderator-of-intuition-s-reliability-25681a2a",
+      "label": "Expertise as a Driver and Moderator of Intuition's Reliability",
+      "teaching_description": "Expertise, built through extensive experience and deliberate practice, enables accurate intuitive pattern recognition. Experts have more reliable gut feelings due to complex mental models.",
+      "coverage_criteria": [
+        "Explain why expertise enhances intuition reliability.",
+        "Articulate the journey from novice to expert reliance on intuition.",
+        "State that expertise derives from experience, deliberate practice, and feedback."
+      ]
+    },
+    {
+      "concept_id": "concept-decision-framing-and-familiarity-as-intuition-triggers-ab49ab71",
+      "label": "Decision Framing and Familiarity as Intuition Triggers",
+      "teaching_description": "Decisions framed as threats may trigger intuitive or analytical responses depending on firm size. Decision familiarity increases reliance on intuition because past experiences provide a basis for gut feel.",
+      "coverage_criteria": [
+        "Explain how decision framing influences intuition use differently in small vs. large firms.",
+        "Describe why familiarity with a decision type promotes intuitive decision-making."
+      ]
+    },
+    {
+      "concept_id": "concept-firm-level-factors-influencing-intuition-use-7ff5d614",
+      "label": "Firm-Level Factors Influencing Intuition Use",
+      "teaching_description": "Smaller firms allow more intuitive decision-making due to agility. Larger firms with heavy governance stifle intuition. Financial performance and slack resources affect the intuition-analysis balance.",
+      "coverage_criteria": [
+        "Explain how firm size affects the ability to act on intuition.",
+        "Discuss how financial performance and slack resources influence the balance between intuition and analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-team-power-structure-and-psychological-safety-as-moderators-of-intuition-10487c34",
+      "label": "Team Power Structure and Psychological Safety as Moderators of Intuition",
+      "teaching_description": "Centralized power enables one person's intuition to drive decisions but risks unbridled intuition. Psychological safety encourages sharing and challenging intuitions, fostering effective team intuitive processes.",
+      "coverage_criteria": [
+        "Explain how power centralization influences whose intuition prevails and the risk of unbridled intuition.",
+        "Define psychological safety and explain its role in facilitating intuitive judgment sharing."
+      ]
+    },
+    {
+      "concept_id": "concept-contextual-enhancers-of-intuition-effectiveness-e55ce59c",
+      "label": "Contextual Enhancers of Intuition Effectiveness",
+      "teaching_description": "Intuition is more effective under time pressure, high uncertainty, in M&A decisions (soft issues), and in dynamic or services industries where information is incomplete or change is rapid.",
+      "coverage_criteria": [
+        "List at least three contextual factors that enhance intuition effectiveness.",
+        "Explain why time pressure and uncertainty make intuition more valuable.",
+        "Give an example of why M&A decisions benefit from intuition."
+      ]
+    },
+    {
+      "concept_id": "concept-causes-of-intuitive-misses-in-strategic-decisions-d6995e9a",
+      "label": "Causes of Intuitive Misses in Strategic Decisions",
+      "teaching_description": "Intuition fails when there is excessive reliance without rational checking, dominant actor power centralization, lack of integration of diverse intuitions, or when applied to unfamiliar domains.",
+      "coverage_criteria": [
+        "Identify at least two reasons why intuitive misses occur.",
+        "Describe the danger of unbridled intuition in a centralized power structure.",
+        "Explain why intuition is less reliable in new market entry decisions."
+      ]
+    },
+    {
+      "concept_id": "concept-rational-decision-making-success-and-failure-conditions-3e60a293",
+      "label": "Rational Decision-Making: Success and Failure Conditions",
+      "teaching_description": "Rational processes excel in stable or hostile environments and when firms have resources for analysis. They can fail in dynamic environments, information overload, or when predicting human behavior.",
+      "coverage_criteria": [
+        "State when rational decision-making tends to be more effective.",
+        "Identify situations where excessive reliance on rationality leads to missed opportunities."
+      ]
+    },
+    {
+      "concept_id": "concept-practical-implications-for-improving-intuitive-decision-making-bb98a280",
+      "label": "Practical Implications for Improving Intuitive Decision-Making",
+      "teaching_description": "Organizations should develop intuitive awareness in education, encourage executives to embrace intuition mindfully, and foster expertise through deliberate practice and feedback.",
+      "coverage_criteria": [
+        "Summarize the three key practical implications: develop awareness, embrace intuition, develop expertise.",
+        "Give an example of a technique to develop intuitive awareness.",
+        "Explain why job mobility hampers expert intuition development."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Decision-making context: ineffectiveness and the speed-quality paradox",
+      "concept_ids": [
+        "concept-widespread-ineffectiveness-of-decision-making-time-e393027f",
+        "concept-speed-and-quality-are-not-trade-offs-9f56b3f6"
+      ]
+    },
+    {
+      "label": "Three types of organizational decisions",
+      "concept_ids": [
+        "concept-three-types-of-organizational-decisions-d4991c82"
+      ]
+    },
+    {
+      "label": "Foundational practices for effective decisions",
+      "concept_ids": [
+        "concept-foundational-practice-decide-at-the-right-level-7b99a339",
+        "concept-foundational-practice-focus-on-enterprise-level-value-e314e59b",
+        "concept-foundational-practice-get-commitment-from-stakeholders-14c3772a"
+      ]
+    },
+    {
+      "label": "Best practices for each decision type",
+      "concept_ids": [
+        "concept-big-bet-best-practice-quality-of-debate-c1f1a488",
+        "concept-cross-cutting-best-practice-meeting-process-and-coordination-523a4101",
+        "concept-delegated-decisions-best-practice-empowerment-fe0ccc93"
+      ]
+    },
+    {
+      "label": "Pitfalls in data-driven decision-making",
+      "concept_ids": [
+        "concept-the-tyranny-of-metrics-faef25e2",
+        "concept-misinterpreting-correlations-as-causation-089d4a80",
+        "concept-overgeneralizing-from-limited-data-sets-6ca24ada",
+        "concept-filter-bubbles-and-confirmation-bias-in-data-teams-5afb213a",
+        "concept-losing-the-human-element-in-data-driven-decisions-63fc8aeb"
+      ]
+    },
+    {
+      "label": "Introduction to intuition in strategic decision-making",
+      "concept_ids": [
+        "concept-definition-and-properties-of-intuition-in-strategic-decision-making-fc1a80ff"
+      ]
+    },
+    {
+      "label": "Individual and team factors influencing intuition use",
+      "concept_ids": [
+        "concept-ceo-core-self-evaluations-as-a-trigger-for-intuition-use-86fe4ee5",
+        "concept-expertise-as-a-driver-and-moderator-of-intuition-s-reliability-25681a2a",
+        "concept-cognitive-style-and-cognitive-diversity-in-intuitive-decision-making-a7b9a044"
+      ]
+    },
+    {
+      "label": "Situational and organizational triggers and moderators",
+      "concept_ids": [
+        "concept-decision-framing-and-familiarity-as-intuition-triggers-ab49ab71",
+        "concept-firm-level-factors-influencing-intuition-use-7ff5d614",
+        "concept-team-power-structure-and-psychological-safety-as-moderators-of-intuition-10487c34"
+      ]
+    },
+    {
+      "label": "When intuition works and when it fails",
+      "concept_ids": [
+        "concept-contextual-enhancers-of-intuition-effectiveness-e55ce59c",
+        "concept-causes-of-intuitive-misses-in-strategic-decisions-d6995e9a",
+        "concept-rational-decision-making-success-and-failure-conditions-3e60a293"
+      ]
+    },
+    {
+      "label": "Practical implications for improving intuitive decision-making",
+      "concept_ids": [
+        "concept-practical-implications-for-improving-intuitive-decision-making-bb98a280"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

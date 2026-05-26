@@ -1,0 +1,140 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe is an unsupervised learning algorithm for generating word embeddings by factorizing a word co-occurrence matrix, capturing global statistical information.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_candidate_ids": ["c67_pro_thinking_007"],
+      "merge_rationale": "Standalone concept; represents the GloVe embedding method introduced in the self-study."
+    },
+    {
+      "id": "lr002",
+      "label": "Implementing Feature Extraction in Python for NLP",
+      "description": "Practical implementation of NLP feature extraction pipelines using Python libraries such as scikit-learn, NLTK, and spaCy, including loading text data and applying methods like CountVectorizer.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction."
+      ],
+      "source_candidate_ids": ["m68_002"],
+      "merge_rationale": "Standalone concept covering the hands-on coding aspect of feature extraction, as indicated by lesson metadata emphasizing Python."
+    },
+    {
+      "id": "lr003",
+      "label": "Comparing Word Embedding and Feature Extraction Approaches for NLP",
+      "description": "Analyzing the differences between NLP systems built using pre-trained word embeddings (e.g., Word2Vec, GloVe) versus traditional feature extraction methods, including trade-offs in dimensionality, semantic capture, and model complexity.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ],
+      "source_candidate_ids": ["m68_003"],
+      "merge_rationale": "Standalone concept directly supported by the lesson description about comparing systems using embedding models and feature extraction models."
+    },
+    {
+      "id": "lr004",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_candidate_ids": ["m68_004"],
+      "merge_rationale": "Standalone concept aligning with the lesson objective of familiarization with Python API development."
+    },
+    {
+      "id": "lr005",
+      "label": "Creating a Basic Flask API Endpoint",
+      "description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ],
+      "source_candidate_ids": ["c69_pro_thinking_001", "c69_pro_thinking_005"],
+      "merge_rationale": "These two candidates together teach the core pattern of creating a Flask app and defining a route, which is the foundation for building a simple API. Merging avoids fragmentation of the basic Flask API creation step."
+    },
+    {
+      "id": "lr006",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ],
+      "source_candidate_ids": ["c69_pro_thinking_006", "c69_pro_thinking_008"],
+      "merge_rationale": "Dynamic URL variables and URL building are closely related patterns for managing dynamic endpoints and internal URL references; combining them creates a cohesive concept on handling flexible routing in Flask APIs."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c67_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "m68_002",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "m68_003",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "m68_004",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c69_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Represents the minimal app setup part; merged with route definition to form the basic API endpoint concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Represents the route definition part; merged with minimal app pattern to form the basic API endpoint concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "Dynamic URL variable rules are integrated with URL building to cover flexible routing."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "URL building is closely related to dynamic routing; combined for a comprehensive routing concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Running the development server is an operational command with little transferable knowledge; it's a setup step, not a central teachable concept for building an NLP API."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_003",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Flask debug mode is a configuration feature for development; it is not a core concept for lesson objectives and can be learned on the fly."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "HTML escaping is specific to rendering HTML responses; since this lesson focuses on building APIs for NLP models (likely returning JSON), this concept is not relevant to the lesson's intent."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Canonical URLs and trailing slash behavior pertain to web page URL normalization, not to building REST API endpoints for NLP models, making it off-topic for this lesson."
+    }
+  ]
+}

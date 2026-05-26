@@ -1,0 +1,272 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-54-001",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset contains 28x28 grayscale images of handwritten digits 0-9, split into 60,000 training and 10,000 test samples. It is widely used as the 'Hello World' of deep learning.",
+      "coverage_criteria": [
+        "Student can state the image size, number of classes, and train/test split sizes.",
+        "Student can explain why MNIST is a common beginner dataset."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly describes the dataset's pixel dimensions, categories, and its role as a beginner's example.",
+        "granularity_rationale": "This is a single, checkable factual concept about the dataset that underpins the entire tutorial."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## About the dataset"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["MNIST"]
+    },
+    {
+      "candidate_id": "candidate-54-002",
+      "label": "Loading MNIST with Keras",
+      "description": "The MNIST dataset can be loaded directly from tensorflow.keras.datasets using mnist.load_data(), which returns tuples of training and testing images and labels.",
+      "coverage_criteria": [
+        "Student can write the correct import and function call to load MNIST.",
+        "Student can unpack the returned data into training and test sets."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides the exact code: from tensorflow.keras.datasets import mnist, then (train_images, train_labels), (test_images, test_labels) = mnist.load_data().",
+        "granularity_rationale": "This is a single, actionable step that the Companion can verify with a short coding question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Loading Dataset from Keras"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["TensorFlow", "Keras", "MNIST", "load_data"]
+    },
+    {
+      "candidate_id": "candidate-54-003",
+      "label": "Inspecting MNIST data shape and labels",
+      "description": "After loading, you can inspect the shape and content of the arrays: training images are (60000,28,28), labels are (60000,), and you can visualize individual samples with matplotlib.",
+      "coverage_criteria": [
+        "Student can print and interpret train_images.shape and train_labels.shape.",
+        "Student can display a single digit image using plt.matshow()."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows print(train_images.shape), print(len(train_labels)), and a plt.matshow() example.",
+        "granularity_rationale": "This step ensures the learner can verify the data, which is essential before building a model."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Loading Dataset from Keras"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["Matplotlib"]
+    },
+    {
+      "candidate_id": "candidate-54-004",
+      "label": "Sequential model architecture with Dense layers",
+      "description": "A simple feedforward neural network can be built using keras.Sequential with Dense layers. The first hidden layer uses 512 units and ReLU activation; the output layer uses 10 units and softmax activation for 10-class classification.",
+      "coverage_criteria": [
+        "Student can define a Sequential model with a hidden Dense(512, activation='relu') and output Dense(10, activation='softmax').",
+        "Student can explain why the output layer uses 10 units and softmax."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly provides the model definition code and mentions 'MLP MultiLayer PERCEPTRON' in a comment.",
+        "granularity_rationale": "This concept captures the architecture as a single teachable block, small enough to quiz on layer types and activation choices."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["Sequential", "Dense", "ReLU", "Softmax", "MLP", "Perceptron"]
+    },
+    {
+      "candidate_id": "candidate-54-005",
+      "label": "Model compilation",
+      "description": "After defining the architecture, the model must be compiled with an optimizer (e.g. 'rmsprop'), a loss function (here 'sparse_categorical_crossentropy') and metrics (e.g. 'accuracy').",
+      "coverage_criteria": [
+        "Student can write model.compile() with appropriate optimizer, loss, and metrics arguments for a classification task.",
+        "Student can explain that sparse_categorical_crossentropy is used when labels are integers."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article includes the exact compile statement and notes that the optimizer updates weights, the loss function evaluates performance, and metrics monitor accuracy.",
+        "granularity_rationale": "Compilation is a distinct step with three critical components that can be tested separately."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["RMSprop", "Sparse Categorical Crossentropy"]
+    },
+    {
+      "candidate_id": "candidate-54-006",
+      "label": "Image preprocessing: reshape and normalization",
+      "description": "Because Dense layers expect 1D vectors, 28x28 images are reshaped to (784,) using .reshape(). Pixel values (0-255) are then normalized to [0,1] by dividing by 255.",
+      "coverage_criteria": [
+        "Student can reshape training and test image arrays from (60000,28,28) to (60000,784).",
+        "Student can normalize pixel values by casting to float32 and dividing by 255."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states 'Dense layer expects one-dimensional data' and provides the code for reshape and normalization.",
+        "granularity_rationale": "Preprocessing is a necessary step before training; checking it ensures the student can prepare data correctly."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-54-007",
+      "label": "Alternative: Flatten layer for reshaping",
+      "description": "Instead of manually reshaping images, a Flatten layer can be added as the first layer in the Sequential model to automatically convert 2D images to 1D vectors.",
+      "coverage_criteria": [
+        "Student can explain that layers.Flatten() can replace manual reshaping.",
+        "Student can identify where a Flatten layer would be placed in the model definition."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions: 'Instead of this step, we can use a Flatten layer inside the model when layers defining'.",
+        "granularity_rationale": "This is a small, self-contained tip that the Companion can ask about as an alternative to manual reshaping."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["Flatten"]
+    },
+    {
+      "candidate_id": "candidate-54-008",
+      "label": "Training with model.fit",
+      "description": "The model is trained using model.fit(train_images, train_labels, epochs, batch_size). The article uses 5 epochs and a batch size of 128.",
+      "coverage_criteria": [
+        "Student can invoke model.fit with training data, specifying epochs and batch_size.",
+        "Student can interpret the per-epoch loss and accuracy values shown during training."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides the fit call and shows the training log with decreasing loss and increasing accuracy.",
+        "granularity_rationale": "Training is a core step; this concept captures the necessary parameters and expected output."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Fitting the model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-54-009",
+      "label": "Making predictions and interpreting output",
+      "description": "After training, model.predict returns a probability distribution over classes. Use np.argmax to obtain the predicted class label.",
+      "coverage_criteria": [
+        "Student can call model.predict on test images and apply np.argmax to get class predictions.",
+        "Student can verify a prediction by comparing it to the actual label (e.g., test_labels[0])."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows predictions[0] as an array of probabilities and uses np.argmax(predictions[0]) to get 7, matching test_labels[0].",
+        "granularity_rationale": "This step connects training to practical inference and can be verified with a single code snippet."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Fitting the model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": ["NumPy", "argmax"]
+    },
+    {
+      "candidate_id": "candidate-54-010",
+      "label": "Model evaluation on test data",
+      "description": "Use model.evaluate(test_images, test_labels) to compute loss and accuracy on unseen data, giving a final performance metric.",
+      "coverage_criteria": [
+        "Student can call model.evaluate and store test_loss and test_acc.",
+        "Student can interpret the printed test accuracy as the fraction of correctly classified images."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides the evaluate call and prints test_acc ≈ 0.9788, indicating 97.88% accuracy.",
+        "granularity_rationale": "Evaluation is the final machine‑learning step; it can be checked with a single function call."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Performance measuring"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Building our first neural network in keras",
+      "source_year": "2024",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-54-002",
+      "to_candidate_id": "candidate-54-003",
+      "reason": "Immediately after loading the dataset, the article shows code to inspect the shape and labels, and visualizes a sample.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Loading Dataset from Keras"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-003",
+      "to_candidate_id": "candidate-54-004",
+      "reason": "Understanding the data shape (28x28) and number of classes (10) directly informs the design of the Sequential model's input and output layers.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-004",
+      "to_candidate_id": "candidate-54-005",
+      "reason": "After defining the model architecture, the next step in the tutorial is to compile it, as shown in consecutive code blocks.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-005",
+      "to_candidate_id": "candidate-54-006",
+      "reason": "Before training the compiled model, the article explains and applies the necessary data preprocessing (reshape and normalization).",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Building our first Network"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-006",
+      "to_candidate_id": "candidate-54-008",
+      "reason": "The preprocessed data is then fed to model.fit for training, moving from data preparation to the training phase.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Fitting the model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-008",
+      "to_candidate_id": "candidate-54-009",
+      "reason": "After the models are trained, the article immediately demonstrates how to make predictions using the trained model.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Fitting the model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-54-009",
+      "to_candidate_id": "candidate-54-010",
+      "reason": "The article moves from showing individual predictions to a formal evaluation of the model on the entire test set using model.evaluate.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## Performance measuring"}
+      ]
+    }
+  ]
+}

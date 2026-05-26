@@ -1,0 +1,55 @@
+{
+  "artifact_type": "lesson_segment_planner_input",
+  "schema_version": "lesson_segment_planner_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/segment_planner.md",
+  "prompt": "# Lesson Segment Planner\n\n## Mission\n\nGroup the provided Concepts for exactly one Lesson into ordered teaching-flow\nSegments. A Lesson Segment is a small teaching chunk for the Companion, not a\nsource section, dependency edge, review unit, or runtime adaptation.\n\n## Inputs\n\nUse only the provided `lesson` and `concepts`.\n\n- The Lesson contains only `lesson_id` and `title`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`, and\n  `coverage_criteria`.\n\nDo not infer from other Lessons. Do not use dates, global Lesson order, source\npositions, workbook labels, or web research.\n\n## Workflow\n\n1. Read the Lesson title to understand the local teaching frame.\n2. Read each Concept description and Coverage Criteria to understand expected\n   scope.\n3. Create Segments that each cover one natural mini-arc of teaching.\n4. Target one to four Concepts per Segment.\n5. Use five or more Concepts only when they are tightly coupled and cannot be\n   taught naturally as smaller chunks.\n6. Order Segments in the natural teaching flow for this Lesson.\n7. Put every Concept ID in exactly one Segment.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\nDo not create Segment IDs. Do not create `instructional_role`; the pipeline adds\n`teach` deterministically.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Short teaching label\",\n      \"concept_ids\": [\"concept_id_1\", \"concept_id_2\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_planner",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+    "title": "Excel Data Modeling and Analysis for Business"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-excel-data-model-basics-843f9a17",
+      "label": "Excel Data Model basics",
+      "teaching_description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ]
+    },
+    {
+      "concept_id": "concept-creating-relationships-in-the-excel-data-model-06c71c2c",
+      "label": "Creating relationships in the Excel Data Model",
+      "teaching_description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

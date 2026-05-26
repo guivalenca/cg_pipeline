@@ -1,0 +1,674 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:59:08.375771+00:00",
+  "scope_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c66_pro_thinking_001",
+    "c66_pro_thinking_002",
+    "c66_pro_thinking_003",
+    "c66_pro_thinking_004",
+    "c66_pro_thinking_005",
+    "c66_pro_thinking_006",
+    "c66_pro_thinking_007",
+    "c67_pro_thinking_001",
+    "c67_pro_thinking_002",
+    "c67_pro_thinking_003",
+    "c67_pro_thinking_004",
+    "c67_pro_thinking_005",
+    "c67_pro_thinking_006",
+    "c67_pro_thinking_007",
+    "m68_001",
+    "m68_002",
+    "m68_003",
+    "m68_004",
+    "c69_pro_thinking_001",
+    "c69_pro_thinking_002",
+    "c69_pro_thinking_003",
+    "c69_pro_thinking_004",
+    "c69_pro_thinking_005",
+    "c69_pro_thinking_006",
+    "c69_pro_thinking_007",
+    "c69_pro_thinking_008",
+    "c69_pro_thinking_009",
+    "c69_pro_thinking_010",
+    "c69_pro_thinking_011",
+    "c69_pro_thinking_012"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_001",
+        "m68_001"
+      ],
+      "merge_rationale": "Both candidates describe the same overarching concept of converting text to numerical features for NLP. The source-body candidate provides detailed methods and context; the metadata-only candidate confirms the topic focus but adds no new distinct information."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Bag of Words (BoW)",
+      "description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate that clearly defines a specific and well-known feature extraction technique."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "TF-IDF",
+      "description": "A weighting scheme that scales term frequency by the inverse of document frequency to highlight words that are important to a specific document within a corpus.",
+      "coverage_criteria": [
+        "Compute the TF-IDF score for a term given term frequency and document frequency.",
+        "Explain why TF-IDF improves over simple term frequency.",
+        "Identify when to use TF-IDF in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_003"
+      ],
+      "merge_rationale": "Standalone concept that introduces a specific numeric weighting method distinct from raw counts."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "One-hot Encoding",
+      "description": "A sparse representation where each word is a vector of zeros with a single 1 at the index corresponding to the word in the vocabulary.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_004"
+      ],
+      "merge_rationale": "Distinct concept covering a basic but limited word representation method."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Word Embedding",
+      "description": "Dense, low-dimensional vector representations of words that capture semantic similarities, enabling analogies through vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings capture meaning (e.g., similar words have close vectors).",
+        "Give an example of an analogy solvable with embeddings.",
+        "Contrast word embeddings with one-hot encoding."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_005"
+      ],
+      "merge_rationale": "Standalone concept introducing the general idea of distributed word representations, which underlies specific methods like Word2Vec."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from large corpora using either the Continuous Bag of Words (CBOW) or skip-gram architecture.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram training objectives.",
+        "Explain how Word2Vec produces dense vectors for words.",
+        "Describe a practical use of pre-trained Word2Vec embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_006"
+      ],
+      "merge_rationale": "Specific implementation of word embedding; it stands alone as a teachable model within the feature extraction lesson."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe is an unsupervised learning algorithm for generating word embeddings by factorizing a word co-occurrence matrix, capturing global statistical information.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone concept; represents the GloVe embedding method introduced in the self-study."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Implementing Feature Extraction in Python for NLP",
+      "description": "Practical implementation of NLP feature extraction pipelines using Python libraries such as scikit-learn, NLTK, and spaCy, including loading text data and applying methods like CountVectorizer.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction."
+      ],
+      "source_candidate_ids": [
+        "m68_002"
+      ],
+      "merge_rationale": "Standalone concept covering the hands-on coding aspect of feature extraction, as indicated by lesson metadata emphasizing Python."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Comparing Word Embedding and Feature Extraction Approaches for NLP",
+      "description": "Analyzing the differences between NLP systems built using pre-trained word embeddings (e.g., Word2Vec, GloVe) versus traditional feature extraction methods, including trade-offs in dimensionality, semantic capture, and model complexity.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ],
+      "source_candidate_ids": [
+        "m68_003"
+      ],
+      "merge_rationale": "Standalone concept directly supported by the lesson description about comparing systems using embedding models and feature extraction models."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_candidate_ids": [
+        "m68_004"
+      ],
+      "merge_rationale": "Standalone concept aligning with the lesson objective of familiarization with Python API development."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Creating a Basic Flask API Endpoint",
+      "description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_001",
+        "c69_pro_thinking_005"
+      ],
+      "merge_rationale": "These two candidates together teach the core pattern of creating a Flask app and defining a route, which is the foundation for building a simple API. Merging avoids fragmentation of the basic Flask API creation step."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_006",
+        "c69_pro_thinking_008"
+      ],
+      "merge_rationale": "Dynamic URL variables and URL building are closely related patterns for managing dynamic endpoints and internal URL references; combining them creates a cohesive concept on handling flexible routing in Flask APIs."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Defining API endpoints with HTTP methods in Flask",
+      "description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate representing a specific skill for building APIs required by the lesson."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_001",
+        "m68_001"
+      ],
+      "merge_rationale": "Both candidates describe the same overarching concept of converting text to numerical features for NLP. The source-body candidate provides detailed methods and context; the metadata-only candidate confirms the topic focus but adds no new distinct information."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Bag of Words (BoW)",
+      "description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate that clearly defines a specific and well-known feature extraction technique."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "TF-IDF",
+      "description": "A weighting scheme that scales term frequency by the inverse of document frequency to highlight words that are important to a specific document within a corpus.",
+      "coverage_criteria": [
+        "Compute the TF-IDF score for a term given term frequency and document frequency.",
+        "Explain why TF-IDF improves over simple term frequency.",
+        "Identify when to use TF-IDF in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_003"
+      ],
+      "merge_rationale": "Standalone concept that introduces a specific numeric weighting method distinct from raw counts."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "One-hot Encoding",
+      "description": "A sparse representation where each word is a vector of zeros with a single 1 at the index corresponding to the word in the vocabulary.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_004"
+      ],
+      "merge_rationale": "Distinct concept covering a basic but limited word representation method."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Word Embedding",
+      "description": "Dense, low-dimensional vector representations of words that capture semantic similarities, enabling analogies through vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings capture meaning (e.g., similar words have close vectors).",
+        "Give an example of an analogy solvable with embeddings.",
+        "Contrast word embeddings with one-hot encoding."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_005"
+      ],
+      "merge_rationale": "Standalone concept introducing the general idea of distributed word representations, which underlies specific methods like Word2Vec."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from large corpora using either the Continuous Bag of Words (CBOW) or skip-gram architecture.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram training objectives.",
+        "Explain how Word2Vec produces dense vectors for words.",
+        "Describe a practical use of pre-trained Word2Vec embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_006"
+      ],
+      "merge_rationale": "Specific implementation of word embedding; it stands alone as a teachable model within the feature extraction lesson."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe is an unsupervised learning algorithm for generating word embeddings by factorizing a word co-occurrence matrix, capturing global statistical information.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone concept; represents the GloVe embedding method introduced in the self-study."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Implementing Feature Extraction in Python for NLP",
+      "description": "Practical implementation of NLP feature extraction pipelines using Python libraries such as scikit-learn, NLTK, and spaCy, including loading text data and applying methods like CountVectorizer.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction."
+      ],
+      "source_candidate_ids": [
+        "m68_002"
+      ],
+      "merge_rationale": "Standalone concept covering the hands-on coding aspect of feature extraction, as indicated by lesson metadata emphasizing Python."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Comparing Word Embedding and Feature Extraction Approaches for NLP",
+      "description": "Analyzing the differences between NLP systems built using pre-trained word embeddings (e.g., Word2Vec, GloVe) versus traditional feature extraction methods, including trade-offs in dimensionality, semantic capture, and model complexity.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ],
+      "source_candidate_ids": [
+        "m68_003"
+      ],
+      "merge_rationale": "Standalone concept directly supported by the lesson description about comparing systems using embedding models and feature extraction models."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_candidate_ids": [
+        "m68_004"
+      ],
+      "merge_rationale": "Standalone concept aligning with the lesson objective of familiarization with Python API development."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Creating a Basic Flask API Endpoint",
+      "description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_001",
+        "c69_pro_thinking_005"
+      ],
+      "merge_rationale": "These two candidates together teach the core pattern of creating a Flask app and defining a route, which is the foundation for building a simple API. Merging avoids fragmentation of the basic Flask API creation step."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_006",
+        "c69_pro_thinking_008"
+      ],
+      "merge_rationale": "Dynamic URL variables and URL building are closely related patterns for managing dynamic endpoints and internal URL references; combining them creates a cohesive concept on handling flexible routing in Flask APIs."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Defining API endpoints with HTTP methods in Flask",
+      "description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ],
+      "source_candidate_ids": [
+        "c69_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate representing a specific skill for building APIs required by the lesson."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c66_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean AND operator is about database search refinement, not directly relevant to the lesson's focus on feature extraction models and APIs."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Implied AND in databases is a search engine behavior topic, unrelated to feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean OR operator pertains to database searching, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean NOT operator is a search refinement technique, off-topic for a feature extraction lesson."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Phrase searching with quotes is a search syntax topic, not related to extracting features from text for machine learning."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_006",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean search order and parentheses are about query construction, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean operators as mathematical sets is a conceptual foundation for search logic, but not aligned with the lesson's feature extraction focus."
+    },
+    {
+      "candidate_id": "c67_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "m68_001",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr001",
+      "explanation": "Metadata-only candidate that aligns with the source-body candidate; it is fully represented by the richer details in lr001."
+    },
+    {
+      "candidate_id": "c67_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "m68_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr002"
+      ]
+    },
+    {
+      "candidate_id": "m68_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "m68_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c69_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr005",
+      "explanation": "Represents the minimal app setup part; merged with route definition to form the basic API endpoint concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr005",
+      "explanation": "Represents the route definition part; merged with minimal app pattern to form the basic API endpoint concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr006",
+      "explanation": "Dynamic URL variable rules are integrated with URL building to cover flexible routing."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr006",
+      "explanation": "URL building is closely related to dynamic routing; combined for a comprehensive routing concept."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Running the development server is an operational command with little transferable knowledge; it's a setup step, not a central teachable concept for building an NLP API."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_003",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Flask debug mode is a configuration feature for development; it is not a core concept for lesson objectives and can be learned on the fly."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "HTML escaping is specific to rendering HTML responses; since this lesson focuses on building APIs for NLP models (likely returning JSON), this concept is not relevant to the lesson's intent."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Canonical URLs and trailing slash behavior pertain to web page URL normalization, not to building REST API endpoints for NLP models, making it off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c69_pro_thinking_010",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Serving static files is unrelated to building feature extraction APIs; this lesson focuses on models and APIs, not frontend assets."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_011",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Rendering HTML templates is not relevant for a JSON API; the lesson centers on feature extraction models rather than server-side rendering."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_012",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Flask context locals and testing is an internal detail not directly related to designing or implementing feature extraction APIs; it is a general testing practice."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c66_pro_thinking_001",
+      "reason": "unrelated",
+      "explanation": "Boolean AND operator is about database search refinement, not directly relevant to the lesson's focus on feature extraction models and APIs."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_005",
+      "reason": "unrelated",
+      "explanation": "Implied AND in databases is a search engine behavior topic, unrelated to feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_002",
+      "reason": "unrelated",
+      "explanation": "Boolean OR operator pertains to database searching, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_003",
+      "reason": "unrelated",
+      "explanation": "Boolean NOT operator is a search refinement technique, off-topic for a feature extraction lesson."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "Phrase searching with quotes is a search syntax topic, not related to extracting features from text for machine learning."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_006",
+      "reason": "unrelated",
+      "explanation": "Boolean search order and parentheses are about query construction, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Boolean operators as mathematical sets is a conceptual foundation for search logic, but not aligned with the lesson's feature extraction focus."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_002",
+      "reason": "low_teaching_value",
+      "explanation": "Running the development server is an operational command with little transferable knowledge; it's a setup step, not a central teachable concept for building an NLP API."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_003",
+      "reason": "low_teaching_value",
+      "explanation": "Flask debug mode is a configuration feature for development; it is not a core concept for lesson objectives and can be learned on the fly."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "HTML escaping is specific to rendering HTML responses; since this lesson focuses on building APIs for NLP models (likely returning JSON), this concept is not relevant to the lesson's intent."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Canonical URLs and trailing slash behavior pertain to web page URL normalization, not to building REST API endpoints for NLP models, making it off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_010",
+      "reason": "low_teaching_value",
+      "explanation": "Serving static files is unrelated to building feature extraction APIs; this lesson focuses on models and APIs, not frontend assets."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_011",
+      "reason": "low_teaching_value",
+      "explanation": "Rendering HTML templates is not relevant for a JSON API; the lesson centers on feature extraction models rather than server-side rendering."
+    },
+    {
+      "candidate_id": "c69_pro_thinking_012",
+      "reason": "low_teaching_value",
+      "explanation": "Flask context locals and testing is an internal detail not directly related to designing or implementing feature extraction APIs; it is a general testing practice."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 30,
+    "accepted_count": 13,
+    "pruned_count": 14,
+    "candidate_assignment_count": 30,
+    "review_count": 0
+  }
+}

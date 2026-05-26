@@ -1,0 +1,383 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:06:05.199750+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "self_study_id": "36",
+  "source_body_path": "extraction/post-image/0036-article-a-hitchhikers-guide-to-sentiment-analysis-using-naive-bayes-classifier.md",
+  "source_body_sha256": "1e535a5098e017cd9507c4f148d7195a329361b251d752169884d89a295a5abd",
+  "source_name": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-36-001",
+      "label": "Sentiment Analysis as Binary Text Classification",
+      "description": "Sentiment analysis involves classifying the sentiment of a text (e.g., positive or negative) based on the presence of sentiment-bearing words.",
+      "coverage_criteria": [
+        "Given a sentence, the student can identify whether the overall sentiment is positive or negative.",
+        "The student can list common positive and negative cue words."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article introduces sentiment analysis with clear examples, showing that words like 'great', 'delicious' indicate positive sentiment and 'pathetic', 'horrible' indicate negative sentiment, and demonstrating that changing one word can flip sentiment.",
+        "granularity_rationale": "This concept is foundational and can be assessed with simple classification tasks or word identification questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## SENTIMENT ANALYSIS"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-36-002",
+      "label": "Bag-of-Words Model in Text Analytics",
+      "description": "The bag-of-words assumption posits that for classification, only word frequencies matter, ignoring word order.",
+      "coverage_criteria": [
+        "The student can explain that bag-of-words disregards syntax and word order.",
+        "Given a short text, the student can produce a bag-of-words representation (word counts)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly describes bag-of-words as a key assumption of Naive Bayes, using an example to show that only word frequency counts, not position.",
+        "granularity_rationale": "This is a single, well-defined concept that can be checked with a definition or a small counting exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## NAIVE-BAYES THEOREM"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Bag-of-Words"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-003",
+      "label": "Naive Bayes Classifier for Text",
+      "description": "Naive Bayes is a probabilistic classifier that uses Bayes' theorem with the 'naive' assumption of feature independence, commonly applied to text classification tasks like sentiment analysis.",
+      "coverage_criteria": [
+        "The student can state that Naive Bayes uses conditional probability to assign a class to a document.",
+        "The student can identify the 'naive' independence assumption as key."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a full derivation of the Naive Bayes decision rule, starting from Bayes theorem and incorporating the independence assumption, explicitly targeting sentiment analysis.",
+        "granularity_rationale": "This concept is broad enough to encompass the core idea but can be assessed with high-level understanding questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## DERIVATION"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Naive Bayes Classifier",
+        "Multinomial Naive Bayes"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-004",
+      "label": "Derivation of the Naive Bayes Decision Rule",
+      "description": "The Naive Bayes decision rule selects the class c that maximizes P(c) * product of P(word|c) over all words in the document, derived from Bayes' theorem and the independence assumption.",
+      "coverage_criteria": [
+        "The student can write the final decision rule formula.",
+        "The student can explain the steps: starting from maximizing P(c|d), applying Bayes rule, removing denominator, and applying independence."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article walks through the mathematical derivation step-by-step, from Bayes theorem to the final product formula, with explanatory equations.",
+        "granularity_rationale": "This is a procedural concept that can be assessed by asking the student to derive or explain the rule, which is a single cohesive task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## DERIVATION"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Bayes Theorem"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-005",
+      "label": "Computing Prior Class Probabilities",
+      "description": "The prior probability P(c) is the proportion of documents belonging to a class, calculated as Nc/Ntotal.",
+      "coverage_criteria": [
+        "Given the counts of documents per class, the student can compute the prior probability.",
+        "The student can explain that the prior represents the overall prevalence of the class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly defines prior probability and shows how to compute it from the number of documents in each class.",
+        "granularity_rationale": "This is a small, self-contained concept that can be assessed with a single calculation question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-36-006",
+      "label": "Computing Word Likelihood Probabilities",
+      "description": "The likelihood probability P(word|c) is the frequency of a word in documents of class c relative to all words in that class, typically smoothed.",
+      "coverage_criteria": [
+        "Given word counts per class, the student can calculate P(word|c).",
+        "The student can explain that the likelihood captures how indicative a word is for a class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article details the likelihood probability calculation, including the formula with sum over vocabulary, and uses it in the worked example.",
+        "granularity_rationale": "This is a key calculation step that can be assessed with a focused numeric problem."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-36-007",
+      "label": "Laplace Smoothing to Avoid Zero Probabilities",
+      "description": "Laplace smoothing adds a constant (usually 1) to all word counts to prevent zero probabilities for unseen words in a class, which would zero out the entire product.",
+      "coverage_criteria": [
+        "The student can explain why zero probabilities are problematic in Naive Bayes.",
+        "The student can apply Laplace smoothing to a given count table."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article warns about the zero probability problem and introduces Laplace smoothing with a modified formula, demonstrating its use in the example.",
+        "granularity_rationale": "This is a specific technique that addresses a single issue and can be assessed with a simple modification question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Laplace Smoothing"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-008",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Taking the logarithm of the Naive Bayes product converts it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "The student can explain that log turns products into sums, avoiding underflow.",
+        "The student can transform a product expression into a log-sum."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article suggests using the log function to convert the product into a sum, improving efficiency.",
+        "granularity_rationale": "This is a simple optimization concept that can be checked with a definition and a small example."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-36-009",
+      "label": "Removing Stop Words in Text Classification",
+      "description": "Stop words are common words like 'the', 'a', 'is' that carry little sentiment information and can be removed to simplify the model and reduce noise.",
+      "coverage_criteria": [
+        "The student can identify common stop words.",
+        "The student can explain that removing stop words reduces vocabulary size and computation without losing sentiment signal."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions stop words removal as a way to streamline model training, noting that these words don't contribute to sentiment.",
+        "granularity_rationale": "This is a standard preprocessing step that can be assessed with a definition and simple practical task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Stop Words"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-010",
+      "label": "Binary Multinomial Naive Bayes: Presence vs Frequency",
+      "description": "A variant of Naive Bayes that uses binary features (word present/absent) instead of word counts, emphasizing the importance of word occurrence over frequency.",
+      "coverage_criteria": [
+        "The student can contrast binary and frequency-based NB.",
+        "The student can explain that a single occurrence of a strong sentiment word may be enough to determine class."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article introduces binary multinomial NB as an alternative that focuses on word presence, with rationale that a single word can change sentiment.",
+        "granularity_rationale": "This is a distinct modeling choice that can be assessed with comparison questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": [
+        "Binary Multinomial Naive Bayes"
+      ]
+    },
+    {
+      "candidate_id": "candidate-36-011",
+      "label": "Dealing with Out-of-Vocabulary Words",
+      "description": "During testing, words not seen in training (unknown words) are typically ignored in probability calculations to avoid errors.",
+      "coverage_criteria": [
+        "The student can explain why unknown words are problematic.",
+        "The student can state that ignoring them is a simple strategy."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article recommends dropping unknown words that appear in the test set but not in the training vocabulary, as they cannot be assigned a likelihood.",
+        "granularity_rationale": "This is a small practical issue that can be assessed with a definition."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Hitchhiker's Guide to Sentiment Analysis using Naive Bayes Classifier",
+      "source_year": "2021",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-36-002",
+      "to_candidate_id": "candidate-36-003",
+      "reason": "The bag-of-words assumption is introduced as the naive independence simplification that enables the Naive Bayes derivation, where word order is ignored and only frequencies matter.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## NAIVE-BAYES THEOREM"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "## DERIVATION"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-36-004",
+      "to_candidate_id": "candidate-36-003",
+      "reason": "The derivation directly constructs the Naive Bayes decision rule by starting from Bayes theorem and applying the independence assumption.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## DERIVATION"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-36-007",
+      "to_candidate_id": "candidate-36-006",
+      "reason": "Laplace smoothing is applied to the likelihood probability computation to prevent zero probabilities, as explicitly shown in the training section.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-36-010",
+      "to_candidate_id": "candidate-36-003",
+      "reason": "Binary Multinomial Naive Bayes is introduced as an alternative to the standard term frequency approach, both under the same Naive Bayes framework.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## TRAINING THE MODEL"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 11,
+    "source_local_connector_candidate_count": 4
+  }
+}

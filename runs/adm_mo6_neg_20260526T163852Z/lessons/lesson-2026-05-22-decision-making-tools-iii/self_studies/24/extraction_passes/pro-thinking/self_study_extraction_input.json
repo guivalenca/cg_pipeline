@@ -1,0 +1,74 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+    "display_code": "L05",
+    "workbook_row_number": 23,
+    "title": "Decision-Making Tools III",
+    "date": "22/05/2026",
+    "professor": "Marcelo de Paula do Desterro Gorini",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "In this instruction, as a sequence of decision-making tools, students will learn the specifics on Decision Trees."
+  },
+  "self_study": {
+    "self_study_id": "24",
+    "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 24,
+      "week": 5,
+      "sort": 4,
+      "title": "Decision Analysis 3: Decision Trees",
+      "description": "This video tutorial demonstrates how to construct and solve a basic decision tree using the expected value approach to evaluate and choose the best investment alternative",
+      "url": "https://www.youtube.com/watch?v=ydvnVw80I_8",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Decision-Making Tools III",
+      "class_date": "22/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "video",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/post-image/0024-video-decision-analysis-3-decision-trees.md",
+      "sha256": "5d016f2b4d767bd4358cb2ba144d9c2e1b552fde166f8c4f4e7d67280ef99962",
+      "word_count": 861,
+      "bytes": 5555,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/video/output/24/24-decision-analysis-3-decision-trees.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/video/output/24",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/post-image/0024-video-decision-analysis-3-decision-trees.md",
+    "sha256": "5d016f2b4d767bd4358cb2ba144d9c2e1b552fde166f8c4f4e7d67280ef99962",
+    "word_count": 861,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/video/output/24/24-decision-analysis-3-decision-trees.md",
+    "markdown": "---\nid: \"24\"\ntitle: \"Decision Analysis 3: Decision Trees\"\nsource_url: \"https://www.youtube.com/watch?v=ydvnVw80I_8\"\nfetch_url: \"https://www.youtube.com/watch?v=ydvnVw80I_8\"\nresolved_url: \"https://www.youtube.com/watch?v=ydvnVw80I_8\"\nfirecrawl_title: null\ndescription: null\nfetched_at: \"2026-05-26T17:21:03.937739Z\"\nprovider: \"gemini_multimodal\"\nstrategy: \"video_gemini_two_pass\"\ncache_key: \"4d8ccb09bd52c8412f1d3644b47e2088577a73f9614b8e80db7bdd951bb3f214\"\ncache_keys:\n  - \"4d8ccb09bd52c8412f1d3644b47e2088577a73f9614b8e80db7bdd951bb3f214\"\ngemini_model: \"gemini-2.5-flash-lite\"\ngemini_media_resolution: \"low\"\ngemini_fps: 0.5\nprompt_version: \"video_gemini_pass2_v1\"\nduration_seconds: 185.0\ntranscript_source: \"manual_captions\"\ntranscript_sha256: \"d6a2d63c693506ed02ec480192b92474e2a72d0a5efefb461881ec6356321e8b\"\nword_count: 771\nchar_count: 4466\ncontent_sha256: \"4104436255b0e51d65e3d173aab501bb7a2e259a85b440f07d2acfea4e416d38\"\nimage_count: 7\nlink_count: 0\ntotal_token_count: 14975\nestimated_input_tokens: 12025\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n## 00:00 Introduction to Decision Trees\n\n**Spoken content:**\n- [00:00] Welcome to this Decision Analysis tutorial for constructing decision trees.\n\n**On-screen content:**\n![Title slide with text \"Decision Trees Part 1 By Joshua Emmanuel\"](video-frame://24@00:00)\n\n## 00:05 Objectives\n\n**Spoken content:**\n- [00:05] We will be constructing a basic decision tree.\n- [00:08] We will also be making decisions using the expected value approach.\n\n**On-screen content:**\n![Objectives list: Construct Decision Tree, Make Decision using Expected Value](video-frame://24@00:05)\n\n## 00:13 Payoff Table\n\n**Spoken content:**\n- [00:13] We will be constructing a decision tree using this payoff table,\n- [00:18] where payoffs are profits and the probabilities of the states of nature\n- [00:23] are .4 and .6 respectively.\n\n**On-screen content:**\n![Payoff table with Alternatives: Stocks, Mutual Funds, Bonds and States of Nature: Growing, Declining. Probabilities: 0.4, 0.6. Payoffs for Stocks: 70, -13. Payoffs for Mutual Funds: 53, -5. Payoffs for Bonds: 20, 20.](video-frame://24@00:13)\n\n## 00:28 Decision Tree Nodes\n\n**Spoken content:**\n- [00:28] Decision trees use two types of nodes:\n- [00:32] A square or rectangle node called DECISION NODE\n- [00:37] from which decision alternative branches will originate,\n- [00:42] and a circle node called CHANCE NODE\n- [00:45] from which states of nature or outcome branches will emanate.\n- [00:51] The CHANCE NODE is also referred to as an OUTCOME NODE or EVENT NODE\n- [00:57] Now let's construct a decision tree for this PAYOFF table.\n\n**On-screen content:**\n![Diagram showing a square labeled \"Decision Node\" and a circle labeled \"Chance Node\" with arrows indicating branches originating from them.](video-frame://24@00:28)\n\n## 00:57 Constructing the Decision Tree\n\n**Spoken content:**\n- [01:01] We first draw a decision node\n- [01:05] with branches coming out of the decision node representing decision alternatives.\n- [01:10] Next we draw the chance node or outcome node\n- [01:14] with respective states of nature or outcomes.\n- [01:19] As it can be seen here for stocks.\n- [01:22] The payoffs are placed at the end of the branches as you can see (70 and -13 for Stocks).\n- [01:30] We do the same for Mutual Funds and for Bonds.\n- [01:34] Notice that the payoff is 20 for Bonds\n- [01:38] irrespective of the state of nature.\n- [01:40] Therefore, we really don’t need to repeat 20,\n- [01:44] we simply need to draw a single branch\n- [01:47] from BONDS with a payoff of 20.\n\n**On-screen content:**\n![Decision tree diagram in progress. A decision node (square) branches into \"Stocks\" and \"Bonds\". The \"Stocks\" branch leads to a chance node (circle) with sub-branches \"Growing (0.4)\" and \"Declining (0.6)\", with payoffs 70 and -13 respectively. The \"Bonds\" branch leads to a single payoff of 20. A \"Mutual Funds\" branch is also shown, leading to a chance node with similar structure and payoffs 53 and -5.](video-frame://24@00:57)\n\n## 01:51 Solving the Decision Tree\n\n**Spoken content:**\n- [01:51] Now let's solve the decision tree.\n- [01:54] Solving the decision tree is also known as\n- [01:57] folding back the decision tree.\n- [02:00] In essence, we are going to calculate the expected\n- [02:04] values and then choose the best.\n- [02:06] For Stocks, the expected value is calculated as\n- [02:10] .4 times 70 + .6 times -13 which is 20.2.\n- [02:17] So we just usually write the 20.2 on the chance node for stocks.\n- [02:23] We do the same for mutual funds. The expected\n- [02:27] value is. 4 times 53 + .6 times -5 which is 18.2.\n- [02:35] We also write that on the chance node for mutual funds.\n- [02:38] For Bonds, no calculation is required.\n- [02:43] We can only expect a payoff of 20 (for Bonds).\n\n**On-screen content:**\n![Decision tree diagram with expected values calculated and placed on chance nodes. Expected value for Stocks is 20.2. Expected value for Mutual Funds is 18.2. Payoff for Bonds is 20.](video-frame://24@01:51)\n\n## 02:46 Making the Decision\n\n**Spoken content:**\n- [02:46] Now comparing the three values: 20.2, 18.2, and 20,\n- [02:52] the best expected value is 20.2.\n- [02:56] We usually just place that value close to the decision node.\n- [03:00] Therefore, the decision is to invest in Stocks.\n- [03:04] Thanks for watching!\n\n**On-screen content:**\n![Completed decision tree with the highest expected value (20.2) highlighted, indicating the optimal decision to \"Invest in Stocks\".](video-frame://24@02:46)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

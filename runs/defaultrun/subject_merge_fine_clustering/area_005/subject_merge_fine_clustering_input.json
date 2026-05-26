@@ -1,0 +1,123 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_005",
+    "area": {
+      "id": "area_005",
+      "label": "Semantic Similarity and WordNet",
+      "rationale": "Covers semantic vs. lexical similarity, WordNet, path similarity, LCS, and NLTK interface.",
+      "candidate_ids": [
+        "lr002_018",
+        "lr002_019",
+        "lr002_020",
+        "lr002_021",
+        "lr002_022"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr002_018",
+    "lr002_019",
+    "lr002_020",
+    "lr002_021",
+    "lr002_022"
+  ],
+  "candidates": [
+    {
+      "id": "lr002_018",
+      "label": "Similaridade Semântica e Diferenciação da Léxica",
+      "description": "Define similaridade semântica como a que considera o significado das palavras em contexto, contrastando com a léxica, e fornece exemplos como 'carro' e 'automóvel'.",
+      "coverage_criteria": [
+        "Diferenciar similaridade semântica de léxica com exemplos.",
+        "Explicar por que a semântica é mais difícil de computar."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_019",
+      "label": "Abordagens para Similaridade Semântica: Baseadas em Conhecimento e Corpus",
+      "description": "Descreve as duas principais abordagens para calcular similaridade semântica: baseada em corpus (grandes bases de texto) e baseada em conhecimento (redes semânticas como WordNet).",
+      "coverage_criteria": [
+        "Distinguir as abordagens baseada em conhecimento e baseada em corpus.",
+        "Dar um exemplo de recurso usado em cada abordagem."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_020",
+      "label": "WordNet e Relações Semânticas",
+      "description": "Apresenta a WordNet como um banco de dados lexical que organiza palavras em synsets e inclui relações semânticas como sinonímia, antonímia, meronímia, holonímia, hiponímia, hiperonímia, homonímia e polissemia.",
+      "coverage_criteria": [
+        "Explicar o que é um synset na WordNet.",
+        "Definir e exemplificar pelo menos três relações semânticas (ex.: hiponímia, meronímia)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_021",
+      "label": "Path Similarity e Lowest Common Subsumer (LCS)",
+      "description": "Explica a similaridade de caminho (Path Similarity) como 1/(distância + 1) em uma taxonomia, e o LCS como o ancestral comum mais específico, ambos usando a WordNet.",
+      "coverage_criteria": [
+        "Calcular a Path Similarity entre dois conceitos em uma hierarquia.",
+        "Identificar o LCS de dois conceitos em uma taxonomia."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_022",
+      "label": "Acesso à WordNet com NLTK (Inglês e Português)",
+      "description": "Demonstra como acessar a WordNet em Python usando a biblioteca NLTK, incluindo suporte para português via Open Multilingual Wordnet (lang='por'), embora as definições estejam em inglês.",
+      "coverage_criteria": [
+        "Escrever um script Python que recupera synsets de uma palavra inglesa no NLTK.",
+        "Recuperar synsets de uma palavra em português e discutir limitações."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

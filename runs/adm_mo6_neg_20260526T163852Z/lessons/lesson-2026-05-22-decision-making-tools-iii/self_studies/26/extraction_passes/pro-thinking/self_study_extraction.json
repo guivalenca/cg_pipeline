@@ -1,0 +1,439 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-26T17:32:34.763849+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+  "self_study_id": "26",
+  "source_body_path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0026-article-decision-making-under-uncertainty.md",
+  "source_body_sha256": "0451c934ff8a507e3294aed620f0aa037c4c6fff89f515c6d06f7b846bdb2743",
+  "source_name": "Decision Making Under Uncertainty",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-26-001",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of possible monetary outcomes.",
+      "coverage_criteria": [
+        "Student can compute EMV from a payoff table and probabilities.",
+        "Student can explain that EMV represents a long-run average and is appropriate when the decision maker is risk-neutral."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines EMV, illustrates its calculation with the SciTools bidding example, and discusses its interpretation.",
+        "granularity_rationale": "This is a core computational concept that can be assessed with a short numerical problem and a conceptual question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Expected Monetary Value (EMV)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-002",
+      "label": "Decision Tree Structure and Conventions",
+      "description": "A decision tree is a graphical tool with decision nodes (squares), probability nodes (circles), and end nodes (triangles), read left to right. It models decisions, uncertain events, and payoffs.",
+      "coverage_criteria": [
+        "Student can interpret a given decision tree and identify node types.",
+        "Student can construct a simple decision tree for a single-stage problem."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents decision trees as a central tool in 10.2, enumerates conventions, and builds a tree for the SciTools example using PrecisionTree.",
+        "granularity_rationale": "Decision tree conventions are specific rules that can be tested by asking students to label a tree or draw one from a description."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Decision Trees"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": [
+        "PrecisionTree"
+      ]
+    },
+    {
+      "candidate_id": "candidate-26-003",
+      "label": "Folding Back Procedure for Solving Decision Trees",
+      "description": "Folding back solves a decision tree from right to left: at probability nodes, compute EMV; at decision nodes, choose the maximum EMV. The EMV at the root is the optimal EMV.",
+      "coverage_criteria": [
+        "Student can apply folding back to a small decision tree to find the optimal decision and its EMV.",
+        "Student can explain the algorithmic steps."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly describes the folding back procedure with an example in Figure 10.2, showing EMV calculations at probability and decision nodes.",
+        "granularity_rationale": "This is a precise computational method that can be checked with a simple tree requiring two or three nodes."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Folding Back Procedure"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-004",
+      "label": "Sensitivity Analysis of Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters affect the optimal EMV and decision choice. Tools include tornado charts and spider charts, which rank inputs by impact.",
+      "coverage_criteria": [
+        "Student can interpret a tornado chart to identify the most influential inputs.",
+        "Student can explain why sensitivity analysis is important in decision analysis."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source devotes a subsection to sensitivity analysis using PrecisionTree, producing tornado and spider charts for the SciTools example, and illustrates two-way sensitivity.",
+        "granularity_rationale": "Sensitivity analysis is a meta-analytical step that can be assessed by asking students to interpret given charts, a focused task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Sensitivity Analysis"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": [
+        "PrecisionTree"
+      ]
+    },
+    {
+      "candidate_id": "candidate-26-005",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities P(B_i|A) = [P(A|B_i)P(B_i)] / Σ[P(A|B_j)P(B_j)], updating prior beliefs with new information.",
+      "coverage_criteria": [
+        "Student can calculate posterior probabilities given priors and likelihoods.",
+        "Student can explain how Bayes' rule is used in a decision tree to incorporate test results."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 10.5 is dedicated to Bayes' rule, with a step-by-step spreadsheet illustration using the drug-testing example, and it is applied in a multistage decision tree.",
+        "granularity_rationale": "Bayes' rule is a fundamental formula that can be tested with a straightforward numerical problem, and its role in decision analysis can be checked conceptually."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.5 BAYES’ RULE"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": [
+        "Bayes' rule"
+      ]
+    },
+    {
+      "candidate_id": "candidate-26-006",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Student can define EVSI and compute it from a decision tree.",
+        "Student can interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces EVSI in the Acme marketing example (Section 10.4), stating the formula and computing it as $3.807 million for the test market.",
+        "granularity_rationale": "EVSI is a specific derived metric that can be assessed with a short calculation and interpretation question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.4 Multistage Decision Problems > Expected Value of Sample Information"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-007",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV with no information. It sets an upper bound on the value of any sample information.",
+      "coverage_criteria": [
+        "Student can define EVPI and compute it.",
+        "Student can explain why EVPI is an upper limit for EVSI."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 10.4 explicitly defines EVPI, computes it with a simple tree in the Acme example ($7.65 million), and discusses its role as an upper bound.",
+        "granularity_rationale": "EVPI is a standalone concept that can be tested with a single-scenario tree and a brief explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.4 Multistage Decision Problems > Expected Value of Perfect Information"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-008",
+      "label": "Risk Aversion and Utility Functions",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same EMV.",
+      "coverage_criteria": [
+        "Student can describe the shape of a risk-averse utility function.",
+        "Student can compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 10.6 introduces utility functions, risk aversion, and expected utility maximization, explaining why decision makers may deviate from EMV.",
+        "granularity_rationale": "This is a conceptual foundation for utility theory that can be assessed with qualitative and simple quantitative questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 INCORPORATING ATTITUDES TOWARD RISK > Utility Functions"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-009",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion.",
+      "coverage_criteria": [
+        "Student can compute expected utility using an exponential function.",
+        "Student can explain the role of the risk tolerance parameter."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents exponential utility as a convenient one-parameter function, gives the formula, and demonstrates its use in the Venture Limited example.",
+        "granularity_rationale": "Exponential utility is a specific mathematical form that can be checked with a calculation and a parameter interpretation question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 Incorporating Attitudes Toward Risk > Exponential Utility"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": [
+        "exponential utility"
+      ]
+    },
+    {
+      "candidate_id": "candidate-26-010",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent to the prospect. It is derived from the utility function.",
+      "coverage_criteria": [
+        "Student can compute the certainty equivalent given an exponential utility function and a risky lottery.",
+        "Student can interpret certainty equivalent as the risk-adjusted value of a gamble."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines and computes certainty equivalents for the Venture Limited example, showing how to solve for x in U(x) = EU.",
+        "granularity_rationale": "Certainty equivalent is a practical summary metric that can be tested with a simple algebraic exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 Incorporating Attitudes Toward Risk > Certainty Equivalents"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-011",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "In multistage problems, decisions and uncertain outcomes alternate over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes.",
+      "coverage_criteria": [
+        "Student can identify multistage structure in a scenario.",
+        "Student can trace the optimal contingency plan from a decision tree with multiple decision nodes."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 10.4 introduces multistage problems with the Acme Marketing example, emphasizing that the final strategy is a contingency plan based on test market results.",
+        "granularity_rationale": "This concept extends the single-stage framework; it can be checked by asking students to interpret a given multistage tree."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.4 MULTISTAGE DECISION PROBLEMS"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-26-012",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision and their probabilities, often shown as a bar chart. It helps visualize the riskiness of a decision.",
+      "coverage_criteria": [
+        "Student can construct a risk profile from a payoff table or decision tree.",
+        "Student can interpret a risk profile bar chart."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines risk profiles in Section 10.2, showing how to obtain them from a payoff table and noting that PrecisionTree can generate them.",
+        "granularity_rationale": "Risk profiles are a simple descriptive tool that can be checked by asking students to list outcomes and probabilities for a given decision."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Risk Profiles"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Making Under Uncertainty",
+      "source_year": "unknown",
+      "name_drops": [
+        "PrecisionTree"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-26-001",
+      "to_candidate_id": "candidate-26-002",
+      "reason": "The source uses decision trees to compute EMVs through the folding back procedure, making decision trees the primary visual aid for EMV-based decisions.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Decision Trees"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-002",
+      "to_candidate_id": "candidate-26-003",
+      "reason": "Folding back is the algorithm applied to a decision tree to solve it; the source explicitly demonstrates this after introducing tree conventions.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Folding Back Procedure"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-005",
+      "to_candidate_id": "candidate-26-011",
+      "reason": "Bayes' rule is used within multistage decision trees to update probabilities after observing test results, as illustrated in the drug-testing example.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.5 BAYES’ RULE"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-001",
+      "to_candidate_id": "candidate-26-008",
+      "reason": "The source contrasts EMV with expected utility, noting that risk-averse decision makers may prefer the latter when large monetary values are at stake.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 INCORPORATING ATTITUDES TOWARD RISK"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-008",
+      "to_candidate_id": "candidate-26-009",
+      "reason": "Exponential utility is a specific parametric family of utility functions introduced to facilitate practical implementation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 Incorporating Attitudes Toward Risk > Exponential Utility"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-009",
+      "to_candidate_id": "candidate-26-010",
+      "reason": "Certainty equivalents are derived from the exponential utility function to express risky prospects in sure dollar amounts.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.6 Incorporating Attitudes Toward Risk > Certainty Equivalents"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-26-002",
+      "to_candidate_id": "candidate-26-012",
+      "reason": "Decision trees can be used to generate risk profiles for optimal strategies, as shown in the PrecisionTree output.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10.2 Elements of a Decision Analysis > Risk Profiles"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 12,
+    "source_local_connector_candidate_count": 7
+  }
+}

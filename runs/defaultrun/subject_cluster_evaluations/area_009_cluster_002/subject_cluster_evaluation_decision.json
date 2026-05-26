@@ -1,0 +1,94 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-20T01:06:12.628355+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr005_005",
+    "lr005_015"
+  ],
+  "accepted": [
+    {
+      "id": "sm001",
+      "label": "Zero Frequency Error and Laplace Smoothing Concept",
+      "description": "Understanding that zero frequency error occurs when a feature value is unseen in training, and that Laplace smoothing adds a small constant to counts to prevent zero probabilities, with the parameter α controlling the smoothing strength.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "lr005_005"
+      ],
+      "merge_rationale": "Standalone definitional concept; the implementation candidate (lr005_015) adds practical application which is a deepening and is kept separate."
+    },
+    {
+      "id": "sm002",
+      "label": "Applying Laplace Smoothing in Naive Bayes",
+      "description": "Ability to apply Laplace smoothing to word count tables using the formula (count + 1) / (total words + vocabulary size) to avoid zero probabilities for unseen words.",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "lr005_015"
+      ],
+      "merge_rationale": "Standalone implementation concept; the definitional candidate (lr005_005) covers the foundational understanding but not the hands-on formula application."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Zero Frequency Error and Laplace Smoothing Concept",
+      "description": "Understanding that zero frequency error occurs when a feature value is unseen in training, and that Laplace smoothing adds a small constant to counts to prevent zero probabilities, with the parameter α controlling the smoothing strength.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "lr005_005"
+      ],
+      "merge_rationale": "Standalone definitional concept; the implementation candidate (lr005_015) adds practical application which is a deepening and is kept separate."
+    },
+    {
+      "id": "sm002",
+      "label": "Applying Laplace Smoothing in Naive Bayes",
+      "description": "Ability to apply Laplace smoothing to word count tables using the formula (count + 1) / (total words + vocabulary size) to avoid zero probabilities for unseen words.",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "lr005_015"
+      ],
+      "merge_rationale": "Standalone implementation concept; the definitional candidate (lr005_005) covers the foundational understanding but not the hands-on formula application."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr005_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm001"
+      ]
+    },
+    {
+      "candidate_id": "lr005_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm002"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 2,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

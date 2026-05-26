@@ -1,0 +1,263 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+    "title": "Decision-Making Tools III"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-bayes-rule-for-updating-probabilities-d8473089",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "teaching_description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ]
+    },
+    {
+      "concept_id": "concept-multistage-decision-problems-and-contingency-plans-b2b00b0e",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "teaching_description": "Multistage decisions involve alternating decisions and uncertain outcomes over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes. Decision trees are particularly useful for representing and solving such problems.",
+      "coverage_criteria": [
+        "Identify a multistage decision situation from a description.",
+        "Explain what a contingency plan is and how it differs from a single-stage decision.",
+        "Given a multistage decision tree, trace the optimal contingency plan."
+      ]
+    },
+    {
+      "concept_id": "concept-utility-functions-and-risk-aversion-62118670",
+      "label": "Utility Functions and Risk Aversion",
+      "teaching_description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same expected monetary value (EMV). Decisions are made by maximizing expected utility rather than EMV.",
+      "coverage_criteria": [
+        "Describe the shape of a risk-averse utility function and why it implies risk aversion.",
+        "Compare decisions using expected utility versus EMV in a simple scenario."
+      ]
+    },
+    {
+      "concept_id": "concept-exponential-utility-function-and-risk-tolerance-3a311e4a",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "teaching_description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion. It is a convenient one-parameter model for incorporating risk attitudes into decision analysis.",
+      "coverage_criteria": [
+        "Write the exponential utility function and identify the risk tolerance parameter R.",
+        "Compute expected utility given probabilities and payoffs using the exponential function.",
+        "Interpret the effect of changing R on the degree of risk aversion."
+      ]
+    },
+    {
+      "concept_id": "concept-certainty-equivalent-95a83eef",
+      "label": "Certainty Equivalent",
+      "teaching_description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent between the certain amount and the uncertain prospect. It is derived by solving for the value x such that U(x) equals the expected utility of the prospect.",
+      "coverage_criteria": [
+        "Define certainty equivalent.",
+        "Compute the certainty equivalent given an exponential utility function and expected utility.",
+        "Explain the relationship between certainty equivalent, risk premium, and risk aversion."
+      ]
+    },
+    {
+      "concept_id": "concept-sunk-costs-in-decision-making-9ee4d58e",
+      "label": "Sunk Costs in Decision Making",
+      "teaching_description": "Sunk costs are past expenditures that cannot be recovered and should not influence current decisions. In decision tree analysis, sunk costs must be excluded from the evaluation.",
+      "coverage_criteria": [
+        "Define sunk cost.",
+        "Explain why sunk costs should be ignored in decision making.",
+        "Identify sunk costs in a given scenario and justify their exclusion from a decision tree."
+      ]
+    },
+    {
+      "concept_id": "concept-importance-of-reliable-inputs-in-decision-tree-analysis-3db6e81e",
+      "label": "Importance of Reliable Inputs in Decision Tree Analysis",
+      "teaching_description": "The validity of a decision tree depends on a comprehensive list of probable outcomes and accurate estimates of probabilities and values. Poor-quality inputs lead to unreliable output, often summarized as 'garbage in, garbage out'.",
+      "coverage_criteria": [
+        "Explain why a comprehensive list of outcomes is essential.",
+        "Discuss the consequences of using unreliable probability or value estimates."
+      ]
+    },
+    {
+      "concept_id": "concept-risk-profiles-1e5d37df",
+      "label": "Risk Profiles",
+      "teaching_description": "A risk profile lists all possible monetary outcomes of a decision along with their probabilities, often visualized as a bar chart. It helps in understanding the riskiness of different decision alternatives.",
+      "coverage_criteria": [
+        "Construct a risk profile from a payoff table or decision tree.",
+        "Interpret a risk profile bar chart to compare the riskiness of alternatives."
+      ]
+    },
+    {
+      "concept_id": "concept-handling-deterministic-payoffs-in-decision-trees-458de048",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "teaching_description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ]
+    },
+    {
+      "concept_id": "concept-decision-tree-basics-8f627409",
+      "label": "Decision Tree Basics",
+      "teaching_description": "Understanding of what a decision tree is, its purpose, and its standard symbolic representation.",
+      "coverage_criteria": [
+        "Define a decision tree and explain its use in decision-making.",
+        "Identify and explain the standard symbols used in decision trees (decision nodes, chance nodes, end nodes) and the left-to-right reading convention."
+      ]
+    },
+    {
+      "concept_id": "concept-building-and-labeling-decision-trees-bf331b30",
+      "label": "Building and Labeling Decision Trees",
+      "teaching_description": "Construct a decision tree from a scenario, including drawing decision and chance nodes, branches, and labeling branches with probabilities and payoffs, ensuring probabilities from a chance node sum to 100%.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches, and label the branches with given probabilities and payoffs.",
+        "Explain the steps for constructing a decision tree and why probabilities from a chance node must sum to 100%."
+      ]
+    },
+    {
+      "concept_id": "concept-calculating-expected-monetary-value-emv-at-chance-nodes-faf87790",
+      "label": "Calculating Expected Monetary Value (EMV) at Chance Nodes",
+      "teaching_description": "Computing the expected value by multiplying outcomes by probabilities and summing.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ]
+    },
+    {
+      "concept_id": "concept-folding-back-procedure-c4ee63bd",
+      "label": "Folding Back Procedure",
+      "teaching_description": "The folding back procedure solves a decision tree from right to left: at chance nodes, compute EMV; at decision nodes, select the alternative with the highest EMV. The EMV at the root is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ]
+    },
+    {
+      "concept_id": "concept-net-benefit-calculation-at-decision-nodes-74871ce2",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "teaching_description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ]
+    },
+    {
+      "concept_id": "concept-expected-value-of-sample-information-evsi-0d22ce53",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "teaching_description": "The difference between the expected monetary value with free sample information and without that information, representing the maximum a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ]
+    },
+    {
+      "concept_id": "concept-expected-value-of-perfect-information-evpi-ddeb0332",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "teaching_description": "The difference between the expected monetary value with free perfect information and without information, serving as the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ]
+    },
+    {
+      "concept_id": "concept-expected-monetary-value-emv-criterion-bee4de23",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "teaching_description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. Given known probabilities for states of nature, compute the expected monetary value for each alternative and choose the highest. This rule is appropriate for risk-neutral decision makers.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table given probabilities.",
+        "Explain why the EMV criterion is optimal under risk neutrality.",
+        "Determine the optimal decision under risk using EMV."
+      ]
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+      "label": "Sensitivity Analysis Using Tornado Charts",
+      "teaching_description": "Sensitivity analysis examines how changes in input parameters affect the output criterion (e.g., EMV). Tools like tornado charts and spider charts rank inputs (risk factors) by their impact, helping prioritize which factors to focus on in decision-making and risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs and explain quantile ranges and direction of impact.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Decision Tree Fundamentals",
+      "concept_ids": [
+        "concept-decision-tree-basics-8f627409",
+        "concept-building-and-labeling-decision-trees-bf331b30",
+        "concept-handling-deterministic-payoffs-in-decision-trees-458de048"
+      ]
+    },
+    {
+      "label": "Solving Decision Trees",
+      "concept_ids": [
+        "concept-calculating-expected-monetary-value-emv-at-chance-nodes-faf87790",
+        "concept-folding-back-procedure-c4ee63bd",
+        "concept-net-benefit-calculation-at-decision-nodes-74871ce2",
+        "concept-expected-monetary-value-emv-criterion-bee4de23"
+      ]
+    },
+    {
+      "label": "Probability Updating and Multistage Decisions",
+      "concept_ids": [
+        "concept-bayes-rule-for-updating-probabilities-d8473089",
+        "concept-multistage-decision-problems-and-contingency-plans-b2b00b0e"
+      ]
+    },
+    {
+      "label": "Incorporating Risk Preferences",
+      "concept_ids": [
+        "concept-utility-functions-and-risk-aversion-62118670",
+        "concept-exponential-utility-function-and-risk-tolerance-3a311e4a",
+        "concept-certainty-equivalent-95a83eef"
+      ]
+    },
+    {
+      "label": "Value of Information",
+      "concept_ids": [
+        "concept-expected-value-of-sample-information-evsi-0d22ce53",
+        "concept-expected-value-of-perfect-information-evpi-ddeb0332"
+      ]
+    },
+    {
+      "label": "Critical Considerations and Analysis",
+      "concept_ids": [
+        "concept-sunk-costs-in-decision-making-9ee4d58e",
+        "concept-importance-of-reliable-inputs-in-decision-tree-analysis-3db6e81e",
+        "concept-risk-profiles-1e5d37df",
+        "concept-sensitivity-analysis-using-tornado-charts-487ef747"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

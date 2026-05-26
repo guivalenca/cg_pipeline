@@ -1,0 +1,182 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_002",
+    "area": {
+      "id": "area_002",
+      "label": "Principles of Effective Decision-Making",
+      "rationale": "Candidates describe core qualities of great decisions, including seeking diverse viewpoints, acting close to the action, addressing root causes, assigning accountability, balancing short- and long-term value, communicating effectively, making timely decisions, and balancing gut with team considerations. Together they form a coherent set of best practices for individual decision-making.",
+      "candidate_ids": [
+        "lr001_006",
+        "lr001_007",
+        "lr001_008",
+        "lr001_009",
+        "lr001_010",
+        "lr001_011",
+        "lr001_012",
+        "lr001_013"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr001_006",
+    "lr001_007",
+    "lr001_008",
+    "lr001_009",
+    "lr001_010",
+    "lr001_011",
+    "lr001_012",
+    "lr001_013"
+  ],
+  "candidates": [
+    {
+      "id": "lr001_006",
+      "label": "Consider Many Different Viewpoints in Decision-Making",
+      "description": "Great decisions are shaped by consideration of many different viewpoints, without seeking consensus but not acting unilaterally; it requires discernment on whose opinion to seek and when to force a solution.",
+      "coverage_criteria": [
+        "Explain why considering many different viewpoints shapes great decisions.",
+        "Describe how to balance seeking input versus making a unilateral decision."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_007",
+      "label": "Make Decisions Close to the Action",
+      "description": "Great decisions are made as close as possible to the action, involving those who do the work rather than only those in power, which requires trust and putting ego aside.",
+      "coverage_criteria": [
+        "Describe why involving front-line workers improves decision quality.",
+        "Identify situations where it is better to seek advice from those at the operational level."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_008",
+      "label": "Address Root Cause in Decision-Making",
+      "description": "Great decisions address the root cause of problems, not just symptoms, by engaging people who understand where issues originated and developing plans to fix the underlying cause.",
+      "coverage_criteria": [
+        "Differentiate between symptoms and root causes in a decision context.",
+        "Explain why focusing on root causes leads to more effective decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_009",
+      "label": "Assign Clear Accountability in Decisions",
+      "description": "Great decisions are made by a clearly accountable person who stands behind their decisions, even if they later turn out to be mistakes.",
+      "coverage_criteria": [
+        "Explain the importance of clear accountability in decision-making.",
+        "Describe how accountability fosters ownership and integrity in the decision process."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_010",
+      "label": "Balance Short-Term and Long-Term Value in Decisions",
+      "description": "Great decisions consider the holistic impacts of a problem and balance long-term and short-term value, sometimes requiring sacrifice of immediate efficiency for long-term competence.",
+      "coverage_criteria": [
+        "Discuss how to evaluate trade-offs between short-term gains and long-term value in decision-making.",
+        "Provide examples where short-term sacrifices lead to long-term benefits."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_011",
+      "label": "Communicate Decisions Effectively to Stakeholders",
+      "description": "Great decisions are communicated well to stakeholders, involving honesty and integrity even when facing difficult audiences or consequences.",
+      "coverage_criteria": [
+        "Outline key principles for effectively communicating decisions to stakeholders.",
+        "Explain the importance of transparency and integrity in decision communication."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_012",
+      "label": "Make Timely Decisions",
+      "description": "Great decisions are timely; they avoid procrastination, fear of mistakes, or blame-shifting by charting the best course forward with available information and acting promptly.",
+      "coverage_criteria": [
+        "Explain the importance of timeliness in decision-making.",
+        "Identify common barriers to timely decisions such as perfectionism or fear of disapproval."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_013",
+      "label": "Balance Gut Instinct with Team Considerations",
+      "description": "While trusting one's gut can be valuable, great decisions also require considering whether that instinct is the best course for everyone involved.",
+      "coverage_criteria": [
+        "Discuss the role of intuition in decision-making.",
+        "Describe when it is appropriate to rely on gut instinct versus when broader team or organizational considerations should prevail."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

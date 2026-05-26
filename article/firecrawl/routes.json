@@ -1,0 +1,193 @@
+{
+  "onlyMainContent": true,
+  "onlyCleanContent": true,
+  "waitFor": 0,
+  "proxy": "auto",
+  "default_pdf_mode": "auto",
+  "location": {
+    "country": "US",
+    "languages": ["en-US"]
+  },
+  "minimal_retry": {
+    "timeout": 240000,
+    "maxAge": 172800000,
+    "onlyMainContent": true,
+    "onlyCleanContent": false,
+    "waitFor": 0,
+    "proxy": "auto",
+    "location": {
+      "country": "BR",
+      "languages": ["pt-BR", "es-ES", "en-US"]
+    }
+  },
+  "screenshot": {
+    "type": "screenshot",
+    "fullPage": true,
+    "quality": 70,
+    "viewport": {
+      "width": 1440,
+      "height": 1400
+    }
+  },
+  "excludeTags": [
+    "nav",
+    "footer",
+    "aside",
+    "script",
+    "style",
+    "noscript",
+    "form"
+  ],
+  "blocked_hosts": {
+    "philos.sophia.com.br": "auth_walled_book_reader"
+  },
+  "special_hosts": {
+    "course.spacy.io": {
+      "strategy": "spacy_course_gatsby",
+      "separateScreenshot": true,
+      "screenshot": {
+        "type": "screenshot",
+        "fullPage": true,
+        "quality": 70,
+        "viewport": {
+          "width": 1440,
+          "height": 1400
+        }
+      },
+      "notes": ["spacy_gatsby_page_data_extractor"]
+    }
+  },
+  "interactive_hosts": {
+    "kaggle.com": {
+      "strategy": "interactive_shell",
+      "waitFor": 5000,
+      "actions": [
+        {
+          "type": "wait",
+          "milliseconds": 3000
+        }
+      ],
+      "notes": ["interactive_dataset_shell_manual_review"]
+    }
+  },
+  "static_with_actions_hosts": {
+    "medium.com": {
+      "strategy": "static_with_actions",
+      "waitFor": 5000,
+      "actions": [
+        {
+          "type": "wait",
+          "milliseconds": 3000
+        }
+      ],
+      "notes": ["medium_can_return_deleted_or_member_wall"]
+    },
+    "towardsdatascience.com": {
+      "strategy": "static_with_actions",
+      "waitFor": 5000,
+      "actions": [
+        {
+          "type": "wait",
+          "milliseconds": 3000
+        }
+      ],
+      "notes": ["medium_network_member_wall_possible"]
+    }
+  },
+  "app_ui_hosts": {
+    "github.com": {
+      "strategy": "app_ui",
+      "waitFor": 2500,
+      "onlyCleanContent": true,
+      "notes": ["github_app_ui_or_wrapper_page"]
+    },
+    "docs.github.com": {
+      "strategy": "app_ui",
+      "waitFor": 1500,
+      "onlyCleanContent": true,
+      "notes": ["github_docs_navigation_heavy"]
+    },
+    "geeksforgeeks.org": {
+      "strategy": "app_ui",
+      "waitFor": 4000,
+      "onlyCleanContent": true,
+      "notes": ["template_heavy_preserve_code_blocks"]
+    },
+    "analyticsvidhya.com": {
+      "strategy": "app_ui",
+      "waitFor": 3500,
+      "onlyCleanContent": true,
+      "notes": ["template_heavy_blog"]
+    },
+    "datacamp.com": {
+      "strategy": "app_ui",
+      "waitFor": 3500,
+      "onlyCleanContent": true,
+      "notes": ["cheatsheet_or_login_prompt_possible"]
+    },
+    "machinelearningmastery.com": {
+      "strategy": "app_ui",
+      "waitFor": 2000,
+      "onlyCleanContent": true,
+      "formats": ["markdown", "links", "images"],
+      "includeTags": [
+        "article",
+        "main",
+        ".entry-content",
+        "#content"
+      ],
+      "excludeTags": [
+        "nav",
+        "footer",
+        "aside",
+        "script",
+        "style",
+        "noscript",
+        "form",
+        "header",
+        "#comments",
+        ".comments-area",
+        ".sidebar",
+        ".related-posts",
+        ".author-bio",
+        ".social-share",
+        ".jp-relatedposts"
+      ],
+      "separateScreenshot": true,
+      "screenshot": {
+        "type": "screenshot",
+        "fullPage": false,
+        "quality": 70,
+        "viewport": {
+          "width": 1440,
+          "height": 1400
+        }
+      },
+      "notes": ["template_heavy_blog_domain_scoped_main_content"]
+    },
+    "simplilearn.com": {
+      "strategy": "app_ui",
+      "waitFor": 3500,
+      "onlyCleanContent": true,
+      "notes": ["template_heavy_article"]
+    },
+    "ibm.com": {
+      "strategy": "app_ui",
+      "waitFor": 2500,
+      "onlyCleanContent": true,
+      "notes": ["enterprise_docs_navigation_heavy"]
+    }
+  },
+  "pdf_overrides": {
+    "46": {
+      "mode": "ocr",
+      "maxPages": 20,
+      "notes": ["chart_heavy_pdf_force_ocr"]
+    },
+    "47": {
+      "mode": "auto",
+      "maxPages": 30,
+      "notes": ["github_pdf_wrapper_rewrite"]
+    }
+  }
+}

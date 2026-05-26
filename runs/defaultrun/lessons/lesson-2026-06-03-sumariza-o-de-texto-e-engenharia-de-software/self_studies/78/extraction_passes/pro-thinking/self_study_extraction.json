@@ -1,0 +1,361 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:27:50.124957+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+  "self_study_id": "78",
+  "source_body_path": "extraction/post-image/0078-video-text-summarization-of-covid-19-medical-articles-using-bert-and-gpt-2-research-paper-walkth.md",
+  "source_body_sha256": "5a4a37fb692662033545701a890be151a4b6a4ae93a7d35ab8f7b7cf3eed474c",
+  "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-78-001",
+      "label": "Extractive summarization selects important sentences directly from the source text",
+      "description": "Extractive summarization works by identifying and concatenating the most salient sentences or spans from the original document. It tends to be grammatically correct and accurate because it reuses existing sentences.",
+      "coverage_criteria": [
+        "Describe how extractive summarization differs from abstractive summarization.",
+        "List at least one advantage of extractive summarization (e.g., grammatical correctness, accuracy)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly defines extractive summarization at [01:54] and contrasts it with abstractive summarization at [02:54].",
+        "granularity_rationale": "This is a foundational definition that can be assessed with two short questions, making it an appropriate checkable concept."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:54] Introduction: Text Summarization Approaches"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:54] Extractive vs. Abstractive Summarization"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-78-002",
+      "label": "Abstractive summarization generates paraphrased summaries that may contain new sentences",
+      "description": "Abstractive summarization produces a summary by generating new sentences that paraphrase the source content. It requires deeper semantic understanding and is more challenging than extractive methods, as the model must creatively rephrase information.",
+      "coverage_criteria": [
+        "Explain what abstractive summarization is and how it differs from extractive summarization.",
+        "State one reason why abstractive summarization is more difficult (e.g., need for semantic modeling, paraphrase generation)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video describes abstractive summarization and its challenges at [02:54], emphasizing the need for semantic representation and creative generation.",
+        "granularity_rationale": "Distinguishing abstractive from extractive summarization is a key learning point, testable with direct questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:54] Extractive vs. Abstractive Summarization"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-78-003",
+      "label": "BERT can generate sentence embeddings used for clustering in extractive summarization",
+      "description": "Pre-trained BERT models can convert each sentence into a fixed-length vector (e.g., 768 dimensions) that captures semantic meaning. These sentence embeddings are then clustered (e.g., with K-medoids) to select representative sentences for an extractive summary.",
+      "coverage_criteria": [
+        "Explain what a sentence embedding is and how BERT can produce one.",
+        "Describe why sentence embeddings are useful for extractive summarization (to group semantically similar sentences)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces the extractive summarization pipeline at [05:10], explicitly describing how BERT transforms sentences into 768-dimensional vectors.",
+        "granularity_rationale": "Sentence embeddings are a core NLP technique; this concept checks understanding of their role in summarization with two focused questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:10] Approach: Overall Outline (Extractive Part)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "BERT"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-004",
+      "label": "K-medoid clustering selects actual sentences as cluster centers for extractive summaries",
+      "description": "After obtaining sentence embeddings, K-medoid clustering groups similar sentences and uses actual data points (sentences) as cluster medoids. This ensures the extractive summary consists of real sentences from the text, unlike K-Means which can produce virtual centroids.",
+      "coverage_criteria": [
+        "Compare K-Means and K-Medoid, highlighting that K-Medoid uses actual data points as centers.",
+        "Explain how K-Medoid can be applied to select representative sentences for a summary."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video details K-medoid clustering at [07:01] and its application within the extractive summarization pipeline at [05:10].",
+        "granularity_rationale": "Understanding why and how K-medoid is used for extractive summarization is specific enough to be assessed with a short explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[07:01] K-Means vs K-Medoid Clustering"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:10] Approach: Overall Outline (Extractive Part)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "K-medoid"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-005",
+      "label": "Keyword extraction from source text guides abstractive summarization models",
+      "description": "In the abstractive summarization approach, important keywords (typically nouns and verbs) are automatically extracted using techniques like NLTK part-of-speech tagging or fine-tuned BERT. These keywords provide a condensed representation of the text’s core topics for the summarization model.",
+      "coverage_criteria": [
+        "Name at least one method for extracting keywords (e.g., POS tagging, BERT).",
+        "Explain how extracted keywords are used in the abstractive summarization pipeline (as part of the input to GPT-2)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explains keyword extraction with NLTK and BERT at [12:22] and its role in the abstractive summarization pipeline.",
+        "granularity_rationale": "Keyword extraction is a critical preprocessing step whose function and methods can be checked with two direct questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[12:22] Approach: Overall Outline (Abstractive Part)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "NLTK",
+        "BERT"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-006",
+      "label": "GPT-2 is fine-tuned for abstractive summarization using a multi-loss training strategy",
+      "description": "The abstractive summarization model uses GPT-2 fine-tuned with two objectives: language modeling (predicting the next token) and multiple-choice prediction (distinguishing true summaries from distractors). The input includes special tokens like `<summarize>` and keywords, and the total loss is a weighted sum (LM:MC = 2:1).",
+      "coverage_criteria": [
+        "Describe the two training tasks used for fine-tuning GPT-2: language modeling and multiple-choice.",
+        "Explain the purpose of the multiple-choice loss in improving summarization quality.",
+        "State how special tokens like `<summarize>` are used in the input format."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video thoroughly explains the training strategy, input format, special tokens, and loss weighting at [13:48] and [17:13].",
+        "granularity_rationale": "This multi-loss approach is a key innovation of the paper, and can be assessed with multiple questions about its components."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[13:48] Training Strategy of the Abstractive Summarization GPT-2"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[17:13] Intuition of the Training Strategy"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "GPT-2"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-007",
+      "label": "Masked self-attention in GPT-2 prevents the model from attending to future tokens",
+      "description": "During language modeling, GPT-2 applies a mask to its self-attention mechanism so that each token can only attend to previous tokens (and itself). This auto-regressive property ensures that prediction of the next token is based solely on the preceding context, enabling coherent text generation.",
+      "coverage_criteria": [
+        "Explain what masked self-attention is and why it is necessary for training GPT-2 as a language model.",
+        "Describe how the masking works (setting attention weights to -inf before softmax for future positions)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video mentions masked self-attention as part of the training strategy intuition at [17:51], noting it blocks information from the right.",
+        "granularity_rationale": "Masked self-attention is a fundamental mechanism in transformers; its purpose can be checked with a concise explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[17:13] Intuition of the Training Strategy"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "GPT-2"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-008",
+      "label": "Special tokens like `<summarize>` serve as context cues during GPT-2 fine-tuning",
+      "description": "By inserting a special token such as `<summarize>` between keywords and the summary in the input sequence, the model learns to associate this token with the summarization task. This helps GPT-2 condition its output on the preceding keywords and generate an appropriate summary.",
+      "coverage_criteria": [
+        "Give an example of how special tokens are used in input formatting for fine-tuning GPT-2.",
+        "Explain why such tokens help the model perform task-specific generation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video describes the use of `<summarize>` to separate keywords and the summary at [13:48] and how GPT-2 learns this cue at [17:13].",
+        "granularity_rationale": "The role of control tokens is a concrete, teachable detail of language model fine-tuning that can be checked with a short answer."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[13:48] Training Strategy of the Abstractive Summarization GPT-2"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[17:13] Intuition of the Training Strategy"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "GPT-2"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-009",
+      "label": "Low availability of domain-specific data makes fine-tuning large models difficult",
+      "description": "The COVID-19 research dataset contains far fewer document-summary pairs than general summarization datasets (35k vs 286k). Moreover, specialized scientific terminology may not be well covered in the pre-training data of models like BERT and GPT-2, hindering effective fine-tuning.",
+      "coverage_criteria": [
+        "Quantify the data size challenge mentioned in the video (e.g., compare 35k vs 286k pairs).",
+        "Explain why limited domain data and esoteric terminology can degrade fine-tuning performance."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly discusses the low-resource challenge at [04:13], including dataset size comparison and terminology mismatch.",
+        "granularity_rationale": "This concept highlights a practical constraint in NLP projects, and students can be asked to recall specific numbers and reasons."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:13] Low-Resource Challenge"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": [
+        "BERT",
+        "GPT-2"
+      ]
+    },
+    {
+      "candidate_id": "candidate-78-010",
+      "label": "Using extractive summary sentences as input to abstractive summarization could improve performance",
+      "description": "The presenter proposes that, as an alternative to using only keywords, one could feed sentences extracted by an extractive summarization method directly into an abstractive summarization model. This hybrid approach may yield better summaries by providing richer context.",
+      "coverage_criteria": [
+        "Summarize the future work suggestion made at the end of the video.",
+        "Discuss one potential benefit of using extracted sentences instead of just keywords for abstractive summarization."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video concludes with this suggestion at [21:16], explicitly proposing the combination of extractive and abstractive methods.",
+        "granularity_rationale": "This forward-looking idea encourages synthesis of the two summarization approaches and can be assessed with a short reflective question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[21:16] Conclusion and Suggestion"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-78-003",
+      "to_candidate_id": "candidate-78-004",
+      "reason": "The extractive summarization pipeline explicitly uses BERT to produce sentence embeddings and then applies K-medoid clustering to select summary sentences.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:10] Approach: Overall Outline (Extractive Part)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-78-005",
+      "to_candidate_id": "candidate-78-006",
+      "reason": "Extracted keywords are paired with gold summaries and used as input to fine-tune the GPT-2 abstractive summarization model.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[12:22] Approach: Overall Outline (Abstractive Part)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[13:48] Training Strategy of the Abstractive Summarization GPT-2"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-78-001",
+      "to_candidate_id": "candidate-78-002",
+      "reason": "The presenter suggests future work could combine extractive and abstractive summarization by using extractive summaries as input to the abstractive model.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[21:16] Conclusion and Suggestion"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 10,
+    "source_local_connector_candidate_count": 3
+  }
+}

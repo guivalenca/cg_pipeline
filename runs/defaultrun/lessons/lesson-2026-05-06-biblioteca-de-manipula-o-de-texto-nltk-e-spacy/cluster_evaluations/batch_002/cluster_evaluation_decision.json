@@ -1,0 +1,434 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:39:34.353939+00:00",
+  "scope_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c29_pro_thinking_003",
+    "c29_pro_thinking_004",
+    "c30_pro_thinking_001",
+    "c30_pro_thinking_002",
+    "c30_pro_thinking_003",
+    "c30_pro_thinking_004",
+    "c30_pro_thinking_005",
+    "c30_pro_thinking_006",
+    "c30_pro_thinking_007",
+    "c30_pro_thinking_008",
+    "c30_pro_thinking_009",
+    "c30_pro_thinking_010",
+    "c31_pro_thinking_001",
+    "c31_pro_thinking_002",
+    "c31_pro_thinking_003",
+    "c31_pro_thinking_004"
+  ],
+  "accepted": [
+    {
+      "id": "lr001",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK stemming with Snowball."
+    },
+    {
+      "id": "lr002",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK lemmatization."
+    },
+    {
+      "id": "lr003",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_001",
+        "c30_pro_thinking_002",
+        "c31_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates cover the practical steps of initializing spaCy, processing text, and understanding the resulting document structure, along with the concept of tokenization. They form a single foundational workflow."
+    },
+    {
+      "id": "lr004",
+      "label": "Using lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone technique for lexical pattern detection."
+    },
+    {
+      "id": "lr005",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_004",
+        "c30_pro_thinking_005",
+        "c31_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates all relate to the nature and usage of pre-trained spaCy models: what they contain, how to load them, and the different types available."
+    },
+    {
+      "id": "lr006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate; focused on two specific annotation types that are commonly used together."
+    },
+    {
+      "id": "lr007",
+      "label": "Named entity recognition and manual correction",
+      "description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_007",
+        "c30_pro_thinking_008"
+      ],
+      "merge_rationale": "Manual correction is a practical complement to NER; teaching them together gives a complete view of entity handling."
+    },
+    {
+      "id": "lr008",
+      "label": "Rule-based matching with Matcher",
+      "description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_009",
+        "c30_pro_thinking_010"
+      ],
+      "merge_rationale": "Basic and complex pattern writing are a natural progression of the same tool; they form one concept of using Matcher for rule-based matching."
+    },
+    {
+      "id": "lr009",
+      "label": "Introduction to Natural Language Processing (NLP)",
+      "description": "NLP is the field of making computers understand natural language, relying on statistical approximations; applications include information extraction and chatbots.",
+      "coverage_criteria": [
+        "Explain that NLP deals with understanding natural language by machines.",
+        "Mention that approaches are statistical and approximate.",
+        "Give examples of applications such as document information extraction or chatbots."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate; foundational concept providing context for text processing tools."
+    },
+    {
+      "id": "lr010",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate; library overview necessary before using spaCy."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK stemming with Snowball."
+    },
+    {
+      "id": "lr002",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_candidate_ids": [
+        "c29_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate; standalone concept for NLTK lemmatization."
+    },
+    {
+      "id": "lr003",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_001",
+        "c30_pro_thinking_002",
+        "c31_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates cover the practical steps of initializing spaCy, processing text, and understanding the resulting document structure, along with the concept of tokenization. They form a single foundational workflow."
+    },
+    {
+      "id": "lr004",
+      "label": "Using lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate; standalone technique for lexical pattern detection."
+    },
+    {
+      "id": "lr005",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_004",
+        "c30_pro_thinking_005",
+        "c31_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates all relate to the nature and usage of pre-trained spaCy models: what they contain, how to load them, and the different types available."
+    },
+    {
+      "id": "lr006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate; focused on two specific annotation types that are commonly used together."
+    },
+    {
+      "id": "lr007",
+      "label": "Named entity recognition and manual correction",
+      "description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_007",
+        "c30_pro_thinking_008"
+      ],
+      "merge_rationale": "Manual correction is a practical complement to NER; teaching them together gives a complete view of entity handling."
+    },
+    {
+      "id": "lr008",
+      "label": "Rule-based matching with Matcher",
+      "description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ],
+      "source_candidate_ids": [
+        "c30_pro_thinking_009",
+        "c30_pro_thinking_010"
+      ],
+      "merge_rationale": "Basic and complex pattern writing are a natural progression of the same tool; they form one concept of using Matcher for rule-based matching."
+    },
+    {
+      "id": "lr009",
+      "label": "Introduction to Natural Language Processing (NLP)",
+      "description": "NLP is the field of making computers understand natural language, relying on statistical approximations; applications include information extraction and chatbots.",
+      "coverage_criteria": [
+        "Explain that NLP deals with understanding natural language by machines.",
+        "Mention that approaches are statistical and approximate.",
+        "Give examples of applications such as document information extraction or chatbots."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate; foundational concept providing context for text processing tools."
+    },
+    {
+      "id": "lr010",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate; library overview necessary before using spaCy."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c29_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr007"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr007"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c30_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr009"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr010"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 16,
+    "accepted_count": 10,
+    "pruned_count": 0,
+    "candidate_assignment_count": 16,
+    "review_count": 0
+  }
+}

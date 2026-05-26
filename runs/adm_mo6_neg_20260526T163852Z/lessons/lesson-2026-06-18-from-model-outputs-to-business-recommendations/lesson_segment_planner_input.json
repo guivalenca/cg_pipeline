@@ -1,0 +1,70 @@
+{
+  "artifact_type": "lesson_segment_planner_input",
+  "schema_version": "lesson_segment_planner_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/segment_planner.md",
+  "prompt": "# Lesson Segment Planner\n\n## Mission\n\nGroup the provided Concepts for exactly one Lesson into ordered teaching-flow\nSegments. A Lesson Segment is a small teaching chunk for the Companion, not a\nsource section, dependency edge, review unit, or runtime adaptation.\n\n## Inputs\n\nUse only the provided `lesson` and `concepts`.\n\n- The Lesson contains only `lesson_id` and `title`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`, and\n  `coverage_criteria`.\n\nDo not infer from other Lessons. Do not use dates, global Lesson order, source\npositions, workbook labels, or web research.\n\n## Workflow\n\n1. Read the Lesson title to understand the local teaching frame.\n2. Read each Concept description and Coverage Criteria to understand expected\n   scope.\n3. Create Segments that each cover one natural mini-arc of teaching.\n4. Target one to four Concepts per Segment.\n5. Use five or more Concepts only when they are tightly coupled and cannot be\n   taught naturally as smaller chunks.\n6. Order Segments in the natural teaching flow for this Lesson.\n7. Put every Concept ID in exactly one Segment.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\nDo not create Segment IDs. Do not create `instructional_role`; the pipeline adds\n`teach` deterministically.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Short teaching label\",\n      \"concept_ids\": [\"concept_id_1\", \"concept_id_2\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_planner",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+    "title": "From Model Outputs to Business Recommendations"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+      "label": "Risk Mapping for Preliminary Risk Identification",
+      "teaching_description": "Risk mapping uses expert assessment to score probability and impact, creating a matrix that categorizes risks to guide quantitative analysis.",
+      "coverage_criteria": [
+        "Create a risk matrix given a list of risks, assign probability and impact scores, and explain how the matrix informs subsequent simulation focus."
+      ]
+    },
+    {
+      "concept_id": "concept-project-comparison-using-simulation-statistics-9446a388",
+      "label": "Project Comparison Using Simulation Statistics",
+      "teaching_description": "When comparing projects using simulation results, apply decision rules based on mean, standard deviation, coefficient of variation, and skewness to select the best project.",
+      "coverage_criteria": [
+        "Compare two projects using mean, standard deviation, and skewness; explain which project is preferable and why; compute and interpret the coefficient of variation."
+      ]
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "teaching_description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ]
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+      "label": "Sensitivity Analysis Using Tornado Charts",
+      "teaching_description": "Sensitivity analysis examines how changes in input parameters affect the output criterion (e.g., EMV). Tools like tornado charts and spider charts rank inputs (risk factors) by their impact, helping prioritize which factors to focus on in decision-making and risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs and explain quantile ranges and direction of impact.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

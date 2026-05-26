@@ -1,0 +1,2305 @@
+{
+  "artifact_type": "knowledge_type_quality_audit_input",
+  "schema_version": "knowledge_type_quality_audit_input.v0",
+  "source_artifact": "knowledge_type_classification_summary.json",
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/quality_audit.md",
+  "prompt": "# Knowledge Type Quality Audit\n\n## Quick Start\n\nAudit whether the current Concept `knowledge_type` classifications are reliable\nenough for final graph export.\n\n## Inputs\n\nUse only the provided `current_classifications`, `conflicts`, `distribution`,\nand `taxonomy`.\n\nThe taxonomy definitions come from `prompts/system_prompt.txt`.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `taxonomy_fit`: labels match the taxonomy definitions.\n- `teaching_mode_alignment`: rationales fit the Concept's likely teaching mode.\n- `segment_consistency`: repeated Concepts are resolved consistently.\n- `factual_boundary`: pure recall is factual, but reasoning-heavy concepts are\n  not over-labeled factual.\n- `applied_boundary`: applied is used for scenario judgment and trade-offs, not\n  for every practical-sounding topic.\n\nFlag real issues only. Do not repair harmless wording differences.\n\nLook specifically for:\n\n- definitions marked procedural,\n- API/tool execution Concepts marked conceptual,\n- historical/name-only Concepts marked applied,\n- suspicious underuse of applied,\n- suspicious absence of factual,\n- Segment-internal inconsistencies,\n- cross-Segment conflicts for repeated Concepts.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"taxonomy_fit\": 3,\n    \"teaching_mode_alignment\": 3,\n    \"segment_consistency\": 3,\n    \"factual_boundary\": 3,\n    \"applied_boundary\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"flags\": [],\n  \"findings\": [],\n  \"repair_plan\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include a targeted `repair_plan` with\nConcept IDs, a repair reason, and a concrete explanation.\n\nAllowed repair reasons:\n\n- `cross_segment_conflict`\n- `taxonomy_mismatch`\n- `definition_as_procedural`\n- `tool_execution_as_conceptual`\n- `historical_name_as_applied`\n- `applied_underuse`\n- `factual_absence`\n- `segment_inconsistency`\n\n## Never\n\n- Do not search the web.\n- Do not add, remove, or rename Concepts.\n- Do not change Segment membership.\n- Do not request broad taxonomy redesign.\n\n## Self-Check\n\n- Use `repair_required` only when a targeted repair would improve teaching.\n- Every repair-plan item has Concept IDs and a concrete explanation.\n- Cross-Segment conflicts must be repaired.\n",
+  "task": "knowledge_type_quality_audit",
+  "model_route": "Pro Thinking",
+  "current_classifications": [
+    {
+      "concept_id": "concept-integration-of-pestel-with-other-frameworks-b11c3c6f",
+      "knowledge_type": "applied",
+      "rationale": "Coverage Criteria requires naming frameworks that can utilize PESTEL outputs, indicating real-world scenario judgment of when and how to integrate.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_001",
+          "segment_label": "Using PESTEL Analysis in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage Criteria requires naming frameworks that can utilize PESTEL outputs, indicating real-world scenario judgment of when and how to integrate.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-use-of-pestel-in-financial-analysis-845f5721",
+      "knowledge_type": "applied",
+      "rationale": "Coverage Criteria asks for an example of a PESTEL factor affecting a financial model assumption, which is a scenario-based design decision.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_001",
+          "segment_label": "Using PESTEL Analysis in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage Criteria asks for an example of a PESTEL factor affecting a financial model assumption, which is a scenario-based design decision.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-consider-many-different-viewpoints-in-decision-making-67e8e16d",
+      "knowledge_type": "applied",
+      "rationale": "Concerns balancing input and making unilateral decisions in real-world scenarios.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_002",
+          "segment_label": "Gathering Information and Understanding the Problem",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Concerns balancing input and making unilateral decisions in real-world scenarios.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-make-decisions-close-to-the-action-a6a8400a",
+      "knowledge_type": "applied",
+      "rationale": "Involves judgment on when to involve front-line workers, a design decision in decision-making.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_002",
+          "segment_label": "Gathering Information and Understanding the Problem",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Involves judgment on when to involve front-line workers, a design decision in decision-making.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-address-root-cause-in-decision-making-d4ade183",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on understanding the principle of root cause vs symptoms and why it leads to effective decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_002",
+          "segment_label": "Gathering Information and Understanding the Problem",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on understanding the principle of root cause vs symptoms and why it leads to effective decisions.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-assign-clear-accountability-in-decisions-9cc18b39",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining importance and describing how accountability fosters ownership and integrity, which are why-oriented principles.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_003",
+          "segment_label": "Making and Executing Effective Decisions",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining importance and describing how accountability fosters ownership and integrity, which are why-oriented principles.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-balance-short-term-and-long-term-value-in-decisions-17a8f9f2",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require evaluating trade-offs and providing examples, which involve real-world scenario judgment and when-to-use decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_003",
+          "segment_label": "Making and Executing Effective Decisions",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require evaluating trade-offs and providing examples, which involve real-world scenario judgment and when-to-use decisions.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-communicate-decisions-effectively-to-stakeholders-5adbae8b",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria ask to outline key principles for effectively communicating, which is a step-by-step process (how-to).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_003",
+          "segment_label": "Making and Executing Effective Decisions",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria ask to outline key principles for effectively communicating, which is a step-by-step process (how-to).",
+          "confidence": 0.82
+        }
+      ],
+      "confidence": 0.82
+    },
+    {
+      "concept_id": "concept-make-timely-decisions-972b810f",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria focus on explaining importance of timeliness and identifying barriers, which are principles and relationships (why questions).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_003",
+          "segment_label": "Making and Executing Effective Decisions",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria focus on explaining importance of timeliness and identifying barriers, which are principles and relationships (why questions).",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-balance-gut-instinct-with-team-considerations-94c76019",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria ask to discuss the role of intuition and describe when to use gut instinct vs. team considerations, focusing on real-world judgment and when-to-use scenarios.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_004",
+          "segment_label": "Balancing Intuition and Analysis",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria ask to discuss the role of intuition and describe when to use gut instinct vs. team considerations, focusing on real-world judgment and when-to-use scenarios.",
+          "confidence": 0.93
+        }
+      ],
+      "confidence": 0.93
+    },
+    {
+      "concept_id": "concept-explicit-decision-making-procedure-b536ebf3",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining why clarifying the decision-making process benefits group effectiveness (principles, relationships, why question).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+          "segment_id": "segment_001",
+          "segment_label": "Key Principles for Effective Group Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-02-group-decision-making-process/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining why clarifying the decision-making process benefits group effectiveness (principles, relationships, why question).",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-strategies-for-effective-group-discussion-39c797f1",
+      "knowledge_type": "applied",
+      "rationale": "Teaching description presents practical techniques for real-world group decision-making scenarios; coverage criteria ask for explanation of when and why these techniques lead to better decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+          "segment_id": "segment_001",
+          "segment_label": "Key Principles for Effective Group Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-02-group-decision-making-process/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Teaching description presents practical techniques for real-world group decision-making scenarios; coverage criteria ask for explanation of when and why these techniques lead to better decisions.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-delaying-intuition-and-structured-judgment-0513dc51",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria ask to explain why delaying intuition is better and identify conditions for intuition reliability, focusing on principles and relationships (why).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_004",
+          "segment_label": "Balancing Intuition and Analysis",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria ask to explain why delaying intuition is better and identify conditions for intuition reliability, focusing on principles and relationships (why).",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-optimism-bias-in-decision-making-64fbe9d3",
+      "knowledge_type": "conceptual",
+      "rationale": "Defines a cognitive bias and explains its dual nature and systemic role, focusing on why it matters (principles and relationships).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_005",
+          "segment_label": "Recognizing Cognitive Biases in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Defines a cognitive bias and explains its dual nature and systemic role, focusing on why it matters (principles and relationships).",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-judgment-noise-3f73c647",
+      "knowledge_type": "conceptual",
+      "rationale": "Defines a phenomenon, explains why it is underestimated, focusing on conceptual understanding of variability in judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_005",
+          "segment_label": "Recognizing Cognitive Biases in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Defines a phenomenon, explains why it is underestimated, focusing on conceptual understanding of variability in judgment.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-linear-thinking-and-exponential-change-f098b598",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains cognitive limitation and its consequences, emphasizing why humans struggle with exponential change, a principle-based understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_005",
+          "segment_label": "Recognizing Cognitive Biases in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains cognitive limitation and its consequences, emphasizing why humans struggle with exponential change, a principle-based understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-outcome-bias-and-evaluating-decision-quality-74909305",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on defining bias, explaining why outcome-only evaluation is misleading, and contrasting process-based evaluation—why-oriented understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+          "segment_id": "segment_005",
+          "segment_label": "Recognizing Cognitive Biases in Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on defining bias, explaining why outcome-only evaluation is misleading, and contrasting process-based evaluation—why-oriented understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-definition-and-everyday-examples-of-heuristics-6fdd5c91",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining why heuristics prioritize speed over perfection, which is a 'why' question targeting principles.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Heuristics",
+          "classification_artifact": "lessons/lesson-2026-05-19-heuristics-and-biases/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining why heuristics prioritize speed over perfection, which is a 'why' question targeting principles.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-limitations-and-intellectual-humility-regarding-heuristics-d9f85aa5",
+      "knowledge_type": "applied",
+      "rationale": "The segment 'Limitations and Intellectual Humility' and concept description emphasize real-world scenarios (political over-reliance) and design decisions (when to be intellectually humble), fitting applied.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+          "segment_id": "segment_002",
+          "segment_label": "Limitations and Intellectual Humility",
+          "classification_artifact": "lessons/lesson-2026-05-19-heuristics-and-biases/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "The segment 'Limitations and Intellectual Humility' and concept description emphasize real-world scenarios (political over-reliance) and design decisions (when to be intellectually humble), fitting applied.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-cognitive-biases-that-distort-risk-decisions-8220c543",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require describing how biases affect risk decisions and why awareness is important for directors, focusing on real-world application and judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+          "segment_id": "segment_001",
+          "segment_label": "Recognizing Cognitive Biases in Risk Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require describing how biases affect risk decisions and why awareness is important for directors, focusing on real-world application and judgment.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-problem-framing-definition-and-importance-ce0aa172",
+      "knowledge_type": "conceptual",
+      "rationale": "The coverage criteria require differentiating problem framing from problem solving and articulating why problem identification is more critical, which involve relationships and 'why' understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_001",
+          "segment_label": "Defining Problem Framing",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "The coverage criteria require differentiating problem framing from problem solving and articulating why problem identification is more critical, which involve relationships and 'why' understanding.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-cognitive-biases-that-lead-to-premature-convergence-9ca435b8",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on explaining mechanisms (pattern completion, confirmation bias) and why they cause premature convergence, aligning with principles and relationships.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_003",
+          "segment_label": "Barriers to Good Framing",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on explaining mechanisms (pattern completion, confirmation bias) and why they cause premature convergence, aligning with principles and relationships.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-organizational-pressures-that-reinforce-solution-jumping-201ce888",
+      "knowledge_type": "conceptual",
+      "rationale": "Describes how organizational practices reinforce a cognitive tendency, emphasizing the relationship between institutional systems and problem framing failure, which is principle-based.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_003",
+          "segment_label": "Barriers to Good Framing",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Describes how organizational practices reinforce a cognitive tendency, emphasizing the relationship between institutional systems and problem framing failure, which is principle-based.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-double-diamond-model-for-problem-framing-175b9579",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining the phases and why divergent and convergent thinking are necessary, indicating a focus on principles and relationships (why questions).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_004",
+          "segment_label": "The Double Diamond Model",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining the phases and why divergent and convergent thinking are necessary, indicating a focus on principles and relationships (why questions).",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-problem-reframing-technique-a9cc4e81",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require applying reframing to business problems and judging outcomes, indicating primary focus on real-world scenarios and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_005",
+          "segment_label": "Problem Reframing Technique",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require applying reframing to business problems and judging outcomes, indicating primary focus on real-world scenarios and design decisions.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-impact-of-poor-framing-on-ai-effectiveness-b692c7b5",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains principle of AI optimizing for given problem, leading to failure if framing is poor. Coverage criteria include explaining why bad framing causes failure, indicating a 'why' understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_006",
+          "segment_label": "Framing Impact on AI and Execution",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains principle of AI optimizing for given problem, leading to failure if framing is poor. Coverage criteria include explaining why bad framing causes failure, indicating a 'why' understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-strategies-for-building-a-problem-framing-culture-22b92b32",
+      "knowledge_type": "applied",
+      "rationale": "Focuses on real-world cultural practices and leadership strategies to embed problem framing, requiring design decisions and when-to-use judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_007",
+          "segment_label": "Building a Framing Culture",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_007/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focuses on real-world cultural practices and leadership strategies to embed problem framing, requiring design decisions and when-to-use judgment.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-benefits-of-problem-framing-for-execution-clarity-f0867a2e",
+      "knowledge_type": "applied",
+      "rationale": "Focuses on design decision of how framing clarifies ownership, metrics, etc., and when to use framing for execution efficiency. Coverage includes describing how clarity improves execution, indicating real-world application.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_006",
+          "segment_label": "Framing Impact on AI and Execution",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focuses on design decision of how framing clarifies ownership, metrics, etc., and when to use framing for execution efficiency. Coverage includes describing how clarity improves execution, indicating real-world application.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-applying-problem-framing-to-thought-leadership-a12b1e92",
+      "knowledge_type": "applied",
+      "rationale": "Teaches how to apply problem framing in a specific context (thought leadership) to make design decisions and attract audience, a real-world scenario.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_007",
+          "segment_label": "Building a Framing Culture",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_007/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Teaches how to apply problem framing in a specific context (thought leadership) to make design decisions and attract audience, a real-world scenario.",
+          "confidence": 0.93
+        }
+      ],
+      "confidence": 0.93
+    },
+    {
+      "concept_id": "concept-description-invariance-9144ee07",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require defining description invariance and why it's important, which is terminology and definition recall.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_002",
+          "segment_label": "Psychology of Framing Effects",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require defining description invariance and why it's important, which is terminology and definition recall.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-framing-effects-and-preference-reversals-f91e7b57",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require defining framing effect and giving an example, focusing on terminology and facts.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_002",
+          "segment_label": "Psychology of Framing Effects",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require defining framing effect and giving an example, focusing on terminology and facts.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-prospect-theory-as-explanation-for-framing-effects-fd91a5a1",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require describing key components of prospect theory (principles and relationships) and applying it to predict choices, indicating understanding of why and how.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_002",
+          "segment_label": "Psychology of Framing Effects",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require describing key components of prospect theory (principles and relationships) and applying it to predict choices, indicating understanding of why and how.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-adaptiveness-of-decision-processes-in-framing-8dd1ecbd",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining why framing effects can be adaptive and providing an example, which involves understanding principles and relationships.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-04-29-problem-framing",
+          "segment_id": "segment_002",
+          "segment_label": "Psychology of Framing Effects",
+          "classification_artifact": "lessons/lesson-2026-04-29-problem-framing/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining why framing effects can be adaptive and providing an example, which involves understanding principles and relationships.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-decision-environments-fb53d6ad",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require listing and distinguishing the four types based on definitions of states and probabilities, which is recall of terminology.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_001",
+          "segment_label": "Foundations of Decision Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require listing and distinguishing the four types based on definitions of states and probabilities, which is recall of terminology.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-bayes-rule-for-updating-probabilities-d8473089",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria require calculating posterior probabilities and explaining application in a decision tree, which are step-by-step processes.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_003",
+          "segment_label": "Probability Updating and Multistage Decisions",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require calculating posterior probabilities and explaining application in a decision tree, which are step-by-step processes.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-multistage-decision-problems-and-contingency-plans-b2b00b0e",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria focus on identifying situations, explaining differences, and tracing plans, indicating relationship and principle understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_003",
+          "segment_label": "Probability Updating and Multistage Decisions",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria focus on identifying situations, explaining differences, and tracing plans, indicating relationship and principle understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-utility-functions-and-risk-aversion-62118670",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on principles of risk aversion and concave utility functions, and comparing expected utility vs. EMV decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_004",
+          "segment_label": "Incorporating Risk Preferences",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on principles of risk aversion and concave utility functions, and comparing expected utility vs. EMV decisions.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-exponential-utility-function-and-risk-tolerance-3a311e4a",
+      "knowledge_type": "procedural",
+      "rationale": "Involves computing expected utility step-by-step and interpreting how R changes risk aversion.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_004",
+          "segment_label": "Incorporating Risk Preferences",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Involves computing expected utility step-by-step and interpreting how R changes risk aversion.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-certainty-equivalent-95a83eef",
+      "knowledge_type": "procedural",
+      "rationale": "Requires computing certainty equivalent from expected utility and explaining relationships through calculation.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_004",
+          "segment_label": "Incorporating Risk Preferences",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Requires computing certainty equivalent from expected utility and explaining relationships through calculation.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-sunk-costs-in-decision-making-9ee4d58e",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on principles (why sunk costs are ignored) and defining the concept, aligning with 'principles, relationships, why questions'.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_006",
+          "segment_label": "Critical Considerations and Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on principles (why sunk costs are ignored) and defining the concept, aligning with 'principles, relationships, why questions'.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-importance-of-reliable-inputs-in-decision-tree-analysis-3db6e81e",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains the principle of 'garbage in, garbage out' and relationships between input quality and output reliability, fitting 'principles, relationships, why questions'.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_006",
+          "segment_label": "Critical Considerations and Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains the principle of 'garbage in, garbage out' and relationships between input quality and output reliability, fitting 'principles, relationships, why questions'.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-risk-profiles-1e5d37df",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require constructing and interpreting risk profiles for comparing alternatives, emphasizing real-world application and decision-making judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_006",
+          "segment_label": "Critical Considerations and Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require constructing and interpreting risk profiles for comparing alternatives, emphasizing real-world application and decision-making judgment.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-handling-deterministic-payoffs-in-decision-trees-458de048",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria involve recognizing situations with certain payoffs and deciding when to simplify the tree—design judgment and scenario-based decision-making.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_001",
+          "segment_label": "Decision Tree Fundamentals",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria involve recognizing situations with certain payoffs and deciding when to simplify the tree—design judgment and scenario-based decision-making.",
+          "confidence": 0.89
+        }
+      ],
+      "confidence": 0.89
+    },
+    {
+      "concept_id": "concept-business-value-and-communication-of-monte-carlo-simulation-c0a43c5a",
+      "knowledge_type": "applied",
+      "rationale": "Focuses on explaining value for financial decision-makers and improving stakeholder communication, a real-world application.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_005",
+          "segment_label": "Decision Making, Communication, and Limitations",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focuses on explaining value for financial decision-makers and improving stakeholder communication, a real-world application.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-financial-distributions-for-monte-carlo-normal-triangular-uniform-dc00b58c",
+      "knowledge_type": "conceptual",
+      "rationale": "Distinguishes between distributions and when to use them, emphasizing principles over steps.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_002",
+          "segment_label": "Input Distributions and Estimation",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Distinguishes between distributions and when to use them, emphasizing principles over steps.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-interpreting-simulation-output-with-percentiles-b945e564",
+      "knowledge_type": "conceptual",
+      "rationale": "Teaching description explains how percentiles quantify outcome range and assess risk, emphasizing relationships and principles.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_004",
+          "segment_label": "Analyzing Simulation Results",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Teaching description explains how percentiles quantify outcome range and assess risk, emphasizing relationships and principles.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-multi-input-monte-carlo-forecasting-589d81dc",
+      "knowledge_type": "applied",
+      "rationale": "Focuses on when to use Monte Carlo for complex equations, interpreting output distribution, replacing static math. Coverage criteria: 'explain how to incorporate multiple inputs...and interpret output distribution' emphasizes judgment and scenario application.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_003",
+          "segment_label": "Building a Monte Carlo Simulation in Excel",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focuses on when to use Monte Carlo for complex equations, interpreting output distribution, replacing static math. Coverage criteria: 'explain how to incorporate multiple inputs...and interpret output distribution' emphasizes judgment and scenario application.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-estimating-standard-deviation-from-range-range-4-rule-36fc7fd6",
+      "knowledge_type": "procedural",
+      "rationale": "Applies a rule for estimation, a step-by-step calculation.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_002",
+          "segment_label": "Input Distributions and Estimation",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Applies a rule for estimation, a step-by-step calculation.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains why single-number forecasts are misleading and contrasts deterministic and probabilistic approaches, centering on principles and mental models.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Monte Carlo Simulation",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains why single-number forecasts are misleading and contrasts deterministic and probabilistic approaches, centering on principles and mental models.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-risk-vs-uncertainty-544f3de5",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on differentiating between risk and uncertainty and understanding why Monte Carlo is useful under uncertainty, which involves principles and relationships.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Monte Carlo Simulation",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on differentiating between risk and uncertainty and understanding why Monte Carlo is useful under uncertainty, which involves principles and relationships.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-comparing-risk-profiles-for-decision-making-22cd6841",
+      "knowledge_type": "applied",
+      "rationale": "Requires comparing projects using simulation output and selecting based on risk appetite, a real-world decision-making scenario.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_005",
+          "segment_label": "Decision Making, Communication, and Limitations",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Requires comparing projects using simulation output and selecting based on risk appetite, a real-world decision-making scenario.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-limitations-simulation-organises-ignorance-897d802d",
+      "knowledge_type": "conceptual",
+      "rationale": "Teaches that simulation organizes ignorance rather than eliminating uncertainty, a principle about the nature of the tool.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_005",
+          "segment_label": "Decision Making, Communication, and Limitations",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Teaches that simulation organizes ignorance rather than eliminating uncertainty, a principle about the nature of the tool.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-excel-implementation-of-monte-carlo-simulation-e55589a1",
+      "knowledge_type": "procedural",
+      "rationale": "Teaches step-by-step Excel implementation (model inputs, use NORM.INV with RAND, Data Table for trials). Coverage criteria: 'set up an Excel sheet...modelling inputs, using NORM.INV...automating trials'.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_003",
+          "segment_label": "Building a Monte Carlo Simulation in Excel",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Teaches step-by-step Excel implementation (model inputs, use NORM.INV with RAND, Data Table for trials). Coverage criteria: 'set up an Excel sheet...modelling inputs, using NORM.INV...automating trials'.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-analyzing-simulation-output-in-excel-0e785e51",
+      "knowledge_type": "procedural",
+      "rationale": "Teaching description focuses on calculating statistics with Excel functions (AVERAGE, MIN, MAX, COUNTIFS), which is a step-by-step process.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_004",
+          "segment_label": "Analyzing Simulation Results",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Teaching description focuses on calculating statistics with Excel functions (AVERAGE, MIN, MAX, COUNTIFS), which is a step-by-step process.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-by-changing-input-parameters-123897bf",
+      "knowledge_type": "applied",
+      "rationale": "Involves adjusting parameters and interpreting risk in context of a business decision, a scenario judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_005",
+          "segment_label": "Decision Making, Communication, and Limitations",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Involves adjusting parameters and interpreting risk in context of a business decision, a scenario judgment.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-real-options-definition-and-contrast-with-dcf-npv-d33ca312",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on defining real options and contrasting with NPV, emphasizing the 'why' of flexibility undervaluation.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Real Options",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on defining real options and contrasting with NPV, emphasizing the 'why' of flexibility undervaluation.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-learning-and-adaptive-behavior-in-real-options-1a700886",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains principles of learning and adaptive behavior, mindset shift, and strategic improvements, all 'why'-oriented.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Real Options",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains principles of learning and adaptive behavior, mindset shift, and strategic improvements, all 'why'-oriented.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-using-payoff-diagrams-to-identify-real-options-0e3d00f6",
+      "knowledge_type": "procedural",
+      "rationale": "Teaching description and coverage criteria focus on sketching payoff diagrams and using visual criteria as a step-by-step identification tool, indicating a procedural primary mode.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_002",
+          "segment_label": "Identifying Real Options",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Teaching description and coverage criteria focus on sketching payoff diagrams and using visual criteria as a step-by-step identification tool, indicating a procedural primary mode.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-three-definitional-characteristics-of-a-real-option-5c1f2338",
+      "knowledge_type": "factual",
+      "rationale": "Label and coverage criteria emphasize listing three specific characteristics, aligning with factual recall of definitions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_002",
+          "segment_label": "Identifying Real Options",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Label and coverage criteria emphasize listing three specific characteristics, aligning with factual recall of definitions.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-exclusivity-as-driver-of-significant-option-value-afecaf34",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining why exclusivity matters and contrasting scenarios, focusing on principles and relationships (why and when).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_002",
+          "segment_label": "Identifying Real Options",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining why exclusivity matters and contrasting scenarios, focusing on principles and relationships (why and when).",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-six-determinants-of-real-option-value-6367267e",
+      "knowledge_type": "conceptual",
+      "rationale": "The teaching description and coverage criteria focus on principles (why variance increases option value, why dividends reduce it) and underlying relationships, which align with conceptual knowledge.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_003",
+          "segment_label": "Determinants of Option Value",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "The teaching description and coverage criteria focus on principles (why variance increases option value, why dividends reduce it) and underlying relationships, which align with conceptual knowledge.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-replication-and-arbitrage-principles-in-option-pricing-cc93da31",
+      "knowledge_type": "conceptual",
+      "rationale": "Teaching description and coverage criteria focus on principles (replication, arbitrage) and why they lead to equal prices.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_004",
+          "segment_label": "Option Pricing Models",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Teaching description and coverage criteria focus on principles (replication, arbitrage) and why they lead to equal prices.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-model-choice-black-scholes-vs-binomial-for-real-options-f76742be",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require contrasting models and articulating practitioner preferences, indicating design decisions and when-to-use judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_004",
+          "segment_label": "Option Pricing Models",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require contrasting models and articulating practitioner preferences, indicating design decisions and when-to-use judgment.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-three-tests-for-applying-real-option-valuation-e1bad74b",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require arguing whether each test is satisfied for a given case, indicating scenario judgment and when-to-use decision-making.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_005",
+          "segment_label": "Valuation Tests",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require arguing whether each test is satisfied for a given case, indicating scenario judgment and when-to-use decision-making.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-proactive-vs-reactive-flexibility-in-real-options-870afb26",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria ask to distinguish between types of flexibility and explain why limited players enable proactive flexibility, focusing on principles and relationships.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_006",
+          "segment_label": "Strategic Flexibility Management",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria ask to distinguish between types of flexibility and explain why limited players enable proactive flexibility, focusing on principles and relationships.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-strategic-lever-selection-via-sensitivity-analysis-a382d707",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require interpreting a sensitivity table to identify impactful levers and explaining why revenue improvement may be more valuable, indicating scenario judgment and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+          "segment_id": "segment_006",
+          "segment_label": "Strategic Flexibility Management",
+          "classification_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require interpreting a sensitivity table to identify impactful levers and explaining why revenue improvement may be more valuable, indicating scenario judgment and design decisions.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-three-types-of-organizational-decisions-d4991c82",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require defining terms and giving examples, which is factual recall.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_002",
+          "segment_label": "Three types of organizational decisions",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require defining terms and giving examples, which is factual recall.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-widespread-ineffectiveness-of-decision-making-time-e393027f",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require stating survey findings and explaining costs, which are factual recall of statistics and definitions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_001",
+          "segment_label": "Decision-making context: ineffectiveness and the speed-quality paradox",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require stating survey findings and explaining costs, which are factual recall of statistics and definitions.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-speed-and-quality-are-not-trade-offs-9f56b3f6",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria require explaining a relationship and distinguishing it from a common assumption, indicating a principle-based understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_001",
+          "segment_label": "Decision-making context: ineffectiveness and the speed-quality paradox",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria require explaining a relationship and distinguishing it from a common assumption, indicating a principle-based understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-foundational-practice-decide-at-the-right-level-7b99a339",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria ask to describe what it means and connect to flatter organizational structures, indicating real-world judgment of delegation levels.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_003",
+          "segment_label": "Foundational practices for effective decisions",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria ask to describe what it means and connect to flatter organizational structures, indicating real-world judgment of delegation levels.",
+          "confidence": 0.82
+        }
+      ],
+      "confidence": 0.82
+    },
+    {
+      "concept_id": "concept-foundational-practice-focus-on-enterprise-level-value-e314e59b",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require explaining relation to decision success and giving examples of alignment with strategy, which involves scenario-based reasoning and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_003",
+          "segment_label": "Foundational practices for effective decisions",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require explaining relation to decision success and giving examples of alignment with strategy, which involves scenario-based reasoning and design decisions.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-foundational-practice-get-commitment-from-stakeholders-14c3772a",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria focus on describing how to achieve commitment without unanimity and why it matters for execution, emphasizing practical implementation and trade-offs.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_003",
+          "segment_label": "Foundational practices for effective decisions",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria focus on describing how to achieve commitment without unanimity and why it matters for execution, emphasizing practical implementation and trade-offs.",
+          "confidence": 0.83
+        }
+      ],
+      "confidence": 0.83
+    },
+    {
+      "concept_id": "concept-big-bet-best-practice-quality-of-debate-c1f1a488",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require explaining why rapid consensus is unsuccessful, indicating scenario judgment and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_004",
+          "segment_label": "Best practices for each decision type",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require explaining why rapid consensus is unsuccessful, indicating scenario judgment and design decisions.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-cross-cutting-best-practice-meeting-process-and-coordination-523a4101",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require explaining why clearly defined roles are insufficient, indicating real-world trade-off understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_004",
+          "segment_label": "Best practices for each decision type",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require explaining why clearly defined roles are insufficient, indicating real-world trade-off understanding.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-delegated-decisions-best-practice-empowerment-fe0ccc93",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require distinguishing empowerment from roles/escalation, indicating judgment on when-to-use and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_004",
+          "segment_label": "Best practices for each decision type",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require distinguishing empowerment from roles/escalation, indicating judgment on when-to-use and design decisions.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-the-tyranny-of-metrics-faef25e2",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require applying the concept to identify situations and propose safeguards, indicating real-world scenario judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_005",
+          "segment_label": "Pitfalls in data-driven decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require applying the concept to identify situations and propose safeguards, indicating real-world scenario judgment.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-misinterpreting-correlations-as-causation-089d4a80",
+      "knowledge_type": "conceptual",
+      "rationale": "Focuses on understanding principles (correlation vs causation) and why rigorous analysis is important, matching conceptual why-oriented teaching.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_005",
+          "segment_label": "Pitfalls in data-driven decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Focuses on understanding principles (correlation vs causation) and why rigorous analysis is important, matching conceptual why-oriented teaching.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-overgeneralizing-from-limited-data-sets-6ca24ada",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria involve identifying scenarios and describing practical methods to supplement data, pointing to applied judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_005",
+          "segment_label": "Pitfalls in data-driven decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria involve identifying scenarios and describing practical methods to supplement data, pointing to applied judgment.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-filter-bubbles-and-confirmation-bias-in-data-teams-5afb213a",
+      "knowledge_type": "applied",
+      "rationale": "Requires defining terms (factual) but primarily asks for examples and counteraction techniques, emphasizing applied scenario judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_005",
+          "segment_label": "Pitfalls in data-driven decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Requires defining terms (factual) but primarily asks for examples and counteraction techniques, emphasizing applied scenario judgment.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-losing-the-human-element-in-data-driven-decisions-63fc8aeb",
+      "knowledge_type": "applied",
+      "rationale": "Asks for examples and a method to blend data with human judgment, highlighting applied decision-making in context.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_005",
+          "segment_label": "Pitfalls in data-driven decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Asks for examples and a method to blend data with human judgment, highlighting applied decision-making in context.",
+          "confidence": 0.87
+        }
+      ],
+      "confidence": 0.87
+    },
+    {
+      "concept_id": "concept-definition-and-properties-of-intuition-in-strategic-decision-making-fc1a80ff",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require direct recall of definition and list of properties (what questions).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_006",
+          "segment_label": "Introduction to intuition in strategic decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require direct recall of definition and list of properties (what questions).",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-ceo-core-self-evaluations-as-a-trigger-for-intuition-use-86fe4ee5",
+      "knowledge_type": "conceptual",
+      "rationale": "Explains relationship between self-evaluations and intuition use, a 'why' principle.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_007",
+          "segment_label": "Individual and team factors influencing intuition use",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_007/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Explains relationship between self-evaluations and intuition use, a 'why' principle.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-cognitive-style-and-cognitive-diversity-in-intuitive-decision-making-a7b9a044",
+      "knowledge_type": "conceptual",
+      "rationale": "Examines influence of cognitive style and diversity on intuition in teams, a relationship principle.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_007",
+          "segment_label": "Individual and team factors influencing intuition use",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_007/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Examines influence of cognitive style and diversity on intuition in teams, a relationship principle.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-expertise-as-a-driver-and-moderator-of-intuition-s-reliability-25681a2a",
+      "knowledge_type": "conceptual",
+      "rationale": "Describes how expertise enables reliable intuition, focusing on underlying mechanisms.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_007",
+          "segment_label": "Individual and team factors influencing intuition use",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_007/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Describes how expertise enables reliable intuition, focusing on underlying mechanisms.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-decision-framing-and-familiarity-as-intuition-triggers-ab49ab71",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria require explaining how decision framing influences intuition use in different firm sizes and why familiarity promotes intuitive decision-making, which involves scenario judgment and contextual application.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_008",
+          "segment_label": "Situational and organizational triggers and moderators",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_008/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require explaining how decision framing influences intuition use in different firm sizes and why familiarity promotes intuitive decision-making, which involves scenario judgment and contextual application.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-firm-level-factors-influencing-intuition-use-7ff5d614",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria ask to explain how firm size affects intuition use and how financial performance influences the intuition-analysis balance, indicating real-world scenario application and contextual trade-offs.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_008",
+          "segment_label": "Situational and organizational triggers and moderators",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_008/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria ask to explain how firm size affects intuition use and how financial performance influences the intuition-analysis balance, indicating real-world scenario application and contextual trade-offs.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-team-power-structure-and-psychological-safety-as-moderators-of-intuition-10487c34",
+      "knowledge_type": "conceptual",
+      "rationale": "Coverage criteria focus on explaining how power centralization influences intuition and defining psychological safety's role, which are about understanding relationships and principles rather than direct application or steps.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_008",
+          "segment_label": "Situational and organizational triggers and moderators",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_008/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Coverage criteria focus on explaining how power centralization influences intuition and defining psychological safety's role, which are about understanding relationships and principles rather than direct application or steps.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-contextual-enhancers-of-intuition-effectiveness-e55ce59c",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria ask for contextual factors and examples (when-to-use judgment).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_009",
+          "segment_label": "When intuition works and when it fails",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_009/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria ask for contextual factors and examples (when-to-use judgment).",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-causes-of-intuitive-misses-in-strategic-decisions-d6995e9a",
+      "knowledge_type": "applied",
+      "rationale": "Focus on reasons for failure and danger of unbridled intuition in specific contexts (scenario judgment).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_009",
+          "segment_label": "When intuition works and when it fails",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_009/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focus on reasons for failure and danger of unbridled intuition in specific contexts (scenario judgment).",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-rational-decision-making-success-and-failure-conditions-3e60a293",
+      "knowledge_type": "applied",
+      "rationale": "Criteria require identifying when rational processes are effective or fail, indicating applied scenario judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_009",
+          "segment_label": "When intuition works and when it fails",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_009/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Criteria require identifying when rational processes are effective or fail, indicating applied scenario judgment.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-practical-implications-for-improving-intuitive-decision-making-bb98a280",
+      "knowledge_type": "applied",
+      "rationale": "Focuses on real-world organizational strategies and judgment on when and how to improve intuitive decision-making, matching 'applied' (real-world scenarios, design decisions).",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+          "segment_id": "segment_010",
+          "segment_label": "Practical implications for improving intuitive decision-making",
+          "classification_artifact": "lessons/lesson-2026-06-03-decision-making-in-companies/knowledge_type_segments/segment_010/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Focuses on real-world organizational strategies and judgment on when and how to improve intuitive decision-making, matching 'applied' (real-world scenarios, design decisions).",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria requires creating a risk matrix and assigning scores, which is a step-by-step process ('how')",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+          "segment_id": "segment_001",
+          "segment_label": "Risk and Simulation Fundamentals",
+          "classification_artifact": "lessons/lesson-2026-06-18-from-model-outputs-to-business-recommendations/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria requires creating a risk matrix and assigning scores, which is a step-by-step process ('how')",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-project-comparison-using-simulation-statistics-9446a388",
+      "knowledge_type": "applied",
+      "rationale": "Teaching description and coverage criteria focus on applying decision rules to select the best project using simulation statistics in real-world scenarios, indicating a primary applied mode.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+          "segment_id": "segment_002",
+          "segment_label": "Simulation Output Analysis for Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-18-from-model-outputs-to-business-recommendations/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Teaching description and coverage criteria focus on applying decision rules to select the best project using simulation statistics in real-world scenarios, indicating a primary applied mode.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+      "knowledge_type": "conceptual",
+      "rationale": "The coverage criteria ask to 'explain why' risk is both a threat and an opportunity, indicating a focus on principles and relationships rather than steps or recall.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+          "segment_id": "segment_002",
+          "segment_label": "Framing Risk and Preparing for Pushback",
+          "classification_artifact": "lessons/lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "The coverage criteria ask to 'explain why' risk is both a threat and an opportunity, indicating a focus on principles and relationships rather than steps or recall.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf",
+      "knowledge_type": "applied",
+      "rationale": "The coverage criteria emphasize applying scenario planning to anticipate stakeholder pushback, indicating a focus on real-world judgment and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+          "segment_id": "segment_002",
+          "segment_label": "Framing Risk and Preparing for Pushback",
+          "classification_artifact": "lessons/lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "The coverage criteria emphasize applying scenario planning to anticipate stakeholder pushback, indicating a focus on real-world judgment and design decisions.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-strategic-discipline-for-ai-augmented-decision-making-2b954a67",
+      "knowledge_type": "conceptual",
+      "rationale": "The concept focuses on treating decision-making as a strategic discipline and designing relationships—a principle-based 'why' understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_001",
+          "segment_label": "Foundations of AI-Augmented Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "The concept focuses on treating decision-making as a strategic discipline and designing relationships—a principle-based 'why' understanding.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-preserving-human-agency-in-ai-decisions-a8934a15",
+      "knowledge_type": "applied",
+      "rationale": "Teaching description emphasizes maintaining human agency, building accountability, and connecting choices to choosers—indicating real-world scenario judgment. Coverage criteria require describing concrete ways to preserve agency, aligning with 'when to use' judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_002",
+          "segment_label": "Preserving Human Agency and Classifying Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Teaching description emphasizes maintaining human agency, building accountability, and connecting choices to choosers—indicating real-world scenario judgment. Coverage criteria require describing concrete ways to preserve agency, aligning with 'when to use' judgment.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-human-purpose-and-judgment-as-irreplaceable-by-ai-a2cdf6ca",
+      "knowledge_type": "conceptual",
+      "rationale": "The teaching description emphasizes principles (human purpose, values, judgment) and why they remain essential—a 'why' orientation.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_001",
+          "segment_label": "Foundations of AI-Augmented Decision-Making",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "The teaching description emphasizes principles (human purpose, values, judgment) and why they remain essential—a 'why' orientation.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-building-decision-making-competence-for-humans-and-ai-37c63b16",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria asks student to describe approaches to improve human skill and measure AI performance, focusing on real-world implementation and design decisions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_003",
+          "segment_label": "Calibrating AI Agency and Building Competence",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria asks student to describe approaches to improve human skill and measure AI performance, focusing on real-world implementation and design decisions.",
+          "confidence": 0.93
+        }
+      ],
+      "confidence": 0.93
+    },
+    {
+      "concept_id": "concept-risk-based-ai-agency-level-665ba769",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria asks student to justify why a high-risk decision warrants lower AI autonomy, which requires scenario judgment and design decision-making.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_003",
+          "segment_label": "Calibrating AI Agency and Building Competence",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria asks student to justify why a high-risk decision warrants lower AI autonomy, which requires scenario judgment and design decision-making.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-decision-classification-framework-4443e22d",
+      "knowledge_type": "conceptual",
+      "rationale": "Label and description focus on categorizing decisions across multiple dimensions and understanding relationships like Cynefin domains, fitting principles and relationships. Coverage criteria ask to explain how context influences approach, a 'why'-oriented understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+          "segment_id": "segment_002",
+          "segment_label": "Preserving Human Agency and Classifying Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Label and description focus on categorizing decisions across multiple dimensions and understanding relationships like Cynefin domains, fitting principles and relationships. Coverage criteria ask to explain how context influences approach, a 'why'-oriented understanding.",
+          "confidence": 0.89
+        }
+      ],
+      "confidence": 0.89
+    },
+    {
+      "concept_id": "concept-excel-data-model-basics-843f9a17",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria ask to 'explain what' and 'demonstrate how', but the primary teaching mode is factual because the concept focuses on defining the feature and its activation steps without emphasizing principles or decision-making.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+          "segment_id": "segment_001",
+          "segment_label": "Excel Data Model and Relationships",
+          "classification_artifact": "lessons/lesson-2026-06-11-excel-data-modeling-and-analysis-for-business/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria ask to 'explain what' and 'demonstrate how', but the primary teaching mode is factual because the concept focuses on defining the feature and its activation steps without emphasizing principles or decision-making.",
+          "confidence": 0.8
+        }
+      ],
+      "confidence": 0.8
+    },
+    {
+      "concept_id": "concept-creating-relationships-in-the-excel-data-model-06c71c2c",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria include 'explain how Excel can automatically detect relationships' and 'describe how to manually create a relationship', which are step-by-step processes, making the primary mode procedural.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+          "segment_id": "segment_001",
+          "segment_label": "Excel Data Model and Relationships",
+          "classification_artifact": "lessons/lesson-2026-06-11-excel-data-modeling-and-analysis-for-business/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria include 'explain how Excel can automatically detect relationships' and 'describe how to manually create a relationship', which are step-by-step processes, making the primary mode procedural.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-payoff-table-8ec69664",
+      "knowledge_type": "procedural",
+      "rationale": "Repair plan indicates constructing a payoff table is a step-by-step process; not primarily a real-world design decision.",
+      "source": "quality_repair",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_001",
+          "segment_label": "Payoff Table Construction",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require constructing a payoff table from a description and interpreting payoffs, which involves scenario application and design decisions.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_001",
+          "segment_label": "Foundations of Decision Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require constructing a payoff table and interpreting payoffs, which are step-by-step processes.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9,
+      "repair_decision_artifact": "knowledge_type_quality_repair_decision.json"
+    },
+    {
+      "concept_id": "concept-maximax-optimistic-criterion-92a5e247",
+      "knowledge_type": "applied",
+      "rationale": "Repair plan highlights maximax as an optimistic philosophy; teaching focuses on when to use, not just calculation.",
+      "source": "quality_repair",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_002",
+          "segment_label": "Extreme Outcomes: Maximax and Maximin",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Primarily requires selecting an alternative from a payoff table using the maximax rule (real-world scenario application) and explaining when to use the optimistic philosophy.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require step-by-step application of the maximax rule to a payoff table and explanation of its philosophy, making the primary teaching mode procedural execution.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9,
+      "repair_decision_artifact": "knowledge_type_quality_repair_decision.json"
+    },
+    {
+      "concept_id": "concept-maximin-criterion-f0376021",
+      "knowledge_type": "applied",
+      "rationale": "Repair plan indicates maximin is a conservative criterion best taught as a contextual design decision ('when to use').",
+      "source": "quality_repair",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_002",
+          "segment_label": "Extreme Outcomes: Maximax and Maximin",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Primarily requires applying the maximin criterion to a payoff table (real-world scenario application) and explaining the conservative philosophy in context.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria emphasize applying the maximin criterion to a payoff table, which is a step-by-step process.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9,
+      "repair_decision_artifact": "knowledge_type_quality_repair_decision.json"
+    },
+    {
+      "concept_id": "concept-minimax-regret-criterion-9023049f",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria explicitly require constructing a regret table and applying the minimax regret criterion, which are step-by-step procedures.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_003",
+          "segment_label": "Regret and Equal Likelihood",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria explicitly require constructing a regret table and applying the minimax regret criterion, which are step-by-step procedures.",
+          "confidence": 0.95
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require constructing a regret table and applying the criterion, both of which are step-by-step procedures.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-laplace-criterion-1cefa1f7",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria include calculating average payoffs and determining the optimal alternative, indicating a procedural sequence of calculations.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_003",
+          "segment_label": "Regret and Equal Likelihood",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria include calculating average payoffs and determining the optimal alternative, indicating a procedural sequence of calculations.",
+          "confidence": 0.95
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria include calculating average payoffs, which is a procedural calculation, alongside explanation, but the primary focus is on the calculation steps.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-hurwicz-criterion-a9ee1edb",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria emphasize calculation steps and selection process, indicating a primary procedural focus.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_004",
+          "segment_label": "Balancing Optimism and Pessimism: Hurwicz",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_004/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria emphasize calculation steps and selection process, indicating a primary procedural focus.",
+          "confidence": 0.92
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria involve calculating the Hurwicz value, a weighted average computation, which is a step-by-step procedural task.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-decision-tree-basics-8f627409",
+      "knowledge_type": "factual",
+      "rationale": "Coverage criteria require defining a decision tree and identifying standard symbols—direct recall of terminology and conventions.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_001",
+          "segment_label": "Decision Tree Fundamentals",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "factual",
+          "rationale": "Coverage criteria require defining a decision tree and identifying standard symbols—direct recall of terminology and conventions.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-building-and-labeling-decision-trees-bf331b30",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria focus on step-by-step construction of decision trees from scenarios, including drawing nodes and labeling branches with probabilities and payoffs.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_001",
+          "segment_label": "Decision Tree Fundamentals",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria focus on step-by-step construction of decision trees from scenarios, including drawing nodes and labeling branches with probabilities and payoffs.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-calculating-expected-monetary-value-emv-at-chance-nodes-faf87790",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria require computing expected value by multiplying outcomes by probabilities and summing, which is a step-by-step calculation.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_002",
+          "segment_label": "Solving Decision Trees",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require computing expected value by multiplying outcomes by probabilities and summing, which is a step-by-step calculation.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-folding-back-procedure-c4ee63bd",
+      "knowledge_type": "procedural",
+      "rationale": "Describes a step-by-step algorithm (solve right to left, compute EMV at chance nodes, select highest at decision nodes) and coverage requires applying procedure to a tree.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_002",
+          "segment_label": "Solving Decision Trees",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Describes a step-by-step algorithm (solve right to left, compute EMV at chance nodes, select highest at decision nodes) and coverage requires applying procedure to a tree.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-net-benefit-calculation-at-decision-nodes-74871ce2",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria involve computing net benefits to identify optimal choice, which is an applied decision-making scenario requiring judgment on costs and benefits.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_002",
+          "segment_label": "Solving Decision Trees",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria involve computing net benefits to identify optimal choice, which is an applied decision-making scenario requiring judgment on costs and benefits.",
+          "confidence": 0.85
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "concept_id": "concept-expected-value-of-sample-information-evsi-0d22ce53",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria require computing EVSI from a decision tree, which is a step-by-step calculation process.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_005",
+          "segment_label": "Value of Information",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require computing EVSI from a decision tree, which is a step-by-step calculation process.",
+          "confidence": 0.92
+        }
+      ],
+      "confidence": 0.92
+    },
+    {
+      "concept_id": "concept-expected-value-of-perfect-information-evpi-ddeb0332",
+      "knowledge_type": "conceptual",
+      "rationale": "Teaching focuses on explaining why EVPI is the upper limit for EVSI, indicating a relationship and principle understanding.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_005",
+          "segment_label": "Value of Information",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_005/knowledge_type_classification.json",
+          "knowledge_type": "conceptual",
+          "rationale": "Teaching focuses on explaining why EVPI is the upper limit for EVSI, indicating a relationship and principle understanding.",
+          "confidence": 0.88
+        }
+      ],
+      "confidence": 0.88
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "knowledge_type": "procedural",
+      "rationale": "Coverage criteria require listing steps and describing how to interpret output distributions, indicating a step-by-step process and algorithm-focused teaching.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+          "segment_id": "segment_001",
+          "segment_label": "Introduction to Monte Carlo Simulation",
+          "classification_artifact": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require listing steps and describing how to interpret output distributions, indicating a step-by-step process and algorithm-focused teaching.",
+          "confidence": 0.95
+        },
+        {
+          "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+          "segment_id": "segment_001",
+          "segment_label": "Risk and Simulation Fundamentals",
+          "classification_artifact": "lessons/lesson-2026-06-18-from-model-outputs-to-business-recommendations/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria requires listing steps and describing how to interpret output distribution, which aligns with step-by-step process ('how')",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "concept_id": "concept-expected-monetary-value-emv-criterion-bee4de23",
+      "knowledge_type": "procedural",
+      "rationale": "Repair plan confirms EMV is algorithm-heavy and best taught as a step-by-step calculation method.",
+      "source": "quality_repair",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_003",
+          "segment_label": "Decision Making under Risk: Expected Monetary Value",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require computing EMV step-by-step from a payoff table, selecting the highest, and determining optimal decisions under risk, which are procedural how tasks.",
+          "confidence": 0.92
+        },
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_002",
+          "segment_label": "Solving Decision Trees",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria include determining optimal decision using EMV and explaining why criterion is optimal under risk neutrality, which are applied decision scenarios.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.92,
+      "repair_decision_artifact": "knowledge_type_quality_repair_decision.json"
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+      "knowledge_type": "applied",
+      "rationale": "Coverage criteria involve interpreting tornado charts and explaining purpose in decision-making, focusing on practical tool usage and scenario judgment.",
+      "source": "segment_consensus",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_006",
+          "segment_label": "Critical Considerations and Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_006/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria involve interpreting tornado charts and explaining purpose in decision-making, focusing on practical tool usage and scenario judgment.",
+          "confidence": 0.85
+        },
+        {
+          "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+          "segment_id": "segment_002",
+          "segment_label": "Simulation Output Analysis for Decisions",
+          "classification_artifact": "lessons/lesson-2026-06-18-from-model-outputs-to-business-recommendations/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require interpreting a tornado chart to identify influential inputs for decision-making and risk management, which is a real-world application of sensitivity analysis.",
+          "confidence": 0.95
+        }
+      ],
+      "confidence": 0.85
+    }
+  ],
+  "conflicts": [],
+  "distribution": {
+    "applied": 47,
+    "conceptual": 43,
+    "factual": 9,
+    "procedural": 20
+  },
+  "output_contract": {
+    "scores": {
+      "taxonomy_fit": "integer 0-3",
+      "teaching_mode_alignment": "integer 0-3",
+      "segment_consistency": "integer 0-3",
+      "factual_boundary": "integer 0-3",
+      "applied_boundary": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "flags": [
+      "applied_underuse",
+      "cross_segment_conflict",
+      "definition_as_procedural",
+      "factual_absence",
+      "historical_name_as_applied",
+      "segment_inconsistency",
+      "taxonomy_mismatch",
+      "tool_execution_as_conceptual"
+    ],
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "concept_ids": [
+          "Relevant Concept IDs."
+        ],
+        "explanation": "Concrete classification problem."
+      }
+    ],
+    "repair_plan": [
+      {
+        "concept_ids": [
+          "Target Concept IDs."
+        ],
+        "repair_reason": [
+          "applied_underuse",
+          "cross_segment_conflict",
+          "definition_as_procedural",
+          "factual_absence",
+          "historical_name_as_applied",
+          "segment_inconsistency",
+          "taxonomy_mismatch",
+          "tool_execution_as_conceptual"
+        ],
+        "explanation": "Why these Concepts need relabeling."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

@@ -1,0 +1,631 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "title": "Decision-making process and fundamentals of decision-making approaches.",
+    "description": "This lesson provides an overview of how people make decisions, exploring the factors that influence good or bad choices and the main cognitive biases. It also discusses practical strategies for making decisions more quickly and efficiently. Finally, it delves into the understanding of outcome bias, showing the risks of evaluating decisions solely based on their outcomes.",
+    "date": "23/04/2026",
+    "display_code": "L01"
+  },
+  "input_candidate_ids": [
+    "c3_pro_thinking_001",
+    "c3_pro_thinking_002",
+    "c3_pro_thinking_003",
+    "c3_pro_thinking_004",
+    "c3_pro_thinking_005",
+    "c3_pro_thinking_006",
+    "c3_pro_thinking_007",
+    "c3_pro_thinking_008",
+    "c3_pro_thinking_009",
+    "c3_pro_thinking_010",
+    "c4_pro_thinking_001",
+    "c4_pro_thinking_002",
+    "c4_pro_thinking_003",
+    "c4_pro_thinking_004",
+    "c4_pro_thinking_005",
+    "c4_pro_thinking_006",
+    "c4_pro_thinking_007",
+    "c5_pro_thinking_001",
+    "c5_pro_thinking_002",
+    "c5_pro_thinking_003",
+    "c5_pro_thinking_004",
+    "c5_pro_thinking_005",
+    "c5_pro_thinking_006",
+    "c5_pro_thinking_007",
+    "c5_pro_thinking_008",
+    "m6_001",
+    "m6_002"
+  ],
+  "candidates": [
+    {
+      "id": "c3_pro_thinking_001",
+      "label": "PESTEL Analysis Definition",
+      "description": "PESTEL is a strategic framework that evaluates the Political, Economic, Social, Technological, Environmental, and Legal factors in a firm's business environment.",
+      "coverage_criteria": [
+        "State the six components of PESTEL analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines PESTEL as a framework for evaluating business environment factors and breaks down the acronym.",
+        "granularity_rationale": "The definition is a foundational concept that can be checked with a single recall question."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_002",
+      "label": "Political Factors in PESTEL",
+      "description": "Political factors include government actions like taxation, fiscal policy, trade disputes, and antitrust issues that affect businesses.",
+      "coverage_criteria": [
+        "List examples of political factors considered in PESTEL."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article has a dedicated section on Political Factors, describing and exemplifying them.",
+        "granularity_rationale": "This is a specific, checkable subcategory of the framework with distinct characteristics."
+      },
+      "anchors": [
+        "Political Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_003",
+      "label": "Economic Factors in PESTEL",
+      "description": "Economic factors are financial metrics like interest rates, employment, inflation, and exchange rates that influence a firm's environment.",
+      "coverage_criteria": [
+        "Name three economic factors relevant to PESTEL analysis."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details economic factors and notes they are easily quantified and modeled.",
+        "granularity_rationale": "This factor group is distinct and can be tested with recall questions."
+      },
+      "anchors": [
+        "Economic Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_004",
+      "label": "Social Factors in PESTEL",
+      "description": "Social factors involve demographic shifts, lifestyle trends, consumer beliefs, and attitudes about working conditions that affect businesses.",
+      "coverage_criteria": [
+        "Give an example of a social factor that could impact a business."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes social factors with examples like health trends and hybrid work preferences.",
+        "granularity_rationale": "This is a defined, teachable category that can be assessed through application questions."
+      },
+      "anchors": [
+        "Social Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_005",
+      "label": "Technological Factors in PESTEL",
+      "description": "Technological factors include automation, R&D, infrastructure like 5G and IoT, and cybersecurity that can disrupt or benefit industries.",
+      "coverage_criteria": [
+        "Identify a technological factor that could threaten a traditional business."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article discusses technological factors with examples like cloud data storage and disruptive innovations (Uber, eCommerce).",
+        "granularity_rationale": "This is a discrete category of external influences that can be taught and assessed."
+      },
+      "anchors": [
+        "Technological Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_006",
+      "label": "Environmental Factors in PESTEL",
+      "description": "Environmental factors cover carbon footprint, climate change risks, extreme weather, and stewardship of natural resources.",
+      "coverage_criteria": [
+        "Explain how environmental factors can create risks for a company."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details environmental factors and links them to ESG and CSR movements.",
+        "granularity_rationale": "This is a distinct, contemporary category of factors that students need to understand."
+      },
+      "anchors": [
+        "Environmental Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_007",
+      "label": "Legal Factors in PESTEL",
+      "description": "Legal factors consist of industry regulation, licensing, employment laws, and IP protection that can act as headwinds or tailwinds for businesses.",
+      "coverage_criteria": [
+        "Describe a scenario where legal factors create a protective moat for a company."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explains legal factors and gives examples of headwinds/tailwinds and IP theft.",
+        "granularity_rationale": "This category is specific and testable, distinct from political factors."
+      },
+      "anchors": [
+        "Legal Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_008",
+      "label": "Integration of PESTEL with Other Frameworks",
+      "description": "PESTEL analysis outputs can be incorporated into other strategic frameworks like Ansoff's matrix, Porter's 5 forces, and SWOT analysis.",
+      "coverage_criteria": [
+        "Name three frameworks that can use insights from a PESTEL analysis."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states that PESTEL key points can be incorporated into Ansoff, Porter, and SWOT analyses.",
+        "granularity_rationale": "This integration concept is a useful applied idea that can be checked with recall."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?",
+        "Key points from a PESTEL analysis can be incorporated into other industry and firm-level frameworks, such as Ansoff’s matrix, Porter’s 5 forces, and SWOT analysis."
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_009",
+      "label": "Use of PESTEL in Financial Analysis",
+      "description": "In financial analysis, PESTEL factors can affect model assumptions such as revenue growth, margins, cash reserves for carbon taxes, and debt service coverage ratios.",
+      "coverage_criteria": [
+        "List two ways PESTEL factors might influence financial model assumptions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a section to how PESTEL is used in financial analysis with concrete examples.",
+        "granularity_rationale": "This applied concept connects the framework to financial modeling and can be assessed with scenario questions."
+      },
+      "anchors": [
+        "How is PESTEL Used in Financial Analysis?"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_010",
+      "label": "Evolution from PEST to PESTEL",
+      "description": "PESTEL originally was PEST, covering Political, Economic, Social, Technological factors, and later expanded to include Environmental and Legal factors.",
+      "coverage_criteria": [
+        "State which two factors were added to the original PEST framework to create PESTEL."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's definition section notes the historical extension from PEST to PESTEL.",
+        "granularity_rationale": "This is a simple historical fact about the framework's evolution."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_001",
+      "label": "Delay Intuition Strategy",
+      "description": "A decision-making approach that advises delaying intuitive judgments until all relevant information has been systematically collected, in order to avoid premature and often incorrect intuitive leaps.",
+      "coverage_criteria": [
+        "Explain why delaying intuition can lead to more accurate judgments.",
+        "Provide an example where delaying intuition improved decisions (e.g., IDF interviewing system).",
+        "Identify conditions under which intuition is more reliable (extensive experience in a regular environment)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman explicitly discusses the concept of delaying intuition, using the IDF interviewing reform as a practical example, and states that this approach improves decision accuracy.",
+        "granularity_rationale": "This concept is focused on a specific, actionable strategy for decision-making, small enough to be checked with a few questions about definition, justification, and an example."
+      },
+      "anchors": [
+        "[03:06] The Role of Intuition in Decision Making",
+        "[08:08] Kahneman's Early Work in the IDF: Delaying Intuition in Personnel Selection"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_002",
+      "label": "Optimism Bias: Engine of Capitalism",
+      "description": "The idea that optimism is a cognitive bias that causes individuals to overestimate their abilities and underestimate risks, leading to many failures but also driving entrepreneurial success and overall economic progress.",
+      "coverage_criteria": [
+        "Define optimism bias in the context of decision-making.",
+        "Explain how optimism can simultaneously lead to individual failure and societal benefit (the 'engine of capitalism').",
+        "Summarize Kahneman's view that great successes require 'crazily over-optimistic' risk-taking."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman directly discusses optimism as the most significant cognitive bias and a blessing, referring to it as the 'engine of capitalism' and noting that big successes stem from unreasonable risk-taking.",
+        "granularity_rationale": "This is a teachable, bounded concept about the dual nature of optimism bias, testable with questions on definition and societal-level implications."
+      },
+      "anchors": [
+        "[04:43] Optimism vs. Delusion: The Engine of Capitalism"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_003",
+      "label": "Structured Judgment: Avoid Premature Global Impressions",
+      "description": "A decision-making principle that emphasizes collecting information on specific, independent attributes before forming an overall judgment, in order to improve accuracy and reduce bias, as demonstrated in personnel selection and hiring.",
+      "coverage_criteria": [
+        "Describe the old IDF interviewing method (global impression) and Kahneman's revised method (attribute-by-attribute data collection).",
+        "Explain why keeping sources of information independent improves decisions, using the Google hiring example.",
+        "Contrast the risks of forming a quick global impression with the benefits of structured, delayed judgment."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman recounts his IDF experience of replacing holistic interviews with a systematic attribute collection process, and connects it to modern systematic hiring at Google, highlighting the importance of independent information sources.",
+        "granularity_rationale": "This concept captures a concrete, repeatable decision-making technique that can be evaluated through examples and comparison to biased alternatives."
+      },
+      "anchors": [
+        "[08:08] Kahneman's Early Work in the IDF: Delaying Intuition in Personnel Selection",
+        "[11:14] Advice for Entrepreneurs: Systematic Hiring and Tuning Out Noise"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_004",
+      "label": "Judgment Noise",
+      "description": "The phenomenon that wherever there is human judgment, there is unwanted variability (noise) that is consistently underestimated by observers, as illustrated by insurance underwriters whose assessments varied five times more than executives expected.",
+      "coverage_criteria": [
+        "Define 'noise' in decision-making.",
+        "Provide an example where noise occurs (e.g., insurance underwriting).",
+        "Explain why people consistently underestimate judgment noise."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman explicitly describes noise in decision-making, presents the insurance underwriter study, and states that people systematically underestimate disagreement.",
+        "granularity_rationale": "This concept focuses on a specific, observable decision-making flaw (noise) with clear empirical backing, small enough to be checked with definition and example."
+      },
+      "anchors": [
+        "[11:14] Advice for Entrepreneurs: Systematic Hiring and Tuning Out Noise"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_005",
+      "label": "AI Replacing Professionals",
+      "description": "The observation that artificial intelligence is increasingly automating tasks in white‑collar professions (e.g., dermatology, radiology, legal research), often performing better than humans, and that professionals tend to underestimate their own replaceability.",
+      "coverage_criteria": [
+        "List at least two professional fields that Kahneman identifies as being disrupted by AI.",
+        "Explain why professionals may be prone to underestimating the impact of AI on their jobs.",
+        "Give an example where AI outperforms human professionals in diagnosis or research."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman discusses concrete examples of AI (dermatology diagnosis, cancer detection, legal precedent search) and notes that professionals think they are irreplaceable when many are not.",
+        "granularity_rationale": "This is a focused, teachable prediction about AI displacement of specific skill-based professions, checked with examples and reasoning about cognitive biases."
+      },
+      "anchors": [
+        "[13:58] Impact of AI and Automation on Professions"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_006",
+      "label": "Adversarial Collaboration",
+      "description": "A method proposed by Daniel Kahneman for resolving scientific controversies by having disagreeing parties work together on a joint research project, aiming to change how intellectual disagreements are conducted.",
+      "coverage_criteria": [
+        "Define adversarial collaboration.",
+        "State Kahneman's wish for this to be his legacy.",
+        "Explain the intended benefit of this approach over traditional debate."
+      ],
+      "source_roles": [
+        "introducing",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman expressly states he invented the term 'adversarial collaboration' and desires it as his legacy.",
+        "granularity_rationale": "This is a distinct, checkable concept with a clear definition and stated purpose."
+      },
+      "anchors": [
+        "[15:37] Daniel Kahneman's Desired Legacy: Adversarial Collaboration"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_007",
+      "label": "Linear Thinking and Exponential Change",
+      "description": "The cognitive limitation that humans think linearly, making it difficult to properly assess exponential technological growth, which can lead to unexpected social dislocation.",
+      "coverage_criteria": [
+        "Explain why humans are ill‑suited to grasp exponential change.",
+        "Identify the possible social consequences of rapid technological development mentioned by Kahneman.",
+        "Compare ex‑ante and ex‑post views on technological adoption."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman discusses that people are linear, not exponential, leading to dislocation, and notes that problems will be social, not technological.",
+        "granularity_rationale": "This is a single, focused cognitive bias about change assessment, testable with a cause‑effect explanation."
+      },
+      "anchors": [
+        "[06:33] Assessing Exponential Technological Change"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_001",
+      "label": "Consider Many Different Viewpoints in Decision-Making",
+      "description": "Great decisions are shaped by consideration of many different viewpoints, without seeking consensus but not acting unilaterally; it requires discernment on whose opinion to seek and when to force a solution.",
+      "coverage_criteria": [
+        "Student can explain why considering many different viewpoints shapes great decisions.",
+        "Student can describe how to balance seeking input versus making a unilateral decision."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article directly states that great decisions are shaped by many different viewpoints, and elaborates on the challenges of selecting whose opinion to seek and when to assert one's own.",
+        "granularity_rationale": "This is a single principle of decision-making that can be assessed with a focused discussion or question about the importance of diverse perspectives and the balance required."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 1: Great decisions are shaped by consideration of many different viewpoints."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_002",
+      "label": "Make Decisions Close to the Action",
+      "description": "Great decisions are made as close as possible to the action, involving those who do the work rather than only those in power, which requires trust and putting ego aside.",
+      "coverage_criteria": [
+        "Student can describe why involving front-line workers improves decision quality.",
+        "Student can identify situations where it is better to seek advice from those at the operational level."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states that great decisions are made as close as possible to the action, emphasizing the value of input from those doing the work over those in powerful positions.",
+        "granularity_rationale": "This is a distinct actionable principle that can be assessed by asking the student to explain the rationale behind decentralized decision-making and its benefits."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 2: Great decisions are made as close as possible to the action."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_003",
+      "label": "Address Root Cause in Decision-Making",
+      "description": "Great decisions address the root cause of problems, not just symptoms, by engaging people who understand where issues originated and developing plans to fix the underlying cause.",
+      "coverage_criteria": [
+        "Student can differentiate between symptoms and root causes in a decision context.",
+        "Student can explain why focusing on root causes leads to more effective decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states that great decisions address the root cause, not just the problem, and advises to reach out to those who understand the issue's origin to develop a fix.",
+        "granularity_rationale": "This is a focused concept about problem diagnosis that can be checked by asking the student to identify root causes in a scenario and propose solutions."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 3: Great decisions address the root cause, not just the problem."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_004",
+      "label": "Assign Clear Accountability in Decisions",
+      "description": "Great decisions are made by a clearly accountable person who stands behind their decisions, even if they later turn out to be mistakes.",
+      "coverage_criteria": [
+        "Student can explain the importance of clear accountability in decision-making.",
+        "Student can describe how accountability fosters ownership and integrity in the decision process."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article emphasizes that great decisions are made by a clearly accountable person, noting the personal challenge of standing behind one's choices even when wrong.",
+        "granularity_rationale": "This is a specific aspect of decision governance that can be assessed by asking the student to discuss the role of accountability in effective decision-making."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 4: Great decisions are made by a clearly accountable person."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_005",
+      "label": "Balance Short-Term and Long-Term Value in Decisions",
+      "description": "Great decisions consider the holistic impacts of a problem and balance long-term and short-term value, sometimes requiring sacrifice of immediate efficiency for long-term competence.",
+      "coverage_criteria": [
+        "Student can discuss how to evaluate trade-offs between short-term gains and long-term value in decision-making.",
+        "Student can provide examples where short-term sacrifices lead to long-term benefits."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes the importance of considering holistic impacts and balancing short-term and long-term value, noting the tension between efficiency and long-term competence.",
+        "granularity_rationale": "This concept is about temporal trade-offs in decisions and can be assessed with scenario analysis questions that require balancing immediate versus future outcomes."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 5: Great decisions consider the holistic impacts of a problem and balance long-term and short-term value."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_006",
+      "label": "Communicate Decisions Effectively to Stakeholders",
+      "description": "Great decisions are communicated well to stakeholders, involving honesty and integrity even when facing difficult audiences or consequences.",
+      "coverage_criteria": [
+        "Student can outline key principles for effectively communicating decisions to stakeholders.",
+        "Student can explain the importance of transparency and integrity in decision communication."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article stresses that great decisions are communicated well to stakeholders, highlighting the need to be honest and maintain integrity regardless of the audience's reaction.",
+        "granularity_rationale": "This is a concrete skill in decision implementation that can be assessed by asking the student to describe how they would communicate a difficult decision to various stakeholders."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 6: Great decisions are communicated well to stakeholders."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_007",
+      "label": "Make Timely Decisions",
+      "description": "Great decisions are timely; they avoid procrastination, fear of mistakes, or blame-shifting by charting the best course forward with available information and acting promptly.",
+      "coverage_criteria": [
+        "Student can explain the importance of timeliness in decision-making.",
+        "Student can identify common barriers to timely decisions such as perfectionism or fear of disapproval."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states that great decisions are timely and warns against procrastination, passing blame, or freezing due to fear of being disliked.",
+        "granularity_rationale": "This concept focuses on the temporal aspect of decision processes and can be assessed by evaluating a student's ability to recognize when a decision should be made urgently versus when more analysis is needed."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 7: Great decisions are timely."
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_008",
+      "label": "Balance Gut Instinct with Team Considerations",
+      "description": "While trusting one's gut can be valuable, great decisions also require considering whether that instinct is the best course for everyone involved.",
+      "coverage_criteria": [
+        "Student can discuss the role of intuition in decision-making.",
+        "Student can describe when it is appropriate to rely on gut instinct versus when broader team or organizational considerations should prevail."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions trusting one's gut but questions whether it is the best course for everyone, indicating that great decisions balance personal instinct with collective impact.",
+        "granularity_rationale": "This is a nuanced concept about the interplay between intuition and team dynamics that can be checked with a scenario question asking the student to weigh personal judgment against group welfare."
+      },
+      "anchors": [
+        "Eight Elements of Great Decision-Making",
+        "Element 8: All in all, I want to trust my gut, but my gut may not be the best course of action for everyone."
+      ]
+    },
+    {
+      "id": "m6_001",
+      "label": "Outcome bias in decision-making",
+      "description": "Outcome bias is the tendency to evaluate the quality of a decision based solely on its outcomes.",
+      "coverage_criteria": [
+        "Define outcome bias and explain why it occurs.",
+        "Identify examples where outcome bias leads to misjudging a decision.",
+        "Discuss risks of ignoring the decision process in favor of outcomes."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Directly stated: the description says 'The text explains outcome bias', and the title 'Results in the rearview mirror may seem greater than they are' poetically reinforces the concept of overvaluing past outcomes.",
+        "granularity_rationale": "Outcome bias is a specific cognitive bias that can be checked independently from broader decision-making concepts."
+      },
+      "anchors": [
+        "Description",
+        "Title"
+      ]
+    },
+    {
+      "id": "m6_002",
+      "label": "Evaluating decision quality",
+      "description": "The lesson context covers factors influencing decision quality and the risk of outcome bias, implying that evaluating decisions should consider more than outcomes.",
+      "coverage_criteria": [
+        "Compare outcome-based and process-based evaluation of decisions.",
+        "Explain why evaluating decisions by outcomes alone can be misleading."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Metadata-implied: The self-study title and description emphasize outcome bias, while the parent lesson covers factors influencing good or bad choices and practical strategies, making evaluation of decision quality a plausible component.",
+        "granularity_rationale": "This is a broader teachable idea than outcome bias alone, but still checkable as a concept about criteria for judging decisions."
+      },
+      "anchors": [
+        "Description",
+        "parent_class"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

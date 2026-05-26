@@ -1,0 +1,555 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "cluster": {
+    "id": "cluster_025",
+    "label": "spaCy containers: Doc, Token, Span",
+    "rationale": "This candidate explains the core data structures in spaCy: Doc, Token, and Span, which are foundational for all processing.",
+    "candidate_ids": [
+      "c31_pro_thinking_005"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_025",
+      "label": "spaCy containers: Doc, Token, Span",
+      "rationale": "This candidate explains the core data structures in spaCy: Doc, Token, and Span, which are foundational for all processing.",
+      "candidate_ids": [
+        "c31_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_026",
+      "label": "Token attributes in spaCy: text, shape_, is_alpha",
+      "rationale": "This candidate describes basic token attributes (text, shape_, is_alpha) used for filtering and pattern identification.",
+      "candidate_ids": [
+        "c31_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_027",
+      "label": "Part-of-speech tagging in spaCy",
+      "rationale": "This candidate covers POS tagging using .pos_ and .tag_, with examples. It is a standalone annotation task.",
+      "candidate_ids": [
+        "c31_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_028",
+      "label": "Lemmatization in spaCy",
+      "rationale": "This candidate defines lemmatization and how to access lemmas via .lemma_, contrasting with stemming.",
+      "candidate_ids": [
+        "c31_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_029",
+      "label": "Dependency parsing in spaCy",
+      "rationale": "This candidate explains .dep_ labels and visualization of syntactic relationships, a core NLP annotation.",
+      "candidate_ids": [
+        "c31_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_030",
+      "label": "Named Entity Recognition (NER) in spaCy",
+      "rationale": "This candidate introduces NER, accessing doc.ents, and extracting entity labels. It is a distinct NLP task.",
+      "candidate_ids": [
+        "c31_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_031",
+      "label": "Copyright and licensing concepts for repositories",
+      "rationale": "These candidates cover default copyright, license selection tools, license file conventions, and legal nuances. They form a group about licensing awareness.",
+      "candidate_ids": [
+        "c32_pro_thinking_001",
+        "c32_pro_thinking_002",
+        "c32_pro_thinking_003",
+        "c32_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_032",
+      "label": "GitHub license search and filtering",
+      "rationale": "These candidates explain how to filter repositories by license using the `license:` qualifier, including family search. They are specific GitHub search features.",
+      "candidate_ids": [
+        "c32_pro_thinking_005",
+        "c32_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_033",
+      "label": "Automated license detection with Licensee and GitHub license picker",
+      "rationale": "These candidates describe Licensee for automatic detection and the license picker during repo creation. Both are tools for license management.",
+      "candidate_ids": [
+        "c32_pro_thinking_007",
+        "c32_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_034",
+      "label": "Manual license addition and legal disclaimer",
+      "rationale": "These candidates cover manual license addition via browser and the disclaimer that GitHub's guidance is not legal advice. They are about practical and cautionary steps.",
+      "candidate_ids": [
+        "c32_pro_thinking_009",
+        "c32_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_035",
+      "label": "Survival of forks after repository visibility change",
+      "rationale": "This candidate is a specific warning about forks persisting when a repo goes private. It is a distinct legal/platform note.",
+      "candidate_ids": [
+        "c32_pro_thinking_011"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c31_pro_thinking_005",
+    "c31_pro_thinking_006",
+    "c31_pro_thinking_007",
+    "c31_pro_thinking_008",
+    "c31_pro_thinking_009",
+    "c31_pro_thinking_010",
+    "c32_pro_thinking_001",
+    "c32_pro_thinking_002",
+    "c32_pro_thinking_003",
+    "c32_pro_thinking_004",
+    "c32_pro_thinking_005",
+    "c32_pro_thinking_006",
+    "c32_pro_thinking_007",
+    "c32_pro_thinking_008",
+    "c32_pro_thinking_009",
+    "c32_pro_thinking_010",
+    "c32_pro_thinking_011"
+  ],
+  "candidates": [
+    {
+      "id": "c31_pro_thinking_005",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc (um agrupamento de tokens consecutivos). Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo via nlp(texto).",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing (doc[0:3])."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo dedica uma seção aos 'containers básicos', ilustrando com diagrama e código as relações entre Doc, Token e Span.",
+        "granularity_rationale": "Esses três tipos são os alicerces para toda manipulação no spaCy; o aluno precisa saber diferenciá-los e usá-los."
+      },
+      "anchors": [
+        "O básico necessário (Code Demo)",
+        "Containers básicos"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_006",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos que descrevem sua forma e tipo: `.text` retorna o texto original; `.shape_` descreve a forma (maiúsculas/minúsculas, dígitos); `.is_alpha` indica se é alfabético. Esses atributos permitem filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_ para identificar números ('589' -> 'DDD').",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo mostra uma seção específica sobre esses atributos, com exemplos em código e explicação de por que shapes como 'DDD' são úteis para machine learning.",
+        "granularity_rationale": "Atributos básicos dos tokens são uma habilidade prática imediata; verifica-se com um pequeno código."
+      },
+      "anchors": [
+        "Atributos dos Tokens: Text, Shape, Is_alpha"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_007",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (e.g., substantivo, verbo, adjetivo) segundo o esquema Universal Dependencies. No spaCy, o atributo `.pos_` retorna o tag (e.g., NOUN, VERB, ADJ) e `.tag_` fornece detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar que POS tagging identifica a função gramatical de cada token.",
+        "Usar .pos_ para obter tags como PROPN, VERB, NOUN.",
+        "Dar um exemplo com uma frase simples e listar as tags obtidas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo dedica uma seção à análise sintática e mostra como obter as tags POS, incluindo exemplos com 'Eduardo' (PROPN) e 'faz' (VERB).",
+        "granularity_rationale": "POS é uma das análises linguísticas mais comuns; um aluno deve saber extraí-la e interpretá-la."
+      },
+      "anchors": [
+        "Sintática: Analisando contextos",
+        "Isso no código: Atributos léxicos em tabela",
+        "Atributos léxicos: Exemplos"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_008",
+      "label": "Lematização – redução de palavras à sua forma canônica",
+      "description": "Lematização transforma palavras flexionadas (plural, conjugações) em sua forma base ou lema. Ex.: 'faz' -> 'fazer', 'gatos' -> 'gato'. No spaCy, acessa-se via `.lemma_`. É diferente de stemming, que corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Mostrar como obter o lema de um token com .lemma_.",
+        "Dar um exemplo: 'comprou' -> 'comprar'."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo explica a lematização como desflexionar palavras, usando exemplos como 'faz' -> 'fazer' e 'gatos' -> 'gato'.",
+        "granularity_rationale": "É uma técnica essencial para normalização de texto; pode ser verificada com uma pergunta direta."
+      },
+      "anchors": [
+        "Atributos léxicos: Exemplos",
+        "Isso no código: Atributos léxicos em tabela"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_009",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo `.dep_` que indica sua relação sintática com o núcleo da frase (ex.: nsubj para sujeito nominal, obj para objeto). Permite entender a estrutura da frase.",
+      "coverage_criteria": [
+        "Explicar que dep_ mostra a função sintática (sujeito, objeto).",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar as dependências."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo demonstra dependências com exemplos como 'Eduardo faz vídeos' (nsubj: Eduardo, obj: vídeos) e menciona a visualização com displacy.",
+        "granularity_rationale": "A análise sintática é uma camada crítica para muitas tarefas downstream; um aluno deve saber extrair e interpretar as dependências."
+      },
+      "anchors": [
+        "Atributos léxicos: Dependências e Stop Words",
+        "Isso no código: Atributos léxicos em tabela",
+        "spaCy displacy for visualization"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_010",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais, etc., dentro do texto. No spaCy, acessível via `doc.ents` e atributos `.label_` dos tokens. Suporta diversos tipos como PERSON, ORG, GPE, MISC.",
+      "coverage_criteria": [
+        "Definir NER e listar exemplos (PERSON, ORG).",
+        "Extrair entidades de um texto usando doc.ents.",
+        "Imprimir o texto e o label de cada entidade."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo introduz o conceito de NER, mostrando entidades como pessoas, organizações e locais, e demonstra como extrair com doc.ents.",
+        "granularity_rationale": "Conceito isolável e verificável com exemplo prático de extração de entidades de uma frase."
+      },
+      "anchors": [
+        "spaCy entities: MISC",
+        "spaCy displacy for visualization"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_001",
+      "label": "Default Copyright on Unlicensed Repositories",
+      "description": "If a public repository does not include a license, default copyright laws apply, meaning only the original author holds rights to reproduce, distribute, or create derivative works.",
+      "coverage_criteria": [
+        "Explain the implications of not having a license file in a public repository."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states that without a license, 'as leis padrão de copyright' apply, denying others the right to use, alter, or distribute the software.",
+        "granularity_rationale": "This is a foundational concept that can be checked with a single question about default copyright."
+      },
+      "anchors": [
+        "Escolher a licença ideal"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_002",
+      "label": "ChooseaLicense.com as a Decision Tool",
+      "description": "GitHub provides choosealicense.com to help developers select an appropriate open source license by understanding the permissions and restrictions of each license.",
+      "coverage_criteria": [
+        "Describe the purpose of choosealicense.com and how it helps with license selection."
+      ],
+      "source_roles": [
+        "introducing",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces choosealicense.com as a resource created to assist in understanding licensing.",
+        "granularity_rationale": "This is a specific tool mention that can be quizzed with a question about its function."
+      },
+      "anchors": [
+        "Escolher a licença ideal",
+        "https://choosealicense.com/"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_003",
+      "label": "Conventional License File Location and Naming",
+      "description": "Most projects place the license text in a file named LICENSE.txt, LICENSE.md, or LICENSE.rst in the repository root. Some projects include license information in the README instead.",
+      "coverage_criteria": [
+        "State the conventional file name and location for a license in a repository, and mention an alternative location."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly describes the common practice of placing LICENSE.txt in the root and gives an example, also noting that some use README.",
+        "granularity_rationale": "This is a specific, checkable convention that can be answered in a single sentence."
+      },
+      "anchors": [
+        "Identificar a localização da sua licença"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_004",
+      "label": "GitHub Terms of Service on Public Repositories",
+      "description": "According to GitHub's Terms of Service, publishing code in a public repository grants other users the right to view and fork the repository, even without a license.",
+      "coverage_criteria": [
+        "Explain what rights other GitHub users have over a public repository without a license according to GitHub TOS."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article notes that despite lack of license, GitHub TOS allows viewing and forking, serving as a warning.",
+        "granularity_rationale": "This is a distinct legal nuance that can be checked with a targeted question."
+      },
+      "anchors": [
+        "Escolher a licença ideal"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_005",
+      "label": "Filtering Repositories by License on GitHub",
+      "description": "GitHub search supports the `license:` qualifier with a specific license keyword to filter repositories by their license type.",
+      "coverage_criteria": [
+        "Demonstrate how to search for repositories using a specific license, e.g., `license:MIT`."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a table of license keywords and explains using the `license:` qualifier for search.",
+        "granularity_rationale": "This is a practical skill that can be tested by asking to construct a search query."
+      },
+      "anchors": [
+        "Pesquisando GitHub por tipo de licença"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_006",
+      "label": "License Family Search",
+      "description": "Using a license family keyword like `GPL` in the `license:` qualifier will return repositories under any variant of that family, such as GPL-2.0 and GPL-3.0.",
+      "coverage_criteria": [
+        "Predict the result of searching `license:gpl` on GitHub."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly mentions that searching for a family includes all licenses in that family, with GPL as example.",
+        "granularity_rationale": "This is a specific feature of GitHub search that can be assessed with a scenario-based question."
+      },
+      "anchors": [
+        "Pesquisando GitHub por tipo de licença"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_007",
+      "label": "Automated License Detection using Licensee",
+      "description": "The open-source tool Licensee compares a repository's LICENSE file against a short list of known licenses to automatically identify the license used.",
+      "coverage_criteria": [
+        "Explain what Licensee does and how it helps identify project licenses."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces Licensee, describes its function, and notes its use by GitHub.",
+        "granularity_rationale": "This is a named tool and a distinct concept about license identification that can be explained concisely."
+      },
+      "anchors": [
+        "Identificar uma licença"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_008",
+      "label": "License Picker During Repository Creation",
+      "description": "When creating a new repository on GitHub, a license picker dropdown allows you to select and add a license template automatically.",
+      "coverage_criteria": [
+        "Describe when the GitHub license picker is available and how it functions."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions the license picker is available when creating a new project in GitHub, accompanied by a screenshot.",
+        "granularity_rationale": "This is a specific feature that can be checked with a procedural question."
+      },
+      "anchors": [
+        "Aplicar uma licença em um repositório com uma licença existente",
+        "Captura de tela da seção 'Escolher uma licença' da nova página do repositório, incluindo um menu suspenso rotulado como 'Licença.'"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_009",
+      "label": "Manual License Addition via Browser",
+      "description": "You can manually add a license file to a repository by creating a new file named LICENSE or LICENSE.txt in the repository root directly through the GitHub web interface.",
+      "coverage_criteria": [
+        "Outline the steps to manually add a license to an existing repository on GitHub."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states that you can add a license manually using the browser.",
+        "granularity_rationale": "This is a practical procedure that can be tested with a step-by-step explanation."
+      },
+      "anchors": [
+        "Aplicar uma licença em um repositório com uma licença existente"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_010",
+      "label": "GitHub's Licensing Information is Not Legal Advice",
+      "description": "GitHub provides licensing information on an 'as-is' basis and recommends consulting a professional for legal advice regarding license choice.",
+      "coverage_criteria": [
+        "Recall that GitHub's license guidance is not a substitute for professional legal advice."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article includes a disclaimer section explicitly stating that GitHub's info is 'as-is' and not legal advice.",
+        "granularity_rationale": "This is an important disclaimer that can be checked with a simple recall question."
+      },
+      "anchors": [
+        "Isenção de responsabilidade"
+      ]
+    },
+    {
+      "id": "c32_pro_thinking_011",
+      "label": "Existing Forks Survive Visibility Change",
+      "description": "If you change a public repository to private, any forks or local copies created while it was public will continue to exist.",
+      "coverage_criteria": [
+        "Explain what happens to existing forks when a repository is made private."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article warns that even after making a repository private, forks created previously remain.",
+        "granularity_rationale": "This is a single clear fact that can be checked with a direct question."
+      },
+      "anchors": [
+        "Escolher a licença ideal"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

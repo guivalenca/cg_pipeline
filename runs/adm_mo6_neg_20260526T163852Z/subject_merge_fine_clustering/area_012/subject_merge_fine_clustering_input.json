@@ -1,0 +1,238 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_012",
+    "area": {
+      "id": "area_012",
+      "label": "Intuition in Strategic Decision-Making",
+      "rationale": "Eleven candidates explore the nature, triggers, moderators, and effectiveness of intuition in strategic contexts, including CEO traits, expertise, team dynamics, firm size, and conditions for success or failure. Together they build a comprehensive neighborhood on using gut feel in high‑stakes decisions.",
+      "candidate_ids": [
+        "lr009_015",
+        "lr009_016",
+        "lr009_017",
+        "lr009_018",
+        "lr009_019",
+        "lr009_020",
+        "lr009_021",
+        "lr009_022",
+        "lr009_023",
+        "lr009_024",
+        "lr009_025"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr009_015",
+    "lr009_016",
+    "lr009_017",
+    "lr009_018",
+    "lr009_019",
+    "lr009_020",
+    "lr009_021",
+    "lr009_022",
+    "lr009_023",
+    "lr009_024",
+    "lr009_025"
+  ],
+  "candidates": [
+    {
+      "id": "lr009_015",
+      "label": "Definition and Properties of Intuition in Strategic Decision-Making",
+      "description": "Intuition is rapid, automatic, unconscious, and affectively charged, synthesizing experience and information to provide a holistic 'gut feeling' that guides decisions.",
+      "coverage_criteria": [
+        "Define intuition as described in the article, distinguishing it from rational analysis, instinct, insight, and guessing.",
+        "List the key properties: rapid, automatic, unconscious, affectively charged, holistic, based on experience."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_016",
+      "label": "CEO Core Self-Evaluations as a Trigger for Intuition Use",
+      "description": "Executives with high core self-evaluations (self-esteem, self-efficacy, internal locus of control) are more confident relying on intuition. Hyper CSE can lead to unbridled intuition and risky decisions.",
+      "coverage_criteria": [
+        "Explain how core self-evaluations influence reliance on intuition.",
+        "Describe the concept of hyper core self-evaluations and its risks (hubris, unbridled intuition)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_017",
+      "label": "Cognitive Style and Cognitive Diversity in Intuitive Decision-Making",
+      "description": "The CEO's cognitive style (preference for intuition vs. analysis) shapes the team's decision process. Cognitive diversity in the TMT can check dominant intuition, promoting integration of perspectives.",
+      "coverage_criteria": [
+        "Explain how cognitive style influences the use of intuition in SDM.",
+        "Describe how cognitive diversity can serve as a check on excessive reliance on one person's intuition."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_018",
+      "label": "Expertise as a Driver and Moderator of Intuition's Reliability",
+      "description": "Expertise, built through extensive experience and deliberate practice, enables accurate intuitive pattern recognition. Experts have more reliable gut feelings due to complex mental models.",
+      "coverage_criteria": [
+        "Explain why expertise enhances intuition reliability.",
+        "Articulate the journey from novice to expert reliance on intuition.",
+        "State that expertise derives from experience, deliberate practice, and feedback."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_019",
+      "label": "Decision Framing and Familiarity as Intuition Triggers",
+      "description": "Decisions framed as threats may trigger intuitive or analytical responses depending on firm size. Decision familiarity increases reliance on intuition because past experiences provide a basis for gut feel.",
+      "coverage_criteria": [
+        "Explain how decision framing influences intuition use differently in small vs. large firms.",
+        "Describe why familiarity with a decision type promotes intuitive decision-making."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_020",
+      "label": "Firm-Level Factors Influencing Intuition Use",
+      "description": "Smaller firms allow more intuitive decision-making due to agility. Larger firms with heavy governance stifle intuition. Financial performance and slack resources affect the intuition-analysis balance.",
+      "coverage_criteria": [
+        "Explain how firm size affects the ability to act on intuition.",
+        "Discuss how financial performance and slack resources influence the balance between intuition and analysis."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_021",
+      "label": "Team Power Structure and Psychological Safety as Moderators of Intuition",
+      "description": "Centralized power enables one person's intuition to drive decisions but risks unbridled intuition. Psychological safety encourages sharing and challenging intuitions, fostering effective team intuitive processes.",
+      "coverage_criteria": [
+        "Explain how power centralization influences whose intuition prevails and the risk of unbridled intuition.",
+        "Define psychological safety and explain its role in facilitating intuitive judgment sharing."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_022",
+      "label": "Contextual Enhancers of Intuition Effectiveness",
+      "description": "Intuition is more effective under time pressure, high uncertainty, in M&A decisions (soft issues), and in dynamic or services industries where information is incomplete or change is rapid.",
+      "coverage_criteria": [
+        "List at least three contextual factors that enhance intuition effectiveness.",
+        "Explain why time pressure and uncertainty make intuition more valuable.",
+        "Give an example of why M&A decisions benefit from intuition."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_023",
+      "label": "Causes of Intuitive Misses in Strategic Decisions",
+      "description": "Intuition fails when there is excessive reliance without rational checking, dominant actor power centralization, lack of integration of diverse intuitions, or when applied to unfamiliar domains.",
+      "coverage_criteria": [
+        "Identify at least two reasons why intuitive misses occur.",
+        "Describe the danger of unbridled intuition in a centralized power structure.",
+        "Explain why intuition is less reliable in new market entry decisions."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_024",
+      "label": "Rational Decision-Making: Success and Failure Conditions",
+      "description": "Rational processes excel in stable or hostile environments and when firms have resources for analysis. They can fail in dynamic environments, information overload, or when predicting human behavior.",
+      "coverage_criteria": [
+        "State when rational decision-making tends to be more effective.",
+        "Identify situations where excessive reliance on rationality leads to missed opportunities."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_025",
+      "label": "Practical Implications for Improving Intuitive Decision-Making",
+      "description": "Organizations should develop intuitive awareness in education, encourage executives to embrace intuition mindfully, and foster expertise through deliberate practice and feedback.",
+      "coverage_criteria": [
+        "Summarize the three key practical implications: develop awareness, embrace intuition, develop expertise.",
+        "Give an example of a technique to develop intuitive awareness.",
+        "Explain why job mobility hampers expert intuition development."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

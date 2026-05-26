@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "data": {
+    "markdown": "# A Simple Explanation of the Bag-of-Words Model\n\n## A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.\n\nNovember 30, 2019\n\nThe **bag-of-words** (BOW) model is a representation that turns arbitrary text into **fixed-length vectors** by counting how many times each word appears. This process is often referred to as **vectorization**.\n\nLet’s understand this with an example. Suppose we wanted to vectorize the following:\n\n- _the cat sat_\n- _the cat sat in the hat_\n- _the cat with the hat_\n\nWe’ll refer to each of these as a text **document**.\n\n### Step 1: Determine the Vocabulary\n\nWe first define our **vocabulary**, which is the set of all words found in our document set. The only words that are found in the 3 documents above are: `the`, `cat`, `sat`, `in`, `the`, `hat`, and `with`.\n\n### Step 2: Count\n\nTo vectorize our documents, all we have to do is **count how many times each word appears**:\n\n| Document | `the` | `cat` | `sat` | `in` | `hat` | `with` |\n| --- | --- | --- | --- | --- | --- | --- |\n| _the cat sat_ | 1 | 1 | 1 | 0 | 0 | 0 |\n| _the cat sat in the hat_ | 2 | 1 | 1 | 1 | 1 | 0 |\n| _the cat with the hat_ | 2 | 1 | 0 | 0 | 1 | 1 |\n\nNow we have length-6 vectors for each document!\n\n- _the cat sat_: `[1, 1, 1, 0, 0, 0]`\n- _the cat sat in the hat_: `[2, 1, 1, 1, 1, 0]`\n- _the cat with the hat_: `[2, 1, 0, 0, 1, 1]`\n\nNotice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It’s like a literal **bag**-of-words: it only tells you _what_ words occur in the document, not _where_ they occurred.\n\n## Implementing BOW in Python\n\nNow that you know what BOW is, I’m guessing you’ll probably need to implement it. Here’s my preferred way of doing it, which uses [Keras’s Tokenizer class](https://keras.io/preprocessing/text/):\n\n```python\nfrom keras.preprocessing.text import Tokenizer\n\ndocs = [\\\n  'the cat sat',\\\n  'the cat sat in the hat',\\\n  'the cat with the hat',\\\n]\n\n## Step 1: Determine the Vocabulary\ntokenizer = Tokenizer()\ntokenizer.fit_on_texts(docs)\nprint(f'Vocabulary: {list(tokenizer.word_index.keys())}')\n\n## Step 2: Count\nvectors = tokenizer.texts_to_matrix(docs, mode='count')\nprint(vectors)\n```\n\nRunning that code gives us:\n\n```text\nVocabulary: ['the', 'cat', 'sat', 'hat', 'in', 'with']\n[[0. 1. 1. 1. 0. 0. 0.]\\\n [0. 2. 1. 1. 1. 1. 0.]\\\n [0. 2. 1. 0. 1. 0. 1.]]\n```\n\nNotice that the vectors here have length 7 instead of 6 because of the extra `0` element at the beginning. This is an inconsequential detail - Keras reserves index `0` and never assigns it to any word.\n\n## How is BOW useful?\n\nDespite being a relatively basic model, BOW is often used for [Natural Language Processing](https://victorzhou.com/tag/natural-language-processing/) (NLP) tasks like Text Classification. Its strengths lie in its simplicity: it’s inexpensive to compute, and sometimes simpler is better when positioning or contextual info aren’t relevant.\n\nI’ve written [a blog post that uses BOW for profanity detection](https://victorzhou.com/blog/better-profanity-detection-with-scikit-learn/) - check it out if you’re curious to see BOW in action!\n\n_This blog is [open-source on Github](https://github.com/vzhou842/victorzhou.com)._",
+    "screenshot": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-212d4fb1-8f3e-45c6-8bd8-9883ed6100a9.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1779159132&Signature=x91yHHt9BoBSk9kgVe8vSjV5nmKX5brOoM5CNfTgtSfrANC9oaQmC2Cni36C4jAD7%2B5tIELWDbxwgsfzBEmB0ijEmPcS%2FK035It%2BtNQmfX66TdB%2B9snNIvf0WuB4iwuKIHSpC4yZrqG1EyCPLAJUfy8cFjvnH0WbEiz4fzokjfSMqvuIS5xfA%2Befo1PUKNsRCz980pLL0BEtPyPsnhpphjcW9RuBOceOJQ8Y1rOf7dmwPyFi10yZxWOO294ISFYHJTCKl9J26a9jF5n%2FSXLNUAZWfHkkoImFbwEordc7gwlpZtOTv3OAE9mWg%2Fj%2FuZLViTEJ4EYdYTtXuXftODpP0g%3D%3D",
+    "metadata": {
+      "og:description": "A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.",
+      "og:title": "A Simple Explanation of the Bag-of-Words Model - victorzhou.com",
+      "og:image": "https://victorzhou.com/media/laptop-code.jpg",
+      "twitter:site": "@victorczhou",
+      "og:type": "article",
+      "ogImage": "https://victorzhou.com/media/laptop-code.jpg",
+      "ogDescription": "A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.",
+      "description": "A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.",
+      "ogTitle": "A Simple Explanation of the Bag-of-Words Model - victorzhou.com",
+      "generator": "Gatsby 5.15.0",
+      "theme-color": "#164BC5",
+      "language": "en",
+      "twitter:creator": "@victorczhou",
+      "twitter:card": "summary",
+      "title": "A Simple Explanation of the Bag-of-Words Model - victorzhou.com",
+      "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
+      "favicon": "https://victorzhou.com/favicon2_192x192.png",
+      "scrapeId": "019e1a18-e73e-7548-99b2-15e6ab0e387c",
+      "sourceURL": "https://victorzhou.com/blog/bag-of-words",
+      "url": "https://victorzhou.com/blog/bag-of-words/",
+      "statusCode": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "timezone": "America/New_York",
+      "proxyUsed": "basic",
+      "creditsUsed": 1,
+      "concurrencyLimited": true,
+      "concurrencyQueueDurationMs": 27945
+    },
+    "warning": "This scrape job was throttled at your current concurrency limit. If you'd like to scrape faster, you can upgrade your plan.",
+    "links": [
+      "https://victorzhou.com/",
+      "https://victorzhou.com/blog/bag-of-words/#step-1-determine-the-vocabulary",
+      "https://victorzhou.com/blog/bag-of-words/#step-2-count",
+      "https://victorzhou.com/blog/bag-of-words/#implementing-bow-in-python",
+      "https://keras.io/preprocessing/text/",
+      "https://victorzhou.com/blog/bag-of-words/#how-is-bow-useful",
+      "https://victorzhou.com/tag/natural-language-processing/",
+      "https://victorzhou.com/blog/better-profanity-detection-with-scikit-learn/",
+      "https://github.com/vzhou842/victorzhou.com",
+      "https://victorzhou.com/tag/machine-learning/",
+      "https://victorzhou.com/tag/for-beginners/",
+      "https://victorzhou.com/tag/python/",
+      "https://victorzhou.com/blog/softmax/",
+      "https://victorzhou.com/blog/intro-to-rnns/",
+      "https://twitter.com/victorczhou",
+      "https://victorzhou.com/tag/web-development/",
+      "https://victorzhou.com/tags/"
+    ],
+    "images": [
+      "https://victorzhou.com/photo2.png",
+      "https://victorzhou.com/media/laptop-code.jpg",
+      "https://victorzhou.com/media/rnn-post/bptt.png",
+      "https://victorzhou.com/media/moon.svg",
+      "https://victorzhou.com/media/sun.svg"
+    ]
+  }
+}

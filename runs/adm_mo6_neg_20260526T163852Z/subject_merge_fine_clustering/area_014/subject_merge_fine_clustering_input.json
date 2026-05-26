@@ -1,0 +1,135 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_014",
+    "area": {
+      "id": "area_014",
+      "label": "AI and Decision-Making",
+      "rationale": "Six candidates focus on integrating AI into decisions: strategic discipline, preserving human agency, irreplaceability of human judgment, building competence, risk‑based AI agency, and decision classification. They form a forward‑looking neighborhood on AI‑augmented decision‑making.",
+      "candidate_ids": [
+        "lr014_001",
+        "lr014_002",
+        "lr014_003",
+        "lr014_004",
+        "lr014_005",
+        "lr014_006"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr014_001",
+    "lr014_002",
+    "lr014_003",
+    "lr014_004",
+    "lr014_005",
+    "lr014_006"
+  ],
+  "candidates": [
+    {
+      "id": "lr014_001",
+      "label": "Strategic Discipline for AI-Augmented Decision-Making",
+      "description": "Before integrating AI into decisions, organizations should treat decision-making as a strategic discipline and intentionally design human-machine relationships.",
+      "coverage_criteria": [
+        "Student can explain why decision-making must be treated as a strategic discipline when adopting AI."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "definition"
+    },
+    {
+      "id": "lr014_002",
+      "label": "Preserving Human Agency in AI Decisions",
+      "description": "Maintain human agency by building accountability, ensuring decision-makers understand (not just comply with) AI outputs, and clearly connecting choices to choosers.",
+      "coverage_criteria": [
+        "Student can describe at least two concrete ways to preserve human agency when AI supports decisions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr014_003",
+      "label": "Human Purpose and Judgment as Irreplaceable by AI",
+      "description": "Technology can speed up analysis and reduce uncertainty, but it cannot substitute human purpose, values, and judgment behind choices.",
+      "coverage_criteria": [
+        "Student can articulate at least one reason why human purpose and judgment remain essential even when AI provides analysis."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "definition"
+    },
+    {
+      "id": "lr014_004",
+      "label": "Building Decision-Making Competence for Humans and AI",
+      "description": "Organizations should simultaneously invest in developing human decision-making skills and rigorously measuring AI decision performance.",
+      "coverage_criteria": [
+        "Student can describe one approach to improve human decision skill and one approach to measure AI decision performance."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr014_005",
+      "label": "Risk-Based AI Agency Level",
+      "description": "The degree of autonomy granted to AI agents should be calibrated according to the risk profile of the decision.",
+      "coverage_criteria": [
+        "Student can justify why a high-risk decision warrants lower AI autonomy."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "definition"
+    },
+    {
+      "id": "lr014_006",
+      "label": "Decision Classification Framework",
+      "description": "Decisions can be categorized across multiple dimensions including risk, frequency, urgency, horizon, certainty, and the Cynefin domains. Understanding these dimensions helps in choosing appropriate decision strategies.",
+      "coverage_criteria": [
+        "Student can name at least three decision dimensions and explain how the Cynefin context (Clear, Complicated, Complex, Chaotic) influences decision approach."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "lesson_title": "Decision-Making in the Age of AI",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,862 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+  "cluster": {
+    "id": "cluster_025",
+    "label": "Linear Data Structures: Stack, Queue, Linked List",
+    "rationale": "These present stack (LIFO), queue (FIFO), and linked list, all linear data structures with distinct ordering.",
+    "candidate_ids": [
+      "c8_pro_thinking_008",
+      "c8_pro_thinking_009",
+      "c8_pro_thinking_010"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_025",
+      "label": "Linear Data Structures: Stack, Queue, Linked List",
+      "rationale": "These present stack (LIFO), queue (FIFO), and linked list, all linear data structures with distinct ordering.",
+      "candidate_ids": [
+        "c8_pro_thinking_008",
+        "c8_pro_thinking_009",
+        "c8_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_026",
+      "label": "Non-Linear Data Structures: Tree, Heap, Graph",
+      "rationale": "These cover tree (binary tree), heap (priority queue), and graph (adjacency list), all non-linear structures.",
+      "candidate_ids": [
+        "c8_pro_thinking_011",
+        "c8_pro_thinking_012",
+        "c8_pro_thinking_013"
+      ]
+    },
+    {
+      "id": "cluster_027",
+      "label": "Programming Paradigms: Definition and Classification",
+      "rationale": "These define programming paradigms and introduce the imperative vs declarative classification, providing the framework.",
+      "candidate_ids": [
+        "c9_pro_thinking_001",
+        "c9_pro_thinking_002",
+        "c9_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_028",
+      "label": "Specific Programming Paradigms: OOP, Procedural, Functional",
+      "rationale": "These describe concrete paradigms: object-oriented, procedural, and functional, each with definitions and code examples.",
+      "candidate_ids": [
+        "c9_pro_thinking_004",
+        "c9_pro_thinking_005",
+        "c9_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_029",
+      "label": "Word Break Problem and Dynamic Programming Solutions",
+      "rationale": "These define the Word Break problem and present recursive, top-down DP, bottom-up DP, and overlapping subproblems, all related to solving Word Break.",
+      "candidate_ids": [
+        "c10_pro_thinking_001",
+        "c10_pro_thinking_002",
+        "c10_pro_thinking_003",
+        "c10_pro_thinking_004",
+        "c10_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_030",
+      "label": "Character Increment Techniques in Python",
+      "rationale": "These cover various methods to increment characters: ord/chr, byte strings, and string module, all addressing the same task.",
+      "candidate_ids": [
+        "c11_pro_thinking_001",
+        "c11_pro_thinking_002",
+        "c11_pro_thinking_003",
+        "c11_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_031",
+      "label": "NLP Definition and Importance",
+      "rationale": "These define NLP, its foundational fields, and everyday applications like autocorrect, giving an introductory overview.",
+      "candidate_ids": [
+        "c12_pro_thinking_001",
+        "c12_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_032",
+      "label": "Text Preprocessing: Segmentation, Tokenization, Stop Words",
+      "rationale": "These cover initial preprocessing steps: breaking into sentences and words, and removing stop words.",
+      "candidate_ids": [
+        "c12_pro_thinking_002",
+        "c12_pro_thinking_003",
+        "c12_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_033",
+      "label": "Word Normalization: Stemming and Lemmatization",
+      "rationale": "These reduce words to root via stemming and lemma via lemmatization, two normalization approaches.",
+      "candidate_ids": [
+        "c12_pro_thinking_005",
+        "c12_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_034",
+      "label": "Linguistic Annotation: POS Tagging and Named Entities",
+      "rationale": "These tag words with parts of speech and identify named entities, both annotation tasks.",
+      "candidate_ids": [
+        "c12_pro_thinking_007",
+        "c12_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_035",
+      "label": "Machine Learning in NLP",
+      "rationale": "This single candidate describes using ML algorithms like Naive Bayes after preprocessing, a distinct final step.",
+      "candidate_ids": [
+        "c12_pro_thinking_009"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c8_pro_thinking_008",
+    "c8_pro_thinking_009",
+    "c8_pro_thinking_010",
+    "c8_pro_thinking_011",
+    "c8_pro_thinking_012",
+    "c8_pro_thinking_013",
+    "c9_pro_thinking_001",
+    "c9_pro_thinking_002",
+    "c9_pro_thinking_003",
+    "c9_pro_thinking_004",
+    "c9_pro_thinking_005",
+    "c9_pro_thinking_006",
+    "c10_pro_thinking_001",
+    "c10_pro_thinking_002",
+    "c10_pro_thinking_003",
+    "c10_pro_thinking_004",
+    "c10_pro_thinking_005",
+    "c11_pro_thinking_001",
+    "c11_pro_thinking_002",
+    "c11_pro_thinking_003",
+    "c11_pro_thinking_004",
+    "c12_pro_thinking_001",
+    "c12_pro_thinking_010",
+    "c12_pro_thinking_002",
+    "c12_pro_thinking_003",
+    "c12_pro_thinking_004",
+    "c12_pro_thinking_005",
+    "c12_pro_thinking_006",
+    "c12_pro_thinking_007",
+    "c12_pro_thinking_008",
+    "c12_pro_thinking_009"
+  ],
+  "candidates": [
+    {
+      "id": "c8_pro_thinking_008",
+      "label": "Stack Data Structure (LIFO)",
+      "description": "A stack is a linear data structure following Last-In-First-Out (LIFO) order. Basic operations: push (append) and pop.",
+      "coverage_criteria": [
+        "Implement a stack using a Python list with append and pop.",
+        "Explain the LIFO behavior with an example."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines stack, demonstrates push and pop operations, and shows LIFO order in output.",
+        "granularity_rationale": "Covers one fundamental linear structure with minimal operations, ideal for a concise check."
+      },
+      "anchors": [
+        "8. Stack"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_009",
+      "label": "Queue Data Structure (FIFO)",
+      "description": "A queue is a linear data structure following First-In-First-Out (FIFO) order. Basic operations: enqueue (append) and dequeue (pop from front).",
+      "coverage_criteria": [
+        "Implement a queue using a Python list with append and pop(0).",
+        "Explain the FIFO behavior with an example."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces queue, provides enqueue/dequeue code, and illustrates FIFO ordering.",
+        "granularity_rationale": "Focuses on the complementary FIFO pattern, distinct from stack, for a parallel assessment."
+      },
+      "anchors": [
+        "9. Queue"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_010",
+      "label": "Linked List Data Structure",
+      "description": "A linked list is a linear sequence of nodes, each containing data and a reference to the next node.",
+      "coverage_criteria": [
+        "Define a Node class with data and next attributes.",
+        "Build and traverse a simple linked list."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a complete Node class and linked list creation/traversal code.",
+        "granularity_rationale": "Covers a fundamental dynamic structure with a clear implementation, distinct from built-in lists."
+      },
+      "anchors": [
+        "10. Linked List"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_011",
+      "label": "Tree Data Structure",
+      "description": "A tree is a non-linear hierarchical structure with nodes connected by edges. A binary tree node has left and right children.",
+      "coverage_criteria": [
+        "Define a binary tree node class with left and right references.",
+        "Traverse a binary tree in-order."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents a tree definition and implements a binary tree with inorder traversal.",
+        "granularity_rationale": "Introduces a key non-linear structure with a practical traversal example."
+      },
+      "anchors": [
+        "11. Tree"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_012",
+      "label": "Heap Data Structure and Priority Queue",
+      "description": "A heap is a complete binary tree satisfying the heap property. It is used to implement a priority queue. Python's `heapq` module supports heap operations.",
+      "coverage_criteria": [
+        "Convert a list into a heap using `heapify`.",
+        "Use `heappush` and `heappop` to manage a min-heap."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explains heap and demonstrates `heapify`, `heappush`, and `heappop` with output.",
+        "granularity_rationale": "Covers a specialized tree structure and its application, with a clear code demonstration."
+      },
+      "anchors": [
+        "12. Heap"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_013",
+      "label": "Graph Data Structure",
+      "description": "A graph is a collection of nodes (vertices) and edges. It can be represented using an adjacency list.",
+      "coverage_criteria": [
+        "Define a function to add edges to an adjacency list.",
+        "Display an adjacency list representation of a graph."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines graphs and provides code to build and display an adjacency list.",
+        "granularity_rationale": "Presents the essential graph representation used in many algorithms."
+      },
+      "anchors": [
+        "13. Graphs"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_001",
+      "label": "Programming Paradigm Definition",
+      "description": "A programming paradigm is a method or approach to solving problems using a programming language, employing specific tools and techniques.",
+      "coverage_criteria": [
+        "Define what a programming paradigm is",
+        "Give examples of different paradigms"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article opens by defining a programming paradigm as a method to solve problems using a programming language, which is a fundamental teachable idea.",
+        "granularity_rationale": "This is a checkable definition-level concept that can be assessed with a brief explanation and examples."
+      },
+      "anchors": [
+        "Programming Paradigms in Python"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_002",
+      "label": "Imperative Programming Paradigm",
+      "description": "A paradigm in which programs consist of instructions that change the program state by specifying how to achieve a goal, with subcategories like procedural and object-oriented programming.",
+      "coverage_criteria": [
+        "Explain the imperative paradigm as a 'how to' approach",
+        "Identify procedural and object-oriented as imperative sub-paradigms"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's diagram (summarized in text) explicitly introduces the Imperative Programming Paradigm as a main category.",
+        "granularity_rationale": "It's a distinct high-level paradigm classification that groups multiple other concepts, checkable by naming its characteristics and sub-paradigms."
+      },
+      "anchors": [
+        "Image summary: The diagram divides programming paradigms into two main groups: Imperative Programming Paradigm and Declarative Programming Paradigm."
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_003",
+      "label": "Declarative Programming Paradigm",
+      "description": "A paradigm that focuses on what the program should accomplish without specifying control flow, with subcategories like functional, logic, and database processing.",
+      "coverage_criteria": [
+        "Explain the declarative paradigm as a 'what to solve' approach",
+        "Identify functional programming as a declarative sub-paradigm"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's diagram (summarized in text) explicitly introduces the Declarative Programming Paradigm as a main category.",
+        "granularity_rationale": "It's a distinct high-level paradigm classification that groups multiple other concepts, checkable by naming its characteristics and sub-paradigms."
+      },
+      "anchors": [
+        "Image summary: The diagram divides programming paradigms into two main groups: Imperative Programming Paradigm and Declarative Programming Paradigm."
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_004",
+      "label": "Object-Oriented Programming (OOP) Paradigm",
+      "description": "A paradigm centered on objects (instances of classes) that encapsulate data and methods, supporting inheritance and code reuse.",
+      "coverage_criteria": [
+        "Write a simple class with attributes and methods in Python",
+        "Explain encapsulation and inheritance",
+        "List advantages (real-world modeling, code reuse) and disadvantages (performance, not suitable for all problems)"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article has a dedicated section with definition, advantages/disadvantages, and a code example demonstrating classes and objects.",
+        "granularity_rationale": "The concept is well-scoped as a specific paradigm with clear features, and the code example provides enough detail for assessment."
+      },
+      "anchors": [
+        "Object Oriented programming paradigms"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_005",
+      "label": "Procedural Programming Paradigm",
+      "description": "A paradigm that organizes code into procedures or functions, executing statements sequentially with a focus on modularization.",
+      "coverage_criteria": [
+        "Write a function to perform a task in Python",
+        "Explain the concept of modularization",
+        "Identify advantages (general-purpose, code reuse) and disadvantages (data protection, not real-world oriented)"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article has a dedicated section with definition, advantages/disadvantages, and a code example of a function computing sum.",
+        "granularity_rationale": "The concept is a fundamental programming style, and the simple example makes it checkable in one question."
+      },
+      "anchors": [
+        "Procedural programming paradigms"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_006",
+      "label": "Functional Programming Paradigm",
+      "description": "A declarative paradigm that treats computation as evaluation of mathematical functions, avoiding changing state and mutable data, using features like lambda functions and recursion.",
+      "coverage_criteria": [
+        "Write a function using recursion or lambda in Python",
+        "Explain the difference between imperative and declarative styles",
+        "Identify advantages (simplicity, easier testing) and disadvantages (lower performance, daunting to write)"
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article has a dedicated section describing functional programming as a declarative style, with code examples using recursion and lambda.",
+        "granularity_rationale": "The concept is well-defined with distinct characteristics, and the code snippets allow for practical checking."
+      },
+      "anchors": [
+        "Functional programming paradigms"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_001",
+      "label": "Word Break Problem Definition",
+      "description": "The problem of determining if a given string can be segmented into a sequence of valid dictionary words, separated by spaces.",
+      "coverage_criteria": [
+        "Given a string and a dictionary, can articulate the problem, provide examples (like 'ilike' segmented as 'i like'), and identify whether segmentation is possible."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines the problem in the opening section with multiple input-output examples.",
+        "granularity_rationale": "This concept is atomic enough to be checked with a problem statement and a few examples."
+      },
+      "anchors": [
+        "Word Break"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_002",
+      "label": "Recursive Solution for Word Break",
+      "description": "A naive recursive approach that tries every possible prefix, checks dictionary membership, and recurses on the suffix, leading to exponential time complexity O(2^n).",
+      "coverage_criteria": [
+        "Can explain the recursive algorithm in plain language and pseudocode.",
+        "Can implement a recursive solution and analyze its worst-case time complexity."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source dedicates a marked section '[Naive Approach] Using Recursion' with explanation and a complete C++ implementation.",
+        "granularity_rationale": "This is a specific algorithm implementation; its size allows verification through code writing and complexity analysis."
+      },
+      "anchors": [
+        "[Naive Approach] Using Recursion - O(2^n) Time and O(n) Space"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_003",
+      "label": "Top-Down Dynamic Programming (Memoization) for Word Break",
+      "description": "A DP solution that uses recursion with memoization to store results of already-solved substrings, achieving O(n^2) time by avoiding repeated work.",
+      "coverage_criteria": [
+        "Can explain how memoization avoids recomputing overlapping subproblems.",
+        "Can describe the recursive + memoization approach without code, or implement a memoized version."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes the idea of using dynamic programming in the recursive solution and mentions storing words in a set for efficient lookup.",
+        "granularity_rationale": "This concept isolates the transformation from recursion to memoized DP, checkable via explanation and comparison to the naive method."
+      },
+      "anchors": [
+        "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_004",
+      "label": "Bottom-Up Dynamic Programming for Word Break",
+      "description": "A DP solution that iteratively fills a boolean array dp[i] indicating whether the prefix of length i can be segmented, using dictionary word matching, with complexity O(n*m*k).",
+      "coverage_criteria": [
+        "Can explain the bottom-up DP approach using a dp array and state transition.",
+        "Can implement the bottom-up solution and trace through examples."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a clear explanation and a full C++ implementation of the bottom-up approach with complexity analysis.",
+        "granularity_rationale": "This is a complete DP algorithm; checking coverage requires coding and tracing."
+      },
+      "anchors": [
+        "[Expected Approach - 2] Using Bottom Up DP - O(n*m*k) time and O(n) space"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_005",
+      "label": "Overlapping Subproblems in Word Break",
+      "description": "The recursive solution recomputes solutions for the same suffixes many times, making the problem exhibit overlapping subproblems, which is why DP is beneficial.",
+      "coverage_criteria": [
+        "Can identify repeated subproblems in the recursion tree of Word Break.",
+        "Can explain how DP exploits overlapping subproblems to improve efficiency."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions 'avoid recomputing the same subproblems' as the motivation for top-down DP.",
+        "granularity_rationale": "This is a fundamental DP property that can be checked by asking students to find repeated subproblems in a small example."
+      },
+      "anchors": [
+        "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_001",
+      "label": "Direct character increment causes TypeError in Python",
+      "description": "Attempting to add an integer to a character string in Python raises a TypeError because Python does not allow concatenation of str and int types.",
+      "coverage_criteria": [
+        "Explain why s = 'M'; s = s + 1 fails with TypeError.",
+        "Identify the data types involved in the error."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly demonstrates the error with a code snippet and output, explaining that there is no implicit conversion to allow incrementing characters directly.",
+        "granularity_rationale": "This is a single, checkable idea: the student must understand the type mismatch that prohibits direct arithmetic on characters."
+      },
+      "anchors": [
+        "Lead paragraph and error code block"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_002",
+      "label": "Using ord() and chr() to increment a character",
+      "description": "The ord() function returns the ASCII integer value of a character. Adding an offset produces a new integer, which chr() converts back to a character, enabling incrementing.",
+      "coverage_criteria": [
+        "Write code using ord() and chr() to shift a given character by a specified number.",
+        "Explain what ord('A') returns and why chr(ord('A')+1) gives 'B'."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article presents this as the first method to increment a character, providing a code example and explanation that ord() gets ASCII value and chr() converts back.",
+        "granularity_rationale": "This encompasses one specific technique with two built-in functions; it is concrete enough to be demonstrated and tested in a short code snippet."
+      },
+      "anchors": [
+        "Using ord() + chr()"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_003",
+      "label": "Using byte strings to increment a character",
+      "description": "Convert a character to a byte string, change the byte value by adding an integer to the byte at index 0, and convert back to a string, handling the byte prefix.",
+      "coverage_criteria": [
+        "Write code to increment character 'A' by 5 using bytes and retrieve the correct character.",
+        "Explain why s[2] is used after str(s) when incrementing a byte string character."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article illustrates this method with a code example and explains that converting to byte string, incrementing, and converting back allows character arithmetic, noting the need to skip the byte prefix.",
+        "granularity_rationale": "This is a distinct technique using Python's bytes type; it involves multiple steps but can be checked by asking the student to implement or debug such a snippet."
+      },
+      "anchors": [
+        "Using byte string"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_004",
+      "label": "Using string module constants for alphabet-based increment",
+      "description": "By leveraging string.ascii_uppercase or string.ascii_lowercase, you can find a character's alphabetic index and increment it to get the next character in the alphabet, preserving case.",
+      "coverage_criteria": [
+        "Write code that uses string.ascii_uppercase to find the next character after a given uppercase letter.",
+        "Explain why this method handles case correctly compared to ASCII-based methods."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces this as an additional approach, showing how to use the string module's constants to index and increment alphabetically, with time/space complexity analysis.",
+        "granularity_rationale": "This method introduces the string module's predefined sequences and index lookup, a moderately sized concept that can be tested with a simple coding task."
+      },
+      "anchors": [
+        "Use the string module"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_001",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a branch of artificial intelligence that enables machines to read, understand, and derive meaning from human languages, combining linguistics and computer science.",
+      "coverage_criteria": [
+        "Can define NLP and list its two foundational fields: linguistics and computer science."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source begins by explicitly defining NLP at [00:44] with a clear description and on-screen diagram.",
+        "granularity_rationale": "The definition is a single, testable concept that serves as a prerequisite for understanding NLP techniques."
+      },
+      "anchors": [
+        "## [00:44] What is NLP?"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_010",
+      "label": "NLP Applications: Autocorrect and Plagiarism Checking",
+      "description": "Everyday NLP applications include autocorrect for spelling and plagiarism checkers that scan for duplicate content, saving time and effort.",
+      "coverage_criteria": [
+        "Can list and describe two common NLP applications.",
+        "Can explain how autocorrect and plagiarism checkers use NLP principles."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides examples of NLP in daily life at [01:08], specifically mentioning autocorrect and plagiarism checkers.",
+        "granularity_rationale": "These applications are concrete and relatable, allowing assessment through questions on how they work or their relation to NLP."
+      },
+      "anchors": [
+        "## [01:08] Why is NLP Important?"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_002",
+      "label": "Segmentation",
+      "description": "Segmentation is the process of breaking a document into its constituent sentences using punctuation marks like full stops and commas.",
+      "coverage_criteria": [
+        "Can define segmentation and identify sentence boundaries in a given text."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly presents segmentation as the first step in the NLP pipeline at [02:24] with a visual example.",
+        "granularity_rationale": "Segmentation is a distinct preprocessing step that can be assessed by asking the student to split a paragraph into sentences."
+      },
+      "anchors": [
+        "### [02:24] 1. Segmentation"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_003",
+      "label": "Tokenization",
+      "description": "Tokenization is the process of breaking sentences into individual words (tokens), often removing non-essential stop words to speed up processing.",
+      "coverage_criteria": [
+        "Can define tokenization and list examples of tokens from a sentence.",
+        "Can explain why stop words are removed during tokenization."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes tokenization at [02:36] as breaking sentences into words, and mentions stop words as part of the process.",
+        "granularity_rationale": "Tokenization is a foundational NLP step, and including stop words makes it a single checkable concept about word-level processing."
+      },
+      "anchors": [
+        "### [02:36] 2. Tokenization"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_004",
+      "label": "Stop Words",
+      "description": "Stop words are common words like 'are', 'the', and 'in' that add little meaning to a statement and are removed to improve processing efficiency.",
+      "coverage_criteria": [
+        "Can define stop words and identify them in a given sentence.",
+        "Can explain why stop words are removed in NLP preprocessing."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines stop words at [02:36] as non-essential words that do not add much meaning, to make learning faster.",
+        "granularity_rationale": "Stop words is a small, checkable concept that is a common optimization in NLP pipelines."
+      },
+      "anchors": [
+        "### [02:36] 2. Tokenization"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_005",
+      "label": "Stemming",
+      "description": "Stemming is the process of reducing words to their root form by removing prefixes and suffixes, e.g., 'skipping' → 'skip'.",
+      "coverage_criteria": [
+        "Can define stemming and provide examples of stemming transformations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces stemming at [03:06] with clear examples like 'skipping', 'skips', 'skipped' all reducing to 'skip'.",
+        "granularity_rationale": "Stemming is a single normalization technique that can be tested by asking students to apply it to new words."
+      },
+      "anchors": [
+        "### [03:06] 3. Stemming"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_006",
+      "label": "Lemmatization",
+      "description": "Lemmatization is the process of reducing words to their dictionary base form (lemma) considering tense, mood, gender, etc., e.g., 'am', 'are', 'is' → 'be'.",
+      "coverage_criteria": [
+        "Can define lemmatization and contrast it with stemming.",
+        "Can provide examples of lemmatization transformations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes lemmatization at [03:20] as identifying base words for different tenses, using the example 'am', 'are', 'is' → 'be'.",
+        "granularity_rationale": "Lemmatization is a distinct normalization method that differs from stemming, making it a separate checkable concept."
+      },
+      "anchors": [
+        "### [03:20] 4. Lemmatization"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_007",
+      "label": "Part-of-Speech Tagging",
+      "description": "Part-of-speech (POS) tagging is the process of labeling each word in a sentence with its grammatical category, such as noun, verb, article, etc.",
+      "coverage_criteria": [
+        "Can define POS tagging and identify parts of speech in a sample sentence."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explains POS tagging at [03:29] with an example sentence where each word is tagged with its part of speech.",
+        "granularity_rationale": "POS tagging is a core NLP annotation task that can be learned and tested in isolation."
+      },
+      "anchors": [
+        "### [03:29] 5. Part-of-Speech Tagging"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_008",
+      "label": "Named Entity Tagging",
+      "description": "Named entity tagging (NER) is the process of identifying and flagging names of people, organizations, locations, movies, etc., in a text.",
+      "coverage_criteria": [
+        "Can define named entity tagging and recognize named entities in a given text."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces named entity tagging at [03:40] with generic examples of movies, people, and locations.",
+        "granularity_rationale": "NER is a distinct NLP task that can be assessed by asking students to highlight named entities in a passage."
+      },
+      "anchors": [
+        "### [03:40] 6. Named Entity Tagging"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_009",
+      "label": "Machine Learning in NLP",
+      "description": "After preprocessing, machine learning algorithms like Naive Bayes are used to teach models human sentiment and speech patterns.",
+      "coverage_criteria": [
+        "Can explain the role of machine learning in NLP and give an example algorithm (Naive Bayes)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes the final step at [03:53] where preprocessed text is fed into a Naive Bayes algorithm to learn human sentiment.",
+        "granularity_rationale": "The use of ML in NLP is a key concept that bridges preprocessing to applications, and is checkable with a few questions about the algorithm's purpose."
+      },
+      "anchors": [
+        "### [03:53] 7. Machine Learning Algorithm"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

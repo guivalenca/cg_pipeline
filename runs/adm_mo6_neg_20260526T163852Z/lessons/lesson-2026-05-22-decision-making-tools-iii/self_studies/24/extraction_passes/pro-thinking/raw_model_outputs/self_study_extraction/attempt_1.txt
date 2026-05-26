@@ -1,0 +1,151 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-24-001",
+      "label": "Purpose of Decision Trees",
+      "description": "Decision trees are graphical models for decision-making under uncertainty, used to visualize alternatives, outcomes, and probabilities.",
+      "coverage_criteria": [
+        "Explain the purpose of a decision tree in decision analysis."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video opens with 'Welcome to this Decision Analysis tutorial for constructing decision trees' and states objectives, explicitly positioning the topic.",
+        "granularity_rationale": "This concept covers the overall goal of the tool, suitable as a foundational idea."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:00 Introduction to Decision Trees"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-002",
+      "label": "Decision and Chance Nodes",
+      "description": "Decision trees consist of square decision nodes where alternatives branch out, and circular chance nodes where uncertain outcomes branch out.",
+      "coverage_criteria": [
+        "Identify and distinguish between decision nodes and chance nodes in a decision tree."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 00:28, the video explicitly defines the two types of nodes with visual illustration.",
+        "granularity_rationale": "This is a core structural element of decision trees, small enough to be tested directly."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:28 Decision Tree Nodes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-003",
+      "label": "Tree Construction from Payoff Table",
+      "description": "To construct a decision tree, start with a decision node, add branches for each alternative, attach chance nodes with outcome branches, and place payoffs at the ends.",
+      "coverage_criteria": [
+        "Given a payoff table, draw the corresponding decision tree with correct nodes, branches, and payoffs."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 00:57, the video walks through drawing each element step-by-step, using the payoff table as reference.",
+        "granularity_rationale": "This is a procedural skill that can be assessed by having students create a tree from data."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:57 Constructing the Decision Tree"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-004",
+      "label": "Computing Expected Values at Chance Nodes",
+      "description": "Expected value is calculated as the sum of payoffs multiplied by their respective probabilities, placed on the chance node.",
+      "coverage_criteria": [
+        "Calculate the expected value for a chance node given payoffs and probabilities."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 02:06, the speaker computes expected value for Stocks as .4*70 + .6*-13 = 20.2, demonstrating the formula.",
+        "granularity_rationale": "This is a single arithmetic operation testable within one question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:51 Solving the Decision Tree"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": ["Expected Value Approach"]
+    },
+    {
+      "candidate_id": "candidate-24-005",
+      "label": "Folding Back and Decision Selection",
+      "description": "Folding back means calculating expected values from right to left and choosing the alternative with the highest expected value.",
+      "coverage_criteria": [
+        "Given a decision tree with expected values, identify the optimal decision."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 01:54, 'solving the decision tree is also known as folding back' and then shows comparison of values to choose Stocks.",
+        "granularity_rationale": "This captures the decision-making step that can be checked by asking which alternative is best."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:46 Making the Decision"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-006",
+      "label": "Handling Deterministic Payoffs",
+      "description": "When an alternative has a single certain payoff regardless of states of nature, the tree simplifies to a single branch without a chance node.",
+      "coverage_criteria": [
+        "Recognize and correctly model an alternative with a constant payoff in a decision tree."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 01:40, the speaker notes that for Bonds, payoff is 20 irrespective of state, so we draw a single branch with that payoff.",
+        "granularity_rationale": "A specific rule that can be tested with a quantitative example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:57 Constructing the Decision Tree"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Decision Analysis 3: Decision Trees",
+      "source_year": "2024",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-24-002",
+      "to_candidate_id": "candidate-24-003",
+      "reason": "The video introduces node types and then immediately applies them to construct the decision tree.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:28 Decision Tree Nodes"},
+        {"kind": "markdown_heading", "locator": "00:57 Constructing the Decision Tree"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-003",
+      "to_candidate_id": "candidate-24-004",
+      "reason": "After constructing the tree, the speaker proceeds to calculate expected values at the chance nodes.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:51 Solving the Decision Tree"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-004",
+      "to_candidate_id": "candidate-24-005",
+      "reason": "The calculated expected values are compared to select the best decision (folding back).",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:46 Making the Decision"}
+      ]
+    }
+  ]
+}

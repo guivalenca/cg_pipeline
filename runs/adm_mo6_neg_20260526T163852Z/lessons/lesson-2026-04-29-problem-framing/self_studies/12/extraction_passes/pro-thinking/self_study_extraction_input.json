@@ -1,0 +1,76 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "display_code": "L02",
+    "workbook_row_number": 7,
+    "title": "Problem framing",
+    "date": "29/04/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This class combines theoretical references on decision-making frameworks and the balance between data and intuition with a practical group exercise. Students analyze the strategic dilemma of a rapidly growing Brazilian startup and must decide between international expansion, investment in new technology, or local consolidation. The dynamic challenges the groups to justify their choice, identify critical information, and reflect on when to rely on objective evidence or managerial instincts."
+  },
+  "self_study": {
+    "self_study_id": "12",
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 12,
+      "week": 2,
+      "sort": 13,
+      "title": "A systematic review of risky-choice framing effects",
+      "description": "Classic decision theory requires that rational agents show description invariance: which description is chosen should not matter for judgments, preferences, or choices given the descriptions are co-extensive. Framing research has amply demonstrated a failure of description invariance by showing that the choice of the description has a systematic effect on judgments, preferences, and choices. Specifically, framing research has shown that linguistically different descriptions of seemingly equivalent options frequently lead to preference reversals.",
+      "url": "https://www.excli.de/excli/article/view/6169",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Problem framing",
+      "class_date": "29/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0012-article-a-systematic-review-of-risky-choice-framing-effects.md",
+      "sha256": "2f6bd232491ded12486eab4d7c7433907678b874b314129ae6f147ffbb8fc765",
+      "word_count": 599,
+      "bytes": 4286,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/12/12-a-systematic-review-of-risky-choice-framing-effects.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/12",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0012-article-a-systematic-review-of-risky-choice-framing-effects.md",
+    "sha256": "2f6bd232491ded12486eab4d7c7433907678b874b314129ae6f147ffbb8fc765",
+    "word_count": 599,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/12/12-a-systematic-review-of-risky-choice-framing-effects.md",
+    "markdown": "---\nid: \"12\"\ntitle: \"A systematic review of risky-choice framing effects\"\nsource_url: \"https://www.excli.de/excli/article/view/6169\"\nfetch_url: \"https://www.excli.de/excli/article/view/6169\"\nresolved_url: \"https://www.excli.de/excli/article/view/6169\"\nfirecrawl_title: \"\\n\\t\\tA systematic review of risky-choice framing effects\\n\\t\\t\\t\\t\\t\\t\\t| EXCLI Journal\\n\\t\\t\\t\"\ndescription: \"EXCLI Journal - Experimental and Clinical Sciences, International Online Journal for Advances in Sciences\"\nfetched_at: \"2026-05-26T16:41:53.101850Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"959a483f22de30582c64d2202f17bce43a31f47003de85fd067317d5704101bb\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 486\nchar_count: 3330\ncontent_sha256: \"a62e93e73941516c248d265100ee26a875a78b55551e80e40145361b5fb55abe\"\nimage_count: 7\nlink_count: 45\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# A systematic review of risky-choice framing effects\n\n## Authors\n\n- Anton Kühberger  \nDepartment of Psychology, University of Salzburg, Hellbrunnerstr. 34, 5020 Salzburg, Austria, E-mail: anton.kuehberger@plus.ac.at  \n[https://orcid.org/0000-0001-5786-5943](https://orcid.org/0000-0001-5786-5943)\n\n## DOI:\n\n[https://doi.org/10.17179/excli2023-6169](https://doi.org/10.17179/excli2023-6169)\n\n## Keywords:\n\nchoice, framing, prospect theory, risk\n\n## Abstract\n\nClassic decision theory requires that rational agents show description invariance: which description is chosen should not matter for judgments, preferences, or choices given the descriptions are co-extensive. Framing research has amply demonstrated a failure of description invariance by showing that the choice of the description has a systematic effect on judgments, preferences, and choices. Specifically, framing research has shown that linguistically different descriptions of seemingly equivalent options frequently lead to preference reversals. I summarize the research on framing in situations entailing risk. This includes the characterization of different research designs used, the size and robustness of the framing effects reported for those designs, and the theoretical accounts put forward to explain framing effects. The theoretical accounts are evaluated with respect to their merits, empirically and theoretically. I end by providing the implications of framing research. My central point is that the existence of framing effects points to the adaptiveness of the processes underlying human judgment and choice rather than simply showing human irrationality.\n\n![](https://www.excli.de/public/journals/1/submission_6169_5608_coverImage_en_US.png)\n\n## How to Cite\n\nKühberger, A. (2023). A systematic review of risky-choice framing effects. _EXCLI Journal_, _22_, 1012–1031. https://doi.org/10.17179/excli2023-6169  \n\n## Published\n\n2023-09-19  \n\n## License\n\nCopyright (c) 2023 Anton Kühberger  \nThis work is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).  \nAuthors who publish in this journal agree to the following terms:\n\n- The authors keep the copyright and grant the journal the right of first publication under the terms of the Creative Commons Attribution license, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This license permits unrestricted use, distribution and reproduction in any medium, provided that the original work is properly cited.\n- The use of general descriptive names, trade names, trademarks, and so forth in this publication, even if not specifically identified, does not imply that these names are not protected by the relevant laws and regulations.\n- Because the advice and information in this journal are believed to be true and accurate at the time of publication, neither the authors, the editors, nor the publisher accept any legal responsibility for any errors or omissions presented in the publication. The publisher makes no guarantee, express or implied, with respect to the material contained herein.\n- The authors can enter into additional contracts for the non-exclusive distribution of the journal's published version by citing the initial publication in this journal (e.g. publishing in an institutional repository or in a book).\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://www.excli.de/public/journals/1/submission_6169_5608_coverImage_en_US.png"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

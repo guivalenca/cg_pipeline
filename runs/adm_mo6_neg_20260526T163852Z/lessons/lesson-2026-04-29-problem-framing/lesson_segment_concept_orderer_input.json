@@ -1,0 +1,206 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "title": "Problem framing"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-problem-framing-definition-and-importance-ce0aa172",
+      "label": "Problem Framing Definition and Importance",
+      "teaching_description": "Problem framing is the process of discovering and defining the real problem before seeking solutions. It is distinct from problem solving, and identifying the right problem is more critical than solving it well.",
+      "coverage_criteria": [
+        "Student can define problem framing.",
+        "Student can differentiate problem framing from problem solving.",
+        "Student can articulate why problem identification takes precedence over problem solving."
+      ]
+    },
+    {
+      "concept_id": "concept-cognitive-biases-that-lead-to-premature-convergence-9ca435b8",
+      "label": "Cognitive Biases that Lead to Premature Convergence",
+      "teaching_description": "Premature convergence is the tendency to jump to solutions quickly, driven by pattern completion and confirmation bias. These cognitive mechanisms cause people to settle on the first plausible answer without fully understanding the problem.",
+      "coverage_criteria": [
+        "Student can define premature convergence.",
+        "Student can explain how pattern completion and confirmation bias contribute to premature convergence.",
+        "Student can identify an example of each bias in a problem-framing scenario."
+      ]
+    },
+    {
+      "concept_id": "concept-organizational-pressures-that-reinforce-solution-jumping-201ce888",
+      "label": "Organizational Pressures that Reinforce Solution-Jumping",
+      "teaching_description": "Organizational systems such as business case templates, status meetings, and budgeting processes can inadvertently push teams toward quick solutions before adequate problem framing, reinforcing premature convergence at an institutional level.",
+      "coverage_criteria": [
+        "Student can list at least two organizational practices that hinder problem framing.",
+        "Student can explain how these practices create pressure to jump to solutions."
+      ]
+    },
+    {
+      "concept_id": "concept-double-diamond-model-for-problem-framing-175b9579",
+      "label": "Double Diamond Model for Problem Framing",
+      "teaching_description": "The Double Diamond model is a framework for problem framing consisting of two phases: Discover (divergent thinking to explore the problem space) and Define (convergent thinking to crystallize the problem).",
+      "coverage_criteria": [
+        "Student can describe the Discover and Define phases.",
+        "Student can explain why divergent and convergent thinking are both necessary for effective problem framing."
+      ]
+    },
+    {
+      "concept_id": "concept-problem-reframing-technique-a9cc4e81",
+      "label": "Problem Reframing Technique",
+      "teaching_description": "Problem reframing is the deliberate restating of a strategic question to expose new perspectives, risks, and opportunities. For example, shifting from 'How do we grow revenue?' to 'Which customer problems would drive sustainable growth?' can uncover more valuable solutions.",
+      "coverage_criteria": [
+        "Student can reframe a given business problem into a more effective framing question.",
+        "Student can explain how reframing led to better outcomes in a provided example."
+      ]
+    },
+    {
+      "concept_id": "concept-impact-of-poor-framing-on-ai-effectiveness-b692c7b5",
+      "label": "Impact of Poor Framing on AI Effectiveness",
+      "teaching_description": "AI systems optimize for the problem they are given. When problem framing is poor, AI efficiently solves the wrong problem, often leading to wasted resources and missed business value.",
+      "coverage_criteria": [
+        "Student can explain why bad framing leads to AI project failure.",
+        "Student can give an example of a scenario where better framing would improve AI outcomes."
+      ]
+    },
+    {
+      "concept_id": "concept-strategies-for-building-a-problem-framing-culture-22b92b32",
+      "label": "Strategies for Building a Problem Framing Culture",
+      "teaching_description": "Leaders can embed problem framing into organizational culture by shifting focus from 'how to fix' to 'why this happens', and by establishing habits such as asking reflective questions, standardizing problem statements, and adding diagnostic phases before solutioning.",
+      "coverage_criteria": [
+        "Student can list at least three cultural practices that encourage problem framing.",
+        "Student can explain how these practices counteract solution-jumping."
+      ]
+    },
+    {
+      "concept_id": "concept-benefits-of-problem-framing-for-execution-clarity-f0867a2e",
+      "label": "Benefits of Problem Framing for Execution Clarity",
+      "teaching_description": "A well-framed problem clarifies ownership, metrics, and cross-functional involvement, leading to more efficient execution with fewer mid-course corrections.",
+      "coverage_criteria": [
+        "Student can describe how clarity from problem framing improves execution.",
+        "Student can identify which aspects of execution become clearer with good framing (ownership, metrics, teams)."
+      ]
+    },
+    {
+      "concept_id": "concept-applying-problem-framing-to-thought-leadership-a12b1e92",
+      "label": "Applying Problem Framing to Thought Leadership",
+      "teaching_description": "In thought leadership, starting with a clearly defined problem rather than a broad audience attracts the right followers. Clear problem definition serves as market positioning, aligning your message with what people are searching for.",
+      "coverage_criteria": [
+        "Student can contrast problem-centric vs. audience-centric thought leadership.",
+        "Student can explain how problem articulation can attract a specific audience."
+      ]
+    },
+    {
+      "concept_id": "concept-description-invariance-9144ee07",
+      "label": "Description Invariance",
+      "teaching_description": "A normative principle of classical decision theory stating that rational agents' choices should not depend on the particular way options are described, as long as the descriptions are logically equivalent.",
+      "coverage_criteria": [
+        "Define description invariance and explain why it is important for rational decision-making.",
+        "Identify a scenario where description invariance is violated."
+      ]
+    },
+    {
+      "concept_id": "concept-framing-effects-and-preference-reversals-f91e7b57",
+      "label": "Framing Effects and Preference Reversals",
+      "teaching_description": "Framing effects occur when different but logically equivalent descriptions of a decision problem lead to systematic preference reversals, violating description invariance. For example, people tend to be risk-averse when options are framed as gains and risk-seeking when framed as losses.",
+      "coverage_criteria": [
+        "Define framing effect and give an example (e.g., Asian disease problem).",
+        "Explain how framing leads to preference reversals in decisions under risk."
+      ]
+    },
+    {
+      "concept_id": "concept-prospect-theory-as-explanation-for-framing-effects-fd91a5a1",
+      "label": "Prospect Theory as Explanation for Framing Effects",
+      "teaching_description": "Prospect theory explains framing effects via a reference-dependent value function, loss aversion, and the principle that people are risk-averse for gains and risk-seeking for losses.",
+      "coverage_criteria": [
+        "Describe the key components of prospect theory (value function, loss aversion, reference point).",
+        "Apply prospect theory to predict choices in a given framing scenario."
+      ]
+    },
+    {
+      "concept_id": "concept-adaptiveness-of-decision-processes-in-framing-8dd1ecbd",
+      "label": "Adaptiveness of Decision Processes in Framing",
+      "teaching_description": "Framing effects are not purely irrational; they reflect adaptive mechanisms in human judgment and choice, which may serve important functions in real-world decision-making.",
+      "coverage_criteria": [
+        "Explain why framing effects can be considered adaptive.",
+        "Provide an example where sensitivity to framing might be beneficial."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Defining Problem Framing",
+      "concept_ids": [
+        "concept-problem-framing-definition-and-importance-ce0aa172"
+      ]
+    },
+    {
+      "label": "Psychology of Framing Effects",
+      "concept_ids": [
+        "concept-description-invariance-9144ee07",
+        "concept-framing-effects-and-preference-reversals-f91e7b57",
+        "concept-prospect-theory-as-explanation-for-framing-effects-fd91a5a1",
+        "concept-adaptiveness-of-decision-processes-in-framing-8dd1ecbd"
+      ]
+    },
+    {
+      "label": "Barriers to Good Framing",
+      "concept_ids": [
+        "concept-cognitive-biases-that-lead-to-premature-convergence-9ca435b8",
+        "concept-organizational-pressures-that-reinforce-solution-jumping-201ce888"
+      ]
+    },
+    {
+      "label": "The Double Diamond Model",
+      "concept_ids": [
+        "concept-double-diamond-model-for-problem-framing-175b9579"
+      ]
+    },
+    {
+      "label": "Problem Reframing Technique",
+      "concept_ids": [
+        "concept-problem-reframing-technique-a9cc4e81"
+      ]
+    },
+    {
+      "label": "Framing Impact on AI and Execution",
+      "concept_ids": [
+        "concept-impact-of-poor-framing-on-ai-effectiveness-b692c7b5",
+        "concept-benefits-of-problem-framing-for-execution-clarity-f0867a2e"
+      ]
+    },
+    {
+      "label": "Building a Framing Culture",
+      "concept_ids": [
+        "concept-strategies-for-building-a-problem-framing-culture-22b92b32",
+        "concept-applying-problem-framing-to-thought-leadership-a12b1e92"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

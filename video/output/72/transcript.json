@@ -1,0 +1,347 @@
+{
+  "schema_version": "1.0",
+  "transcript_source": "local_whisper_vtt",
+  "caption_language": "",
+  "duration_seconds": 501.0,
+  "transcript_sha256": "8b19e87327d7cbce6e8d4538cd1093c4d7136f6d6093cf45e7088b4eeaa2419d",
+  "segments": [
+    {
+      "start_seconds": 0.0,
+      "duration_seconds": 15.88,
+      "text": "Hello guys, in this video we will talk about TF-IDF and how it should be calculated with"
+    },
+    {
+      "start_seconds": 15.88,
+      "duration_seconds": 6.92,
+      "text": "a very simple example. So, let's start. A very popular representation for text is"
+    },
+    {
+      "start_seconds": 22.8,
+      "duration_seconds": 6.800000000000001,
+      "text": "a product of term frequency and inverse document frequency, commonly referred to as TF-IDF."
+    },
+    {
+      "start_seconds": 30.0,
+      "duration_seconds": 9.240000000000002,
+      "text": "The TF-IDF value of a term T in a given document D is like this. Note that a TF-IDF value is"
+    },
+    {
+      "start_seconds": 39.24,
+      "duration_seconds": 7.479999999999997,
+      "text": "specific to a single document D, where IDF depends on the entire corpus. Systems employing the"
+    },
+    {
+      "start_seconds": 46.72,
+      "duration_seconds": 6.1200000000000045,
+      "text": "back of words representation typically go through steps of stemming and stop words elimination"
+    },
+    {
+      "start_seconds": 52.84,
+      "duration_seconds": 6.479999999999997,
+      "text": "before doing term counts. Term counts within the document from the TF values"
+    },
+    {
+      "start_seconds": 59.32,
+      "duration_seconds": 7.119999999999997,
+      "text": "for each term and the document counts across the corpus from the IDF values. Each document"
+    },
+    {
+      "start_seconds": 66.44,
+      "duration_seconds": 6.480000000000004,
+      "text": "thus becomes a feature vector and the corpus is set of these feature vectors. This can be"
+    },
+    {
+      "start_seconds": 72.92,
+      "duration_seconds": 5.640000000000001,
+      "text": "used in a data mining algorithm for classification, clustering or retrieval."
+    },
+    {
+      "start_seconds": 78.56,
+      "duration_seconds": 7.319999999999993,
+      "text": "That was a quick introduction to TF-IDF and now let's go to a simple task. Let's have a situation."
+    },
+    {
+      "start_seconds": 85.88,
+      "duration_seconds": 8.640000000000015,
+      "text": "We have some sentences. The first one is: A quick brown fox jumps over the lazy dog. What a fox!"
+    },
+    {
+      "start_seconds": 94.52000000000001,
+      "duration_seconds": 7.599999999999994,
+      "text": "The second one: A quick brown fox jumps over the lazy fox. What a fox!"
+    },
+    {
+      "start_seconds": 102.12,
+      "duration_seconds": 11.039999999999992,
+      "text": "Please keep in mind that all the sentences in our corpus are defined as small d. So we have D1 and D2."
+    },
+    {
+      "start_seconds": 113.16,
+      "duration_seconds": 10.88000000000001,
+      "text": "Based on this rule, our corpus is defined as the big D. Now we have some data. This data led us to shape a main question."
+    },
+    {
+      "start_seconds": 124.04,
+      "duration_seconds": 14.159999999999982,
+      "text": "And the question is like this: How word fox is relevant to corpus-D documents? Remember we have documents D1 and D2."
+    },
+    {
+      "start_seconds": 138.2,
+      "duration_seconds": 8.160000000000025,
+      "text": "Let's go to the solution part. Let's start in here with some definitions. What is DFIDF?"
+    },
+    {
+      "start_seconds": 146.36,
+      "duration_seconds": 8.639999999999986,
+      "text": "In the first part of this calculation we need to clarify that DF is the frequency of any term in a given"
+    },
+    {
+      "start_seconds": 155.0,
+      "duration_seconds": 8.879999999999995,
+      "text": "document. We need to calculate DF for document number one and document number two by a given"
+    },
+    {
+      "start_seconds": 163.88,
+      "duration_seconds": 11.280000000000001,
+      "text": "argument, a word fox. So let's calculate. For document number one we have 12 words in total. In this context,"
+    },
+    {
+      "start_seconds": 175.16,
+      "duration_seconds": 8.47999999999999,
+      "text": "we have a word fox occurred two times. Knowing this information we can calculate DF like this."
+    },
+    {
+      "start_seconds": 183.64,
+      "duration_seconds": 13.600000000000023,
+      "text": "2 divided by 12 equals 0.17. In the same way we calculate DF for document number two. In this case,"
+    },
+    {
+      "start_seconds": 197.24,
+      "duration_seconds": 7.519999999999982,
+      "text": "we have fox occurred three times in this document. So the calculation will be as follow."
+    },
+    {
+      "start_seconds": 205.16,
+      "duration_seconds": 13.120000000000005,
+      "text": "3 divided by 12 equal to 0.25. Keeping in mind that D1 and D2 has the same number of total words."
+    },
+    {
+      "start_seconds": 218.28,
+      "duration_seconds": 7.759999999999991,
+      "text": "The first part of calculation is done. Now we have to move to the second part. We need to calculate"
+    },
+    {
+      "start_seconds": 226.68,
+      "duration_seconds": 9.280000000000001,
+      "text": "IDF. IDF. IDF is constant per corpus and account for the ratio of documents that include data specific term."
+    },
+    {
+      "start_seconds": 235.96,
+      "duration_seconds": 8.95999999999998,
+      "text": "We need to calculate IDF for full corpus that we have. For this we are using a logarithm."
+    },
+    {
+      "start_seconds": 244.92,
+      "duration_seconds": 11.599999999999994,
+      "text": "In this equation, at the upper side, we need to look at how many documents at our corpus a given word fox is accurate."
+    },
+    {
+      "start_seconds": 257.48,
+      "duration_seconds": 7.680000000000007,
+      "text": "Now we see that award fox is accurate in document number one and in document number two."
+    },
+    {
+      "start_seconds": 265.16,
+      "duration_seconds": 7.199999999999989,
+      "text": "So, at the upper side of our equation, we need to input a value of two."
+    },
+    {
+      "start_seconds": 272.36,
+      "duration_seconds": 8.799999999999955,
+      "text": "On the lower side of this equation, we have to input a value of total documents that our corpus consists of."
+    },
+    {
+      "start_seconds": 281.15999999999997,
+      "duration_seconds": 8.400000000000034,
+      "text": "And that means we have to input value of two because we have two documents in total in our corpus."
+    },
+    {
+      "start_seconds": 290.28,
+      "duration_seconds": 7.680000000000007,
+      "text": "That resulting into logarithm 2 divided by two and it is equal to zero."
+    },
+    {
+      "start_seconds": 297.96,
+      "duration_seconds": 8.879999999999995,
+      "text": "Now we have enough information to calculate TF IDF for all documents in our corpus D."
+    },
+    {
+      "start_seconds": 307.56,
+      "duration_seconds": 10.240000000000009,
+      "text": "We have document number one and document number two. So, we will calculate TF IDF separately for each document in our corpus."
+    },
+    {
+      "start_seconds": 318.44,
+      "duration_seconds": 12.240000000000009,
+      "text": "For the first document, TF IDF equal to 0.17 from the first part of our calculation multiplied by 0."
+    },
+    {
+      "start_seconds": 330.68,
+      "duration_seconds": 2.240000000000009,
+      "text": "It is from second part of our calculation."
+    },
+    {
+      "start_seconds": 332.92,
+      "duration_seconds": 2.7199999999999704,
+      "text": "And it is equal to zero."
+    },
+    {
+      "start_seconds": 335.64,
+      "duration_seconds": 7.680000000000007,
+      "text": "For the second document, we calculate TF IDF in the same rules that we applied for the first document."
+    },
+    {
+      "start_seconds": 343.32,
+      "duration_seconds": 5.439999999999998,
+      "text": "Let's do like this. 0.25 from the first part of our calculation."
+    },
+    {
+      "start_seconds": 348.76,
+      "duration_seconds": 6.080000000000041,
+      "text": "And multiplied by 0 from the second part of our calculations."
+    },
+    {
+      "start_seconds": 354.84000000000003,
+      "duration_seconds": 2.4799999999999613,
+      "text": "And it is equal to zero."
+    },
+    {
+      "start_seconds": 357.32,
+      "duration_seconds": 6.720000000000027,
+      "text": "Now we have calculated TF IDF for all documents in our corpus."
+    },
+    {
+      "start_seconds": 364.04,
+      "duration_seconds": 4.9599999999999795,
+      "text": "And for document number one, TF IDF equal to zero."
+    },
+    {
+      "start_seconds": 369.0,
+      "duration_seconds": 7.279999999999973,
+      "text": "For the second document in our corpus, we have calculated TF IDF and it is equal to zero again."
+    },
+    {
+      "start_seconds": 376.28,
+      "duration_seconds": 5.760000000000048,
+      "text": "Now we have calculated TF IDF for all the documents in our corpus."
+    },
+    {
+      "start_seconds": 382.04,
+      "duration_seconds": 4.71999999999997,
+      "text": "And that means that now we can answer to the main question in this task."
+    },
+    {
+      "start_seconds": 386.76,
+      "duration_seconds": 4.560000000000002,
+      "text": "How a word fox is relevant to corpus D documents?"
+    },
+    {
+      "start_seconds": 392.12,
+      "duration_seconds": 9.759999999999991,
+      "text": "And the answer is: Using TF IDF that we have calculated just before, the word fox is equally relevant"
+    },
+    {
+      "start_seconds": 401.88,
+      "duration_seconds": 7.600000000000023,
+      "text": "for both documents D1 and document D2 because we have the same values of TF IDF."
+    },
+    {
+      "start_seconds": 409.48,
+      "duration_seconds": 1.4399999999999977,
+      "text": "It's zero."
+    },
+    {
+      "start_seconds": 410.92,
+      "duration_seconds": 6.9599999999999795,
+      "text": "This calculation can be applied in any amount of documents that you have in your corpus."
+    },
+    {
+      "start_seconds": 418.92,
+      "duration_seconds": 4.9599999999999795,
+      "text": "And one more time again, what is TF and IDF?"
+    },
+    {
+      "start_seconds": 423.88,
+      "duration_seconds": 6.560000000000002,
+      "text": "TF is a simple choice to use the raw count of a term in a document."
+    },
+    {
+      "start_seconds": 430.44,
+      "duration_seconds": 7.519999999999982,
+      "text": "And the IDF, inverse document frequency, is a measurement of how much information the word"
+    },
+    {
+      "start_seconds": 437.96,
+      "duration_seconds": 2.240000000000009,
+      "text": "provides in our corpus."
+    },
+    {
+      "start_seconds": 440.2,
+      "duration_seconds": 4.800000000000011,
+      "text": "By saying corpus, I mean across all the documents that we are having."
+    },
+    {
+      "start_seconds": 446.04,
+      "duration_seconds": 6.239999999999952,
+      "text": "So by summarizing this video, TF IDF is a statistical measurement that evaluates how"
+    },
+    {
+      "start_seconds": 452.28,
+      "duration_seconds": 3.840000000000032,
+      "text": "relevant a word is to a document in a collection of documents."
+    },
+    {
+      "start_seconds": 456.12,
+      "duration_seconds": 6.399999999999977,
+      "text": "This is done by multiplying two metrics: how many times a word appears in a document,"
+    },
+    {
+      "start_seconds": 462.52,
+      "duration_seconds": 4.480000000000018,
+      "text": "and the inverse document frequency of the words across the set of documents."
+    },
+    {
+      "start_seconds": 468.12,
+      "duration_seconds": 7.519999999999982,
+      "text": "It has many uses, most importantly in automated text analysis, and is very useful for scoring words"
+    },
+    {
+      "start_seconds": 475.64,
+      "duration_seconds": 2.9600000000000364,
+      "text": "in machine learning algorithms for NLP."
+    },
+    {
+      "start_seconds": 478.6,
+      "duration_seconds": 5.279999999999973,
+      "text": "TF IDF was invented for document search and information retrieval."
+    },
+    {
+      "start_seconds": 483.88,
+      "duration_seconds": 5.360000000000014,
+      "text": "I hope that this video was useful for you, and I wish you never stop learning."
+    },
+    {
+      "start_seconds": 489.24,
+      "duration_seconds": 6.399999999999977,
+      "text": "If you like this one, please subscribe me and you will get more similar useful videos in future."
+    },
+    {
+      "start_seconds": 495.64,
+      "duration_seconds": 3.5200000000000387,
+      "text": "So, see you there."
+    }
+  ],
+  "text": "Hello guys, in this video we will talk about TF-IDF and how it should be calculated with\na very simple example. So, let's start. A very popular representation for text is\na product of term frequency and inverse document frequency, commonly referred to as TF-IDF.\nThe TF-IDF value of a term T in a given document D is like this. Note that a TF-IDF value is\nspecific to a single document D, where IDF depends on the entire corpus. Systems employing the\nback of words representation typically go through steps of stemming and stop words elimination\nbefore doing term counts. Term counts within the document from the TF values\nfor each term and the document counts across the corpus from the IDF values. Each document\nthus becomes a feature vector and the corpus is set of these feature vectors. This can be\nused in a data mining algorithm for classification, clustering or retrieval.\nThat was a quick introduction to TF-IDF and now let's go to a simple task. Let's have a situation.\nWe have some sentences. The first one is: A quick brown fox jumps over the lazy dog. What a fox!\nThe second one: A quick brown fox jumps over the lazy fox. What a fox!\nPlease keep in mind that all the sentences in our corpus are defined as small d. So we have D1 and D2.\nBased on this rule, our corpus is defined as the big D. Now we have some data. This data led us to shape a main question.\nAnd the question is like this: How word fox is relevant to corpus-D documents? Remember we have documents D1 and D2.\nLet's go to the solution part. Let's start in here with some definitions. What is DFIDF?\nIn the first part of this calculation we need to clarify that DF is the frequency of any term in a given\ndocument. We need to calculate DF for document number one and document number two by a given\nargument, a word fox. So let's calculate. For document number one we have 12 words in total. In this context,\nwe have a word fox occurred two times. Knowing this information we can calculate DF like this.\n2 divided by 12 equals 0.17. In the same way we calculate DF for document number two. In this case,\nwe have fox occurred three times in this document. So the calculation will be as follow.\n3 divided by 12 equal to 0.25. Keeping in mind that D1 and D2 has the same number of total words.\nThe first part of calculation is done. Now we have to move to the second part. We need to calculate\nIDF. IDF. IDF is constant per corpus and account for the ratio of documents that include data specific term.\nWe need to calculate IDF for full corpus that we have. For this we are using a logarithm.\nIn this equation, at the upper side, we need to look at how many documents at our corpus a given word fox is accurate.\nNow we see that award fox is accurate in document number one and in document number two.\nSo, at the upper side of our equation, we need to input a value of two.\nOn the lower side of this equation, we have to input a value of total documents that our corpus consists of.\nAnd that means we have to input value of two because we have two documents in total in our corpus.\nThat resulting into logarithm 2 divided by two and it is equal to zero.\nNow we have enough information to calculate TF IDF for all documents in our corpus D.\nWe have document number one and document number two. So, we will calculate TF IDF separately for each document in our corpus.\nFor the first document, TF IDF equal to 0.17 from the first part of our calculation multiplied by 0.\nIt is from second part of our calculation.\nAnd it is equal to zero.\nFor the second document, we calculate TF IDF in the same rules that we applied for the first document.\nLet's do like this. 0.25 from the first part of our calculation.\nAnd multiplied by 0 from the second part of our calculations.\nAnd it is equal to zero.\nNow we have calculated TF IDF for all documents in our corpus.\nAnd for document number one, TF IDF equal to zero.\nFor the second document in our corpus, we have calculated TF IDF and it is equal to zero again.\nNow we have calculated TF IDF for all the documents in our corpus.\nAnd that means that now we can answer to the main question in this task.\nHow a word fox is relevant to corpus D documents?\nAnd the answer is: Using TF IDF that we have calculated just before, the word fox is equally relevant\nfor both documents D1 and document D2 because we have the same values of TF IDF.\nIt's zero.\nThis calculation can be applied in any amount of documents that you have in your corpus.\nAnd one more time again, what is TF and IDF?\nTF is a simple choice to use the raw count of a term in a document.\nAnd the IDF, inverse document frequency, is a measurement of how much information the word\nprovides in our corpus.\nBy saying corpus, I mean across all the documents that we are having.\nSo by summarizing this video, TF IDF is a statistical measurement that evaluates how\nrelevant a word is to a document in a collection of documents.\nThis is done by multiplying two metrics: how many times a word appears in a document,\nand the inverse document frequency of the words across the set of documents.\nIt has many uses, most importantly in automated text analysis, and is very useful for scoring words\nin machine learning algorithms for NLP.\nTF IDF was invented for document search and information retrieval.\nI hope that this video was useful for you, and I wish you never stop learning.\nIf you like this one, please subscribe me and you will get more similar useful videos in future.\nSo, see you there.\n",
+  "cache_key": "ed4c292491f5b71412336d28096622f844b45c773ce89e96a756d788ab4775ef",
+  "cache_status": "network"
+}

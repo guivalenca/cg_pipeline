@@ -1,0 +1,261 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Decision Tree Definition and Purpose",
+      "description": "A decision tree is a graphical model used for decision-making under uncertainty. It visually represents decision alternatives, uncertain events, outcomes, and their probabilities to systematically analyze and choose the best course of action.",
+      "coverage_criteria": [
+        "Define a decision tree in your own words.",
+        "List the key elements depicted in a decision tree (decisions, uncertain events, outcomes).",
+        "Explain why decision trees are useful for decision analysis."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_001", "c25_pro_thinking_001", "c27_pro_thinking_001"],
+      "merge_rationale": "These candidates all provide similar definitions and purposes of decision trees, describing them as graphical tools for structuring and evaluating decisions under uncertainty."
+    },
+    {
+      "id": "lr002",
+      "label": "Decision Tree Symbols and Conventions",
+      "description": "Decision trees use standardized symbols: squares for decision nodes, circles for chance (probability) nodes, and triangles for end (outcome) nodes. The tree is read from left to right, with branches representing alternatives, uncertain outcomes, and connecting flow.",
+      "coverage_criteria": [
+        "Identify and label decision nodes, chance nodes, and end nodes in a decision tree diagram.",
+        "Explain what each type of node represents.",
+        "Describe the left-to-right reading convention of a decision tree."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_002", "c27_pro_thinking_002", "c26_pro_thinking_002"],
+      "merge_rationale": "These candidates describe the graphical symbols used in decision trees, including node types and reading direction, forming a coherent set of conventions."
+    },
+    {
+      "id": "lr003",
+      "label": "Constructing a Decision Tree",
+      "description": "To build a decision tree, begin with a square decision node, draw branches for each alternative, attach circles for chance events where outcomes are uncertain, draw branches for each possible outcome, and end with payoffs. The tree can be constructed from a scenario description or a payoff table.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches.",
+        "Explain the steps for constructing a decision tree."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_003", "c25_pro_thinking_002", "c27_pro_thinking_003"],
+      "merge_rationale": "These candidates provide step-by-step instructions for drawing a decision tree, covering the sequence from initial decision node to final outcomes, with slight variations in emphasis (payoff table vs. general scenario)."
+    },
+    {
+      "id": "lr004",
+      "label": "Labeling Branches with Probabilities and Payoffs",
+      "description": "On a decision tree, each branch from a chance node is labeled with the probability of that outcome and the associated monetary payoff. Probabilities on branches from a single chance node must sum to 100%.",
+      "coverage_criteria": [
+        "Given outcome probabilities and payoffs, correctly place them on the branches of a sketched decision tree.",
+        "Explain why probabilities from a chance node must sum to 100%."
+      ],
+      "source_candidate_ids": ["c25_pro_thinking_004", "c27_pro_thinking_004"],
+      "merge_rationale": "Both candidates explain the procedure of attaching numerical values and probabilities to branches, including the summing rule, representing the same labeling step."
+    },
+    {
+      "id": "lr005",
+      "label": "Calculating Expected Value (EMV) at Chance Nodes",
+      "description": "The expected value at a chance node is computed by multiplying each outcome's payoff by its probability and summing these products. This yields the expected monetary value (EMV) for that chance's subtree.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_004", "c25_pro_thinking_005", "c27_pro_thinking_005"],
+      "merge_rationale": "These candidates all describe the arithmetic for computing expected value at uncertainty nodes: sum of (probability × payoff), which is a core calculation in decision tree analysis."
+    },
+    {
+      "id": "lr006",
+      "label": "Folding Back to Determine the Optimal Decision",
+      "description": "Folding back solves a decision tree from right to left: at each chance node, compute the EMV; at each decision node, select the alternative with the highest EMV and discard others. The EMV at the initial decision node is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_005", "c25_pro_thinking_006", "c26_pro_thinking_003"],
+      "merge_rationale": "These candidates describe the process of rolling back the tree, computing EMVs, and choosing the maximum EMV at decision nodes, covering the complete evaluation procedure."
+    },
+    {
+      "id": "lr007",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. It is appropriate when the decision maker is risk-neutral.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table and probabilities.",
+        "Explain why the EMV criterion represents a rational choice under risk neutrality."
+      ],
+      "source_candidate_ids": ["c26_pro_thinking_001"],
+      "merge_rationale": "This candidate provides a focused definition and interpretation of EMV as a decision criterion, distinct from the calculation step."
+    },
+    {
+      "id": "lr008",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_candidate_ids": ["c26_pro_thinking_004"],
+      "merge_rationale": "This candidate covers sensitivity analysis as a meta-analytical step, with specific tools, forming a distinct teachable concept."
+    },
+    {
+      "id": "lr009",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ],
+      "source_candidate_ids": ["c26_pro_thinking_005"],
+      "merge_rationale": "This candidate solely introduces Bayes' rule for probability updating in decision analysis, a well-defined statistical method."
+    },
+    {
+      "id": "lr010",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": ["c26_pro_thinking_006"],
+      "merge_rationale": "This candidate defines and computes EVSI, a specific information value concept, requiring its own focused concept."
+    },
+    {
+      "id": "lr011",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV without information. It is the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": ["c26_pro_thinking_007"],
+      "merge_rationale": "This candidate defines and computes EVPI, establishing an upper bound for information value, a distinct lesson concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c24_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "Near-duplicate definition of decision tree purpose; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "Near-duplicate definition of decision tree; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "Near-duplicate definition of decision tree; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "Describes decision and chance node symbols; merged into Decision Tree Symbols and Conventions."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "Describes basic symbols; merged into the concept that includes all node types."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Describes constructing a decision tree from a payoff table; merged into the general construction concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Describes drawing a decision tree structure; merged into the construction concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Provides general steps for constructing a decision tree; merged into the construction concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr004",
+      "explanation": "Describes assigning probabilities and payoffs to branches; merged into the labeling concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr004",
+      "explanation": "Describes assigning values and probabilities and the summing rule; merged into the labeling concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Demonstrates expected value calculation at chance nodes; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Shows EMV calculation from a decision tree; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "Describes calculating expected value at uncertainty nodes; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "Describes folding back and decision selection; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "States the rule of choosing highest EMV; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "Detailed folding back procedure; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr007"],
+      "explanation": "Defines the EMV criterion and its calculation; directly supports the EMV Criterion concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "Comprehensive description of node types and conventions; merged into Decision Tree Symbols and Conventions."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr008"],
+      "explanation": "Introduces sensitivity analysis tools and purpose; directly supports the Sensitivity Analysis concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr009"],
+      "explanation": "Presents Bayes' rule for probability updating; directly supports the Bayes' Rule concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr010"],
+      "explanation": "Defines and computes EVSI; directly supports the EVSI concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr011"],
+      "explanation": "Defines and computes EVPI; directly supports the EVPI concept."
+    }
+  ]
+}

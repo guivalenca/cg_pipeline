@@ -1,0 +1,831 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+    "title": "Word2Vec - Aplicação utilizando Redes Neurais",
+    "description": "O objetivo deste encontro é aplicar o conceito de rede neurais apresentados nos encontros anteriores em conjunto com o Word2Vec para construção de aplicações.",
+    "date": "22/05/2026",
+    "display_code": "L09"
+  },
+  "input_candidate_ids": [
+    "c61_pro_thinking_001",
+    "c61_pro_thinking_002",
+    "c61_pro_thinking_003",
+    "c61_pro_thinking_004",
+    "c61_pro_thinking_005",
+    "c61_pro_thinking_006",
+    "c61_pro_thinking_007",
+    "c61_pro_thinking_008",
+    "c61_pro_thinking_009",
+    "c61_pro_thinking_010",
+    "c61_pro_thinking_011",
+    "c62_pro_thinking_001",
+    "c62_pro_thinking_002",
+    "c62_pro_thinking_003",
+    "c62_pro_thinking_004",
+    "c62_pro_thinking_005",
+    "c62_pro_thinking_006",
+    "c62_pro_thinking_007",
+    "c62_pro_thinking_008",
+    "c62_pro_thinking_009",
+    "c62_pro_thinking_010",
+    "c62_pro_thinking_011",
+    "c63_pro_thinking_001",
+    "c63_pro_thinking_002",
+    "c63_pro_thinking_003",
+    "c63_pro_thinking_004",
+    "c63_pro_thinking_005",
+    "c63_pro_thinking_006",
+    "c63_pro_thinking_007",
+    "c63_pro_thinking_008",
+    "c63_pro_thinking_009",
+    "c63_pro_thinking_010",
+    "c63_pro_thinking_011",
+    "m64_001",
+    "m64_002",
+    "m64_003",
+    "m64_004"
+  ],
+  "candidates": [
+    {
+      "id": "c61_pro_thinking_001",
+      "label": "Euclidean Distance as a Similarity Measure",
+      "description": "Euclidean distance can be used to quantify how similar two vectors are in a vector space; smaller distance indicates greater similarity.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two 2D points given coordinates.",
+        "Explain that closer points have smaller Euclidean distance.",
+        "Given a set of vectors, identify which one is closest to a target using Euclidean distance."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces Euclidean distance in the animal space example, provides Python code to compute it, and uses it to find similar animals (capybara vs panda).",
+        "granularity_rationale": "This concept is a fundamental mathematical building block for many similarity-based operations with word vectors. It is small enough to test with simple computation."
+      },
+      "anchors": [
+        "Animal similarity and simple linear algebra"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_002",
+      "label": "Nearest Neighbor Search in Vector Space",
+      "description": "Given a vector space and a query vector, the closest neighbors can be found by computing distances to all items and selecting the smallest ones.",
+      "coverage_criteria": [
+        "Describe the process of scanning all vectors to find the closest one.",
+        "Explain why naive nearest neighbor search is inefficient for large spaces.",
+        "Identify that the closest() function in the source implements this by sorting by distance."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates a closest() function that finds the ten closest color names to a given RGB value, and mentions scalability issues and alternatives like kdtree or Annoy.",
+        "granularity_rationale": "This concept isolates the basic algorithm for nearest neighbor, a core operation in vector-based retrieval, without diving into optimized indexing structures."
+      },
+      "anchors": [
+        "Finding the closest item"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_003",
+      "label": "Vector Arithmetic Operations",
+      "description": "Vectors can be added, subtracted, and averaged component-wise, enabling combination and comparison of concepts represented as vectors.",
+      "coverage_criteria": [
+        "Add two vectors by summing corresponding components.",
+        "Subtract one vector from another to find the difference.",
+        "Compute the mean of a list of vectors.",
+        "Explain how the mean vector represents the 'center' of a set of vectors."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides functions addv, subtractv, meanv in Python code within the color vectors section and uses them for color arithmetic, demonstrating how vector operations correspond to combining colors.",
+        "granularity_rationale": "The concept covers basic vector algebra operations that are essential for later analogies and sentence averaging, and is testable with simple component-wise calculations."
+      },
+      "anchors": [
+        "Vector math"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_004",
+      "label": "Analogies through Vector Differences",
+      "description": "Analogies can be solved by subtracting the vector of one word from another and adding the difference to a third word's vector, e.g., 'pink is to red as X is to blue'.",
+      "coverage_criteria": [
+        "Given vectors for 'pink', 'red', and 'blue', compute the vector for X that satisfies 'pink - red = X - blue'.",
+        "Explain that the difference vector captures the relationship between two words.",
+        "Provide an example of an analogy derived from a vector space."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly demonstrates analogies with color vectors (pink:red::?:blue) and with animal vectors (tarantula:hamster::chicken:kitten), showing that vector differences can model relational similarity.",
+        "granularity_rationale": "This is a specific application of vector arithmetic that is central to word vector 'magic'; it is a single skill that can be tested with a small computation."
+      },
+      "anchors": [
+        "Animal similarity and simple linear algebra",
+        "Color magic"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_005",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts; a word's meaning can be inferred from the company it keeps.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why 'hot' and 'cold' might be considered similar under this hypothesis despite being antonyms."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces the Distributional Hypothesis with a clear example (cold/warm/hot/cool and yesterday/today/tomorrow/Tuesday) and states that words with similar distributions have similar meanings.",
+        "granularity_rationale": "This is a fundamental theoretical concept that underpins all count-based and predictive word vector methods; it is a single claim that can be tested by having students identify context-based relationships."
+      },
+      "anchors": [
+        "Distributional semantics"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_006",
+      "label": "Word Vectors from Co-occurrence Counts",
+      "description": "Word vectors can be constructed by counting how often each word appears in each possible context (e.g., neighboring words), forming a high-dimensional vector per word.",
+      "coverage_criteria": [
+        "Explain how a co-occurrence matrix is built from a text corpus.",
+        "Given a small corpus, construct a simple co-occurrence matrix.",
+        "Identify that the resulting vector for a word reflects its distributional context."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source walks through creating a spreadsheet from a Dickens sentence, counting word contexts, and explaining that the counts form word vectors, with 'best' and 'worst' having identical vectors because they appear in the same context.",
+        "granularity_rationale": "This concept introduces the concrete method of turning text into vectors, a key step in understanding word embeddings; it is small enough to test with a simple example."
+      },
+      "anchors": [
+        "Word vectors by counting contexts"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_007",
+      "label": "Dimensionality Reduction for Word Vectors",
+      "description": "High-dimensional word vectors from co-occurrence counts often contain redundant information; dimensionality reduction techniques (like SVD) can compress them into a smaller number of meaningful dimensions.",
+      "coverage_criteria": [
+        "Explain why raw co-occurrence vectors can be too high-dimensional.",
+        "Name dimensionality reduction as a solution.",
+        "State that typical word vectors have 100-300 dimensions after reduction."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source discusses that many dimensions are superfluous and can be eliminated or combined via dimensionality reduction, mentioning that count-based vectors often use 100-300 dimensions.",
+        "granularity_rationale": "This concept bridges the gap between raw counts and practical word embeddings; it is a single technique that can be tested by asking why reduction is needed and what dimensions are typical."
+      },
+      "anchors": [
+        "Contexts and dimensionality"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_008",
+      "label": "Pre-trained GloVe Word Vectors",
+      "description": "GloVe (Global Vectors for Word Representation) is a set of pre-trained 300-dimensional word vectors available in spaCy, providing a ready-to-use semantic space for English.",
+      "coverage_criteria": [
+        "State that GloVe vectors are 300-dimensional and pre-trained.",
+        "Identify that GloVe vectors are included in spaCy's 'en' model.",
+        "Explain that using pre-trained vectors saves the effort of training on a corpus."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces GloVe as a downloadable database of pre-trained vectors from Stanford, included with spaCy, and states they will be used for the rest of the tutorial.",
+        "granularity_rationale": "This is a practical resource concept, informing students that they can leverage existing vectors; it's small and testable with factual recall."
+      },
+      "anchors": [
+        "GloVe vectors"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_009",
+      "label": "Cosine Similarity for High-Dimensional Vectors",
+      "description": "Cosine similarity measures the cosine of the angle between two vectors, providing a useful similarity metric for high-dimensional spaces where Euclidean distance may be less informative.",
+      "coverage_criteria": [
+        "Define cosine similarity formula.",
+        "Explain that cosine similarity ranges from -1 to 1, with 1 meaning identical direction.",
+        "Compare and contrast cosine similarity with Euclidean distance.",
+        "Given two vectors, compute cosine similarity (using a formula or Python)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a cosine() function implementation and uses it to verify that 'dog' and 'puppy' are more similar than 'trousers' and 'octopus', explaining it is more suited to high-dimensional spaces.",
+        "granularity_rationale": "Cosine similarity is a specific alternative metric that is essential for working with word vectors; it's a small, well-defined concept."
+      },
+      "anchors": [
+        "Cosine similarity and finding closest neighbors"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_010",
+      "label": "Word Vector Arithmetic with Pre-trained Embeddings",
+      "description": "Arithmetic on GloVe word vectors can reveal meaningful semantic relationships, e.g., 'water' + 'frozen' yields 'ice', and 'wine' - 'alcohol' yields words like 'dinner'.",
+      "coverage_criteria": [
+        "Perform vector addition or subtraction with GloVe vectors (hypothetically) and interpret results.",
+        "Explain that such arithmetic reflects learned semantic relationships from training data.",
+        "Given example arithmetic, predict plausible results based on semantic intuition."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates several examples: 'wine' - 'alcohol' returns food-related words, 'water' + 'frozen' returns 'ice', 'blue' - 'sky' + 'grass' returns 'green', showing that pre-trained vectors encode relationships.",
+        "granularity_rationale": "This is a practical skill demonstrating the 'magic' of word vectors, combining vector arithmetic and pre-trained embeddings in a testable way."
+      },
+      "anchors": [
+        "Fun with spaCy, Dracula, and vector arithmetic"
+      ]
+    },
+    {
+      "id": "c61_pro_thinking_011",
+      "label": "Sentence Similarity via Averaged Word Vectors",
+      "description": "A sentence vector can be obtained by averaging the word vectors of its constituent words, and this can be used to find semantically similar sentences in a corpus.",
+      "coverage_criteria": [
+        "Explain how to compute a sentence vector from word vectors.",
+        "Compute the average of multiple word vectors (component-wise).",
+        "Describe that cosine similarity between sentence vectors can measure sentence similarity."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines a sentvec() function that averages word vectors of a sentence, then uses it with spacy_closest_sent() to find sentences in Dracula similar to a query, yielding plausible results.",
+        "granularity_rationale": "This is a specific technique for extending word vectors to longer texts, small enough to test by having students compute a mean and interpret similarity."
+      },
+      "anchors": [
+        "Sentence similarity"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_001",
+      "label": "Gensim library for topic modeling and NLP",
+      "description": "Gensim is an open-source Python library originally developed for topic modeling, providing models and utilities for unsupervised text analysis including Word2Vec and preprocessing.",
+      "coverage_criteria": [
+        "Student can explain that Gensim is a Python library for NLP, mention its origin in topic modeling, and name at least two of its functionalities (e.g., Word2Vec, preprocessing, dictionary creation)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chapter introduces Gensim as a tool for topic modeling and highlights its use in NLP, starting from page 189.",
+        "granularity_rationale": "Concept covers the library's identity and purpose; assessable in a few questions about its role and capabilities."
+      },
+      "anchors": [
+        "Section '1 Biblioteca Gensim', page 189"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_002",
+      "label": "Text preprocessing with gensim.utils.simple_preprocess()",
+      "description": "The function simple_preprocess() tokenizes a document, optionally removing accents and filtering tokens by minimum and maximum length.",
+      "coverage_criteria": [
+        "Student can write code to call simple_preprocess() on a string, specifying parameters deacc, min_len, max_len, and explain what each does."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 1 on pages 192-193 demonstrates using simple_preprocess with deacc and min_len, and the surrounding text explains the parameters.",
+        "granularity_rationale": "Single function with a clear interface; can be checked with a coding exercise and explanation of parameters."
+      },
+      "anchors": [
+        "Example 1 – Definição de um corpus e pré-processamento, page 193",
+        "192"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_003",
+      "label": "Tokenization with gensim.utils.tokenize()",
+      "description": "The gensim.utils.tokenize() function performs low-level tokenization, internally called by simple_preprocess(), and can be used directly for tokenizing words.",
+      "coverage_criteria": [
+        "Student can explain that tokenize() splits text into tokens and is less feature-rich than simple_preprocess, and can write a call to tokenize()."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Page 194 mentions tokenize() as an alternative for word tokenization, stating it is called internally by simple_preprocess.",
+        "granularity_rationale": "Narrow concept focusing on one utility function; can be assessed with a simple usage question."
+      },
+      "anchors": [
+        "194"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_004",
+      "label": "Building a vocabulary with gensim.corpora.Dictionary()",
+      "description": "gensim.corpora.Dictionary creates a mapping between tokens and integer IDs from preprocessed documents, acting as the model's vocabulary.",
+      "coverage_criteria": [
+        "Given a list of tokenized documents, student can instantiate a Dictionary and explain its purpose in encoding words."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 2 on pages 194-195 uses corpDict to build a vocabulary from preprocessed documents, and the text describes its necessity before model creation.",
+        "granularity_rationale": "Concept covers a single class and its main role; easily testable with a code snippet and brief explanation."
+      },
+      "anchors": [
+        "Example 2 – Vocabulário criado a partir dos documentos tokenizados e tratados, page 194"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_005",
+      "label": "Dense versus sparse vector representations",
+      "description": "Documents can be represented as vectors; dense vectors have all dimensions known and directly related, while sparse vectors have many unknown dimensions treated as zero.",
+      "coverage_criteria": [
+        "Student can define dense and sparse vectors and give an example of when each would be used in text representation."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Page 195 explicitly contrasts dense and sparse vectors, defining each and stating that unknown dimensions in sparse vectors are zero.",
+        "granularity_rationale": "Concept is a foundational distinction in vector representations; assessable with a definition and simple scenario."
+      },
+      "anchors": [
+        "195"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_006",
+      "label": "Training a Word2Vec model with gensim.models.Word2Vec()",
+      "description": "The Word2Vec class in Gensim trains word embeddings on a preprocessed corpus using continuous bag-of-words (CBOW) or skip-gram with options for hierarchical softmax or negative sampling.",
+      "coverage_criteria": [
+        "Student can write code to instantiate Word2Vec with a list of tokenized sentences, specify min_count and size, and explain that the model learns vector representations."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 3 on page 196 trains a Word2Vec model and the surrounding text explains the usage and parameters.",
+        "granularity_rationale": "Covers the central API for Word2Vec training; can be assessed with a coding task and a question on basic parameters."
+      },
+      "anchors": [
+        "Example 3 – Treinamento de um modelo de word2vec, page 196",
+        "197"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_007",
+      "label": "Word2Vec training parameters",
+      "description": "Key parameters for gensim.models.Word2Vec() include min_count, size, sg (0: skip-gram, 1: CBOW), window, hs (hierarchical softmax), negative (negative sampling), alpha (learning rate), seed, and corpus_file.",
+      "coverage_criteria": [
+        "Student can list at least four training parameters and explain how they affect the training process."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Pages 196-198 detail many parameters for Word2Vec, explaining each in the context of training.",
+        "granularity_rationale": "Combines multiple related parameters into a single concept about model configuration; can be tested with a matching or short-answer question."
+      },
+      "anchors": [
+        "197-198"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_008",
+      "label": "Saving and loading Word2Vec models",
+      "description": "Gensim Word2Vec models can be saved to disk using save() and reloaded later with load(), facilitating reuse of trained embeddings.",
+      "coverage_criteria": [
+        "Student can write code to save a trained model to a file and load it back using gensim's save and load methods."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 4 (page 198-199) saves a model and Example 5 (page 199) loads it, explicitly showing the workflow.",
+        "granularity_rationale": "Narrow concept around two functions; easily checked with code completion."
+      },
+      "anchors": [
+        "Example 4 – Armazenando um modelo de word2vec, page 198"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_009",
+      "label": "Using pre-trained word embeddings with gensim.downloader",
+      "description": "The gensim.downloader module allows loading publicly available pre-trained models like word2vec-google-news-300, which provides high-quality embeddings for downstream tasks.",
+      "coverage_criteria": [
+        "Student can write code to load a pre-trained model using gensim.downloader.load() and cite an example such as 'word2vec-google-news-300'."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 6 on page 200 demonstrates loading a pre-trained model, and the text explains the benefits of using large pre-trained embeddings.",
+        "granularity_rationale": "Single function with a clear purpose; testable with a code snippet and recognition of common models."
+      },
+      "anchors": [
+        "Example 6 – Carregando um modelo pré-treinado, page 200"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_010",
+      "label": "Finding similar words with model.similar_by_word()",
+      "description": "The method similar_by_word() on a trained Word2Vec model returns the most semantically similar words to a given word and their similarity scores.",
+      "coverage_criteria": [
+        "Student can write code to retrieve the top-5 similar words for 'car' using similar_by_word and interpret the results."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 7 on pages 200-201 uses similar_by_word to find words similar to 'car' and 'house', showing the cosine similarity scores.",
+        "granularity_rationale": "Covers one method of the model; can be checked with a short coding exercise."
+      },
+      "anchors": [
+        "Example 7 – Palavras similares a car e house, page 201"
+      ]
+    },
+    {
+      "id": "c62_pro_thinking_011",
+      "label": "Brown Corpus as a standard NLP dataset",
+      "description": "The Brown Corpus is a collection of 500 English texts from 1961 containing over 1 million words, commonly used for NLP model training and evaluation.",
+      "coverage_criteria": [
+        "Student can describe the Brown Corpus (size, date, types of texts) and explain why it is a valuable resource for NLP."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Example 4 uses the Brown Corpus from NLTK, and page 199 describes its origin and size, noting its frequent use in NLP.",
+        "granularity_rationale": "Concept introduces a well-known dataset; can be assessed with a few factual questions."
+      },
+      "anchors": [
+        "199"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_001",
+      "label": "Word2Vec enables arithmetic with word vectors",
+      "description": "Word2Vec represents words as vectors such that vector arithmetic like 'king' - 'man' + 'woman' ≈ 'queen' reflects semantic relationships.",
+      "coverage_criteria": [
+        "Given a word vector equation, the student can identify the expected result word (e.g., king - man + woman = queen)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly demonstrates the math and explains how Word2Vec allows this.",
+        "granularity_rationale": "This is the fundamental capability that is demonstrated and can be tested with a simple analogy."
+      },
+      "anchors": [
+        "[00:00] Introduction to Word2Vec",
+        "[02:24] Performing Math with Word Vectors"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_002",
+      "label": "Words can be represented as feature vectors with numerical properties",
+      "description": "A word can be encoded as a vector of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, gender, etc.",
+      "coverage_criteria": [
+        "The student can describe that a word vector is a set of numbers representing properties, and give examples of possible features for a noun."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video walks through assigning numbers for authority, tail, rich, gender to words like 'king' and 'horse'.",
+        "granularity_rationale": "Understanding the concept of feature vectors is foundational before learning about learning them automatically."
+      },
+      "anchors": [
+        "[00:28] Representing Words as Vectors"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_003",
+      "label": "Neural networks can learn word embeddings from a fake problem",
+      "description": "Instead of hand-crafting features, word embeddings are learned as a side effect of training a neural network on an auxiliary task, like predicting a missing word.",
+      "coverage_criteria": [
+        "The student can explain that the primary goal is to obtain word vectors, and the network is trained on a surrogate task such as filling in a blank."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explains taking a 'fake problem' (filling missing word) to learn embeddings as a side effect.",
+        "granularity_rationale": "This is a key conceptual leap distinguishing manual feature engineering from learned embeddings."
+      },
+      "anchors": [
+        "[04:00] Learning Word Embeddings with Neural Networks"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_004",
+      "label": "Meaning of a word can be inferred from surrounding context",
+      "description": "The context words around a missing word provide enough information to guess the missing word, illustrating distributional semantics.",
+      "coverage_criteria": [
+        "Given a sentence with a blank, the student can use context to select the most appropriate word from options."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video demonstrates with examples: 'eating ___ is very healthy' → apple/walnut; 'NASA launched ___' → rocket.",
+        "granularity_rationale": "This principle underpins the training data generation and is a core linguistic insight."
+      },
+      "anchors": [
+        "[06:46] Contextual Inference of Word Meaning"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_005",
+      "label": "Training data for Word2Vec is generated by sliding a window over text",
+      "description": "By moving a fixed-size window across the text, we create input-output pairs: the context words (input) and the target word (output) to fill a blank.",
+      "coverage_criteria": [
+        "Given a short text, the student can produce training samples using a window of size 3 or 5, identifying context and target words."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly generates training samples from a paragraph using a window of three words.",
+        "granularity_rationale": "This is a concrete step in the Word2Vec pipeline, turning raw text into supervised training data."
+      },
+      "anchors": [
+        "[07:41] Generating Training Samples for Word Embeddings"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_006",
+      "label": "Word2Vec neural network uses one-hot encoded inputs and outputs",
+      "description": "Words are converted to one-hot vectors of size equal to vocabulary, and the network learns to produce a probability distribution over the vocabulary as output.",
+      "coverage_criteria": [
+        "The student can explain that each input word is a vector with a 1 at its index and 0s elsewhere, and the output layer has a softmax over all words."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes the input layer as one-hot encoded vectors of size 5000 for a vocabulary of 5000 words.",
+        "granularity_rationale": "Understanding the input/output representation is essential to understanding how the network processes text."
+      },
+      "anchors": [
+        "[09:40] Neural Network Architecture for Word2Vec"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_007",
+      "label": "Word embeddings are the learned weights between layers",
+      "description": "In Word2Vec, the word vector for a word is the weight vector connecting its one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "The student can indicate that after training, the embedding for a word is found in the weight matrix of the neural network."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly states: 'the word vector for king would be these weights w1 w2 w3 w4' and later for skip-gram the embedding is between input and hidden.",
+        "granularity_rationale": "This demystifies how embeddings are actually obtained from the training process."
+      },
+      "anchors": [
+        "[12:28] Training and Learning Word Embeddings",
+        "[15:27] Skip-Gram Architecture"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_008",
+      "label": "CBOW and Skip-Gram are two Word2Vec training techniques",
+      "description": "Continuous Bag-of-Words (CBOW) predicts the target word from context words; Skip-Gram predicts context words from the target word.",
+      "coverage_criteria": [
+        "The student can distinguish between CBOW and Skip-gram based on the direction of prediction."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly contrasts the two: 'you have context... predict target' vs 'target and based on that we try to predict context'.",
+        "granularity_rationale": "These are the two primary variants of Word2Vec, and understanding their difference is a key learning outcome."
+      },
+      "anchors": [
+        "[14:05] CBOW vs. Skip-Gram"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_009",
+      "label": "Word2Vec embeddings capture semantic and syntactic relationships",
+      "description": "Learned vectors capture relationships like verb tenses (walking-walked), capital-country (Madrid-Spain), and analogies (king-queen).",
+      "coverage_criteria": [
+        "The student can provide examples of relationships that word vectors can capture, such as gender, tense, or geography."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video shows visualizations of vector spaces revealing these relationships (male-female, verb tense, country-capital).",
+        "granularity_rationale": "This highlights the practical power of Word2Vec and why it's useful."
+      },
+      "anchors": [
+        "[16:55] Visualizing Word Embeddings"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_010",
+      "label": "Word2Vec is a self-supervised learning approach",
+      "description": "The training data (input-output pairs) is generated from the raw text itself without external labels, making it self-supervised.",
+      "coverage_criteria": [
+        "The student can explain that Word2Vec does not require manually labeled data; the labels come from the text itself through the windowing process."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video mentions 'this problem is called self-supervised because all you had was this paragraph you did not have like X and Y' and you generate training samples.",
+        "granularity_rationale": "Self-supervision is an important concept in machine learning, and Word2Vec is a classic example."
+      },
+      "anchors": [
+        "[07:41] Generating Training Samples for Word Embeddings"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_011",
+      "label": "Word2Vec analogy examples demonstrate compositional semantics",
+      "description": "Analogies like 'USA - Washington D.C. + Delhi = India' show that vector offsets encode relational similarities.",
+      "coverage_criteria": [
+        "The student can solve simple analogy tasks using vector arithmetic if given hypothetical embeddings."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video provides a quiz and shows analogies: USA-Washington+Delhi=India, Samsun-Galaxy+iPhone=Apple.",
+        "granularity_rationale": "This is a specific application of vector arithmetic and tests comprehension of the concept."
+      },
+      "anchors": [
+        "[16:27] Applications of Word2Vec"
+      ]
+    },
+    {
+      "id": "m64_001",
+      "label": "Processamento de Linguagem Natural (PLN)",
+      "description": "Introdução às técnicas de processamento de linguagem natural, com foco na análise de sentimentos.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar os conceitos básicos de PLN e identificar aplicações de análise de sentimentos."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "O título 'Processando a Linguagem' e a descrição mencionam explicitamente processamento de linguagem no contexto de análise de sentimentos. Essas são evidências diretas de que o conteúdo aborda PLN e análise de sentimentos.",
+        "granularity_rationale": "Conceito amplo, porém é o mais específico que a metadata permite sem adivinhar sub-tópicos. Posteriormente pode ser refinado com mais evidências."
+      },
+      "anchors": [
+        "Processando a Linguagem",
+        "Processando a Linguagem no contexto de análise de sentimentos."
+      ]
+    },
+    {
+      "id": "m64_002",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Tanto a descrição quanto a etiqueta 'Análise de sentimentos' indicam diretamente que o estudo cobre esse tópico. A aula pai sobre Word2Vec e redes neurais sugere que a análise de sentimentos pode ser implementada com essas técnicas, mas a metadata do self-study foca explicitamente em processamento de linguagem e análise de sentimentos.",
+        "granularity_rationale": "Conceito bem definido e comumente ensinado como um tópico independente dentro de PLN. É um candidato natural dado o contexto."
+      },
+      "anchors": [
+        "Processando a Linguagem no contexto de análise de sentimentos.",
+        "Análise de sentimentos"
+      ]
+    },
+    {
+      "id": "m64_003",
+      "label": "Aprendizado Profundo para PLN",
+      "description": "Aplicação de redes neurais profundas em tarefas de processamento de linguagem natural.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de descrever como redes neurais podem ser usadas para tarefas de PLN, como análise de sentimentos."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "A referência ao livro 'Aprendizado profundo para leigos' e a aula pai sobre Word2Vec e redes neurais implicam que o estudo aborda aprendizado profundo, especificamente no contexto de linguagem. Mesmo que o título e a descrição não mencionem explicitamente aprendizado profundo, a referência bibliográfica e o contexto da aula tornam plausível a inclusão desse conceito como um sub-tópico do processamento de linguagem.",
+        "granularity_rationale": "É um conceito intermediário que conecta a técnica de redes neurais (vista em aulas anteriores) com aplicações em PLN. Não é excessivamente granular, pois é uma área de estudo estabelecida."
+      },
+      "anchors": [
+        "Livro: Mueller, John P. Aprendizado profundo para leigos.",
+        "Word2Vec - Aplicação utilizando Redes Neurais"
+      ]
+    },
+    {
+      "id": "m64_004",
+      "label": "Word2Vec",
+      "description": "Modelo de embeddings de palavras que representa palavras como vetores densos para capturar semântica.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar o funcionamento básico do Word2Vec e sua utilidade em tarefas de PLN."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Embora o título e a descrição do self-study não mencionem Word2Vec, a aula pai ('Word2Vec - Aplicação utilizando Redes Neurais') indica que este estudo é uma continuação que aplica Word2Vec. Portanto, o conceito Word2Vec é implicitamente coberto ou pré-requisito para este estudo. Como o self-study está diretamente ligado a essa aula, é defensável incluir Word2Vec como um candidato.",
+        "granularity_rationale": "Word2Vec é um tópico específico, comumente ensinado em cursos de PLN e aprendizado profundo. É um conceito bem delimitado e ensinável."
+      },
+      "anchors": [
+        "Word2Vec - Aplicação utilizando Redes Neurais"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,1171 @@
+{
+  "packet_type": "phase4_lesson_reconciliation_evaluation_packet",
+  "purpose": "Independent smoke-test evaluation of Phase 4 Lesson Reconciliation quality. No prior scores are included.",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+    "display_code": "L06",
+    "title": "Vetores multidimensionais: Word2Vec e Gensim",
+    "date": "12/05/2026",
+    "description": "O objetivo deste encontro é apresentar para as pessoas desenvolvedoras outras formas de representar vetores de palavras: o Word2Vec e o Gensim.",
+    "related_labels": [
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Linguagem estruturada",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Reconhecimento de voz",
+      "Redes Neurais",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ]
+  },
+  "counts": {
+    "input_candidate_count": 22,
+    "reconciled_candidate_count": 18,
+    "pruned_candidate_count": 0,
+    "review_candidate_count": 0
+  },
+  "before_phase4_candidates": [
+    {
+      "candidate_id": "c41_pro_thinking_001",
+      "original_candidate_id": "candidate-41-001",
+      "label": "Word2Vec produces word embeddings for analogical reasoning",
+      "description": "Word2Vec is a machine learning process that maps words to dense numerical vectors called word embeddings, enabling mathematical operations such as vector addition and subtraction to perform analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain what word2vec is and how word embeddings enable analogies like 'king - man + woman = queen'."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "41",
+      "source_name": "What is word2vec? - Programming with Text",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:00 Introduction to Word2Vec"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "02:10 What is Word Embedding?"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker explicitly defines word2vec as a process that produces word embeddings, describes mapping 'apple' to a vector, and poses the analogy 'apple' + 'purple' = 'plum' to illustrate vector arithmetic.",
+        "granularity_rationale": "This concept covers the core definition and a single illustrative example, allowing assessment with 1-2 focused questions."
+      }
+    },
+    {
+      "candidate_id": "c41_pro_thinking_002",
+      "original_candidate_id": "candidate-41-002",
+      "label": "Simple 2D word embeddings with hand-coded features illustrate word similarity",
+      "description": "Word embeddings can be constructed in two dimensions using manually assigned scores (e.g., cuteness and size for animals) so that similar words are close in the vector space, demonstrating the principle of semantic similarity through spatial proximity.",
+      "coverage_criteria": [
+        "Given a 2D plot of animals with cuteness and size scores, identify which animals are most similar based on spatial proximity.",
+        "Explain why euclidean distance can measure similarity in a 2D word embedding."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "41",
+      "source_name": "What is word2vec? - Programming with Text",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:38 Animal Similarity and Simple Linear Algebra"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "06:18 Animal Space Visualization"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents a table of animals with cuteness and size scores and a scatter plot, explicitly calling this a simple word embedding to visualize similarity.",
+        "granularity_rationale": "This isolates the idea of using hand-crafted features to create a toy embedding, assessable by asking students to interpret a 2D plot."
+      }
+    },
+    {
+      "candidate_id": "c41_pro_thinking_003",
+      "original_candidate_id": "candidate-41-003",
+      "label": "Vector relationships model analogies in word embedding space",
+      "description": "In a word embedding space, the vector difference between two words can represent a relationship; applying that same difference to a third word leads to an analogous word (e.g., 'tarantula' to 'hamster' is similar to 'chicken' to 'kitten' in terms of size and cuteness).",
+      "coverage_criteria": [
+        "Given a 2D animal embedding with arrows, explain the analogy 'tarantula is to hamster as chicken is to kitten'.",
+        "Demonstrate how vector addition can produce an analogy: if 'apple' + 'purple' ≈ 'plum', what operation would find 'plum'?"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "41",
+      "source_name": "What is word2vec? - Programming with Text",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "06:48 Vectors and Relationships"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source directly illustrates vector analogies by drawing arrows between animal points and explaining the resulting analogy.",
+        "granularity_rationale": "This focuses on the specific mechanism of using vector relationships to derive analogies, testable by having students interpret or extend a given analogy."
+      }
+    },
+    {
+      "candidate_id": "c41_pro_thinking_004",
+      "original_candidate_id": "candidate-41-004",
+      "label": "Real-world word embeddings use high dimensions and reduced visualization",
+      "description": "Practical word2vec models use hundreds of dimensions (e.g., 100 to 300) to capture complex semantic relationships, making direct visualization impossible; dimensionality reduction techniques are necessary to project them into 2D for visualizing word clusters.",
+      "coverage_criteria": [
+        "State why real word2vec embeddings are high-dimensional and cannot be directly visualized.",
+        "Name a technique used to visualize high-dimensional word embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "41",
+      "source_name": "What is word2vec? - Programming with Text",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "08:13 Higher Dimensions and Next Steps"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker explains that real word2vec uses 100 or 300 dimensions and mentions dimensionality reduction to visualize word clusters.",
+        "granularity_rationale": "This concept addresses the scalability of embeddings and the need for dimensionality reduction, easily checked by asking students to explain the visualization challenge."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_001",
+      "original_candidate_id": "candidate-42-001",
+      "label": "Word Embeddings (Incorporação de Palavras)",
+      "description": "Representação de palavras como vetores densos em um espaço vetorial que capturam significado semântico, contrastando com representações esparsas como bag-of-words.",
+      "coverage_criteria": [
+        "Explicar o que são word embeddings e como se diferem de representações vetoriais esparsas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo define explicitamente word embeddings como uma abordagem de aprendizado de representação que mapeia palavras para vetores densos, melhorando modelos esparsos como BoW.",
+        "granularity_rationale": "Conceito central do capítulo que pode ser avaliado pedindo ao estudante para definir o termo e explicar a motivação."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_002",
+      "original_candidate_id": "candidate-42-002",
+      "label": "Hipótese Distributiva",
+      "description": "Hipótese de que sinônimos aparecem frequentemente nos mesmos contextos, e a diferença entre palavras pode ser medida pelas diferenças nos ambientes onde ocorrem, fundamentando a representação vetorial semântica.",
+      "coverage_criteria": [
+        "Enunciar a hipótese distributiva e explicar seu papel na criação de vetores semânticos."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto menciona explicitamente a 'hipótese distributiva' como base para as word embeddings.",
+        "granularity_rationale": "Conceito fundamental que o estudante deve conseguir articular."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_003",
+      "original_candidate_id": "candidate-42-003",
+      "label": "Similaridade por Cosseno entre Vetores de Palavras",
+      "description": "Medida de similaridade que utiliza o cosseno do ângulo entre dois vetores para quantificar a proximidade semântica, evitando viés de magnitude.",
+      "coverage_criteria": [
+        "Definir similaridade de cosseno e explicar por que é preferida ao produto escalar para comparar vetores de palavras."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta a similaridade de cosseno como substituta do produto escalar para evitar dominância de palavras frequentes.",
+        "granularity_rationale": "Ferramenta matemática específica frequentemente usada em PLN, testável com uma explicação curta."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_004",
+      "original_candidate_id": "candidate-42-004",
+      "label": "Arquiteturas do Word2Vec: CBOW e Skip-Gram",
+      "description": "Word2Vec implementa duas arquiteturas: CBOW (Continuous Bag-of-Words) que prevê uma palavra a partir do contexto, e Skip-Gram que prevê o contexto a partir de uma palavra.",
+      "coverage_criteria": [
+        "Diferenciar CBOW de Skip-Gram e descrever a entrada e saída de cada um."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Implementação de word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo dedica uma seção para explicar CBOW e Skip-Gram com figuras e pseudocódigo.",
+        "granularity_rationale": "Distinção algorítmica central que o estudante deve saber comparar e contrastar."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_005",
+      "original_candidate_id": "candidate-42-005",
+      "label": "Objetivo de Treinamento do Word2Vec e Amostragem Negativa",
+      "description": "O treinamento do Word2Vec maximiza a probabilidade de pares palavra-contexto observados usando uma função softmax, e reduz custo computacional com amostragem negativa, que gera rótulos falsos para pares não observados.",
+      "coverage_criteria": [
+        "Explicar o objetivo de treinamento (maximização da probabilidade palavra-contexto) e o propósito da amostragem negativa."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Implementação de word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto descreve o objetivo de log-verossimilhança e a amostragem negativa como técnica de treinamento eficiente.",
+        "granularity_rationale": "Compreender o procedimento de treinamento é chave para como o word2vec aprende, e pode ser verificado pedindo um resumo da função de perda e da amostragem negativa."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_006",
+      "original_candidate_id": "candidate-42-006",
+      "label": "Analogias com Vetores do Word2Vec",
+      "description": "Os vetores word2vec codificam relações semânticas que permitem operações aritméticas como 'rei' - 'homem' + 'mulher' ≈ 'rainha', demonstrando a capacidade de capturar analogias.",
+      "coverage_criteria": [
+        "Fornecer um exemplo de aritmética vetorial para analogias e explicar o que demonstra sobre as word embeddings."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Algoritmos para word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo dá o exemplo clássico rei/rainha e explica a intuição geométrica.",
+        "granularity_rationale": "Propriedade famosa do word2vec que ilustra seu poder, podendo ser testada pedindo ao estudante para descrever o exemplo ou um novo."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_007",
+      "original_candidate_id": "candidate-42-007",
+      "label": "Comparação entre Word2Vec, GloVe e fastText",
+      "description": "Enquanto Word2Vec foca em contexto local, GloVe utiliza coocorrência global, e fastText usa subpalavras (character n-grams) para melhor generalização, especialmente para palavras desconhecidas.",
+      "coverage_criteria": [
+        "Comparar word2vec com GloVe e fastText em termos de contexto local vs. global e tratamento de palavras desconhecidas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Algoritmos para word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto contrasta explicitamente esses algoritmos na seção '2 Algoritmos para word embeddings'.",
+        "granularity_rationale": "Conhecimento comparativo essencial para entender a evolução e os trade-offs dos métodos de embedding, podendo ser avaliado por uma comparação sucinta."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_008",
+      "original_candidate_id": "candidate-42-008",
+      "label": "Pré-processamento para Word Embeddings",
+      "description": "Etapas comuns de pré-processamento incluem conversão para minúsculas, remoção de pontuações, stop words e tokenização, para uniformizar o texto antes da vetorização.",
+      "coverage_criteria": [
+        "Listar etapas típicas de pré-processamento para word embeddings e explicar seu propósito."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Implementação de word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto fornece um pseudocódigo de pré-processamento e discute a necessidade de remover ruídos.",
+        "granularity_rationale": "Passo prático que os estudantes devem conhecer ao implementar word embeddings, testável solicitando a descrição do processo."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_009",
+      "original_candidate_id": "candidate-42-009",
+      "label": "TF-IDF e Suas Limitações",
+      "description": "TF-IDF pondera a frequência do termo pela inversa da frequência nos documentos, mas gera vetores esparsos de alta dimensionalidade incapazes de capturar semântica complexa.",
+      "coverage_criteria": [
+        "Definir TF-IDF e explicar por que é menos eficaz que word embeddings para capturar similaridade semântica."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto descreve o TF-IDF e suas desvantagens como representação vetorial, contrastando com embeddings densos.",
+        "granularity_rationale": "Conceito que esclarece por que as word embeddings foram necessárias, verificável com uma definição e contraste curtos."
+      }
+    },
+    {
+      "candidate_id": "c42_pro_thinking_010",
+      "original_candidate_id": "candidate-42-010",
+      "label": "BERT: Representação Bidirecional com Transformers",
+      "description": "BERT é um modelo de word embedding bidirecional baseado em transformers que considera contexto anterior e posterior, permitindo representações mais ricas e refinadas para palavras.",
+      "coverage_criteria": [
+        "Descrever a principal característica de bidirecionalidade do BERT e sua diferença em relação a modelos unidirecionais."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "42",
+      "source_name": "(Livro) Word2Vec",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Algoritmos para word embeddings"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o BERT como um modelo de ponta com contexto bidirecional e pré-treinamento.",
+        "granularity_rationale": "Avanço significativo mencionado no capítulo; o estudante deve conseguir identificar sua inovação principal."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_001",
+      "original_candidate_id": "candidate-43-001",
+      "label": "Gensim Document",
+      "description": "In Gensim, a document is an object of text sequence type (str in Python 3). It can be any text from a short tweet to a book, and serves as the basic input unit for corpora and models.",
+      "coverage_criteria": [
+        "Define what a document is in the context of Gensim.",
+        "Identify which Python objects can serve as Gensim documents.",
+        "Given examples, determine if they would be considered documents in Gensim."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Document"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines document as the first core concept, provides examples, and explains its role as input to corpora and models.",
+        "granularity_rationale": "The concept of a document is fundamental and checkable with a few straightforward questions about text sequences."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_002",
+      "original_candidate_id": "candidate-43-002",
+      "label": "Gensim Corpus",
+      "description": "A corpus is a collection of documents, serving as input for unsupervised model training and as a set of documents to organize and query after training.",
+      "coverage_criteria": [
+        "Describe the two roles of a corpus in Gensim.",
+        "Identify that Gensim focuses on unsupervised models requiring no manual annotation.",
+        "Explain that corpora can be streamed to handle large datasets."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Corpus"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source clearly outlines the corpus concept, its roles, and emphasizes unsupervised learning and streaming.",
+        "granularity_rationale": "Checkable by asking about the roles and the streaming feature, which are central to Gensim usage."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_003",
+      "original_candidate_id": "candidate-43-003",
+      "label": "Gensim Vector (Sparse Representation)",
+      "description": "A vector is a mathematical representation of a document, often sparse (bag-of-words) where features are word counts. Sparse vectors omit zero values to save memory, and document similarity can be assessed by vector proximity.",
+      "coverage_criteria": [
+        "Explain why vectors are used in Gensim.",
+        "Distinguish between dense and sparse vectors.",
+        "Interpret a simple bag-of-words vector like [(0,2), (1,1)]."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Vector"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates a section to Vectors, explaining dense vs sparse, bag-of-words, and how similarity is derived.",
+        "granularity_rationale": "This concept is essential for understanding document transformation and can be tested by having students interpret vector representations."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_004",
+      "original_candidate_id": "candidate-43-004",
+      "label": "Gensim Model as Vector Transformation",
+      "description": "A model is an algorithm that learns to transform vectors from one representation to another (e.g., bag-of-words to TF-IDF) by training on a corpus. Trained models can be saved, loaded, and applied to new documents.",
+      "coverage_criteria": [
+        "Define what a model does in Gensim.",
+        "Explain the training process as learning a transformation between vector spaces.",
+        "Given an example like TF-IDF, describe what transformation occurs."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Model"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines a model as a transformation, provides the TF-IDF example, and shows saving/loading.",
+        "granularity_rationale": "This captures the essence of Gensim models and can be assessed by asking to explain the transformation concept."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_005",
+      "original_candidate_id": "candidate-43-005",
+      "label": "Gensim Dictionary for Vectorization",
+      "description": "The gensim.corpora.Dictionary class maps each word in the corpus to a unique integer ID, enabling conversion of tokenized documents into bag-of-words vectors via the doc2bow method.",
+      "coverage_criteria": [
+        "Explain the purpose of a Gensim Dictionary.",
+        "Use a dictionary to convert a short text into a bag-of-words vector.",
+        "Identify that out-of-vocabulary words are ignored during vectorization."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Vector"
+        },
+        {
+          "kind": "code_block",
+          "locator": "dictionary = corpora.Dictionary(processed_corpus)"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source demonstrates creating a dictionary from processed corpus and using doc2bow, explicitly stating its role in vectorization.",
+        "granularity_rationale": "This is a specific, hands-on tool in Gensim that students can learn to use with simple code examples."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_006",
+      "original_candidate_id": "candidate-43-006",
+      "label": "TF-IDF Model in Gensim",
+      "description": "The TF-IDF model transforms bag-of-words vectors by weighting term frequencies inversely with document frequency, reducing the weight of common words and emphasizing rare ones.",
+      "coverage_criteria": [
+        "Explain the effect of TF-IDF on word weights.",
+        "Compare tf-idf weights of frequent vs rare words in a given corpus.",
+        "Apply a pre-trained TF-IDF model to a new document string."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Model"
+        },
+        {
+          "kind": "code_block",
+          "locator": "tfidf = models.TfidfModel(bow_corpus)"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a concrete TF-IDF example, showing weight differences between 'system' and 'minors', and mentions it as a model.",
+        "granularity_rationale": "TF-IDF is a specific, well-defined transformation that can be taught and tested independently."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_007",
+      "original_candidate_id": "candidate-43-007",
+      "label": "Corpus Streaming for Large Datasets",
+      "description": "Gensim can handle very large corpora by streaming, processing one document at a time instead of loading the entire corpus into memory, which is essential for scalability.",
+      "coverage_criteria": [
+        "Explain why streaming is necessary for large corpora.",
+        "Describe how Gensim achieves streaming.",
+        "Identify that an iterator returning one document vector at a time can be used."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Corpus"
+        },
+        {
+          "kind": "markdown_text",
+          "locator": "Important: The above example loads the entire corpus into memory..."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly warns about memory limitations and mentions Gensim's streaming capability, linking to a detailed tutorial.",
+        "granularity_rationale": "This is a practical consideration for using Gensim with real-world data, and is easily checkable with a single question."
+      }
+    },
+    {
+      "candidate_id": "c43_pro_thinking_008",
+      "original_candidate_id": "candidate-43-008",
+      "label": "Similarity Queries with Gensim",
+      "description": "After transforming a corpus with a model (e.g., TF-IDF), Gensim can compute similarity scores between a query document and all documents in the corpus, enabling search and clustering.",
+      "coverage_criteria": [
+        "Explain how to perform a similarity query in Gensim.",
+        "Interpret similarity scores from a given output.",
+        "Sort documents by relevance using similarity scores."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "43",
+      "source_name": "Gensim - topic modeling for humans",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Model"
+        },
+        {
+          "kind": "code_block",
+          "locator": "index = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=12)"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source shows a complete example of indexing a TF-IDF corpus and querying similarity, including output interpretation and sorting.",
+        "granularity_rationale": "This is a key application of the pipeline and can be tested by asking students to explain the process or interpret results."
+      }
+    }
+  ],
+  "after_phase4": {
+    "reconciled_candidates": [
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-001",
+        "label": "Word2Vec produces word embeddings for analogical reasoning",
+        "description": "Word2Vec is a method that maps words to dense vectors (word embeddings), enabling analogical reasoning through vector arithmetic (e.g., king - man + woman ≈ queen).",
+        "coverage_criteria": [
+          "Explain how Word2Vec creates embeddings and how they support analogies like king/queen."
+        ],
+        "source_candidate_ids": [
+          "c41_pro_thinking_001",
+          "c42_pro_thinking_006"
+        ],
+        "merge_rationale": "Both candidates describe Word2Vec as generating word embeddings that enable analogical reasoning; merged into one concept.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-002",
+        "label": "High-dimensional real-world embeddings and visualization challenges",
+        "description": "Real-world Word2Vec models use high dimensions (100–300) to capture semantics, making direct visualization infeasible; dimensionality reduction techniques are required to project them to 2D for visualization.",
+        "coverage_criteria": [
+          "State why high dimensions are used and name a technique to visualize them."
+        ],
+        "source_candidate_ids": [
+          "c41_pro_thinking_004"
+        ],
+        "merge_rationale": "Single candidate; stands as a distinct practical aspect.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-003",
+        "label": "Word embeddings as dense semantic vectors vs. sparse representations",
+        "description": "Word embeddings are dense, low-dimensional vectors that capture semantic meaning, contrasting with sparse representations like bag-of-words or TF-IDF which are high-dimensional and lack semantic richness.",
+        "coverage_criteria": [
+          "Define word embeddings and explain why they are preferred over sparse representations."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_001",
+          "c42_pro_thinking_009"
+        ],
+        "merge_rationale": "Both candidates define word embeddings and contrast with sparse methods; combined into a single concept.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-004",
+        "label": "Distributive hypothesis as foundation for word embeddings",
+        "description": "Distributive hypothesis: words that appear in similar contexts tend to have similar meanings, forming the theoretical foundation for word embeddings that rely on co-occurrence statistics.",
+        "coverage_criteria": [
+          "State the distributive hypothesis and its role in creating word embeddings."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_002"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-005",
+        "label": "Cosine similarity for comparing word vectors",
+        "description": "Cosine similarity measures the angle between vectors to quantify semantic proximity, avoiding magnitude bias; it is preferred over dot product for word vectors where frequency can dominate.",
+        "coverage_criteria": [
+          "Define cosine similarity and explain its advantage over dot product for comparing word vectors."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_003"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-006",
+        "label": "Word2Vec architectures: CBOW vs. Skip-Gram",
+        "description": "Word2Vec has two main architectures: CBOW predicts a target word from context words, while Skip-Gram predicts context words from a target word, each with implications for training speed and accuracy on rare words.",
+        "coverage_criteria": [
+          "Differentiate CBOW and Skip-Gram architectures in Word2Vec."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_004"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-007",
+        "label": "Word2Vec training objective and negative sampling",
+        "description": "Word2Vec training maximizes the probability of observed word-context pairs via softmax; negative sampling approximates it by training on a few negative (non-co-occurring) pairs to improve efficiency.",
+        "coverage_criteria": [
+          "Explain the training objective of Word2Vec and the purpose of negative sampling."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_005"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-008",
+        "label": "Comparison of Word2Vec, GloVe, and fastText",
+        "description": "Word2Vec uses local context, GloVe leverages global co-occurrence statistics, and fastText incorporates subword information (character n-grams) to better handle rare or unknown words.",
+        "coverage_criteria": [
+          "Compare Word2Vec with GloVe and fastText in terms of context usage and handling of unknown words."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_007"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-009",
+        "label": "Preprocessing steps for word embeddings",
+        "description": "Common preprocessing for word embeddings includes lowercasing, punctuation removal, stop word removal, and tokenization to normalize text before vectorization.",
+        "coverage_criteria": [
+          "List typical preprocessing steps for word embeddings."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_008"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-010",
+        "label": "BERT: Bidirectional representation from transformers",
+        "description": "BERT is a modern embedding model using bidirectional transformers to capture context from both left and right, producing richer word representations than unidirectional models.",
+        "coverage_criteria": [
+          "Explain the bidirectionality of BERT and its advantage over unidirectional models."
+        ],
+        "source_candidate_ids": [
+          "c42_pro_thinking_010"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-011",
+        "label": "Simple 2D word embeddings with hand-coded features illustrate similarity and analogies",
+        "description": "Using manually assigned scores (e.g., cuteness and size) for words in 2D, similar words cluster together; vector differences capture relationships, enabling analogies (e.g., tarantula to hamster is like chicken to kitten).",
+        "coverage_criteria": [
+          "Interpret a 2D embedding plot to find similar words and explain an analogy using vector differences."
+        ],
+        "source_candidate_ids": [
+          "c41_pro_thinking_002",
+          "c41_pro_thinking_003"
+        ],
+        "merge_rationale": "Both candidates describe the construction and use of a simple 2D embedding to demonstrate core embedding principles; merged as a single introductory concept.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-012",
+        "label": "Gensim Document concept",
+        "description": "In Gensim, a document is a text sequence (str in Python 3), serving as the basic input unit for corpora and models.",
+        "coverage_criteria": [
+          "Define a Gensim document and identify valid document types."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_001"
+        ],
+        "merge_rationale": "Single candidate.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-013",
+        "label": "Gensim Corpus and Streaming",
+        "description": "A corpus in Gensim is a collection of documents serving both as input for unsupervised model training and as the set of documents to organize and query after training. Gensim can process very large corpora by streaming, iterating one document at a time to avoid loading the entire dataset into memory.",
+        "coverage_criteria": [
+          "Explain the two roles of a corpus in Gensim (training and querying).",
+          "Describe why streaming is necessary for large corpora and how Gensim achieves streaming via iterators."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_002",
+          "c43_pro_thinking_007"
+        ],
+        "merge_rationale": "The two candidates capture the corpus abstraction and its streaming capability, which together form one essential concept for handling real-world Gensim workloads.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "referencing"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-014",
+        "label": "Gensim Vector (Sparse Bag-of-Words)",
+        "description": "A vector is a mathematical representation of a document; in Gensim it is often a sparse bag-of-words vector where features are word counts and zero values are omitted to save memory. Document similarity is assessed by vector proximity.",
+        "coverage_criteria": [
+          "Explain why vectors are used to represent documents in Gensim.",
+          "Distinguish between dense and sparse vectors.",
+          "Interpret a simple bag-of-words vector like [(0,2), (1,1)]."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_003"
+        ],
+        "merge_rationale": "Single candidate fully captures the vector representation concept.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-015",
+        "label": "Gensim Model as Vector Transformation",
+        "description": "A model in Gensim is an algorithm that learns to transform vectors from one representation to another (e.g., bag-of-words to TF-IDF) by training on a corpus. Trained models can be saved, loaded, and applied to new documents.",
+        "coverage_criteria": [
+          "Define what a Gensim model does.",
+          "Explain the training process as learning a transformation between vector spaces.",
+          "Describe a concrete example like TF-IDF."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_004"
+        ],
+        "merge_rationale": "Single candidate defines the model abstraction clearly.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-016",
+        "label": "Gensim Dictionary for Vectorization",
+        "description": "The gensim.corpora.Dictionary class maps each word in the corpus to a unique integer ID, enabling conversion of tokenized documents into bag-of-words vectors via the doc2bow method. Out-of-vocabulary words are ignored.",
+        "coverage_criteria": [
+          "Explain the purpose of a Gensim Dictionary.",
+          "Use a dictionary to convert a short text into a bag-of-words vector.",
+          "Identify that unknown words are excluded during vectorization."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_005"
+        ],
+        "merge_rationale": "Candidate covers the Dictionary tool and its usage.",
+        "source_roles": [
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-017",
+        "label": "TF-IDF Model in Gensim",
+        "description": "The TF-IDF model transforms bag-of-words vectors by weighting term frequencies inversely with document frequency, reducing the weight of common words and emphasizing rare ones.",
+        "coverage_criteria": [
+          "Explain the effect of TF-IDF on word weights.",
+          "Compare TF-IDF weights of frequent and rare words in a given corpus.",
+          "Apply a pre-trained TF-IDF model to a new document."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_006"
+        ],
+        "merge_rationale": "Candidate provides a precise, testable explanation of TF-IDF.",
+        "source_roles": [
+          "demonstrating",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-018",
+        "label": "Similarity Queries with Gensim",
+        "description": "After transforming a corpus with a model (e.g., TF-IDF), Gensim can compute similarity scores between a query document and all corpus documents, enabling search and clustering. Results can be sorted to find the most relevant documents.",
+        "coverage_criteria": [
+          "Explain how to perform a similarity query in Gensim.",
+          "Interpret similarity scores from a given output.",
+          "Sort documents by relevance using similarity scores."
+        ],
+        "source_candidate_ids": [
+          "c43_pro_thinking_008"
+        ],
+        "merge_rationale": "Candidate demonstrates the end-to-end similarity query application.",
+        "source_roles": [
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      }
+    ],
+    "pruned_candidates": [],
+    "review_candidates": [],
+    "candidate_assignments": [
+      {
+        "candidate_id": "c41_pro_thinking_001",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Both candidates describe Word2Vec producing embeddings for analogies; merged into lr001.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-001"
+      },
+      {
+        "candidate_id": "c42_pro_thinking_006",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Both candidates describe Word2Vec producing embeddings for analogies; merged into lr001.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-001"
+      },
+      {
+        "candidate_id": "c41_pro_thinking_004",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr002"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_001",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr003",
+        "explanation": "Both define word embeddings and contrast with sparse representations; merged into lr003.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-003"
+      },
+      {
+        "candidate_id": "c42_pro_thinking_009",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr003",
+        "explanation": "Both define word embeddings and contrast with sparse representations; merged into lr003.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-003"
+      },
+      {
+        "candidate_id": "c42_pro_thinking_002",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr004"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_003",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr005"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_004",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr006"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_005",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr007"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_007",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr008"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_008",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr009"
+        ]
+      },
+      {
+        "candidate_id": "c42_pro_thinking_010",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr010"
+        ]
+      },
+      {
+        "candidate_id": "c41_pro_thinking_002",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr011",
+        "explanation": "Both illustrate simple 2D embeddings with hand-coded features for similarity and analogies; merged into lr011.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-011"
+      },
+      {
+        "candidate_id": "c41_pro_thinking_003",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr011",
+        "explanation": "Both illustrate simple 2D embeddings with hand-coded features for similarity and analogies; merged into lr011.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-011"
+      },
+      {
+        "candidate_id": "c43_pro_thinking_001",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr012"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_002",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr013"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_007",
+        "status": "merged_into",
+        "merged_into": "batch_002__lr013",
+        "explanation": "Streaming is a key feature of Gensim corpora; it is fully represented within the combined corpus concept.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim-013"
+      },
+      {
+        "candidate_id": "c43_pro_thinking_003",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr014"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_004",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr015"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_005",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr016"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_006",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr017"
+        ]
+      },
+      {
+        "candidate_id": "c43_pro_thinking_008",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr018"
+        ]
+      }
+    ]
+  },
+  "notes_for_judge": [
+    "Do not assume a candidate is good because it is source-backed.",
+    "Review means not accepted and not pruned; in some cases it may be a deterministic fallback after omission.",
+    "Judge against the lesson metadata and the project concept definition, not against labels only."
+  ]
+}

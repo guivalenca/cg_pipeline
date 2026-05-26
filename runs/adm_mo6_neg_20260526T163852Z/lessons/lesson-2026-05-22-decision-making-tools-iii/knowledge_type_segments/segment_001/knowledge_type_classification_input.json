@@ -1,0 +1,90 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-22-decision-making-tools-iii/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+    "title": "Decision-Making Tools III"
+  },
+  "segment": {
+    "segment_id": "segment_001",
+    "label": "Decision Tree Fundamentals",
+    "concept_ids": [
+      "concept-decision-tree-basics-8f627409",
+      "concept-building-and-labeling-decision-trees-bf331b30",
+      "concept-handling-deterministic-payoffs-in-decision-trees-458de048"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-decision-tree-basics-8f627409",
+      "label": "Decision Tree Basics",
+      "teaching_description": "Understanding of what a decision tree is, its purpose, and its standard symbolic representation.",
+      "coverage_criteria": [
+        "Define a decision tree and explain its use in decision-making.",
+        "Identify and explain the standard symbols used in decision trees (decision nodes, chance nodes, end nodes) and the left-to-right reading convention."
+      ],
+      "source_candidate_ids": [
+        "lr005_001",
+        "lr005_002"
+      ]
+    },
+    {
+      "concept_id": "concept-building-and-labeling-decision-trees-bf331b30",
+      "label": "Building and Labeling Decision Trees",
+      "teaching_description": "Construct a decision tree from a scenario, including drawing decision and chance nodes, branches, and labeling branches with probabilities and payoffs, ensuring probabilities from a chance node sum to 100%.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches, and label the branches with given probabilities and payoffs.",
+        "Explain the steps for constructing a decision tree and why probabilities from a chance node must sum to 100%."
+      ],
+      "source_candidate_ids": [
+        "lr005_003",
+        "lr005_004"
+      ]
+    },
+    {
+      "concept_id": "concept-handling-deterministic-payoffs-in-decision-trees-458de048",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "teaching_description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ],
+      "source_candidate_ids": [
+        "lr005_020"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

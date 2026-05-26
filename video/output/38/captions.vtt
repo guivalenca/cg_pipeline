@@ -1,0 +1,7583 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:16.140
+ Então vamos lá, seja muito bem-vindo a mais um Ciência dos Dados na Prática.
+
+00:00:16.140 --> 00:00:23.300
+ Meu nome é Eduardo Rocha e toda semana eu trago aqui projetos, eu trago conteúdo específico
+
+00:00:23.300 --> 00:00:28.300
+ para que eu possa transformar você num cientista de dados, trazendo casos práticos
+
+00:00:28.300 --> 00:00:34.260
+ para que você sempre adquira mais conhecimentos e mais casos práticos
+
+00:00:34.260 --> 00:00:38.140
+ daquilo que o cientista de dados faz dentro das empresas.
+
+00:00:38.140 --> 00:00:43.680
+ Tranquilo? Esse é o meu objetivo, eu quero trazer coisas que são práticas, que tem usabilidade.
+
+00:00:43.680 --> 00:00:49.380
+ Meu objetivo não é só colocar exercício, não é fazer aquela coisinha mais default que tem ali na faculdade.
+
+00:00:49.380 --> 00:00:52.040
+ Não, cara, meu objetivo é um pouco além, tá bom?
+
+00:00:52.040 --> 00:00:59.160
+ Meu objetivo é fazer com que você consiga colocar aqui a mão na massa e com projetos específicos
+
+00:00:59.160 --> 00:01:05.300
+ você já tenha ideias pelo menos para que você possa implementar coisas que vão ajudar as empresas.
+
+00:01:05.300 --> 00:01:10.960
+ Nós estamos vivendo numa era na qual há uma escassez muito grande de cientistas de dados
+
+00:01:10.960 --> 00:01:16.420
+ e há uma abundância gigante de vagas para cientistas de dados aí no mercado.
+
+00:01:16.800 --> 00:01:22.380
+ Então, se você abrir aí o Glassdoor agora e digitar lá, data science, cientista de dados, né?
+
+00:01:22.380 --> 00:01:25.220
+ Tem os dois nomes lá, tem uma galera que gosta mais de falar inglês.
+
+00:01:25.220 --> 00:01:29.500
+ Eu como um saco muito do inglês aqui, eu gosto de falar cientista de dados.
+
+00:01:29.500 --> 00:01:30.700
+ Estou aqui no Brasilzão, vai.
+
+00:01:30.700 --> 00:01:32.820
+ Deixa eu pausar o inglês básico ali.
+
+00:01:33.480 --> 00:01:35.700
+ Não, galera, não estou menosprezando o inglês, não, tá bom?
+
+00:01:35.700 --> 00:01:38.240
+ Ah, se você sabe muito bem inglês, pô, que massa.
+
+00:01:38.240 --> 00:01:40.340
+ É porque eu sei só de leve ali e tal.
+
+00:01:40.340 --> 00:01:44.120
+ Então, eu preferi utilizar cientista de dados, beleza, galera?
+
+00:01:44.120 --> 00:01:45.080
+ Ciência de dados.
+
+00:01:45.080 --> 00:01:48.380
+ Então, eu estou tentando trazer aqui um conteúdo que é muito técnico
+
+00:01:48.380 --> 00:01:49.820
+ para que você...
+
+00:01:49.820 --> 00:01:51.380
+ De uma forma um pouco mais leve, né?
+
+00:01:51.380 --> 00:01:55.060
+ Porque a gente encontra aí muito conteúdo, uma parada que a gente até acha massa.
+
+00:01:55.060 --> 00:01:58.020
+ Só que aí vem um conteúdo pesado, denso pra caramba.
+
+00:01:58.020 --> 00:02:03.160
+ Aí você, putz, teria até chance de fazer um trabalho bacana aí na empresa onde você está,
+
+00:02:03.160 --> 00:02:05.460
+ no departamento onde você está, de aprender uma coisa massa,
+
+00:02:05.460 --> 00:02:10.240
+ independente da tua formação, independente se você é programador ou não, né?
+
+00:02:10.240 --> 00:02:11.340
+ Eu não sou programador, né?
+
+00:02:11.340 --> 00:02:13.140
+ Então, pra você ver, eu não sou...
+
+00:02:13.140 --> 00:02:15.640
+ Minha formação não é da área de tecnologia.
+
+00:02:15.640 --> 00:02:18.580
+ Eu sou cientista de dados, mas eu sou economista, né?
+
+00:02:18.580 --> 00:02:19.600
+ Então, vai vendo, né?
+
+00:02:19.600 --> 00:02:22.060
+ Minha formação, ela vem mais ali da prática,
+
+00:02:22.060 --> 00:02:25.620
+ de ter utilizado e aprendido essas coisas aí no dia a dia, né?
+
+00:02:25.760 --> 00:02:28.260
+ Então, essa é a minha área.
+
+00:02:28.260 --> 00:02:30.560
+ E eu acho que você também é capaz de fazer essa parada.
+
+00:02:30.560 --> 00:02:31.780
+ Eu não estou fazendo aqui, né não?
+
+00:02:31.780 --> 00:02:32.520
+ Estou fazendo aqui?
+
+00:02:32.520 --> 00:02:33.720
+ Então, você também consegue sim.
+
+00:02:33.720 --> 00:02:37.360
+ E é esse o meu objetivo, é trazer isso num conteúdo mais leve,
+
+00:02:37.360 --> 00:02:39.220
+ numa parada um pouco mais tranquila,
+
+00:02:39.220 --> 00:02:41.000
+ pra que você possa desenvolver aplicações.
+
+00:02:41.000 --> 00:02:41.920
+ Tamo junto!
+
+00:02:41.920 --> 00:02:43.840
+ Dado o get-get aqui do início,
+
+00:02:43.840 --> 00:02:45.700
+ eu gosto de contextualizar logo no início,
+
+00:02:45.700 --> 00:02:48.760
+ pra você saber qual é o meu objetivo contigo, beleza?
+
+00:02:48.760 --> 00:02:51.940
+ Meu objetivo contigo é simplesmente te ensinar a ciência de dados,
+
+00:02:51.940 --> 00:02:55.160
+ porque o meu objetivo é te levar pra te transformar
+
+00:02:55.160 --> 00:02:55.980
+ num cientista de dados.
+
+00:02:55.980 --> 00:02:56.860
+ Tamo junto!
+
+00:02:56.860 --> 00:02:57.660
+ Simbora, então.
+
+00:02:57.660 --> 00:02:58.880
+ Se você quer ser cientista de dados,
+
+00:02:58.880 --> 00:03:00.300
+ cola aí e tamo junto,
+
+00:03:00.300 --> 00:03:02.220
+ é que tem muito conteúdo bom aqui no canal, tá bom?
+
+00:03:02.220 --> 00:03:03.100
+ Então, beleza.
+
+00:03:03.100 --> 00:03:03.920
+ Cara, olha só.
+
+00:03:03.920 --> 00:03:07.180
+ Existe uma parada muito massa dentro da ciência de dados,
+
+00:03:07.180 --> 00:03:09.460
+ conhecida como análise de sentimentos.
+
+00:03:09.460 --> 00:03:10.720
+ O que é isso, Eduardo?
+
+00:03:10.720 --> 00:03:12.080
+ Estou falando de sentimento mesmo.
+
+00:03:12.080 --> 00:03:13.840
+ É sentimento de ódio,
+
+00:03:13.840 --> 00:03:14.900
+ sentimento de raiva,
+
+00:03:14.900 --> 00:03:16.000
+ sentimento de amor,
+
+00:03:16.000 --> 00:03:17.240
+ sentimento de medo.
+
+00:03:17.240 --> 00:03:18.520
+ Então, é sentimento.
+
+00:03:18.520 --> 00:03:21.300
+ Então, como é que a gente pode utilizar isso
+
+00:03:21.300 --> 00:03:22.280
+ na ciência de dados, Eduardo?
+
+00:03:22.280 --> 00:03:24.440
+ Galera, de várias maneiras, tá bom?
+
+00:03:24.440 --> 00:03:27.720
+ Eu posso simplesmente criar um programa aqui
+
+00:03:27.720 --> 00:03:28.880
+ com computação,
+
+00:03:28.880 --> 00:03:31.340
+ com visão computacional
+
+00:03:31.340 --> 00:03:35.680
+ e detectar por meio aí da resolução aqui da câmera,
+
+00:03:35.680 --> 00:03:37.900
+ olhar o frame da sua imagem
+
+00:03:37.900 --> 00:03:40.040
+ e saber se você tá curioso,
+
+00:03:40.040 --> 00:03:41.460
+ saber se você tá com medo,
+
+00:03:41.460 --> 00:03:42.820
+ saber se você tá com nojo,
+
+00:03:42.820 --> 00:03:44.720
+ saber se você tá amando,
+
+00:03:44.720 --> 00:03:46.900
+ saber se você tá nervoso, com raiva.
+
+00:03:47.340 --> 00:03:49.580
+ Existe programa pra fazer isso, Eduardo?
+
+00:03:49.580 --> 00:03:51.120
+ Galera, existe.
+
+00:03:51.120 --> 00:03:53.240
+ E quem sabe em breve eu trago essa área também,
+
+00:03:53.240 --> 00:03:54.280
+ de visão computacional aqui,
+
+00:03:54.280 --> 00:03:54.960
+ pra vocês.
+
+00:03:54.960 --> 00:03:55.740
+ Beleza?
+
+00:03:55.740 --> 00:03:58.580
+ Então, mas essa não é a única forma
+
+00:03:58.580 --> 00:04:00.800
+ de você detectar o sentimento, né,
+
+00:04:00.800 --> 00:04:01.460
+ das pessoas.
+
+00:04:01.460 --> 00:04:02.840
+ Qual é a outra forma
+
+00:04:02.840 --> 00:04:04.900
+ que a gente gosta de se expressar?
+
+00:04:05.180 --> 00:04:06.080
+ E principalmente eu,
+
+00:04:06.080 --> 00:04:06.860
+ que sou aí, né,
+
+00:04:06.860 --> 00:04:08.400
+ da década passada, vai,
+
+00:04:08.400 --> 00:04:09.580
+ da década passada,
+
+00:04:09.580 --> 00:04:10.440
+ brincation, né,
+
+00:04:10.440 --> 00:04:12.340
+ sou do milênio passado,
+
+00:04:12.340 --> 00:04:15.600
+ utilizava muito pra expressar os sentimentos.
+
+00:04:15.600 --> 00:04:16.200
+ De onde era?
+
+00:04:16.200 --> 00:04:17.420
+ Galera, era no chat,
+
+00:04:17.420 --> 00:04:17.800
+ não é não?
+
+00:04:18.260 --> 00:04:19.700
+ Então a gente ficava aqui
+
+00:04:19.700 --> 00:04:22.220
+ que nem o muito doido aqui, ó,
+
+00:04:22.220 --> 00:04:24.660
+ teclando ali e tal,
+
+00:04:24.660 --> 00:04:26.800
+ e expressava o nosso sentimento
+
+00:04:26.800 --> 00:04:28.060
+ por meio ali do chat,
+
+00:04:28.060 --> 00:04:28.880
+ por meio ali, né,
+
+00:04:28.880 --> 00:04:30.540
+ do bate-papo, né,
+
+00:04:30.540 --> 00:04:31.240
+ do ISQ,
+
+00:04:31.240 --> 00:04:32.900
+ pô, esqueci até o nome,
+
+00:04:32.900 --> 00:04:34.120
+ ISQN, não?
+
+00:04:34.120 --> 00:04:35.500
+ Ah, esqueci o nome
+
+00:04:35.500 --> 00:04:37.060
+ das ferramentas de bate-papo
+
+00:04:37.060 --> 00:04:38.120
+ que a gente tinha antigamente.
+
+00:04:38.120 --> 00:04:40.460
+ Usei muito o MSN, galera,
+
+00:04:40.460 --> 00:04:42.220
+ MSN, meu Deus do céu,
+
+00:04:42.220 --> 00:04:44.100
+ olha aí o precursor do message aí.
+
+00:04:44.100 --> 00:04:45.360
+ É, galera,
+
+00:04:45.360 --> 00:04:47.540
+ eu usei essas paradas tudo de MSN,
+
+00:04:47.540 --> 00:04:49.180
+ olha só, caraca, que fera, né?
+
+00:04:49.180 --> 00:04:51.140
+ Tinha lá os Yahoo Groups,
+
+00:04:51.140 --> 00:04:52.380
+ eu lembro que a gente usava muito
+
+00:04:52.380 --> 00:04:53.280
+ Yahoo Groups, né,
+
+00:04:53.280 --> 00:04:54.500
+ era muito legal.
+
+00:04:54.500 --> 00:04:56.080
+ Então, a forma como a gente
+
+00:04:56.080 --> 00:04:57.460
+ compartilhava ali
+
+00:04:57.460 --> 00:04:59.280
+ o nosso sentimento
+
+00:04:59.280 --> 00:05:01.020
+ com relação aos mais diversos assuntos
+
+00:05:01.020 --> 00:05:01.760
+ aí na internet
+
+00:05:01.760 --> 00:05:03.320
+ era digitando, galera.
+
+00:05:03.320 --> 00:05:05.540
+ E hoje, o que eu vou trazer pra vocês
+
+00:05:05.540 --> 00:05:08.800
+ é uma forma de você analisar
+
+00:05:08.800 --> 00:05:09.960
+ o que tá sendo escrito
+
+00:05:09.960 --> 00:05:12.340
+ nos chats, nos blogs,
+
+00:05:12.340 --> 00:05:14.660
+ enfim, se você tem um banco de dados aí
+
+00:05:14.660 --> 00:05:16.620
+ onde você consegue armazenar
+
+00:05:16.620 --> 00:05:18.260
+ as informações textuais, né?
+
+00:05:18.260 --> 00:05:19.600
+ Então, eu vou dar um exemplo lá
+
+00:05:19.600 --> 00:05:20.240
+ que eu nunca dei
+
+00:05:20.240 --> 00:05:21.040
+ do Banco do Brasil.
+
+00:05:21.040 --> 00:05:23.220
+ Então, se você...
+
+00:05:23.220 --> 00:05:24.500
+ Eu trabalhei no Banco do Brasil, galera,
+
+00:05:24.500 --> 00:05:25.460
+ e eu gosto de usar o exemplo
+
+00:05:25.460 --> 00:05:26.040
+ do Banco do Brasil
+
+00:05:26.040 --> 00:05:27.320
+ porque eu vivi muita coisa lá, né?
+
+00:05:27.320 --> 00:05:28.480
+ Então, eu gosto de usar esse exemplo.
+
+00:05:28.480 --> 00:05:30.120
+ Então, você tá chegando agora aí
+
+00:05:30.120 --> 00:05:31.440
+ e eu falo uma piada interna aí
+
+00:05:31.440 --> 00:05:32.460
+ e já vai se interando aí
+
+00:05:32.460 --> 00:05:33.260
+ dessa parada, beleza?
+
+00:05:33.760 --> 00:05:36.660
+ Então, como que você poderia utilizar isso
+
+00:05:36.660 --> 00:05:37.700
+ dentro do Banco do Brasil?
+
+00:05:37.700 --> 00:05:38.960
+ Então, imagina lá que você tá
+
+00:05:38.960 --> 00:05:39.860
+ numa área de clientes
+
+00:05:39.860 --> 00:05:41.220
+ do Banco do Brasil, beleza?
+
+00:05:41.220 --> 00:05:43.420
+ E aí, cara, você tem acesso lá
+
+00:05:43.420 --> 00:05:44.740
+ às redes sociais do Banco do Brasil,
+
+00:05:44.740 --> 00:05:47.180
+ Twitter, tem acesso ao chat lá
+
+00:05:47.180 --> 00:05:47.820
+ do...
+
+00:05:47.820 --> 00:05:48.660
+ do...
+
+00:05:48.660 --> 00:05:49.100
+ do...
+
+00:05:49.100 --> 00:05:49.660
+ do...
+
+00:05:49.660 --> 00:05:50.840
+ fale com o gerente, enfim,
+
+00:05:50.840 --> 00:05:51.960
+ tem várias coisas lá
+
+00:05:51.960 --> 00:05:53.560
+ que você tem acesso
+
+00:05:53.560 --> 00:05:55.740
+ às informações textuais, né?
+
+00:05:55.740 --> 00:05:56.960
+ Que os clientes vão lá
+
+00:05:56.960 --> 00:05:58.380
+ e fazem a sua manifestação.
+
+00:05:58.780 --> 00:05:59.900
+ Ah, o Banco do Brasil
+
+00:05:59.900 --> 00:06:01.340
+ tá colocando meu nome
+
+00:06:01.340 --> 00:06:02.680
+ no Serasa e blá, blá, blá.
+
+00:06:02.680 --> 00:06:04.240
+ Ou então, cara, que legal,
+
+00:06:04.240 --> 00:06:05.740
+ conheci uma galera do Banco do Brasil
+
+00:06:05.740 --> 00:06:07.260
+ que me atendeu super rápido,
+
+00:06:07.260 --> 00:06:08.320
+ prontamente ali.
+
+00:06:08.320 --> 00:06:10.620
+ E aí, você vai armazenando
+
+00:06:10.620 --> 00:06:11.340
+ essas informações
+
+00:06:11.340 --> 00:06:13.040
+ e você tem um banco de dados
+
+00:06:13.040 --> 00:06:14.060
+ onde você guarda
+
+00:06:14.060 --> 00:06:15.780
+ essas informações, beleza?
+
+00:06:15.780 --> 00:06:18.720
+ Então, como que você pode analisar
+
+00:06:18.720 --> 00:06:20.740
+ se há um sentimento bacana
+
+00:06:20.740 --> 00:06:21.940
+ naquilo que tá escrito
+
+00:06:21.940 --> 00:06:23.920
+ ou se há um sentimento ali
+
+00:06:23.920 --> 00:06:25.500
+ pra baixo com relação
+
+00:06:25.500 --> 00:06:27.560
+ ao que os clientes estão escrevendo
+
+00:06:27.560 --> 00:06:29.220
+ sobre a sua empresa?
+
+00:06:29.220 --> 00:06:32.200
+ Por meio de Machine Learning, galera.
+
+00:06:32.200 --> 00:06:33.480
+ E é isso que eu vou trazer
+
+00:06:33.480 --> 00:06:34.360
+ pra você aqui hoje.
+
+00:06:34.360 --> 00:06:36.120
+ Após esse caso prático
+
+00:06:36.120 --> 00:06:37.220
+ que a gente vai fazer agora,
+
+00:06:37.220 --> 00:06:39.240
+ você vai ter condições
+
+00:06:39.240 --> 00:06:40.760
+ de iniciar aí um trabalho
+
+00:06:40.760 --> 00:06:42.100
+ de análise de sentimentos
+
+00:06:42.100 --> 00:06:44.260
+ utilizando Machine Learning
+
+00:06:44.260 --> 00:06:46.140
+ aplicado a texto, galera.
+
+00:06:46.140 --> 00:06:47.020
+ A texto que eu falo
+
+00:06:47.020 --> 00:06:48.860
+ é de texto, de escrita mesmo, tudo bem?
+
+00:06:48.860 --> 00:06:50.780
+ Então, essa é a minha promessa
+
+00:06:50.780 --> 00:06:51.560
+ contigo aqui hoje.
+
+00:06:51.560 --> 00:06:53.120
+ Você vai sair, pelo menos,
+
+00:06:53.120 --> 00:06:54.740
+ com um caminho aí,
+
+00:06:54.740 --> 00:06:55.240
+ enveredado
+
+00:06:55.240 --> 00:06:56.400
+ pra que você possa utilizar
+
+00:06:56.400 --> 00:06:57.840
+ essa técnica de Machine Learning
+
+00:06:57.840 --> 00:07:00.000
+ pra fazer análise de sentimentos.
+
+00:07:00.000 --> 00:07:01.600
+ E eu vou explicar exatamente
+
+00:07:01.600 --> 00:07:02.460
+ como que você vai fazer
+
+00:07:02.460 --> 00:07:02.960
+ essa parada.
+
+00:07:02.960 --> 00:07:03.420
+ Tranquilo?
+
+00:07:03.420 --> 00:07:04.180
+ Bora pra frente?
+
+00:07:04.180 --> 00:07:04.980
+ Então, olha só.
+
+00:07:04.980 --> 00:07:06.240
+ Eu trouxe aqui um caso
+
+00:07:06.240 --> 00:07:08.640
+ que ele é de fácil usabilidade, né?
+
+00:07:08.640 --> 00:07:09.020
+ Por quê?
+
+00:07:09.020 --> 00:07:10.340
+ Porque eu preciso ter
+
+00:07:10.340 --> 00:07:10.980
+ um banco de dados
+
+00:07:10.980 --> 00:07:12.080
+ pra você ter acesso.
+
+00:07:12.080 --> 00:07:13.560
+ Então, imagina que você tá aí,
+
+00:07:13.560 --> 00:07:14.440
+ eu falei da galera
+
+00:07:14.440 --> 00:07:15.140
+ do Banco do Brasil,
+
+00:07:15.140 --> 00:07:16.240
+ mas imagina que você
+
+00:07:16.240 --> 00:07:17.060
+ tá estudando
+
+00:07:17.060 --> 00:07:18.600
+ ou que você tá numa empresa
+
+00:07:18.600 --> 00:07:20.200
+ onde você ainda não tem acesso
+
+00:07:20.200 --> 00:07:20.960
+ a essas informações,
+
+00:07:20.960 --> 00:07:22.280
+ como é que você ia
+
+00:07:22.280 --> 00:07:24.000
+ colher os frutos
+
+00:07:24.000 --> 00:07:24.880
+ desse trabalho aqui,
+
+00:07:24.880 --> 00:07:25.300
+ não é mesmo?
+
+00:07:25.300 --> 00:07:26.420
+ Então, peguei um banco
+
+00:07:26.420 --> 00:07:27.480
+ de dados gratuito aqui
+
+00:07:27.480 --> 00:07:28.320
+ que tá
+
+00:07:28.320 --> 00:07:29.680
+ na web,
+
+00:07:29.680 --> 00:07:31.100
+ fiz o download,
+
+00:07:31.100 --> 00:07:32.340
+ vou deixar disponível
+
+00:07:32.340 --> 00:07:32.980
+ aqui pra você
+
+00:07:32.980 --> 00:07:33.560
+ o link,
+
+00:07:33.560 --> 00:07:35.080
+ todos os links
+
+00:07:35.080 --> 00:07:36.820
+ bem organizadinhos
+
+00:07:36.820 --> 00:07:37.740
+ pra você baixar esse dataset,
+
+00:07:37.740 --> 00:07:38.540
+ tudo bonitinho,
+
+00:07:38.540 --> 00:07:38.840
+ tá bom?
+
+00:07:38.840 --> 00:07:40.160
+ No nosso grupo no Telegram,
+
+00:07:40.160 --> 00:07:41.380
+ no final eu dou mais detalhes.
+
+00:07:41.660 --> 00:07:43.600
+ Mas, o que que é esse dataset, cara?
+
+00:07:43.600 --> 00:07:44.400
+ Vou te explicar.
+
+00:07:44.400 --> 00:07:46.180
+ Esse dataset é do IMDB.
+
+00:07:46.180 --> 00:07:48.400
+ E o que que é o IMDB, Eduardo?
+
+00:07:48.400 --> 00:07:49.800
+ Deixei o link aqui, tá?
+
+00:07:49.800 --> 00:07:50.320
+ Da Wiki,
+
+00:07:50.320 --> 00:07:51.400
+ que a Wiki explica tudo
+
+00:07:51.400 --> 00:07:52.180
+ o que que é o IMDB,
+
+00:07:52.180 --> 00:07:53.260
+ que é, galera,
+
+00:07:53.260 --> 00:07:54.020
+ um site,
+
+00:07:54.020 --> 00:07:55.240
+ que é um site
+
+00:07:55.240 --> 00:07:56.940
+ chamado IMDB
+
+00:07:56.940 --> 00:07:57.400
+ porque é
+
+00:07:57.400 --> 00:07:59.940
+ Internet Movie Database,
+
+00:07:59.940 --> 00:08:00.340
+ ou seja,
+
+00:08:00.340 --> 00:08:01.820
+ é o banco de dados
+
+00:08:01.820 --> 00:08:02.620
+ dos filmes
+
+00:08:02.620 --> 00:08:03.260
+ que estão aí
+
+00:08:03.260 --> 00:08:03.980
+ na internet.
+
+00:08:03.980 --> 00:08:05.460
+ Então, se você nunca navegou
+
+00:08:05.460 --> 00:08:06.060
+ no IMDB,
+
+00:08:06.060 --> 00:08:06.920
+ depois você joga aí
+
+00:08:06.920 --> 00:08:07.780
+ imdb.com,
+
+00:08:07.780 --> 00:08:09.460
+ vou usar só o
+
+00:08:09.460 --> 00:08:12.360
+ Wikipedia aqui
+
+00:08:12.360 --> 00:08:13.160
+ só pra você ver
+
+00:08:13.160 --> 00:08:14.240
+ o que que é logo de cara.
+
+00:08:14.240 --> 00:08:14.960
+ Então, tá lá.
+
+00:08:14.960 --> 00:08:16.260
+ Quem é o dono dessa parada?
+
+00:08:16.260 --> 00:08:16.920
+ É a Amazon.
+
+00:08:16.920 --> 00:08:17.800
+ A Amazon é dona
+
+00:08:17.800 --> 00:08:19.160
+ desse grande banco
+
+00:08:19.160 --> 00:08:19.980
+ de dados de filme,
+
+00:08:19.980 --> 00:08:20.600
+ beleza?
+
+00:08:20.600 --> 00:08:23.560
+ É de origem britânica,
+
+00:08:23.560 --> 00:08:24.060
+ tá bom?
+
+00:08:24.060 --> 00:08:24.880
+ O que que tem
+
+00:08:24.880 --> 00:08:26.020
+ nessa parada, galera?
+
+00:08:26.020 --> 00:08:27.680
+ Tem várias coisas aqui.
+
+00:08:27.680 --> 00:08:29.220
+ Tem vários dados
+
+00:08:29.220 --> 00:08:30.600
+ de vários filmes
+
+00:08:30.600 --> 00:08:31.260
+ e séries
+
+00:08:31.260 --> 00:08:32.380
+ catalogados.
+
+00:08:32.380 --> 00:08:33.740
+ Então, o que que a gente tem?
+
+00:08:33.740 --> 00:08:35.000
+ A gente tem a análise
+
+00:08:35.000 --> 00:08:36.680
+ lá das pessoas
+
+00:08:36.680 --> 00:08:37.820
+ quando ele assistiu
+
+00:08:37.820 --> 00:08:38.280
+ um filme
+
+00:08:38.280 --> 00:08:39.340
+ e aí as pessoas
+
+00:08:39.340 --> 00:08:39.940
+ iam lá e falavam
+
+00:08:39.940 --> 00:08:41.040
+ poxa, esse filme é legal.
+
+00:08:41.040 --> 00:08:42.580
+ Ah não, esse filme não é legal
+
+00:08:42.580 --> 00:08:43.320
+ porque, cara,
+
+00:08:43.320 --> 00:08:44.140
+ tem muita violência
+
+00:08:44.140 --> 00:08:45.380
+ porque blá blá blá blá blá blá blá.
+
+00:08:45.380 --> 00:08:46.280
+ Então, as pessoas
+
+00:08:46.280 --> 00:08:47.380
+ iam escrevendo
+
+00:08:47.380 --> 00:08:48.020
+ e aí
+
+00:08:48.020 --> 00:08:49.280
+ o IMDB
+
+00:08:49.280 --> 00:08:50.920
+ ia armazenando
+
+00:08:50.920 --> 00:08:51.920
+ essas informações.
+
+00:08:51.920 --> 00:08:52.820
+ Então, o que a gente
+
+00:08:52.820 --> 00:08:53.800
+ vai acessar agora
+
+00:08:53.800 --> 00:08:54.680
+ é como se a gente
+
+00:08:54.680 --> 00:08:55.520
+ estivesse na empresa
+
+00:08:55.520 --> 00:08:57.040
+ e a gente tivesse acesso
+
+00:08:57.040 --> 00:08:57.920
+ a todas as informações
+
+00:08:57.920 --> 00:08:58.520
+ textuais
+
+00:08:58.520 --> 00:08:59.960
+ que foram colocadas ali
+
+00:08:59.960 --> 00:09:00.960
+ dentro
+
+00:09:00.960 --> 00:09:02.320
+ desse banco de dados.
+
+00:09:02.320 --> 00:09:02.920
+ Tranquilo?
+
+00:09:02.920 --> 00:09:04.160
+ Então, coloquei você
+
+00:09:04.160 --> 00:09:05.240
+ dentro da empresa agora.
+
+00:09:05.240 --> 00:09:06.220
+ A partir de agora
+
+00:09:06.220 --> 00:09:06.900
+ você tem acesso
+
+00:09:06.900 --> 00:09:08.140
+ ao banco de dados textual
+
+00:09:08.140 --> 00:09:08.940
+ que as pessoas
+
+00:09:08.940 --> 00:09:10.500
+ estão falando ali
+
+00:09:10.500 --> 00:09:11.340
+ com relação
+
+00:09:11.340 --> 00:09:12.420
+ aos filmes
+
+00:09:12.420 --> 00:09:12.960
+ nesse caso.
+
+00:09:12.960 --> 00:09:13.280
+ Beleza?
+
+00:09:13.280 --> 00:09:13.880
+ Vou te colocar
+
+00:09:13.880 --> 00:09:15.000
+ dentro aí da Amazon
+
+00:09:15.000 --> 00:09:16.280
+ a partir desse momento
+
+00:09:16.280 --> 00:09:17.180
+ e você está lá
+
+00:09:17.180 --> 00:09:17.760
+ dentro da Amazon
+
+00:09:17.760 --> 00:09:18.780
+ é dono do IMDB
+
+00:09:18.780 --> 00:09:19.660
+ e você tem acesso
+
+00:09:19.660 --> 00:09:20.780
+ a essas informações
+
+00:09:20.780 --> 00:09:21.920
+ lá do chat
+
+00:09:21.920 --> 00:09:22.500
+ das pessoas
+
+00:09:22.500 --> 00:09:24.580
+ do que elas expressavam
+
+00:09:24.580 --> 00:09:25.060
+ com relação
+
+00:09:25.060 --> 00:09:26.320
+ aos filmes e séries
+
+00:09:26.320 --> 00:09:27.080
+ como você vai ver.
+
+00:09:27.080 --> 00:09:27.680
+ Beleza?
+
+00:09:27.680 --> 00:09:28.560
+ Então, beleza.
+
+00:09:28.560 --> 00:09:29.520
+ Olha só que interessante.
+
+00:09:29.520 --> 00:09:29.980
+ Cara,
+
+00:09:29.980 --> 00:09:31.280
+ a partir de agora
+
+00:09:31.280 --> 00:09:32.680
+ a gente vai fazer um trabalho
+
+00:09:32.680 --> 00:09:33.580
+ e como esse trabalho
+
+00:09:33.580 --> 00:09:34.380
+ é de texto
+
+00:09:34.380 --> 00:09:35.360
+ a gente vai entrar
+
+00:09:35.360 --> 00:09:36.080
+ numa seara
+
+00:09:36.080 --> 00:09:37.040
+ conhecida
+
+00:09:37.040 --> 00:09:37.660
+ como
+
+00:09:37.660 --> 00:09:39.120
+ processamento
+
+00:09:39.120 --> 00:09:40.720
+ de linguagem natural.
+
+00:09:40.720 --> 00:09:41.300
+ Beleza?
+
+00:09:41.300 --> 00:09:42.020
+ Em português
+
+00:09:42.020 --> 00:09:42.760
+ é PLN
+
+00:09:42.760 --> 00:09:43.340
+ tá bom?
+
+00:09:43.340 --> 00:09:44.860
+ Mas em inglês
+
+00:09:44.860 --> 00:09:46.140
+ é NLP
+
+00:09:46.140 --> 00:09:47.160
+ O que é NLP?
+
+00:09:47.160 --> 00:09:48.680
+ É Natural Language Process
+
+00:09:48.680 --> 00:09:49.520
+ Processamento
+
+00:09:49.520 --> 00:09:50.320
+ de linguagem natural.
+
+00:09:50.320 --> 00:09:51.440
+ É uma forma
+
+00:09:51.440 --> 00:09:52.540
+ é uma área
+
+00:09:52.540 --> 00:09:53.640
+ é uma vertente
+
+00:09:53.640 --> 00:09:54.380
+ aqui da nossa
+
+00:09:54.380 --> 00:09:55.340
+ inteligência artificial
+
+00:09:55.340 --> 00:09:56.560
+ na qual
+
+00:09:56.560 --> 00:09:57.780
+ a gente desenvolve
+
+00:09:57.780 --> 00:09:58.340
+ técnicas
+
+00:09:58.340 --> 00:09:59.520
+ para manipular
+
+00:09:59.520 --> 00:10:00.980
+ informações textuais.
+
+00:10:00.980 --> 00:10:01.500
+ Tudo bem?
+
+00:10:01.500 --> 00:10:02.660
+ Então essa é uma
+
+00:10:02.660 --> 00:10:03.160
+ das paradas
+
+00:10:03.160 --> 00:10:03.860
+ que a gente faz
+
+00:10:03.860 --> 00:10:05.620
+ aqui com PLN
+
+00:10:05.620 --> 00:10:06.940
+ que é manipular
+
+00:10:06.940 --> 00:10:07.880
+ as informações
+
+00:10:07.880 --> 00:10:09.220
+ que estão
+
+00:10:09.220 --> 00:10:10.180
+ no formato de texto.
+
+00:10:10.180 --> 00:10:11.340
+ Então a partir de agora
+
+00:10:11.340 --> 00:10:12.760
+ nós que sempre
+
+00:10:12.760 --> 00:10:13.580
+ estamos vendo
+
+00:10:13.580 --> 00:10:14.300
+ aqui na maioria
+
+00:10:14.300 --> 00:10:14.860
+ dos casos
+
+00:10:14.860 --> 00:10:15.720
+ aqui do Ciência dos Dados
+
+00:10:15.720 --> 00:10:16.220
+ na prática
+
+00:10:16.220 --> 00:10:17.340
+ nós estamos utilizando
+
+00:10:17.340 --> 00:10:18.020
+ as variáveis
+
+00:10:18.020 --> 00:10:18.900
+ para criar ali
+
+00:10:18.900 --> 00:10:19.780
+ a nossa máquina
+
+00:10:19.780 --> 00:10:20.460
+ preditiva
+
+00:10:20.460 --> 00:10:21.500
+ e essas variáveis
+
+00:10:21.500 --> 00:10:21.920
+ muitas vezes
+
+00:10:21.920 --> 00:10:22.680
+ são saldos
+
+00:10:22.680 --> 00:10:23.340
+ são números
+
+00:10:23.340 --> 00:10:24.520
+ hoje a partir de agora
+
+00:10:24.520 --> 00:10:25.600
+ eu quero que você imagine
+
+00:10:25.600 --> 00:10:26.500
+ que a gente
+
+00:10:26.500 --> 00:10:27.920
+ vai utilizar textos.
+
+00:10:27.920 --> 00:10:28.400
+ Tudo bem?
+
+00:10:28.400 --> 00:10:29.380
+ Vamos embora?
+
+00:10:29.380 --> 00:10:30.020
+ Vamos embora.
+
+00:10:30.020 --> 00:10:31.160
+ É o seguinte
+
+00:10:31.160 --> 00:10:32.700
+ nós vamos importar
+
+00:10:32.700 --> 00:10:33.660
+ uma biblioteca
+
+00:10:33.660 --> 00:10:34.560
+ chamada RE
+
+00:10:34.560 --> 00:10:35.340
+ que é de
+
+00:10:35.340 --> 00:10:37.240
+ Regular Expressions
+
+00:10:37.240 --> 00:10:38.440
+ de expressões regulares
+
+00:10:38.440 --> 00:10:39.740
+ outro pacote
+
+00:10:39.740 --> 00:10:41.380
+ chamado Stop Words
+
+00:10:41.380 --> 00:10:43.440
+ Word Tokenize
+
+00:10:43.440 --> 00:10:44.400
+ tudo pacotes
+
+00:10:44.400 --> 00:10:45.480
+ de manipulação
+
+00:10:45.480 --> 00:10:45.960
+ de texto
+
+00:10:45.960 --> 00:10:46.680
+ e eu vou explicar
+
+00:10:46.680 --> 00:10:47.820
+ exatamente o que
+
+00:10:47.820 --> 00:10:48.980
+ que faz
+
+00:10:48.980 --> 00:10:49.680
+ esse pacote
+
+00:10:49.680 --> 00:10:50.280
+ na hora que a gente
+
+00:10:50.280 --> 00:10:51.480
+ estiver utilizando
+
+00:10:51.480 --> 00:10:51.840
+ tá bom?
+
+00:10:51.840 --> 00:10:53.660
+ Snowball Stammer
+
+00:10:53.660 --> 00:10:54.120
+ tá bom?
+
+00:10:54.120 --> 00:10:55.680
+ Count Vectorizer
+
+00:10:55.680 --> 00:10:57.160
+ e aí a partir de agora
+
+00:10:57.160 --> 00:10:58.040
+ você já conhece
+
+00:10:58.040 --> 00:10:58.680
+ que aí é o
+
+00:10:58.680 --> 00:10:59.500
+ Trem Test Split
+
+00:10:59.500 --> 00:11:00.240
+ que a gente vai fazer
+
+00:11:00.240 --> 00:11:01.020
+ a separação
+
+00:11:01.020 --> 00:11:01.900
+ a amostragem
+
+00:11:01.900 --> 00:11:02.920
+ dos dados de treino
+
+00:11:02.920 --> 00:11:03.740
+ e os dados de teste
+
+00:11:03.740 --> 00:11:05.140
+ e vamos importar
+
+00:11:05.140 --> 00:11:06.000
+ aqui o Navy Base
+
+00:11:06.000 --> 00:11:07.360
+ você viu aqui
+
+00:11:07.360 --> 00:11:08.420
+ nas últimas aulas
+
+00:11:08.420 --> 00:11:09.380
+ eu trouxe um
+
+00:11:09.380 --> 00:11:09.920
+ dicas e truques
+
+00:11:09.920 --> 00:11:10.680
+ de ciência de dados
+
+00:11:10.680 --> 00:11:11.320
+ onde eu mostrei
+
+00:11:11.320 --> 00:11:12.200
+ apresentei pra você
+
+00:11:12.200 --> 00:11:12.760
+ o Navy Base
+
+00:11:12.760 --> 00:11:14.460
+ vi que te mostrei
+
+00:11:14.460 --> 00:11:15.020
+ lá que tinha
+
+00:11:15.020 --> 00:11:15.940
+ máquina preditiva
+
+00:11:15.940 --> 00:11:16.520
+ que você poderia
+
+00:11:16.520 --> 00:11:17.440
+ construir com
+
+00:11:17.440 --> 00:11:17.980
+ algoritmo
+
+00:11:17.980 --> 00:11:18.940
+ Gaussian Navy Base
+
+00:11:18.940 --> 00:11:19.780
+ multinomial
+
+00:11:19.780 --> 00:11:20.820
+ Navy Base
+
+00:11:20.820 --> 00:11:22.000
+ Bernoulli Navy Base
+
+00:11:22.000 --> 00:11:22.800
+ então hoje
+
+00:11:22.800 --> 00:11:23.580
+ a gente vai utilizar
+
+00:11:23.580 --> 00:11:25.060
+ aqui esses três
+
+00:11:25.060 --> 00:11:25.900
+ pra você inclusive
+
+00:11:25.900 --> 00:11:27.000
+ fazer uma comparação
+
+00:11:27.000 --> 00:11:27.880
+ daqueles que
+
+00:11:27.880 --> 00:11:29.360
+ qual melhor
+
+00:11:29.360 --> 00:11:30.260
+ constrói a máquina
+
+00:11:30.260 --> 00:11:31.300
+ preditiva pra você
+
+00:11:31.300 --> 00:11:31.900
+ tranquilo?
+
+00:11:31.900 --> 00:11:33.140
+ e ademais
+
+00:11:33.140 --> 00:11:34.000
+ pacote pra você
+
+00:11:34.000 --> 00:11:35.420
+ verificar a acurácia
+
+00:11:35.420 --> 00:11:36.760
+ e esse pickle galera
+
+00:11:36.760 --> 00:11:38.060
+ é pra fazer o salvamento
+
+00:11:38.060 --> 00:11:38.560
+ do modelo
+
+00:11:38.560 --> 00:11:39.760
+ olha só que interessante
+
+00:11:39.760 --> 00:11:40.520
+ um caso aqui
+
+00:11:40.520 --> 00:11:41.500
+ bem interessante
+
+00:11:41.500 --> 00:11:43.140
+ alguns anos atrás
+
+00:11:43.140 --> 00:11:44.340
+ quando a gente não tinha
+
+00:11:44.340 --> 00:11:45.680
+ esse tipo de trabalho
+
+00:11:45.680 --> 00:11:46.420
+ a ciência de dados
+
+00:11:46.420 --> 00:11:47.420
+ não estava muito evoluída
+
+00:11:47.420 --> 00:11:48.840
+ a gente tinha um trabalho
+
+00:11:48.840 --> 00:11:49.680
+ muito grande
+
+00:11:49.680 --> 00:11:50.300
+ na hora de
+
+00:11:50.300 --> 00:11:51.520
+ salvar
+
+00:11:51.520 --> 00:11:52.740
+ a estrutura
+
+00:11:52.740 --> 00:11:53.600
+ das nossas máquinas
+
+00:11:53.600 --> 00:11:54.240
+ preditivas
+
+00:11:54.240 --> 00:11:54.700
+ quando a gente
+
+00:11:54.700 --> 00:11:55.340
+ utilizava
+
+00:11:55.340 --> 00:11:56.380
+ esses algoritmos
+
+00:11:56.380 --> 00:11:57.120
+ de machine learning
+
+00:11:57.120 --> 00:11:57.860
+ mais novos
+
+00:11:57.860 --> 00:11:58.500
+ que estavam
+
+00:11:58.500 --> 00:11:59.720
+ nascendo na época
+
+00:11:59.720 --> 00:12:00.620
+ tais como
+
+00:12:00.620 --> 00:12:01.580
+ random forest
+
+00:12:01.580 --> 00:12:02.480
+ decision tree
+
+00:12:02.480 --> 00:12:03.040
+ por aí vai
+
+00:12:03.040 --> 00:12:03.660
+ por quê?
+
+00:12:03.660 --> 00:12:04.500
+ porque antigamente
+
+00:12:04.500 --> 00:12:05.140
+ não tinha
+
+00:12:05.140 --> 00:12:06.360
+ essa facilidade
+
+00:12:06.360 --> 00:12:06.860
+ que a gente tem
+
+00:12:06.860 --> 00:12:07.540
+ hoje no python
+
+00:12:07.540 --> 00:12:08.340
+ então imagina
+
+00:12:08.340 --> 00:12:09.100
+ eu construía lá
+
+00:12:09.100 --> 00:12:10.540
+ uma máquina
+
+00:12:10.540 --> 00:12:11.280
+ preditiva
+
+00:12:11.280 --> 00:12:12.880
+ com decision tree
+
+00:12:12.880 --> 00:12:13.580
+ e depois eu tinha
+
+00:12:13.580 --> 00:12:14.420
+ que dar um jeito
+
+00:12:14.420 --> 00:12:15.200
+ de salvar
+
+00:12:15.200 --> 00:12:16.100
+ ali o esquema
+
+00:12:16.100 --> 00:12:16.940
+ de como que
+
+00:12:16.940 --> 00:12:18.320
+ a árvore
+
+00:12:18.320 --> 00:12:18.840
+ ia fazendo
+
+00:12:18.840 --> 00:12:19.580
+ as suas quebras
+
+00:12:19.580 --> 00:12:20.520
+ e aí depois
+
+00:12:20.520 --> 00:12:21.380
+ eu tinha que implementar
+
+00:12:21.380 --> 00:12:21.920
+ essa parada
+
+00:12:21.920 --> 00:12:22.720
+ lá no cobol
+
+00:12:22.720 --> 00:12:23.240
+ da vida
+
+00:12:23.240 --> 00:12:24.380
+ era uma loucura
+
+00:12:24.380 --> 00:12:24.720
+ galera
+
+00:12:24.720 --> 00:12:25.220
+ então assim
+
+00:12:25.220 --> 00:12:25.680
+ era bem
+
+00:12:25.680 --> 00:12:26.220
+ no trabalho
+
+00:12:26.220 --> 00:12:27.180
+ de especificação
+
+00:12:27.180 --> 00:12:27.840
+ do sistema
+
+00:12:27.840 --> 00:12:28.480
+ ali pra gente
+
+00:12:28.480 --> 00:12:29.700
+ organizar
+
+00:12:29.700 --> 00:12:30.280
+ como que essa
+
+00:12:30.280 --> 00:12:30.900
+ decision tree
+
+00:12:30.900 --> 00:12:31.480
+ trabalhava
+
+00:12:31.480 --> 00:12:32.400
+ era ó galera
+
+00:12:32.400 --> 00:12:33.380
+ loucura
+
+00:12:33.380 --> 00:12:34.180
+ beleza
+
+00:12:34.180 --> 00:12:35.040
+ e isso aí
+
+00:12:35.040 --> 00:12:35.580
+ é muito caro
+
+00:12:35.580 --> 00:12:36.100
+ pra instituição
+
+00:12:36.100 --> 00:12:37.400
+ agora galera
+
+00:12:37.400 --> 00:12:38.520
+ a gente tem pacotes
+
+00:12:38.520 --> 00:12:39.400
+ aqui que nos ajudam
+
+00:12:39.400 --> 00:12:40.820
+ eu chamo o pacote
+
+00:12:40.820 --> 00:12:41.020
+ aqui
+
+00:12:41.020 --> 00:12:42.160
+ salvo a minha
+
+00:12:42.160 --> 00:12:43.060
+ máquina preditiva
+
+00:12:43.060 --> 00:12:43.800
+ depois se eu quiser
+
+00:12:43.800 --> 00:12:45.380
+ eu abro ali
+
+00:12:45.380 --> 00:12:47.600
+ o meu pacote
+
+00:12:47.600 --> 00:12:48.940
+ aqui onde eu salvei
+
+00:12:48.940 --> 00:12:49.460
+ a minha máquina
+
+00:12:49.460 --> 00:12:50.120
+ preditiva
+
+00:12:50.120 --> 00:12:50.900
+ e mando ele fazer
+
+00:12:50.900 --> 00:12:51.700
+ o trabalho ali
+
+00:12:51.700 --> 00:12:52.360
+ as predições
+
+00:12:52.360 --> 00:12:52.800
+ enfim
+
+00:12:52.800 --> 00:12:53.460
+ hoje
+
+00:12:53.460 --> 00:12:54.800
+ está cada vez
+
+00:12:54.800 --> 00:12:55.300
+ mais fácil
+
+00:12:55.300 --> 00:12:55.600
+ beleza
+
+00:12:55.600 --> 00:12:56.160
+ tamo junto
+
+00:12:56.160 --> 00:12:56.900
+ então é isso que a gente
+
+00:12:56.900 --> 00:12:57.600
+ vai fazer com o pico
+
+00:12:57.600 --> 00:12:58.300
+ eu vou salvar aqui
+
+00:12:58.300 --> 00:12:59.280
+ a minha máquina preditiva
+
+00:12:59.280 --> 00:12:59.660
+ tá bom
+
+00:12:59.660 --> 00:13:00.200
+ então
+
+00:13:00.200 --> 00:13:01.580
+ vou importar aqui
+
+00:13:01.580 --> 00:13:02.660
+ os nossos pacotes
+
+00:13:02.660 --> 00:13:03.760
+ pra que a gente possa fazer
+
+00:13:03.760 --> 00:13:05.180
+ o nosso trabalho
+
+00:13:05.180 --> 00:13:06.520
+ e o banco de dados
+
+00:13:06.520 --> 00:13:07.400
+ eu já fiz aqui
+
+00:13:07.400 --> 00:13:08.120
+ a importação
+
+00:13:08.120 --> 00:13:08.820
+ ele tá aqui
+
+00:13:08.820 --> 00:13:10.240
+ ele é relativamente grande
+
+00:13:10.240 --> 00:13:10.440
+ tá
+
+00:13:10.440 --> 00:13:11.140
+ cientista de dados
+
+00:13:11.140 --> 00:13:12.520
+ então eu já subi ele aqui
+
+00:13:12.520 --> 00:13:14.020
+ pra gente não ter esse tempo
+
+00:13:14.020 --> 00:13:15.240
+ mas eu vou deixar ele disponível
+
+00:13:15.240 --> 00:13:15.680
+ pra você
+
+00:13:15.680 --> 00:13:16.820
+ que é o mdb database
+
+00:13:16.820 --> 00:13:17.280
+ dataset
+
+00:13:17.280 --> 00:13:18.700
+ ele é bem grande
+
+00:13:18.700 --> 00:13:18.940
+ né
+
+00:13:18.940 --> 00:13:19.720
+ um banco de dados
+
+00:13:19.720 --> 00:13:20.600
+ bem grandezinho assim
+
+00:13:20.600 --> 00:13:21.580
+ pelo menos demora um pouco
+
+00:13:21.580 --> 00:13:23.020
+ aí pra você fazer importação
+
+00:13:23.020 --> 00:13:23.940
+ mais do que normal
+
+00:13:23.940 --> 00:13:25.240
+ então fique tranquilo
+
+00:13:25.240 --> 00:13:25.740
+ é normal
+
+00:13:25.740 --> 00:13:26.220
+ isso aí
+
+00:13:26.220 --> 00:13:26.520
+ beleza
+
+00:13:26.520 --> 00:13:28.080
+ então vamos lá conhecer
+
+00:13:28.080 --> 00:13:28.880
+ esse banco de dados
+
+00:13:28.880 --> 00:13:29.380
+ pra você ver
+
+00:13:29.380 --> 00:13:30.280
+ o que que tem nele
+
+00:13:30.280 --> 00:13:31.280
+ eu vou simplesmente
+
+00:13:31.280 --> 00:13:32.300
+ importar com o hit
+
+00:13:32.300 --> 00:13:33.300
+ CSV do Pandas
+
+00:13:33.300 --> 00:13:34.680
+ vou te mostrar aqui
+
+00:13:34.680 --> 00:13:35.420
+ o tamanho dele
+
+00:13:35.420 --> 00:13:36.320
+ então a gente tem aqui
+
+00:13:36.320 --> 00:13:38.040
+ cerca de 50 mil registros
+
+00:13:38.040 --> 00:13:38.420
+ tá bom
+
+00:13:38.420 --> 00:13:39.580
+ e duas colunas
+
+00:13:39.580 --> 00:13:40.380
+ putz Eduardo
+
+00:13:40.380 --> 00:13:41.020
+ você disse que é um banco
+
+00:13:41.020 --> 00:13:41.980
+ de dados grande
+
+00:13:41.980 --> 00:13:43.020
+ é porque galera
+
+00:13:43.020 --> 00:13:44.460
+ cada registro
+
+00:13:44.460 --> 00:13:46.240
+ ele é um pedaço
+
+00:13:46.240 --> 00:13:46.800
+ do chat
+
+00:13:46.800 --> 00:13:48.200
+ uma interação do chat
+
+00:13:48.200 --> 00:13:49.300
+ então imagina lá
+
+00:13:49.300 --> 00:13:50.420
+ o cara número zero
+
+00:13:50.420 --> 00:13:50.900
+ foi lá
+
+00:13:50.900 --> 00:13:52.360
+ e fez uma review
+
+00:13:52.360 --> 00:13:52.600
+ né
+
+00:13:52.600 --> 00:13:54.520
+ de uma manifestação
+
+00:13:54.520 --> 00:13:55.020
+ aí com relação
+
+00:13:55.020 --> 00:13:55.680
+ a um produto seu
+
+00:13:55.680 --> 00:13:56.260
+ da sua empresa
+
+00:13:56.260 --> 00:13:57.540
+ ele foi lá e escreveu
+
+00:13:57.540 --> 00:13:58.100
+ cara
+
+00:13:58.100 --> 00:13:58.660
+ esse produto
+
+00:13:58.660 --> 00:13:59.800
+ assim assim assado
+
+00:13:59.800 --> 00:14:01.380
+ então todo esse texto
+
+00:14:01.380 --> 00:14:02.460
+ que esse cara escreveu
+
+00:14:02.460 --> 00:14:04.400
+ vai ficar nesse registro zero
+
+00:14:04.400 --> 00:14:05.640
+ e aí galera
+
+00:14:05.640 --> 00:14:06.920
+ é aí que tem um trabalho
+
+00:14:06.920 --> 00:14:07.600
+ muito interessante
+
+00:14:07.600 --> 00:14:08.260
+ que eu quero explicar
+
+00:14:08.260 --> 00:14:09.340
+ pra vocês já de cara
+
+00:14:09.340 --> 00:14:09.880
+ que é o seguinte
+
+00:14:09.880 --> 00:14:11.620
+ o sentimento
+
+00:14:11.620 --> 00:14:13.420
+ ele precisa ser
+
+00:14:13.420 --> 00:14:14.760
+ anotado
+
+00:14:14.760 --> 00:14:15.560
+ o sentimento
+
+00:14:15.560 --> 00:14:16.680
+ ele precisa ser
+
+00:14:16.680 --> 00:14:18.500
+ targeteado
+
+00:14:18.500 --> 00:14:19.600
+ o que é targeteado
+
+00:14:19.600 --> 00:14:19.880
+ Eduardo
+
+00:14:19.880 --> 00:14:20.820
+ pelo amor de Deus
+
+00:14:20.820 --> 00:14:21.740
+ fala anotado
+
+00:14:21.740 --> 00:14:22.140
+ que é melhor
+
+00:14:22.140 --> 00:14:22.620
+ então tá bom
+
+00:14:22.620 --> 00:14:23.400
+ o sentimento
+
+00:14:23.400 --> 00:14:24.360
+ precisa ser anotado
+
+00:14:24.360 --> 00:14:25.340
+ como é que funciona isso
+
+00:14:25.340 --> 00:14:26.340
+ galera
+
+00:14:26.340 --> 00:14:28.680
+ você tá numa instituição
+
+00:14:28.680 --> 00:14:29.940
+ e aí você tá aí
+
+00:14:29.940 --> 00:14:30.800
+ dentro do Banco do Brasil
+
+00:14:30.800 --> 00:14:31.780
+ e você sabe
+
+00:14:31.780 --> 00:14:32.720
+ quando o cara
+
+00:14:32.720 --> 00:14:33.620
+ tá falando bem
+
+00:14:33.620 --> 00:14:34.360
+ ou quando o cara
+
+00:14:34.360 --> 00:14:34.960
+ tá falando mal
+
+00:14:34.960 --> 00:14:35.640
+ do seu produto
+
+00:14:35.640 --> 00:14:36.720
+ sim ou não é
+
+00:14:36.720 --> 00:14:37.820
+ então beleza
+
+00:14:37.820 --> 00:14:39.000
+ então o que vai acontecer
+
+00:14:39.000 --> 00:14:40.040
+ você tem lá
+
+00:14:40.040 --> 00:14:40.840
+ todo o chat
+
+00:14:40.840 --> 00:14:42.060
+ e aí galera
+
+00:14:42.060 --> 00:14:43.980
+ você de certa forma
+
+00:14:43.980 --> 00:14:45.400
+ vai precisar
+
+00:14:45.400 --> 00:14:46.840
+ ter um banco de dados
+
+00:14:46.840 --> 00:14:48.540
+ já com o sentimento
+
+00:14:48.540 --> 00:14:49.620
+ já pré-anotado
+
+00:14:49.620 --> 00:14:50.520
+ pra você construir
+
+00:14:50.520 --> 00:14:51.760
+ a sua máquina preditiva
+
+00:14:51.760 --> 00:14:53.420
+ como que isso pode ser feito
+
+00:14:53.420 --> 00:14:54.420
+ eu vou dar um exemplo aqui
+
+00:14:54.420 --> 00:14:54.780
+ então
+
+00:14:54.780 --> 00:14:58.160
+ você tem 50 mil interações
+
+00:14:58.160 --> 00:14:59.280
+ cara olha só
+
+00:14:59.280 --> 00:15:00.360
+ isso leva tempo
+
+00:15:00.360 --> 00:15:02.200
+ pra fazer a interação
+
+00:15:02.200 --> 00:15:04.680
+ a gente tem áreas
+
+00:15:04.680 --> 00:15:05.860
+ operacionais aí
+
+00:15:05.860 --> 00:15:06.320
+ na empresa
+
+00:15:06.320 --> 00:15:07.520
+ nas quais você pode
+
+00:15:07.520 --> 00:15:09.020
+ passar ali
+
+00:15:09.020 --> 00:15:11.420
+ dividir esses 50 mil
+
+00:15:11.420 --> 00:15:12.440
+ registros ali
+
+00:15:12.440 --> 00:15:13.320
+ do seu chat
+
+00:15:13.320 --> 00:15:15.360
+ pra áreas específicas
+
+00:15:15.360 --> 00:15:17.340
+ que são mais operacionais
+
+00:15:17.340 --> 00:15:18.560
+ está fazendo aí
+
+00:15:18.560 --> 00:15:19.920
+ essa anotação
+
+00:15:19.920 --> 00:15:20.620
+ se é positiva
+
+00:15:20.620 --> 00:15:21.360
+ ou se é negativa
+
+00:15:21.360 --> 00:15:21.940
+ Eduardo
+
+00:15:21.940 --> 00:15:22.780
+ tem de bolufas
+
+00:15:22.780 --> 00:15:23.520
+ então deixa eu explicar
+
+00:15:23.520 --> 00:15:23.840
+ de novo
+
+00:15:23.840 --> 00:15:24.320
+ olha só
+
+00:15:24.320 --> 00:15:26.040
+ você tem lá
+
+00:15:26.040 --> 00:15:26.720
+ a interação
+
+00:15:26.720 --> 00:15:26.960
+ beleza
+
+00:15:26.960 --> 00:15:28.100
+ então você tem lá
+
+00:15:28.100 --> 00:15:28.620
+ a interação
+
+00:15:28.620 --> 00:15:29.480
+ número zero
+
+00:15:29.480 --> 00:15:30.340
+ aí o cliente foi lá
+
+00:15:30.340 --> 00:15:30.700
+ e falou assim
+
+00:15:30.700 --> 00:15:31.480
+ cara esse produto
+
+00:15:31.480 --> 00:15:32.140
+ não é legal
+
+00:15:32.140 --> 00:15:32.640
+ então imagina
+
+00:15:32.640 --> 00:15:33.360
+ que ele escreveu isso aqui
+
+00:15:33.360 --> 00:15:34.040
+ esse produto
+
+00:15:34.040 --> 00:15:34.920
+ não é legal
+
+00:15:34.920 --> 00:15:36.020
+ olha só
+
+00:15:36.020 --> 00:15:36.740
+ se você tem
+
+00:15:36.740 --> 00:15:38.180
+ 50 mil registros
+
+00:15:38.180 --> 00:15:38.780
+ como esse aqui
+
+00:15:38.780 --> 00:15:39.780
+ fica pesado
+
+00:15:39.780 --> 00:15:40.580
+ pra uma pessoa fazer
+
+00:15:40.580 --> 00:15:40.820
+ não é?
+
+00:15:40.820 --> 00:15:41.340
+ então
+
+00:15:41.340 --> 00:15:42.620
+ as áreas operacionais
+
+00:15:42.620 --> 00:15:43.680
+ podem fazer esse trabalho
+
+00:15:43.680 --> 00:15:44.460
+ então imagina
+
+00:15:44.460 --> 00:15:44.980
+ que você tem lá
+
+00:15:44.980 --> 00:15:45.780
+ uma área operacional
+
+00:15:45.780 --> 00:15:46.460
+ que tem sei lá
+
+00:15:46.460 --> 00:15:47.340
+ 200 pessoas
+
+00:15:47.340 --> 00:15:47.640
+ pô
+
+00:15:47.640 --> 00:15:48.260
+ divide isso aqui
+
+00:15:48.260 --> 00:15:48.800
+ por 200
+
+00:15:48.800 --> 00:15:49.380
+ dá sei lá
+
+00:15:49.380 --> 00:15:50.520
+ mil pra cada um
+
+00:15:50.520 --> 00:15:51.600
+ fica muito mais fácil
+
+00:15:51.600 --> 00:15:53.120
+ pra cada uma dessas pessoas
+
+00:15:53.120 --> 00:15:53.460
+ dizer
+
+00:15:53.460 --> 00:15:53.820
+ pô
+
+00:15:53.820 --> 00:15:54.840
+ esse cara aqui
+
+00:15:54.840 --> 00:15:55.660
+ falou positivo
+
+00:15:55.660 --> 00:15:56.580
+ ah esse é positivo
+
+00:15:56.580 --> 00:15:58.000
+ então eu coloco zero
+
+00:15:58.000 --> 00:15:59.020
+ ah positivo
+
+00:15:59.020 --> 00:15:59.620
+ coloca um
+
+00:15:59.620 --> 00:16:00.400
+ ah então
+
+00:16:00.400 --> 00:16:01.060
+ esse cara aqui
+
+00:16:01.060 --> 00:16:01.480
+ veio aqui
+
+00:16:01.480 --> 00:16:02.200
+ esse cara número um
+
+00:16:02.200 --> 00:16:02.580
+ falou não
+
+00:16:02.580 --> 00:16:03.420
+ esse aqui tá uma bosta
+
+00:16:03.420 --> 00:16:04.280
+ tá ruim pra caramba
+
+00:16:04.280 --> 00:16:04.860
+ então
+
+00:16:04.860 --> 00:16:05.720
+ você vem aqui
+
+00:16:05.720 --> 00:16:05.900
+ não
+
+00:16:05.900 --> 00:16:07.000
+ isso aqui é zero
+
+00:16:07.000 --> 00:16:09.380
+ ou é negativo
+
+00:16:09.380 --> 00:16:10.360
+ pode pedir pro cara
+
+00:16:10.360 --> 00:16:10.740
+ escrever
+
+00:16:10.740 --> 00:16:11.000
+ não
+
+00:16:11.000 --> 00:16:11.780
+ esse sentimento aqui
+
+00:16:11.780 --> 00:16:12.680
+ desse cara é negativo
+
+00:16:12.680 --> 00:16:14.260
+ por que que você tá me falando isso
+
+00:16:14.260 --> 00:16:14.680
+ Eduardo?
+
+00:16:14.680 --> 00:16:16.460
+ porque nós estamos falando
+
+00:16:16.460 --> 00:16:18.000
+ de aprendizagem supervisionada
+
+00:16:18.000 --> 00:16:18.620
+ aqui nesse caso
+
+00:16:18.620 --> 00:16:20.220
+ nós vamos utilizar o algoritmo
+
+00:16:20.220 --> 00:16:20.780
+ Navy Base
+
+00:16:20.780 --> 00:16:22.500
+ e a gente precisa ter já
+
+00:16:22.500 --> 00:16:23.780
+ os dados separados
+
+00:16:23.780 --> 00:16:24.980
+ o sentimento real
+
+00:16:24.980 --> 00:16:26.240
+ daquilo que
+
+00:16:26.240 --> 00:16:27.520
+ vem a ser
+
+00:16:27.520 --> 00:16:29.020
+ uma coisa positiva
+
+00:16:29.020 --> 00:16:30.420
+ e daquilo que vem a ser
+
+00:16:30.420 --> 00:16:31.240
+ uma coisa negativa
+
+00:16:31.240 --> 00:16:32.520
+ estamos alinhados
+
+00:16:32.520 --> 00:16:33.280
+ com relação a isso?
+
+00:16:33.280 --> 00:16:33.740
+ beleza?
+
+00:16:33.740 --> 00:16:34.960
+ isso é uma dúvida galera
+
+00:16:34.960 --> 00:16:36.320
+ que nossa senhora
+
+00:16:36.320 --> 00:16:37.220
+ é uma dúvida muito grande
+
+00:16:37.220 --> 00:16:38.320
+ talvez a parte mais difícil
+
+00:16:38.320 --> 00:16:39.140
+ do trabalho aqui
+
+00:16:39.140 --> 00:16:39.940
+ seja a galera
+
+00:16:39.940 --> 00:16:40.520
+ interpretar
+
+00:16:40.520 --> 00:16:41.880
+ como que a gente vai montar
+
+00:16:41.880 --> 00:16:42.940
+ o banco de dados
+
+00:16:42.940 --> 00:16:44.440
+ pra construir uma solução
+
+00:16:44.440 --> 00:16:45.740
+ aqui de análise de sentimentos
+
+00:16:45.740 --> 00:16:46.520
+ então já
+
+00:16:46.520 --> 00:16:47.640
+ já parte já do início
+
+00:16:47.640 --> 00:16:48.020
+ aqui agora
+
+00:16:48.020 --> 00:16:48.660
+ sabendo o que
+
+00:16:48.660 --> 00:16:49.920
+ se você for coletar
+
+00:16:49.920 --> 00:16:51.260
+ 50 mil registros aqui
+
+00:16:51.260 --> 00:16:51.940
+ pra você construir
+
+00:16:51.940 --> 00:16:53.380
+ uma máquina preditiva robusta
+
+00:16:53.380 --> 00:16:54.440
+ porque o seu negócio
+
+00:16:54.440 --> 00:16:55.120
+ o seu negócio
+
+00:16:55.120 --> 00:16:56.040
+ tem uma peculiaridade
+
+00:16:56.040 --> 00:16:56.440
+ assim que
+
+00:16:56.440 --> 00:16:57.720
+ fica difícil saber
+
+00:16:57.720 --> 00:16:58.480
+ o que é positivo
+
+00:16:58.480 --> 00:16:59.200
+ do que é negativo
+
+00:16:59.200 --> 00:16:59.760
+ cara
+
+00:16:59.760 --> 00:17:00.880
+ você vai precisar de gente
+
+00:17:00.880 --> 00:17:01.540
+ pra fazer
+
+00:17:01.540 --> 00:17:03.260
+ a anotação
+
+00:17:03.260 --> 00:17:03.780
+ que a gente chama
+
+00:17:03.780 --> 00:17:04.560
+ de colocar lá
+
+00:17:04.560 --> 00:17:05.120
+ a lei
+
+00:17:05.120 --> 00:17:05.840
+ você é positiva
+
+00:17:05.840 --> 00:17:06.560
+ você é negativa
+
+00:17:06.560 --> 00:17:07.320
+ tranquilo?
+
+00:17:07.320 --> 00:17:07.860
+ por que?
+
+00:17:07.860 --> 00:17:08.480
+ porque aí
+
+00:17:08.480 --> 00:17:10.060
+ a tua máquina preditiva
+
+00:17:10.060 --> 00:17:10.940
+ vai aprender
+
+00:17:10.940 --> 00:17:12.300
+ você já vai ter aqui
+
+00:17:12.300 --> 00:17:12.920
+ os textos
+
+00:17:12.920 --> 00:17:13.760
+ a gente vai fazer
+
+00:17:13.760 --> 00:17:14.820
+ uma série de atividades
+
+00:17:14.820 --> 00:17:16.000
+ aqui de pré-processamento
+
+00:17:16.000 --> 00:17:17.200
+ vamos passar
+
+00:17:17.200 --> 00:17:18.660
+ a máquina preditiva
+
+00:17:18.660 --> 00:17:18.820
+ lá
+
+00:17:18.820 --> 00:17:19.660
+ passar o algoritmo
+
+00:17:19.660 --> 00:17:20.940
+ pra criar a máquina preditiva
+
+00:17:20.940 --> 00:17:21.880
+ e aí sim
+
+00:17:21.880 --> 00:17:22.760
+ o algoritmo
+
+00:17:22.760 --> 00:17:23.320
+ vai ali
+
+00:17:23.320 --> 00:17:24.920
+ fazer o seu trabalho
+
+00:17:24.920 --> 00:17:25.980
+ a gente vai ver
+
+00:17:25.980 --> 00:17:26.960
+ que a máquina preditiva
+
+00:17:26.960 --> 00:17:27.700
+ vai aprender
+
+00:17:27.700 --> 00:17:29.640
+ e você vai estar pronto
+
+00:17:29.640 --> 00:17:30.920
+ pra receber
+
+00:17:30.920 --> 00:17:32.740
+ novas interações
+
+00:17:32.740 --> 00:17:34.760
+ e aí a partir de agora
+
+00:17:34.760 --> 00:17:35.740
+ isso tá
+
+00:17:35.740 --> 00:17:37.000
+ de forma automatizada
+
+00:17:37.000 --> 00:17:37.620
+ e você fazer
+
+00:17:37.620 --> 00:17:38.620
+ um controle aí
+
+00:17:38.620 --> 00:17:39.120
+ é
+
+00:17:39.120 --> 00:17:39.420
+ é
+
+00:17:39.420 --> 00:17:39.700
+ é
+
+00:17:39.700 --> 00:17:41.400
+ preventivo
+
+00:17:41.400 --> 00:17:41.900
+ de
+
+00:17:41.900 --> 00:17:43.400
+ de como está
+
+00:17:43.400 --> 00:17:44.080
+ a sua área
+
+00:17:44.080 --> 00:17:44.720
+ no atendimento
+
+00:17:44.720 --> 00:17:45.300
+ ao cliente
+
+00:17:45.300 --> 00:17:45.780
+ por exemplo
+
+00:17:45.780 --> 00:17:46.360
+ tudo bem?
+
+00:17:46.360 --> 00:17:47.060
+ isso aqui
+
+00:17:47.060 --> 00:17:48.240
+ é uma boa prática
+
+00:17:48.240 --> 00:17:48.860
+ aí do
+
+00:17:48.860 --> 00:17:49.740
+ do trabalho
+
+00:17:49.740 --> 00:17:50.460
+ quando a gente
+
+00:17:50.460 --> 00:17:51.580
+ tá visando sempre
+
+00:17:51.580 --> 00:17:53.360
+ melhorias do nosso processo
+
+00:17:53.360 --> 00:17:54.460
+ para atender
+
+00:17:54.460 --> 00:17:55.240
+ de forma
+
+00:17:55.240 --> 00:17:55.920
+ é
+
+00:17:55.920 --> 00:17:57.020
+ de forma excelente
+
+00:17:57.020 --> 00:17:57.620
+ o nosso cliente
+
+00:17:57.620 --> 00:17:58.000
+ tudo bem?
+
+00:17:58.000 --> 00:17:58.580
+ beleza?
+
+00:17:58.580 --> 00:17:59.320
+ bora pra frente?
+
+00:17:59.320 --> 00:18:00.120
+ então olha só
+
+00:18:00.120 --> 00:18:00.960
+ data set
+
+00:18:00.960 --> 00:18:01.700
+ bem simples
+
+00:18:01.700 --> 00:18:01.920
+ né
+
+00:18:01.920 --> 00:18:02.880
+ vou abrir aqui
+
+00:18:02.880 --> 00:18:03.820
+ algumas especificações
+
+00:18:03.820 --> 00:18:04.460
+ bem rapidinho
+
+00:18:04.460 --> 00:18:05.100
+ só pra você ver
+
+00:18:05.100 --> 00:18:05.720
+ como é que é
+
+00:18:05.720 --> 00:18:06.540
+ nós temos aqui
+
+00:18:06.540 --> 00:18:07.480
+ 50 mil registros
+
+00:18:07.480 --> 00:18:07.840
+ e só temos
+
+00:18:07.840 --> 00:18:08.400
+ duas colunas
+
+00:18:08.400 --> 00:18:09.560
+ review e sentimento
+
+00:18:09.560 --> 00:18:10.520
+ e tudo aqui
+
+00:18:10.520 --> 00:18:11.320
+ claro né galera
+
+00:18:11.320 --> 00:18:11.840
+ object
+
+00:18:11.840 --> 00:18:12.600
+ nós estamos falando
+
+00:18:12.600 --> 00:18:13.380
+ de texto
+
+00:18:13.380 --> 00:18:13.780
+ tudo bem?
+
+00:18:13.780 --> 00:18:14.600
+ olha só
+
+00:18:14.600 --> 00:18:15.660
+ eu vou fazer
+
+00:18:15.660 --> 00:18:16.480
+ uma contagem
+
+00:18:16.480 --> 00:18:16.780
+ aqui
+
+00:18:16.780 --> 00:18:17.920
+ no sentimento
+
+00:18:17.920 --> 00:18:18.860
+ que é o nosso target
+
+00:18:18.860 --> 00:18:19.260
+ né
+
+00:18:19.260 --> 00:18:20.180
+ nosso target
+
+00:18:20.180 --> 00:18:20.380
+ aqui
+
+00:18:20.380 --> 00:18:21.180
+ que é o sentimento
+
+00:18:21.180 --> 00:18:21.980
+ então nós temos aqui
+
+00:18:21.980 --> 00:18:22.840
+ positivo
+
+00:18:22.840 --> 00:18:24.120
+ 25 mil
+
+00:18:24.120 --> 00:18:24.840
+ e negativo
+
+00:18:24.840 --> 00:18:25.620
+ 25 mil
+
+00:18:25.620 --> 00:18:25.960
+ tá ó
+
+00:18:25.960 --> 00:18:27.500
+ balanceadíssimo
+
+00:18:27.500 --> 00:18:27.680
+ né
+
+00:18:27.680 --> 00:18:28.220
+ nós temos aqui
+
+00:18:28.220 --> 00:18:29.540
+ separado direitinho
+
+00:18:29.540 --> 00:18:30.440
+ a nossa máquina
+
+00:18:30.440 --> 00:18:30.980
+ preditiva
+
+00:18:30.980 --> 00:18:32.320
+ não vai ser tendenciosa
+
+00:18:32.320 --> 00:18:33.080
+ pelo menos
+
+00:18:33.080 --> 00:18:34.640
+ com relação a essa questão
+
+00:18:34.640 --> 00:18:34.860
+ né
+
+00:18:34.860 --> 00:18:35.860
+ que é de dizer
+
+00:18:35.860 --> 00:18:36.580
+ se a máquina
+
+00:18:36.580 --> 00:18:38.480
+ se tem uma quantidade
+
+00:18:38.480 --> 00:18:39.840
+ bem bacana aí
+
+00:18:39.840 --> 00:18:40.860
+ de pessoas falando bem
+
+00:18:40.860 --> 00:18:41.800
+ e de pessoas falando mal
+
+00:18:41.800 --> 00:18:42.540
+ tranquilo?
+
+00:18:42.540 --> 00:18:43.900
+ então bora dar uma olhada
+
+00:18:43.900 --> 00:18:45.200
+ aqui só no primeiro registro
+
+00:18:45.200 --> 00:18:46.480
+ que é o registro zero
+
+00:18:46.480 --> 00:18:48.040
+ eu vou trazer o registro número zero
+
+00:18:48.040 --> 00:18:49.360
+ pra você ver o que que tá escrito
+
+00:18:49.360 --> 00:18:49.800
+ tudo bem?
+
+00:18:50.140 --> 00:18:50.460
+ então ó
+
+00:18:50.460 --> 00:18:51.300
+ eu vou copiar
+
+00:18:51.300 --> 00:18:52.320
+ essa parada aqui
+
+00:18:52.320 --> 00:18:53.960
+ e vou abrir uma nova aba
+
+00:18:53.960 --> 00:18:54.880
+ aqui pra você acompanhar
+
+00:18:54.880 --> 00:18:55.500
+ direitinho
+
+00:18:55.500 --> 00:18:56.560
+ o que que tá escrito
+
+00:18:56.560 --> 00:18:57.200
+ eu vou abrir até
+
+00:18:57.200 --> 00:18:58.840
+ o google tradutor aqui
+
+00:18:58.840 --> 00:19:00.000
+ já pra gente
+
+00:19:00.000 --> 00:19:00.980
+ ler essa parada
+
+00:19:00.980 --> 00:19:02.020
+ se você tem dificuldade
+
+00:19:02.020 --> 00:19:02.520
+ no inglês
+
+00:19:02.520 --> 00:19:02.940
+ beleza?
+
+00:19:02.940 --> 00:19:03.820
+ então olha só
+
+00:19:03.820 --> 00:19:05.140
+ isso aqui é o que tá
+
+00:19:05.140 --> 00:19:05.740
+ no zero
+
+00:19:05.740 --> 00:19:06.140
+ tá bom?
+
+00:19:06.140 --> 00:19:06.340
+ ó
+
+00:19:06.340 --> 00:19:06.940
+ isso aqui é o que tá
+
+00:19:06.940 --> 00:19:07.340
+ no zero
+
+00:19:07.340 --> 00:19:08.100
+ presta atenção
+
+00:19:08.100 --> 00:19:09.220
+ então nós temos aqui
+
+00:19:09.220 --> 00:19:09.380
+ ó
+
+00:19:09.380 --> 00:19:11.080
+ 1761 palavras
+
+00:19:11.080 --> 00:19:11.560
+ aqui dentro
+
+00:19:11.560 --> 00:19:11.960
+ tudo bem?
+
+00:19:11.960 --> 00:19:13.380
+ então é um chat mesmo
+
+00:19:13.380 --> 00:19:13.960
+ é um espaço
+
+00:19:13.960 --> 00:19:14.700
+ onde a pessoa escreve
+
+00:19:14.700 --> 00:19:16.540
+ olha só que interessante
+
+00:19:16.540 --> 00:19:17.720
+ esse cara tá falando o seguinte
+
+00:19:17.720 --> 00:19:18.000
+ ó
+
+00:19:18.000 --> 00:19:20.500
+ um dos outros críticos
+
+00:19:20.500 --> 00:19:21.520
+ mencionou que depois
+
+00:19:21.520 --> 00:19:22.660
+ de assistir o episódio
+
+00:19:22.660 --> 00:19:23.580
+ de Oz
+
+00:19:23.580 --> 00:19:25.020
+ você ficará viciado
+
+00:19:25.020 --> 00:19:26.140
+ eles estão certo
+
+00:19:26.140 --> 00:19:26.860
+ pois foi exatamente
+
+00:19:26.860 --> 00:19:28.060
+ isso que aconteceu comigo
+
+00:19:28.060 --> 00:19:29.000
+ a primeira coisa
+
+00:19:29.000 --> 00:19:29.720
+ que me impressionou
+
+00:19:29.720 --> 00:19:30.600
+ foi a brutalidade
+
+00:19:30.600 --> 00:19:31.860
+ das cenas de violência
+
+00:19:31.860 --> 00:19:32.880
+ que começam
+
+00:19:32.880 --> 00:19:33.540
+ desde a palavra
+
+00:19:33.540 --> 00:19:33.980
+ gol
+
+00:19:33.980 --> 00:19:35.180
+ acredite em mim
+
+00:19:35.180 --> 00:19:36.420
+ esse não é um show
+
+00:19:36.420 --> 00:19:37.560
+ pra fracos de coração
+
+00:19:37.560 --> 00:19:38.420
+ ou tímido
+
+00:19:38.420 --> 00:19:39.380
+ então galera
+
+00:19:39.380 --> 00:19:40.380
+ coincidentemente
+
+00:19:40.380 --> 00:19:42.340
+ eu não sei se você assistiu
+
+00:19:42.340 --> 00:19:44.120
+ mas esse cara aqui
+
+00:19:44.120 --> 00:19:44.980
+ tá fazendo aqui
+
+00:19:44.980 --> 00:19:45.680
+ a crítica
+
+00:19:45.680 --> 00:19:46.700
+ de uma série
+
+00:19:46.700 --> 00:19:47.720
+ chamada Oz
+
+00:19:47.720 --> 00:19:48.660
+ eu vou ver se eu acho
+
+00:19:48.660 --> 00:19:49.220
+ aqui pra você
+
+00:19:49.220 --> 00:19:50.160
+ Oz
+
+00:19:50.160 --> 00:19:50.960
+ é
+
+00:19:50.960 --> 00:19:51.880
+ cadeia
+
+00:19:51.880 --> 00:19:52.460
+ prisão
+
+00:19:52.460 --> 00:19:53.120
+ prisão
+
+00:19:53.120 --> 00:19:54.140
+ é uma série
+
+00:19:54.140 --> 00:19:55.140
+ é uma série
+
+00:19:55.140 --> 00:19:56.380
+ que mostra aí
+
+00:19:56.380 --> 00:19:57.080
+ como é que é
+
+00:19:57.080 --> 00:19:58.080
+ a galera aí
+
+00:19:58.080 --> 00:19:59.260
+ num presídio
+
+00:19:59.260 --> 00:19:59.540
+ olha aqui
+
+00:19:59.540 --> 00:20:00.080
+ que interessante
+
+00:20:00.080 --> 00:20:00.800
+ tá aqui ó
+
+00:20:00.800 --> 00:20:02.300
+ e essa é a série
+
+00:20:02.300 --> 00:20:02.700
+ aqui ó
+
+00:20:02.700 --> 00:20:03.480
+ lembro muito bem
+
+00:20:03.480 --> 00:20:04.480
+ e tem um bocado
+
+00:20:04.480 --> 00:20:05.280
+ de gente lá
+
+00:20:05.280 --> 00:20:05.700
+ tem umas
+
+00:20:05.700 --> 00:20:07.140
+ tem umas gangues
+
+00:20:07.140 --> 00:20:07.480
+ dentro
+
+00:20:07.480 --> 00:20:08.460
+ e aí eles brigam
+
+00:20:08.460 --> 00:20:08.920
+ entre si
+
+00:20:08.920 --> 00:20:09.620
+ dentro da cadeia
+
+00:20:09.620 --> 00:20:10.280
+ é muito doido ó
+
+00:20:10.280 --> 00:20:11.060
+ então tem a gangue
+
+00:20:11.060 --> 00:20:11.740
+ dos latinos
+
+00:20:11.740 --> 00:20:12.680
+ dos italianos
+
+00:20:12.680 --> 00:20:13.460
+ dos arianos
+
+00:20:13.460 --> 00:20:14.100
+ dos negros
+
+00:20:14.120 --> 00:20:15.100
+ dos muçulmanos
+
+00:20:15.100 --> 00:20:16.100
+ então é uma briga
+
+00:20:16.100 --> 00:20:16.900
+ muito doida lá
+
+00:20:16.900 --> 00:20:18.240
+ então o que esse cara
+
+00:20:18.240 --> 00:20:18.980
+ tá falando aqui
+
+00:20:18.980 --> 00:20:19.820
+ é exatamente
+
+00:20:19.820 --> 00:20:20.800
+ qual o sentimento dele
+
+00:20:20.800 --> 00:20:21.260
+ com relação
+
+00:20:21.260 --> 00:20:21.980
+ a série
+
+00:20:21.980 --> 00:20:22.480
+ beleza
+
+00:20:22.480 --> 00:20:23.480
+ então do mesmo jeito
+
+00:20:23.480 --> 00:20:23.920
+ que ele poderia
+
+00:20:23.920 --> 00:20:24.820
+ tá falando de um filme
+
+00:20:24.820 --> 00:20:25.420
+ de uma série
+
+00:20:25.420 --> 00:20:26.340
+ ele poderia tá falando
+
+00:20:26.340 --> 00:20:27.000
+ do seu produto
+
+00:20:27.000 --> 00:20:27.820
+ tá ligado aí
+
+00:20:27.820 --> 00:20:28.500
+ como você consegue
+
+00:20:28.500 --> 00:20:29.280
+ fazer esse depara
+
+00:20:29.280 --> 00:20:30.160
+ então beleza
+
+00:20:30.160 --> 00:20:31.060
+ então olha só
+
+00:20:31.060 --> 00:20:31.680
+ bora pra frente
+
+00:20:31.680 --> 00:20:32.500
+ aqui eu peguei
+
+00:20:32.500 --> 00:20:33.140
+ aqui o exemplo
+
+00:20:33.140 --> 00:20:34.080
+ do que que é o review
+
+00:20:34.080 --> 00:20:35.160
+ e aí galera
+
+00:20:35.160 --> 00:20:36.040
+ a partir de agora
+
+00:20:36.040 --> 00:20:37.180
+ a gente vai fazer
+
+00:20:37.180 --> 00:20:38.240
+ todo um trabalho
+
+00:20:38.240 --> 00:20:39.260
+ de pré-processamento
+
+00:20:39.260 --> 00:20:40.420
+ pra gente conseguir
+
+00:20:40.420 --> 00:20:41.020
+ dizer
+
+00:20:41.020 --> 00:20:42.920
+ se o sentimento
+
+00:20:42.920 --> 00:20:43.700
+ desse cara
+
+00:20:43.700 --> 00:20:44.480
+ é um sentimento
+
+00:20:44.480 --> 00:20:45.160
+ positivo
+
+00:20:45.160 --> 00:20:46.460
+ ou um sentimento
+
+00:20:46.460 --> 00:20:47.120
+ negativo
+
+00:20:47.120 --> 00:20:47.800
+ tranquilo?
+
+00:20:47.800 --> 00:20:48.840
+ pra que isso mesmo
+
+00:20:48.840 --> 00:20:49.280
+ Eduardo?
+
+00:20:49.280 --> 00:20:50.460
+ porque imagina aí
+
+00:20:50.460 --> 00:20:51.640
+ se você já consegue
+
+00:20:51.640 --> 00:20:53.000
+ ter isso de forma
+
+00:20:53.000 --> 00:20:53.820
+ automatizada
+
+00:20:53.820 --> 00:20:54.420
+ da medida que
+
+00:20:54.420 --> 00:20:55.280
+ os clientes
+
+00:20:55.280 --> 00:20:55.780
+ vão entrando
+
+00:20:55.780 --> 00:20:56.780
+ em contato
+
+00:20:56.780 --> 00:20:57.500
+ com a sua empresa
+
+00:20:57.500 --> 00:20:58.520
+ e aí você já vai
+
+00:20:58.520 --> 00:20:59.080
+ anotando
+
+00:20:59.080 --> 00:21:00.640
+ cada tipo
+
+00:21:00.640 --> 00:21:02.380
+ de interação
+
+00:21:02.380 --> 00:21:03.160
+ que tá sendo feita
+
+00:21:03.160 --> 00:21:03.940
+ com a sua empresa
+
+00:21:03.940 --> 00:21:05.140
+ em real time
+
+00:21:05.140 --> 00:21:05.700
+ cara
+
+00:21:05.700 --> 00:21:06.720
+ você tem ali
+
+00:21:06.720 --> 00:21:08.100
+ a empresa
+
+00:21:08.100 --> 00:21:08.800
+ na sua mão
+
+00:21:08.800 --> 00:21:09.560
+ você sabe
+
+00:21:09.560 --> 00:21:10.060
+ exatamente
+
+00:21:10.060 --> 00:21:11.300
+ se o meio
+
+00:21:11.300 --> 00:21:12.640
+ se a área tática
+
+00:21:12.640 --> 00:21:15.020
+ não só a área estratégica
+
+00:21:15.020 --> 00:21:15.900
+ mas se a área tática
+
+00:21:15.900 --> 00:21:16.460
+ tá fazendo
+
+00:21:16.460 --> 00:21:17.480
+ o seu trabalho
+
+00:21:17.480 --> 00:21:18.440
+ isso é muito bom
+
+00:21:18.440 --> 00:21:18.760
+ principalmente
+
+00:21:18.760 --> 00:21:19.240
+ pras empresas
+
+00:21:19.240 --> 00:21:19.940
+ que são grandes
+
+00:21:19.940 --> 00:21:21.020
+ que requerem
+
+00:21:21.020 --> 00:21:21.700
+ ali um nível
+
+00:21:21.700 --> 00:21:22.660
+ um pouco maior
+
+00:21:22.660 --> 00:21:23.660
+ de supervisão
+
+00:21:23.660 --> 00:21:25.120
+ então você trabalha
+
+00:21:25.120 --> 00:21:26.840
+ ali na vice-presidência
+
+00:21:26.840 --> 00:21:27.240
+ da empresa
+
+00:21:27.240 --> 00:21:28.120
+ você não tá ali
+
+00:21:28.120 --> 00:21:28.680
+ de cara a cara
+
+00:21:28.680 --> 00:21:29.400
+ com o cliente
+
+00:21:29.400 --> 00:21:30.260
+ você não tá vendo
+
+00:21:30.260 --> 00:21:31.000
+ ali diretamente
+
+00:21:31.000 --> 00:21:32.280
+ você tem intermediários
+
+00:21:32.280 --> 00:21:33.180
+ só que aí
+
+00:21:33.180 --> 00:21:33.940
+ com o painel
+
+00:21:33.940 --> 00:21:34.660
+ desse na mão
+
+00:21:34.660 --> 00:21:35.220
+ um painel
+
+00:21:35.220 --> 00:21:36.160
+ de ciência de dados
+
+00:21:36.160 --> 00:21:36.960
+ você tem
+
+00:21:36.960 --> 00:21:38.360
+ total controle
+
+00:21:38.360 --> 00:21:38.560
+ ali
+
+00:21:38.560 --> 00:21:40.160
+ de mostrar
+
+00:21:40.160 --> 00:21:41.240
+ a situação real
+
+00:21:41.240 --> 00:21:41.940
+ da empresa
+
+00:21:41.940 --> 00:21:42.900
+ com relação aos clientes
+
+00:21:42.900 --> 00:21:43.400
+ tranquilo?
+
+00:21:43.400 --> 00:21:44.180
+ bora pra frente
+
+00:21:44.180 --> 00:21:45.360
+ nós vamos fazer aqui
+
+00:21:45.360 --> 00:21:46.260
+ uma série de trabalho
+
+00:21:46.260 --> 00:21:47.020
+ primeira coisa
+
+00:21:47.020 --> 00:21:47.600
+ vamos
+
+00:21:47.600 --> 00:21:48.980
+ pré-processar
+
+00:21:48.980 --> 00:21:49.800
+ essa parada toda
+
+00:21:49.800 --> 00:21:50.180
+ você vai ver
+
+00:21:50.180 --> 00:21:51.020
+ que tá cheio de tag
+
+00:21:51.020 --> 00:21:51.740
+ então olha só
+
+00:21:51.740 --> 00:21:52.660
+ tem tag de HTML
+
+00:21:52.660 --> 00:21:53.220
+ aqui dentro
+
+00:21:53.220 --> 00:21:53.580
+ por quê?
+
+00:21:53.660 --> 00:21:54.640
+ porque isso aqui
+
+00:21:54.640 --> 00:21:56.000
+ tá na web
+
+00:21:56.000 --> 00:21:56.380
+ né galera
+
+00:21:56.380 --> 00:21:57.260
+ isso aqui é um banco de dados
+
+00:21:57.260 --> 00:21:57.900
+ que foi coletado
+
+00:21:57.900 --> 00:21:58.380
+ da web
+
+00:21:58.380 --> 00:21:59.360
+ então a gente tem lá
+
+00:21:59.360 --> 00:22:00.080
+ tag de HTML
+
+00:22:00.080 --> 00:22:01.220
+ então a gente precisa
+
+00:22:01.220 --> 00:22:02.000
+ remover essas tags
+
+00:22:02.000 --> 00:22:02.580
+ de HTML
+
+00:22:02.580 --> 00:22:03.980
+ asterisco
+
+00:22:03.980 --> 00:22:05.000
+ interrogação
+
+00:22:05.000 --> 00:22:05.840
+ a gente vai precisar
+
+00:22:05.840 --> 00:22:06.600
+ fazer esse trabalho
+
+00:22:06.600 --> 00:22:07.200
+ e Eduardo
+
+00:22:07.200 --> 00:22:07.720
+ vai precisar fazer
+
+00:22:07.720 --> 00:22:08.360
+ isso tudo na mão?
+
+00:22:08.360 --> 00:22:09.180
+ claro que não
+
+00:22:09.180 --> 00:22:10.260
+ você vai chamar aqui
+
+00:22:10.260 --> 00:22:11.000
+ alguns pacotes
+
+00:22:11.000 --> 00:22:11.860
+ que já fazem isso
+
+00:22:11.860 --> 00:22:13.140
+ eu vou mostrar pra você
+
+00:22:13.140 --> 00:22:14.340
+ aqui o pacote
+
+00:22:14.340 --> 00:22:15.060
+ RE
+
+00:22:15.060 --> 00:22:16.160
+ que é de expressões
+
+00:22:16.160 --> 00:22:16.720
+ regulares
+
+00:22:16.720 --> 00:22:17.620
+ a gente vai
+
+00:22:17.620 --> 00:22:19.160
+ limpar essa parada
+
+00:22:19.160 --> 00:22:19.500
+ pelo menos
+
+00:22:19.500 --> 00:22:19.920
+ vamos tirar
+
+00:22:19.920 --> 00:22:21.040
+ essas tags
+
+00:22:21.040 --> 00:22:23.700
+ esses asteriscos
+
+00:22:23.700 --> 00:22:24.260
+ essas paradas
+
+00:22:24.260 --> 00:22:24.880
+ todas aqui agora
+
+00:22:24.880 --> 00:22:25.240
+ tudo bem?
+
+00:22:25.240 --> 00:22:26.060
+ então vamos lá
+
+00:22:26.060 --> 00:22:27.280
+ eu vou executar
+
+00:22:27.280 --> 00:22:28.540
+ essa célula
+
+00:22:28.540 --> 00:22:29.060
+ e já vou
+
+00:22:29.060 --> 00:22:30.040
+ printar pra você
+
+00:22:30.040 --> 00:22:31.220
+ pra você olhar
+
+00:22:31.220 --> 00:22:32.140
+ aqui como que já vai
+
+00:22:32.140 --> 00:22:32.760
+ tá diferente
+
+00:22:32.760 --> 00:22:33.000
+ ó
+
+00:22:33.000 --> 00:22:34.100
+ aqui não vai ter
+
+00:22:34.100 --> 00:22:34.200
+ mais
+
+00:22:34.200 --> 00:22:34.780
+ eu vou abrir
+
+00:22:34.780 --> 00:22:35.360
+ dois
+
+00:22:35.360 --> 00:22:35.760
+ dois
+
+00:22:35.760 --> 00:22:36.280
+ eu vou abrir
+
+00:22:36.280 --> 00:22:37.940
+ um dataset aqui
+
+00:22:37.940 --> 00:22:39.160
+ um dataset não
+
+00:22:39.160 --> 00:22:39.880
+ um sublime
+
+00:22:39.880 --> 00:22:40.880
+ só pra você acompanhar
+
+00:22:40.880 --> 00:22:41.380
+ direitinho
+
+00:22:41.380 --> 00:22:41.700
+ beleza?
+
+00:22:41.700 --> 00:22:42.660
+ então olha só aí
+
+00:22:42.660 --> 00:22:44.060
+ não tem mais
+
+00:22:44.060 --> 00:22:45.600
+ nada de tag
+
+00:22:45.600 --> 00:22:46.500
+ não tem mais nada
+
+00:22:46.500 --> 00:22:47.320
+ de asterisco
+
+00:22:47.320 --> 00:22:49.380
+ essa expressão
+
+00:22:49.380 --> 00:22:49.760
+ regular
+
+00:22:49.760 --> 00:22:50.460
+ deixou o nosso
+
+00:22:50.460 --> 00:22:51.400
+ texto bonitinho
+
+00:22:51.400 --> 00:22:52.100
+ tranquilo?
+
+00:22:52.100 --> 00:22:53.260
+ então é isso que a gente
+
+00:22:53.260 --> 00:22:53.760
+ fez aqui
+
+00:22:53.760 --> 00:22:55.060
+ nesse primeiro pedaço
+
+00:22:55.060 --> 00:22:55.280
+ aqui
+
+00:22:55.280 --> 00:22:55.980
+ bora continuar
+
+00:22:55.980 --> 00:22:56.540
+ a fazer o nosso
+
+00:22:56.540 --> 00:22:57.760
+ trabalho de pré-processamento
+
+00:22:57.760 --> 00:22:58.960
+ agora galera
+
+00:22:58.960 --> 00:22:59.960
+ a gente vai ver aqui
+
+00:22:59.960 --> 00:23:00.800
+ que existem
+
+00:23:00.800 --> 00:23:01.800
+ alguns caracteres
+
+00:23:01.800 --> 00:23:02.680
+ especiais
+
+00:23:02.680 --> 00:23:03.340
+ e que
+
+00:23:03.340 --> 00:23:04.920
+ não estão
+
+00:23:04.920 --> 00:23:05.880
+ contidos aqui
+
+00:23:05.880 --> 00:23:06.800
+ nessas tags
+
+00:23:06.800 --> 00:23:07.320
+ de HTML
+
+00:23:07.320 --> 00:23:08.560
+ então a gente vai
+
+00:23:08.560 --> 00:23:09.340
+ por meio dessa função
+
+00:23:09.340 --> 00:23:09.780
+ aqui embaixo
+
+00:23:09.780 --> 00:23:11.180
+ remover os caracteres
+
+00:23:11.180 --> 00:23:11.780
+ especiais
+
+00:23:11.780 --> 00:23:12.800
+ e aqui é claro
+
+00:23:12.800 --> 00:23:13.280
+ eu não vou ter
+
+00:23:13.280 --> 00:23:14.160
+ tempo de parar
+
+00:23:14.160 --> 00:23:14.980
+ e conseguir
+
+00:23:14.980 --> 00:23:15.700
+ explicar pra você
+
+00:23:15.700 --> 00:23:16.280
+ linha a linha
+
+00:23:16.280 --> 00:23:16.920
+ do que tá sendo
+
+00:23:16.920 --> 00:23:17.280
+ feito
+
+00:23:17.280 --> 00:23:18.340
+ isso é o que eu faço
+
+00:23:18.340 --> 00:23:19.220
+ geralmente com a galera
+
+00:23:19.220 --> 00:23:20.120
+ que entra no programa
+
+00:23:20.120 --> 00:23:20.860
+ cientista de dados
+
+00:23:20.860 --> 00:23:21.340
+ na prática
+
+00:23:21.340 --> 00:23:22.560
+ que aí eu tenho mais tempo
+
+00:23:22.560 --> 00:23:23.780
+ a galera assiste a hora
+
+00:23:23.780 --> 00:23:24.260
+ que quer
+
+00:23:24.260 --> 00:23:24.940
+ quando quer
+
+00:23:24.940 --> 00:23:26.360
+ 24 horas por dia
+
+00:23:26.360 --> 00:23:27.620
+ então aí é outro
+
+00:23:27.620 --> 00:23:28.620
+ tipo de comprometimento
+
+00:23:28.620 --> 00:23:28.920
+ beleza?
+
+00:23:28.920 --> 00:23:29.960
+ aqui com você
+
+00:23:29.960 --> 00:23:30.700
+ não tem condições
+
+00:23:30.700 --> 00:23:31.360
+ porque eu tenho que
+
+00:23:31.360 --> 00:23:32.140
+ passar isso
+
+00:23:32.140 --> 00:23:33.280
+ de uma forma
+
+00:23:33.280 --> 00:23:34.160
+ que não fique maçante
+
+00:23:34.160 --> 00:23:34.540
+ pra você
+
+00:23:34.540 --> 00:23:35.200
+ pra você entender
+
+00:23:35.200 --> 00:23:35.960
+ o que tá sendo feito
+
+00:23:35.960 --> 00:23:36.880
+ e o que você pode
+
+00:23:36.880 --> 00:23:37.260
+ aprender
+
+00:23:37.260 --> 00:23:38.020
+ tranquilo?
+
+00:23:38.020 --> 00:23:39.240
+ então fechou
+
+00:23:39.240 --> 00:23:40.480
+ vou fazer essa parada
+
+00:23:40.480 --> 00:23:40.980
+ aqui agora
+
+00:23:40.980 --> 00:23:42.200
+ e vou printar
+
+00:23:42.200 --> 00:23:42.860
+ de novo aqui
+
+00:23:42.860 --> 00:23:44.000
+ pra você visualizar
+
+00:23:44.000 --> 00:23:45.440
+ como que o nosso
+
+00:23:45.440 --> 00:23:46.280
+ site vai ficar
+
+00:23:46.280 --> 00:23:47.400
+ mais limpo
+
+00:23:47.400 --> 00:23:48.780
+ sem vírgula
+
+00:23:48.780 --> 00:23:49.580
+ sem
+
+00:23:49.580 --> 00:23:51.000
+ dois pontos
+
+00:23:51.000 --> 00:23:51.420
+ beleza?
+
+00:23:51.420 --> 00:23:52.280
+ então é isso que a gente
+
+00:23:52.280 --> 00:23:53.080
+ tá fazendo aqui agora
+
+00:23:53.080 --> 00:23:53.820
+ vou copiar
+
+00:23:53.820 --> 00:23:55.140
+ e agora vou jogar
+
+00:23:55.140 --> 00:23:56.380
+ no sublime
+
+00:23:56.380 --> 00:23:56.940
+ de novo aqui
+
+00:23:56.940 --> 00:23:57.620
+ new file
+
+00:23:57.620 --> 00:23:58.640
+ vou jogar aqui
+
+00:23:58.640 --> 00:24:00.080
+ então você já vê aqui
+
+00:24:00.080 --> 00:24:01.120
+ que não tem mais vírgula
+
+00:24:01.120 --> 00:24:01.760
+ não tem mais aqueles
+
+00:24:01.760 --> 00:24:02.420
+ pontinhos
+
+00:24:02.420 --> 00:24:03.720
+ e a gente vai limpando
+
+00:24:03.720 --> 00:24:04.420
+ aos poucos
+
+00:24:04.420 --> 00:24:05.280
+ o nosso
+
+00:24:05.280 --> 00:24:06.640
+ banco de dados
+
+00:24:06.640 --> 00:24:07.680
+ pra que a gente consiga
+
+00:24:07.680 --> 00:24:08.720
+ fazer ali
+
+00:24:08.720 --> 00:24:09.740
+ a contagem
+
+00:24:09.740 --> 00:24:10.520
+ das palavras
+
+00:24:10.520 --> 00:24:11.480
+ porque é assim
+
+00:24:11.480 --> 00:24:12.220
+ que a gente vai fazer
+
+00:24:12.220 --> 00:24:13.160
+ a nossa máquina
+
+00:24:13.160 --> 00:24:13.760
+ preditiva
+
+00:24:13.760 --> 00:24:14.620
+ a máquina preditiva
+
+00:24:14.620 --> 00:24:16.820
+ que consiga fazer
+
+00:24:16.820 --> 00:24:17.740
+ um trabalho textual
+
+00:24:17.740 --> 00:24:19.400
+ ela parte desse pressuposto
+
+00:24:19.400 --> 00:24:20.280
+ que é a contagem
+
+00:24:20.280 --> 00:24:21.480
+ de palavras
+
+00:24:21.480 --> 00:24:21.780
+ beleza?
+
+00:24:21.940 --> 00:24:22.940
+ mas não é qualquer palavra
+
+00:24:22.940 --> 00:24:23.900
+ a gente vai eliminar
+
+00:24:23.900 --> 00:24:24.900
+ aquelas palavras
+
+00:24:24.900 --> 00:24:26.000
+ que não dizem nada
+
+00:24:26.000 --> 00:24:27.000
+ tipo stop word
+
+00:24:27.000 --> 00:24:27.900
+ os artigos
+
+00:24:27.900 --> 00:24:28.420
+ né?
+
+00:24:28.420 --> 00:24:30.220
+ palavras de preposição
+
+00:24:30.220 --> 00:24:31.400
+ isso tudo a gente retira
+
+00:24:31.400 --> 00:24:32.040
+ tudo bem?
+
+00:24:32.040 --> 00:24:32.500
+ beleza?
+
+00:24:32.500 --> 00:24:33.740
+ então você já vai conhecer
+
+00:24:33.740 --> 00:24:35.160
+ e vai entender isso
+
+00:24:35.160 --> 00:24:35.400
+ mais
+
+00:24:35.400 --> 00:24:36.520
+ quando a gente chegar
+
+00:24:36.520 --> 00:24:37.100
+ nessa etapa
+
+00:24:37.100 --> 00:24:38.600
+ vamos converter agora
+
+00:24:38.600 --> 00:24:38.940
+ galera
+
+00:24:38.940 --> 00:24:39.940
+ tudo pra low case
+
+00:24:39.940 --> 00:24:41.060
+ então tem palavras aqui
+
+00:24:41.060 --> 00:24:41.440
+ que estão
+
+00:24:41.440 --> 00:24:43.100
+ letra maiúscula
+
+00:24:43.100 --> 00:24:43.860
+ a gente precisa deixar
+
+00:24:43.860 --> 00:24:44.780
+ tudo minúsculo
+
+00:24:44.780 --> 00:24:44.980
+ né?
+
+00:24:44.980 --> 00:24:45.460
+ por quê?
+
+00:24:45.460 --> 00:24:46.780
+ pra não dar um peso maior
+
+00:24:46.780 --> 00:24:47.680
+ um peso diferente
+
+00:24:47.680 --> 00:24:48.420
+ pra mesma coisa
+
+00:24:48.420 --> 00:24:48.760
+ tá bom?
+
+00:24:48.820 --> 00:24:49.140
+ então ó
+
+00:24:49.140 --> 00:24:50.460
+ esse os aqui por exemplo
+
+00:24:50.460 --> 00:24:51.380
+ que é o nome da série
+
+00:24:51.380 --> 00:24:53.480
+ a gente vai aplicar aqui agora
+
+00:24:53.480 --> 00:24:54.640
+ e a gente vai
+
+00:24:54.640 --> 00:24:55.860
+ simplesmente fazer
+
+00:24:55.860 --> 00:24:57.320
+ com que a gente retire
+
+00:24:57.320 --> 00:24:58.400
+ e a partir de agora
+
+00:24:58.400 --> 00:24:59.060
+ o os
+
+00:24:59.060 --> 00:25:00.780
+ e todas as outras letras
+
+00:25:00.780 --> 00:25:02.160
+ estão tudo maiúscula
+
+00:25:02.160 --> 00:25:02.360
+ beleza?
+
+00:25:02.360 --> 00:25:03.520
+ então pode olhar aqui agora
+
+00:25:03.520 --> 00:25:04.300
+ o os
+
+00:25:04.300 --> 00:25:06.140
+ já tá com a letra minúscula
+
+00:25:06.140 --> 00:25:08.060
+ e não tem mais letra maiúscula
+
+00:25:08.060 --> 00:25:08.480
+ aqui
+
+00:25:08.480 --> 00:25:09.780
+ se você achar uma letra maiúscula
+
+00:25:09.780 --> 00:25:10.540
+ aqui pode comentar
+
+00:25:10.540 --> 00:25:11.020
+ no vídeo aqui
+
+00:25:11.020 --> 00:25:11.200
+ e falar
+
+00:25:11.200 --> 00:25:11.960
+ Eduardo
+
+00:25:11.960 --> 00:25:12.720
+ você tá mentindo
+
+00:25:12.720 --> 00:25:13.780
+ achei uma letra maiúscula
+
+00:25:13.780 --> 00:25:14.060
+ beleza?
+
+00:25:14.060 --> 00:25:15.240
+ tô brincando
+
+00:25:15.240 --> 00:25:16.200
+ brincadeiras à parte
+
+00:25:16.200 --> 00:25:17.620
+ mas eu quero interação também
+
+00:25:17.620 --> 00:25:18.560
+ quero saber o que você achou
+
+00:25:18.560 --> 00:25:19.000
+ desse vídeo
+
+00:25:19.000 --> 00:25:19.660
+ bora pra frente
+
+00:25:19.660 --> 00:25:20.580
+ Eduardo
+
+00:25:20.580 --> 00:25:22.040
+ agora a gente vai entrar
+
+00:25:22.040 --> 00:25:23.780
+ numa etapa um pouco mais delicada
+
+00:25:23.780 --> 00:25:24.640
+ aqui do processamento
+
+00:25:24.640 --> 00:25:25.260
+ de linguagem natural
+
+00:25:25.260 --> 00:25:25.740
+ que é o seguinte
+
+00:25:25.740 --> 00:25:26.860
+ você disse também
+
+00:25:26.860 --> 00:25:27.420
+ que a gente vai fazer
+
+00:25:27.420 --> 00:25:28.340
+ um contagem de palavras
+
+00:25:28.340 --> 00:25:29.520
+ mas que você não pode contar
+
+00:25:29.520 --> 00:25:30.260
+ qualquer palavra
+
+00:25:30.260 --> 00:25:31.200
+ tem que contar somente
+
+00:25:31.200 --> 00:25:31.880
+ as palavras que
+
+00:25:31.880 --> 00:25:33.220
+ tem algum significado
+
+00:25:33.220 --> 00:25:33.400
+ né?
+
+00:25:33.400 --> 00:25:34.640
+ é exatamente isso
+
+00:25:34.640 --> 00:25:35.880
+ e como que você faz isso
+
+00:25:35.880 --> 00:25:36.180
+ Eduardo?
+
+00:25:36.180 --> 00:25:37.360
+ aqui galera
+
+00:25:37.360 --> 00:25:38.400
+ já existe
+
+00:25:38.400 --> 00:25:39.620
+ um pacote chamado
+
+00:25:39.620 --> 00:25:40.780
+ NLTK
+
+00:25:40.780 --> 00:25:41.840
+ e NLTK
+
+00:25:41.840 --> 00:25:42.360
+ significa
+
+00:25:42.360 --> 00:25:44.320
+ Natural Language Toolkit
+
+00:25:44.320 --> 00:25:45.600
+ é um kit de ferramentas
+
+00:25:45.600 --> 00:25:45.960
+ para
+
+00:25:45.960 --> 00:25:47.600
+ linguagem natural
+
+00:25:47.600 --> 00:25:48.320
+ então
+
+00:25:48.320 --> 00:25:49.540
+ esse pacote
+
+00:25:49.540 --> 00:25:50.500
+ ele tem uma série
+
+00:25:50.500 --> 00:25:51.720
+ de stopwords
+
+00:25:51.720 --> 00:25:52.600
+ que são
+
+00:25:52.600 --> 00:25:53.460
+ stopwords
+
+00:25:53.460 --> 00:25:54.860
+ das mais diversas línguas
+
+00:25:54.860 --> 00:25:55.640
+ inclusive
+
+00:25:55.640 --> 00:25:56.400
+ do
+
+00:25:56.400 --> 00:25:57.380
+ do nosso
+
+00:25:57.380 --> 00:25:58.780
+ português
+
+00:25:58.780 --> 00:25:59.800
+ então se eu tivesse escolhido
+
+00:25:59.800 --> 00:26:00.860
+ um banco de dados português
+
+00:26:00.860 --> 00:26:02.420
+ eu também poderia fazer
+
+00:26:02.420 --> 00:26:03.420
+ a mesma coisa
+
+00:26:03.420 --> 00:26:03.880
+ tranquilo?
+
+00:26:04.040 --> 00:26:04.840
+ eu vou dar uma olhada
+
+00:26:04.840 --> 00:26:05.300
+ aqui agora
+
+00:26:05.300 --> 00:26:06.140
+ só para você olhar
+
+00:26:06.140 --> 00:26:06.640
+ aqui ó
+
+00:26:06.640 --> 00:26:07.720
+ NLTK
+
+00:26:07.720 --> 00:26:08.480
+ vou colocar aqui ó
+
+00:26:08.480 --> 00:26:09.900
+ NLTK
+
+00:26:09.900 --> 00:26:11.260
+ stopwords
+
+00:26:11.260 --> 00:26:11.600
+ beleza?
+
+00:26:11.600 --> 00:26:12.980
+ stopwords portugueses
+
+00:26:12.980 --> 00:26:14.140
+ só para você visualizar
+
+00:26:14.140 --> 00:26:15.040
+ como tem
+
+00:26:15.040 --> 00:26:18.380
+ como o NLTK
+
+00:26:18.380 --> 00:26:19.500
+ também tem stopwords
+
+00:26:19.500 --> 00:26:20.240
+ para português
+
+00:26:20.240 --> 00:26:21.260
+ porque você poderia falar assim
+
+00:26:21.260 --> 00:26:21.820
+ ah Eduardo
+
+00:26:21.820 --> 00:26:22.660
+ pô dá um exemplo aí
+
+00:26:22.660 --> 00:26:23.260
+ de português
+
+00:26:23.260 --> 00:26:23.820
+ galera
+
+00:26:23.820 --> 00:26:25.140
+ seria só trocar aqui
+
+00:26:25.140 --> 00:26:25.940
+ você pega a informação
+
+00:26:25.940 --> 00:26:26.600
+ em português
+
+00:26:26.600 --> 00:26:27.800
+ e aí a stopwords
+
+00:26:27.800 --> 00:26:28.740
+ que você ia utilizar
+
+00:26:28.740 --> 00:26:29.600
+ aqui são stopwords
+
+00:26:29.600 --> 00:26:30.520
+ da língua portuguesa
+
+00:26:30.520 --> 00:26:30.840
+ tudo bem?
+
+00:26:30.840 --> 00:26:32.000
+ mas tá aqui galera
+
+00:26:32.000 --> 00:26:32.160
+ ó
+
+00:26:32.160 --> 00:26:33.180
+ então a gente vê aqui
+
+00:26:33.180 --> 00:26:34.620
+ que tem stopwords
+
+00:26:34.620 --> 00:26:36.140
+ da língua portuguesa
+
+00:26:36.140 --> 00:26:36.380
+ também
+
+00:26:36.380 --> 00:26:36.780
+ beleza?
+
+00:26:36.780 --> 00:26:37.900
+ você pode olhar aí
+
+00:26:37.900 --> 00:26:38.520
+ na documentação
+
+00:26:38.520 --> 00:26:39.700
+ do NLTK
+
+00:26:39.700 --> 00:26:40.620
+ que você vai encontrar
+
+00:26:40.620 --> 00:26:40.980
+ tá bom?
+
+00:26:40.980 --> 00:26:42.220
+ exemplos para processamento
+
+00:26:42.220 --> 00:26:42.740
+ em português
+
+00:26:42.740 --> 00:26:43.840
+ vamos voltar aqui
+
+00:26:43.840 --> 00:26:44.420
+ para o nosso negócio
+
+00:26:44.420 --> 00:26:44.720
+ aqui
+
+00:26:44.720 --> 00:26:46.040
+ então o que você vai fazer
+
+00:26:46.040 --> 00:26:46.740
+ agora Eduardo?
+
+00:26:46.740 --> 00:26:48.020
+ vou eliminar
+
+00:26:48.020 --> 00:26:48.500
+ exatamente
+
+00:26:48.500 --> 00:26:49.660
+ as palavras ali
+
+00:26:49.660 --> 00:26:50.780
+ que são stopwords
+
+00:26:50.780 --> 00:26:52.960
+ do nosso banco de dados
+
+00:26:52.960 --> 00:26:53.280
+ tá bom?
+
+00:26:53.280 --> 00:26:55.060
+ e vou já mostrar aqui
+
+00:26:55.060 --> 00:26:55.720
+ esse trabalho
+
+00:26:55.720 --> 00:26:56.240
+ que ele está fazendo
+
+00:26:56.240 --> 00:26:56.660
+ aqui agora
+
+00:26:56.660 --> 00:26:58.160
+ então ele vai baixar
+
+00:26:58.160 --> 00:26:59.180
+ aqui algumas palavras
+
+00:26:59.180 --> 00:27:00.620
+ inclusive ele vai baixar
+
+00:27:00.620 --> 00:27:01.380
+ na sua sessão
+
+00:27:01.380 --> 00:27:03.500
+ esse download aqui
+
+00:27:03.500 --> 00:27:04.760
+ é porque ele precisa
+
+00:27:04.760 --> 00:27:06.120
+ baixar essas palavras
+
+00:27:06.120 --> 00:27:07.180
+ para depois ele fazer
+
+00:27:07.180 --> 00:27:08.180
+ como se fosse um join
+
+00:27:08.180 --> 00:27:09.620
+ ali e retirar
+
+00:27:09.620 --> 00:27:10.060
+ as palavras
+
+00:27:10.060 --> 00:27:12.620
+ que são stopwords
+
+00:27:12.620 --> 00:27:14.080
+ da língua inglesa
+
+00:27:14.080 --> 00:27:14.740
+ nesse caso aqui
+
+00:27:14.740 --> 00:27:15.060
+ tá bom?
+
+00:27:15.060 --> 00:27:15.960
+ então ele está fazendo
+
+00:27:15.960 --> 00:27:16.800
+ o download aqui
+
+00:27:16.800 --> 00:27:17.900
+ e aí ele está
+
+00:27:17.900 --> 00:27:18.860
+ varrendo ali
+
+00:27:18.860 --> 00:27:19.880
+ o nosso banco de dados
+
+00:27:19.880 --> 00:27:20.500
+ tá bom?
+
+00:27:20.500 --> 00:27:21.920
+ e a partir do momento
+
+00:27:21.920 --> 00:27:22.320
+ em que ele
+
+00:27:22.320 --> 00:27:24.180
+ varrer o banco de dados
+
+00:27:24.180 --> 00:27:24.880
+ fizer ali
+
+00:27:24.880 --> 00:27:25.800
+ a limpeza
+
+00:27:25.800 --> 00:27:26.760
+ no nosso banco de dados
+
+00:27:26.760 --> 00:27:27.680
+ ele vai printar
+
+00:27:27.680 --> 00:27:28.080
+ o zero
+
+00:27:28.080 --> 00:27:28.840
+ e eu já vou mostrar
+
+00:27:28.840 --> 00:27:29.140
+ para você
+
+00:27:29.140 --> 00:27:29.660
+ como é que vai ficar
+
+00:27:29.660 --> 00:27:29.980
+ o zero
+
+00:27:29.980 --> 00:27:30.840
+ então deixa eu pegar
+
+00:27:30.840 --> 00:27:31.460
+ aqui um exemplo
+
+00:27:31.460 --> 00:27:31.720
+ aqui
+
+00:27:31.720 --> 00:27:32.080
+ quer ver?
+
+00:27:32.080 --> 00:27:32.460
+ ó
+
+00:27:32.460 --> 00:27:33.380
+ esse it aqui
+
+00:27:33.380 --> 00:27:34.080
+ vai sumir
+
+00:27:34.080 --> 00:27:34.940
+ esse it aqui
+
+00:27:34.940 --> 00:27:35.740
+ vai sumir
+
+00:27:35.740 --> 00:27:36.280
+ tá bom?
+
+00:27:36.280 --> 00:27:37.260
+ esse is aqui
+
+00:27:37.260 --> 00:27:37.820
+ se eu não me engano
+
+00:27:37.820 --> 00:27:38.520
+ vai sumir
+
+00:27:38.520 --> 00:27:39.460
+ nessas paradas
+
+00:27:39.460 --> 00:27:39.660
+ aqui
+
+00:27:39.660 --> 00:27:40.460
+ tudo vai sumir
+
+00:27:40.460 --> 00:27:40.800
+ tá bom?
+
+00:27:41.060 --> 00:27:42.040
+ e aí eu já vou
+
+00:27:42.040 --> 00:27:42.740
+ mostrar para você
+
+00:27:42.740 --> 00:27:43.380
+ o resultado
+
+00:27:43.380 --> 00:27:44.500
+ ele demora um pouquinho
+
+00:27:44.500 --> 00:27:45.380
+ porque você imagina
+
+00:27:45.380 --> 00:27:46.080
+ eu estou olhando
+
+00:27:46.080 --> 00:27:47.920
+ 50 mil registros
+
+00:27:47.920 --> 00:27:48.340
+ né?
+
+00:27:48.340 --> 00:27:49.280
+ 50 mil registros
+
+00:27:49.280 --> 00:27:50.500
+ e cada registro
+
+00:27:50.500 --> 00:27:51.640
+ tem uma pancada
+
+00:27:51.640 --> 00:27:52.200
+ de palavras
+
+00:27:52.200 --> 00:27:53.440
+ aqui ele mostra
+
+00:27:53.440 --> 00:27:53.860
+ para a gente
+
+00:27:53.860 --> 00:27:54.340
+ aqui ó
+
+00:27:54.340 --> 00:27:55.660
+ somente as palavras
+
+00:27:55.660 --> 00:27:56.580
+ que ficaram aqui
+
+00:27:56.580 --> 00:27:59.300
+ no zero
+
+00:27:59.300 --> 00:27:59.520
+ né?
+
+00:27:59.520 --> 00:28:00.240
+ então olha só
+
+00:28:00.240 --> 00:28:01.000
+ eu ia até copiar
+
+00:28:01.000 --> 00:28:01.260
+ para lá
+
+00:28:01.260 --> 00:28:02.100
+ mas nem vou precisar
+
+00:28:02.100 --> 00:28:02.800
+ olha só
+
+00:28:02.800 --> 00:28:04.220
+ o zero aqui
+
+00:28:04.220 --> 00:28:04.760
+ como é que está
+
+00:28:04.760 --> 00:28:06.160
+ o zero só traz
+
+00:28:06.160 --> 00:28:06.860
+ aqui agora
+
+00:28:06.860 --> 00:28:08.240
+ só as palavras
+
+00:28:08.240 --> 00:28:09.040
+ quebradinhas
+
+00:28:09.040 --> 00:28:10.040
+ sem aquele it
+
+00:28:10.040 --> 00:28:10.580
+ que eu te falei
+
+00:28:10.580 --> 00:28:11.540
+ então você olha aqui ó
+
+00:28:11.540 --> 00:28:13.260
+ tem os, episódio, write
+
+00:28:13.260 --> 00:28:13.840
+ beleza?
+
+00:28:13.840 --> 00:28:15.200
+ aí sim a gente está
+
+00:28:15.200 --> 00:28:15.960
+ ficando somente
+
+00:28:15.960 --> 00:28:16.540
+ com as palavras
+
+00:28:16.540 --> 00:28:17.800
+ que tem sentido
+
+00:28:17.800 --> 00:28:18.200
+ beleza?
+
+00:28:18.200 --> 00:28:19.180
+ e aí a máquina
+
+00:28:19.180 --> 00:28:20.220
+ preditiva vai olhar
+
+00:28:20.220 --> 00:28:21.300
+ as palavras
+
+00:28:21.300 --> 00:28:22.500
+ vai olhar o target
+
+00:28:22.500 --> 00:28:23.060
+ e aí
+
+00:28:23.060 --> 00:28:24.320
+ dada a contagem
+
+00:28:24.320 --> 00:28:25.300
+ que ele faz aqui
+
+00:28:25.300 --> 00:28:26.220
+ e é isso que o algoritmo
+
+00:28:26.220 --> 00:28:26.840
+ de machine learning
+
+00:28:26.840 --> 00:28:27.240
+ vai fazer
+
+00:28:27.240 --> 00:28:28.320
+ o count vectorizer
+
+00:28:28.320 --> 00:28:29.560
+ ele vai exatamente
+
+00:28:29.560 --> 00:28:30.260
+ falar para a gente
+
+00:28:30.260 --> 00:28:31.100
+ ah, então
+
+00:28:31.100 --> 00:28:31.940
+ o sentimento é positivo
+
+00:28:31.940 --> 00:28:32.780
+ ah, não, não
+
+00:28:32.780 --> 00:28:33.700
+ tem muita palavra aqui
+
+00:28:33.700 --> 00:28:34.920
+ ah, então
+
+00:28:34.920 --> 00:28:35.920
+ o sentimento é negativo
+
+00:28:35.920 --> 00:28:36.400
+ tranquilo?
+
+00:28:36.400 --> 00:28:37.240
+ é assim que
+
+00:28:37.240 --> 00:28:38.600
+ esse algoritmo
+
+00:28:38.600 --> 00:28:39.320
+ é assim que
+
+00:28:39.320 --> 00:28:40.200
+ essa forma
+
+00:28:40.200 --> 00:28:40.660
+ porque existem
+
+00:28:40.660 --> 00:28:41.380
+ outras também
+
+00:28:41.380 --> 00:28:42.940
+ formas mais avançadas
+
+00:28:42.940 --> 00:28:43.560
+ que utiliza
+
+00:28:43.560 --> 00:28:45.380
+ processamento de linguagem natural
+
+00:28:45.380 --> 00:28:46.700
+ utilizando deep learning
+
+00:28:46.700 --> 00:28:47.040
+ tá bom?
+
+00:28:47.040 --> 00:28:47.540
+ então isso aqui
+
+00:28:47.540 --> 00:28:48.400
+ é uma parte mais
+
+00:28:48.400 --> 00:28:49.620
+ básica
+
+00:28:49.620 --> 00:28:50.440
+ mas que também
+
+00:28:50.440 --> 00:28:51.680
+ já traz ótimos resultados
+
+00:28:51.680 --> 00:28:52.060
+ tá bom?
+
+00:28:52.060 --> 00:28:52.380
+ beleza?
+
+00:28:52.380 --> 00:28:53.220
+ estou partindo
+
+00:28:53.220 --> 00:28:53.720
+ para esse posto
+
+00:28:53.720 --> 00:28:54.580
+ que você está iniciando
+
+00:28:54.580 --> 00:28:55.400
+ sua jornada agora
+
+00:28:55.400 --> 00:28:56.380
+ se você já é um Jedi
+
+00:28:56.380 --> 00:28:57.220
+ aí não
+
+00:28:57.220 --> 00:28:58.360
+ aí tem coisa mais pesada
+
+00:28:58.360 --> 00:28:58.680
+ para você
+
+00:28:58.680 --> 00:28:59.060
+ tá bom?
+
+00:28:59.060 --> 00:28:59.720
+ beleza?
+
+00:28:59.720 --> 00:29:00.620
+ então, beleza
+
+00:29:00.620 --> 00:29:01.780
+ terminamos aqui
+
+00:29:01.780 --> 00:29:03.580
+ os top words
+
+00:29:03.580 --> 00:29:04.440
+ só que agora
+
+00:29:04.440 --> 00:29:04.740
+ galera
+
+00:29:04.740 --> 00:29:05.660
+ ainda tem umas outras
+
+00:29:05.660 --> 00:29:06.440
+ coisinhas também
+
+00:29:06.440 --> 00:29:07.220
+ por exemplo
+
+00:29:07.220 --> 00:29:08.420
+ agora galera
+
+00:29:08.420 --> 00:29:09.820
+ a gente vai utilizar
+
+00:29:09.820 --> 00:29:10.640
+ uma parada chamada
+
+00:29:10.640 --> 00:29:11.120
+ stemer
+
+00:29:11.120 --> 00:29:12.140
+ e esse stemer
+
+00:29:12.140 --> 00:29:12.460
+ galera
+
+00:29:12.460 --> 00:29:13.520
+ é mais ou menos
+
+00:29:13.520 --> 00:29:14.940
+ aquela parte da gramática
+
+00:29:14.940 --> 00:29:15.360
+ saca?
+
+00:29:15.360 --> 00:29:16.280
+ então a gente vai pegar
+
+00:29:16.280 --> 00:29:17.640
+ um pedaço da gramática
+
+00:29:17.640 --> 00:29:18.140
+ aqui também
+
+00:29:18.140 --> 00:29:19.220
+ e fazer um trabalho
+
+00:29:19.220 --> 00:29:20.160
+ de pré-processamento
+
+00:29:20.160 --> 00:29:20.560
+ beleza?
+
+00:29:20.800 --> 00:29:21.760
+ sem adentrar muito
+
+00:29:21.760 --> 00:29:22.280
+ sem adentrar muito na regra
+
+00:29:22.280 --> 00:29:22.520
+ aqui
+
+00:29:22.520 --> 00:29:23.620
+ entenda que isso aqui
+
+00:29:23.620 --> 00:29:24.660
+ é um trabalho de gramática
+
+00:29:24.660 --> 00:29:25.700
+ que está sendo feito aqui
+
+00:29:25.700 --> 00:29:27.100
+ simplesmente para que a gente
+
+00:29:27.100 --> 00:29:29.020
+ consiga condensar
+
+00:29:29.020 --> 00:29:30.660
+ a maior quantidade de informações
+
+00:29:30.660 --> 00:29:32.160
+ em menos palavras
+
+00:29:32.160 --> 00:29:32.400
+ né?
+
+00:29:32.400 --> 00:29:33.460
+ porque você imagina aí
+
+00:29:33.460 --> 00:29:33.620
+ né?
+
+00:29:33.620 --> 00:29:34.980
+ cada interação dessa
+
+00:29:34.980 --> 00:29:35.820
+ você viu aquela hora lá
+
+00:29:35.820 --> 00:29:36.620
+ tinha sei lá
+
+00:29:36.620 --> 00:29:37.820
+ 1200 palavras
+
+00:29:37.820 --> 00:29:38.320
+ beleza?
+
+00:29:38.580 --> 00:29:39.280
+ inclusive a gente
+
+00:29:39.280 --> 00:29:39.980
+ mais embaixo
+
+00:29:39.980 --> 00:29:40.920
+ aqui vai até limitar
+
+00:29:40.920 --> 00:29:41.520
+ por quê?
+
+00:29:41.520 --> 00:29:42.420
+ porque vai ter um bocado
+
+00:29:42.420 --> 00:29:42.880
+ de palavra
+
+00:29:42.880 --> 00:29:43.360
+ que vai aparecer
+
+00:29:43.360 --> 00:29:44.160
+ só uma vez
+
+00:29:44.160 --> 00:29:44.760
+ duas vezes
+
+00:29:44.760 --> 00:29:45.820
+ e talvez nem
+
+00:29:45.820 --> 00:29:46.820
+ nem traga
+
+00:29:46.820 --> 00:29:47.880
+ tanto sentido
+
+00:29:47.880 --> 00:29:48.840
+ ali no nosso trabalho
+
+00:29:48.840 --> 00:29:49.060
+ né?
+
+00:29:49.060 --> 00:29:50.000
+ ela apareceu
+
+00:29:50.000 --> 00:29:50.420
+ sei lá
+
+00:29:50.420 --> 00:29:51.200
+ uma palavra
+
+00:29:51.200 --> 00:29:53.280
+ mas ela não tem muito sentido
+
+00:29:53.280 --> 00:29:54.900
+ e aí a gente vai eliminar
+
+00:29:54.900 --> 00:29:55.200
+ beleza?
+
+00:29:55.200 --> 00:29:56.940
+ vamos colocar uma flag aqui
+
+00:29:56.940 --> 00:29:57.600
+ para eliminar
+
+00:29:57.600 --> 00:29:58.080
+ porque senão
+
+00:29:58.080 --> 00:29:59.000
+ o negócio fica muito grande
+
+00:29:59.000 --> 00:29:59.300
+ também
+
+00:29:59.300 --> 00:29:59.840
+ tá bom?
+
+00:29:59.840 --> 00:30:00.780
+ é uma medida
+
+00:30:00.780 --> 00:30:02.060
+ totalmente discricionária
+
+00:30:02.060 --> 00:30:02.960
+ você vai poder brincar
+
+00:30:02.960 --> 00:30:03.660
+ aí com esse negócio
+
+00:30:03.660 --> 00:30:04.780
+ para saber se
+
+00:30:04.780 --> 00:30:06.160
+ aumentando ou diminuindo
+
+00:30:06.160 --> 00:30:07.460
+ você pode melhorar
+
+00:30:07.460 --> 00:30:08.040
+ o seu resultado
+
+00:30:08.040 --> 00:30:08.420
+ tá bom?
+
+00:30:08.420 --> 00:30:09.300
+ isso é o trabalho
+
+00:30:09.300 --> 00:30:10.100
+ do cientista de dados
+
+00:30:10.100 --> 00:30:11.100
+ bora para frente
+
+00:30:11.100 --> 00:30:11.760
+ ele está fazendo
+
+00:30:11.760 --> 00:30:12.860
+ esse trabalho aqui agora
+
+00:30:12.860 --> 00:30:13.880
+ e assim que ele fizer
+
+00:30:13.880 --> 00:30:14.400
+ esse trabalho
+
+00:30:14.400 --> 00:30:15.760
+ ele vai mostrar
+
+00:30:15.760 --> 00:30:16.180
+ para a gente
+
+00:30:16.180 --> 00:30:17.100
+ vai dar um print aqui
+
+00:30:17.100 --> 00:30:18.360
+ para você ver
+
+00:30:18.360 --> 00:30:19.880
+ aqui qual foi
+
+00:30:19.880 --> 00:30:20.900
+ o output de saída
+
+00:30:20.900 --> 00:30:21.220
+ tá bom?
+
+00:30:21.220 --> 00:30:21.820
+ beleza?
+
+00:30:21.820 --> 00:30:22.860
+ então tá lá galera
+
+00:30:22.860 --> 00:30:23.800
+ olha só que interessante
+
+00:30:23.800 --> 00:30:24.960
+ então a partir de agora
+
+00:30:24.960 --> 00:30:25.980
+ a gente tem aqui
+
+00:30:25.980 --> 00:30:27.440
+ a gente fez
+
+00:30:27.440 --> 00:30:28.680
+ o nosso trabalho de stemming
+
+00:30:28.680 --> 00:30:28.940
+ beleza?
+
+00:30:28.940 --> 00:30:30.340
+ agora galera
+
+00:30:30.340 --> 00:30:31.220
+ a gente vai entrar
+
+00:30:31.220 --> 00:30:32.420
+ no processo de
+
+00:30:32.420 --> 00:30:33.420
+ criação da nossa
+
+00:30:33.420 --> 00:30:34.400
+ máquina preditiva
+
+00:30:34.400 --> 00:30:35.520
+ criação do nosso modelo
+
+00:30:35.520 --> 00:30:37.220
+ e aqui a gente tem
+
+00:30:37.220 --> 00:30:38.580
+ ainda algumas etapas
+
+00:30:38.580 --> 00:30:39.420
+ que são próprias ali
+
+00:30:39.420 --> 00:30:39.980
+ do processamento
+
+00:30:39.980 --> 00:30:40.620
+ de linguagem natural
+
+00:30:40.620 --> 00:30:41.080
+ beleza?
+
+00:30:41.080 --> 00:30:42.080
+ aqui agora
+
+00:30:42.080 --> 00:30:42.820
+ nós vamos criar
+
+00:30:42.820 --> 00:30:43.660
+ uma parada
+
+00:30:43.660 --> 00:30:44.220
+ chamada
+
+00:30:44.220 --> 00:30:45.360
+ ball
+
+00:30:45.360 --> 00:30:45.820
+ que é o
+
+00:30:45.820 --> 00:30:46.920
+ bag of words
+
+00:30:46.920 --> 00:30:47.260
+ tá bom?
+
+00:30:47.260 --> 00:30:48.760
+ bag of words
+
+00:30:48.760 --> 00:30:49.280
+ isso aqui
+
+00:30:49.280 --> 00:30:50.280
+ é uma técnica também
+
+00:30:50.280 --> 00:30:51.300
+ você junta as palavras
+
+00:30:51.300 --> 00:30:52.500
+ numa caixa
+
+00:30:52.500 --> 00:30:53.060
+ num saco
+
+00:30:53.060 --> 00:30:53.780
+ para depois você fazer
+
+00:30:53.780 --> 00:30:54.340
+ a contagem
+
+00:30:54.340 --> 00:30:54.700
+ tá bom?
+
+00:30:54.700 --> 00:30:56.800
+ isso é só processamento
+
+00:30:56.800 --> 00:30:57.080
+ tá bom?
+
+00:30:57.080 --> 00:30:58.000
+ estou só processando
+
+00:30:58.000 --> 00:30:58.740
+ os dados ali
+
+00:30:58.740 --> 00:30:59.280
+ beleza?
+
+00:30:59.280 --> 00:31:00.580
+ como que eu faço isso galera?
+
+00:31:00.580 --> 00:31:01.920
+ eu vou separar
+
+00:31:01.920 --> 00:31:03.240
+ as palavras todas
+
+00:31:03.240 --> 00:31:04.080
+ aqui no x
+
+00:31:04.080 --> 00:31:04.860
+ do mesmo jeito
+
+00:31:04.860 --> 00:31:06.440
+ cada palavra
+
+00:31:06.440 --> 00:31:07.280
+ vai ser
+
+00:31:07.280 --> 00:31:08.280
+ uma variável
+
+00:31:08.280 --> 00:31:09.140
+ é isso mesmo
+
+00:31:09.140 --> 00:31:09.960
+ só que aí
+
+00:31:09.960 --> 00:31:10.780
+ a gente vai criar
+
+00:31:10.780 --> 00:31:11.440
+ por exemplo
+
+00:31:11.440 --> 00:31:12.300
+ nesse caso aqui
+
+00:31:12.300 --> 00:31:12.940
+ a gente vai criar
+
+00:31:12.940 --> 00:31:14.040
+ mil variáveis
+
+00:31:14.040 --> 00:31:14.700
+ olha que interessante
+
+00:31:14.700 --> 00:31:16.140
+ a gente vai limitar
+
+00:31:16.140 --> 00:31:16.880
+ o máximo
+
+00:31:16.880 --> 00:31:17.720
+ de features
+
+00:31:17.720 --> 00:31:18.840
+ o máximo
+
+00:31:18.840 --> 00:31:19.840
+ de variáveis
+
+00:31:19.840 --> 00:31:20.420
+ o máximo
+
+00:31:20.420 --> 00:31:21.020
+ de palavras
+
+00:31:21.020 --> 00:31:22.280
+ em mil
+
+00:31:22.280 --> 00:31:22.820
+ tá bom?
+
+00:31:22.820 --> 00:31:23.360
+ por quê?
+
+00:31:23.360 --> 00:31:24.340
+ porque como eu falei
+
+00:31:24.340 --> 00:31:25.320
+ as vezes tem palavras
+
+00:31:25.320 --> 00:31:26.560
+ que apareceram uma vez
+
+00:31:26.560 --> 00:31:26.800
+ ali
+
+00:31:26.800 --> 00:31:27.200
+ enfim
+
+00:31:27.200 --> 00:31:27.920
+ vai ter um peso
+
+00:31:27.920 --> 00:31:29.280
+ muito pequenininho
+
+00:31:29.280 --> 00:31:29.560
+ então
+
+00:31:29.560 --> 00:31:30.640
+ a gente limita
+
+00:31:30.640 --> 00:31:31.320
+ para o nosso trabalho
+
+00:31:31.320 --> 00:31:32.100
+ não ficar muito grande
+
+00:31:32.100 --> 00:31:32.660
+ tá bom?
+
+00:31:32.660 --> 00:31:33.180
+ e aí
+
+00:31:33.180 --> 00:31:33.840
+ o que eu vou fazer?
+
+00:31:33.840 --> 00:31:34.480
+ em y
+
+00:31:34.480 --> 00:31:35.560
+ vai ser o sentimento
+
+00:31:35.560 --> 00:31:36.400
+ vai ter lá
+
+00:31:36.400 --> 00:31:36.920
+ o positivo
+
+00:31:36.920 --> 00:31:37.960
+ ou o sentimento negativo
+
+00:31:37.960 --> 00:31:38.660
+ do mesmo jeitinho
+
+00:31:38.660 --> 00:31:40.260
+ a label vai estar do lado
+
+00:31:40.260 --> 00:31:41.240
+ as variáveis explicativas
+
+00:31:41.240 --> 00:31:41.700
+ do outro
+
+00:31:41.700 --> 00:31:43.320
+ aqui é a máquina preditiva
+
+00:31:43.320 --> 00:31:43.940
+ o cv
+
+00:31:43.940 --> 00:31:45.080
+ count vectorizer
+
+00:31:45.080 --> 00:31:46.400
+ então o count vectorizer
+
+00:31:46.400 --> 00:31:47.120
+ é o algoritmo
+
+00:31:47.120 --> 00:31:48.020
+ aqui que a gente está chamando
+
+00:31:48.020 --> 00:31:49.000
+ a gente vai falar aqui
+
+00:31:49.000 --> 00:31:49.860
+ o hiperparâmetro
+
+00:31:49.860 --> 00:31:50.740
+ máximo de features
+
+00:31:50.740 --> 00:31:51.280
+ é igual a mil
+
+00:31:51.280 --> 00:31:52.840
+ e vamos fazer o fit
+
+00:31:52.840 --> 00:31:54.160
+ aqui é a máquina preditiva
+
+00:31:54.160 --> 00:31:54.660
+ é o cv
+
+00:31:54.660 --> 00:31:55.920
+ depois que a gente faz
+
+00:31:55.920 --> 00:31:56.580
+ a máquina preditiva
+
+00:31:56.580 --> 00:31:57.260
+ o que a gente faz?
+
+00:31:57.260 --> 00:31:57.800
+ fit
+
+00:31:57.800 --> 00:32:00.000
+ aqui especificamente
+
+00:32:00.000 --> 00:32:01.000
+ para o count vectorizer
+
+00:32:01.000 --> 00:32:02.380
+ é o fit transform
+
+00:32:02.380 --> 00:32:03.880
+ o fit transform
+
+00:32:03.880 --> 00:32:05.020
+ e aí a gente coloca
+
+00:32:05.020 --> 00:32:05.680
+ aqui dentro
+
+00:32:05.680 --> 00:32:06.700
+ o uu
+
+00:32:06.700 --> 00:32:08.040
+ a review
+
+00:32:08.040 --> 00:32:08.780
+ que é exatamente
+
+00:32:08.780 --> 00:32:09.740
+ o nosso trabalho
+
+00:32:09.740 --> 00:32:10.380
+ que a gente acabou
+
+00:32:10.380 --> 00:32:11.220
+ de fazer com as variáveis
+
+00:32:11.220 --> 00:32:11.560
+ tá bom?
+
+00:32:11.700 --> 00:32:12.940
+ então eu vou treinar
+
+00:32:12.940 --> 00:32:14.200
+ aqui a nossa máquina preditiva
+
+00:32:14.200 --> 00:32:14.900
+ a partir de agora
+
+00:32:14.900 --> 00:32:16.600
+ a gente está jogando
+
+00:32:16.600 --> 00:32:17.640
+ os dados de treino
+
+00:32:17.640 --> 00:32:19.000
+ a nossa máquina preditiva
+
+00:32:19.000 --> 00:32:19.920
+ está sendo criada
+
+00:32:19.920 --> 00:32:21.440
+ e aí a partir de agora
+
+00:32:21.440 --> 00:32:22.660
+ a gente vai visualizar
+
+00:32:22.660 --> 00:32:24.040
+ aqui a nossa máquina preditiva
+
+00:32:24.040 --> 00:32:24.520
+ então ó
+
+00:32:24.520 --> 00:32:25.340
+ a partir de agora
+
+00:32:25.340 --> 00:32:26.540
+ a gente já tem aqui né
+
+00:32:26.540 --> 00:32:27.480
+ a máquina preditiva
+
+00:32:27.480 --> 00:32:28.300
+ com o sentimento lá
+
+00:32:28.300 --> 00:32:28.960
+ então tá lá
+
+00:32:28.960 --> 00:32:29.660
+ o primeiro positivo
+
+00:32:29.660 --> 00:32:30.580
+ positivo positivo
+
+00:32:30.580 --> 00:32:31.360
+ depois negativo
+
+00:32:31.360 --> 00:32:32.560
+ e assim por diante
+
+00:32:32.560 --> 00:32:32.900
+ tá bom?
+
+00:32:32.900 --> 00:32:34.500
+ tudo organizadinho
+
+00:32:34.500 --> 00:32:35.320
+ já tá tudo
+
+00:32:35.320 --> 00:32:36.100
+ bonitinho
+
+00:32:36.100 --> 00:32:36.920
+ o x e o y
+
+00:32:36.920 --> 00:32:38.340
+ já tá tudo massa
+
+00:32:38.340 --> 00:32:39.720
+ só que é o seguinte
+
+00:32:39.720 --> 00:32:40.180
+ galera
+
+00:32:40.180 --> 00:32:40.820
+ olha só
+
+00:32:40.820 --> 00:32:41.580
+ é aqui que entra
+
+00:32:41.580 --> 00:32:42.740
+ a beleza do machine learning
+
+00:32:42.740 --> 00:32:44.300
+ eu acabei de fazer
+
+00:32:44.300 --> 00:32:45.080
+ esse trabalho
+
+00:32:45.080 --> 00:32:46.660
+ e eu utilizei
+
+00:32:46.660 --> 00:32:48.020
+ o count vectorizer
+
+00:32:48.020 --> 00:32:49.180
+ pra que ele possa
+
+00:32:49.180 --> 00:32:50.200
+ fazer a contagem
+
+00:32:50.200 --> 00:32:50.860
+ das palavras
+
+00:32:50.860 --> 00:32:51.900
+ a partir de agora
+
+00:32:51.900 --> 00:32:53.340
+ cada palavra
+
+00:32:53.340 --> 00:32:54.060
+ vai ter
+
+00:32:54.060 --> 00:32:54.980
+ uma contagem
+
+00:32:54.980 --> 00:32:56.240
+ e cada palavra
+
+00:32:56.240 --> 00:32:57.280
+ é uma variável
+
+00:32:57.280 --> 00:32:58.300
+ então olha só
+
+00:32:58.300 --> 00:32:59.400
+ o count vectorizer
+
+00:32:59.400 --> 00:32:59.900
+ ele foi lá
+
+00:32:59.900 --> 00:33:00.640
+ contou lá
+
+00:33:00.640 --> 00:33:02.200
+ a quantidade de palavras
+
+00:33:02.200 --> 00:33:03.200
+ limitou a mil
+
+00:33:03.200 --> 00:33:03.960
+ e aí
+
+00:33:03.960 --> 00:33:04.680
+ o valor
+
+00:33:04.680 --> 00:33:05.360
+ então imagina lá
+
+00:33:05.360 --> 00:33:06.140
+ que eu tenho a palavra
+
+00:33:06.140 --> 00:33:07.140
+ é bom
+
+00:33:07.140 --> 00:33:07.460
+ dá
+
+00:33:07.460 --> 00:33:07.900
+ é bom
+
+00:33:07.900 --> 00:33:08.640
+ a palavra
+
+00:33:08.640 --> 00:33:09.040
+ é bom
+
+00:33:09.040 --> 00:33:10.200
+ aí tem lá
+
+00:33:10.200 --> 00:33:10.660
+ 10
+
+00:33:10.660 --> 00:33:12.160
+ então a nossa variável
+
+00:33:12.160 --> 00:33:12.460
+ aqui
+
+00:33:12.460 --> 00:33:13.740
+ que vai ser essa palavra
+
+00:33:13.740 --> 00:33:14.940
+ vai ter o valor 10
+
+00:33:14.940 --> 00:33:15.480
+ beleza?
+
+00:33:15.480 --> 00:33:16.920
+ e como que eu vou usar isso aqui?
+
+00:33:16.920 --> 00:33:18.400
+ eu vou usar agora
+
+00:33:18.400 --> 00:33:18.920
+ galera
+
+00:33:18.920 --> 00:33:19.820
+ num Navy Base
+
+00:33:19.820 --> 00:33:20.500
+ aqui embaixo
+
+00:33:20.500 --> 00:33:21.780
+ olha que interessante
+
+00:33:21.780 --> 00:33:23.160
+ eu misturei duas coisas
+
+00:33:23.160 --> 00:33:24.120
+ então eu peguei um trabalho
+
+00:33:24.120 --> 00:33:25.340
+ de processamento de linguagem natural
+
+00:33:25.340 --> 00:33:26.540
+ agora eu vou utilizar
+
+00:33:26.540 --> 00:33:27.720
+ um algoritmo de machine learning
+
+00:33:27.720 --> 00:33:29.060
+ que você já conhece
+
+00:33:29.060 --> 00:33:30.300
+ pra gente ter ali
+
+00:33:30.300 --> 00:33:31.380
+ a nossa máquina preditiva
+
+00:33:31.380 --> 00:33:32.400
+ que a gente tá acostumado a fazer
+
+00:33:32.400 --> 00:33:33.400
+ que lindo né não?
+
+00:33:33.660 --> 00:33:34.140
+ então olha só
+
+00:33:34.140 --> 00:33:34.820
+ a partir de agora
+
+00:33:34.820 --> 00:33:37.220
+ eu vou pegar esse x e esse y
+
+00:33:37.220 --> 00:33:38.420
+ fazer o treino
+
+00:33:38.420 --> 00:33:39.820
+ teste split normal
+
+00:33:39.820 --> 00:33:40.920
+ que a gente sempre faz
+
+00:33:40.920 --> 00:33:41.500
+ tá bom?
+
+00:33:41.500 --> 00:33:42.200
+ aqui ó
+
+00:33:42.200 --> 00:33:43.400
+ 20% pra testar
+
+00:33:43.400 --> 00:33:44.840
+ e os outros
+
+00:33:44.840 --> 00:33:45.960
+ 80% pra treinar
+
+00:33:45.960 --> 00:33:46.940
+ e pronto
+
+00:33:46.940 --> 00:33:47.520
+ tá lá ó
+
+00:33:47.520 --> 00:33:48.400
+ separei agora
+
+00:33:48.400 --> 00:33:49.740
+ o x e o y
+
+00:33:49.740 --> 00:33:50.460
+ bonitinho
+
+00:33:50.460 --> 00:33:51.120
+ agora a gente tem
+
+00:33:51.120 --> 00:33:52.420
+ base de dados
+
+00:33:52.420 --> 00:33:53.720
+ pra testar
+
+00:33:53.720 --> 00:33:54.920
+ e pra treinar
+
+00:33:54.920 --> 00:33:55.760
+ aqui pra treinar
+
+00:33:55.760 --> 00:33:56.400
+ e pra testar
+
+00:33:56.400 --> 00:33:57.160
+ bonitinho
+
+00:33:57.160 --> 00:33:58.600
+ quais são os algoritmos
+
+00:33:58.600 --> 00:33:59.260
+ mesmo Eduardo?
+
+00:33:59.260 --> 00:34:00.680
+ lembra que a gente importou lá ó
+
+00:34:00.680 --> 00:34:02.040
+ o Gaussian Navy Base
+
+00:34:02.040 --> 00:34:03.600
+ o Multinomial Navy Base
+
+00:34:03.600 --> 00:34:04.860
+ e o Bernoulli Navy Base
+
+00:34:04.860 --> 00:34:06.660
+ não são os três tipos de Navy Base
+
+00:34:06.660 --> 00:34:07.180
+ que a gente tem?
+
+00:34:07.180 --> 00:34:07.920
+ então
+
+00:34:07.920 --> 00:34:09.140
+ eu vou usar os três
+
+00:34:09.140 --> 00:34:10.280
+ e aí a gente vai
+
+00:34:10.280 --> 00:34:11.420
+ exatamente saber
+
+00:34:11.420 --> 00:34:12.480
+ qual que vai ser o melhor
+
+00:34:12.480 --> 00:34:12.980
+ pra gente
+
+00:34:12.980 --> 00:34:13.800
+ a gente vai escolher o melhor
+
+00:34:13.800 --> 00:34:14.740
+ não é assim que a gente faz
+
+00:34:14.740 --> 00:34:16.160
+ então eu tô trazendo logo os três
+
+00:34:16.160 --> 00:34:17.460
+ e a gente vai ficar com o melhor
+
+00:34:17.460 --> 00:34:17.800
+ tá bom?
+
+00:34:17.800 --> 00:34:18.680
+ então olha só
+
+00:34:18.680 --> 00:34:20.180
+ eu tô simplesmente chamando
+
+00:34:20.180 --> 00:34:20.960
+ o Gaussian Navy Base
+
+00:34:20.960 --> 00:34:21.920
+ em hiperparâmetro
+
+00:34:21.920 --> 00:34:23.700
+ o Multinomial Navy Base
+
+00:34:23.700 --> 00:34:25.220
+ eu tô colocando alguns parâmetros aqui
+
+00:34:25.220 --> 00:34:25.780
+ são dois
+
+00:34:25.780 --> 00:34:27.160
+ e o Bernoulli Navy Base
+
+00:34:27.160 --> 00:34:28.840
+ eu também tô usando dois hiperparâmetros
+
+00:34:28.840 --> 00:34:29.960
+ poderia não tá usando nenhum
+
+00:34:29.960 --> 00:34:31.100
+ mas esse aqui eu tô usando
+
+00:34:31.100 --> 00:34:33.440
+ e geralmente eu sempre explico direitinho
+
+00:34:33.540 --> 00:34:34.180
+ o que significa
+
+00:34:34.180 --> 00:34:35.360
+ cada hiperparâmetro
+
+00:34:35.360 --> 00:34:36.600
+ dentro do programa
+
+00:34:36.600 --> 00:34:37.620
+ de cientistas de dados na prática
+
+00:34:37.620 --> 00:34:38.860
+ pra que você possa aí
+
+00:34:38.860 --> 00:34:39.540
+ se habituar
+
+00:34:39.540 --> 00:34:41.140
+ a melhorar a sua máquina preditiva
+
+00:34:41.140 --> 00:34:41.400
+ beleza?
+
+00:34:41.400 --> 00:34:42.880
+ então vou criar os três
+
+00:34:42.880 --> 00:34:43.400
+ tá bom?
+
+00:34:43.400 --> 00:34:44.380
+ vou criar os três
+
+00:34:44.380 --> 00:34:45.800
+ as três máquinas preditivas
+
+00:34:45.800 --> 00:34:47.320
+ com três baselines
+
+00:34:47.320 --> 00:34:47.920
+ que eu tenho aqui
+
+00:34:47.920 --> 00:34:48.820
+ estão criados
+
+00:34:48.820 --> 00:34:49.840
+ os três baselines aqui
+
+00:34:49.840 --> 00:34:51.420
+ na verdade eu tô fazendo três
+
+00:34:51.420 --> 00:34:52.440
+ e aí o melhor
+
+00:34:52.440 --> 00:34:54.080
+ vai ser a minha máquina preditiva final
+
+00:34:54.080 --> 00:34:54.460
+ tá bom?
+
+00:34:54.720 --> 00:34:55.680
+ eu vou fazer
+
+00:34:55.680 --> 00:34:56.780
+ fiz o treinamento
+
+00:34:56.780 --> 00:34:57.560
+ fiz o fit
+
+00:34:57.560 --> 00:34:59.100
+ agora vou fazer o predict
+
+00:34:59.100 --> 00:34:59.500
+ né galera?
+
+00:34:59.500 --> 00:35:00.480
+ vou fazer o predict
+
+00:35:00.480 --> 00:35:01.460
+ aqui e agora
+
+00:35:01.460 --> 00:35:03.200
+ então acabei de fazer o predict
+
+00:35:03.200 --> 00:35:03.680
+ beleza?
+
+00:35:03.680 --> 00:35:05.420
+ e agora eu vou dar uma olhada
+
+00:35:05.420 --> 00:35:06.420
+ aqui na acurácia
+
+00:35:06.420 --> 00:35:07.680
+ pra ver qual é a melhor
+
+00:35:07.680 --> 00:35:08.520
+ máquina preditiva
+
+00:35:08.520 --> 00:35:09.420
+ se é o Gaussian
+
+00:35:09.420 --> 00:35:10.400
+ se é o Multinomial
+
+00:35:10.400 --> 00:35:11.440
+物 ou se é o Bernoulli
+
+00:35:11.440 --> 00:35:12.320
+ ou se é o Bernoulli
+
+00:35:12.320 --> 00:35:12.600
+ beleza?
+
+00:35:12.600 --> 00:35:14.120
+ então vamos rodar aqui
+
+00:35:14.120 --> 00:35:15.240
+ executa
+
+00:35:15.240 --> 00:35:16.560
+ e aí a gente tem aqui
+
+00:35:16.560 --> 00:35:17.920
+ a nossa máquina preditiva
+
+00:35:17.920 --> 00:35:18.540
+ os três resultados
+
+00:35:18.540 --> 00:35:20.120
+ o Gaussian foi o pior
+
+00:35:20.120 --> 00:35:21.840
+ 78% de assertividade
+
+00:35:21.840 --> 00:35:22.700
+ aqui de acurácia
+
+00:35:22.700 --> 00:35:24.120
+ nós temos o Multinomial
+
+00:35:24.120 --> 00:35:25.420
+ que é 83.1
+
+00:35:25.420 --> 00:35:26.320
+ e temos o Bernoulli
+
+00:35:26.320 --> 00:35:26.740
+ né galera?
+
+00:35:26.740 --> 00:35:27.520
+ olha o Bernoulli aqui
+
+00:35:27.520 --> 00:35:29.560
+ o Bernoulli foi 83.8
+
+00:35:29.560 --> 00:35:30.600
+ então ele vai ser
+
+00:35:30.600 --> 00:35:31.900
+ a nossa máquina preditiva
+
+00:35:31.900 --> 00:35:32.760
+ é o BNB
+
+00:35:32.760 --> 00:35:34.200
+ a máquina preditiva
+
+00:35:34.200 --> 00:35:35.160
+ que é o Bernoulli
+
+00:35:35.160 --> 00:35:35.920
+ Navy Base
+
+00:35:35.920 --> 00:35:37.020
+ então nós temos aqui
+
+00:35:37.020 --> 00:35:37.780
+ vou salvar
+
+00:35:37.780 --> 00:35:39.080
+ o Bernoulli Navy Base
+
+00:35:39.080 --> 00:35:40.080
+ a partir de agora
+
+00:35:40.080 --> 00:35:41.580
+ eu vou utilizar o Pico
+
+00:35:41.580 --> 00:35:42.600
+ lembra que eu falei pra você
+
+00:35:42.600 --> 00:35:43.260
+ que a gente ia utilizar
+
+00:35:43.260 --> 00:35:44.180
+ o pacote chamado Pico
+
+00:35:44.180 --> 00:35:45.220
+ que era pra salvar
+
+00:35:45.220 --> 00:35:46.760
+ e que isso aqui agora
+
+00:35:46.760 --> 00:35:48.080
+ é uma parada tão fera
+
+00:35:48.080 --> 00:35:48.540
+ que antigamente
+
+00:35:48.540 --> 00:35:49.920
+ eu tive que especificar
+
+00:35:49.920 --> 00:35:50.520
+ no Cobol
+
+00:35:50.520 --> 00:35:51.260
+ pra ver como é que a gente
+
+00:35:51.260 --> 00:35:52.280
+ ia chamar o algoritmo
+
+00:35:52.280 --> 00:35:53.140
+ então tá aqui galera
+
+00:35:53.140 --> 00:35:54.640
+ você criou a máquina preditiva
+
+00:35:54.640 --> 00:35:55.420
+ tá toda criadinha
+
+00:35:55.420 --> 00:35:56.520
+ quando você quiser usar ela
+
+00:35:56.520 --> 00:35:57.000
+ aqui agora
+
+00:35:57.000 --> 00:35:58.120
+ você vai simplesmente
+
+00:35:58.120 --> 00:35:59.600
+ chamar ele no Pico
+
+00:35:59.600 --> 00:36:00.800
+ porque você tá salvando aqui
+
+00:36:00.800 --> 00:36:02.000
+ o nome da máquina preditiva
+
+00:36:02.000 --> 00:36:02.380
+ aqui ó
+
+00:36:02.380 --> 00:36:03.880
+ é o Model One
+
+00:36:03.880 --> 00:36:04.360
+ beleza?
+
+00:36:04.360 --> 00:36:04.980
+ então tá lá
+
+00:36:04.980 --> 00:36:05.540
+ Model One
+
+00:36:05.540 --> 00:36:06.540
+ a minha máquina preditiva
+
+00:36:06.540 --> 00:36:07.840
+ que eu estou salvando
+
+00:36:07.840 --> 00:36:08.620
+ que eu acabei de salvar
+
+00:36:08.620 --> 00:36:09.300
+ fechou?
+
+00:36:09.300 --> 00:36:09.820
+ tranquilo?
+
+00:36:09.820 --> 00:36:11.920
+ então salvamos a máquina preditiva
+
+00:36:11.920 --> 00:36:12.520
+ agora
+
+00:36:12.520 --> 00:36:13.860
+ vou minimizar
+
+00:36:13.860 --> 00:36:15.220
+ e travei
+
+00:36:15.220 --> 00:36:15.740
+ bom pronto
+
+00:36:15.740 --> 00:36:16.340
+ beleza
+
+00:36:16.340 --> 00:36:17.480
+ então agora galera
+
+00:36:17.480 --> 00:36:18.500
+ é que a gente já salvou
+
+00:36:18.500 --> 00:36:19.340
+ a máquina preditiva
+
+00:36:19.340 --> 00:36:20.120
+ tá construída
+
+00:36:20.120 --> 00:36:20.840
+ nós treinamos
+
+00:36:20.840 --> 00:36:21.580
+ avaliamos
+
+00:36:21.580 --> 00:36:23.440
+ escolhemos a máquina preditiva
+
+00:36:23.440 --> 00:36:23.860
+ final
+
+00:36:23.860 --> 00:36:25.160
+ então imagina que você
+
+00:36:25.160 --> 00:36:26.840
+ agora já está ali
+
+00:36:26.840 --> 00:36:29.080
+ na parte de implementação
+
+00:36:29.080 --> 00:36:29.360
+ beleza?
+
+00:36:29.360 --> 00:36:30.440
+ então a partir de agora
+
+00:36:30.440 --> 00:36:31.500
+ você fez todo o trabalho
+
+00:36:31.500 --> 00:36:33.600
+ agora é a parte de deploy
+
+00:36:33.600 --> 00:36:35.140
+ então imagina que você já fez
+
+00:36:35.140 --> 00:36:35.560
+ o deploy
+
+00:36:35.560 --> 00:36:37.060
+ salvou a máquina preditiva
+
+00:36:37.060 --> 00:36:38.960
+ e já colocou um ambiente aí
+
+00:36:38.960 --> 00:36:39.140
+ né?
+
+00:36:39.140 --> 00:36:40.060
+ então imagina que você tem
+
+00:36:40.060 --> 00:36:40.860
+ um site agora
+
+00:36:40.860 --> 00:36:42.440
+ onde você vai capturar
+
+00:36:42.440 --> 00:36:43.580
+ as informações do chat
+
+00:36:43.580 --> 00:36:44.240
+ do cliente
+
+00:36:44.240 --> 00:36:45.820
+ e aí o cliente vai escrever
+
+00:36:45.820 --> 00:36:46.440
+ no chat
+
+00:36:46.440 --> 00:36:47.300
+ que a gente vai estar
+
+00:36:47.300 --> 00:36:47.840
+ utilizando
+
+00:36:47.840 --> 00:36:48.260
+ é claro
+
+00:36:48.260 --> 00:36:49.400
+ uma parada que a gente
+
+00:36:49.400 --> 00:36:50.480
+ escreveu aqui agora
+
+00:36:50.480 --> 00:36:51.520
+ que eu peguei de outro
+
+00:36:51.520 --> 00:36:52.260
+ de outro review
+
+00:36:52.260 --> 00:36:54.100
+ e vou fazer
+
+00:36:54.100 --> 00:36:55.980
+ vou colocar como se o cliente
+
+00:36:55.980 --> 00:36:57.220
+ estivesse escrevendo aqui
+
+00:36:57.220 --> 00:36:58.420
+ para a máquina preditiva
+
+00:36:58.420 --> 00:36:59.560
+ fazer o tratamento
+
+00:36:59.560 --> 00:37:01.100
+ o trabalho de pré-processamento
+
+00:37:01.100 --> 00:37:03.000
+ o trabalho de passagem
+
+00:37:03.000 --> 00:37:03.880
+ na máquina preditiva
+
+00:37:03.880 --> 00:37:05.160
+ e o output
+
+00:37:05.160 --> 00:37:05.400
+ né?
+
+00:37:05.400 --> 00:37:06.100
+ que é o resultado
+
+00:37:06.100 --> 00:37:08.080
+ eu automatizando
+
+00:37:08.080 --> 00:37:09.040
+ todo esse processo
+
+00:37:09.040 --> 00:37:10.540
+ eu consigo saber
+
+00:37:10.540 --> 00:37:11.300
+ em tempo real
+
+00:37:11.300 --> 00:37:12.520
+ o que que os meus clientes
+
+00:37:12.520 --> 00:37:13.180
+ estão achando
+
+00:37:13.180 --> 00:37:14.820
+ olha como isso é surreal
+
+00:37:14.820 --> 00:37:15.480
+ beleza?
+
+00:37:15.480 --> 00:37:16.720
+ então vai pensando aí
+
+00:37:16.720 --> 00:37:17.360
+ a partir de agora
+
+00:37:17.360 --> 00:37:18.240
+ os clientes estão lá
+
+00:37:18.240 --> 00:37:19.020
+ estão escrevendo
+
+00:37:19.020 --> 00:37:19.960
+ as avaliações aí
+
+00:37:19.960 --> 00:37:20.540
+ da sua empresa
+
+00:37:20.540 --> 00:37:20.900
+ tá bom?
+
+00:37:20.900 --> 00:37:22.080
+ estão lá no chat
+
+00:37:22.080 --> 00:37:23.160
+ falando dos seus produtos
+
+00:37:23.160 --> 00:37:23.940
+ então olha só
+
+00:37:23.940 --> 00:37:24.820
+ vou pegar aqui agora
+
+00:37:24.820 --> 00:37:26.360
+ vou copiar essa parada aqui
+
+00:37:26.360 --> 00:37:27.520
+ e vou jogar aqui
+
+00:37:27.520 --> 00:37:28.540
+ no Google Tradutor
+
+00:37:28.540 --> 00:37:29.060
+ né?
+
+00:37:29.060 --> 00:37:30.460
+ sem medo de ser feliz
+
+00:37:30.460 --> 00:37:31.600
+ como eu mostro para você
+
+00:37:31.600 --> 00:37:33.140
+ sem medo de ser feliz mesmo
+
+00:37:33.140 --> 00:37:34.780
+ para você visualizar aqui
+
+00:37:34.780 --> 00:37:35.940
+ o que que é que está sendo escrito
+
+00:37:35.940 --> 00:37:36.580
+ aqui nessa parada
+
+00:37:36.580 --> 00:37:36.820
+ beleza?
+
+00:37:36.820 --> 00:37:37.880
+ vou copiar
+
+00:37:37.880 --> 00:37:38.740
+ vou jogar aqui
+
+00:37:38.740 --> 00:37:39.600
+ vou apagar isso aqui
+
+00:37:39.600 --> 00:37:40.560
+ e vou jogar aqui
+
+00:37:40.560 --> 00:37:41.240
+ no Google Tradutor
+
+00:37:41.240 --> 00:37:41.860
+ para você ver aqui
+
+00:37:41.860 --> 00:37:42.960
+ então olha só
+
+00:37:42.960 --> 00:37:43.780
+ o que que está escrito aqui
+
+00:37:43.780 --> 00:37:44.760
+ nesse review
+
+00:37:44.760 --> 00:37:45.460
+ que o cara fez
+
+00:37:45.460 --> 00:37:45.660
+ né?
+
+00:37:45.660 --> 00:37:46.500
+ então imagina lá
+
+00:37:46.500 --> 00:37:47.020
+ cara
+
+00:37:47.020 --> 00:37:47.740
+ terrível
+
+00:37:47.740 --> 00:37:48.880
+ lixo completo
+
+00:37:48.880 --> 00:37:50.040
+ tripa desmiolada
+
+00:37:50.040 --> 00:37:51.500
+ um insulto a qualquer um
+
+00:37:51.500 --> 00:37:52.400
+ que não seja fanboy
+
+00:37:52.400 --> 00:37:53.080
+ de 8 anos
+
+00:37:53.080 --> 00:37:53.880
+ na verdade
+
+00:37:53.880 --> 00:37:54.800
+ estou muito enojado
+
+00:37:54.800 --> 00:37:55.460
+ que esse filme
+
+00:37:55.460 --> 00:37:57.260
+ esteja fazendo tanto dinheiro
+
+00:37:57.260 --> 00:37:57.740
+ que ele diz
+
+00:37:57.740 --> 00:37:58.980
+ sobre as pessoas estupidas
+
+00:37:58.980 --> 00:37:59.380
+ cara
+
+00:37:59.380 --> 00:38:00.540
+ não preciso nem ler mais
+
+00:38:00.540 --> 00:38:01.440
+ você já sabe
+
+00:38:01.440 --> 00:38:02.060
+ que o review
+
+00:38:02.060 --> 00:38:02.720
+ dessa parada aqui
+
+00:38:02.720 --> 00:38:03.280
+ é negativo
+
+00:38:03.280 --> 00:38:04.200
+ então se a nossa
+
+00:38:04.200 --> 00:38:04.980
+ máquina preditiva
+
+00:38:04.980 --> 00:38:05.600
+ estiver boa
+
+00:38:05.780 --> 00:38:06.620
+ ela vai saber
+
+00:38:06.620 --> 00:38:07.220
+ que o sentimento
+
+00:38:07.220 --> 00:38:07.720
+ dessa parada
+
+00:38:07.720 --> 00:38:08.280
+ é negativo
+
+00:38:08.280 --> 00:38:08.680
+ por quê?
+
+00:38:08.680 --> 00:38:09.560
+ porque cara
+
+00:38:09.560 --> 00:38:10.500
+ a gente mandou ali
+
+00:38:10.500 --> 00:38:11.180
+ uma série
+
+00:38:11.180 --> 00:38:12.500
+ mandando 50 mil
+
+00:38:12.500 --> 00:38:13.080
+ na verdade
+
+00:38:13.080 --> 00:38:14.060
+ 40 mil
+
+00:38:14.060 --> 00:38:15.140
+ registros
+
+00:38:15.140 --> 00:38:15.600
+ rotulados
+
+00:38:15.600 --> 00:38:16.460
+ 50 mil registros
+
+00:38:16.460 --> 00:38:17.080
+ rotulados
+
+00:38:17.080 --> 00:38:17.960
+ para que a máquina
+
+00:38:17.960 --> 00:38:18.480
+ preditiva
+
+00:38:18.480 --> 00:38:19.720
+ pudesse receber
+
+00:38:19.720 --> 00:38:20.820
+ e avaliar
+
+00:38:20.820 --> 00:38:21.740
+ e fazer todo um trabalho
+
+00:38:21.740 --> 00:38:22.440
+ e saber o que é
+
+00:38:22.440 --> 00:38:23.100
+ uma coisa positiva
+
+00:38:23.100 --> 00:38:23.340
+ e o que é
+
+00:38:23.340 --> 00:38:24.060
+ uma coisa negativa
+
+00:38:24.060 --> 00:38:24.580
+ beleza?
+
+00:38:25.140 --> 00:38:25.540
+ tivemos
+
+00:38:25.540 --> 00:38:26.080
+ tivemos uma assertividade
+
+00:38:26.080 --> 00:38:27.420
+ de 80 e tantos por cento
+
+00:38:27.420 --> 00:38:28.060
+ então eu acredito
+
+00:38:28.060 --> 00:38:28.700
+ que a nossa máquina
+
+00:38:28.700 --> 00:38:29.300
+ vai acertar
+
+00:38:29.300 --> 00:38:30.620
+ também essa parada aqui
+
+00:38:30.620 --> 00:38:30.840
+ beleza?
+
+00:38:30.840 --> 00:38:32.080
+ o sentimento tem que ser negativo
+
+00:38:32.080 --> 00:38:32.940
+ mas se estiver errado
+
+00:38:32.940 --> 00:38:33.260
+ também
+
+00:38:33.260 --> 00:38:34.300
+ vai fazer o quê?
+
+00:38:34.300 --> 00:38:35.080
+ não, mas eu acho
+
+00:38:35.080 --> 00:38:35.680
+ que vai estar certinho
+
+00:38:35.680 --> 00:38:35.920
+ também
+
+00:38:35.920 --> 00:38:36.440
+ então olha só
+
+00:38:36.440 --> 00:38:37.540
+ como é que a máquina
+
+00:38:37.540 --> 00:38:38.900
+ preditiva vai trabalhar?
+
+00:38:38.900 --> 00:38:40.320
+ ela precisa
+
+00:38:40.320 --> 00:38:41.740
+ receber os dados
+
+00:38:41.740 --> 00:38:42.580
+ do jeito que ela foi
+
+00:38:42.580 --> 00:38:43.440
+ treinada para receber
+
+00:38:43.440 --> 00:38:43.820
+ beleza?
+
+00:38:43.820 --> 00:38:45.160
+ então se você faz
+
+00:38:45.160 --> 00:38:46.140
+ o pré-processamento
+
+00:38:46.140 --> 00:38:46.920
+ lá limpando
+
+00:38:46.920 --> 00:38:48.480
+ com expressão regular
+
+00:38:48.480 --> 00:38:49.280
+ você tem que fazer
+
+00:38:49.280 --> 00:38:50.100
+ a mesma coisa
+
+00:38:50.100 --> 00:38:50.960
+ ah, tirando
+
+00:38:50.960 --> 00:38:51.760
+ o carácter especial
+
+00:38:51.760 --> 00:38:52.940
+ a mesma coisa
+
+00:38:52.940 --> 00:38:54.040
+ é, fazendo
+
+00:38:54.040 --> 00:38:55.200
+ diminuindo as letras
+
+00:38:55.200 --> 00:38:56.400
+ de maiúsculo para minúsculo
+
+00:38:56.400 --> 00:38:57.820
+ removendo o stop word
+
+00:38:57.820 --> 00:38:59.000
+ fazendo aquela parada
+
+00:38:59.000 --> 00:38:59.620
+ de gramática
+
+00:38:59.620 --> 00:39:00.020
+ Eduardo
+
+00:39:00.020 --> 00:39:00.720
+ tudo
+
+00:39:00.720 --> 00:39:01.320
+ você tem que fazer
+
+00:39:01.320 --> 00:39:01.900
+ tudo isso
+
+00:39:01.900 --> 00:39:03.040
+ e isso tem que estar ali
+
+00:39:03.040 --> 00:39:04.600
+ já imbuído
+
+00:39:04.600 --> 00:39:05.300
+ ali no seu
+
+00:39:05.300 --> 00:39:07.980
+ no seu operacional
+
+00:39:07.980 --> 00:39:08.620
+ tranquilo?
+
+00:39:08.620 --> 00:39:09.360
+ então isso tem que estar
+
+00:39:09.360 --> 00:39:10.120
+ especificado também
+
+00:39:10.120 --> 00:39:11.060
+ a forma como você vai
+
+00:39:11.060 --> 00:39:11.820
+ receber a informação
+
+00:39:11.820 --> 00:39:13.280
+ para fazer o tratamento
+
+00:39:13.280 --> 00:39:14.120
+ passar na máquina
+
+00:39:14.120 --> 00:39:14.680
+ preditiva
+
+00:39:14.680 --> 00:39:15.680
+ e cuspir o resultado
+
+00:39:15.680 --> 00:39:16.320
+ para você fazer
+
+00:39:16.320 --> 00:39:16.960
+ o seu dashboard
+
+00:39:16.960 --> 00:39:17.720
+ e a sua análise
+
+00:39:17.720 --> 00:39:19.380
+ para o corpo executivo
+
+00:39:19.380 --> 00:39:19.840
+ da sua empresa
+
+00:39:19.840 --> 00:39:20.340
+ tranquilo?
+
+00:39:20.340 --> 00:39:21.020
+ então olha só
+
+00:39:21.020 --> 00:39:21.400
+ bora lá
+
+00:39:21.400 --> 00:39:21.940
+ como é que vai ser
+
+00:39:21.940 --> 00:39:22.480
+ essa parada
+
+00:39:22.480 --> 00:39:23.160
+ eu vou pegar
+
+00:39:23.160 --> 00:39:23.720
+ esse heavy
+
+00:39:23.720 --> 00:39:24.540
+ que é esse review
+
+00:39:24.540 --> 00:39:25.380
+ que o cara fez aqui
+
+00:39:25.380 --> 00:39:26.240
+ e vou fazer
+
+00:39:26.240 --> 00:39:27.400
+ todas as 5 etapas
+
+00:39:27.400 --> 00:39:28.240
+ que a gente fez aqui
+
+00:39:28.240 --> 00:39:28.660
+ tá?
+
+00:39:28.660 --> 00:39:29.420
+ 5 fases
+
+00:39:29.420 --> 00:39:30.240
+ eu chamei de F1
+
+00:39:30.240 --> 00:39:31.220
+ para ficar mais fácil
+
+00:39:31.220 --> 00:39:31.920
+ de você entender
+
+00:39:31.920 --> 00:39:33.300
+ então o que a gente vai fazer aqui
+
+00:39:33.300 --> 00:39:34.860
+ eu vou fazer a limpeza
+
+00:39:34.860 --> 00:39:35.700
+ fazer lá
+
+00:39:35.700 --> 00:39:37.060
+ tirar o carácter especial
+
+00:39:37.060 --> 00:39:38.200
+ diminuir
+
+00:39:38.200 --> 00:39:39.400
+ fazer tudo que a gente fez
+
+00:39:39.400 --> 00:39:40.280
+ nos mesmos outros
+
+00:39:40.280 --> 00:39:41.080
+ nas 5 fases
+
+00:39:41.080 --> 00:39:41.840
+ depois
+
+00:39:41.840 --> 00:39:42.760
+ eu vou fazer lá
+
+00:39:42.760 --> 00:39:43.380
+ aquele trabalho
+
+00:39:43.380 --> 00:39:44.100
+ de tokenização
+
+00:39:44.100 --> 00:39:44.840
+ que a gente fez
+
+00:39:44.840 --> 00:39:46.080
+ com o Couch Vectorizer
+
+00:39:46.080 --> 00:39:46.760
+ e aí
+
+00:39:46.760 --> 00:39:47.660
+ eu vou passar
+
+00:39:47.660 --> 00:39:48.760
+ para a máquina preditiva
+
+00:39:48.760 --> 00:39:50.540
+ vou pegar lá na máquina preditiva
+
+00:39:50.540 --> 00:39:52.520
+ a nossa máquina preditiva
+
+00:39:52.520 --> 00:39:54.540
+ que a gente utilizou
+
+00:39:54.540 --> 00:39:56.040
+ que é a BNB
+
+00:39:56.040 --> 00:39:57.340
+ e vou pedir para ele fazer
+
+00:39:57.340 --> 00:39:58.040
+ a predição
+
+00:39:58.040 --> 00:39:58.440
+ tá bom?
+
+00:39:58.700 --> 00:39:59.980
+ esse resumido
+
+00:39:59.980 --> 00:40:00.480
+ tá galera
+
+00:40:00.480 --> 00:40:01.220
+ eu estou resumindo
+
+00:40:01.220 --> 00:40:02.260
+ essa fase aqui
+
+00:40:02.260 --> 00:40:03.100
+ exatamente para
+
+00:40:03.100 --> 00:40:04.960
+ uma implementação
+
+00:40:04.960 --> 00:40:06.140
+ que eu estou resumindo
+
+00:40:06.140 --> 00:40:07.020
+ aqui nessa célula
+
+00:40:07.020 --> 00:40:07.860
+ que é óbvio
+
+00:40:07.860 --> 00:40:08.600
+ que você não vai entender
+
+00:40:08.600 --> 00:40:09.220
+ linha por linha
+
+00:40:09.220 --> 00:40:10.100
+ mas eu vou deixar
+
+00:40:10.100 --> 00:40:10.840
+ esse script aí
+
+00:40:10.840 --> 00:40:11.300
+ para você
+
+00:40:11.300 --> 00:40:12.180
+ esse script é teu
+
+00:40:12.180 --> 00:40:13.100
+ depois você vai poder
+
+00:40:13.100 --> 00:40:14.220
+ debugar linha a linha
+
+00:40:14.220 --> 00:40:15.140
+ a gente tira
+
+00:40:15.140 --> 00:40:16.360
+ troca uma ideia aí
+
+00:40:16.360 --> 00:40:16.600
+ e tal
+
+00:40:16.600 --> 00:40:18.340
+ e tenta se aprofundar mais
+
+00:40:18.340 --> 00:40:19.340
+ mas como eu sempre falo
+
+00:40:19.340 --> 00:40:21.100
+ eu não tenho tempo
+
+00:40:21.100 --> 00:40:21.440
+ que eu tenho
+
+00:40:21.440 --> 00:40:22.240
+ com os meus alunos
+
+00:40:22.240 --> 00:40:22.800
+ aqui contigo
+
+00:40:22.800 --> 00:40:23.540
+ eu estou no YouTube
+
+00:40:23.540 --> 00:40:24.320
+ eu estou no Facebook
+
+00:40:24.320 --> 00:40:24.840
+ eu estou no Instagram
+
+00:40:24.840 --> 00:40:25.520
+ na rede social
+
+00:40:25.520 --> 00:40:26.360
+ a gente tem aí
+
+00:40:26.360 --> 00:40:27.440
+ uma horinha no máximo
+
+00:40:27.440 --> 00:40:28.000
+ para a gente fazer
+
+00:40:28.000 --> 00:40:28.580
+ essa parada
+
+00:40:28.580 --> 00:40:29.660
+ então eu não tenho
+
+00:40:29.660 --> 00:40:30.660
+ o tempo que eu devia ter
+
+00:40:30.660 --> 00:40:31.800
+ mais aqui
+
+00:40:31.800 --> 00:40:32.860
+ o tempo que eu tenho
+
+00:40:32.860 --> 00:40:33.620
+ com os meus alunos
+
+00:40:33.620 --> 00:40:34.320
+ no programa
+
+00:40:34.320 --> 00:40:34.880
+ cientista de dados
+
+00:40:34.880 --> 00:40:35.340
+ na prática
+
+00:40:35.340 --> 00:40:36.440
+ aí a gente detalha
+
+00:40:36.440 --> 00:40:37.460
+ essa parada toda aqui
+
+00:40:37.460 --> 00:40:38.520
+ e vai de voador
+
+00:40:38.520 --> 00:40:39.040
+ em cada linha
+
+00:40:39.040 --> 00:40:39.540
+ beleza?
+
+00:40:39.540 --> 00:40:40.200
+ tranquilo?
+
+00:40:40.200 --> 00:40:41.180
+ então bora para frente
+
+00:40:41.180 --> 00:40:41.660
+ vamos lá
+
+00:40:41.660 --> 00:40:42.620
+ a partir de agora
+
+00:40:42.620 --> 00:40:43.040
+ eu vou pegar
+
+00:40:43.040 --> 00:40:44.160
+ a nossa máquina preditiva
+
+00:40:44.160 --> 00:40:44.760
+ que é o Bernoulli
+
+00:40:44.760 --> 00:40:45.220
+ Navy Base
+
+00:40:45.220 --> 00:40:45.840
+ que a gente fez
+
+00:40:45.840 --> 00:40:47.120
+ e aí eu vou passar
+
+00:40:47.120 --> 00:40:47.940
+ esse dado aqui
+
+00:40:47.940 --> 00:40:48.600
+ essa review
+
+00:40:48.600 --> 00:40:49.320
+ a partir do momento
+
+00:40:49.320 --> 00:40:49.780
+ que eu passo
+
+00:40:49.780 --> 00:40:50.320
+ essa review
+
+00:40:50.320 --> 00:40:51.720
+ a gente consegue ali
+
+00:40:51.720 --> 00:40:53.140
+ saber qual é o resultado
+
+00:40:53.140 --> 00:40:54.260
+ desse YPred
+
+00:40:54.260 --> 00:40:55.780
+ e aí a gente já sabe
+
+00:40:55.780 --> 00:40:56.620
+ qual é esse resultado
+
+00:40:56.620 --> 00:40:57.380
+ porque a gente viu
+
+00:40:57.380 --> 00:40:58.500
+ que a nossa máquina preditiva
+
+00:40:58.500 --> 00:41:00.160
+ ela é a máquina preditiva
+
+00:41:00.160 --> 00:41:01.460
+ que acerta a grande maioria
+
+00:41:01.460 --> 00:41:01.940
+ dos casos
+
+00:41:01.940 --> 00:41:02.620
+ na verdade
+
+00:41:02.620 --> 00:41:04.100
+ para ser mais exato
+
+00:41:04.100 --> 00:41:05.420
+ a nossa máquina preditiva
+
+00:41:05.420 --> 00:41:06.000
+ acerta lá
+
+00:41:06.000 --> 00:41:07.160
+ 80 e tantos por cento
+
+00:41:07.160 --> 00:41:07.840
+ e isso é uma beleza
+
+00:41:07.840 --> 00:41:09.760
+ tá aqui o sentimento negativo
+
+00:41:09.760 --> 00:41:10.720
+ então imagina
+
+00:41:10.720 --> 00:41:12.080
+ olha só que fera
+
+00:41:12.080 --> 00:41:13.360
+ imagina se você tem isso
+
+00:41:13.360 --> 00:41:14.360
+ em tempo real
+
+00:41:14.360 --> 00:41:15.100
+ aí na sua empresa
+
+00:41:15.100 --> 00:41:16.080
+ do que está acontecendo
+
+00:41:16.080 --> 00:41:18.100
+ e isso pode estar passando
+
+00:41:18.100 --> 00:41:18.880
+ pela sua cabeça assim
+
+00:41:18.880 --> 00:41:19.480
+ nossa Eduardo
+
+00:41:19.480 --> 00:41:20.300
+ mas cara
+
+00:41:20.300 --> 00:41:20.900
+ minha empresa não tem
+
+00:41:20.900 --> 00:41:21.600
+ esse tanto de coisa não
+
+00:41:21.600 --> 00:41:22.820
+ mas dependendo de onde
+
+00:41:22.820 --> 00:41:23.580
+ você trabalha
+
+00:41:23.580 --> 00:41:24.100
+ cara imagina
+
+00:41:24.100 --> 00:41:24.840
+ o Banco do Brasil
+
+00:41:24.840 --> 00:41:28.380
+ tinha tanta interação
+
+00:41:28.380 --> 00:41:29.400
+ com cliente diária
+
+00:41:29.400 --> 00:41:31.260
+ era centenas de milhares
+
+00:41:31.260 --> 00:41:32.380
+ de interações por dia
+
+00:41:32.380 --> 00:41:34.360
+ então se você por exemplo
+
+00:41:34.360 --> 00:41:35.120
+ estivesse olhando
+
+00:41:35.120 --> 00:41:36.520
+ o Twitter lá do Banco do Brasil
+
+00:41:36.520 --> 00:41:37.760
+ e estivesse capturando
+
+00:41:37.760 --> 00:41:38.800
+ essas informações ali
+
+00:41:38.800 --> 00:41:39.940
+ do que estão rolando
+
+00:41:39.940 --> 00:41:40.520
+ na timeline
+
+00:41:40.520 --> 00:41:41.280
+ do Twitter
+
+00:41:41.280 --> 00:41:42.400
+ falando do Banco do Brasil
+
+00:41:42.400 --> 00:41:43.160
+ cara
+
+00:41:43.160 --> 00:41:44.560
+ se você não tem
+
+00:41:44.560 --> 00:41:45.760
+ uma parada automatizada
+
+00:41:45.760 --> 00:41:46.500
+ como essa aqui
+
+00:41:46.500 --> 00:41:47.560
+ para você criar
+
+00:41:47.560 --> 00:41:48.240
+ um dashboard
+
+00:41:48.240 --> 00:41:49.220
+ e alimentar ali
+
+00:41:49.220 --> 00:41:50.360
+ de forma online
+
+00:41:50.360 --> 00:41:51.600
+ para o seu board
+
+00:41:51.600 --> 00:41:52.460
+ aí estar acompanhando
+
+00:41:52.460 --> 00:41:53.020
+ e saber se
+
+00:41:53.020 --> 00:41:53.960
+ estão falando bem
+
+00:41:53.960 --> 00:41:54.740
+ ou estão falando mal
+
+00:41:54.740 --> 00:41:55.600
+ ou estão falando positivo
+
+00:41:55.600 --> 00:41:56.540
+ ou estão falando negativo
+
+00:41:56.540 --> 00:41:58.320
+ cara é muito difícil
+
+00:41:58.320 --> 00:41:58.940
+ entendeu
+
+00:41:58.940 --> 00:41:59.480
+ então assim
+
+00:41:59.480 --> 00:42:00.300
+ existem empresas
+
+00:42:00.300 --> 00:42:01.100
+ que tem isso aqui
+
+00:42:01.100 --> 00:42:02.640
+ numa quantidade frenética
+
+00:42:02.640 --> 00:42:04.020
+ e não se assuste
+
+00:42:04.020 --> 00:42:05.560
+ a maioria das grandes empresas
+
+00:42:05.560 --> 00:42:06.840
+ tem necessidade
+
+00:42:06.840 --> 00:42:07.940
+ de fazer um trabalho
+
+00:42:07.940 --> 00:42:08.760
+ como esse aqui
+
+00:42:08.760 --> 00:42:09.480
+ então ó
+
+00:42:09.480 --> 00:42:10.280
+ abre o olho
+
+00:42:10.280 --> 00:42:11.260
+ fica ligado
+
+00:42:11.260 --> 00:42:12.620
+ porque cientista de dados
+
+00:42:12.620 --> 00:42:13.580
+ que sabe fazer isso aqui
+
+00:42:13.580 --> 00:42:14.620
+ cara é disputar
+
+00:42:14.620 --> 00:42:15.440
+ dá tapa
+
+00:42:15.440 --> 00:42:16.020
+ e não é meu
+
+00:42:16.020 --> 00:42:16.300
+ é meu
+
+00:42:16.300 --> 00:42:17.320
+ traz esse cientista de dados
+
+00:42:17.320 --> 00:42:17.820
+ aqui que é meu
+
+00:42:17.820 --> 00:42:18.960
+ de verdade
+
+00:42:18.960 --> 00:42:19.520
+ beleza
+
+00:42:19.520 --> 00:42:21.520
+ cara eu espero que você tenha gostado
+
+00:42:21.520 --> 00:42:22.100
+ tá
+
+00:42:22.100 --> 00:42:23.680
+ espero que verdadeiramente
+
+00:42:23.680 --> 00:42:24.420
+ essa parada
+
+00:42:24.420 --> 00:42:25.520
+ agregue valor aí
+
+00:42:25.520 --> 00:42:26.100
+ na sua jornada
+
+00:42:26.100 --> 00:42:26.900
+ como cientista de dados
+
+00:42:26.900 --> 00:42:27.920
+ porque é esse o meu objetivo
+
+00:42:27.920 --> 00:42:29.240
+ é pegar na sua mão
+
+00:42:29.240 --> 00:42:30.920
+ e fazer com que você seja
+
+00:42:30.920 --> 00:42:31.660
+ um cientista de dados
+
+00:42:31.660 --> 00:42:32.220
+ na prática
+
+00:42:32.220 --> 00:42:34.000
+ e que você leve aí
+
+00:42:34.000 --> 00:42:35.280
+ soluções que pode
+
+00:42:35.280 --> 00:42:36.160
+ realmente ajudar
+
+00:42:36.160 --> 00:42:36.760
+ as empresas
+
+00:42:36.760 --> 00:42:38.120
+ no seu dia a dia
+
+00:42:38.120 --> 00:42:38.620
+ tudo bem
+
+00:42:38.620 --> 00:42:39.180
+ tranquilo
+
+00:42:39.180 --> 00:42:40.900
+ com isso você vai ser disputado
+
+00:42:40.900 --> 00:42:42.060
+ e por decorrência
+
+00:42:42.060 --> 00:42:42.920
+ muito mais
+
+00:42:42.920 --> 00:42:43.880
+ muito bem remunerado
+
+00:42:43.880 --> 00:42:44.960
+ como cientistas de dados
+
+00:42:44.960 --> 00:42:46.300
+ estão sendo remunerados
+
+00:42:46.300 --> 00:42:47.280
+ no nosso mercado
+
+00:42:47.280 --> 00:42:48.400
+ nessa onda
+
+00:42:48.400 --> 00:42:49.600
+ nessa bolha
+
+00:42:49.600 --> 00:42:50.520
+ que a gente tá vivendo aí
+
+00:42:50.520 --> 00:42:51.620
+ de cientista de dados
+
+00:42:51.620 --> 00:42:53.320
+ de procura por cientista de dados
+
+00:42:53.320 --> 00:42:53.700
+ tudo bem
+
+00:42:53.700 --> 00:42:55.720
+ eu espero que você tenha gostado
+
+00:42:55.720 --> 00:42:56.180
+ se gostou
+
+00:42:56.180 --> 00:42:56.460
+ cara
+
+00:42:56.460 --> 00:42:57.520
+ vou te pedir uma coisa só
+
+00:42:57.520 --> 00:42:58.340
+ entra aqui nesse
+
+00:42:58.340 --> 00:42:59.460
+ nesse vídeo no youtube
+
+00:42:59.460 --> 00:42:59.960
+ agora aqui
+
+00:42:59.960 --> 00:43:00.880
+ comenta cara
+
+00:43:00.880 --> 00:43:01.160
+ e fala
+
+00:43:01.160 --> 00:43:01.960
+ pô Eduardo legal
+
+00:43:01.960 --> 00:43:03.020
+ pô Eduardo gostei
+
+00:43:03.020 --> 00:43:04.060
+ e se você não gostou
+
+00:43:04.060 --> 00:43:04.740
+ me fala também
+
+00:43:04.740 --> 00:43:05.320
+ fala Eduardo
+
+00:43:05.320 --> 00:43:05.920
+ tá difícil
+
+00:43:05.920 --> 00:43:07.040
+ eu não quero conteúdo assim não
+
+00:43:07.040 --> 00:43:08.380
+ traz coisa mais fácil
+
+00:43:08.380 --> 00:43:09.300
+ porque cara
+
+00:43:09.300 --> 00:43:09.820
+ o que importa
+
+00:43:09.820 --> 00:43:11.000
+ é que eu tenho que atingir
+
+00:43:11.000 --> 00:43:11.460
+ a você
+
+00:43:11.460 --> 00:43:12.260
+ eu tenho que fazer
+
+00:43:12.260 --> 00:43:13.440
+ conteúdo alinhado aí
+
+00:43:13.440 --> 00:43:14.520
+ com as coisas que você tá esperando
+
+00:43:14.520 --> 00:43:14.900
+ tá bom
+
+00:43:14.900 --> 00:43:16.280
+ porque é esse o meu objetivo
+
+00:43:16.280 --> 00:43:17.700
+ eu tenho uma grande missão
+
+00:43:17.700 --> 00:43:21.360
+ que é de formar pelo menos mil cientistas de dados na prática em 2022
+
+00:43:21.360 --> 00:43:24.320
+ e eu espero que você esteja comigo nessa missão
+
+00:43:24.320 --> 00:43:24.860
+ tamo junto
+
+00:43:24.860 --> 00:43:25.320
+ simbora
+
+00:43:25.320 --> 00:43:25.920
+ cara
+
+00:43:25.920 --> 00:43:27.160
+ mais vídeos como esse
+
+00:43:27.160 --> 00:43:27.760
+ você sabe
+
+00:43:27.760 --> 00:43:28.980
+ deixa aqui todos os meus links
+
+00:43:28.980 --> 00:43:30.100
+ das minhas redes sociais
+
+00:43:30.100 --> 00:43:31.120
+ esse script
+
+00:43:31.120 --> 00:43:33.220
+ você vai pegar aqui nesse canal no telegram
+
+00:43:33.220 --> 00:43:33.660
+ tá bom
+
+00:43:33.660 --> 00:43:35.260
+ aqui no canal no telegram
+
+00:43:35.260 --> 00:43:36.160
+ a galera raiz
+
+00:43:36.160 --> 00:43:37.960
+ é onde eu disponibilizo esse script
+
+00:43:37.960 --> 00:43:40.760
+ e é onde eu disponibilizo os data sets
+
+00:43:40.760 --> 00:43:43.080
+ pra que você possa aí curtir
+
+00:43:43.080 --> 00:43:45.180
+ e já colocar a mão na massa
+
+00:43:45.180 --> 00:43:45.940
+ porque comigo é assim
+
+00:43:45.940 --> 00:43:48.400
+ eu espero que você sempre faça na prática
+
+00:43:48.400 --> 00:43:49.100
+ você pega aqui
+
+00:43:49.100 --> 00:43:51.360
+ aprende e já coloca em prática
+
+00:43:51.360 --> 00:43:52.720
+ já coloca aí a mão na massa
+
+00:43:52.720 --> 00:43:53.140
+ tranquilo?
+
+00:43:53.140 --> 00:43:53.700
+ tamo junto?
+
+00:43:53.700 --> 00:43:55.200
+ então a gente se vê no próximo
+
+00:43:55.200 --> 00:43:56.360
+ Ciência dos Dados na Prática
+
+00:43:56.360 --> 00:43:57.660
+ um beijo gigante
+
+00:43:57.660 --> 00:43:58.400
+ a gente se vê
+
+00:43:58.400 --> 00:43:59.060
+ tchau tchau
+
+00:43:59.060 --> 00:44:00.060
+ Tchau
+

@@ -1,0 +1,214 @@
+{
+  "artifact_type": "lesson_segment_planner_input",
+  "schema_version": "lesson_segment_planner_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/segment_planner.md",
+  "prompt": "# Lesson Segment Planner\n\n## Mission\n\nGroup the provided Concepts for exactly one Lesson into ordered teaching-flow\nSegments. A Lesson Segment is a small teaching chunk for the Companion, not a\nsource section, dependency edge, review unit, or runtime adaptation.\n\n## Inputs\n\nUse only the provided `lesson` and `concepts`.\n\n- The Lesson contains only `lesson_id` and `title`.\n- Each Concept contains `concept_id`, `label`, `knowledge_type`,\n  `teaching_description`, and `coverage_criteria`.\n\nDo not infer from other Lessons. Do not use dates, global Lesson order, source\npositions, workbook labels, or web research.\n\n## Workflow\n\n1. Read the Lesson title to understand the local teaching frame.\n2. Read each Concept description and Coverage Criteria to understand expected\n   scope.\n3. Create Segments that each cover one natural mini-arc of teaching.\n4. Target one to four Concepts per Segment.\n5. Use five or more Concepts only when they are tightly coupled and cannot be\n   taught naturally as smaller chunks.\n6. Order Segments in the natural teaching flow for this Lesson.\n7. Put every Concept ID in exactly one Segment.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\nDo not create Segment IDs. Do not create `instructional_role`; the pipeline adds\n`teach` deterministically.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Short teaching label\",\n      \"concept_ids\": [\"concept_id_1\", \"concept_id_2\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_planner",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+    "title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-count-based-text-representations-and-limitations-8aa61ade",
+      "label": "Count-Based Text Representations and Limitations",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Bag-of-Words and TF-IDF represent text by counting words (or n-grams) and weighting them by importance. Preprocessing steps like stemming and stop-word removal are common. These methods yield sparse vectors that ignore word context and cannot handle unknown words.",
+      "coverage_criteria": [
+        "Compute Bag-of-Words and TF-IDF vectors for a small corpus.",
+        "List at least two limitations of count-based representations.",
+        "Explain the purpose of stemming and stop-word removal in text preprocessing."
+      ]
+    },
+    {
+      "concept_id": "concept-word-embeddings-as-dense-vectors-85fd122a",
+      "label": "Word Embeddings as Dense Vectors",
+      "knowledge_type": "procedural",
+      "teaching_description": "Unlike sparse encodings, word embeddings are dense numerical vectors where each dimension captures latent features. They are lower-dimensional than the vocabulary and enable models to process semantic meaning efficiently.",
+      "coverage_criteria": [
+        "Define word embeddings and contrast them with sparse representations.",
+        "Explain why dense vectors are more efficient than one-hot vectors."
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-output-document-vectors-and-applications-2ad51bf4",
+      "label": "TF-IDF Output: Document Vectors and Applications",
+      "knowledge_type": "conceptual",
+      "teaching_description": "After computing TF-IDF for all terms, each document is represented as a weighted term vector, where high weights indicate discriminative terms. These document vectors are used in data mining tasks such as classification, clustering, and information retrieval, especially document search.",
+      "coverage_criteria": [
+        "Explain how TF-IDF transforms documents into feature vectors.",
+        "List at least three applications of TF-IDF in text analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-discriminative-power-and-comparison-with-bag-of-words-b9aed1ed",
+      "label": "TF-IDF Discriminative Power and Comparison with Bag of Words",
+      "knowledge_type": "conceptual",
+      "teaching_description": "TF-IDF assigns higher weights to terms that appear frequently in a specific document but rarely across the corpus, making them discriminative features. A term that appears in every document gets IDF=0 and thus TF-IDF=0, meaning it has no discriminative power. This contrasts with Bag of Words, which merely counts occurrences and does not differentiate important terms from common ones.",
+      "coverage_criteria": [
+        "Explain why a word with IDF=0 is not useful for distinguishing documents.",
+        "Describe the key difference between Bag of Words and TF-IDF."
+      ]
+    },
+    {
+      "concept_id": "concept-fasttext-subword-embeddings-cce2f8c2",
+      "label": "fastText: Subword Embeddings",
+      "knowledge_type": "procedural",
+      "teaching_description": "fastText represents each word as the sum of its character n‑gram embeddings, allowing it to build vectors for out‑of‑vocabulary words and handle morphologically rich languages.",
+      "coverage_criteria": [
+        "Explain how fastText’s subword approach addresses the out‑of‑vocabulary problem.",
+        "Describe the difference between Word2vec and fastText regarding word representation."
+      ]
+    },
+    {
+      "concept_id": "concept-semantic-similarity-and-properties-of-embedding-space-7c3c46f3",
+      "label": "Semantic Similarity and Properties of Embedding Space",
+      "knowledge_type": "conceptual",
+      "teaching_description": "In a distributional framework, words are similar if they share similar contexts. Embedding vectors place these words in a space where distance (e.g., cosine) reflects similarity. Well‑trained embeddings also exhibit clustering of related words and support analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain how word similarity is defined by context rather than spelling.",
+        "Given a 2D plot, identify which words are most similar based on distance.",
+        "Describe the analogy property of ideal embeddings with an example."
+      ]
+    },
+    {
+      "concept_id": "concept-training-a-custom-embedding-layer-5faa117f",
+      "label": "Training a Custom Embedding Layer",
+      "knowledge_type": "procedural",
+      "teaching_description": "A neural network can include an embedding layer initialized randomly and trained end‑to‑end for a specific task, producing specialized word representations. This requires large amounts of data.",
+      "coverage_criteria": [
+        "Describe how a custom embedding layer is trained within a model.",
+        "State one advantage and one disadvantage of training embeddings from scratch."
+      ]
+    },
+    {
+      "concept_id": "concept-using-pre-trained-word-embeddings-f43191f2",
+      "label": "Using Pre‑trained Word Embeddings",
+      "knowledge_type": "procedural",
+      "teaching_description": "Pre‑trained word vectors can be used in two ways: as static features (fixed during downstream training) or fine‑tuned (adjusted to the task). The Gensim library provides convenient access to pre‑trained models (Word2vec, GloVe, fastText) and similarity operations.",
+      "coverage_criteria": [
+        "List and describe the two modes of using pre‑trained embeddings.",
+        "Write code to load a pre‑trained model from Gensim and find similar words."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-vocabulary-document-body-dictionary-topic-1e849fac",
+      "label": "NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "knowledge_type": "conceptual",
+      "teaching_description": "In NLP, a document is a single data instance (e.g., a paragraph, tweet). The body (or corpus) is the collection of all documents. The dictionary is the set of all unique words occurring in at least one document. A topic is a collection of co-occurring words that represent a theme.",
+      "coverage_criteria": [
+        "Define the terms document, body (corpus), dictionary, and topic in NLP."
+      ]
+    },
+    {
+      "concept_id": "concept-latent-semantic-analysis-lsa-definition-c919c128",
+      "label": "Latent Semantic Analysis (LSA) Definition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "LSA is an unsupervised NLP technique that discovers latent topics in a corpus by applying dimensionality reduction (via SVD) to the document-term matrix, yielding lower-dimensional encodings of documents as combinations of topics.",
+      "coverage_criteria": [
+        "Explain what LSA is and its purpose in text analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-document-term-matrix-in-lsa-8284a4bb",
+      "label": "Document-Term Matrix in LSA",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A document-term matrix is a representation where rows correspond to documents, columns to dictionary words, and cells indicate word presence or frequency. It serves as the input to SVD in LSA.",
+      "coverage_criteria": [
+        "Describe the structure of a document-term matrix."
+      ]
+    },
+    {
+      "concept_id": "concept-singular-value-decomposition-svd-in-lsa-08ec6dc2",
+      "label": "Singular Value Decomposition (SVD) in LSA",
+      "knowledge_type": "conceptual",
+      "teaching_description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce its dimensionality and extract latent topics, analogous to PCA. This transforms the high-dimensional word space into a lower-dimensional topic space.",
+      "coverage_criteria": [
+        "State the role of SVD in LSA and its analogy to PCA."
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-definition-and-computation-f7eaad19",
+      "label": "TF-IDF Definition and Computation",
+      "knowledge_type": "procedural",
+      "teaching_description": "TF-IDF (Term Frequency-Inverse Document Frequency) is a statistical measure used to evaluate the importance of a term to a document in a corpus. It is computed as the product of term frequency (TF), normalized by document length, and inverse document frequency (IDF), which scales down terms that appear in many documents. The resulting weight highlights terms that are frequent in a specific document but rare across the corpus.",
+      "coverage_criteria": [
+        "Define TF-IDF and its components (TF and IDF), and explain its purpose in highlighting important words.",
+        "Compute TF, IDF, and TF-IDF for a given term in a small corpus.",
+        "Explain why TF-IDF improves over simple term frequency and identify when to use it in text analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-tf-idf-with-tfidfvectorizer-in-python-63efdd53",
+      "label": "Implementing TF-IDF with TfidfVectorizer in Python",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using scikit-learn's TfidfVectorizer to compute TF-IDF matrix from text, including preprocessing like stopword removal with NLTK.",
+      "coverage_criteria": [
+        "Write code to import TfidfVectorizer, include stopwords from NLTK, and fit_transform a list of documents."
+      ]
+    },
+    {
+      "concept_id": "concept-one-hot-encoding-definition-fe89c33a",
+      "label": "One-Hot Encoding Definition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ]
+    },
+    {
+      "concept_id": "concept-word2vec-architectures-cbow-and-skip-gram-01d693d9",
+      "label": "Word2Vec Architectures: CBOW and Skip-gram",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Understanding the two primary Word2Vec architectures: Continuous Bag-of-Words (CBOW) predicts a target word from context words, while Skip-gram predicts context words from a target word. Both produce dense word embeddings from unlabeled text.",
+      "coverage_criteria": [
+        "Differentiate CBOW and Skip-gram, stating what each predicts and describing the input/output of each architecture.",
+        "Explain how Word2vec creates dense word vectors from unlabeled text."
+      ]
+    },
+    {
+      "concept_id": "concept-glove-global-vectors-for-word-representation-math-bdd96caa",
+      "label": "GloVe: Global Vectors for Word Representation (Math)",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Understanding the mathematical formulation of GloVe, where vectors are trained such that their dot product approximates the log of co-occurrence probability, incorporating global statistics.",
+      "coverage_criteria": [
+        "Explain how GloVe differs from Word2vec regarding global information.",
+        "Describe the role of the co‑occurrence matrix in GloVe."
+      ]
+    },
+    {
+      "concept_id": "concept-contextualized-word-embeddings-005d4dc4",
+      "label": "Contextualized Word Embeddings",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Word embeddings that are dynamic and context-dependent, produced by models such as BERT or ELMo, which use bidirectional architectures to capture word meaning in sentence context.",
+      "coverage_criteria": [
+        "Explain the difference between static and contextual word embeddings.",
+        "Describe how a model like BERT or ELMo generates different embeddings for the same word in different sentences."
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

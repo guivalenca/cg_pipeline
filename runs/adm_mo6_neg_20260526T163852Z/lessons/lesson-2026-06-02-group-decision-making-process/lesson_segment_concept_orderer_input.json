@@ -1,0 +1,63 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "title": "Group decision-making process"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-explicit-decision-making-procedure-b536ebf3",
+      "label": "Explicit Decision-Making Procedure",
+      "teaching_description": "Groups should spell out the decision-making process ahead of time; following an explicit procedure leads to more effective decisions.",
+      "coverage_criteria": [
+        "Student can explain why clarifying the decision-making process in advance benefits group effectiveness.",
+        "Student can cite or summarize the research finding that explicit procedures improve decision quality."
+      ]
+    },
+    {
+      "concept_id": "concept-strategies-for-effective-group-discussion-39c797f1",
+      "label": "Strategies for Effective Group Discussion",
+      "teaching_description": "Practical techniques to improve group decision-making, including encouraging all members to participate and thoroughly discussing the advantages and disadvantages of each option before deciding.",
+      "coverage_criteria": [
+        "Student can explain why encouraging broad participation and discussing pros and cons lead to better group decisions."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Key Principles for Effective Group Decisions",
+      "concept_ids": [
+        "concept-explicit-decision-making-procedure-b536ebf3",
+        "concept-strategies-for-effective-group-discussion-39c797f1"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

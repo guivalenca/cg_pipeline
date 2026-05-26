@@ -1,0 +1,103 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-74-001",
+      "label": "Basic NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "description": "In NLP, a document is a collection of words representing a data instance; a body is the entire set of documents; a dictionary is the set of all words occurring in at least one document; a topic is a collection of co-occurring words.",
+      "coverage_criteria": [
+        "Student can define document, body, dictionary, and topic in the context of natural language processing."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly defines these terms at the start to establish a common vocabulary for understanding LSA.",
+        "granularity_rationale": "These four terms are fundamental and small enough to be checked together in a single question asking for definitions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:19 Basic Vocabulary for NLP"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Introduction to Latent Semantic Analysis",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-74-002",
+      "label": "Latent Semantic Analysis (LSA) Defined",
+      "description": "LSA is an unsupervised natural language processing technique that discovers hidden (latent) topics in text data and produces lower-dimensional representations of documents by encoding them in terms of these topics.",
+      "coverage_criteria": [
+        "Student can explain that LSA is an unsupervised technique for finding latent topics, and that it reduces dimensionality."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The section 'Understanding Latent Semantic Analysis' introduces LSA as an unsupervised technique targeting latent features and dimensionality reduction.",
+        "granularity_rationale": "This concept captures the core definition of LSA in one teachable idea, appropriate for a single check-in question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:45 Understanding Latent Semantic Analysis"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Introduction to Latent Semantic Analysis",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-74-003",
+      "label": "Document-Term Matrix",
+      "description": "A document-term matrix represents text documents as vectors in Euclidean space, where each row corresponds to a document and each column to a word from the dictionary, typically indicating presence (binary) or frequency.",
+      "coverage_criteria": [
+        "Student can describe that a document-term matrix has rows for documents, columns for dictionary words, and cells indicating word occurrence."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explains the document-term matrix in detail, showing an example with four sentence fragments and binary values.",
+        "granularity_rationale": "Focusing on the document-term matrix as a standalone concept allows checking understanding of this key representation method."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:52 Document-Term Matrix Explained"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Introduction to Latent Semantic Analysis",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-74-004",
+      "label": "Singular Value Decomposition (SVD) for LSA",
+      "description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce dimensionality and encode documents using latent features that represent topics, similar to Principal Component Analysis (PCA).",
+      "coverage_criteria": [
+        "Student can state that SVD is used in LSA to reduce dimensionality and produce topic-based latent features, analogous to PCA."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video dedicates a section to SVD, explaining it as the second step of LSA that reduces dimensionality and encodes data with latent topics.",
+        "granularity_rationale": "This concept isolates SVD's role in LSA, making it checkable with a question about its purpose and analogy to PCA."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:42 Singular Value Decomposition (SVD)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Introduction to Latent Semantic Analysis",
+      "source_year": "2026",
+      "name_drops": ["PCA"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-74-002",
+      "to_candidate_id": "candidate-74-003",
+      "reason": "The definition of LSA leads directly to its first step: creating a document-term matrix to represent text data.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:38 Latent Semantic Analysis Process"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-74-003",
+      "to_candidate_id": "candidate-74-004",
+      "reason": "After constructing the document-term matrix, the next step in LSA is to apply singular value decomposition to obtain latent topics.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:38 Latent Semantic Analysis Process"},
+        {"kind": "markdown_heading", "locator": "02:42 Singular Value Decomposition (SVD)"}
+      ]
+    }
+  ]
+}

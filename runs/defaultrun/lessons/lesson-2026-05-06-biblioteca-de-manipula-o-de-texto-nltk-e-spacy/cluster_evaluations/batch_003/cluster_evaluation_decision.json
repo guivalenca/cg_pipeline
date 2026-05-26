@@ -1,0 +1,373 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:38:46.292718+00:00",
+  "scope_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c31_pro_thinking_005",
+    "c31_pro_thinking_006",
+    "c31_pro_thinking_007",
+    "c31_pro_thinking_008",
+    "c31_pro_thinking_009",
+    "c31_pro_thinking_010",
+    "c32_pro_thinking_001",
+    "c32_pro_thinking_002",
+    "c32_pro_thinking_003",
+    "c32_pro_thinking_004",
+    "c32_pro_thinking_005",
+    "c32_pro_thinking_006",
+    "c32_pro_thinking_007",
+    "c32_pro_thinking_008",
+    "c32_pro_thinking_009",
+    "c32_pro_thinking_010",
+    "c32_pro_thinking_011"
+  ],
+  "accepted": [
+    {
+      "id": "lr001",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_005"
+      ],
+      "merge_rationale": "Conceito individual representando os contêineres básicos do spaCy."
+    },
+    {
+      "id": "lr002",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_006"
+      ],
+      "merge_rationale": "Conceito individual sobre atributos básicos de tokens no spaCy."
+    },
+    {
+      "id": "lr003",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_007"
+      ],
+      "merge_rationale": "Conceito individual sobre análise gramatical com spaCy."
+    },
+    {
+      "id": "lr004",
+      "label": "Lematização – redução à forma canônica",
+      "description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_008"
+      ],
+      "merge_rationale": "Conceito individual sobre lematização no spaCy."
+    },
+    {
+      "id": "lr005",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito individual sobre análise sintática com spaCy."
+    },
+    {
+      "id": "lr006",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_010"
+      ],
+      "merge_rationale": "Conceito individual sobre NER no spaCy."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_005"
+      ],
+      "merge_rationale": "Conceito individual representando os contêineres básicos do spaCy."
+    },
+    {
+      "id": "lr002",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_006"
+      ],
+      "merge_rationale": "Conceito individual sobre atributos básicos de tokens no spaCy."
+    },
+    {
+      "id": "lr003",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_007"
+      ],
+      "merge_rationale": "Conceito individual sobre análise gramatical com spaCy."
+    },
+    {
+      "id": "lr004",
+      "label": "Lematização – redução à forma canônica",
+      "description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_008"
+      ],
+      "merge_rationale": "Conceito individual sobre lematização no spaCy."
+    },
+    {
+      "id": "lr005",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito individual sobre análise sintática com spaCy."
+    },
+    {
+      "id": "lr006",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ],
+      "source_candidate_ids": [
+        "c31_pro_thinking_010"
+      ],
+      "merge_rationale": "Conceito individual sobre NER no spaCy."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c31_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c31_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c32_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre copyright padrão em repositórios, não relacionado à manipulação de texto com NLTK/spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre a ferramenta choosealicense.com, irrelevante para o foco da aula em bibliotecas de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre localização convencional de arquivos de licença, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre os Termos de Serviço do GitHub para repositórios públicos, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre filtro de busca por licença no GitHub, não relacionado ao processamento de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_006",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre busca por famílias de licenças, sem conexão com as bibliotecas NLTK ou spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre detecção automatizada de licenças com Licensee, não contribui para o ensino de manipulação de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_008",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre o seletor de licenças ao criar repositório, irrelevante para o objetivo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_009",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre adicionar licença manualmente pelo navegador, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_010",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre aviso de que informações de licenciamento não são aconselhamento jurídico, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_011",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre forks sobreviverem à mudança de visibilidade do repositório, não relacionado a NLTK/spaCy."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c32_pro_thinking_001",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre copyright padrão em repositórios, não relacionado à manipulação de texto com NLTK/spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_002",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre a ferramenta choosealicense.com, irrelevante para o foco da aula em bibliotecas de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_003",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre localização convencional de arquivos de licença, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre os Termos de Serviço do GitHub para repositórios públicos, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_005",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre filtro de busca por licença no GitHub, não relacionado ao processamento de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_006",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre busca por famílias de licenças, sem conexão com as bibliotecas NLTK ou spaCy."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre detecção automatizada de licenças com Licensee, não contribui para o ensino de manipulação de texto."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_008",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre o seletor de licenças ao criar repositório, irrelevante para o objetivo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_009",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre adicionar licença manualmente pelo navegador, não pertinente ao conteúdo de NLP."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_010",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre aviso de que informações de licenciamento não são aconselhamento jurídico, fora do escopo da aula."
+    },
+    {
+      "candidate_id": "c32_pro_thinking_011",
+      "reason": "unrelated",
+      "explanation": "Candidato sobre forks sobreviverem à mudança de visibilidade do repositório, não relacionado a NLTK/spaCy."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 17,
+    "accepted_count": 6,
+    "pruned_count": 11,
+    "candidate_assignment_count": 17,
+    "review_count": 0
+  }
+}

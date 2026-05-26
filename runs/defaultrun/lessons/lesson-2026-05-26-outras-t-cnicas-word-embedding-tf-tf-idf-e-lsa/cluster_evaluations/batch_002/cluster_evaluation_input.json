@@ -1,0 +1,659 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "TF-IDF Definition and Computation",
+    "rationale": "These candidates define TF-IDF, explain its components (TF, IDF), and demonstrate the product computation. They form the core mathematical explanation of TF-IDF.",
+    "candidate_ids": [
+      "c72_pro_thinking_001",
+      "c72_pro_thinking_002",
+      "c72_pro_thinking_003",
+      "c72_pro_thinking_004",
+      "c73_pro_thinking_001",
+      "c73_pro_thinking_008"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "TF-IDF Definition and Computation",
+      "rationale": "These candidates define TF-IDF, explain its components (TF, IDF), and demonstrate the product computation. They form the core mathematical explanation of TF-IDF.",
+      "candidate_ids": [
+        "c72_pro_thinking_001",
+        "c72_pro_thinking_002",
+        "c72_pro_thinking_003",
+        "c72_pro_thinking_004",
+        "c73_pro_thinking_001",
+        "c73_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "TF-IDF Applications and Document Representation",
+      "rationale": "These candidates cover how TF-IDF produces document feature vectors used in classification, clustering, retrieval, and document search. They emphasize the practical outcomes and uses.",
+      "candidate_ids": [
+        "c72_pro_thinking_006",
+        "c72_pro_thinking_007",
+        "c73_pro_thinking_005",
+        "c73_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "IDF Zero and Discriminative Power",
+      "rationale": "These candidates focus on the special case when IDF is zero (term appears in all documents) and what it implies about discriminative power.",
+      "candidate_ids": [
+        "c72_pro_thinking_008",
+        "c73_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "TF-IDF Implementation with Scikit-learn",
+      "rationale": "These candidates are about practical implementation in Python: using TfidfVectorizer, stopword removal with NLTK, and preparing documents by splitting text.",
+      "candidate_ids": [
+        "c73_pro_thinking_003",
+        "c73_pro_thinking_004",
+        "c73_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Latent Semantic Analysis (LSA) and NLP Vocabulary",
+      "rationale": "These candidates introduce basic NLP terms (document, body, dictionary, topic) and define LSA as an unsupervised technique for discovering latent topics and reducing dimensionality.",
+      "candidate_ids": [
+        "c74_pro_thinking_001",
+        "c74_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Document-Term Matrix and SVD in LSA",
+      "rationale": "These candidates explain the document-term matrix representation and the use of Singular Value Decomposition (SVD) to perform dimensionality reduction in LSA.",
+      "candidate_ids": [
+        "c74_pro_thinking_003",
+        "c74_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "Twitter Entity Sentiment Analysis Dataset",
+      "rationale": "These candidates are all about the same dataset: entity-level sentiment analysis, sentiment classes, dataset split, license, and description. They form a single cluster about the dataset.",
+      "candidate_ids": [
+        "c75_pro_thinking_001",
+        "c75_pro_thinking_002",
+        "c75_pro_thinking_003",
+        "c75_pro_thinking_004",
+        "c75_pro_thinking_005"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c72_pro_thinking_001",
+    "c72_pro_thinking_002",
+    "c72_pro_thinking_003",
+    "c72_pro_thinking_004",
+    "c73_pro_thinking_001",
+    "c73_pro_thinking_008",
+    "c72_pro_thinking_006",
+    "c72_pro_thinking_007",
+    "c73_pro_thinking_005",
+    "c73_pro_thinking_006",
+    "c72_pro_thinking_008",
+    "c73_pro_thinking_002",
+    "c73_pro_thinking_003",
+    "c73_pro_thinking_004",
+    "c73_pro_thinking_007",
+    "c74_pro_thinking_001",
+    "c74_pro_thinking_002",
+    "c74_pro_thinking_003",
+    "c74_pro_thinking_004",
+    "c75_pro_thinking_001",
+    "c75_pro_thinking_002",
+    "c75_pro_thinking_003",
+    "c75_pro_thinking_004",
+    "c75_pro_thinking_005"
+  ],
+  "candidates": [
+    {
+      "id": "c72_pro_thinking_001",
+      "label": "TF-IDF as a measure of word relevance",
+      "description": "TF-IDF is a statistical measurement that evaluates how relevant a word is to a document in a collection of documents, commonly used in text analysis and NLP.",
+      "coverage_criteria": [
+        "Explain what TF-IDF measures in a document corpus.",
+        "Describe the two components that make up TF-IDF."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video introduces TF-IDF as a popular text representation, defines it as the product of TF and IDF, and summarizes its purpose and applications.",
+        "granularity_rationale": "This concept encapsulates the core idea of TF-IDF and is checkable with basic recall questions, while allowing deeper understanding to be assessed by elaborating on its components."
+      },
+      "anchors": [
+        "00:20 Introduction to TF-IDF",
+        "07:26 TF-IDF Summary and Uses"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_002",
+      "label": "Term Frequency (TF) calculation",
+      "description": "Term Frequency is the frequency of a term in a specific document, often computed as the raw count divided by total words in that document.",
+      "coverage_criteria": [
+        "Given a document and a term, compute the term frequency.",
+        "State that TF is specific to a single document."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines TF and walks through a worked example calculating TF('fox', d1)=2/12 and TF('fox', d2)=3/12.",
+        "granularity_rationale": "TF is a fundamental building block of TF-IDF and is small enough to be verified with a simple arithmetic exercise."
+      },
+      "anchors": [
+        "02:19 Solution: Calculating Term Frequency (TF)",
+        "06:51 TF and IDF Recap"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_003",
+      "label": "Inverse Document Frequency (IDF) calculation",
+      "description": "IDF is a corpus-level constant that measures how informative a term is, based on the log ratio of total documents to documents containing the term.",
+      "coverage_criteria": [
+        "Given a corpus and a term, compute the IDF.",
+        "Explain why IDF equals zero when a term appears in every document."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video defines IDF and provides the formula log(N/df), then calculates IDF('fox', D)=log(2/2)=0, illustrating that a term in all documents gets zero IDF.",
+        "granularity_rationale": "IDF is a key concept that can be checked by asking the student to compute it for a simple corpus or interpret the result."
+      },
+      "anchors": [
+        "03:42 Solution: Calculating Inverse Document Frequency (IDF)",
+        "06:51 TF and IDF Recap"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_004",
+      "label": "TF-IDF computation as product of TF and IDF",
+      "description": "The TF-IDF value for a term in a document is the product of its term frequency in that document and its inverse document frequency across the corpus.",
+      "coverage_criteria": [
+        "Given TF(t,d) and IDF(t), calculate TFIDF(t,d).",
+        "Explain why a word with IDF=0 yields a TF-IDF of zero."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video performs a step-by-step multiplication of TF and IDF values for the word 'fox' in two documents, showing TFIDF(d1)=0.17*0=0 and TFIDF(d2)=0.25*0=0.",
+        "granularity_rationale": "This is the operative core of TF-IDF and can be assessed by a single computation question, making it an appropriately sized candidate."
+      },
+      "anchors": [
+        "04:58 Solution: Calculating TF-IDF for each document"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_001",
+      "label": "TF-IDF: Term Frequency-Inverse Document Frequency",
+      "description": "A numerical statistic that reflects the importance of a word to a document in a collection, computed as tf * idf, where tf is term frequency (count of term in document divided by document length) and idf is inverse document frequency (log(total documents / documents containing term)).",
+      "coverage_criteria": [
+        "Student can write the TF-IDF formula and explain each component."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text defines tf-idf as tf * idf, explains tf as frequency/divided by document length, and idf as log(N/df) to diminish weight of common terms.",
+        "granularity_rationale": "This is a key concept of the chapter, teachable as a single formula with components."
+      },
+      "anchors": [
+        "1 Definição do método TF-IDF"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_008",
+      "label": "TF-IDF formula components",
+      "description": "Term frequency (tf) is the count of a term in a document normalized by document length. Inverse document frequency (idf) is log(total number of documents / number of documents containing the term). The product gives tf-idf.",
+      "coverage_criteria": [
+        "Student can calculate tf and idf for a given term in a small corpus."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text provides the tf-idf formula and explains each part: tf is frequency divided by document length; idf uses log and document counts.",
+        "granularity_rationale": "Understanding the formula is crucial for deeper use of TF-IDF."
+      },
+      "anchors": [
+        "1 Definição do método TF-IDF"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_006",
+      "label": "Document feature vectors from TF-IDF",
+      "description": "After TF-IDF computation, each document becomes a feature vector, and the corpus is a set of such vectors, which can be used in data mining algorithms like classification, clustering, or retrieval.",
+      "coverage_criteria": [
+        "Describe how a document is represented as a feature vector using TF-IDF.",
+        "Name at least two data mining tasks that can use such feature vectors."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly states that each document becomes a feature vector and the corpus is a set of these feature vectors, which can be used in classification, clustering, or retrieval.",
+        "granularity_rationale": "This concept bridges TF-IDF calculation to practical applications, and it can be verified by asking the student to explain the transformation or list tasks."
+      },
+      "anchors": [
+        "00:45 Preprocessing and Feature Vectors"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_007",
+      "label": "Applications of TF-IDF",
+      "description": "TF-IDF is widely used in automated text analysis, scoring words for machine learning algorithms in NLP, document search, and information retrieval.",
+      "coverage_criteria": [
+        "List at least three applications of TF-IDF.",
+        "Explain why TF-IDF is suitable for document search."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video summarizes that TF-IDF has many uses, most importantly in automated text analysis, and is very useful for scoring words in ML algorithms for NLP, and was invented for document search and information retrieval.",
+        "granularity_rationale": "This provides a high-level perspective on the value of TF-IDF and can be checked with recall of the applications mentioned in the source."
+      },
+      "anchors": [
+        "07:26 TF-IDF Summary and Uses"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_005",
+      "label": "TF-IDF as a feature weighting scheme",
+      "description": "TF-IDF produces a matrix where each document is represented by weighted terms. Terms with high TF-IDF scores are those that appear frequently in a specific document but rarely in the overall corpus, making them discriminative features.",
+      "coverage_criteria": [
+        "Student can articulate why high TF-IDF terms are useful for distinguishing documents."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions that words repeating less have 'maior importância' (higher importance), indicating that TF-IDF highlights significant terms.",
+        "granularity_rationale": "Understanding output interpretation is essential for using TF-IDF effectively."
+      },
+      "anchors": [
+        "3 TF-IDF em Python"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_006",
+      "label": "Document representation as weighted term vectors",
+      "description": "Each document is represented as a vector of TF-IDF weights for all terms in the vocabulary, allowing comparison using cosine similarity or other metrics.",
+      "coverage_criteria": [
+        "Student can explain that after TF-IDF, each document is a numerical vector."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text describes that TF-IDF provides a vector of characteristics for each document, and shows the resulting matrix.",
+        "granularity_rationale": "This is a foundational concept for text representation in NLP."
+      },
+      "anchors": [
+        "2 Bag of words vs. TF-IDF"
+      ]
+    },
+    {
+      "id": "c72_pro_thinking_008",
+      "label": "IDF zero and discriminative power",
+      "description": "If a term appears in every document of the corpus, its IDF equals zero, resulting in a TF-IDF of zero and indicating the term is not discriminative.",
+      "coverage_criteria": [
+        "Explain why a word that occurs in all documents gets a TF-IDF score of zero.",
+        "Interpret the meaning of a zero TF-IDF score for a term."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The example calculates IDF('fox') = log(2/2) = 0, leading to TF-IDF = 0, and concludes that 'fox' is equally (equivalently zero) relevant to both documents, illustrating that such a term lacks discriminative power.",
+        "granularity_rationale": "This insight reveals the intuitive justification for IDF and can be assessed with a single interpretation question."
+      },
+      "anchors": [
+        "03:42 Solution: Calculating Inverse Document Frequency (IDF)",
+        "04:58 Solution: Calculating TF-IDF for each document"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_002",
+      "label": "Comparison between Bag of Words and TF-IDF",
+      "description": "Bag of words counts word occurrences without considering context or importance across documents. TF-IDF improves by weighting terms: frequent terms across many documents get lower weight, while rare but significant terms get higher weight.",
+      "coverage_criteria": [
+        "Student can explain at least two differences between bag of words and TF-IDF."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text explicitly contrasts bag of words and TF-IDF, noting BOW's problem of highlighting frequent but irrelevant words, and TF-IDF's ability to adjust for term frequency across documents.",
+        "granularity_rationale": "Understanding the distinction is crucial for choosing the right text representation method."
+      },
+      "anchors": [
+        "2 Bag of words vs. TF-IDF"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_003",
+      "label": "Using TfidfVectorizer from scikit-learn",
+      "description": "The TfidfVectorizer class from sklearn.feature_extraction.text converts a collection of text documents into a TF-IDF feature matrix, with configurable parameters like stop_words, ngram_range, max_df, etc.",
+      "coverage_criteria": [
+        "Student can write code that imports TfidfVectorizer, initializes it with stopwords, and applies fit_transform to a list of documents."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text provides an example using TfidfVectorizer, showing parameters and usage with Wikipedia data and stopwords.",
+        "granularity_rationale": "This is a practical skill for applying TF-IDF in Python."
+      },
+      "anchors": [
+        "3 TF-IDF em Python"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_004",
+      "label": "Stopword removal using NLTK",
+      "description": "The nltk.corpus.stopwords module provides lists of common words to filter out during text preprocessing, which can be passed to TfidfVectorizer's stop_words parameter to ignore irrelevant terms.",
+      "coverage_criteria": [
+        "Student can download stopwords for a language and use them in TfidfVectorizer."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The example code uses stopwords from nltk to remove articles, prepositions, etc., improving TF-IDF results.",
+        "granularity_rationale": "Stopword removal is a key preprocessing step that can be taught independently but is closely tied to TF-IDF implementation."
+      },
+      "anchors": [
+        "3 TF-IDF em Python"
+      ]
+    },
+    {
+      "id": "c73_pro_thinking_007",
+      "label": "Preparing documents for TF-IDF: splitting text",
+      "description": "To apply TF-IDF, text must be divided into individual documents (e.g., paragraphs, sentences). In the example, splitlines() breaks the Wikipedia content into paragraphs, each treated as a separate document.",
+      "coverage_criteria": [
+        "Student can split a long text into logical units for TF-IDF processing."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The code example uses splitlines() to split the Wikipedia page into paragraphs before feeding to TfidfVectorizer.",
+        "granularity_rationale": "This is a practical step in preparing data for TF-IDF analysis."
+      },
+      "anchors": [
+        "3 TF-IDF em Python"
+      ]
+    },
+    {
+      "id": "c74_pro_thinking_001",
+      "label": "Basic NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "description": "In NLP, a document is a collection of words representing a data instance; a body is the entire set of documents; a dictionary is the set of all words occurring in at least one document; a topic is a collection of co-occurring words.",
+      "coverage_criteria": [
+        "Student can define document, body, dictionary, and topic in the context of natural language processing."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines these terms at the start to establish a common vocabulary for understanding LSA.",
+        "granularity_rationale": "These four terms are fundamental and small enough to be checked together in a single question asking for definitions."
+      },
+      "anchors": [
+        "00:19 Basic Vocabulary for NLP"
+      ]
+    },
+    {
+      "id": "c74_pro_thinking_002",
+      "label": "Latent Semantic Analysis (LSA) Defined",
+      "description": "LSA is an unsupervised natural language processing technique that discovers hidden (latent) topics in text data and produces lower-dimensional representations of documents by encoding them in terms of these topics.",
+      "coverage_criteria": [
+        "Student can explain that LSA is an unsupervised technique for finding latent topics, and that it reduces dimensionality."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Understanding Latent Semantic Analysis' introduces LSA as an unsupervised technique targeting latent features and dimensionality reduction.",
+        "granularity_rationale": "This concept captures the core definition of LSA in one teachable idea, appropriate for a single check-in question."
+      },
+      "anchors": [
+        "00:45 Understanding Latent Semantic Analysis"
+      ]
+    },
+    {
+      "id": "c74_pro_thinking_003",
+      "label": "Document-Term Matrix",
+      "description": "A document-term matrix represents text documents as vectors in Euclidean space, where each row corresponds to a document and each column to a word from the dictionary, typically indicating presence (binary) or frequency.",
+      "coverage_criteria": [
+        "Student can describe that a document-term matrix has rows for documents, columns for dictionary words, and cells indicating word occurrence."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explains the document-term matrix in detail, showing an example with four sentence fragments and binary values.",
+        "granularity_rationale": "Focusing on the document-term matrix as a standalone concept allows checking understanding of this key representation method."
+      },
+      "anchors": [
+        "01:52 Document-Term Matrix Explained"
+      ]
+    },
+    {
+      "id": "c74_pro_thinking_004",
+      "label": "Singular Value Decomposition (SVD) for LSA",
+      "description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce dimensionality and encode documents using latent features that represent topics, similar to Principal Component Analysis (PCA).",
+      "coverage_criteria": [
+        "Student can state that SVD is used in LSA to reduce dimensionality and produce topic-based latent features, analogous to PCA."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video dedicates a section to SVD, explaining it as the second step of LSA that reduces dimensionality and encodes data with latent topics.",
+        "granularity_rationale": "This concept isolates SVD's role in LSA, making it checkable with a question about its purpose and analogy to PCA."
+      },
+      "anchors": [
+        "02:42 Singular Value Decomposition (SVD)"
+      ]
+    },
+    {
+      "id": "c75_pro_thinking_001",
+      "label": "Entity-Level Sentiment Analysis",
+      "description": "Sentiment analysis where the polarity (positive, negative, neutral) is determined with respect to a specific entity mentioned in a text, rather than the overall text.",
+      "coverage_criteria": [
+        "Given a tweet and an entity, student can correctly identify the sentiment towards that entity as positive, negative, or neutral."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The dataset description explicitly defines the task as 'entity-level sentiment analysis' where given a message and an entity, judge the sentiment about the entity.",
+        "granularity_rationale": "This defines a specific sub-task of sentiment analysis that is distinct from document-level or sentence-level sentiment; it can be assessed by a single focused question."
+      },
+      "anchors": [
+        "About Dataset",
+        "Overview paragraph"
+      ]
+    },
+    {
+      "id": "c75_pro_thinking_002",
+      "label": "Sentiment Classes: Positive, Negative, Neutral",
+      "description": "In this dataset, sentiment labels are three: Positive, Negative, and Neutral. Irrelevant messages are considered Neutral.",
+      "coverage_criteria": [
+        "Student can list the three sentiment classes and explain that irrelevant messages are mapped to Neutral."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The overview states: 'There are three classes in this dataset: Positive, Negative, and Neutral. We regard messages that are not relevant to the entity (i.e. Irrelevant) as Neutral.'",
+        "granularity_rationale": "This is a fundamental aspect of the dataset's labeling scheme, checkable by asking the student to name and explain the classes."
+      },
+      "anchors": [
+        "About Dataset"
+      ]
+    },
+    {
+      "id": "c75_pro_thinking_003",
+      "label": "Dataset Split and Evaluation Metric",
+      "description": "The dataset is provided as two CSV files: twitter_training.csv for training and twitter_validation.csv for validation, with top 1 classification accuracy as the evaluation metric.",
+      "coverage_criteria": [
+        "Student can state that the dataset comes with a predefined training/validation split and that the evaluation uses top 1 accuracy."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The Usage section says: 'Please use twitter_training.csv as the training set and twitter_validation.csv as the validation set. Top 1 classification accuracy is used as the metric.'",
+        "granularity_rationale": "Understanding dataset splits and metrics is essential for practical machine learning projects, and this can be checked with a simple recall question."
+      },
+      "anchors": [
+        "Usage"
+      ]
+    },
+    {
+      "id": "c75_pro_thinking_004",
+      "label": "Public Domain Dataset (CC0)",
+      "description": "The dataset is made available under the CC0 Public Domain license, allowing unrestricted use for research and development.",
+      "coverage_criteria": [
+        "Student can explain that the dataset can be freely used without licensing restrictions."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The License section explicitly states 'CC0: Public Domain'.",
+        "granularity_rationale": "This is a simple fact about the dataset that can be assessed with a single question about its usage rights."
+      },
+      "anchors": [
+        "License"
+      ]
+    },
+    {
+      "id": "c75_pro_thinking_005",
+      "label": "Twitter Entity Sentiment Analysis Dataset",
+      "description": "A Kaggle dataset containing multi-lingual tweets annotated with entity-level sentiment labels, intended for training and evaluating sentiment classification models.",
+      "coverage_criteria": [
+        "Student can identify this dataset as a resource for entity-level sentiment analysis on tweets."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The entire source page describes this specific dataset.",
+        "granularity_rationale": "Knowing about this dataset as a concrete resource is useful for practical projects and can be checked with a simple identification question."
+      },
+      "anchors": [
+        "Twitter Sentiment Analysis"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

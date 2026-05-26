@@ -1,0 +1,97 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+    "display_code": "L03",
+    "workbook_row_number": 21,
+    "title": "Representação de palavras e \"Bag of Words\" (BoW)",
+    "date": "05/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Camadas de comunicação linguística",
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Linguagem estruturada",
+      "Linguagem não estruturada",
+      "Manipulação de texto",
+      "Modelos probabilísticos para extração de informação",
+      "Ontologias",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Representação de palavras",
+      "Sintaxe da sentença (Análise sintática)"
+    ],
+    "description": "A apresentação do conceito de \"Bag of Words\" (BoW) é o objetivo principal deste encontro. Assim, espera-se que ao seu termino, as pessoas desenvolvedoras possam compreender como essa técnica de representação é utilizada e sua importância na aplicação de PLN."
+  },
+  "self_study": {
+    "self_study_id": "22",
+    "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 22,
+      "week": 3,
+      "sort": 3,
+      "title": "A Simple Explanation of the Bag-of-Words Model",
+      "description": "Com o término da leitura do artigo, espera-se que os estudantes possam implementar o modelo BoW no processamento de textos.",
+      "url": "https://victorzhou.com/blog/bag-of-words/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Determinação do conteúdo em PLN",
+        "Gramáticas lógicas",
+        "Linguagem estruturada",
+        "Modelos probabilísticos para extração de informação",
+        "Ontologias",
+        "Pré-processamento e morfologia (Análise morfológica)",
+        "Processamento do discurso"
+      ],
+      "parent_class": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "class_date": "04/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0022-article-a-simple-explanation-of-the-bag-of-words-model.md",
+      "sha256": "9608d7d24d700b4784fcb759d3c7cf7005f83a8245dd38e264587a38e859361e",
+      "word_count": 648,
+      "bytes": 4139,
+      "source_markdown": "article/firecrawl/output/22/22-a-simple-explanation-of-the-bag-of-words-model.md",
+      "artifact_dir": "article/firecrawl/output/22",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": [
+      "workbook_parent_class_date_mismatch"
+    ]
+  },
+  "source_body": {
+    "path": "extraction/post-image/0022-article-a-simple-explanation-of-the-bag-of-words-model.md",
+    "sha256": "9608d7d24d700b4784fcb759d3c7cf7005f83a8245dd38e264587a38e859361e",
+    "word_count": 648,
+    "source_markdown": "article/firecrawl/output/22/22-a-simple-explanation-of-the-bag-of-words-model.md",
+    "markdown": "---\nid: \"22\"\ntitle: \"A Simple Explanation of the Bag-of-Words Model\"\nsource_url: \"https://victorzhou.com/blog/bag-of-words/\"\nfetch_url: \"https://victorzhou.com/blog/bag-of-words\"\nresolved_url: \"https://victorzhou.com/blog/bag-of-words/\"\nfirecrawl_title: \"A Simple Explanation of the Bag-of-Words Model - victorzhou.com\"\ndescription: \"A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.\"\nfetched_at: \"2026-05-12T03:59:51.318630Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"6b6908ecf1b9d6e8f2bb1dc9a02b07296702fedce16bcf53a8f7c0edb9d68b86\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=UTF-8\"\nword_count: 546\nchar_count: 3232\ncontent_sha256: \"c13842bbc40278998ffcf312a173a044ce4a3087b6fbd0b46277fd2e1db6e6e9\"\nimage_count: 5\nlink_count: 17\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# A Simple Explanation of the Bag-of-Words Model\n\n## A quick, easy introduction to the Bag-of-Words model and how to implement it in Python.\n\nNovember 30, 2019\n\nThe **bag-of-words** (BOW) model is a representation that turns arbitrary text into **fixed-length vectors** by counting how many times each word appears. This process is often referred to as **vectorization**.\n\nLet’s understand this with an example. Suppose we wanted to vectorize the following:\n\n- _the cat sat_\n- _the cat sat in the hat_\n- _the cat with the hat_\n\nWe’ll refer to each of these as a text **document**.\n\n### Step 1: Determine the Vocabulary\n\nWe first define our **vocabulary**, which is the set of all words found in our document set. The only words that are found in the 3 documents above are: `the`, `cat`, `sat`, `in`, `the`, `hat`, and `with`.\n\n### Step 2: Count\n\nTo vectorize our documents, all we have to do is **count how many times each word appears**:\n\n| Document | `the` | `cat` | `sat` | `in` | `hat` | `with` |\n| --- | --- | --- | --- | --- | --- | --- |\n| _the cat sat_ | 1 | 1 | 1 | 0 | 0 | 0 |\n| _the cat sat in the hat_ | 2 | 1 | 1 | 1 | 1 | 0 |\n| _the cat with the hat_ | 2 | 1 | 0 | 0 | 1 | 1 |\n\nNow we have length-6 vectors for each document!\n\n- _the cat sat_: `[1, 1, 1, 0, 0, 0]`\n- _the cat sat in the hat_: `[2, 1, 1, 1, 1, 0]`\n- _the cat with the hat_: `[2, 1, 0, 0, 1, 1]`\n\nNotice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It’s like a literal **bag**-of-words: it only tells you _what_ words occur in the document, not _where_ they occurred.\n\n## Implementing BOW in Python\n\nNow that you know what BOW is, I’m guessing you’ll probably need to implement it. Here’s my preferred way of doing it, which uses [Keras’s Tokenizer class](https://keras.io/preprocessing/text/):\n\n```python\nfrom keras.preprocessing.text import Tokenizer\n\ndocs = [\\\n  'the cat sat',\\\n  'the cat sat in the hat',\\\n  'the cat with the hat',\\\n]\n\n## Step 1: Determine the Vocabulary\ntokenizer = Tokenizer()\ntokenizer.fit_on_texts(docs)\nprint(f'Vocabulary: {list(tokenizer.word_index.keys())}')\n\n## Step 2: Count\nvectors = tokenizer.texts_to_matrix(docs, mode='count')\nprint(vectors)\n```\n\nRunning that code gives us:\n\n```text\nVocabulary: ['the', 'cat', 'sat', 'hat', 'in', 'with']\n[[0. 1. 1. 1. 0. 0. 0.]\\\n [0. 2. 1. 1. 1. 1. 0.]\\\n [0. 2. 1. 0. 1. 0. 1.]]\n```\n\nNotice that the vectors here have length 7 instead of 6 because of the extra `0` element at the beginning. This is an inconsequential detail - Keras reserves index `0` and never assigns it to any word.\n\n## How is BOW useful?\n\nDespite being a relatively basic model, BOW is often used for [Natural Language Processing](https://victorzhou.com/tag/natural-language-processing/) (NLP) tasks like Text Classification. Its strengths lie in its simplicity: it’s inexpensive to compute, and sometimes simpler is better when positioning or contextual info aren’t relevant.\n\nI’ve written [a blog post that uses BOW for profanity detection](https://victorzhou.com/blog/better-profanity-detection-with-scikit-learn/) - check it out if you’re curious to see BOW in action!\n\n_This blog is [open-source on Github](https://github.com/vzhou842/victorzhou.com)._\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

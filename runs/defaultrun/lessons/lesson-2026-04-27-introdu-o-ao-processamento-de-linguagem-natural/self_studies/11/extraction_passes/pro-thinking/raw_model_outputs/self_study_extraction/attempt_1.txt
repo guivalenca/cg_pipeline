@@ -1,0 +1,135 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-11-001",
+      "label": "Direct character increment causes TypeError in Python",
+      "description": "Attempting to add an integer to a character string in Python raises a TypeError because Python does not allow concatenation of str and int types.",
+      "coverage_criteria": [
+        "Explain why s = 'M'; s = s + 1 fails with TypeError.",
+        "Identify the data types involved in the error."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly demonstrates the error with a code snippet and output, explaining that there is no implicit conversion to allow incrementing characters directly.",
+        "granularity_rationale": "This is a single, checkable idea: the student must understand the type mismatch that prohibits direct arithmetic on characters."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_section",
+          "locator": "Lead paragraph and error code block"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Ways to increment a character in Python",
+      "source_year": "2023",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-11-002",
+      "label": "Using ord() and chr() to increment a character",
+      "description": "The ord() function returns the ASCII integer value of a character. Adding an offset produces a new integer, which chr() converts back to a character, enabling incrementing.",
+      "coverage_criteria": [
+        "Write code using ord() and chr() to shift a given character by a specified number.",
+        "Explain what ord('A') returns and why chr(ord('A')+1) gives 'B'."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article presents this as the first method to increment a character, providing a code example and explanation that ord() gets ASCII value and chr() converts back.",
+        "granularity_rationale": "This encompasses one specific technique with two built-in functions; it is concrete enough to be demonstrated and tested in a short code snippet."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Using ord() + chr()"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Ways to increment a character in Python",
+      "source_year": "2023",
+      "name_drops": ["ord()", "chr()"]
+    },
+    {
+      "candidate_id": "candidate-11-003",
+      "label": "Using byte strings to increment a character",
+      "description": "Convert a character to a byte string, change the byte value by adding an integer to the byte at index 0, and convert back to a string, handling the byte prefix.",
+      "coverage_criteria": [
+        "Write code to increment character 'A' by 5 using bytes and retrieve the correct character.",
+        "Explain why s[2] is used after str(s) when incrementing a byte string character."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article illustrates this method with a code example and explains that converting to byte string, incrementing, and converting back allows character arithmetic, noting the need to skip the byte prefix.",
+        "granularity_rationale": "This is a distinct technique using Python's bytes type; it involves multiple steps but can be checked by asking the student to implement or debug such a snippet."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Using byte string"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Ways to increment a character in Python",
+      "source_year": "2023",
+      "name_drops": ["bytes"]
+    },
+    {
+      "candidate_id": "candidate-11-004",
+      "label": "Using string module constants for alphabet-based increment",
+      "description": "By leveraging string.ascii_uppercase or string.ascii_lowercase, you can find a character's alphabetic index and increment it to get the next character in the alphabet, preserving case.",
+      "coverage_criteria": [
+        "Write code that uses string.ascii_uppercase to find the next character after a given uppercase letter.",
+        "Explain why this method handles case correctly compared to ASCII-based methods."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces this as an additional approach, showing how to use the string module's constants to index and increment alphabetically, with time/space complexity analysis.",
+        "granularity_rationale": "This method introduces the string module's predefined sequences and index lookup, a moderately sized concept that can be tested with a simple coding task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Use the string module"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Ways to increment a character in Python",
+      "source_year": "2023",
+      "name_drops": ["string.ascii_uppercase", "string.ascii_lowercase"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-11-001",
+      "to_candidate_id": "candidate-11-002",
+      "reason": "The ord()+chr() method directly addresses the TypeError demonstrated in the introduction by converting the character to an ASCII integer before addition.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Using ord() + chr()"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-11-001",
+      "to_candidate_id": "candidate-11-003",
+      "reason": "The byte string method is presented as another way to increment a character without triggering a TypeError, using bytes conversion.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Using byte string"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-11-001",
+      "to_candidate_id": "candidate-11-004",
+      "reason": "The string module approach is offered as an additional alternative that uses alphabet indexing to avoid the direct str+int error.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Use the string module"
+        }
+      ]
+    }
+  ]
+}

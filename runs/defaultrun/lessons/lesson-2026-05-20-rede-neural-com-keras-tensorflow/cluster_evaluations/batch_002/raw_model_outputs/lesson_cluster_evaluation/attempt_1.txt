@@ -1,0 +1,208 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Saving and reloading Keras models",
+      "description": "How to persist a trained Keras model to an HDF5 file using model.save() and restore it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can write the code to save a model to a .h5 file.",
+        "Student can reload a saved model and confirm its architecture."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_018"],
+      "merge_rationale": "Single candidate, stands alone as a distinct action for model persistence."
+    },
+    {
+      "id": "lr002",
+      "label": "Fine-tuning with custom optimizer parameters",
+      "description": "How to customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and compiling the model with it.",
+      "coverage_criteria": [
+        "Student can create an optimizer object with custom parameters.",
+        "Student can use the optimizer in model.compile()."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_019"],
+      "merge_rationale": "Single candidate covering a focused aspect of fine-tuning."
+    },
+    {
+      "id": "lr003",
+      "label": "Fine-tuning with Early Stopping",
+      "description": "How to use the EarlyStopping callback to stop training when a monitored metric (e.g., validation loss) stops improving after a given patience, preventing overfitting.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_020"],
+      "merge_rationale": "Single candidate, a specific callback mechanism for training control."
+    },
+    {
+      "id": "lr004",
+      "label": "Keras model building workflow",
+      "description": "The sequential pipeline for building a neural network in Keras: import modules, create a Sequential model, add layers, compile with optimizer and loss, fit on data, and make predictions. This high-level process applies to classification tasks.",
+      "coverage_criteria": [
+        "Student can list the steps: define, compile, fit, evaluate, predict.",
+        "Student can explain the role of each step in a basic Keras script."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_001", "c56_pro_thinking_003"],
+      "merge_rationale": "Both candidates describe the same end-to-end workflow, one from a cheat sheet example and the other from a tutorial overview; merging avoids redundancy while preserving the complete pipeline."
+    },
+    {
+      "id": "lr005",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb directly from tensorflow.keras.datasets, including splitting into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three available datasets.",
+        "Student can write the code to load one dataset and unpack it into (x_train, y_train), (x_test, y_test)."
+      ],
+      "source_candidate_ids": ["c54_pro_thinking_002", "c55_pro_thinking_002"],
+      "merge_rationale": "c54_pro_thinking_002 focuses on MNIST loading, which is a subset of the broader dataset loading covered by c55_pro_thinking_002; merging creates a unified concept on the general skill."
+    },
+    {
+      "id": "lr006",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset consists of 28x28 grayscale images of handwritten digits 0-9, with 60,000 training and 10,000 test samples. It is a common beginner dataset for deep learning.",
+      "coverage_criteria": [
+        "Student can recall the image size, number of classes, and train/test split.",
+        "Student can explain why MNIST is often used as an introductory dataset."
+      ],
+      "source_candidate_ids": ["c54_pro_thinking_001"],
+      "merge_rationale": "Single candidate providing factual background essential for understanding a typical Keras tutorial."
+    },
+    {
+      "id": "lr007",
+      "label": "Inspecting data shape and labels",
+      "description": "After loading data, how to inspect array shapes (e.g., train_images.shape) and visualize samples using matplotlib to verify the data before modeling.",
+      "coverage_criteria": [
+        "Student can print and interpret the shape of training data and labels.",
+        "Student can display a single image using plt.imshow() or plt.matshow()."
+      ],
+      "source_candidate_ids": ["c54_pro_thinking_003"],
+      "merge_rationale": "Single candidate covering a common verification step in data preprocessing."
+    },
+    {
+      "id": "lr008",
+      "label": "Sequence padding for RNNs",
+      "description": "How to pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, with specification of maxlen, to prepare data for recurrent neural networks.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_004"],
+      "merge_rationale": "Single candidate, a specific text preprocessing step for RNNs."
+    },
+    {
+      "id": "lr009",
+      "label": "Train/test split with sklearn",
+      "description": "How to partition a dataset into training and test subsets using sklearn.model_selection.train_test_split, controlling proportions with test_size and reproducibility with random_state.",
+      "coverage_criteria": [
+        "Student can import and call train_test_split on features and labels.",
+        "Student can explain the purpose of test_size and random_state."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_006"],
+      "merge_rationale": "Single candidate, a standard splitting utility for model evaluation."
+    },
+    {
+      "id": "lr010",
+      "label": "Standardization with StandardScaler",
+      "description": "How to standardize features by scaling them to have zero mean and unit variance using StandardScaler from sklearn.preprocessing, fitting on training data and transforming both train and test sets.",
+      "coverage_criteria": [
+        "Student can fit and transform data with StandardScaler.",
+        "Student can distinguish standardization from normalization."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_007"],
+      "merge_rationale": "Single candidate, a commonly applied preprocessing method for numeric data."
+    },
+    {
+      "id": "lr011",
+      "label": "Building an MLP for binary classification",
+      "description": "Constructing a Sequential model with Dense layers for binary classification: relu activation for hidden layers and sigmoid for the output layer.",
+      "coverage_criteria": [
+        "Student can create an MLP with the correct activation functions.",
+        "Student can explain why sigmoid is suitable for binary output."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_008"],
+      "merge_rationale": "Single candidate targeting a specific architecture pattern for binary problems."
+    },
+    {
+      "id": "lr012",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "description": "Stacking Dense layers with relu activation, interspersed with Dropout for regularization, and ending with a softmax output layer for multi-class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used for multi-class output."
+      ],
+      "source_candidate_ids": ["c55_pro_thinking_009"],
+      "merge_rationale": "Single candidate covering a common regularization technique combined with multi-class output."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c55_pro_thinking_018",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_019",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_020",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr008"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr009"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr010"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["lr012"]
+    }
+  ]
+}

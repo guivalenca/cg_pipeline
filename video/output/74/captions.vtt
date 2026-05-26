@@ -1,0 +1,221 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.760
+ JOSHUA COOK: Hi, my name is Joshua Cook,
+
+00:00:05.760 --> 00:00:08.240
+ and I'm a curriculum developer with Databricks.
+
+00:00:08.240 --> 00:00:11.400
+ Today, we're going to be talking about latent semantic analysis.
+
+00:00:11.400 --> 00:00:12.840
+ There is a link to the notebook I'll
+
+00:00:12.840 --> 00:00:14.280
+ be using in the video description
+
+00:00:14.280 --> 00:00:16.000
+ if you would like to follow along.
+
+00:00:16.000 --> 00:00:19.160
+ Before we begin, let's define some basic vocabulary.
+
+00:00:19.160 --> 00:00:20.960
+ Natural language processing refers
+
+00:00:20.960 --> 00:00:22.440
+ to a family of techniques that are
+
+00:00:22.440 --> 00:00:24.960
+ used to derive meaning from text data.
+
+00:00:24.960 --> 00:00:27.640
+ A document refers to some collection of words
+
+00:00:27.640 --> 00:00:31.240
+ and represents the rows or instances of our data set.
+
+00:00:31.240 --> 00:00:33.560
+ A body is a collection of documents
+
+00:00:33.560 --> 00:00:36.000
+ and represents the entire data set.
+
+00:00:36.000 --> 00:00:38.160
+ A dictionary is the set of all words
+
+00:00:38.160 --> 00:00:42.040
+ that occur in at least one document in the data set.
+
+00:00:42.040 --> 00:00:45.000
+ A topic is a collection of words that co-occur.
+
+00:00:45.000 --> 00:00:47.560
+ In this lesson, we're going to be talking about latent semantic
+
+00:00:47.560 --> 00:00:48.400
+ analysis.
+
+00:00:48.400 --> 00:00:51.600
+ So the word latent means hidden, and in this context
+
+00:00:51.600 --> 00:00:54.520
+ refers to features that cannot be directly measured.
+
+00:00:54.520 --> 00:00:56.520
+ What we're going to be measuring or what has already
+
+00:00:56.520 --> 00:00:59.320
+ been measured are the words that are in our data set.
+
+00:00:59.320 --> 00:01:02.680
+ What we're interested in is latent features, hidden features,
+
+00:01:02.680 --> 00:01:05.680
+ that represent something essential in the data set.
+
+00:01:05.680 --> 00:01:08.640
+ Latent semantic analysis is a natural language processing
+
+00:01:08.640 --> 00:01:10.840
+ technique, as well as an unsupervised learning
+
+00:01:10.840 --> 00:01:13.320
+ technique, this as opposed to supervised learning.
+
+00:01:13.320 --> 00:01:16.200
+ So in supervised learning, we would have a target or a label.
+
+00:01:16.200 --> 00:01:18.640
+ With latent semantic analysis, we don't have this.
+
+00:01:18.640 --> 00:01:21.480
+ We're looking at something that's latent or inherent
+
+00:01:21.480 --> 00:01:22.840
+ to the data itself.
+
+00:01:22.840 --> 00:01:26.800
+ The aim of latent semantic analysis is to create representations
+
+00:01:26.800 --> 00:01:31.520
+ of the text data in terms of these topics or latent features.
+
+00:01:31.520 --> 00:01:33.320
+ A side benefit of this is that we're
+
+00:01:33.320 --> 00:01:35.600
+ going to be able to reduce the dimensionality
+
+00:01:35.600 --> 00:01:38.080
+ of the original text-based data set.
+
+00:01:38.080 --> 00:01:40.800
+ As you can see in this diagram, latent semantic analysis
+
+00:01:40.800 --> 00:01:42.640
+ consists of two steps.
+
+00:01:42.640 --> 00:01:45.800
+ The first step is to generate a document term matrix,
+
+00:01:45.800 --> 00:01:49.600
+ and the second step is to perform a singular value decomposition
+
+00:01:49.600 --> 00:01:51.760
+ on that document term matrix.
+
+00:01:51.760 --> 00:01:54.440
+ The basic idea of a document term matrix
+
+00:01:54.440 --> 00:01:56.880
+ is that text documents can be represented
+
+00:01:56.880 --> 00:01:59.200
+ as points in Euclidean space.
+
+00:01:59.200 --> 00:02:01.600
+ You might know these as vectors.
+
+00:02:01.600 --> 00:02:04.040
+ Here is an example of a document term matrix.
+
+00:02:04.040 --> 00:02:06.320
+ As you can see, each row in this matrix
+
+00:02:06.320 --> 00:02:08.240
+ represents one of our documents.
+
+00:02:08.240 --> 00:02:11.200
+ In this case, one of four simple sentence fragments.
+
+00:02:11.200 --> 00:02:14.680
+ And then each column represents a word from the dictionary.
+
+00:02:14.680 --> 00:02:17.280
+ That is, a word that shows up in at least one
+
+00:02:17.280 --> 00:02:19.840
+ of the four documents.
+
+00:02:19.840 --> 00:02:22.680
+ If you look at the first row, the quick brown fox,
+
+00:02:22.680 --> 00:02:26.240
+ you can see that the word brown has the value 1,
+
+00:02:26.240 --> 00:02:29.080
+ the word fox has the value 1, the word quick has the value 1,
+
+00:02:29.080 --> 00:02:30.880
+ and the word the has the value 1.
+
+00:02:30.880 --> 00:02:33.320
+ And everywhere else is zeros.
+
+00:02:33.320 --> 00:02:36.040
+ So here we see these four documents as vectors.
+
+00:02:36.040 --> 00:02:41.840
+ As you can see, the quick brown fox is 1, 0, 1, 0, 1, 0, 1, 0.
+
+00:02:41.840 --> 00:02:43.840
+ The second step in a latent semantic analysis
+
+00:02:43.840 --> 00:02:48.480
+ is to do a singular value decomposition on the document term matrix.
+
+00:02:48.480 --> 00:02:51.680
+ The singular value decomposition is similar to a principal component
+
+00:02:51.680 --> 00:02:54.920
+ analysis, if you're familiar with this statistical technique.
+
+00:02:54.920 --> 00:02:58.520
+ It's going to reduce the dimensionality of the original data set
+
+00:02:58.520 --> 00:03:01.600
+ by encoding it using these latent features.
+
+00:03:01.600 --> 00:03:04.180
+ With latent semantic analysis, these latent features
+
+00:03:04.180 --> 00:03:07.820
+ represent topics in the original text data.
+
+00:03:07.820 --> 00:03:09.340
+ In the next few videos, we're going
+
+00:03:09.340 --> 00:03:12.160
+ to be looking at building a latent semantic analysis
+
+00:03:12.160 --> 00:03:15.660
+ using the open source Python library scikit-learn.
+
+00:03:15.660 --> 00:03:17.780
+ First, we'll look at a trivial implementation
+
+00:03:17.780 --> 00:03:21.160
+ using these four sentence fragments that we just looked at.
+

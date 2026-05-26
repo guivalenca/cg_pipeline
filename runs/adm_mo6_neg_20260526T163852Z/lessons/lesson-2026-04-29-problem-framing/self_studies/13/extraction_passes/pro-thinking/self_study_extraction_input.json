@@ -1,0 +1,83 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "display_code": "L02",
+    "workbook_row_number": 7,
+    "title": "Problem framing",
+    "date": "29/04/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This class combines theoretical references on decision-making frameworks and the balance between data and intuition with a practical group exercise. Students analyze the strategic dilemma of a rapidly growing Brazilian startup and must decide between international expansion, investment in new technology, or local consolidation. The dynamic challenges the groups to justify their choice, identify critical information, and reflect on when to rely on objective evidence or managerial instincts."
+  },
+  "self_study": {
+    "self_study_id": "13",
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 13,
+      "week": 2,
+      "sort": 14,
+      "title": "Business Question 1",
+      "description": "This activity will take place in the classroom. Your professor will provide all instructions before you start.",
+      "url": "https://www.inteli.edu.br/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 4.0,
+      "related_labels": [],
+      "parent_class": "Problem framing",
+      "class_date": "29/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0013-article-business-question-1.md",
+      "sha256": "703b418e49d46d03b7df57e3866b4958904e59e7788e2364d0ac53eb22f7d1a8",
+      "word_count": 1297,
+      "bytes": 8860,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/13/13-business-question-1.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/13",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0013-article-business-question-1.md",
+    "sha256": "703b418e49d46d03b7df57e3866b4958904e59e7788e2364d0ac53eb22f7d1a8",
+    "word_count": 1297,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/13/13-business-question-1.md",
+    "markdown": "---\nid: \"13\"\ntitle: \"Business Question 1\"\nsource_url: \"https://www.inteli.edu.br/\"\nfetch_url: \"https://www.inteli.edu.br/\"\nresolved_url: \"https://www.inteli.edu.br/\"\nfirecrawl_title: \"Inteli - Educação Inovadora em Tecnologia\"\ndescription: \"Descubra o Inteli, a faculdade que forma líderes em tecnologia com aprendizado 100% baseado em projetos e forte conexão com o mercado de trabalho.\"\nfetched_at: \"2026-05-26T16:43:28.115289Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"01925c268a73cec9ba70b437276f9076a5d5e27cef1998ff36e5f7b21f1cff68\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=UTF-8\"\nword_count: 1206\nchar_count: 7816\ncontent_sha256: \"ac73101b1b7a811915f839df73afa9cefc4d56f463316be1cc04cf270f1bd838\"\nimage_count: 27\nlink_count: 15\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n\n![Inteli-Camp Logo](https://www.inteli.edu.br/wp-content/uploads/2026/03/Logo-Inteli-Camp.svg)\n\n# MBA em IA e Dados para Negócios\n\nO programa que conecta tecnologia com estratégia e negócios para transformar sua carreira.\n\nInício: agosto/2026\n\n[Inscreva-se agora](https://www.inteli.edu.br/mba-ia-e-dados-para-negocios/)\n\n## Nosso campus\n\nConheça de perto nossa infraestrutura, onde a inovação acontece.\n\n[Agendar visita](https://www.inteli.edu.br/campus/)\n\n## No Inteli, o ensino tem outra lógica\n\n### Infraestrutura de ponta\n\nNosso campus é mais do que um espaço de aprendizagem: é um ecossistema de inovação, colaboração e bem-estar. Com mais de 10 mil m², ele reúne ateliês para metodologias ativas, espaços makers, salas de reunião, biblioteca, áreas de convivência, restaurante, academia ao ar livre e muito mais. Cada ambiente foi pensado para inspirar criatividade, promover troca de ideias e impulsionar o protagonismo dos nossos alunos. Aqui, infraestrutura é sinônimo de experiência de excelência.\n\n### 5 vezes nota máxima no MEC\n\nConquistamos nota máxima do Ministério da Educação (MEC) nos cinco cursos de graduação: Engenharia de Computação, Ciência da Computação, Sistemas de Informação, Engenharia de Software e ADM Tech.\n\nO reconhecimento oficial atesta a qualidade do nosso modelo pedagógico, da infraestrutura e do corpo docente. Mais do que isso, valida a proposta ousada de uma faculdade 100% baseada em projetos reais, em conexão direta com os desafios do mercado e da sociedade.\n\n### Metodologia: aprender fazendo\n\nAqui no Inteli, tecnologia e impacto caminham juntos desde o primeiro dia de aula. Por meio da Aprendizagem Baseada em Projetos (PBL), nossos alunos enfrentam desafios reais, propostos por empresas e organizações de diferentes setores, sempre com o acompanhamento próximo de professores e especialistas. É na prática que eles desenvolvem competências técnicas, visão sistêmica e maturidade profissional.\n\n### Carreira, Liderança e Empregabilidade: três pilares, um só destino\n\nNo Inteli, empregabilidade é levada a sério desde o primeiro dia. Somos a única faculdade do Brasil com um time de especialistas focado no desenvolvimento de carreira desde o início da graduação. No Centro de Desenvolvimento e Liderança, os alunos contam com mentorias personalizadas, preparação para o mercado e um currículo dedicado à formação em liderança — com foco em soft skills, visão estratégica e tomada de decisão. Mais do que formar talentos, o CDL prepara líderes prontos para transformar o mundo.\n\n### Protagonismo: você escolhe, o Inteli potencializa\n\nNo quarto ano, cada aluno do Inteli escolhe a trilha que mais conecta com seu futuro: Empreendedora, Acadêmica ou Corporativa. Ao longo de todo o ano, o Inteli lidera, orienta e potencializa essa jornada com mentoria especializada, apoio estratégico e conexão com o mercado. Aqui, formar líderes é caminhar junto — do plano à realização.\n\n## Nossos cursos: o futuro se aprende aqui!\n\n### Graduação\n\nNo Inteli, oferecemos cinco cursos de bacharelados presenciais, com duração de quatro anos, que combinam teoria e prática desde o primeiro dia de aula. Nossa metodologia de Aprendizagem Baseada em Projetos permite que você desenvolva habilidades em Computação, Negócios e Liderança para enfrentar os desafios do futuro.\n\n[Conheça nossos cursos](https://www.inteli.edu.br/graduacao/)\n\n### Cursos Executivos\n\nOs cursos executivos Compass, AI for Business e Data Science for Decision Makers foram criados para líderes e profissionais que querem transformar seus resultados com o que há de mais atual em inteligência artificial, ciência de dados e inovação. Aqui, produtividade vira vantagem competitiva, dados viram decisões estratégicas, e tecnologia se torna uma aliada direta do seu impacto nos negócios.\n\n[Conheça nossos cursos](https://www.inteli.edu.br/inteliexec/)\n\n### Ensino Básico\n\nO Inteli acredita que o futuro da educação começa agora. Por isso, desenvolvemos programas e projetos voltados ao Ensino Básico que aproximam estudantes do universo da tecnologia, da inovação e do empreendedorismo de forma prática, inspiradora e transformadora. Nossos programas são construídos com metodologias ativas, como o Project-Based Learning (PBL), e integram trilhas de conhecimento em tecnologia, negócios e habilidades humanas.\n\n[Conheça nosso programa](https://www.inteli.edu.br/inteli-camp/)\n\n## Transformando o Brasil com excelência e inovação\n\nFundado por Roberto Sallouti e André Esteves, o Inteli nasceu com a missão de formar os líderes que vão transformar o Brasil através da tecnologia.\n\nEscolher o Inteli é investir em um futuro sólido, com propósito, com excelência e com a certeza de estar no ecossistema mais promissor da educação em tecnologia na América Latina.\n\n## + de 90 empresas parceiras de projetos e + de 685 protótipos desenvolvidos\n\nDurante a graduação, cada aluno desenvolve 16 projetos reais com empresas líderes do mercado colocando em prática o que aprende. É assim que formamos profissionais prontos para criar impacto de verdade.\n\n## Histórias de quem vive a **experiência Inteli**\n\n![Histórias de quem vive a experiência Inteli 01](https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-02.png)\n\nJá imaginou como é viver a rotina de um aluno do Inteli?\n\nAcompanhe um dia com o Bernardo, aluno de Sistemas de Informação, e veja como o Inteli une teoria e prática para formar líderes da inovação desde o primeiro dia de aula.\n\n![Histórias de quem vive a experiência Inteli 02](https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-03.png)\n\nO que acontece quando uma estudante entra na AWS?\n\nKathlyn Diwan, aluna do Inteli, mostra como os projetos da graduação a prepararam para aplicar tecnologia de forma estratégica no dia a dia da AWS.\n\n![Histórias de quem vive a experiência Inteli 03](https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-01.png)\n\n## Inteli na Mídia\n\n### Forbes\n\n![Logo Forbes](https://www.inteli.edu.br/wp-content/uploads/2026/04/Logo-Forbes.jpg)\n\n#### Roberto Sallouti: “Queremos Formar os Arquitetos da Inovação Brasileira”\n\nEm entrevista à Forbes Brasil, o cofundador do Inteli fala sobre o impacto da primeira turma.\n\n[Veja matéria completa](https://forbes.com.br/forbes-tech/2025/11/roberto-sallouti-queremos-formar-os-arquitetos-da-inovacao-brasileira/)\n\n### Exame\n\n![exame logo](https://www.inteli.edu.br/wp-content/uploads/2024/07/cdl-inteli-exame1-1024x177.png)\n\n#### Trem de São Paulo vira laboratório de IA em parceria da TIC Trens e Inteli\n\nDa sala de aula para os trilhos, universitários testam soluções de inteligência artificial na Linha 7-Rubi, a maior da capital paulista.\n\n[Veja matéria completa](https://exame.com/tecnologia/trem-de-sao-paulo-vira-laboratorio-de-ia-em-parceria-da-tic-trens-e-inteli/?utm_source=copiaecola&utm_medium=compartilhamento)\n\n### Veja\n\n![Logo Veja](https://www.inteli.edu.br/wp-content/uploads/2026/04/Logo-Veja.png)\n\n#### O impacto da IA em áreas de risco\n\nDupla de jovens transforma inteligência artificial em ferramenta de acesso à Justiça.\n\n[Veja matéria completa](https://veja.abril.com.br/coluna/matheus-leitao/o-impacto-da-ia-em-areas-de-risco/)\n\n### Jornal Nacional\n\n![Logo Jornal Nacional](https://www.inteli.edu.br/wp-content/uploads/2026/04/Jornal_Nacional-Logo.svg)\n\n#### Aprendizagem baseada em projetos práticos ganha espaço no ensino superior brasileiro\n\nEm uma faculdade de tecnologia e negócios de São Paulo que adotou o modelo PBL, mais de 90% dos alunos da primeira turma de graduação vão terminar o curso empregados.\n\n[Veja matéria completa](https://g1.globo.com/jornal-nacional/noticia/2025/10/10/aprendizagem-baseada-em-projetos-praticos-ganha-espaco-no-ensino-superior-brasileiro.ghtml)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://www.inteli.edu.br/wp-content/uploads/2026/03/Logo-Inteli-Camp.svg",
+      "https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-02.png",
+      "https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-03.png",
+      "https://www.inteli.edu.br/wp-content/uploads/2025/08/Historias-de-quem-vive-a-experiencia-Inteli-01.png",
+      "https://www.inteli.edu.br/wp-content/uploads/2026/04/Logo-Forbes.jpg",
+      "https://www.inteli.edu.br/wp-content/uploads/2024/07/cdl-inteli-exame1-1024x177.png",
+      "https://www.inteli.edu.br/wp-content/uploads/2026/04/Logo-Veja.png",
+      "https://www.inteli.edu.br/wp-content/uploads/2026/04/Jornal_Nacional-Logo.svg"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

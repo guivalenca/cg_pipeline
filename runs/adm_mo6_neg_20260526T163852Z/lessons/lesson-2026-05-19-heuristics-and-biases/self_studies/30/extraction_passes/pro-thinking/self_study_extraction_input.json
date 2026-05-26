@@ -1,0 +1,76 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+    "display_code": "L06",
+    "workbook_row_number": 28,
+    "title": "Heuristics and Biases",
+    "date": "19/05/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "The lesson focuses on heuristics and cognitive biases in decision-making, exploring how these mental shortcuts influence choices in daily life and the professional environment. The aim is to understand that, while useful for simplifying decisions in uncertain contexts, heuristics can generate distortions, misperceptions, and systematic errors. At the same time, analyzing biases allows for the recognition of thought patterns that affect diverse areas such as business, health, and finance, offering insights to improve the quality of individual and organizational decisions."
+  },
+  "self_study": {
+    "self_study_id": "30",
+    "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 30,
+      "week": 5,
+      "sort": 14,
+      "title": "The Impact of Cognitive Biases on Professionals' Decision‑Making",
+      "description": "This study reviews how heuristics/biases affect professional decisions in different areas: management, medicine, finance, law. It shows which biases appear, how they interfere, their limitations, etc.",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8763848/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Heuristics and Biases",
+      "class_date": "19/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0030-article-the-impact-of-cognitive-biases-on-professionals-decisionmaking.md",
+      "sha256": "e0159215e80abb8a4c60012f2c8d5a4d44b4f21c74ba21c49b958e65e3f38d44",
+      "word_count": 308,
+      "bytes": 4363,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/30/30-the-impact-of-cognitive-biases-on-professionals-decisionmaking.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/30",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0030-article-the-impact-of-cognitive-biases-on-professionals-decisionmaking.md",
+    "sha256": "e0159215e80abb8a4c60012f2c8d5a4d44b4f21c74ba21c49b958e65e3f38d44",
+    "word_count": 308,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/30/30-the-impact-of-cognitive-biases-on-professionals-decisionmaking.md",
+    "markdown": "---\nid: \"30\"\ntitle: \"The Impact of Cognitive Biases on Professionals' Decision‑Making\"\nsource_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC8763848/\"\nfetch_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC8763848\"\nresolved_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC8763848\"\nfirecrawl_title: \"Checking your browser - reCAPTCHA\"\ndescription: null\nfetched_at: \"2026-05-26T16:45:02.663214Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"a4c3760386ac0d1251c47fa0fd56f7750bf9b1485f7f9c1e308e6a31d1474ed7\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 226\nchar_count: 3551\ncontent_sha256: \"8125faaa8d51a97dbc4fe7ad58198e9dd84e251c9fadad47b195321e6851ed92\"\nimage_count: 1\nlink_count: 1\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\nChecking your browser before accessing pmc.ncbi.nlm.nih.gov ...\n\nClick [here](https://www.google.com/recaptcha/challengepage/#) if you are not automatically redirected after 5 seconds.\n\nreCAPTCHA\n\nRecaptcha requires verification.\n\nprotected by **reCAPTCHA**\n\nreCAPTCHA\n\nSelect all images with **crosswalks** Click verify once there are none left.\n\n|     |     |     |\n| --- | --- | --- |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n\nPlease try again.\n\nPlease select all matching images.\n\nPlease also check the new images.\n\nPlease select around the object, or reload if there are none.\n\nVerify\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA7FLA8uAGTf526JjRT5C2Q_rBHe7Ov-M7U8cWyOs7rROsdR7EWVIHJ_fAp-uuflv6_GUMj3KV_trfZa1RF83XEbH-6R_V2QHEW2BoIa8JAWUqLsaqK7dr3GiyCvpLu2LeF8KIxG7sRDNCYpMhL-LISNpXFIFSQLNVt8foUDCwc19yT1Vbz-8trzBPuZxpPyNdGOpYQctx-mKDbc0na4BFFSD8tvsQ&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

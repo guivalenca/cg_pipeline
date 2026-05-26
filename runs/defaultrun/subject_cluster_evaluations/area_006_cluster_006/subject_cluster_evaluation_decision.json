@@ -1,0 +1,88 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-20T01:05:18.791091+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr003_015",
+    "lr003_016"
+  ],
+  "accepted": [
+    {
+      "id": "sm001",
+      "label": "Multi-label Encoding with Binary Vectors",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each index corresponds to a label, allowing a single example to have multiple 1s, unlike one-hot encoding for multi-class.",
+      "coverage_criteria": [
+        "Encode a set of labels for a given text using a binary vector, and contrast with one-hot encoding for multi-class."
+      ],
+      "source_candidate_ids": [
+        "lr003_015"
+      ],
+      "merge_rationale": "Standalone concept covering label encoding; distinct from output activation. Tested by a different question."
+    },
+    {
+      "id": "sm002",
+      "label": "Sigmoid Activation for Multi-label Classification",
+      "description": "For multi-label text classification with a bag-of-words model, the output layer should use sigmoid activation with binary cross-entropy loss, as it allows independent binary predictions per label, while softmax is for multi-class.",
+      "coverage_criteria": [
+        "Explain why sigmoid activation is preferred over softmax for multi-label classification, and select the appropriate loss function."
+      ],
+      "source_candidate_ids": [
+        "lr003_016"
+      ],
+      "merge_rationale": "Standalone concept covering model output configuration; distinct from label encoding. Tested by a different question."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Multi-label Encoding with Binary Vectors",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each index corresponds to a label, allowing a single example to have multiple 1s, unlike one-hot encoding for multi-class.",
+      "coverage_criteria": [
+        "Encode a set of labels for a given text using a binary vector, and contrast with one-hot encoding for multi-class."
+      ],
+      "source_candidate_ids": [
+        "lr003_015"
+      ],
+      "merge_rationale": "Standalone concept covering label encoding; distinct from output activation. Tested by a different question."
+    },
+    {
+      "id": "sm002",
+      "label": "Sigmoid Activation for Multi-label Classification",
+      "description": "For multi-label text classification with a bag-of-words model, the output layer should use sigmoid activation with binary cross-entropy loss, as it allows independent binary predictions per label, while softmax is for multi-class.",
+      "coverage_criteria": [
+        "Explain why sigmoid activation is preferred over softmax for multi-label classification, and select the appropriate loss function."
+      ],
+      "source_candidate_ids": [
+        "lr003_016"
+      ],
+      "merge_rationale": "Standalone concept covering model output configuration; distinct from label encoding. Tested by a different question."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr003_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm001"
+      ]
+    },
+    {
+      "candidate_id": "lr003_016",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm002"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 2,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

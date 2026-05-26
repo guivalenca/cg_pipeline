@@ -1,0 +1,108 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+    "title": "Decision-Making in the Age of AI"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-strategic-discipline-for-ai-augmented-decision-making-2b954a67",
+      "label": "Strategic Discipline for AI-Augmented Decision-Making",
+      "teaching_description": "Before integrating AI into decisions, organizations should treat decision-making as a strategic discipline and intentionally design human-machine relationships.",
+      "coverage_criteria": [
+        "Student can explain why decision-making must be treated as a strategic discipline when adopting AI."
+      ]
+    },
+    {
+      "concept_id": "concept-preserving-human-agency-in-ai-decisions-a8934a15",
+      "label": "Preserving Human Agency in AI Decisions",
+      "teaching_description": "Maintain human agency by building accountability, ensuring decision-makers understand (not just comply with) AI outputs, and clearly connecting choices to choosers.",
+      "coverage_criteria": [
+        "Student can describe at least two concrete ways to preserve human agency when AI supports decisions."
+      ]
+    },
+    {
+      "concept_id": "concept-human-purpose-and-judgment-as-irreplaceable-by-ai-a2cdf6ca",
+      "label": "Human Purpose and Judgment as Irreplaceable by AI",
+      "teaching_description": "Technology can speed up analysis and reduce uncertainty, but it cannot substitute human purpose, values, and judgment behind choices.",
+      "coverage_criteria": [
+        "Student can articulate at least one reason why human purpose and judgment remain essential even when AI provides analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-building-decision-making-competence-for-humans-and-ai-37c63b16",
+      "label": "Building Decision-Making Competence for Humans and AI",
+      "teaching_description": "Organizations should simultaneously invest in developing human decision-making skills and rigorously measuring AI decision performance.",
+      "coverage_criteria": [
+        "Student can describe one approach to improve human decision skill and one approach to measure AI decision performance."
+      ]
+    },
+    {
+      "concept_id": "concept-risk-based-ai-agency-level-665ba769",
+      "label": "Risk-Based AI Agency Level",
+      "teaching_description": "The degree of autonomy granted to AI agents should be calibrated according to the risk profile of the decision.",
+      "coverage_criteria": [
+        "Student can justify why a high-risk decision warrants lower AI autonomy."
+      ]
+    },
+    {
+      "concept_id": "concept-decision-classification-framework-4443e22d",
+      "label": "Decision Classification Framework",
+      "teaching_description": "Decisions can be categorized across multiple dimensions including risk, frequency, urgency, horizon, certainty, and the Cynefin domains. Understanding these dimensions helps in choosing appropriate decision strategies.",
+      "coverage_criteria": [
+        "Student can name at least three decision dimensions and explain how the Cynefin context (Clear, Complicated, Complex, Chaotic) influences decision approach."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Foundations of AI-Augmented Decision-Making",
+      "concept_ids": [
+        "concept-strategic-discipline-for-ai-augmented-decision-making-2b954a67",
+        "concept-human-purpose-and-judgment-as-irreplaceable-by-ai-a2cdf6ca"
+      ]
+    },
+    {
+      "label": "Preserving Human Agency and Classifying Decisions",
+      "concept_ids": [
+        "concept-preserving-human-agency-in-ai-decisions-a8934a15",
+        "concept-decision-classification-framework-4443e22d"
+      ]
+    },
+    {
+      "label": "Calibrating AI Agency and Building Competence",
+      "concept_ids": [
+        "concept-risk-based-ai-agency-level-665ba769",
+        "concept-building-decision-making-competence-for-humans-and-ai-37c63b16"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

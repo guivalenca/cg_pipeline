@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Concept Graph Pipeline V0 Review</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --blue: #2563eb;
+      --blue-soft: #e8f0ff;
+      --green: #0f766e;
+      --green-soft: #e5f6f3;
+      --amber: #b45309;
+      --amber-soft: #fff3db;
+      --red: #b42318;
+      --red-soft: #fee4e2;
+      --purple: #6d28d9;
+      --purple-soft: #f0e9ff;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    header {
+      padding: 32px 24px 20px;
+      background: #111827;
+      color: #fff;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 960px;
+      color: #d1d5db;
+      font-size: 16px;
+    }
+
+    main {
+      padding: 24px;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    p, ul, ol { margin-top: 0; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      background: #eef2f7;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+
+    .muted { color: var(--muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .badge.blue { color: var(--blue); background: var(--blue-soft); }
+    .badge.green { color: var(--green); background: var(--green-soft); }
+    .badge.amber { color: var(--amber); background: var(--amber-soft); }
+    .badge.red { color: var(--red); background: var(--red-soft); }
+    .badge.purple { color: var(--purple); background: var(--purple-soft); }
+
+    .summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 144px minmax(260px, 1fr) minmax(260px, 1fr) minmax(220px, 0.8fr);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .stage .phase {
+      padding: 14px;
+      background: #f1f5f9;
+      border-right: 1px solid var(--line);
+      font-weight: 750;
+    }
+
+    .stage .cell {
+      padding: 14px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stage .cell:last-child { border-right: 0; }
+
+    .stage ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .stage li { margin: 4px 0; }
+
+    .mini-title {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .artifact-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .artifact {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .artifact p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .schema {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .schema pre {
+      margin: 0;
+      overflow: auto;
+      background: #0f172a;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      background: #f1f5f9;
+      font-size: 13px;
+      color: #344054;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .callout {
+      border-left: 4px solid var(--blue);
+      background: var(--blue-soft);
+      padding: 12px 14px;
+      border-radius: 6px;
+    }
+
+    .callout.amber {
+      border-left-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .callout.green {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    details + details { margin-top: 8px; }
+
+    summary {
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    @media (max-width: 1080px) {
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .stage {
+        grid-template-columns: 1fr;
+      }
+      .stage .phase, .stage .cell {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .stage .cell:last-child { border-bottom: 0; }
+      .artifact-list, .schema, .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Concept Graph Pipeline V0 Review</h1>
+    <p>
+      Visual summary of the agreed path from extracted self-studies to a metadata-rich build artifact and a lean Companion runtime graph.
+      This page is for design review, not generated pipeline output.
+    </p>
+    <div class="summary-row">
+      <span class="badge green">67 usable source bodies</span>
+      <span class="badge amber">2 unavailable source bodies</span>
+      <span class="badge blue">lesson-based runtime graph</span>
+      <span class="badge purple">manual promotion</span>
+      <span class="badge red">fail-fast validation</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card span-8">
+        <h2>What Is Settled</h2>
+        <div class="two-col">
+          <div>
+            <h3>Generation Boundary</h3>
+            <ul>
+              <li>Use extracted markdown plus workbook/index metadata.</li>
+              <li>No separate AI cleaning or annotation in v0.</li>
+              <li>Old runtime <code>graph.json</code> is not a concept-content reference.</li>
+              <li>Workbook defines Lessons and Self-study membership.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Output Boundary</h3>
+            <ul>
+              <li><strong>Build Graph Artifact</strong> keeps audit/provenance metadata.</li>
+              <li><strong>Runtime Graph Export</strong> keeps only tutoring content.</li>
+              <li>No <code>day_presets</code> and no runtime <code>self_studies</code>.</li>
+              <li>Promotion to <code>reference/courses/...</code> is manual.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h2>What Is Still For Review</h2>
+        <ul>
+          <li>Exact run folder layout.</li>
+          <li>Final model/provider routing per stage.</li>
+          <li>Exact Stage Contract JSON schemas.</li>
+          <li>Exact visual/report format for human review.</li>
+        </ul>
+        <div class="callout amber">
+          The main conceptual questions are resolved. These remaining items are implementation-shape decisions.
+        </div>
+      </div>
+    </section>
+
+    <section class="card span-12">
+      <h2>Pipeline Flow</h2>
+      <div class="flow">
+        <div class="stage">
+          <div class="phase">0. Source Ledger</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            <ul>
+              <li><code>cg_pipeline/source/si_mod6.xlsx</code></li>
+              <li><code>cg_pipeline/index.json</code></li>
+              <li><code>cg_pipeline/extraction/*.md</code></li>
+            </ul>
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Map Lessons, Self-studies, Source Bodies, unavailable sources, warnings, hashes, and workbook metadata.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>source_ledger.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">1. Label Interpretation</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Workbook Related Labels from self-study rows.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Incrementally classify unseen labels. Active outputs are <code>prerequisite_hint</code> and <code>lesson_cluster</code>.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>workbook_label_interpretation.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">2. Self-study Extraction</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            One Self-study at a time. Source Body when available; workbook metadata when unavailable.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Extract Candidate Concepts, Coverage Criteria, Source Roles, Extraction Reasons, Source Anchors, and Source-local Connector Candidates.
+            No order, no dependencies, no cross-source bridges.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>source_extraction.json</code> per Self-study
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">3. Top-down Concept Extraction</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Lesson title/description, self-study titles/descriptions, unavailable-source metadata, and lesson-cluster labels.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Propose top-down Candidate Concepts from lesson intent. These are weaker than source-body candidates until Lesson Reconciliation accepts them.
+            This stage does not create final Concepts.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>top_down_concept_extraction.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">4. Lesson Reconciliation</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            All valid self-study extractions for one Lesson plus top-down concept candidates.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Merge duplicates inside the Lesson, preserve source-grounded material, remove incidental candidates with pruning reasons.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>lesson_reconciliation.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">5. Story Review</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Lesson draft concepts and lesson intent.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Check if the Lesson teaches coherently. Propose Bridge Concepts only when a real gap blocks the teaching flow.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>pedagogical_story_review.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">6. Subject Merge</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            All validated lesson drafts and bridge proposals.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Deduplicate across Lessons. Same-Concept Reuse only when Coverage Criteria are compatible.
+            Deeper Revisits become separate Concepts.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>subject_merge.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">7. Dependency Deferral</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Stable concept inventory from <code>subject_merge.json</code>.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Emit an explicit empty edge list. V0 trusts the university Lesson order
+            and defers global prerequisite inference.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>dependency_inference.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">8. Segmentation And Ordering</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Lesson ID, Lesson title, and stable Lesson Concepts with label,
+            knowledge type, teaching description, and Coverage Criteria.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Per Lesson, blind to other Lessons, group Concepts into ordered
+            teaching-flow Segments. Deterministic code adds Segment IDs and
+            <code>instructional_role: "teach"</code>.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>lesson_segments.json</code> per Lesson
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">9. Critics</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Draft Build Graph Artifact and relevant stage artifacts.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Separate critic runs for coverage, granularity, dependencies, pedagogy/segments, and source grounding.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>critics/*.json</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">10. Review and Repair</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            All critic reports.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Conciliatory Review accepts/rejects findings and creates repair plan.
+            Repair routes structural fixes back to the owning stage when possible.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>conciliatory_review.json</code><br>
+            <code>repairs/*</code>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="phase">11. Final Assembly</div>
+          <div class="cell">
+            <span class="mini-title">Inputs</span>
+            Accepted repaired Build Graph data.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Job</span>
+            Deterministic only: assign Concept IDs and Display Codes, project dependencies, strip build-only metadata, validate, write outputs.
+          </div>
+          <div class="cell">
+            <span class="mini-title">Artifacts</span>
+            <code>build_graph.json</code><br>
+            <code>runtime_graph.json</code><br>
+            <code>validation_report.json</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-6">
+        <h2>Build vs Runtime</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Build Graph Artifact</th>
+              <th>Runtime Graph Export</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Audit and repair surface.</td>
+              <td>Companion-facing tutoring content.</td>
+            </tr>
+            <tr>
+              <td>Includes provenance, evidence type, extraction reasons, source anchors, source roles, pruning decisions, critic/repair summaries.</td>
+              <td>Omits provenance, extraction reasons, evidence type, self-studies, source anchors, and source warnings.</td>
+            </tr>
+            <tr>
+              <td>Owns canonical flat dependency edge list, intentionally empty in v0.</td>
+              <td>Has nested prerequisite dependency objects projected deterministically from the flat list, therefore empty in v0.</td>
+            </tr>
+            <tr>
+              <td>Can be noisy because humans/validators inspect it.</td>
+              <td>Must be lean because prompts and runtime state consume it.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card span-6">
+        <h2>Runtime Schema Draft</h2>
+        <div class="schema">
+          <pre>{
+  "schema_version": "1.0",
+  "graph_version": "v0.1",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "computacao",
+  "title": "...",
+  "language": "pt-BR",
+  "professors": ["..."],
+  "concepts": [],
+  "lessons": []
+}</pre>
+          <pre>{
+  "concept_id": "...__a1b2c3",
+  "display_code": "COM-027",
+  "label": "...",
+  "knowledge_type": "conceptual",
+  "description": "...",
+  "coverage_criteria": [
+    "Student can ..."
+  ],
+  "common_misconceptions": [],
+  "dependencies": {
+    "blocking": [],
+    "hard": [],
+    "soft": []
+  }
+}</pre>
+        </div>
+        <div class="schema" style="margin-top: 16px;">
+          <pre>{
+  "lesson_id": "...",
+  "display_code": "L05",
+  "date": "2026-05-05",
+  "title": "...",
+  "description": "...",
+  "segments": []
+}</pre>
+          <pre>{
+  "segment_id": "...",
+  "display_code": "L05-S02",
+  "label": "...",
+  "instructional_role": "teach",
+  "concept_ids": ["..."],
+  "teaching_notes": ""
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-8">
+        <h2>Artifact Directory Draft</h2>
+        <div class="artifact-list">
+          <div class="artifact">
+            <strong><code>source_ledger.json</code></strong>
+            <p>Maps workbook rows to Lessons, Self-studies, Source Bodies, unavailable sources, metadata, warnings, and hashes.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>workbook_label_interpretation.json</code></strong>
+            <p>Run-level table for label patterns. Lesson-cluster outputs feed top-down expectation; prerequisite hints are retained for audit and future dependency work.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>lessons/{lesson_id}/self_studies/{id}/source_extraction.json</code></strong>
+            <p>One per Self-study. Candidate Concepts, Coverage Criteria, Extraction Reasons, anchors, roles, and evidence type.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>lessons/{lesson_id}/top_down_concept_extraction.json</code></strong>
+            <p>Lesson-intent Candidate Concepts from lesson/workbook metadata, unavailable-source metadata, and lesson-cluster labels.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>lessons/{lesson_id}/lesson_reconciliation.json</code></strong>
+            <p>Lesson-local merged draft concepts and controlled pruning decisions.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>lessons/{lesson_id}/pedagogical_story_review.json</code></strong>
+            <p>Checks teaching coherence and proposes Bridge Concepts only when needed.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>subject_merge.json</code></strong>
+            <p>Cross-lesson same-concept reuse, deeper revisit splits, and subject-wide inventory.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>dependency_inference.json</code></strong>
+            <p>Explicit empty v0 dependency edge list with deferral rationale.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>critics/*.json</code></strong>
+            <p>Separate critic reports by concern.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>build_graph.json</code></strong>
+            <p>Metadata-rich accepted graph used for audit and repair.</p>
+          </div>
+          <div class="artifact">
+            <strong><code>runtime_graph.json</code></strong>
+            <p>Lean lesson-based Concept Graph for Companion after manual promotion.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h2>Validation Posture</h2>
+        <div class="callout green">
+          Fail fast. If a stage fails its Stage Contract after the allowed format retry, stop the pipeline.
+        </div>
+        <h3 style="margin-top: 16px;">Blockers</h3>
+        <ul>
+          <li>Invalid Stage Contract output.</li>
+          <li>Usable Self-study lacks extraction or explicit exclusion.</li>
+          <li>Lesson has no Segments.</li>
+          <li>Segment has no Concepts.</li>
+          <li>Concept lacks Coverage Criteria.</li>
+          <li>Missing required runtime concept fields.</li>
+          <li>Invalid dependency type.</li>
+          <li>References to missing Concept IDs.</li>
+          <li>Dependency projection mismatch.</li>
+          <li>Build/runtime disagreement on IDs, Lessons, or Segments.</li>
+        </ul>
+        <h3>Not Warnings</h3>
+        <ul>
+          <li>Empty <code>common_misconceptions</code>.</li>
+          <li>Empty <code>teaching_notes</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-6">
+        <h2>Model Routing Draft</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Likely Model Strength</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Workbook Label Interpretation</td><td>chat</td></tr>
+            <tr><td>Metadata-only Extraction</td><td>chat</td></tr>
+            <tr><td>Self-study Extraction</td><td>Pro Thinking</td></tr>
+            <tr><td>Top-down Concept Extraction</td><td>Pro Thinking</td></tr>
+            <tr><td>Lesson Reconciliation</td><td>Pro Thinking</td></tr>
+            <tr><td>Pedagogical Story Review</td><td>Pro Thinking</td></tr>
+            <tr><td>Subject-level Merge</td><td>Pro Thinking</td></tr>
+            <tr><td>Dependency Deferral</td><td>Deterministic code only</td></tr>
+            <tr><td>Lesson Segmentation And Ordering</td><td>Planner: Pro Thinking; Concept Orderer: Pro; Audit: Pro Thinking; Repair: Pro</td></tr>
+            <tr><td>Critic Passes</td><td>Likely GPT 5.5</td></tr>
+            <tr><td>Conciliatory Review</td><td>Sonnet</td></tr>
+            <tr><td>Repair</td><td>Same strength as owning stage</td></tr>
+            <tr><td>Final Assembly and validation</td><td>Deterministic code only</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card span-6">
+        <h2>Design Safeguards</h2>
+        <details open>
+          <summary>Metadata-only sources</summary>
+          <p>
+            Unavailable Source Bodies still use title, description, and workbook metadata.
+            They produce the same candidate schema with Evidence Type <code>workbook_metadata</code>.
+            Build artifact keeps that distinction; runtime strips it after validation.
+          </p>
+        </details>
+        <details open>
+          <summary>Workbook Related Labels</summary>
+          <p>
+            Incrementally classified. <code>prerequisite_hint</code> is retained for audit and future dependency work.
+            <code>lesson_cluster</code> feeds Top-down Concept Extraction.
+            Application and adjacent-domain labels are recorded and ignored in v0.
+          </p>
+        </details>
+        <details open>
+          <summary>Same-concept reuse</summary>
+          <p>
+            A Concept ID can be reused across Lessons only when it is literally the same teachable idea.
+            Coverage Criteria compatibility is the merge test. Deeper Revisits split into separate Concepts.
+          </p>
+        </details>
+        <details open>
+          <summary>Format repair</summary>
+          <p>
+            One narrow retry can repair malformed output using the validator error and full failed output.
+            It cannot change graph meaning. If it still fails, stop the pipeline.
+          </p>
+        </details>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

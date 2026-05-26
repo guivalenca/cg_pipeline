@@ -1,0 +1,192 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-66-001",
+      "label": "Boolean AND operator",
+      "description": "The AND operator narrows database search results by requiring all specified terms to be present in the resulting records. It is used to combine multiple concepts, making the search more specific.",
+      "coverage_criteria": [
+        "Define the effect of AND on search result count.",
+        "Provide an example query using AND.",
+        "Explain when to use AND to focus a search."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article dedicates a section titled 'Using AND' that explains the purpose, gives examples, and includes a Venn diagram. It states 'Use AND in a search to narrow your results' and provides the example 'cloning AND humans AND ethics'.",
+        "granularity_rationale": "AND is a single, well-defined operator with clear usage, making it suitable for a focused assessment item."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using AND"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": ["AND"]
+    },
+    {
+      "candidate_id": "candidate-66-002",
+      "label": "Boolean OR operator",
+      "description": "The OR operator broadens database search results by including records that contain any of the specified terms. It is used to connect synonyms or related concepts.",
+      "coverage_criteria": [
+        "Define the effect of OR on search result count.",
+        "Provide an example query using OR.",
+        "Explain when to use OR to broaden a search."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article includes a 'Using OR' section that describes OR as connecting similar concepts and broadening results, with the example 'cloning OR genetics OR reproduction' and a Venn diagram.",
+        "granularity_rationale": "OR is a distinct Boolean operator with a clearly opposite function to AND, allowing it to be taught and assessed as a standalone concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using OR"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": ["OR"]
+    },
+    {
+      "candidate_id": "candidate-66-003",
+      "label": "Boolean NOT operator",
+      "description": "The NOT operator narrows search results by excluding records that contain a specified term. It is used to remove unwanted concepts from a search.",
+      "coverage_criteria": [
+        "Define the effect of NOT on search results.",
+        "Provide an example query using NOT.",
+        "Explain a scenario where NOT would be useful."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source has a dedicated 'Using NOT' section that explains it excludes words and narrows the search, with the example 'cloning NOT sheep'.",
+        "granularity_rationale": "NOT is a fundamental Boolean operator that completes the trio, and its exclusionary behavior is distinct from AND and OR, justifying separate treatment."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using NOT"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": ["NOT"]
+    },
+    {
+      "candidate_id": "candidate-66-004",
+      "label": "Phrase searching with quotes",
+      "description": "Phrase searching involves enclosing multiple words in quotes to ensure they appear together as a contiguous phrase in search results. This technique increases specificity when used with Boolean operators like AND.",
+      "coverage_criteria": [
+        "Explain how phrase searching affects search results.",
+        "Construct a query that combines phrase searching with Boolean AND.",
+        "Identify when phrase searching is appropriate to avoid irrelevant results."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Within the 'Using AND' section, the source states: 'You can search using phrases to make your results more specific. For example: \"college students\" AND \"test anxiety\".' This explicitly presents phrase searching as a complementary technique to Boolean operators.",
+        "granularity_rationale": "Phrase searching is a discrete search refinement technique that can be checked with a few practical questions about syntax and effect."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using AND"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-66-005",
+      "label": "Implied AND in databases",
+      "description": "In many databases and search engines like Google, the AND operator is automatically inserted between search terms. Users should be aware that this may cause terms to be searched individually rather than as a phrase.",
+      "coverage_criteria": [
+        "Identify the behavior of implied AND in a search engine.",
+        "Describe a potential pitfall of implied AND.",
+        "Suggest a solution to improve search precision when implied AND causes issues."
+      ],
+      "source_roles": ["introducing", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source warns: 'In many, but not all, databases, the AND is implied. For example, Google automatically puts an AND in between your search terms.' This highlights a key nuance of Boolean search behavior that can lead to unexpected results.",
+        "granularity_rationale": "Implied AND is a specific behavioral aspect of search systems that can be assessed through explanation and example-based questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using AND"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": ["Google"]
+    },
+    {
+      "candidate_id": "candidate-66-006",
+      "label": "Boolean search order and parentheses grouping",
+      "description": "Databases typically evaluate AND before OR. To change the order or group ORed terms together, parentheses must be used, e.g., ethics AND (cloning OR reproductive techniques).",
+      "coverage_criteria": [
+        "Explain why search order matters in Boolean queries.",
+        "Rewrite a query using parentheses to control evaluation order.",
+        "Predict the result of a mixed Boolean query without parentheses."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Search order' section explicitly states: 'Databases usually recognize AND as the primary operator, and will connect concepts with AND together first. If you use a combination of AND and OR operators in a search, enclose the words to be \"ORed\" together in parentheses.' Examples are provided.",
+        "granularity_rationale": "Search order and parentheses usage form a self-contained lesson in Boolean logic that is testable with practical query construction exercises."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Search order"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-66-007",
+      "label": "Boolean operators as mathematical sets",
+      "description": "Boolean operators are based on mathematical set theory and Venn diagrams, providing a visual way to understand how search terms intersect (AND), combine (OR), or exclude (NOT).",
+      "coverage_criteria": [
+        "Map the AND operation to a Venn diagram intersection.",
+        "Explain how OR corresponds to union in set theory.",
+        "Relate the concept of sets to database search results."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The opening section states: 'Boolean operators form the basis of mathematical sets and database logic.' Venn diagrams are used throughout to illustrate AND and OR operations, grounding the abstract operators in visual set representations.",
+        "granularity_rationale": "Understanding the set-theoretic foundation of Boolean operators is a conceptual prerequisite that can be assessed by asking students to interpret and draw Venn diagrams for given queries."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What to look for"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Boolean operators - Database Search Tips - LibGuides at MIT Libraries",
+      "source_year": "2026",
+      "name_drops": ["Venn diagram"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-66-001",
+      "to_candidate_id": "candidate-66-006",
+      "reason": "The search order rules explain how databases process AND before OR, which affects queries combining these operators. Without this knowledge, a user might expect the query to be evaluated differently.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Search order"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-66-002",
+      "to_candidate_id": "candidate-66-006",
+      "reason": "When using OR with AND, parentheses must group the OR terms to control evaluation order, as demonstrated by the examples: ethics AND (cloning OR reproductive techniques) and (ethic* OR moral*) AND (bioengineering OR cloning).",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Search order"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-66-001",
+      "to_candidate_id": "candidate-66-005",
+      "reason": "The source explains that in many databases and search engines, AND is automatically implied between terms, which is a direct behavior related to the AND operator. This can cause unintended results when users are not aware of the implied logic.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using AND"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-66-001",
+      "to_candidate_id": "candidate-66-004",
+      "reason": "Phrase searching is presented as a refinement to an AND search, allowing multi-word phrases to be treated as a single unit, thereby improving precision when combined with AND between concepts.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Using AND"}
+      ]
+    }
+  ]
+}

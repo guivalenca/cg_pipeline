@@ -1,0 +1,84 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+    "display_code": "L01",
+    "workbook_row_number": 2,
+    "title": "Introdução ao Processamento de Linguagem Natural",
+    "date": "27/04/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Introdução ao Processamento de Linguagem Natural",
+      "Manipulação de texto",
+      "Processamento de texto, métricas e técnicas",
+      "Processamento do discurso",
+      "Programação funcional",
+      "Programação lógica",
+      "Programação orientada a objetos"
+    ],
+    "description": "O objetivo deste encontro é apresentar ao estudante os conceitos essenciais para o Processamento de Linguagem Natural. Quais são os conceitos principais e em quais áreas ele pode ser aplicado. Com o término da instrução, os estudantes deverão ser capazes de apresentar esses conceitos e iniciar o processo de familiarização das tecnologias empregadas."
+  },
+  "self_study": {
+    "self_study_id": "7",
+    "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 7,
+      "week": 2,
+      "sort": 6,
+      "title": "Diferença entre Compilador e Interpretador",
+      "description": "Este autoestudo apresenta a diferença entre compilador e interpretador em termos de vantagens e desvantagens.",
+      "url": "https://www.geeksforgeeks.org/difference-between-compiler-and-interpreter/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Montadores, interpretadores e compiladores"
+      ],
+      "parent_class": "Introdução ao Processamento de Linguagem Natural",
+      "class_date": "27/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0007-article-diferenca-entre-compilador-e-interpretador.md",
+      "sha256": "f5b00de81fc232503385c231b57ca7c49b647a09035a5eb96097b904a831e5e5",
+      "word_count": 1334,
+      "bytes": 9409,
+      "source_markdown": "article/firecrawl/output/7/7-diferenca-entre-compilador-e-interpretador.md",
+      "artifact_dir": "article/firecrawl/output/7",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0007-article-diferenca-entre-compilador-e-interpretador.md",
+    "sha256": "f5b00de81fc232503385c231b57ca7c49b647a09035a5eb96097b904a831e5e5",
+    "word_count": 1334,
+    "source_markdown": "article/firecrawl/output/7/7-diferenca-entre-compilador-e-interpretador.md",
+    "markdown": "---\nid: \"7\"\ntitle: \"Diferença entre Compilador e Interpretador\"\nsource_url: \"https://www.geeksforgeeks.org/difference-between-compiler-and-interpreter/\"\nfetch_url: \"https://www.geeksforgeeks.org/difference-between-compiler-and-interpreter\"\nresolved_url: \"https://www.geeksforgeeks.org/compiler-design/difference-between-compiler-and-interpreter/\"\nfirecrawl_title: \"Difference Between Compiler and Interpreter - GeeksforGeeks\"\ndescription: \"Your All-in-One Learning Portal: GeeksforGeeks is a comprehensive educational platform that empowers learners across domains-spanning computer science and programming, school education, upskilling, commerce, software tools, competitive exams, and more., Your All-in-One Learning Portal. It contains well written, well thought and well explained computer science and programming articles, quizzes and practice/competitive programming/company interview Questions.\"\nfetched_at: \"2026-05-12T03:59:51.027375Z\"\nprovider: \"firecrawl\"\nstrategy: \"app_ui\"\ncache_key: \"dd38d4efaa1ec1e70d25f3f22d2af01b3e4011575347a6ce412c29fb2a400dae\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 1112\nchar_count: 7447\ncontent_sha256: \"ebb62fd6a1d00087ffdbd44edfb3e7e4523b0c477dafb282eec8cb486e9107cb\"\nimage_count: 4\nlink_count: 55\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes:\n  - \"template_heavy_preserve_code_blocks\"\n---\n\n# Difference Between Compiler and Interpreter\n\nLast Updated : 12 Jul, 2025\n\nThe Compiler and Interpreter, both have similar works to perform. Interpreters and Compilers convert the Source Code (HLL) to Machine Code (understandable by Computer). In general, computer programs exist in High-Level Language that a human being can easily understand. But computers cannot understand the same high-level language, so for computers, we have to convert them into machine language and make them readable. In this article, we are going to see the differences between them.\n\n## What is a Compiler?\n\nThe [Compiler](https://www.geeksforgeeks.org/compiler-design/introduction-to-compilers/) is a translator that takes input i.e., High-Level Language, and produces an output of low-level language i.e. machine or assembly language. The work of a Compiler is to transform the codes written in the programming language into machine code (format of 0s and 1s) so that computers can understand.\n\n- A compiler is more intelligent than an [assembler](https://www.geeksforgeeks.org/compiler-design/introduction-of-assembler/) it checks all kinds of limits, ranges, errors, etc.\n- But its program run time is longer and occupies a larger part of memory. It has a slow speed because a compiler goes through the entire program and then translates the entire program into machine codes.\n\n### Role of a Compiler\n\nFor Converting the code written in a high-level language into machine-level language so that computers can easily understand, we use a compiler. Converts basically convert high-level language to intermediate assembly language by a compiler and then assembled into machine code by an assembler.\n\nImage summary: The diagram shows a compiler translating High Level Language into Machine Language. It places “Compiler” between the source language and the target machine language to emphasize that the whole program is converted before execution. [Original image: Compiler](https://media.geeksforgeeks.org/wp-content/uploads/20200524115722/Capture3311.png)Compiler\n\n### Advantages of Compiler\n\n- Compiled code runs faster in comparison to Interpreted code.\n- Compilers help improve the security of Applications.\n- Compilers give Debugging tools, which help in fixing errors easily.\n\n### Disadvantages of Compiler\n\n- The compiler can catch only [syntax errors and some semantic errors](https://www.geeksforgeeks.org/cpp/difference-between-syntax-and-semantics/) .\n- Compilation can take more time in the case of bulky code.\n\n## What is an Interpreter?\n\nAn [Interpreter](https://www.geeksforgeeks.org/compiler-design/introduction-to-interpreters/) is a program that translates a programming language into a comprehensible language. The interpreter converts high-level language to an intermediate language. It contains pre-compiled code, source code, etc.\n\n- It translates only one statement of the program at a time.\n- Interpreters, more often than not are smaller than compilers.\n\n### Role of an Interpreter\n\nThe simple role of an interpreter is to translate the material into a target language. An Interpreter works line by line on a code. It also converts [high-level language to machine language](https://www.geeksforgeeks.org/computer-science-fundamentals/difference-between-high-level-and-low-level-languages/).\n\nImage summary: The diagram shows a one-step translation flow: High Level Language → Interpreter → Machine Language. It illustrates that an interpreter processes source code and produces machine-understandable output directly, rather than compiling the whole program first. [Original image: Interpreter](https://media.geeksforgeeks.org/wp-content/uploads/20200530152827/223-1.png)Interpreter\n\n### Advantages of Interpreter\n\n- Programs written in an Interpreted language are easier to debug.\n- Interpreters allow the management of memory automatically, which reduces memory error risks.\n- Interpreted Language is more flexible than a Compiled language.\n\n### Disadvantages of Interpreter\n\n- The interpreter can run only the corresponding Interpreted program.\n- Interpreted code runs slower in comparison to Compiled code.\n\n## Difference Between Compiler and Interpreter\n\n**Both compilers and interpreters** serve the same purpose but work in different ways. If you're aiming to master the technical nuances between these two and prepare for exams like GATE, the [**GATE CS Self-Paced Course**](https://www.geeksforgeeks.org/courses/category/gate?utm_source=test_series&utm_medium=cse/) dives deep into the differences and practical implementations, offering hands-on experience in both areas.\n\n| Compiler | Interpreter |\n| --- | --- |\n| **Steps of Programming:**<br>- Program Creation.<br>- Analysis of language by the compiler and throws errors in case of any incorrect statement.<br>- In case of no error, the Compiler converts the source code to Machine Code.<br>- Linking of various code files into a runnable program.<br>- Finally runs a Program. | **Steps of Programming:**<br>- Program Creation.<br>- Linking of files or generation of Machine Code is not required by Interpreter.<br>- Execution of source statements one by one. |\n| The compiler saves the Machine Language in form of Machine Code on disks. | The Interpreter does not save the Machine Language. |\n| Compiled codes run faster than Interpreter. | Interpreted codes run slower than Compiler. |\n| Linking-Loading Model is the basic working model of the Compiler. | The Interpretation Model is the basic working model of the Interpreter. |\n| The compiler generates an output in the form of (.exe). | The interpreter does not generate any output. |\n| Any change in the source program after the compilation requires recompiling the entire code. | Any change in the source program during the translation does not require retranslation of the entire code. |\n| Errors are displayed in Compiler after Compiling together at the current time. | Errors are displayed in every single line. |\n| The compiler can see code upfront which helps in running the code faster because of performing Optimization. | The Interpreter works by line working of Code, that's why Optimization is a little slower compared to Compilers. |\n| It does not require source code for later execution. | It requires source code for later execution. |\n| Execution of the program takes place only after the whole program is compiled. | Execution of the program happens after every line is checked or evaluated. |\n| Compilers more often take a large amount of time for analyzing the source code. | In comparison, Interpreters take less time for analyzing the source code. |\n| CPU utilization is more in the case of a Compiler. | CPU utilization is less in the case of a Interpreter. |\n| The use of Compilers mostly happens in Production Environment. | The use of Interpreters is mostly in Programming and Development Environments. |\n| Object code is permanently saved for future use. | No object code is saved for future use. |\n| [C](https://www.geeksforgeeks.org/c/c-programming-language/), [C++](https://www.geeksforgeeks.org/cpp/c-plus-plus/), [C#](https://www.geeksforgeeks.org/c-sharp/introduction-to-c-sharp/), etc are programming languages that are compiler-based. | [Python](https://www.geeksforgeeks.org/python/python-programming-language-tutorial/), [Ruby](https://www.geeksforgeeks.org/ruby/ruby-programming-language/), [Perl](https://www.geeksforgeeks.org/perl/introduction-to-perl/), SNOBOL, [MATLAB](https://www.geeksforgeeks.org/engineering-mathematics/introduction-to-matlab/), etc are programming languages that are interpreter-based. |\n\n## Conclusion\n\nIn summary, compilers and interpreters both serve the purpose of converting high-level code into something a computer can understand, but they do so in different ways. A compiler translates the whole program at once, which can make it run faster but takes more time to compile. An interpreter translates and runs the code line by line, making it easier to catch errors and debug, though it may run slower.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

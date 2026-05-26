@@ -1,0 +1,380 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Risk Aversion and Utility Functions",
+    "rationale": "This candidate introduces utility functions to model risk attitudes, including the concept of concavity.",
+    "candidate_ids": [
+      "c26_pro_thinking_008"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Risk Aversion and Utility Functions",
+      "rationale": "This candidate introduces utility functions to model risk attitudes, including the concept of concavity.",
+      "candidate_ids": [
+        "c26_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Exponential Utility and Risk Tolerance",
+      "rationale": "This candidate describes the exponential utility function and its risk tolerance parameter.",
+      "candidate_ids": [
+        "c26_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Certainty Equivalent",
+      "rationale": "This candidate defines and computes certainty equivalent, the guaranteed amount equivalent to a risky prospect.",
+      "candidate_ids": [
+        "c26_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "Multistage Decision Problems",
+      "rationale": "This candidate covers multistage decision trees and contingency plans, an extension beyond single-stage problems.",
+      "candidate_ids": [
+        "c26_pro_thinking_011"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Risk Profiles",
+      "rationale": "This candidate describes risk profiles as lists or charts of outcomes and probabilities for a decision.",
+      "candidate_ids": [
+        "c26_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "rationale": "This candidate explains subtracting costs from expected outcomes to get net benefit and selecting the highest.",
+      "candidate_ids": [
+        "c27_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "Sunk Cost Principle",
+      "rationale": "This candidate highlights that sunk costs should be ignored in decisions.",
+      "candidate_ids": [
+        "c27_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "Importance of Input Quality",
+      "rationale": "This candidate warns about the need for comprehensive outcomes and reliable estimates.",
+      "candidate_ids": [
+        "c27_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Deterministic Payoffs in Decision Trees",
+      "rationale": "This candidate explains how to handle alternatives with constant payoffs, simplifying the tree structure.",
+      "candidate_ids": [
+        "c24_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "Decision Trees for Multistage/Sequential Decisions",
+      "rationale": "This candidate specifically emphasizes the usefulness of decision trees for multistage, sequential decisions.",
+      "candidate_ids": [
+        "c25_pro_thinking_003"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c26_pro_thinking_008",
+    "c26_pro_thinking_009",
+    "c26_pro_thinking_010",
+    "c26_pro_thinking_011",
+    "c26_pro_thinking_012",
+    "c27_pro_thinking_006",
+    "c27_pro_thinking_007",
+    "c27_pro_thinking_008",
+    "c24_pro_thinking_006",
+    "c25_pro_thinking_003"
+  ],
+  "candidates": [
+    {
+      "id": "c26_pro_thinking_008",
+      "label": "Risk Aversion and Utility Functions",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same EMV.",
+      "coverage_criteria": [
+        "Student can describe the shape of a risk-averse utility function.",
+        "Student can compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 10.6 introduces utility functions, risk aversion, and expected utility maximization, explaining why decision makers may deviate from EMV.",
+        "granularity_rationale": "This is a conceptual foundation for utility theory that can be assessed with qualitative and simple quantitative questions."
+      },
+      "anchors": [
+        "10.6 INCORPORATING ATTITUDES TOWARD RISK > Utility Functions"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_009",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion.",
+      "coverage_criteria": [
+        "Student can compute expected utility using an exponential function.",
+        "Student can explain the role of the risk tolerance parameter."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents exponential utility as a convenient one-parameter function, gives the formula, and demonstrates its use in the Venture Limited example.",
+        "granularity_rationale": "Exponential utility is a specific mathematical form that can be checked with a calculation and a parameter interpretation question."
+      },
+      "anchors": [
+        "10.6 Incorporating Attitudes Toward Risk > Exponential Utility"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_010",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent to the prospect. It is derived from the utility function.",
+      "coverage_criteria": [
+        "Student can compute the certainty equivalent given an exponential utility function and a risky lottery.",
+        "Student can interpret certainty equivalent as the risk-adjusted value of a gamble."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines and computes certainty equivalents for the Venture Limited example, showing how to solve for x in U(x) = EU.",
+        "granularity_rationale": "Certainty equivalent is a practical summary metric that can be tested with a simple algebraic exercise."
+      },
+      "anchors": [
+        "10.6 Incorporating Attitudes Toward Risk > Certainty Equivalents"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_011",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "In multistage problems, decisions and uncertain outcomes alternate over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes.",
+      "coverage_criteria": [
+        "Student can identify multistage structure in a scenario.",
+        "Student can trace the optimal contingency plan from a decision tree with multiple decision nodes."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 10.4 introduces multistage problems with the Acme Marketing example, emphasizing that the final strategy is a contingency plan based on test market results.",
+        "granularity_rationale": "This concept extends the single-stage framework; it can be checked by asking students to interpret a given multistage tree."
+      },
+      "anchors": [
+        "10.4 MULTISTAGE DECISION PROBLEMS"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_012",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision and their probabilities, often shown as a bar chart. It helps visualize the riskiness of a decision.",
+      "coverage_criteria": [
+        "Student can construct a risk profile from a payoff table or decision tree.",
+        "Student can interpret a risk profile bar chart."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines risk profiles in Section 10.2, showing how to obtain them from a payoff table and noting that PrecisionTree can generate them.",
+        "granularity_rationale": "Risk profiles are a simple descriptive tool that can be checked by asking students to list outcomes and probabilities for a given decision."
+      },
+      "anchors": [
+        "10.2 Elements of a Decision Analysis > Risk Profiles"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_006",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "For a decision node, subtract the cost of each option from its expected outcome value to obtain net benefit; choose the option with the highest net benefit.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, the student can compute net benefits and identify the best option."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explains that for decision nodes, you subtract cost from outcome value to get decision benefit and pick the largest, as in 'Calculating the Value of Decision Nodes'.",
+        "granularity_rationale": "This is a simple subtraction and comparison task that can be assessed quickly."
+      },
+      "anchors": [
+        "Calculating the Value of Decision Nodes"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_007",
+      "label": "Sunk Costs in Decision Making",
+      "description": "Sunk costs are past expenditures that should not influence current decisions, as they are irrecoverable.",
+      "coverage_criteria": [
+        "The student can identify sunk costs in a scenario and explain why they should be excluded from decision tree analysis."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article notes that amounts already spent do not count for this analysis – these are ‘sunk costs’ and should not be factored into the decision.",
+        "granularity_rationale": "This is a standalone principle that can be tested with a scenario question."
+      },
+      "anchors": [
+        "Calculating the Value of Decision Nodes"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_008",
+      "label": "Input Quality in Decision Tree Analysis",
+      "description": "The accuracy of a decision tree depends on a comprehensive list of probable outcomes and reliable estimates of probabilities and values; poor inputs lead to poor outputs.",
+      "coverage_criteria": [
+        "The student can articulate why having complete outcomes and good data is crucial for decision tree validity."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states: 'If you have compiled a comprehensive list of probable outcomes then the model will be significantly compromised.' and 'Poor input = poor output'.",
+        "granularity_rationale": "It is a single important caveat that can be checked with a short explanation question."
+      },
+      "anchors": [
+        "Key points:"
+      ]
+    },
+    {
+      "id": "c24_pro_thinking_006",
+      "label": "Handling Deterministic Payoffs",
+      "description": "When an alternative has a single certain payoff regardless of states of nature, the tree simplifies to a single branch without a chance node.",
+      "coverage_criteria": [
+        "Recognize and correctly model an alternative with a constant payoff in a decision tree."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 01:40, the speaker notes that for Bonds, payoff is 20 irrespective of state, so we draw a single branch with that payoff.",
+        "granularity_rationale": "A specific rule that can be tested with a quantitative example."
+      },
+      "anchors": [
+        "00:57 Constructing the Decision Tree"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_003",
+      "label": "Decision Trees for Multistage Decisions",
+      "description": "Decision trees are especially useful for multistage decision situations where a series of decisions depend on previous ones, allowing visualization of the entire sequence.",
+      "coverage_criteria": [
+        "Describe a scenario where a decision tree would be the preferred tool.",
+        "Explain why decision trees suit sequential, interdependent decisions."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 02:04, the video states that a decision tree is highly useful in multistage situations involving iterative decisions each dependent on the preceding one.",
+        "granularity_rationale": "This is a specific application context for decision trees, a small, self-contained idea that can be verified with a couple of reasoning questions."
+      },
+      "anchors": [
+        "02:04 Decision Tree (Continued)"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_008",
+    "area": {
+      "id": "area_008",
+      "label": "spaCy Pipeline and Attributes",
+      "rationale": "spaCy basics: processing text, Doc/Token/Span containers, lexical attributes, pre-trained models, POS tagging, dependencies, NER, lemmatization, and rule-based matching.",
+      "candidate_ids": [
+        "lr004_011",
+        "lr004_012",
+        "lr004_013",
+        "lr004_014",
+        "lr004_015",
+        "lr004_016",
+        "lr004_018",
+        "lr004_019",
+        "lr004_020",
+        "lr004_021",
+        "lr004_022",
+        "lr004_023",
+        "lr004_024"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr004_011",
+    "lr004_012",
+    "lr004_013",
+    "lr004_014",
+    "lr004_015",
+    "lr004_016",
+    "lr004_018",
+    "lr004_019",
+    "lr004_020",
+    "lr004_021",
+    "lr004_022",
+    "lr004_023",
+    "lr004_024"
+  ],
+  "candidates": [
+    {
+      "id": "lr004_011",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_012",
+      "label": "Using lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_013",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_014",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "application"
+    },
+    {
+      "id": "lr004_015",
+      "label": "Named entity recognition and manual correction",
+      "description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_016",
+      "label": "Rule-based matching with Matcher",
+      "description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_018",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_019",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_020",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_021",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_022",
+      "label": "Lematização – redução à forma canônica",
+      "description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_023",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_024",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

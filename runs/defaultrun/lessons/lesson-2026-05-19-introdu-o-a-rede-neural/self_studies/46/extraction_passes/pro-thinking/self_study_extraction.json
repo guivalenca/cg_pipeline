@@ -1,0 +1,649 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:03:23.929360+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+  "self_study_id": "46",
+  "source_body_path": "extraction/post-image/0046-article-a-mostly-complete-chart-of-neural-networks.md",
+  "source_body_sha256": "49d359ec0d612d31200ad8865e38c72562a97a582bc4d1a16074e402eafa1c1d",
+  "source_name": "A mostly complete chart of Neural Networks",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-46-001",
+      "label": "Neural Network Taxonomy (Chart Overview)",
+      "description": "A summary chart presenting a wide variety of neural network architectures, including feedforward, recurrent, and generative models, as well as their components like memory cells and convolution kernels.",
+      "coverage_criteria": [
+        "Name and briefly describe at least three distinct architectures shown in the chart.",
+        "Identify the arrow-based notation used to differentiate network types."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart itself is a visual taxonomy of neural networks, listing over 20 architectures and their interconnections.",
+        "granularity_rationale": "This candidate focuses on the overall organization and overview provided by the chart, which is a single teachable concept."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "A mostly complete chart of Neural Networks"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "Perceptron",
+        "Feed Forward",
+        "RNN",
+        "LSTM",
+        "Autoencoder",
+        "GAN"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-002",
+      "label": "Perceptron",
+      "description": "The simplest neural network model with a single layer of weights and a hard limit activation function, computing a linear decision boundary.",
+      "coverage_criteria": [
+        "Explain the perceptron architecture: input, weights, bias, activation.",
+        "State the Hebb's postulate as an early learning rule for perceptrons."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source includes sections on 'Perceptron Architecture' and 'Hebb's Postulate', directly defining the perceptron and its learning rule.",
+        "granularity_rationale": "The perceptron is a fundamental building block; this candidate isolates its definition and basic operation for checking."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Perceptron Architecture"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Hebb's Postulate"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-003",
+      "label": "Feedforward Neural Network",
+      "description": "A neural network where connections flow only from input to output without cycles, typically consisting of multiple layers of neurons.",
+      "coverage_criteria": [
+        "Describe the direction of information flow in a feedforward network.",
+        "Give an example of a problem suited for feedforward networks."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart prominently features 'Feed Forward (FF)' as a major category, with deep feedforward examples mentioned.",
+        "granularity_rationale": "This candidate covers the core definition of a feedforward net, distinct from recurrent or other types."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Deep Feed Forward Example"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-004",
+      "label": "Recurrent Neural Network (RNN)",
+      "description": "A neural network with feedback connections that allow it to maintain a memory state, making it suitable for sequential data processing.",
+      "coverage_criteria": [
+        "Explain how RNNs differ from feedforward networks due to recurrent loops.",
+        "Identify an application domain where RNNs are preferred."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart defines RNN and includes a 'Recurrent Cell' component; the TensorFlow section mentions RNN models.",
+        "granularity_rationale": "The RNN is a distinct class of neural architectures, requiring its own checkable definition."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Recurrent Neural Network (RNN)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Recurrent Cell"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "TensorFlowRNNClassifier"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-005",
+      "label": "Long Short-Term Memory (LSTM)",
+      "description": "A specialized recurrent neural network that uses gated memory cells to learn long-term dependencies and mitigate the vanishing gradient problem.",
+      "coverage_criteria": [
+        "Describe the purpose of the forget, input, and output gates in an LSTM cell.",
+        "Compare LSTM with a simple RNN in terms of handling long sequences."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart explicitly lists LSTM, and the Keras cheat sheet provides an LSTM layer example in code.",
+        "granularity_rationale": "LSTM is a key upgrade over basic RNNs; this candidate covers its core mechanism at a level suitable for targeted questioning."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Long / Short Term Memory (LSTM)"
+        },
+        {
+          "kind": "markdown_figure",
+          "locator": "Keras LSTM example"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "Keras"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-006",
+      "label": "Autoencoder (AE)",
+      "description": "An unsupervised neural network that encodes input into a compressed representation and then decodes it back to reconstruct the original input, used for dimensionality reduction and feature learning.",
+      "coverage_criteria": [
+        "Sketch the general structure of an autoencoder (encoder, bottleneck, decoder).",
+        "Explain how an autoencoder can be used for data compression."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart includes Auto Encoder and Denoising AE, highlighting their role in reconstruction tasks.",
+        "granularity_rationale": "Autoencoders represent a fundamental unsupervised architecture, checkable by their components and purpose."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Auto Encoder (AE)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Denoising AE (DAE)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-007",
+      "label": "Generative Adversarial Network (GAN)",
+      "description": "A framework where two networks, a generator and a discriminator, compete against each other to produce increasingly realistic synthetic data.",
+      "coverage_criteria": [
+        "Describe the roles of the generator and discriminator in a GAN.",
+        "Explain the adversarial training process in simple terms."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart explicitly names Generative Adversarial Network as one of the advanced neural network types.",
+        "granularity_rationale": "GANs are a notable modern architecture; the candidate covers the core adversarial concept without overwhelming detail."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Generative Adversarial Network (GAN)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-008",
+      "label": "Hebbian Learning Rule",
+      "description": "Based on Hebb's postulate, neurons that fire together strengthen their connection, providing a biological motivation for early neural network learning algorithms.",
+      "coverage_criteria": [
+        "State Hebb's postulate in your own words.",
+        "Describe one unsupervised learning rule derived from Hebbian learning."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates a section to 'Hebb's Postulate' and lists variations of Hebbian learning rules (supervised Hebb, unsupervised Hebb).",
+        "granularity_rationale": "This candidate isolates the Hebbian principle, a historically important learning concept, down to a checkable idea."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Hebb's Postulate"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Variations of Hebbian Learning"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "Hebb"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-009",
+      "label": "Backpropagation Algorithm",
+      "description": "The primary method for training neural networks by computing the gradient of the loss function with respect to weights through the chain rule and updating weights in the opposite direction.",
+      "coverage_criteria": [
+        "Explain the basic steps of backpropagation: forward pass, loss calculation, backward pass, weight update.",
+        "Discuss the role of the chain rule in backpropagation."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source contains sections on gradients, Hessians, steepest descent, and the LMS algorithm, which are all foundational to backpropagation. The sensitivity computation in the neural network section explicitly shows the chain rule.",
+        "granularity_rationale": "Backpropagation is central to modern neural network training; this candidate covers its high-level mechanism without requiring detailed calculus derivation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "General Minimization Algorithm"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "LMS Algorithm"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-010",
+      "label": "Activation Functions",
+      "description": "Non-linear functions applied to neuron outputs that introduce non-linearity into the network, enabling it to learn complex patterns; common examples include sigmoid, tanh, ReLU, and softmax.",
+      "coverage_criteria": [
+        "List at least three activation functions and their typical output ranges.",
+        "Explain why non-linear activation functions are necessary in hidden layers."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Multiple sections list activation functions: the TensorFlow section enumerates relu, sigmoid, tanh, softmax, etc.; the Keras examples use relu and sigmoid.",
+        "granularity_rationale": "Activation functions are a building block; this candidate covers their purpose and common types, checkable through identification and selection."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_figure",
+          "locator": "TensorFlow Activation functions"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Keras example: Dense(32, activation='relu')"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "ReLU",
+        "sigmoid",
+        "tanh",
+        "softmax",
+        "TensorFlow",
+        "Keras"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-011",
+      "label": "Loss Functions for Neural Networks",
+      "description": "Loss functions quantify the error between predictions and true values during training; regression uses mean squared error, binary classification uses binary cross-entropy, and multi-class uses categorical cross-entropy.",
+      "coverage_criteria": [
+        "Match loss functions (MSE, binary crossentropy, categorical crossentropy) to problem types.",
+        "Explain why cross-entropy is preferred over MSE for classification."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The Keras cheat sheet explicitly mentions loss functions like 'binary_crossentropy', 'categorical_crossentropy', and the ADALINE section discusses mean square error as a quadratic function.",
+        "granularity_rationale": "Selecting the right loss is crucial; this candidate covers the main loss types with their usage contexts."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Mean Square Error"
+        },
+        {
+          "kind": "markdown_figure",
+          "locator": "Keras compile: loss='binary_crossentropy'"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-012",
+      "label": "Convolutional Neural Network (CNN)",
+      "description": "A deep learning architecture designed for grid-structured data, using convolutional layers to automatically learn spatial hierarchies of features, followed by pooling and fully-connected layers.",
+      "coverage_criteria": [
+        "Describe the operations of a convolutional layer (kernel, stride, feature map).",
+        "Explain the role of pooling layers in reducing dimensionality."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The Keras cheat sheet provides a complete CNN example with Conv2D, MaxPooling2D, Flatten, and Dense layers, and the chart includes Deep Convolutional Network.",
+        "granularity_rationale": "CNNs are a cornerstone of modern vision systems; this candidate covers the essential layers and their functions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Deep Convolutional Network (DCN)"
+        },
+        {
+          "kind": "markdown_figure",
+          "locator": "Keras CNN example: Conv2D, MaxPooling2D, Flatten"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "Keras",
+        "Conv2D",
+        "MaxPooling2D"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-013",
+      "label": "Deep Residual Network (DRN)",
+      "description": "An advanced neural network that incorporates skip connections (residual blocks) to allow gradients to flow through very deep architectures, enabling training of networks with hundreds of layers.",
+      "coverage_criteria": [
+        "Explain what a residual block is and why it helps training deep networks.",
+        "Mention a popular implementation of residual networks (e.g., ResNet)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chart lists Deep Residual Network as a distinct type, indicating its significance in the taxonomy of neural networks.",
+        "granularity_rationale": "Residual connections are a pivotal innovation; this candidate introduces the concept at a checkable level."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Deep Residual Network (DRN)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "ResNet"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-014",
+      "label": "TensorFlow and Keras for Neural Networks",
+      "description": "Popular open-source Python libraries that provide high-level APIs for constructing, training, and evaluating neural network models, with TensorFlow as the backend and Keras as a simplified interface.",
+      "coverage_criteria": [
+        "Write the code to define a simple neural network using Keras Sequential model.",
+        "Explain the difference between TensorFlow and Keras."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source includes dedicated cheat sheets for TensorFlow and Keras with code examples for building models, compiling, and fitting.",
+        "granularity_rationale": "Familiarity with these tools is practical; this candidate covers their basic usage as demonstrated."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "About TensorFlow"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Keras"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "TensorFlow",
+        "Keras",
+        "Sequential",
+        "Dense"
+      ]
+    },
+    {
+      "candidate_id": "candidate-46-015",
+      "label": "Overfitting and Underfitting",
+      "description": "Overfitting occurs when a model memorizes training data noise, resulting in poor generalization; underfitting occurs when the model is too simple to capture patterns. Techniques like regularization and dropout help prevent overfitting.",
+      "coverage_criteria": [
+        "Define overfitting and underfitting with examples.",
+        "Suggest at least one technique to combat overfitting."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'MACHINE LEARNING IN EMOJI' section mentions 'Overfitting' and the Keras cheat sheet shows dropout layer usage, while the chart includes DRN which addresses the vanishing gradient problem.",
+        "granularity_rationale": "This is a fundamental challenge in machine learning; the candidate covers the concepts and common remedies."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_figure",
+          "locator": "MACHINE LEARNING IN EMOJI: NEURAL NET prone to overfitting"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Keras Dropout example"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-016",
+      "label": "Linear Vector Spaces in Neural Networks",
+      "description": "The mathematical foundation for neural network computations, defining vector spaces, inner products, norms, and linear transformations that underlie neuron operations and weight updates.",
+      "coverage_criteria": [
+        "Define a linear vector space and list its axioms.",
+        "Compute the inner product of two given vectors."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source begins with a detailed definition of linear vector spaces, spanning, inner products, and norms, which are essential for understanding neural network mathematics.",
+        "granularity_rationale": "This candidate covers the required linear algebra concepts at a level testable with simple computational checks."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Linear Vector Spaces:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-46-017",
+      "label": "Gradient Descent Optimization",
+      "description": "An iterative algorithm for minimizing a function by repeatedly taking steps proportional to the negative gradient; variants like stochastic gradient descent (SGD) and Adam are widely used to train neural networks.",
+      "coverage_criteria": [
+        "Explain the update rule of gradient descent.",
+        "Name one adaptive learning rate optimizer and its advantage."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source includes a 'General Minimization Algorithm', 'Steepest Descent Algorithm', and lists TensorFlow optimizers like Adam, Adagrad, etc., which are all based on gradient descent.",
+        "granularity_rationale": "This candidate captures the core optimization principle; it is checkable by the basic algorithm and common variants."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "General Minimization Algorithm"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Steepest Descent Algorithm"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A mostly complete chart of Neural Networks",
+      "source_year": "2016",
+      "name_drops": [
+        "Adam",
+        "SGD",
+        "GradientDescentOptimizer"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-46-002",
+      "to_candidate_id": "candidate-46-003",
+      "reason": "The chart shows Perceptron as the foundational element that leads into the broader Feed Forward category.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Perceptron (P)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Feed Forward (FF)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-46-004",
+      "to_candidate_id": "candidate-46-005",
+      "reason": "LSTM is explicitly positioned as an advancement of the Recurrent Neural Network in the chart.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Recurrent Neural Network (RNN)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Long / Short Term Memory (LSTM)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-46-008",
+      "to_candidate_id": "candidate-46-002",
+      "reason": "Hebb's postulate is presented as the historical learning rule applied directly to the Perceptron, forming the earliest learning algorithm for neural networks.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Hebb's Postulate"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Perceptron Architecture"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-46-009",
+      "to_candidate_id": "candidate-46-003",
+      "reason": "Backpropagation is the standard algorithm used to train multi-layer feedforward networks, and the source discusses gradient computation in the context of minimizing error.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "LMS Algorithm"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Deep Feed Forward Example"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-46-015",
+      "to_candidate_id": "candidate-46-012",
+      "reason": "The Keras CNN example employs dropout layers specifically to mitigate overfitting in convolutional neural networks.",
+      "source_anchors": [
+        {
+          "kind": "markdown_figure",
+          "locator": "Keras Dropout example"
+        },
+        {
+          "kind": "markdown_figure",
+          "locator": "Keras CNN example"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-46-017",
+      "to_candidate_id": "candidate-46-009",
+      "reason": "Gradient descent is the core optimization algorithm that powers the weight update step in backpropagation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Steepest Descent Algorithm"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "LMS Algorithm"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 17,
+    "source_local_connector_candidate_count": 6
+  }
+}

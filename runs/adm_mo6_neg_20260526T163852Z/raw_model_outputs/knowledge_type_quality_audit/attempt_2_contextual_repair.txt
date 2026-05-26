@@ -1,0 +1,59 @@
+{
+  "scores": {
+    "taxonomy_fit": 2,
+    "teaching_mode_alignment": 2,
+    "segment_consistency": 0,
+    "factual_boundary": 3,
+    "applied_boundary": 3
+  },
+  "reliability": "repair_required",
+  "flags": [
+    "cross_segment_conflict",
+    "taxonomy_mismatch",
+    "segment_inconsistency"
+  ],
+  "findings": [
+    {
+      "issue": "Unresolved cross-segment conflict for Payoff Table",
+      "concept_ids": ["concept-payoff-table-8ec69664"],
+      "explanation": "Two segments disagree: one classifies as 'applied' (scenario application), the other as 'procedural' (step-by-step process). The concept involves constructing a structured tool, which is primarily a procedural method."
+    },
+    {
+      "issue": "Unresolved cross-segment conflict for Maximax Criterion",
+      "concept_ids": ["concept-maximax-optimistic-criterion-92a5e247"],
+      "explanation": "Disagreement between 'applied' (real-world philosophy and when to use) and 'procedural' (step-by-step application). The criterion is fundamentally about decision attitude, making 'applied' more appropriate."
+    },
+    {
+      "issue": "Unresolved cross-segment conflict for Maximin Criterion",
+      "concept_ids": ["concept-maximin-criterion-f0376021"],
+      "explanation": "Same pattern as Maximax: one segment labels it 'applied', the other 'procedural'. The conservative philosophy and context-dependent use favor 'applied'."
+    },
+    {
+      "issue": "Unresolved cross-segment conflict for Expected Monetary Value Criterion",
+      "concept_ids": ["concept-expected-monetary-value-emv-criterion-bee4de23"],
+      "explanation": "Conflicting labels of 'procedural' (computation steps) and 'applied' (decision scenarios). EMV requires significant calculation, making 'procedural' the better fit for the primary teaching mode."
+    }
+  ],
+  "repair_plan": [
+    {
+      "concept_ids": ["concept-payoff-table-8ec69664"],
+      "repair_reason": "cross_segment_conflict",
+      "explanation": "Relabel to 'procedural'. Constructing a payoff table is a step-by-step process: list alternatives, states, and payoffs. It is an algorithmic tool, not primarily a real-world design decision."
+    },
+    {
+      "concept_ids": ["concept-maximax-optimistic-criterion-92a5e247"],
+      "repair_reason": "cross_segment_conflict",
+      "explanation": "Relabel to 'applied'. The maximax rule represents an optimistic philosophy; teaching focuses on when to use this attitude (real-world scenario judgment) rather than the trivial max-of-max calculation."
+    },
+    {
+      "concept_ids": ["concept-maximin-criterion-f0376021"],
+      "repair_reason": "cross_segment_conflict",
+      "explanation": "Relabel to 'applied'. Like maximax, maximin is a decision criterion emphasizing a conservative worldview, best taught as a contextual design decision ('when to use')."
+    },
+    {
+      "concept_ids": ["concept-expected-monetary-value-emv-criterion-bee4de23"],
+      "repair_reason": "cross_segment_conflict",
+      "explanation": "Keep 'procedural'. EMV requires explicit calculation (multiply probabilities by outcomes and sum) and is algorithm-heavy. The criterion is best taught as a method, though its application is central."
+    }
+  ]
+}

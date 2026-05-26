@@ -1,0 +1,551 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-06-24-decision-making-in-the-age-of-ai/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+  "lesson": {
+    "id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+    "title": "Decision-Making in the Age of AI",
+    "description": "Artificial intelligence is reshaping how decisions are made but it has not replaced the need for human judgment. This lesson explores the evolving relationship between AI-powered tools and the decision-maker, examining when to trust algorithms, when to override them, and how to build decision processes that leverage the best of both.",
+    "date": "24/06/2026",
+    "display_code": "L14"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-26T18:03:43.358419+00:00",
+    "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+    "lesson": {
+      "id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+      "title": "Decision-Making in the Age of AI",
+      "description": "Artificial intelligence is reshaping how decisions are made but it has not replaced the need for human judgment. This lesson explores the evolving relationship between AI-powered tools and the decision-maker, examining when to trust algorithms, when to override them, and how to build decision processes that leverage the best of both.",
+      "date": "24/06/2026",
+      "display_code": "L14"
+    },
+    "scores": {
+      "concept_validity": 3,
+      "granularity": 2,
+      "evidence_preservation": 3,
+      "assignment_quality": 1,
+      "pruning_review_quality": 0,
+      "coverage_criteria": 3,
+      "lesson_coherence": 3,
+      "net_phase4_benefit": 0
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "review_needed",
+      "deterministic_review_fallback"
+    ],
+    "metrics": {
+      "input_candidate_count": 18,
+      "reconciled_candidate_count": 5,
+      "pruned_candidate_count": 0,
+      "review_count": 13,
+      "deterministic_review_count": 13,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 1,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 0,
+      "off_lesson_accepted_count": 0,
+      "accepted_candidate_assignment_count": 5,
+      "source_body_candidate_count": 18,
+      "assignment_count": 18,
+      "accepted_ratio": 0.2778,
+      "pruned_ratio": 0.0,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0,
+      "review_ratio": 0.7222
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "review_fallback",
+        "candidate_ids": [
+          "c58_pro_thinking_003",
+          "c58_pro_thinking_004",
+          "c59_pro_thinking_001",
+          "c59_pro_thinking_002",
+          "c59_pro_thinking_003",
+          "c59_pro_thinking_004",
+          "c59_pro_thinking_005",
+          "c59_pro_thinking_006",
+          "c59_pro_thinking_007",
+          "c59_pro_thinking_008",
+          "c59_pro_thinking_009",
+          "c59_pro_thinking_010",
+          "c59_pro_thinking_011"
+        ],
+        "explanation": "Review is not allowed as a final Phase 4 state."
+      }
+    ]
+  },
+  "repair_reason": "review_fallback",
+  "target_candidate_ids": [
+    "c58_pro_thinking_003",
+    "c58_pro_thinking_004",
+    "c59_pro_thinking_001",
+    "c59_pro_thinking_002",
+    "c59_pro_thinking_003",
+    "c59_pro_thinking_004",
+    "c59_pro_thinking_005",
+    "c59_pro_thinking_006",
+    "c59_pro_thinking_007",
+    "c59_pro_thinking_008",
+    "c59_pro_thinking_009",
+    "c59_pro_thinking_010",
+    "c59_pro_thinking_011"
+  ],
+  "target_candidates": [
+    {
+      "id": "c58_pro_thinking_003",
+      "label": "Multi-Dimensional Decision Classification Framework",
+      "description": "Decisions can be categorized across eight dimensions: risk profile, frequency, urgency/importance, horizon, certainty/risk/uncertainty, chaos level (Cynefin), option-creating vs commitment, and guardrail-critical vs value-seeking.",
+      "coverage_criteria": [
+        "Student can name at least four dimensions of the framework and explain how each influences the decision approach."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a detailed 'Elements of a decision framework' table listing all eight dimensions with defining questions and implications.",
+        "granularity_rationale": "The framework is decomposed into distinct dimensions, making it feasible to check by asking about a subset."
+      },
+      "anchors": [
+        "Elements of a decision framework"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_004",
+      "label": "Cynefin Framework for Decision Environment",
+      "description": "The Cynefin framework classifies decision contexts into Clear, Complicated, Complex, and Chaotic domains, each requiring a distinct response: best practice, expert analysis, probe-sense-respond, and act to stabilize.",
+      "coverage_criteria": [
+        "Student can correctly map a described scenario to its Cynefin domain and propose an appropriate decision strategy."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The decision framework table includes a 'Level of chaos (Cynefin)' row that directly defines the four domains and their recommended approaches.",
+        "granularity_rationale": "Applying the framework to a single scenario is a sharply bounded, checkable task."
+      },
+      "anchors": [
+        "Elements of a decision framework"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_001",
+      "label": "AI and Decision-making field definition",
+      "description": "Combines computer science and electrical engineering to build systems that perceive, communicate, learn, make decisions, and adapt interactively.",
+      "coverage_criteria": [
+        "Student can explain the interdisciplinary nature of AI and Decision-making, mentioning perception, learning, and adaptation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The opening paragraph of the source explicitly defines the field.",
+        "granularity_rationale": "This is a single, fundamental concept about the scope of the field that can be assessed with one to two questions."
+      },
+      "anchors": [
+        "First paragraph after the image"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_002",
+      "label": "AI and Society",
+      "description": "Studies the interface between AI-driven systems and human actors, including impact on behavior and using AI to improve access to opportunities.",
+      "coverage_criteria": [
+        "Student can describe how AI and Society research examines human-AI interaction and societal opportunities."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The research area heading and following paragraph introduce this subfield explicitly.",
+        "granularity_rationale": "This is a distinct, checkable subfield within AI and Decision-making, narrow enough to be covered in one or two questions."
+      },
+      "anchors": [
+        "AI and Society"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_003",
+      "label": "AI for Healthcare and Life Sciences",
+      "description": "Develops AI technologies for early diagnostics, drug discovery, and care personalization in healthcare and biological/clinical data modeling.",
+      "coverage_criteria": [
+        "Student can list healthcare AI applications such as diagnostics, drug discovery, and personalized care."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The research area heading and description explicitly define this focus.",
+        "granularity_rationale": "This is a self-contained domain application of AI, suitable for a brief check of understanding."
+      },
+      "anchors": [
+        "AI for Healthcare and Life Sciences"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_004",
+      "label": "Artificial Intelligence and Machine Learning",
+      "description": "Covers theory and applications of ML, including deep learning, reinforcement learning, symbolic reasoning, and secure/robust ML.",
+      "coverage_criteria": [
+        "Student can identify the broad scope of AI/ML research, mentioning both theory and applications."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Explicitly listed as a core research area with a detailed description.",
+        "granularity_rationale": "This concept captures the fundamental AI/ML pillar; it is broad but presented as one coherent area in the source, so a brief question is sufficient."
+      },
+      "anchors": [
+        "Artificial Intelligence and Machine Learning"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_005",
+      "label": "Communications Systems",
+      "description": "Develops next-generation wired and wireless communications systems, from physical principles (light, terahertz) to coding and information theory.",
+      "coverage_criteria": [
+        "Student can explain how communications systems research spans physical principles to information theory."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The research area heading and text introduce this subfield as part of AI and decision-making research.",
+        "granularity_rationale": "This concept is a distinct technological pillar, checkable with a simple explanation question."
+      },
+      "anchors": [
+        "Communications Systems"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_006",
+      "label": "Graphics and Vision",
+      "description": "Focuses on connecting images and computation, including image/video generation, analysis, perception, and applied geometry.",
+      "coverage_criteria": [
+        "Student can summarize the mission of Visual Computing in connecting images and computation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The heading and description define this subfield explicitly.",
+        "granularity_rationale": "This is a compact, checkable idea within the broader research landscape."
+      },
+      "anchors": [
+        "Graphics and Vision"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_007",
+      "label": "Natural Language and Speech Processing",
+      "description": "Encompasses fundamental ML methods and advanced applications like information extraction, translation, and real-world instruction execution.",
+      "coverage_criteria": [
+        "Student can give examples of NLP applications such as document information extraction and translation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The heading and text explicitly present this as a research area.",
+        "granularity_rationale": "This is a well-defined subfield, narrow enough for a targeted check."
+      },
+      "anchors": [
+        "Natural Language and Speech Processing"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_008",
+      "label": "Optimization and Game Theory",
+      "description": "Develops efficient, scalable algorithms for large-scale optimization and studies optimal decision-making in networked, multi-agent settings using game-theoretic approaches.",
+      "coverage_criteria": [
+        "Student can describe how optimization and game theory apply to networked systems and multi-agent decisions."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The heading and description introduce this subfield with clear applications.",
+        "granularity_rationale": "This is a distinct methodological area, checkable with a short explanation."
+      },
+      "anchors": [
+        "Optimization and Game Theory"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_009",
+      "label": "Robotics",
+      "description": "Covers robotic hardware and algorithms from sensing to control, perception, and manipulation.",
+      "coverage_criteria": [
+        "Student can list the key components of robotics research: sensing, control, perception, manipulation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Directly stated as a research area focusing on hardware and algorithms.",
+        "granularity_rationale": "This is a concrete, bounded topic suitable for a quick comprehension check."
+      },
+      "anchors": [
+        "Robotics"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_010",
+      "label": "Signal Processing",
+      "description": "Focuses on algorithms and hardware for analyzing, modifying, and synthesizing signals across domains like entertainment, communications, and health.",
+      "coverage_criteria": [
+        "Student can identify signal processing as a key technology in modern life with diverse applications."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The heading and text define this as a research area with a broad application scope.",
+        "granularity_rationale": "This is a single, checkable concept about the role of signal processing."
+      },
+      "anchors": [
+        "Signal Processing"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_011",
+      "label": "Systems Theory, Control, and Autonomy",
+      "description": "Includes theoretical analysis of feedback systems, inference and control over networks, and decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can explain the focus on feedback, network control, and uncertainty in systems theory."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Explicitly presented as a research area with clear theoretical and practical components.",
+        "granularity_rationale": "This is a specific, foundational subfield, narrow enough for a targeted question."
+      },
+      "anchors": [
+        "Systems Theory, Control, and Autonomy"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-24-decision-making-in-the-age-of-ai-001",
+      "label": "Strategic Discipline for AI-Augmented Decision-Making",
+      "description": "Before integrating AI into decisions, organizations should treat decision-making as a strategic discipline and intentionally design human-machine relationships.",
+      "coverage_criteria": [
+        "Student can explain why decision-making must be treated as a strategic discipline when adopting AI."
+      ],
+      "source_candidate_ids": [
+        "c58_pro_thinking_001"
+      ],
+      "merge_rationale": "This candidate stands alone as a distinct teachable concept about the prerequisite of strategic discipline."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-24-decision-making-in-the-age-of-ai-002",
+      "label": "Preserving Human Agency in AI Decisions",
+      "description": "Maintain human agency by building accountability, ensuring decision-makers understand (not just comply with) AI outputs, and clearly connecting choices to choosers.",
+      "coverage_criteria": [
+        "Student can describe at least two concrete ways to preserve human agency when AI supports decisions."
+      ],
+      "source_candidate_ids": [
+        "c58_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate stands alone as a distinct set of design principles for human agency."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-24-decision-making-in-the-age-of-ai-003",
+      "label": "Human Purpose and Judgment as Irreplaceable by AI",
+      "description": "Technology can speed up analysis and reduce uncertainty, but it cannot substitute human purpose, values, and judgment behind choices.",
+      "coverage_criteria": [
+        "Student can articulate at least one reason why human purpose and judgment remain essential even when AI provides analysis."
+      ],
+      "source_candidate_ids": [
+        "c58_pro_thinking_005"
+      ],
+      "merge_rationale": "This candidate stands alone as a philosophical limit of AI in decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-24-decision-making-in-the-age-of-ai-004",
+      "label": "Building Decision-Making Competence for Humans and AI",
+      "description": "Organizations should simultaneously invest in developing human decision-making skills and rigorously measuring AI decision performance.",
+      "coverage_criteria": [
+        "Student can describe one approach to improve human decision skill and one approach to measure AI decision performance."
+      ],
+      "source_candidate_ids": [
+        "c58_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate stands alone as a dual focus on human and machine competence."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-24-decision-making-in-the-age-of-ai-005",
+      "label": "Risk-Based AI Agency Level",
+      "description": "The degree of autonomy granted to AI agents should be calibrated according to the risk profile of the decision.",
+      "coverage_criteria": [
+        "Student can justify why a high-risk decision warrants lower AI autonomy."
+      ],
+      "source_candidate_ids": [
+        "c58_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate stands alone as a specific design principle for AI autonomy levels."
+    }
+  ],
+  "current_pruned_candidates": [],
+  "current_review_candidates": [
+    {
+      "candidate_id": "c58_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_009",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_010",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_011",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-47-001",
+      "label": "Neural Network Architecture",
+      "description": "Neural networks consist of layers: input layer, hidden layers, and output layer. Each unit in layer i computes a linear combination of inputs plus a bias: z_j^{[i]} = w_j^{[i]T}x + b_j^{[i]}.",
+      "coverage_criteria": [
+        "The student can describe the typical architecture of a neural network, name the types of layers, and write the formula for a neuron's pre-activation output."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a diagram (described in text) and the formula for a layer's output, introducing the vocabulary and mathematical notation.",
+        "granularity_rationale": "This concept is a foundational building block; it is small enough to be checked by asking the student to identify layers and write the output equation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Architecture"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-47-002",
+      "label": "Activation Functions",
+      "description": "Activation functions g(z) introduce non-linearity: sigmoid: 1/(1+e^{-z}); tanh: (e^z - e^{-z})/(e^z + e^{-z}); ReLU: max(0,z); leaky ReLU: max(εz,0).",
+      "coverage_criteria": [
+        "The student can list at least three common activation functions, provide their formulas, and describe when each might be used."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly lists the formulas for sigmoid, tanh, ReLU, and leaky ReLU under the 'Activation Functions' heading.",
+        "granularity_rationale": "This is a focused check on a small set of functions that are critical for neural network non-linearity."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Activation Functions"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-47-003",
+      "label": "Learning Rate and Adam Optimizer",
+      "description": "The learning rate η determines the step size for weight updates. Adam is an adaptive learning rate method that adjusts η per parameter.",
+      "coverage_criteria": [
+        "The student can explain the role of the learning rate in training and describe that Adam adapts the learning rate."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source describes the learning rate as controlling weight update pace and states that Adam is a popular adaptive method.",
+        "granularity_rationale": "This concept combines the basic idea of learning rate with a notable optimizer, checkable with a short explanation question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Learning Rate"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": ["Adam"]
+    },
+    {
+      "candidate_id": "candidate-47-004",
+      "label": "Backpropagation Algorithm",
+      "description": "Backpropagation updates weights by computing the loss gradient with respect to weights using the chain rule: ∂L/∂w. Steps: take a batch, forward to get loss, backpropagate gradients, update weights.",
+      "coverage_criteria": [
+        "The student can list the four steps of backpropagation and explain the role of the chain rule in gradient computation."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides the derivative formula and the step-by-step procedure for weight updates.",
+        "granularity_rationale": "Backpropagation is a core training algorithm; this granularity allows checking understanding of the process without requiring implementation details."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Backpropagation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-47-005",
+      "label": "Dropout Regularization",
+      "description": "Dropout prevents overfitting by randomly dropping neurons with probability p during training, keeping them with probability 1-p.",
+      "coverage_criteria": [
+        "The student can explain the purpose of dropout, describe how it works during training, and state the typical range for p."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source clearly defines dropout and explains its purpose of preventing overfitting.",
+        "granularity_rationale": "This is a concise technique that can be checked by asking about its mechanism and purpose."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Dropout"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-47-006",
+      "label": "Convolutional Layer Output Size",
+      "description": "For a convolutional layer, with input volume size W, filter size F, padding P, the number of output neurons N satisfies a relationship (though the formula is given via normalization example).",
+      "coverage_criteria": [
+        "The student can state that the output size depends on input size, filter size, and padding, and can compute N for simple cases."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions the convolutional layer requirement with a formula involving W, F, P, and N, though the exact formula is obscured by a normalization equation.",
+        "granularity_rationale": "Understanding how output dimensions relate to layer parameters is a key practical concept for CNNs."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Convolutional Layer Requirement"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-47-007",
+      "label": "RNN Gate Types",
+      "description": "RNNs use gates to control information flow: input gate (write), forget gate (erase), output gate (reveal).",
+      "coverage_criteria": [
+        "The student can name the three gate types and explain their primary functions in an RNN cell."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source lists the types of gates in a table under 'Types of Gates'.",
+        "granularity_rationale": "This is a compact set of concepts essential for understanding gated RNNs like LSTM."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Types of Gates"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Deep Learning cheatsheet",
+      "source_year": "2018",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": []
+}

@@ -1,0 +1,280 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-23-001",
+      "label": "Bag of Words (BoW) Definition",
+      "description": "Bag of Words is a method to extract features from text documents by creating a vocabulary of all unique words and representing documents as vectors of word counts, ignoring word order.",
+      "coverage_criteria": [
+        "Student can state that BoW is a text representation technique that uses word frequency vectors.",
+        "Student can explain that BoW disregards grammar and word order."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article defines BoW explicitly: 'Bag of Words (BOW) is a method to extract features from text documents... It creates a vocabulary of all the unique words...'",
+        "granularity_rationale": "This is a core concept that can be assessed with a single definitional question and is foundational for later candidates."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "An introduction to Bag of Words and how to code it in Python for NLP"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["Bag of Words", "BOW"]
+    },
+    {
+      "candidate_id": "candidate-23-002",
+      "label": "BoW Pipeline Steps",
+      "description": "The typical BoW process involves cleaning text, tokenizing (splitting into words), building a vocabulary of unique terms, and generating numeric vectors of word counts for each document.",
+      "coverage_criteria": [
+        "Student can list the main steps: clean, tokenize, build vocabulary, generate vectors.",
+        "Student can describe that vocabulary is the set of all unique words from all documents."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows a workflow diagram and describes: 'On a high level, it involves the following steps... clean text, tokenize, build vocabulary, and generate vectors.'",
+        "granularity_rationale": "This breaks down the process into a verifiable sequence of steps, each of which can be checked individually."
+      },
+      "source_anchors": [
+        {"kind": "image_summary", "locator": "Image: A left-to-right workflow diagram shows the Bag of Words pipeline..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-23-003",
+      "label": "Tokenization and Stopword Removal",
+      "description": "Tokenization is the process of splitting text into tokens (words). Stopwords (e.g., 'a', 'the') are common words with little significance that are often removed to reduce noise and vocabulary size.",
+      "coverage_criteria": [
+        "Student can define tokenization as breaking text into words/tokens.",
+        "Student can explain that stopwords are filtered out because they lack useful information for many NLP tasks."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states: 'Tokenization is the act of breaking up a sequence of strings into pieces...' and defines stopwords: 'words which do not contain enough significance...'",
+        "granularity_rationale": "This is a well-defined subtask of text preprocessing that can be checked with a short exercise or definition."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Step 1: Tokenize a sentence"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["stopwords", "tokenization"]
+    },
+    {
+      "candidate_id": "candidate-23-004",
+      "label": "BoW Vector Representation and Vocabulary Size",
+      "description": "Each document is converted to a fixed-length vector equal to the vocabulary size. Each position corresponds to a word, and the value is the count of that word in the document.",
+      "coverage_criteria": [
+        "Student can explain that a document vector length equals the number of unique words in the vocabulary.",
+        "Student can compute a simple BoW vector from given word counts."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article illustrates with examples: 'The length of the vector will always be equal to vocabulary size.' and shows vectors for sentences.",
+        "granularity_rationale": "This is a specific, checkable understanding of how BoW vectors are constructed; suitable for a numeric example question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "The length of the vector will always be equal to vocabulary size."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["sparse vector"]
+    },
+    {
+      "candidate_id": "candidate-23-005",
+      "label": "Sparse Vectors Problem",
+      "description": "When the vocabulary is large, document vectors become mostly zeros (sparse). Sparse vectors require significant memory and computation, posing challenges for machine learning algorithms.",
+      "coverage_criteria": [
+        "Student can define a sparse vector as one with many zero entries.",
+        "Student can explain why sparsity is problematic for ML modeling (memory, computational complexity)."
+      ],
+      "source_roles": ["warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article warns: 'A big document where the generated vocabulary is huge may result in a vector with lots of 0 values. This is called a sparse vector.' and notes the resource demands.",
+        "granularity_rationale": "This is a single, well-defined disadvantage that can be checked with a short explanation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "This is called a sparse vector. Sparse vectors require more memory and computational resources..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["sparse vector"]
+    },
+    {
+      "candidate_id": "candidate-23-006",
+      "label": "Implementing BoW in Python",
+      "description": "The BoW algorithm can be implemented in Python by writing functions to clean and tokenize text, build a vocabulary from all sentences, and generate count vectors using a fixed vocabulary.",
+      "coverage_criteria": [
+        "Student can outline the key Python functions: word extraction with regex and stopword removal, vocabulary collection, and vector generation using NumPy.",
+        "Student can identify that vector generation iterates over each sentence and increments counts for known vocabulary words."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a complete Python implementation with functions: word_extraction, tokenize, and generate_bow.",
+        "granularity_rationale": "This is a practical coding concept that can be assessed by asking students to explain the code or complete similar functions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Coding our BOW algorithm"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["python", "numpy", "nltk"]
+    },
+    {
+      "candidate_id": "candidate-23-007",
+      "label": "Using NLTK for Stopwords",
+      "description": "Instead of manually listing stopwords, Python's NLTK library provides predefined language-specific stopword lists, such as nltk.corpus.stopwords.words('english').",
+      "coverage_criteria": [
+        "Student can recall that NLTK offers a built-in stopwords corpus.",
+        "Student can write a snippet to import stopwords from NLTK."
+      ],
+      "source_roles": ["referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions: 'For more robust implementation of stopwords, you can use python nltk library.' and gives an example.",
+        "granularity_rationale": "This is a small, checkable tool-specific fact that supports the BoW implementation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_code", "locator": "import nltk\nfrom nltk.corpus import stopwords\nset(stopwords.words('english'))"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["NLTK"]
+    },
+    {
+      "candidate_id": "candidate-23-008",
+      "label": "CountVectorizer from scikit-learn",
+      "description": "Scikit-learn's CountVectorizer provides a ready-to-use BoW implementation, converting a collection of text documents to a matrix of token counts.",
+      "coverage_criteria": [
+        "Student can identify that CountVectorizer replaces custom BoW code.",
+        "Student can write basic usage: CountVectorizer().fit_transform(sentences).toarray()."
+      ],
+      "source_roles": ["referencing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows: 'Our previous code can be replaced with: from sklearn.feature_extraction.text import CountVectorizer ...'",
+        "granularity_rationale": "This is a concrete tool-based concept that can be quickly checked with a code snippet."
+      },
+      "source_anchors": [
+        {"kind": "markdown_code", "locator": "from sklearn.feature_extraction.text import CountVectorizer..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["CountVectorizer", "scikit-learn"]
+    },
+    {
+      "candidate_id": "candidate-23-009",
+      "label": "Limitations of BoW",
+      "description": "BoW ignores semantic meaning and word order, making it unable to capture context or phrases. It also produces large sparse vectors for large vocabularies.",
+      "coverage_criteria": [
+        "Student can state that BoW loses semantic meaning and context.",
+        "Student can explain that large vocabularies lead to high-dimensional sparse vectors."
+      ],
+      "source_roles": ["warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly lists limitations: 'Semantic meaning: ... It completely ignores the context...' and 'Vector size: For a large document, the vector size can be huge...'",
+        "granularity_rationale": "This is a concise, assessable set of disadvantages that can be checked with a single question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Limitations of BOW"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-23-010",
+      "label": "N-gram Extension to BoW",
+      "description": "To capture some word order, BoW can be extended to n-grams (e.g., bigrams), where tokens are pairs of consecutive words, providing a richer representation.",
+      "coverage_criteria": [
+        "Student can define an n-gram as a contiguous sequence of n words.",
+        "Student can explain that bigrams (2-grams) can improve representation by considering word pairs."
+      ],
+      "source_roles": ["explaining", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions: 'For example, instead of splitting our sentence in a single word (1-gram), you can split in the pair of two words (bi-gram or 2-gram).'",
+        "granularity_rationale": "This is a small, distinct extension that can be checked with a definition and simple example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "instead of splitting our sentence in a single word (1-gram), you can split in the pair of two words (bi-gram or 2-gram)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "source_year": "2026",
+      "name_drops": ["n-gram", "bi-gram"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-23-001",
+      "to_candidate_id": "candidate-23-002",
+      "reason": "The pipeline steps are the practical decomposition of the BoW definition.",
+      "source_anchors": [
+        {"kind": "image_summary", "locator": "Image: A left-to-right workflow diagram shows the Bag of Words pipeline..."}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-002",
+      "to_candidate_id": "candidate-23-003",
+      "reason": "Tokenization is the second explicit step in the BoW pipeline outlined in the article.",
+      "source_anchors": [
+        {"kind": "image_summary", "locator": "workflow diagram"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-002",
+      "to_candidate_id": "candidate-23-004",
+      "reason": "Generating vectors is the final step that produces the representation explained in candidate-23-004.",
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "The length of the vector will always be equal to vocabulary size."}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-004",
+      "to_candidate_id": "candidate-23-005",
+      "reason": "The article explains sparse vectors as a direct consequence of large vocabulary sizes in vector representation.",
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "This is called a sparse vector."}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-003",
+      "to_candidate_id": "candidate-23-006",
+      "reason": "The coding section directly implements the tokenization and stopword removal described earlier.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Coding our BOW algorithm"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-006",
+      "to_candidate_id": "candidate-23-007",
+      "reason": "The article suggests NLTK as a more robust alternative to custom stopword lists within the coding implementation.",
+      "source_anchors": [
+        {"kind": "markdown_code", "locator": "import nltk\nfrom nltk.corpus import stopwords..."}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-006",
+      "to_candidate_id": "candidate-23-008",
+      "reason": "CountVectorizer is presented as a replacement for the custom BoW code shown in the article.",
+      "source_anchors": [
+        {"kind": "markdown_code", "locator": "from sklearn.feature_extraction.text import CountVectorizer..."}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-23-009",
+      "to_candidate_id": "candidate-23-010",
+      "reason": "N-grams are mentioned as a way to mitigate the semantic meaning limitation of basic BoW.",
+      "source_anchors": [
+        {"kind": "markdown_paragraph", "locator": "instead of splitting our sentence in a single word (1-gram)..."}
+      ]
+    }
+  ]
+}

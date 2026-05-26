@@ -1,0 +1,2656 @@
+{
+  "packet_type": "phase4_lesson_reconciliation_evaluation_packet",
+  "purpose": "Independent smoke-test evaluation of Phase 4 Lesson Reconciliation quality. No prior scores are included.",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+    "display_code": "L03",
+    "title": "Representação de palavras e \"Bag of Words\" (BoW)",
+    "date": "05/05/2026",
+    "description": "A apresentação do conceito de \"Bag of Words\" (BoW) é o objetivo principal deste encontro. Assim, espera-se que ao seu termino, as pessoas desenvolvedoras possam compreender como essa técnica de representação é utilizada e sua importância na aplicação de PLN.",
+    "related_labels": [
+      "Camadas de comunicação linguística",
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Linguagem estruturada",
+      "Linguagem não estruturada",
+      "Manipulação de texto",
+      "Modelos probabilísticos para extração de informação",
+      "Ontologias",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Representação de palavras",
+      "Sintaxe da sentença (Análise sintática)"
+    ]
+  },
+  "counts": {
+    "input_candidate_count": 43,
+    "reconciled_candidate_count": 4,
+    "pruned_candidate_count": 34,
+    "review_candidate_count": 0
+  },
+  "before_phase4_candidates": [
+    {
+      "candidate_id": "c22_pro_thinking_001",
+      "original_candidate_id": "candidate-22-001",
+      "label": "Bag-of-Words Model Definition",
+      "description": "The BOW model represents text as fixed-length vectors by counting the frequency of each word in the document. It disregards grammar and word order.",
+      "coverage_criteria": [
+        "Explain what BOW model is and how it represents text.",
+        "Identify that BOW outputs a vector of word counts."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "A Simple Explanation of the Bag-of-Words Model"
+        },
+        {
+          "kind": "paragraph",
+          "locator": "The bag-of-words (BOW) model is a representation that turns arbitrary text into fixed-length vectors by counting how many times each word appears."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly defines BOW as 'representation that turns arbitrary text into fixed-length vectors by counting how many times each word appears'.",
+        "granularity_rationale": "This is a foundational concept; students can be asked to define and give an example."
+      }
+    },
+    {
+      "candidate_id": "c22_pro_thinking_002",
+      "original_candidate_id": "candidate-22-002",
+      "label": "Vocabulary in Bag-of-Words",
+      "description": "The vocabulary is the set of all unique words present in the document corpus. It forms the dimensions of the BOW vectors.",
+      "coverage_criteria": [
+        "Define vocabulary in BOW.",
+        "Given a set of documents, identify the vocabulary."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article defines vocabulary as 'the set of all words found in our document set' and shows how it determines vector dimensions.",
+        "granularity_rationale": "This is a specific component of BOW; checking this ensures understanding of vectorization."
+      }
+    },
+    {
+      "candidate_id": "c22_pro_thinking_003",
+      "original_candidate_id": "candidate-22-003",
+      "label": "BOW Vectorization Steps",
+      "description": "To vectorize text with BOW, first determine the vocabulary (unique words), then count occurrences of each word in each document to form a vector.",
+      "coverage_criteria": [
+        "List the two steps of BOW vectorization.",
+        "Apply counting to a simple example."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 2: Count"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article walks through 'Step 1: Determine the Vocabulary' and 'Step 2: Count' with an example.",
+        "granularity_rationale": "This is a procedural concept; students can be asked to perform the steps on new text."
+      }
+    },
+    {
+      "candidate_id": "c22_pro_thinking_004",
+      "original_candidate_id": "candidate-22-004",
+      "label": "Context Loss in Bag-of-Words",
+      "description": "BOW model loses word order and contextual information, functioning like a literal bag of words: only word presence/frequency counts, not position.",
+      "coverage_criteria": [
+        "Explain why BOW ignores word order.",
+        "Describe the trade-off of using BOW (simplicity vs context loss)."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "paragraph",
+          "locator": "Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It's like a literal bag-of-words: it only tells you what words occur in the document, not where they occurred."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states 'Notice that we lose contextual information... It's like a literal bag-of-words: it only tells you what words occur... not where they occurred.'",
+        "granularity_rationale": "Understanding limitations is key; a single question can confirm this concept."
+      }
+    },
+    {
+      "candidate_id": "c22_pro_thinking_005",
+      "original_candidate_id": "candidate-22-005",
+      "label": "BOW Implementation with Keras Tokenizer",
+      "description": "BOW can be implemented in Python using Keras' Tokenizer class: fit_on_texts to build vocabulary, then texts_to_matrix with mode='count' to get count vectors.",
+      "coverage_criteria": [
+        "Explain how to use Tokenizer for BOW.",
+        "Write code to fit tokenizer and get count matrix."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Implementing BOW in Python"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a code example using Keras Tokenizer, demonstrating fit_on_texts and texts_to_matrix with count mode.",
+        "granularity_rationale": "This is a practical implementation detail that can be checked with code-oriented questions."
+      }
+    },
+    {
+      "candidate_id": "c22_pro_thinking_006",
+      "original_candidate_id": "candidate-22-006",
+      "label": "Applications and Strengths of Bag-of-Words",
+      "description": "BOW is used in NLP tasks like Text Classification and profanity detection due to its simplicity and low computational cost, despite losing context.",
+      "coverage_criteria": [
+        "Name two applications of BOW.",
+        "Explain why BOW is useful despite its simplicity."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "22",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "How is BOW useful?"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions 'often used for Natural Language Processing (NLP) tasks like Text Classification' and a blog post for profanity detection, and states its strengths: simplicity, inexpensive to compute.",
+        "granularity_rationale": "This concept ties the technique to real-world use; questions can ask about when BOW is appropriate."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_001",
+      "original_candidate_id": "candidate-23-001",
+      "label": "Bag of Words (BoW) Definition",
+      "description": "Bag of Words is a method to extract features from text documents by creating a vocabulary of all unique words and representing documents as vectors of word counts, ignoring word order.",
+      "coverage_criteria": [
+        "Student can state that BoW is a text representation technique that uses word frequency vectors.",
+        "Student can explain that BoW disregards grammar and word order."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "An introduction to Bag of Words and how to code it in Python for NLP"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article defines BoW explicitly: 'Bag of Words (BOW) is a method to extract features from text documents... It creates a vocabulary of all the unique words...'",
+        "granularity_rationale": "This is a core concept that can be assessed with a single definitional question and is foundational for later candidates."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_002",
+      "original_candidate_id": "candidate-23-002",
+      "label": "BoW Pipeline Steps",
+      "description": "The typical BoW process involves cleaning text, tokenizing (splitting into words), building a vocabulary of unique terms, and generating numeric vectors of word counts for each document.",
+      "coverage_criteria": [
+        "Student can list the main steps: clean, tokenize, build vocabulary, generate vectors.",
+        "Student can describe that vocabulary is the set of all unique words from all documents."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "image_summary",
+          "locator": "Image: A left-to-right workflow diagram shows the Bag of Words pipeline..."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows a workflow diagram and describes: 'On a high level, it involves the following steps... clean text, tokenize, build vocabulary, and generate vectors.'",
+        "granularity_rationale": "This breaks down the process into a verifiable sequence of steps, each of which can be checked individually."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_003",
+      "original_candidate_id": "candidate-23-003",
+      "label": "Tokenization and Stopword Removal",
+      "description": "Tokenization is the process of splitting text into tokens (words). Stopwords (e.g., 'a', 'the') are common words with little significance that are often removed to reduce noise and vocabulary size.",
+      "coverage_criteria": [
+        "Student can define tokenization as breaking text into words/tokens.",
+        "Student can explain that stopwords are filtered out because they lack useful information for many NLP tasks."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Tokenize a sentence"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states: 'Tokenization is the act of breaking up a sequence of strings into pieces...' and defines stopwords: 'words which do not contain enough significance...'",
+        "granularity_rationale": "This is a well-defined subtask of text preprocessing that can be checked with a short exercise or definition."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_004",
+      "original_candidate_id": "candidate-23-004",
+      "label": "BoW Vector Representation and Vocabulary Size",
+      "description": "Each document is converted to a fixed-length vector equal to the vocabulary size. Each position corresponds to a word, and the value is the count of that word in the document.",
+      "coverage_criteria": [
+        "Student can explain that a document vector length equals the number of unique words in the vocabulary.",
+        "Student can compute a simple BoW vector from given word counts."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_paragraph",
+          "locator": "The length of the vector will always be equal to vocabulary size."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article illustrates with examples: 'The length of the vector will always be equal to vocabulary size.' and shows vectors for sentences.",
+        "granularity_rationale": "This is a specific, checkable understanding of how BoW vectors are constructed; suitable for a numeric example question."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_005",
+      "original_candidate_id": "candidate-23-005",
+      "label": "Sparse Vectors Problem",
+      "description": "When the vocabulary is large, document vectors become mostly zeros (sparse). Sparse vectors require significant memory and computation, posing challenges for machine learning algorithms.",
+      "coverage_criteria": [
+        "Student can define a sparse vector as one with many zero entries.",
+        "Student can explain why sparsity is problematic for ML modeling (memory, computational complexity)."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_paragraph",
+          "locator": "This is called a sparse vector. Sparse vectors require more memory and computational resources..."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article warns: 'A big document where the generated vocabulary is huge may result in a vector with lots of 0 values. This is called a sparse vector.' and notes the resource demands.",
+        "granularity_rationale": "This is a single, well-defined disadvantage that can be checked with a short explanation."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_006",
+      "original_candidate_id": "candidate-23-006",
+      "label": "Implementing BoW in Python",
+      "description": "The BoW algorithm can be implemented in Python by writing functions to clean and tokenize text, build a vocabulary from all sentences, and generate count vectors using a fixed vocabulary.",
+      "coverage_criteria": [
+        "Student can outline the key Python functions: word extraction with regex and stopword removal, vocabulary collection, and vector generation using NumPy.",
+        "Student can identify that vector generation iterates over each sentence and increments counts for known vocabulary words."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Coding our BOW algorithm"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a complete Python implementation with functions: word_extraction, tokenize, and generate_bow.",
+        "granularity_rationale": "This is a practical coding concept that can be assessed by asking students to explain the code or complete similar functions."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_007",
+      "original_candidate_id": "candidate-23-007",
+      "label": "Using NLTK for Stopwords",
+      "description": "Instead of manually listing stopwords, Python's NLTK library provides predefined language-specific stopword lists, such as nltk.corpus.stopwords.words('english').",
+      "coverage_criteria": [
+        "Student can recall that NLTK offers a built-in stopwords corpus.",
+        "Student can write a snippet to import stopwords from NLTK."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_code",
+          "locator": "import nltk\nfrom nltk.corpus import stopwords\nset(stopwords.words('english'))"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions: 'For more robust implementation of stopwords, you can use python nltk library.' and gives an example.",
+        "granularity_rationale": "This is a small, checkable tool-specific fact that supports the BoW implementation."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_008",
+      "original_candidate_id": "candidate-23-008",
+      "label": "CountVectorizer from scikit-learn",
+      "description": "Scikit-learn's CountVectorizer provides a ready-to-use BoW implementation, converting a collection of text documents to a matrix of token counts.",
+      "coverage_criteria": [
+        "Student can identify that CountVectorizer replaces custom BoW code.",
+        "Student can write basic usage: CountVectorizer().fit_transform(sentences).toarray()."
+      ],
+      "source_roles": [
+        "referencing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_code",
+          "locator": "from sklearn.feature_extraction.text import CountVectorizer..."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article shows: 'Our previous code can be replaced with: from sklearn.feature_extraction.text import CountVectorizer ...'",
+        "granularity_rationale": "This is a concrete tool-based concept that can be quickly checked with a code snippet."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_009",
+      "original_candidate_id": "candidate-23-009",
+      "label": "Limitations of BoW",
+      "description": "BoW ignores semantic meaning and word order, making it unable to capture context or phrases. It also produces large sparse vectors for large vocabularies.",
+      "coverage_criteria": [
+        "Student can state that BoW loses semantic meaning and context.",
+        "Student can explain that large vocabularies lead to high-dimensional sparse vectors."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Limitations of BOW"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly lists limitations: 'Semantic meaning: ... It completely ignores the context...' and 'Vector size: For a large document, the vector size can be huge...'",
+        "granularity_rationale": "This is a concise, assessable set of disadvantages that can be checked with a single question."
+      }
+    },
+    {
+      "candidate_id": "c23_pro_thinking_010",
+      "original_candidate_id": "candidate-23-010",
+      "label": "N-gram Extension to BoW",
+      "description": "To capture some word order, BoW can be extended to n-grams (e.g., bigrams), where tokens are pairs of consecutive words, providing a richer representation.",
+      "coverage_criteria": [
+        "Student can define an n-gram as a contiguous sequence of n words.",
+        "Student can explain that bigrams (2-grams) can improve representation by considering word pairs."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "23",
+      "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+      "anchors": [
+        {
+          "kind": "markdown_paragraph",
+          "locator": "instead of splitting our sentence in a single word (1-gram), you can split in the pair of two words (bi-gram or 2-gram)"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions: 'For example, instead of splitting our sentence in a single word (1-gram), you can split in the pair of two words (bi-gram or 2-gram).'",
+        "granularity_rationale": "This is a small, distinct extension that can be checked with a definition and simple example."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_001",
+      "original_candidate_id": "candidate-24-001",
+      "label": "Computadores interpretam textos por conversão numérica",
+      "description": "Computadores trabalham com bases numéricas e, para processar linguagem natural, o texto deve ser convertido para representações numéricas compreensíveis pela máquina.",
+      "coverage_criteria": [
+        "Explicar por que dados textuais precisam ser convertidos em números para processamento computacional."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Interpretação de dados textuais"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto na seção 'Interpretação de dados textuais' afirma que computadores trabalham com números e que a linguagem natural deve ser convertida para que a máquina compreenda.",
+        "granularity_rationale": "Conceito fundamental e independente que pode ser verificado com uma explicação direta."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_002",
+      "original_candidate_id": "candidate-24-002",
+      "label": "Algoritmos de aprendizagem de máquina requerem entrada numérica",
+      "description": "Algoritmos de aprendizagem de máquina aprendem uma função de mapeamento Y=f(X) e, portanto, exigem variáveis de entrada (X) numéricas e geram saída (Y) numérica, com erro irredutível.",
+      "coverage_criteria": [
+        "Descrever a formulação Y=f(X) e explicar por que a entrada deve ser numérica em algoritmos de ML."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Interpretação de dados textuais"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "No texto, após introduzir conversão numérica, afirma-se que algoritmos de ML se baseiam em valores numéricos e que a formulação geral é Y = f(X) + e.",
+        "granularity_rationale": "Conceito que encapsula a justificativa da vetorização; testável com perguntas sobre mapeamento."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_003",
+      "original_candidate_id": "candidate-24-003",
+      "label": "Vetorização de textos é extração de características para ML",
+      "description": "Vetorização (ou extração de características) é o processo de transformar documentos em representações vetoriais numéricas para que algoritmos de ML possam operar, criando uma matriz onde linhas são instâncias e colunas são características.",
+      "coverage_criteria": [
+        "Definir vetorização de textos e explicar seu propósito para aprendizado de máquina."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Vetorização de textos"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 'Vetorização de textos' explica que algoritmos de ML esperam matriz numérica e que vetorização é o primeiro passo essencial para análise de linguagem.",
+        "granularity_rationale": "Conceito central que conecta PLN e ML; adequado para questões de definição e justificativa."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_004",
+      "original_candidate_id": "candidate-24-004",
+      "label": "Bag of Words (BoW): modelo de saco de palavras",
+      "description": "Bag of Words é um modelo simples de representação vetorial que trata o texto como uma coleção não ordenada de palavras, codificando significado e similaridade pelo vocabulário compartilhado; documentos com palavras semelhantes são próximos no espaço semântico.",
+      "coverage_criteria": [
+        "Explicar o princípio do BoW e como ele representa documentos como vetores de frequência de palavras."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto introduz o BoW como a codificação mais simples do espaço semântico e descreve sua ideia principal: vocabulário compartilhado indica similaridade.",
+        "granularity_rationale": "Conceito fundamental para a aula; pode ser avaliado com perguntas conceituais e exemplos simples."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_005",
+      "original_candidate_id": "candidate-24-005",
+      "label": "Etapas do algoritmo Bag of Words",
+      "description": "O BoW é implementado em quatro etapas: (1) limpar o texto removendo stopwords e pontuação, (2) extrair tokens conforme a necessidade, (3) construir o vocabulário com tokens únicos, (4) gerar vetores de frequência para cada documento.",
+      "coverage_criteria": [
+        "Listar e descrever as quatro etapas do BoW."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 'Algoritmo bag of words' enumera claramente as quatro etapas, fornecendo um procedimento passo a passo.",
+        "granularity_rationale": "Conjunto de passos bem definido que pode ser verificado com uma lista e breve explicação."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_006",
+      "original_candidate_id": "candidate-24-006",
+      "label": "Vocabulário e esparsidade em BoW",
+      "description": "O vocabulário é o conjunto de todos os tokens únicos extraídos; cada documento gera um vetor de tamanho igual ao vocabulário, com zeros para palavras ausentes, resultando em vetores esparsos que podem ser problemáticos para armazenamento/processamento.",
+      "coverage_criteria": [
+        "Explicar o que é vocabulário no contexto BoW e por que os vetores são esparsos."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o conceito de vocabulário após exemplificar a contagem de palavras e destaca que a presença de muitos zeros gera vetores esparsos.",
+        "granularity_rationale": "Propriedade importante do BoW que motiva técnicas de redução; verificável com definições e exemplos."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_007",
+      "original_candidate_id": "candidate-24-007",
+      "label": "CountVectorizer: vetorizador por contagem no Scikit-learn",
+      "description": "CountVectorizer é um vetorizador do Scikit-learn que implementa BoW contando o número de ocorrências de cada termo em cada documento, gerando uma matriz termo-documento.",
+      "coverage_criteria": [
+        "Descrever o que é CountVectorizer e para que serve."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o CountVectorizer como o mais simples dos três vetorizadores do Scikit-learn, explicando que conta ocorrências.",
+        "granularity_rationale": "Conceito de ferramenta específica que pode ser testado com definição e identificação de uso."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_008",
+      "original_candidate_id": "candidate-24-008",
+      "label": "Parâmetros principais do CountVectorizer",
+      "description": "O CountVectorizer aceita diversos parâmetros para controlar pré-processamento e tokenização, incluindo lowercase, stop_words, token_pattern, ngram_range, analyzer, max_df, min_df, max_features, vocabulary, e binary.",
+      "coverage_criteria": [
+        "Listar pelo menos cinco parâmetros do CountVectorizer e explicar brevemente suas funções."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto dedica várias páginas a enumerar e explicar os parâmetros do CountVectorizer, mostrando sua importância para customização.",
+        "granularity_rationale": "Conjunto de detalhes de configuração que pode ser avaliado com perguntas de reconhecimento ou aplicação."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_009",
+      "original_candidate_id": "candidate-24-009",
+      "label": "HashVectorizer: vetorização por hashing",
+      "description": "HashVectorizer é um vetorizador do Scikit-learn que aplica uma função hash para codificar termos como índices numéricos, economizando memória, mas impossibilitando a recuperação dos nomes das características originais.",
+      "coverage_criteria": [
+        "Explicar a vantagem e desvantagem do HashVectorizer em relação ao CountVectorizer."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto menciona HashVectorizer como alternativa eficiente em memória, mas com perda de nomes de features.",
+        "granularity_rationale": "Conceito comparativo que pode ser verificado com uma questão de contraste."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_010",
+      "original_candidate_id": "candidate-24-010",
+      "label": "TfidfVectorizer: ponderação TF-IDF",
+      "description": "TfidfVectorizer é um vetorizador do Scikit-learn que atribui pesos aos termos combinando a frequência no documento (TF) e a frequência inversa no corpus (IDF), dando maior importância a termos discriminativos.",
+      "coverage_criteria": [
+        "Explicar o que significa TF-IDF e como difere da contagem simples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta TfidfVectorizer como uma alternativa que considera não apenas frequência local, mas também recorrência em todo o conjunto de documentos.",
+        "granularity_rationale": "Conceito fundamental em recuperação de informação; pode ser testado com definição e exemplo."
+      }
+    },
+    {
+      "candidate_id": "c24_pro_thinking_011",
+      "original_candidate_id": "candidate-24-011",
+      "label": "Uso do CountVectorizer em Python",
+      "description": "Exemplo prático de como usar o CountVectorizer em Python: importar a biblioteca, instanciar com parâmetros (ex.: lowercase=False), aplicar fit_transform ao texto para gerar a matriz termo-documento, e obter os nomes das features com get_feature_names().",
+      "coverage_criteria": [
+        "Escrever um trecho de código Python que use CountVectorizer para vetorizar um pequeno texto e recuperar o vocabulário."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "24",
+      "source_name": "Representação vetorial de textos - bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto fornece um exemplo completo com código e saída, ensinando a aplicar o CountVectorizer.",
+        "granularity_rationale": "Habilidade prática que pode ser verificada com um exercício de codificação simples."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_001",
+      "original_candidate_id": "candidate-25-001",
+      "label": "Natural Language Challenges",
+      "description": "Natural language has inherent structure but is free-form; the same meaning can be expressed in many ways, and similar words can convey different meanings.",
+      "coverage_criteria": [
+        "Student can give examples of sentences with subtle meaning differences due to word choice or emphasis, and explain why NLP requires different approaches."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:00] Introduction to Natural Language Processing Challenges"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:46] The Special Nature of Natural Language"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video opens by discussing unique challenges of natural language that separate it from other data types, providing examples of sentences with nuanced meanings.",
+        "granularity_rationale": "This is a foundational understanding needed to appreciate why BoW and other encoding methods exist; it can be checked with a few examples or explanation."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_002",
+      "original_candidate_id": "candidate-25-002",
+      "label": "Data Representation as Matrices in Machine Learning",
+      "description": "Machine learning models typically operate on numerical matrices; images and structured data map naturally to matrices, but text requires a conversion step.",
+      "coverage_criteria": [
+        "Student can explain why images and spreadsheet data are naturally matrices, and why text needs encoding before being used as input to ML models."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:03] Converting Data to Matrices"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source emphasizes turning data into matrices, using images as an example of inherent matrix representation, to motivate the need for text encoding.",
+        "granularity_rationale": "This concept is a prerequisite for understanding BoW's purpose and can be assessed by asking about data preprocessing in ML."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_003",
+      "original_candidate_id": "candidate-25-003",
+      "label": "Bag of Words Encoding Concept",
+      "description": "Bag of Words (BoW) is a method for encoding free-form text into numerical vectors by representing the presence (or count) of words from a predefined vocabulary, disregarding word order.",
+      "coverage_criteria": [
+        "Student can define Bag of Words, explain the role of a vocabulary, and describe how a sentence is converted into a vector based on word presence."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:29] Bag of Words: Encoding Free-Form Text"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:35] Encoding the Sentence into an Array"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces BoW as a foundational approach to NLP encoding, explicitly stating it scrambles word order like a 'bag of words', and demonstrates with an example.",
+        "granularity_rationale": "This is the central concept; it is the right size to check understanding with a few questions about vocabulary, encoding, and the trade-off of ignoring order."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_004",
+      "original_candidate_id": "candidate-25-004",
+      "label": "Vocabulary Selection for Bag of Words",
+      "description": "The vocabulary is a predefined list of words (e.g., the most common 400 words) that the BoW model recognizes; words not in the vocabulary are ignored during encoding.",
+      "coverage_criteria": [
+        "Student can explain how a vocabulary is chosen (e.g., most frequent words, fixed size) and what happens to out-of-vocabulary words."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:39] Understanding Bag of Words with a Vocabulary Example"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:28] Encoding Text with Keras"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video illustrates a limited vocabulary of 10 words and then mentions choosing a larger size like 400 for practical models, using Keras's Tokenizer num_words parameter.",
+        "granularity_rationale": "Vocabulary choice is a key design decision in BoW; understanding its impact is checkable by asking about trade-offs of vocabulary size."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_005",
+      "original_candidate_id": "candidate-25-005",
+      "label": "Binary Vector Encoding for Text in BoW",
+      "description": "A sentence is encoded as a binary vector of length equal to vocabulary size, with 1s at positions corresponding to present words and 0s elsewhere.",
+      "coverage_criteria": [
+        "Given a vocabulary and a sentence, student can produce the binary vector encoding."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:35] Encoding the Sentence into an Array"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly shows setting array indices to 1 for words like 'plot', 'dataframe', 'graph' and 0 for others, with a visual example.",
+        "granularity_rationale": "This is the core encoding mechanism; it's small enough to test by having a student encode a sample sentence."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_006",
+      "original_candidate_id": "candidate-25-006",
+      "label": "Multi-label Encoding for Text Classification",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each element corresponds to a label; a single example can have multiple 1s, unlike multi-class one-hot encoding.",
+      "coverage_criteria": [
+        "Student can explain how to encode labels for a multi-label problem using a binary vector, and contrast with multi-class encoding."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:29] Preprocessing Labels for Prediction"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source discusses encoding labels for sentences that can belong to multiple topics, setting multiple indices to 1.",
+        "granularity_rationale": "This is a practical detail for classification tasks; checkable by asking to encode a set of labels for a given text."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_007",
+      "original_candidate_id": "candidate-25-007",
+      "label": "Machine Learning as Mapping Numbers to Numbers",
+      "description": "After encoding text and labels into numerical arrays, ML models simply learn a function mapping input numbers to output numbers; preprocessing is the key transformation.",
+      "coverage_criteria": [
+        "Student can explain how BoW preprocessing turns a text classification problem into a standard numerical prediction task."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states 'we can let machine learning do what it does best--map one set of numbers to another set of numbers' and emphasizes the heavy lifting in preprocessing.",
+        "granularity_rationale": "This high-level insight is useful for understanding the ML pipeline; it's a single idea, checkable by asking to describe the transformation from text to numbers in a classification task."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_008",
+      "original_candidate_id": "candidate-25-008",
+      "label": "Effectiveness of Simple Bag of Words",
+      "description": "Despite its simplicity and disregard for word order, Bag of Words can perform surprisingly well in many text classification tasks.",
+      "coverage_criteria": [
+        "Student can provide examples or reasoning for when BoW might work well (e.g., topic classification where presence of words is discriminative)."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video notes 'it might surprise you how well it works in some situations,' highlighting its practical utility.",
+        "granularity_rationale": "This is a key takeaway about BoW's performance; it's a single concept checkable by asking for advantages or scenarios where BoW is effective."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_009",
+      "original_candidate_id": "candidate-25-009",
+      "label": "Keras Tokenizer for Bag of Words Implementation",
+      "description": "Keras provides a Tokenizer class that can be configured with a vocabulary size (num_words), fit on training texts, and then used to convert text into a binary matrix (texts_to_matrix).",
+      "coverage_criteria": [
+        "Student can write code using Keras Tokenizer to create a BoW representation from a corpus of texts."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:28] Encoding Text with Keras"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows actual code: tokenize = keras.preprocessing.text.Tokenizer(num_words=400), .fit_on_texts, .texts_to_matrix, providing a hands-on implementation.",
+        "granularity_rationale": "This is a specific tool usage that can be assessed by asking a student to write a snippet or explain the steps."
+      }
+    },
+    {
+      "candidate_id": "c25_pro_thinking_010",
+      "original_candidate_id": "candidate-25-010",
+      "label": "Multi-label Classification Model with Sigmoid Activation",
+      "description": "For multi-label text classification using BoW, a neural network with a final sigmoid activation and binary cross-entropy loss is appropriate, as it allows independent binary predictions for each label.",
+      "coverage_criteria": [
+        "Student can explain why sigmoid activation is preferred over softmax for multi-label classification, and configure a model with binary cross-entropy."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "25",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:00] Model Architecture for Bag of Words"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly warns to use sigmoid activation and binary cross-entropy loss for multi-label problems, contrasting with softmax for multi-class.",
+        "granularity_rationale": "This is an important practical detail that can be checked by asking a student to choose the correct output layer and loss for a given classification type."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_001",
+      "original_candidate_id": "candidate-26-001",
+      "label": "Bag-of-Words Model Definition",
+      "description": "The bag-of-words model is a text representation technique that converts arbitrary text into fixed-length vectors by counting the occurrences of each word from a predefined vocabulary, disregarding word order and context.",
+      "coverage_criteria": [
+        "Student can define the bag-of-words model and explain what it does."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "# A Simple Explanation of the Bag-of-Words Model"
+        },
+        {
+          "kind": "markdown_paragraph",
+          "locator": "The bag-of-words (BOW) model is a representation that turns arbitrary text into fixed-length vectors..."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states: 'The bag-of-words (BOW) model is a representation that turns arbitrary text into fixed-length vectors by counting how many times each word appears.' and provides an example, clearly introducing and explaining the concept.",
+        "granularity_rationale": "This is a single core concept, checkable with a definition question."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_002",
+      "original_candidate_id": "candidate-26-002",
+      "label": "Vocabulary Construction in BOW",
+      "description": "The first step in building a BOW model is to define a vocabulary, which is the set of all unique words appearing in the document corpus.",
+      "coverage_criteria": [
+        "Student can describe how the vocabulary is determined for a BOW model, e.g., collecting all unique words from the documents."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "### Step 1: Determine the Vocabulary"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explains Step 1: Determine the Vocabulary, stating 'We first define our vocabulary, which is the set of all words found in our document set.'",
+        "granularity_rationale": "This is a distinct step in the BOW process, checkable by asking how to construct the vocabulary."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_003",
+      "original_candidate_id": "candidate-26-003",
+      "label": "Word Counting for BOW Vectorization",
+      "description": "Once the vocabulary is set, each document is represented as a count vector where each dimension corresponds to a vocabulary word and the value is the frequency of that word in the document.",
+      "coverage_criteria": [
+        "Student can explain how to convert a document into a BOW vector by counting word occurrences."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "### Step 2: Count"
+        },
+        {
+          "kind": "markdown_table",
+          "locator": "Table of word counts for three documents"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a table showing how each document's word counts produce length-6 vectors and states 'To vectorize our documents, all we have to do is count how many times each word appears'.",
+        "granularity_rationale": "This is the core mechanistic step, essential for understanding BOW; it can be checked by asking to compute a BOW vector for a simple example."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_004",
+      "original_candidate_id": "candidate-26-004",
+      "label": "Bag-of-Words Loses Word Order",
+      "description": "The bag-of-words model discards the order of words, treating documents as unordered collections, which means it cannot capture syntactic or semantic nuances that depend on word sequence.",
+      "coverage_criteria": [
+        "Student can state that BOW does not preserve word order and can give an example of potential information loss."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_paragraph",
+          "locator": "Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW."
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article warns: 'Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It’s like a literal bag-of-words...'",
+        "granularity_rationale": "This is a key limitation that affects model selection; it's a distinct teachable point."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_005",
+      "original_candidate_id": "candidate-26-005",
+      "label": "Implementing BOW with Keras Tokenizer",
+      "description": "The BOW model can be implemented in Python using Keras' Tokenizer class: fit_on_texts to build the vocabulary and texts_to_matrix with mode='count' to produce count vectors.",
+      "coverage_criteria": [
+        "Student can write Python code to vectorize documents using Keras Tokenizer for BOW."
+      ],
+      "source_roles": [
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## Implementing BOW in Python"
+        },
+        {
+          "kind": "markdown_code_block",
+          "locator": "Python code using Tokenizer and texts_to_matrix"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a code example using Tokenizer from keras.preprocessing.text, showing how to fit and transform documents.",
+        "granularity_rationale": "This is a practical skill that can be checked by asking to implement BOW on a small text corpus."
+      }
+    },
+    {
+      "candidate_id": "c26_pro_thinking_006",
+      "original_candidate_id": "candidate-26-006",
+      "label": "Use Cases for Bag-of-Words",
+      "description": "BOW is commonly used for Natural Language Processing tasks such as text classification and profanity detection, valued for its simplicity and low computational cost.",
+      "coverage_criteria": [
+        "Student can list at least two applications of BOW in NLP."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "self_study_id": "26",
+      "source_name": "ATIVIDADE: Bag of Words",
+      "anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "## How is BOW useful?"
+        }
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states: 'BOW is often used for Natural Language Processing tasks like Text Classification' and mentions a blog post on profanity detection using BOW.",
+        "granularity_rationale": "This addresses the practical significance of BOW, checkable by asking for its typical uses."
+      }
+    }
+  ],
+  "after_phase4": {
+    "reconciled_candidates": [
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-001",
+        "label": "Bag-of-Words Core Definition and Representation",
+        "description": "The Bag-of-Words (BOW) model represents text as a fixed-length vector of word counts or frequencies from a predefined vocabulary, ignoring grammar and word order. It is a fundamental text representation technique for NLP.",
+        "coverage_criteria": [
+          "Define the Bag-of-Words model and explain how it represents documents as vectors.",
+          "Given a short vocabulary, produce a BOW vector for a sentence."
+        ],
+        "source_candidate_ids": [
+          "c22_pro_thinking_001",
+          "c23_pro_thinking_001",
+          "c24_pro_thinking_004",
+          "c25_pro_thinking_003",
+          "c26_pro_thinking_001"
+        ],
+        "merge_rationale": "All candidates define BOW similarly as counting word occurrences while disregarding order and context. Merging into one concept avoids redundant representations of the same foundational idea.",
+        "source_roles": [
+          "introducing",
+          "explaining"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-002",
+        "label": "N-gram Extension to BoW",
+        "description": "BoW can capture some word order by using n-grams (e.g., bigrams), where tokens are contiguous sequences of n words, providing a richer representation than unigrams alone.",
+        "coverage_criteria": [
+          "Student can define an n-gram as a contiguous sequence of n words.",
+          "Student can explain how bigrams improve representation over unigrams, with a simple example."
+        ],
+        "source_candidate_ids": [
+          "c23_pro_thinking_010"
+        ],
+        "merge_rationale": "This candidate describes a standalone enhancement technique not overlapping with other batch concepts, so it forms its own lesson-local concept.",
+        "source_roles": [
+          "explaining",
+          "referencing"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-003",
+        "label": "Multi-label Classification Setup with BoW",
+        "description": "For multi-label text classification using BoW, labels are encoded as binary vectors (each element corresponds to a label, multiple 1s allowed), and the model uses a final sigmoid activation with binary cross-entropy loss, enabling independent binary predictions per label.",
+        "coverage_criteria": [
+          "Student can encode labels for a multi-label problem using a binary vector, contrasting with multi-class one-hot encoding.",
+          "Student can explain why sigmoid activation and binary cross-entropy loss are preferred over softmax for multi-label classification."
+        ],
+        "source_candidate_ids": [
+          "c25_pro_thinking_006",
+          "c25_pro_thinking_010"
+        ],
+        "merge_rationale": "These candidates cover complementary implementation details for multi-label classification (label preprocessing and model output configuration) and together form a single teachable practical concept.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "demonstrating",
+          "warning"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      },
+      {
+        "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-004",
+        "label": "Vocabulary Selection for Bag of Words",
+        "description": "The BoW vocabulary is a predefined list of words, typically chosen by frequency (e.g., the most common 400 words); words not in the vocabulary are ignored during encoding, which impacts model performance and is a key design decision.",
+        "coverage_criteria": [
+          "Student can explain how a vocabulary is built (e.g., using most frequent words, fixed size) and what happens to out-of-vocabulary words.",
+          "Student can discuss trade-offs of vocabulary size on model complexity and generalization."
+        ],
+        "source_candidate_ids": [
+          "c25_pro_thinking_004"
+        ],
+        "merge_rationale": "This candidate addresses a distinct design choice in BoW, not covered by other candidates in this batch, and stands alone as a lesson-local concept.",
+        "source_roles": [
+          "introducing",
+          "explaining",
+          "demonstrating"
+        ],
+        "evidence_types": [
+          "source_body"
+        ]
+      }
+    ],
+    "pruned_candidates": [
+      {
+        "candidate_id": "c22_pro_thinking_002",
+        "original_candidate_id": "candidate-22-002",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Vocabulary construction is an implicit part of BOW definition and will be covered in a separate concept when evaluating cluster_002, but for this cluster_001 batch it is not directly merged into lr001 as it represents a distinct component. Pruned here because it is outside the scope of cluster_001's core definition merge, but will be addressed later.",
+        "candidate_snapshot": {
+          "candidate_id": "c22_pro_thinking_002",
+          "original_candidate_id": "candidate-22-002",
+          "label": "Vocabulary in Bag-of-Words",
+          "description": "The vocabulary is the set of all unique words present in the document corpus. It forms the dimensions of the BOW vectors.",
+          "coverage_criteria": [
+            "Define vocabulary in BOW.",
+            "Given a set of documents, identify the vocabulary."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "22",
+          "source_name": "A Simple Explanation of the Bag-of-Words Model",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Step 1: Determine the Vocabulary"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article defines vocabulary as 'the set of all words found in our document set' and shows how it determines vector dimensions.",
+            "granularity_rationale": "This is a specific component of BOW; checking this ensures understanding of vectorization."
+          }
+        }
+      },
+      {
+        "candidate_id": "c22_pro_thinking_003",
+        "original_candidate_id": "candidate-22-003",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Vectorization steps are covered by the core BOW process; they are distinct enough for separate treatment but not part of this cluster's merge. Pruned from this batch to be handled in its own cluster.",
+        "candidate_snapshot": {
+          "candidate_id": "c22_pro_thinking_003",
+          "original_candidate_id": "candidate-22-003",
+          "label": "BOW Vectorization Steps",
+          "description": "To vectorize text with BOW, first determine the vocabulary (unique words), then count occurrences of each word in each document to form a vector.",
+          "coverage_criteria": [
+            "List the two steps of BOW vectorization.",
+            "Apply counting to a simple example."
+          ],
+          "source_roles": [
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "22",
+          "source_name": "A Simple Explanation of the Bag-of-Words Model",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Step 1: Determine the Vocabulary"
+            },
+            {
+              "kind": "markdown_heading",
+              "locator": "Step 2: Count"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article walks through 'Step 1: Determine the Vocabulary' and 'Step 2: Count' with an example.",
+            "granularity_rationale": "This is a procedural concept; students can be asked to perform the steps on new text."
+          }
+        }
+      },
+      {
+        "candidate_id": "c22_pro_thinking_004",
+        "original_candidate_id": "candidate-22-004",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Context loss is a limitation discussed in cluster_004; not merged into the core definition concept.",
+        "candidate_snapshot": {
+          "candidate_id": "c22_pro_thinking_004",
+          "original_candidate_id": "candidate-22-004",
+          "label": "Context Loss in Bag-of-Words",
+          "description": "BOW model loses word order and contextual information, functioning like a literal bag of words: only word presence/frequency counts, not position.",
+          "coverage_criteria": [
+            "Explain why BOW ignores word order.",
+            "Describe the trade-off of using BOW (simplicity vs context loss)."
+          ],
+          "source_roles": [
+            "explaining",
+            "warning"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "22",
+          "source_name": "A Simple Explanation of the Bag-of-Words Model",
+          "anchors": [
+            {
+              "kind": "paragraph",
+              "locator": "Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It's like a literal bag-of-words: it only tells you what words occur in the document, not where they occurred."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article states 'Notice that we lose contextual information... It's like a literal bag-of-words: it only tells you what words occur... not where they occurred.'",
+            "granularity_rationale": "Understanding limitations is key; a single question can confirm this concept."
+          }
+        }
+      },
+      {
+        "candidate_id": "c22_pro_thinking_005",
+        "original_candidate_id": "candidate-22-005",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Implementation detail using Keras Tokenizer belongs to cluster_005; pruned here.",
+        "candidate_snapshot": {
+          "candidate_id": "c22_pro_thinking_005",
+          "original_candidate_id": "candidate-22-005",
+          "label": "BOW Implementation with Keras Tokenizer",
+          "description": "BOW can be implemented in Python using Keras' Tokenizer class: fit_on_texts to build vocabulary, then texts_to_matrix with mode='count' to get count vectors.",
+          "coverage_criteria": [
+            "Explain how to use Tokenizer for BOW.",
+            "Write code to fit tokenizer and get count matrix."
+          ],
+          "source_roles": [
+            "demonstrating",
+            "implementing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "22",
+          "source_name": "A Simple Explanation of the Bag-of-Words Model",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Implementing BOW in Python"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article provides a code example using Keras Tokenizer, demonstrating fit_on_texts and texts_to_matrix with count mode.",
+            "granularity_rationale": "This is a practical implementation detail that can be checked with code-oriented questions."
+          }
+        }
+      },
+      {
+        "candidate_id": "c22_pro_thinking_006",
+        "original_candidate_id": "candidate-22-006",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Applications and strengths are covered by cluster_006; not merged into lr001.",
+        "candidate_snapshot": {
+          "candidate_id": "c22_pro_thinking_006",
+          "original_candidate_id": "candidate-22-006",
+          "label": "Applications and Strengths of Bag-of-Words",
+          "description": "BOW is used in NLP tasks like Text Classification and profanity detection due to its simplicity and low computational cost, despite losing context.",
+          "coverage_criteria": [
+            "Name two applications of BOW.",
+            "Explain why BOW is useful despite its simplicity."
+          ],
+          "source_roles": [
+            "referencing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "22",
+          "source_name": "A Simple Explanation of the Bag-of-Words Model",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "How is BOW useful?"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article mentions 'often used for Natural Language Processing (NLP) tasks like Text Classification' and a blog post for profanity detection, and states its strengths: simplicity, inexpensive to compute.",
+            "granularity_rationale": "This concept ties the technique to real-world use; questions can ask about when BOW is appropriate."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_002",
+        "original_candidate_id": "candidate-23-002",
+        "pruning_reason": "near_duplicate",
+        "explanation": "BoW pipeline steps are covered in cluster_002; not part of this core definition merge.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_002",
+          "original_candidate_id": "candidate-23-002",
+          "label": "BoW Pipeline Steps",
+          "description": "The typical BoW process involves cleaning text, tokenizing (splitting into words), building a vocabulary of unique terms, and generating numeric vectors of word counts for each document.",
+          "coverage_criteria": [
+            "Student can list the main steps: clean, tokenize, build vocabulary, generate vectors.",
+            "Student can describe that vocabulary is the set of all unique words from all documents."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "image_summary",
+              "locator": "Image: A left-to-right workflow diagram shows the Bag of Words pipeline..."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article shows a workflow diagram and describes: 'On a high level, it involves the following steps... clean text, tokenize, build vocabulary, and generate vectors.'",
+            "granularity_rationale": "This breaks down the process into a verifiable sequence of steps, each of which can be checked individually."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_003",
+        "original_candidate_id": "candidate-23-003",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Tokenization and stopword removal belong to preprocessing (cluster_011); pruned from this core concept.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_003",
+          "original_candidate_id": "candidate-23-003",
+          "label": "Tokenization and Stopword Removal",
+          "description": "Tokenization is the process of splitting text into tokens (words). Stopwords (e.g., 'a', 'the') are common words with little significance that are often removed to reduce noise and vocabulary size.",
+          "coverage_criteria": [
+            "Student can define tokenization as breaking text into words/tokens.",
+            "Student can explain that stopwords are filtered out because they lack useful information for many NLP tasks."
+          ],
+          "source_roles": [
+            "introducing",
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Step 1: Tokenize a sentence"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article states: 'Tokenization is the act of breaking up a sequence of strings into pieces...' and defines stopwords: 'words which do not contain enough significance...'",
+            "granularity_rationale": "This is a well-defined subtask of text preprocessing that can be checked with a short exercise or definition."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_004",
+        "original_candidate_id": "candidate-23-004",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Vector representation details are part of vectorization steps (cluster_003); not merged here.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_004",
+          "original_candidate_id": "candidate-23-004",
+          "label": "BoW Vector Representation and Vocabulary Size",
+          "description": "Each document is converted to a fixed-length vector equal to the vocabulary size. Each position corresponds to a word, and the value is the count of that word in the document.",
+          "coverage_criteria": [
+            "Student can explain that a document vector length equals the number of unique words in the vocabulary.",
+            "Student can compute a simple BoW vector from given word counts."
+          ],
+          "source_roles": [
+            "explaining",
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_paragraph",
+              "locator": "The length of the vector will always be equal to vocabulary size."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article illustrates with examples: 'The length of the vector will always be equal to vocabulary size.' and shows vectors for sentences.",
+            "granularity_rationale": "This is a specific, checkable understanding of how BoW vectors are constructed; suitable for a numeric example question."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_005",
+        "original_candidate_id": "candidate-23-005",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Sparse vectors problem is a limitation (cluster_004); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_005",
+          "original_candidate_id": "candidate-23-005",
+          "label": "Sparse Vectors Problem",
+          "description": "When the vocabulary is large, document vectors become mostly zeros (sparse). Sparse vectors require significant memory and computation, posing challenges for machine learning algorithms.",
+          "coverage_criteria": [
+            "Student can define a sparse vector as one with many zero entries.",
+            "Student can explain why sparsity is problematic for ML modeling (memory, computational complexity)."
+          ],
+          "source_roles": [
+            "warning"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_paragraph",
+              "locator": "This is called a sparse vector. Sparse vectors require more memory and computational resources..."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article warns: 'A big document where the generated vocabulary is huge may result in a vector with lots of 0 values. This is called a sparse vector.' and notes the resource demands.",
+            "granularity_rationale": "This is a single, well-defined disadvantage that can be checked with a short explanation."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_006",
+        "original_candidate_id": "candidate-23-006",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Python implementation from scratch belongs to cluster_012; not part of core definition.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_006",
+          "original_candidate_id": "candidate-23-006",
+          "label": "Implementing BoW in Python",
+          "description": "The BoW algorithm can be implemented in Python by writing functions to clean and tokenize text, build a vocabulary from all sentences, and generate count vectors using a fixed vocabulary.",
+          "coverage_criteria": [
+            "Student can outline the key Python functions: word extraction with regex and stopword removal, vocabulary collection, and vector generation using NumPy.",
+            "Student can identify that vector generation iterates over each sentence and increments counts for known vocabulary words."
+          ],
+          "source_roles": [
+            "demonstrating",
+            "implementing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Coding our BOW algorithm"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article provides a complete Python implementation with functions: word_extraction, tokenize, and generate_bow.",
+            "granularity_rationale": "This is a practical coding concept that can be assessed by asking students to explain the code or complete similar functions."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_007",
+        "original_candidate_id": "candidate-23-007",
+        "pruning_reason": "near_duplicate",
+        "explanation": "NLTK for stopwords is a preprocessing tool (cluster_011); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_007",
+          "original_candidate_id": "candidate-23-007",
+          "label": "Using NLTK for Stopwords",
+          "description": "Instead of manually listing stopwords, Python's NLTK library provides predefined language-specific stopword lists, such as nltk.corpus.stopwords.words('english').",
+          "coverage_criteria": [
+            "Student can recall that NLTK offers a built-in stopwords corpus.",
+            "Student can write a snippet to import stopwords from NLTK."
+          ],
+          "source_roles": [
+            "referencing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_code",
+              "locator": "import nltk\nfrom nltk.corpus import stopwords\nset(stopwords.words('english'))"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article mentions: 'For more robust implementation of stopwords, you can use python nltk library.' and gives an example.",
+            "granularity_rationale": "This is a small, checkable tool-specific fact that supports the BoW implementation."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_008",
+        "original_candidate_id": "candidate-23-008",
+        "pruning_reason": "near_duplicate",
+        "explanation": "CountVectorizer from scikit-learn belongs to cluster_009; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_008",
+          "original_candidate_id": "candidate-23-008",
+          "label": "CountVectorizer from scikit-learn",
+          "description": "Scikit-learn's CountVectorizer provides a ready-to-use BoW implementation, converting a collection of text documents to a matrix of token counts.",
+          "coverage_criteria": [
+            "Student can identify that CountVectorizer replaces custom BoW code.",
+            "Student can write basic usage: CountVectorizer().fit_transform(sentences).toarray()."
+          ],
+          "source_roles": [
+            "referencing",
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_code",
+              "locator": "from sklearn.feature_extraction.text import CountVectorizer..."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article shows: 'Our previous code can be replaced with: from sklearn.feature_extraction.text import CountVectorizer ...'",
+            "granularity_rationale": "This is a concrete tool-based concept that can be quickly checked with a code snippet."
+          }
+        }
+      },
+      {
+        "candidate_id": "c23_pro_thinking_009",
+        "original_candidate_id": "candidate-23-009",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Limitations of BoW are covered in cluster_004; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c23_pro_thinking_009",
+          "original_candidate_id": "candidate-23-009",
+          "label": "Limitations of BoW",
+          "description": "BoW ignores semantic meaning and word order, making it unable to capture context or phrases. It also produces large sparse vectors for large vocabularies.",
+          "coverage_criteria": [
+            "Student can state that BoW loses semantic meaning and context.",
+            "Student can explain that large vocabularies lead to high-dimensional sparse vectors."
+          ],
+          "source_roles": [
+            "warning"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "23",
+          "source_name": "An introduction to Bag of Words and how to code it in Python for NLP",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Limitations of BOW"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article explicitly lists limitations: 'Semantic meaning: ... It completely ignores the context...' and 'Vector size: For a large document, the vector size can be huge...'",
+            "granularity_rationale": "This is a concise, assessable set of disadvantages that can be checked with a single question."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_001",
+        "original_candidate_id": "candidate-24-001",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Need for numerical conversion is covered in cluster_007; not a core BOW definition.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_001",
+          "original_candidate_id": "candidate-24-001",
+          "label": "Computadores interpretam textos por conversão numérica",
+          "description": "Computadores trabalham com bases numéricas e, para processar linguagem natural, o texto deve ser convertido para representações numéricas compreensíveis pela máquina.",
+          "coverage_criteria": [
+            "Explicar por que dados textuais precisam ser convertidos em números para processamento computacional."
+          ],
+          "source_roles": [
+            "introducing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Interpretação de dados textuais"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto na seção 'Interpretação de dados textuais' afirma que computadores trabalham com números e que a linguagem natural deve ser convertida para que a máquina compreenda.",
+            "granularity_rationale": "Conceito fundamental e independente que pode ser verificado com uma explicação direta."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_002",
+        "original_candidate_id": "candidate-24-002",
+        "pruning_reason": "near_duplicate",
+        "explanation": "ML requires numerical input (cluster_007); pruned from this merge.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_002",
+          "original_candidate_id": "candidate-24-002",
+          "label": "Algoritmos de aprendizagem de máquina requerem entrada numérica",
+          "description": "Algoritmos de aprendizagem de máquina aprendem uma função de mapeamento Y=f(X) e, portanto, exigem variáveis de entrada (X) numéricas e geram saída (Y) numérica, com erro irredutível.",
+          "coverage_criteria": [
+            "Descrever a formulação Y=f(X) e explicar por que a entrada deve ser numérica em algoritmos de ML."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Interpretação de dados textuais"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "No texto, após introduzir conversão numérica, afirma-se que algoritmos de ML se baseiam em valores numéricos e que a formulação geral é Y = f(X) + e.",
+            "granularity_rationale": "Conceito que encapsula a justificativa da vetorização; testável com perguntas sobre mapeamento."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_003",
+        "original_candidate_id": "candidate-24-003",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Text vectorization for ML is a broader concept (cluster_008); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_003",
+          "original_candidate_id": "candidate-24-003",
+          "label": "Vetorização de textos é extração de características para ML",
+          "description": "Vetorização (ou extração de características) é o processo de transformar documentos em representações vetoriais numéricas para que algoritmos de ML possam operar, criando uma matriz onde linhas são instâncias e colunas são características.",
+          "coverage_criteria": [
+            "Definir vetorização de textos e explicar seu propósito para aprendizado de máquina."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Vetorização de textos"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "A seção 'Vetorização de textos' explica que algoritmos de ML esperam matriz numérica e que vetorização é o primeiro passo essencial para análise de linguagem.",
+            "granularity_rationale": "Conceito central que conecta PLN e ML; adequado para questões de definição e justificativa."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_005",
+        "original_candidate_id": "candidate-24-005",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Steps of BoW algorithm are covered in cluster_003; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_005",
+          "original_candidate_id": "candidate-24-005",
+          "label": "Etapas do algoritmo Bag of Words",
+          "description": "O BoW é implementado em quatro etapas: (1) limpar o texto removendo stopwords e pontuação, (2) extrair tokens conforme a necessidade, (3) construir o vocabulário com tokens únicos, (4) gerar vetores de frequência para cada documento.",
+          "coverage_criteria": [
+            "Listar e descrever as quatro etapas do BoW."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "A seção 'Algoritmo bag of words' enumera claramente as quatro etapas, fornecendo um procedimento passo a passo.",
+            "granularity_rationale": "Conjunto de passos bem definido que pode ser verificado com uma lista e breve explicação."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_006",
+        "original_candidate_id": "candidate-24-006",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Vocabulary and sparsity details (cluster_002); pruned from core definition.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_006",
+          "original_candidate_id": "candidate-24-006",
+          "label": "Vocabulário e esparsidade em BoW",
+          "description": "O vocabulário é o conjunto de todos os tokens únicos extraídos; cada documento gera um vetor de tamanho igual ao vocabulário, com zeros para palavras ausentes, resultando em vetores esparsos que podem ser problemáticos para armazenamento/processamento.",
+          "coverage_criteria": [
+            "Explicar o que é vocabulário no contexto BoW e por que os vetores são esparsos."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto apresenta o conceito de vocabulário após exemplificar a contagem de palavras e destaca que a presença de muitos zeros gera vetores esparsos.",
+            "granularity_rationale": "Propriedade importante do BoW que motiva técnicas de redução; verificável com definições e exemplos."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_007",
+        "original_candidate_id": "candidate-24-007",
+        "pruning_reason": "near_duplicate",
+        "explanation": "CountVectorizer introduction belongs to cluster_009; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_007",
+          "original_candidate_id": "candidate-24-007",
+          "label": "CountVectorizer: vetorizador por contagem no Scikit-learn",
+          "description": "CountVectorizer é um vetorizador do Scikit-learn que implementa BoW contando o número de ocorrências de cada termo em cada documento, gerando uma matriz termo-documento.",
+          "coverage_criteria": [
+            "Descrever o que é CountVectorizer e para que serve."
+          ],
+          "source_roles": [
+            "introducing",
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto apresenta o CountVectorizer como o mais simples dos três vetorizadores do Scikit-learn, explicando que conta ocorrências.",
+            "granularity_rationale": "Conceito de ferramenta específica que pode ser testado com definição e identificação de uso."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_008",
+        "original_candidate_id": "candidate-24-008",
+        "pruning_reason": "near_duplicate",
+        "explanation": "CountVectorizer parameters are part of cluster_010; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_008",
+          "original_candidate_id": "candidate-24-008",
+          "label": "Parâmetros principais do CountVectorizer",
+          "description": "O CountVectorizer aceita diversos parâmetros para controlar pré-processamento e tokenização, incluindo lowercase, stop_words, token_pattern, ngram_range, analyzer, max_df, min_df, max_features, vocabulary, e binary.",
+          "coverage_criteria": [
+            "Listar pelo menos cinco parâmetros do CountVectorizer e explicar brevemente suas funções."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto dedica várias páginas a enumerar e explicar os parâmetros do CountVectorizer, mostrando sua importância para customização.",
+            "granularity_rationale": "Conjunto de detalhes de configuração que pode ser avaliado com perguntas de reconhecimento ou aplicação."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_009",
+        "original_candidate_id": "candidate-24-009",
+        "pruning_reason": "near_duplicate",
+        "explanation": "HashVectorizer is in cluster_009; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_009",
+          "original_candidate_id": "candidate-24-009",
+          "label": "HashVectorizer: vetorização por hashing",
+          "description": "HashVectorizer é um vetorizador do Scikit-learn que aplica uma função hash para codificar termos como índices numéricos, economizando memória, mas impossibilitando a recuperação dos nomes das características originais.",
+          "coverage_criteria": [
+            "Explicar a vantagem e desvantagem do HashVectorizer em relação ao CountVectorizer."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto menciona HashVectorizer como alternativa eficiente em memória, mas com perda de nomes de features.",
+            "granularity_rationale": "Conceito comparativo que pode ser verificado com uma questão de contraste."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_010",
+        "original_candidate_id": "candidate-24-010",
+        "pruning_reason": "near_duplicate",
+        "explanation": "TfidfVectorizer is in cluster_009; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_010",
+          "original_candidate_id": "candidate-24-010",
+          "label": "TfidfVectorizer: ponderação TF-IDF",
+          "description": "TfidfVectorizer é um vetorizador do Scikit-learn que atribui pesos aos termos combinando a frequência no documento (TF) e a frequência inversa no corpus (IDF), dando maior importância a termos discriminativos.",
+          "coverage_criteria": [
+            "Explicar o que significa TF-IDF e como difere da contagem simples."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto apresenta TfidfVectorizer como uma alternativa que considera não apenas frequência local, mas também recorrência em todo o conjunto de documentos.",
+            "granularity_rationale": "Conceito fundamental em recuperação de informação; pode ser testado com definição e exemplo."
+          }
+        }
+      },
+      {
+        "candidate_id": "c24_pro_thinking_011",
+        "original_candidate_id": "candidate-24-011",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Usage example of CountVectorizer (cluster_010); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c24_pro_thinking_011",
+          "original_candidate_id": "candidate-24-011",
+          "label": "Uso do CountVectorizer em Python",
+          "description": "Exemplo prático de como usar o CountVectorizer em Python: importar a biblioteca, instanciar com parâmetros (ex.: lowercase=False), aplicar fit_transform ao texto para gerar a matriz termo-documento, e obter os nomes das features com get_feature_names().",
+          "coverage_criteria": [
+            "Escrever um trecho de código Python que use CountVectorizer para vetorizar um pequeno texto e recuperar o vocabulário."
+          ],
+          "source_roles": [
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "24",
+          "source_name": "Representação vetorial de textos - bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "Algoritmo bag of words"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "O texto fornece um exemplo completo com código e saída, ensinando a aplicar o CountVectorizer.",
+            "granularity_rationale": "Habilidade prática que pode ser verificada com um exercício de codificação simples."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_001",
+        "original_candidate_id": "candidate-25-001",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Natural language challenges (cluster_007); pruned from core BOW definition.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_001",
+          "original_candidate_id": "candidate-25-001",
+          "label": "Natural Language Challenges",
+          "description": "Natural language has inherent structure but is free-form; the same meaning can be expressed in many ways, and similar words can convey different meanings.",
+          "coverage_criteria": [
+            "Student can give examples of sentences with subtle meaning differences due to word choice or emphasis, and explain why NLP requires different approaches."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[00:00] Introduction to Natural Language Processing Challenges"
+            },
+            {
+              "kind": "markdown_heading",
+              "locator": "[00:46] The Special Nature of Natural Language"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The video opens by discussing unique challenges of natural language that separate it from other data types, providing examples of sentences with nuanced meanings.",
+            "granularity_rationale": "This is a foundational understanding needed to appreciate why BoW and other encoding methods exist; it can be checked with a few examples or explanation."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_002",
+        "original_candidate_id": "candidate-25-002",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Data representation as matrices (cluster_007); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_002",
+          "original_candidate_id": "candidate-25-002",
+          "label": "Data Representation as Matrices in Machine Learning",
+          "description": "Machine learning models typically operate on numerical matrices; images and structured data map naturally to matrices, but text requires a conversion step.",
+          "coverage_criteria": [
+            "Student can explain why images and spreadsheet data are naturally matrices, and why text needs encoding before being used as input to ML models."
+          ],
+          "source_roles": [
+            "introducing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[01:03] Converting Data to Matrices"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The source emphasizes turning data into matrices, using images as an example of inherent matrix representation, to motivate the need for text encoding.",
+            "granularity_rationale": "This concept is a prerequisite for understanding BoW's purpose and can be assessed by asking about data preprocessing in ML."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_005",
+        "original_candidate_id": "candidate-25-005",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Binary vector encoding is a specific encoding method (cluster_003); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_005",
+          "original_candidate_id": "candidate-25-005",
+          "label": "Binary Vector Encoding for Text in BoW",
+          "description": "A sentence is encoded as a binary vector of length equal to vocabulary size, with 1s at positions corresponding to present words and 0s elsewhere.",
+          "coverage_criteria": [
+            "Given a vocabulary and a sentence, student can produce the binary vector encoding."
+          ],
+          "source_roles": [
+            "explaining",
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[02:35] Encoding the Sentence into an Array"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The video explicitly shows setting array indices to 1 for words like 'plot', 'dataframe', 'graph' and 0 for others, with a visual example.",
+            "granularity_rationale": "This is the core encoding mechanism; it's small enough to test by having a student encode a sample sentence."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_007",
+        "original_candidate_id": "candidate-25-007",
+        "pruning_reason": "near_duplicate",
+        "explanation": "ML as mapping numbers (cluster_007); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_007",
+          "original_candidate_id": "candidate-25-007",
+          "label": "Machine Learning as Mapping Numbers to Numbers",
+          "description": "After encoding text and labels into numerical arrays, ML models simply learn a function mapping input numbers to output numbers; preprocessing is the key transformation.",
+          "coverage_criteria": [
+            "Student can explain how BoW preprocessing turns a text classification problem into a standard numerical prediction task."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The video states 'we can let machine learning do what it does best--map one set of numbers to another set of numbers' and emphasizes the heavy lifting in preprocessing.",
+            "granularity_rationale": "This high-level insight is useful for understanding the ML pipeline; it's a single idea, checkable by asking to describe the transformation from text to numbers in a classification task."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_008",
+        "original_candidate_id": "candidate-25-008",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Effectiveness of simple BoW is covered in cluster_006; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_008",
+          "original_candidate_id": "candidate-25-008",
+          "label": "Effectiveness of Simple Bag of Words",
+          "description": "Despite its simplicity and disregard for word order, Bag of Words can perform surprisingly well in many text classification tasks.",
+          "coverage_criteria": [
+            "Student can provide examples or reasoning for when BoW might work well (e.g., topic classification where presence of words is discriminative)."
+          ],
+          "source_roles": [
+            "explaining",
+            "referencing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The video notes 'it might surprise you how well it works in some situations,' highlighting its practical utility.",
+            "granularity_rationale": "This is a key takeaway about BoW's performance; it's a single concept checkable by asking for advantages or scenarios where BoW is effective."
+          }
+        }
+      },
+      {
+        "candidate_id": "c25_pro_thinking_009",
+        "original_candidate_id": "candidate-25-009",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Keras Tokenizer usage belongs to cluster_005; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c25_pro_thinking_009",
+          "original_candidate_id": "candidate-25-009",
+          "label": "Keras Tokenizer for Bag of Words Implementation",
+          "description": "Keras provides a Tokenizer class that can be configured with a vocabulary size (num_words), fit on training texts, and then used to convert text into a binary matrix (texts_to_matrix).",
+          "coverage_criteria": [
+            "Student can write code using Keras Tokenizer to create a BoW representation from a corpus of texts."
+          ],
+          "source_roles": [
+            "demonstrating",
+            "implementing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "25",
+          "source_name": "Getting started with Natural Language Processing: Bag of words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "[04:28] Encoding Text with Keras"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The video shows actual code: tokenize = keras.preprocessing.text.Tokenizer(num_words=400), .fit_on_texts, .texts_to_matrix, providing a hands-on implementation.",
+            "granularity_rationale": "This is a specific tool usage that can be assessed by asking a student to write a snippet or explain the steps."
+          }
+        }
+      },
+      {
+        "candidate_id": "c26_pro_thinking_002",
+        "original_candidate_id": "candidate-26-002",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Vocabulary construction is a separate step (cluster_002); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c26_pro_thinking_002",
+          "original_candidate_id": "candidate-26-002",
+          "label": "Vocabulary Construction in BOW",
+          "description": "The first step in building a BOW model is to define a vocabulary, which is the set of all unique words appearing in the document corpus.",
+          "coverage_criteria": [
+            "Student can describe how the vocabulary is determined for a BOW model, e.g., collecting all unique words from the documents."
+          ],
+          "source_roles": [
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "26",
+          "source_name": "ATIVIDADE: Bag of Words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "### Step 1: Determine the Vocabulary"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article explains Step 1: Determine the Vocabulary, stating 'We first define our vocabulary, which is the set of all words found in our document set.'",
+            "granularity_rationale": "This is a distinct step in the BOW process, checkable by asking how to construct the vocabulary."
+          }
+        }
+      },
+      {
+        "candidate_id": "c26_pro_thinking_003",
+        "original_candidate_id": "candidate-26-003",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Word counting for vectorization is part of cluster_003; pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c26_pro_thinking_003",
+          "original_candidate_id": "candidate-26-003",
+          "label": "Word Counting for BOW Vectorization",
+          "description": "Once the vocabulary is set, each document is represented as a count vector where each dimension corresponds to a vocabulary word and the value is the frequency of that word in the document.",
+          "coverage_criteria": [
+            "Student can explain how to convert a document into a BOW vector by counting word occurrences."
+          ],
+          "source_roles": [
+            "demonstrating"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "26",
+          "source_name": "ATIVIDADE: Bag of Words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "### Step 2: Count"
+            },
+            {
+              "kind": "markdown_table",
+              "locator": "Table of word counts for three documents"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article provides a table showing how each document's word counts produce length-6 vectors and states 'To vectorize our documents, all we have to do is count how many times each word appears'.",
+            "granularity_rationale": "This is the core mechanistic step, essential for understanding BOW; it can be checked by asking to compute a BOW vector for a simple example."
+          }
+        }
+      },
+      {
+        "candidate_id": "c26_pro_thinking_004",
+        "original_candidate_id": "candidate-26-004",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Loss of word order is a limitation (cluster_004); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c26_pro_thinking_004",
+          "original_candidate_id": "candidate-26-004",
+          "label": "Bag-of-Words Loses Word Order",
+          "description": "The bag-of-words model discards the order of words, treating documents as unordered collections, which means it cannot capture syntactic or semantic nuances that depend on word sequence.",
+          "coverage_criteria": [
+            "Student can state that BOW does not preserve word order and can give an example of potential information loss."
+          ],
+          "source_roles": [
+            "warning",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "26",
+          "source_name": "ATIVIDADE: Bag of Words",
+          "anchors": [
+            {
+              "kind": "markdown_paragraph",
+              "locator": "Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW."
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article warns: 'Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It’s like a literal bag-of-words...'",
+            "granularity_rationale": "This is a key limitation that affects model selection; it's a distinct teachable point."
+          }
+        }
+      },
+      {
+        "candidate_id": "c26_pro_thinking_005",
+        "original_candidate_id": "candidate-26-005",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Implementation with Keras Tokenizer (cluster_005); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c26_pro_thinking_005",
+          "original_candidate_id": "candidate-26-005",
+          "label": "Implementing BOW with Keras Tokenizer",
+          "description": "The BOW model can be implemented in Python using Keras' Tokenizer class: fit_on_texts to build the vocabulary and texts_to_matrix with mode='count' to produce count vectors.",
+          "coverage_criteria": [
+            "Student can write Python code to vectorize documents using Keras Tokenizer for BOW."
+          ],
+          "source_roles": [
+            "implementing"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "26",
+          "source_name": "ATIVIDADE: Bag of Words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "## Implementing BOW in Python"
+            },
+            {
+              "kind": "markdown_code_block",
+              "locator": "Python code using Tokenizer and texts_to_matrix"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article provides a code example using Tokenizer from keras.preprocessing.text, showing how to fit and transform documents.",
+            "granularity_rationale": "This is a practical skill that can be checked by asking to implement BOW on a small text corpus."
+          }
+        }
+      },
+      {
+        "candidate_id": "c26_pro_thinking_006",
+        "original_candidate_id": "candidate-26-006",
+        "pruning_reason": "near_duplicate",
+        "explanation": "Use cases for BOW (cluster_006); pruned.",
+        "candidate_snapshot": {
+          "candidate_id": "c26_pro_thinking_006",
+          "original_candidate_id": "candidate-26-006",
+          "label": "Use Cases for Bag-of-Words",
+          "description": "BOW is commonly used for Natural Language Processing tasks such as text classification and profanity detection, valued for its simplicity and low computational cost.",
+          "coverage_criteria": [
+            "Student can list at least two applications of BOW in NLP."
+          ],
+          "source_roles": [
+            "referencing",
+            "explaining"
+          ],
+          "evidence_type": "source_body",
+          "self_study_id": "26",
+          "source_name": "ATIVIDADE: Bag of Words",
+          "anchors": [
+            {
+              "kind": "markdown_heading",
+              "locator": "## How is BOW useful?"
+            }
+          ],
+          "extraction_reason": {
+            "source_grounded_rationale": "The article states: 'BOW is often used for Natural Language Processing tasks like Text Classification' and mentions a blog post on profanity detection using BOW.",
+            "granularity_rationale": "This addresses the practical significance of BOW, checkable by asking for its typical uses."
+          }
+        }
+      }
+    ],
+    "review_candidates": [],
+    "candidate_assignments": [
+      {
+        "candidate_id": "c22_pro_thinking_001",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_001__lr001"
+        ]
+      },
+      {
+        "candidate_id": "c23_pro_thinking_001",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Defines BOW identically to the primary candidate; does not add distinct teachable content.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-001"
+      },
+      {
+        "candidate_id": "c24_pro_thinking_004",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Portuguese explanation of BOW matches the same core definition; no need for separate concept.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-001"
+      },
+      {
+        "candidate_id": "c25_pro_thinking_003",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Video demonstration of BOW encoding aligns with the textual definitions; covered by lr001.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-001"
+      },
+      {
+        "candidate_id": "c26_pro_thinking_001",
+        "status": "merged_into",
+        "merged_into": "batch_001__lr001",
+        "explanation": "Nearly identical definition from another source; merged into the unified BOW concept.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-001"
+      },
+      {
+        "candidate_id": "c22_pro_thinking_002",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Vocabulary construction is an implicit part of BOW definition and will be covered in a separate concept when evaluating cluster_002, but for this cluster_001 batch it is not directly merged into lr001 as it represents a distinct component. Pruned here because it is outside the scope of cluster_001's core definition merge, but will be addressed later."
+      },
+      {
+        "candidate_id": "c22_pro_thinking_003",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Vectorization steps are covered by the core BOW process; they are distinct enough for separate treatment but not part of this cluster's merge. Pruned from this batch to be handled in its own cluster."
+      },
+      {
+        "candidate_id": "c22_pro_thinking_004",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Context loss is a limitation discussed in cluster_004; not merged into the core definition concept."
+      },
+      {
+        "candidate_id": "c22_pro_thinking_005",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Implementation detail using Keras Tokenizer belongs to cluster_005; pruned here."
+      },
+      {
+        "candidate_id": "c22_pro_thinking_006",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Applications and strengths are covered by cluster_006; not merged into lr001."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_002",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "BoW pipeline steps are covered in cluster_002; not part of this core definition merge."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_003",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Tokenization and stopword removal belong to preprocessing (cluster_011); pruned from this core concept."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_004",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Vector representation details are part of vectorization steps (cluster_003); not merged here."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_005",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Sparse vectors problem is a limitation (cluster_004); pruned."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_006",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Python implementation from scratch belongs to cluster_012; not part of core definition."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_007",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "NLTK for stopwords is a preprocessing tool (cluster_011); pruned."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_008",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "CountVectorizer from scikit-learn belongs to cluster_009; pruned."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_009",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Limitations of BoW are covered in cluster_004; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_001",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Need for numerical conversion is covered in cluster_007; not a core BOW definition."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_002",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "ML requires numerical input (cluster_007); pruned from this merge."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_003",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Text vectorization for ML is a broader concept (cluster_008); pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_005",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Steps of BoW algorithm are covered in cluster_003; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_006",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Vocabulary and sparsity details (cluster_002); pruned from core definition."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_007",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "CountVectorizer introduction belongs to cluster_009; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_008",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "CountVectorizer parameters are part of cluster_010; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_009",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "HashVectorizer is in cluster_009; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_010",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "TfidfVectorizer is in cluster_009; pruned."
+      },
+      {
+        "candidate_id": "c24_pro_thinking_011",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Usage example of CountVectorizer (cluster_010); pruned."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_001",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Natural language challenges (cluster_007); pruned from core BOW definition."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_002",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Data representation as matrices (cluster_007); pruned."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_005",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Binary vector encoding is a specific encoding method (cluster_003); pruned."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_007",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "ML as mapping numbers (cluster_007); pruned."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_008",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Effectiveness of simple BoW is covered in cluster_006; pruned."
+      },
+      {
+        "candidate_id": "c25_pro_thinking_009",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Keras Tokenizer usage belongs to cluster_005; pruned."
+      },
+      {
+        "candidate_id": "c26_pro_thinking_002",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Vocabulary construction is a separate step (cluster_002); pruned."
+      },
+      {
+        "candidate_id": "c26_pro_thinking_003",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Word counting for vectorization is part of cluster_003; pruned."
+      },
+      {
+        "candidate_id": "c26_pro_thinking_004",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Loss of word order is a limitation (cluster_004); pruned."
+      },
+      {
+        "candidate_id": "c26_pro_thinking_005",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Implementation with Keras Tokenizer (cluster_005); pruned."
+      },
+      {
+        "candidate_id": "c26_pro_thinking_006",
+        "status": "pruned",
+        "reason": "near_duplicate",
+        "explanation": "Use cases for BOW (cluster_006); pruned."
+      },
+      {
+        "candidate_id": "c23_pro_thinking_010",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr001"
+        ]
+      },
+      {
+        "candidate_id": "c25_pro_thinking_006",
+        "status": "merged_into",
+        "merged_into": "batch_002__lr002",
+        "explanation": "This candidate on label encoding is merged with the model architecture candidate (c25_pro_thinking_010) to form a unified multi-label classification concept, avoiding fragmentation.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-003"
+      },
+      {
+        "candidate_id": "c25_pro_thinking_010",
+        "status": "merged_into",
+        "merged_into": "batch_002__lr002",
+        "explanation": "This candidate on sigmoid activation and binary cross-entropy is merged with the label encoding candidate (c25_pro_thinking_006) to provide a complete multi-label configuration concept.",
+        "merged_into_reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow-003"
+      },
+      {
+        "candidate_id": "c25_pro_thinking_004",
+        "status": "used_in",
+        "accepted_ids": [
+          "batch_002__lr003"
+        ]
+      }
+    ]
+  },
+  "notes_for_judge": [
+    "Do not assume a candidate is good because it is source-backed.",
+    "Review means not accepted and not pruned; in some cases it may be a deterministic fallback after omission.",
+    "Judge against the lesson metadata and the project concept definition, not against labels only."
+  ]
+}

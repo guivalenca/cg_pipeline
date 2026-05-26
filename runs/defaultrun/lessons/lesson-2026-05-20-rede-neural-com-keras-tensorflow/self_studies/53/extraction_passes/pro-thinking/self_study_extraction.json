@@ -1,0 +1,317 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:23:19.782148+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "self_study_id": "53",
+  "source_body_path": "extraction/post-image/0053-video-getting-started-with-keras.md",
+  "source_body_sha256": "72d3a215229fb65e8701cced4e5a4cf2041c365ce1ca5929e8a3383d2c445557",
+  "source_name": "Getting Started with Keras",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-53-001",
+      "label": "Keras high-level neural networks API",
+      "description": "Keras is a high-level API for building and training neural networks, available both as a standalone library and integrated into TensorFlow as tf.keras, offering a simple and intuitive interface.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "Explain that Keras is available standalone and integrated into TensorFlow."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces Keras in the opening segment, explaining what it is and how it relates to TensorFlow, with on-screen code showing tensorflow.keras.",
+        "granularity_rationale": "This candidate captures the essential definition and scope of Keras, which is a foundational concept checkable through a couple of direct questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:00] Introduction to Keras"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "TensorFlow"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-002",
+      "label": "Using Kaggle Kernels for Keras without local installation",
+      "description": "Kaggle Kernels provide a cloud-based Python environment with Keras pre-installed, allowing users to start building models immediately without any setup.",
+      "coverage_criteria": [
+        "Describe how Kaggle Kernels eliminate the need for local installation of Keras.",
+        "State that Keras is available by default in Kaggle Python environments."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly demonstrates using Kaggle Kernels, noting that you don't have to install or configure anything, and shows the Kernel UI.",
+        "granularity_rationale": "This is a single, practical piece of knowledge about a tool that enables immediate hands-on practice, easily checkable with a short question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:41] Keras Integration and Kaggle Kernels"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Kaggle Kernels",
+        "Keras"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-003",
+      "label": "Normalizing grayscale image data for neural network input",
+      "description": "Pixel values in grayscale images (originally 0–255) should be divided by 255 to normalize them to a [0,1] range, improving neural network training stability.",
+      "coverage_criteria": [
+        "Explain why image pixel values are normalized to [0,1].",
+        "Identify the operation used (dividing by 255)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video walks through a preprocessing function that divides pixel values by 255, showing the resulting normalized array.",
+        "granularity_rationale": "This is a specific, actionable step in data preparation that can be checked by asking for the purpose and method of normalization."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:52] Preprocessing the Data"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Fashion-MNIST"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-004",
+      "label": "One‑hot encoding for categorical labels in Keras",
+      "description": "Categorical labels must be converted to one-hot encoded vectors (e.g., using tf.keras.utils.to_categorical) so that the neural network output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Define one-hot encoding for classification labels.",
+        "Name the Keras utility function that performs one-hot encoding."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly explains one-hot encoding, demonstrates the transformation with code, and shows the resulting array.",
+        "granularity_rationale": "This candidate covers a single transformation step required for multi-class classification, checkable by asking what it is and how to apply it in Keras."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:21] Convert Labels to One-Hot Encoding"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "tf.keras.utils.to_categorical"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-005",
+      "label": "Building a Sequential model with Dense layers",
+      "description": "A neural network in Keras can be constructed as a Sequential model by stacking Dense layers with specified neuron counts and activation functions (e.g., relu for hidden layers, softmax for output).",
+      "coverage_criteria": [
+        "Write code to create a Sequential model and add at least one Dense layer.",
+        "Explain the role of the activation parameter in Dense layers."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video builds a model step by step, adding three Dense layers, and explains the purpose of each activation function.",
+        "granularity_rationale": "Model creation is a core skill; this candidate isolates the Sequential + Dense pattern, easily tested by asking for a code snippet or explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:34] Creating the Model"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "Sequential",
+        "Dense",
+        "relu",
+        "softmax"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-006",
+      "label": "Compiling a Keras model with loss, optimizer, and metrics",
+      "description": "Before training, a Keras model must be compiled by specifying the loss function (e.g., categorical_crossentropy), optimizer (e.g., rmsprop), and metrics (e.g., accuracy) to configure the learning process.",
+      "coverage_criteria": [
+        "List the three main arguments to model.compile and their purposes.",
+        "Choose appropriate values for a classification problem."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explains the compile step and shows the exact code used for a classification task, discussing why categorical crossentropy is chosen.",
+        "granularity_rationale": "Compiling is a distinct, small step in the Keras workflow; it can be checked by asking what arguments are required and why."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:34] Creating the Model"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "categorical_crossentropy",
+        "RMSprop"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-007",
+      "label": "Training a Keras model with model.fit",
+      "description": "The model.fit method trains the model on features and labels, controlled by epochs (number of passes over the data) and batch_size (samples per gradient update), and outputs loss and accuracy.",
+      "coverage_criteria": [
+        "Identify the purpose of epochs and batch_size in model.fit.",
+        "Write a model.fit call with appropriate arguments."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates training by calling model.fit with epochs=2 and batch_size=128, and describes what each parameter means.",
+        "granularity_rationale": "Training is a fundamental operation; this candidate focuses on the essential fit method and its two key hyperparameters, easily tested with a short exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[06:06] Training with Keras"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "model.fit"
+      ]
+    },
+    {
+      "candidate_id": "candidate-53-008",
+      "label": "Evaluating a trained model on test data",
+      "description": "After training, model.evaluate computes the loss and accuracy on a held-out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Explain the purpose of model.evaluate.",
+        "Write code to evaluate a model on test features and labels."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video calls model.evaluate with test data and prints the accuracy, explicitly stating that this gives a true measure of performance.",
+        "granularity_rationale": "Evaluation is a crucial final step in the pipeline; this candidate isolates the evaluate method and its role, checkable with a question about its use."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[06:06] Training with Keras"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting Started with Keras",
+      "source_year": "2018",
+      "name_drops": [
+        "Keras",
+        "model.evaluate"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-53-003",
+      "to_candidate_id": "candidate-53-004",
+      "reason": "After normalizing pixel data, the next preprocessing step is to one-hot encode the labels, and the video explicitly shows them in sequence.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:52] Preprocessing the Data"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:21] Convert Labels to One-Hot Encoding"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-53-005",
+      "to_candidate_id": "candidate-53-006",
+      "reason": "Once the model layers are defined, the video immediately compiles the model, demonstrating the natural flow from creation to compilation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:34] Creating the Model"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-53-006",
+      "to_candidate_id": "candidate-53-007",
+      "reason": "After compilation, the video proceeds directly to training with model.fit, connecting the preparation step to the actual learning process.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:34] Creating the Model"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[06:06] Training with Keras"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-53-007",
+      "to_candidate_id": "candidate-53-008",
+      "reason": "Right after training, the video evaluates the model on the test set, highlighting the importance of measuring performance on unseen data.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[06:06] Training with Keras"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 8,
+    "source_local_connector_candidate_count": 4
+  }
+}

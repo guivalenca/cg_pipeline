@@ -1,0 +1,157 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Building an MLP for regression",
+      "description": "Construct a regression neural network using Dense layers without activation on the output to predict continuous values.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific regression architecture with Keras."
+    },
+    {
+      "id": "lr002",
+      "label": "Building a CNN in Keras",
+      "description": "Construct a convolutional neural network using Conv2D, Activation, MaxPooling2D, Dropout, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_011"
+      ],
+      "merge_rationale": "Single candidate covering a complete CNN architecture with standard Keras layers."
+    },
+    {
+      "id": "lr003",
+      "label": "Building an RNN with LSTM",
+      "description": "Create a recurrent neural network by adding an Embedding layer and an LSTM layer with dropout, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_012"
+      ],
+      "merge_rationale": "Single candidate showing a compact RNN architecture with LSTM for sequence classification."
+    },
+    {
+      "id": "lr004",
+      "label": "Loading external data from a URL with NumPy",
+      "description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset from a URL and split it into feature matrix and target vector.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific data loading technique essential for training models."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c55_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Using Kaggle Kernels is an environment/setup convenience, not a teachable concept about building neural networks with Keras/TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_001",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "General definition of TensorFlow is not a lesson-local concept about building neural networks; it does not directly teach network construction."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "The computational graph approach is background information not required for hands‑on model building with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_003",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Historical facts about TensorFlow (Google Brain, release years) do not constitute a teachable concept for building neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_004",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "DistBelief is an obsolete predecessor; mentioning it is incidental and does not add to a lesson on current Keras/TensorFlow usage."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_005",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Design goals like flexibility and portability are marketing aspects, not actionable concepts for constructing neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_006",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "The TensorFlow ecosystem (TF.js, Lite, TFX) is too broad; the lesson focuses on core Keras model building, not deployment variants."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_007",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorBoard is a visualization tool supplementary to model building; it is not a central lesson concept."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_008",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Hub pre‑trained models are useful but not a primary concept for a lesson on building custom neural networks with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_009",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Generic ML model definition is a prerequisite, not specific to building neural networks with Keras/TensorFlow in this lesson."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_010",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Playground is an exploratory tool; it does not directly teach the construction of neural networks in Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_011",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Competitor comparisons (PyTorch, CNTK) are meta‑information that does not help a student build neural networks with Keras/TensorFlow."
+    }
+  ]
+}

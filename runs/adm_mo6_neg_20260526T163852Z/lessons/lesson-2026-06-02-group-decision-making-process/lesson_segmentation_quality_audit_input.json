@@ -1,0 +1,71 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "title": "Group decision-making process"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-explicit-decision-making-procedure-b536ebf3",
+      "label": "Explicit Decision-Making Procedure",
+      "teaching_description": "Groups should spell out the decision-making process ahead of time; following an explicit procedure leads to more effective decisions.",
+      "coverage_criteria": [
+        "Student can explain why clarifying the decision-making process in advance benefits group effectiveness.",
+        "Student can cite or summarize the research finding that explicit procedures improve decision quality."
+      ]
+    },
+    {
+      "concept_id": "concept-strategies-for-effective-group-discussion-39c797f1",
+      "label": "Strategies for Effective Group Discussion",
+      "teaching_description": "Practical techniques to improve group decision-making, including encouraging all members to participate and thoroughly discussing the advantages and disadvantages of each option before deciding.",
+      "coverage_criteria": [
+        "Student can explain why encouraging broad participation and discussing pros and cons lead to better group decisions."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Key Principles for Effective Group Decisions",
+      "concept_ids": [
+        "concept-explicit-decision-making-procedure-b536ebf3",
+        "concept-strategies-for-effective-group-discussion-39c797f1"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

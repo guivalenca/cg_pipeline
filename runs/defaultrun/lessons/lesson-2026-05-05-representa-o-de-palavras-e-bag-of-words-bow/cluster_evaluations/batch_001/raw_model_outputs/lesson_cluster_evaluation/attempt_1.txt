@@ -1,0 +1,377 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Bag-of-Words Model Definition",
+      "description": "The bag-of-words (BOW) model is a text representation technique that converts documents into fixed-length vectors by counting word occurrences, disregarding grammar and word order. It treats a document as an unordered collection of words.",
+      "coverage_criteria": [
+        "Define the BOW model and explain how it represents text as word count vectors.",
+        "Identify that BOW disregards word order and context."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_001", "c23_pro_thinking_001", "c24_pro_thinking_004", "c25_pro_thinking_003", "c26_pro_thinking_001"],
+      "merge_rationale": "These candidates all define the BOW model as a text representation based on word frequency, ignoring order, forming a single teachable concept."
+    },
+    {
+      "id": "lr002",
+      "label": "Vocabulary Construction in Bag-of-Words",
+      "description": "The vocabulary is the set of all unique words across the document corpus. It determines the dimensions of the BOW vectors. Each document is represented as a vector of length equal to the vocabulary size, where each position corresponds to a specific word.",
+      "coverage_criteria": [
+        "Define what the vocabulary is in BOW.",
+        "Explain how the vocabulary determines vector size and how out-of-vocabulary words are handled."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_002", "c23_pro_thinking_004", "c24_pro_thinking_006", "c25_pro_thinking_004", "c26_pro_thinking_002"],
+      "merge_rationale": "These candidates all focus on the concept of vocabulary in BOW: its construction, its role in defining vector dimensions, and its impact on encoding."
+    },
+    {
+      "id": "lr003",
+      "label": "BOW Vectorization Process",
+      "description": "The BOW vectorization process consists of determining the vocabulary (collecting unique words) and then counting the occurrences of each vocabulary word in each document to produce a count vector.",
+      "coverage_criteria": [
+        "List the steps for BOW vectorization (vocabulary construction and counting).",
+        "Apply counting to convert a small document into a BOW vector."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_003", "c23_pro_thinking_002", "c24_pro_thinking_005", "c26_pro_thinking_003"],
+      "merge_rationale": "These candidates describe the procedural steps of BOW vectorization, emphasizing the two core stages: vocabulary definition and word counting."
+    },
+    {
+      "id": "lr004",
+      "label": "Loss of Word Order and Context in BOW",
+      "description": "BOW discards the order of words, meaning it cannot capture syntax or semantics that depend on word sequence. This loss of contextual information is a fundamental limitation of the model.",
+      "coverage_criteria": [
+        "State that BOW does not preserve word order.",
+        "Provide an example of how meaning can be lost due to ignoring word order."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_004", "c23_pro_thinking_009", "c26_pro_thinking_004"],
+      "merge_rationale": "These candidates all highlight that BOW functions like a literal bag of words, losing positional and contextual information, which is a key drawback."
+    },
+    {
+      "id": "lr005",
+      "label": "Implementing BOW with Keras Tokenizer",
+      "description": "In Python, the Keras Tokenizer class can be used to implement BOW. After fitting on texts to build the vocabulary, texts_to_matrix with mode='count' generates count vectors.",
+      "coverage_criteria": [
+        "Write Python code to use Keras Tokenizer for BOW vectorization.",
+        "Explain the roles of fit_on_texts and texts_to_matrix."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_005", "c25_pro_thinking_009", "c26_pro_thinking_005"],
+      "merge_rationale": "These candidates demonstrate the implementation of BOW using the Keras Tokenizer API, a practical skill for the lesson."
+    },
+    {
+      "id": "lr006",
+      "label": "Applications and Strengths of BOW",
+      "description": "Despite its simplicity, BOW is effective for tasks like text classification and profanity detection. Its strengths are simplicity and low computational cost.",
+      "coverage_criteria": [
+        "Name two NLP applications where BOW is useful.",
+        "Explain why BOW's simplicity can be advantageous."
+      ],
+      "source_candidate_ids": ["c22_pro_thinking_006", "c25_pro_thinking_008", "c26_pro_thinking_006"],
+      "merge_rationale": "These candidates discuss the practical uses and benefits of BOW, providing context for why the model is still relevant."
+    },
+    {
+      "id": "lr007",
+      "label": "Text Preprocessing: Tokenization and Stopword Removal",
+      "description": "Tokenization splits text into individual words (tokens). Stopwords are common low-information words that are often removed to reduce noise and vocabulary size. NLTK provides built-in stopword lists.",
+      "coverage_criteria": [
+        "Define tokenization and stopword removal.",
+        "Write code to remove stopwords using NLTK."
+      ],
+      "source_candidate_ids": ["c23_pro_thinking_003", "c23_pro_thinking_007"],
+      "merge_rationale": "These candidates cover the preprocessing steps essential for BOW: tokenizing text and removing stopwords, which are often taught together."
+    },
+    {
+      "id": "lr008",
+      "label": "Sparse Vectors Problem",
+      "description": "When the vocabulary is large, BOW vectors become mostly zeros (sparse), leading to high memory usage and computational inefficiency.",
+      "coverage_criteria": [
+        "Define a sparse vector in the context of BOW.",
+        "Explain why sparsity is a challenge for machine learning."
+      ],
+      "source_candidate_ids": ["c23_pro_thinking_005"],
+      "merge_rationale": "This candidate represents a distinct limitation of BOW related to vector sparsity, worthy of its own concept."
+    },
+    {
+      "id": "lr009",
+      "label": "Implementing BOW from Scratch in Python",
+      "description": "BOW can be implemented manually by writing functions to tokenize, remove stopwords, build a vocabulary, and generate count vectors using basic Python and NumPy.",
+      "coverage_criteria": [
+        "Describe the key components of a from-scratch BOW implementation.",
+        "Write a simple function to generate a BOW vector from text."
+      ],
+      "source_candidate_ids": ["c23_pro_thinking_006"],
+      "merge_rationale": "This candidate provides a detailed manual implementation of BOW, which helps understand the underlying mechanics."
+    },
+    {
+      "id": "lr010",
+      "label": "Using Scikit-learn's CountVectorizer for BOW",
+      "description": "Scikit-learn's CountVectorizer offers a ready-to-use BOW implementation with parameters for preprocessing, tokenization, n-grams, and more, outputting a term-document matrix.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with common parameters.",
+        "Apply fit_transform to a list of texts and interpret the output."
+      ],
+      "source_candidate_ids": ["c23_pro_thinking_008", "c24_pro_thinking_007", "c24_pro_thinking_008", "c24_pro_thinking_011"],
+      "merge_rationale": "These candidates introduce CountVectorizer and its parameters, a practical tool for BOW in the scikit-learn ecosystem."
+    },
+    {
+      "id": "lr011",
+      "label": "N-gram Extension to Bag-of-Words",
+      "description": "BOW can be extended to n-grams (e.g., bigrams) where tokens are sequences of n consecutive words, partially capturing word order.",
+      "coverage_criteria": [
+        "Define an n-gram and give an example of bigrams.",
+        "Explain how n-grams address the loss-of-order limitation."
+      ],
+      "source_candidate_ids": ["c23_pro_thinking_010"],
+      "merge_rationale": "This candidate presents an important extension to basic BOW that captures some word order, adding depth to the lesson."
+    },
+    {
+      "id": "lr012",
+      "label": "Why Text Needs to Be Converted to Numbers for Machine Learning",
+      "description": "Machine learning algorithms require numerical input (matrices). Text data must be vectorized into feature vectors so that models can learn a mapping Y=f(X).",
+      "coverage_criteria": [
+        "Explain the necessity of numerical representation for ML models.",
+        "Describe the Y=f(X) formulation and the role of vectorization."
+      ],
+      "source_candidate_ids": ["c24_pro_thinking_001", "c24_pro_thinking_002", "c24_pro_thinking_003", "c25_pro_thinking_002", "c25_pro_thinking_007"],
+      "merge_rationale": "These candidates provide the foundational motivation for text vectorization, essential context for the BOW method."
+    },
+    {
+      "id": "lr013",
+      "label": "Binary Bag-of-Words Encoding",
+      "description": "In binary BOW, a sentence is represented by a binary vector where each dimension indicates the presence (1) or absence (0) of a vocabulary word, rather than its count.",
+      "coverage_criteria": [
+        "Differentiate between count-based and binary BOW.",
+        "Given a vocabulary and a sentence, produce a binary BOW vector."
+      ],
+      "source_candidate_ids": ["c25_pro_thinking_005"],
+      "merge_rationale": "This candidate introduces a specific encoding variant (binary/presence-based) of BOW, which is a distinct teachable sub-concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c22_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate defines the BOW model and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate defines the BOW model and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate defines the BOW model and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate defines the BOW model and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate defines the BOW model and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c22_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "This candidate focuses on the vocabulary concept and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "This candidate focuses on the vocabulary concept and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "This candidate focuses on the vocabulary concept and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "This candidate focuses on the vocabulary concept and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr002",
+      "explanation": "This candidate focuses on the vocabulary concept and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c22_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "This candidate describes the vectorization steps and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "This candidate describes the vectorization steps and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "This candidate describes the vectorization steps and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "This candidate describes the vectorization steps and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c22_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr004",
+      "explanation": "This candidate highlights loss of word order and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "lr004",
+      "explanation": "This candidate highlights loss of word order and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr004",
+      "explanation": "This candidate highlights loss of word order and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr013"],
+      "explanation": "This candidate is the sole source for the binary BOW encoding concept."
+    },
+    {
+      "candidate_id": "c22_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "This candidate demonstrates Keras Tokenizer usage and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "This candidate demonstrates Keras Tokenizer usage and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "lr005",
+      "explanation": "This candidate demonstrates Keras Tokenizer usage and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c22_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "This candidate discusses applications and strengths, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "This candidate discusses applications and strengths, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "lr006",
+      "explanation": "This candidate discusses applications and strengths, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr007",
+      "explanation": "This candidate covers tokenization and stopwords, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_007",
+      "status": "merged_into",
+      "merged_into": "lr007",
+      "explanation": "This candidate covers tokenization and stopwords, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr008"],
+      "explanation": "This candidate is the sole source for the sparse vectors problem concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr009"],
+      "explanation": "This candidate is the sole source for the from-scratch implementation concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "This candidate introduces CountVectorizer and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_007",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "This candidate introduces CountVectorizer and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "This candidate introduces CountVectorizer and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_011",
+      "status": "merged_into",
+      "merged_into": "lr010",
+      "explanation": "This candidate introduces CountVectorizer and is fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c23_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["lr011"],
+      "explanation": "This candidate is the sole source for the n-gram extension concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "lr012",
+      "explanation": "This candidate explains the need for numerical text representation, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr012",
+      "explanation": "This candidate explains the need for numerical text representation, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "lr012",
+      "explanation": "This candidate explains the need for numerical text representation, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "lr012",
+      "explanation": "This candidate explains the need for numerical text representation, fully represented by the accepted concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_007",
+      "status": "merged_into",
+      "merged_into": "lr012",
+      "explanation": "This candidate explains the need for numerical text representation, fully represented by the accepted concept."
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+    "title": "Heuristics and Biases"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-definition-and-everyday-examples-of-heuristics-6fdd5c91",
+      "label": "Definition and everyday examples of heuristics",
+      "teaching_description": "Heuristics are mental shortcuts or rules of thumb developed from past experiences that enable quick decisions, sacrificing optimality for speed. Everyday examples include choosing default outfits or ordering familiar food.",
+      "coverage_criteria": [
+        "Define heuristic and provide an everyday example.",
+        "Explain why heuristics prioritize speed over perfection."
+      ]
+    },
+    {
+      "concept_id": "concept-limitations-and-intellectual-humility-regarding-heuristics-d9f85aa5",
+      "label": "Limitations and intellectual humility regarding heuristics",
+      "teaching_description": "Heuristics can lead to over-reliance in areas like political views, causing uninformed positions and resistance to facts. Because of such errors, it is crucial to practice intellectual humility: acknowledging uncertainty and remaining open to opposing perspectives.",
+      "coverage_criteria": [
+        "Explain how heuristics can bias political opinions and why intellectual humility is important when relying on mental shortcuts."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introduction to Heuristics",
+      "concept_ids": [
+        "concept-definition-and-everyday-examples-of-heuristics-6fdd5c91"
+      ]
+    },
+    {
+      "label": "Limitations and Intellectual Humility",
+      "concept_ids": [
+        "concept-limitations-and-intellectual-humility-regarding-heuristics-d9f85aa5"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

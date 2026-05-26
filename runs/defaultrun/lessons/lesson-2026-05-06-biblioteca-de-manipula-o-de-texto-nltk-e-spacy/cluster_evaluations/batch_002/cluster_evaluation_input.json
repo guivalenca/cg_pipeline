@@ -1,0 +1,542 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Snowball Stemmer for multilingual stemming in NLTK",
+    "rationale": "This candidate presents the Snowball Stemmer, its language support, and comparison with Porter Stemmer.",
+    "candidate_ids": [
+      "c29_pro_thinking_003"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Snowball Stemmer for multilingual stemming in NLTK",
+      "rationale": "This candidate presents the Snowball Stemmer, its language support, and comparison with Porter Stemmer.",
+      "candidate_ids": [
+        "c29_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Lemmatization with WordNetLemmatizer in NLTK",
+      "rationale": "This candidate describes lemmatization using WordNet, contrasting with stemming and explaining prerequisites.",
+      "candidate_ids": [
+        "c29_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "spaCy pipeline initialization and text processing",
+      "rationale": "These candidates form the foundation of spaCy usage: creating a blank pipeline, processing text into a Doc, and understanding tokens and spans. They are closely related.",
+      "candidate_ids": [
+        "c30_pro_thinking_001",
+        "c30_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "Lexical attributes and pattern detection in spaCy",
+      "rationale": "This candidate uses token attributes like like_num to find patterns (e.g., percentages). It builds on basic token access but focuses on attribute-driven detection.",
+      "candidate_ids": [
+        "c30_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Loading pre-trained pipelines and their components in spaCy",
+      "rationale": "These candidates cover loading trained pipelines (spacy.load) and understanding pipeline package contents (config, weights, strings.json). Both are about pre-trained models.",
+      "candidate_ids": [
+        "c30_pro_thinking_004",
+        "c30_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Predicting part-of-speech tags and dependencies in spaCy",
+      "rationale": "This candidate focuses on extracting .pos_ and .dep_ from tokens after processing with a trained pipeline.",
+      "candidate_ids": [
+        "c30_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "Named entity recognition and manual correction in spaCy",
+      "rationale": "These candidates involve predicting named entities (doc.ents) and the capability to manually correct missed entities by creating Spans. Both address entity handling.",
+      "candidate_ids": [
+        "c30_pro_thinking_007",
+        "c30_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "Rule-based matching with Matcher in spaCy",
+      "rationale": "These candidates cover the Matcher for defining token-based patterns, from basic literal matches to complex linguistic patterns with lemmas and operators.",
+      "candidate_ids": [
+        "c30_pro_thinking_009",
+        "c30_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Introduction to Natural Language Processing (NLP) concepts and challenges",
+      "rationale": "This candidate provides a high-level overview of NLP, its statistical nature, and common applications. It sets the context but is distinct from tool-specific tasks.",
+      "candidate_ids": [
+        "c31_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "spaCy overview: production-ready NLP library",
+      "rationale": "This candidate describes spaCy's origin, license, focus on production, and multilingual support. It is an introductory overview.",
+      "candidate_ids": [
+        "c31_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_023",
+      "label": "spaCy model types: blank vs pre-trained and size trade-offs",
+      "rationale": "This candidate explains the difference between blank and pre-trained models and the speed/accuracy trade-offs of model sizes.",
+      "candidate_ids": [
+        "c31_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_024",
+      "label": "Tokenization in spaCy: dividing text into linguistic units",
+      "rationale": "This candidate defines tokenization, emphasizes language-specific tokenizers, and shows how to view tokens.",
+      "candidate_ids": [
+        "c31_pro_thinking_004"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c29_pro_thinking_003",
+    "c29_pro_thinking_004",
+    "c30_pro_thinking_001",
+    "c30_pro_thinking_002",
+    "c30_pro_thinking_003",
+    "c30_pro_thinking_004",
+    "c30_pro_thinking_005",
+    "c30_pro_thinking_006",
+    "c30_pro_thinking_007",
+    "c30_pro_thinking_008",
+    "c30_pro_thinking_009",
+    "c30_pro_thinking_010",
+    "c31_pro_thinking_001",
+    "c31_pro_thinking_002",
+    "c31_pro_thinking_003",
+    "c31_pro_thinking_004"
+  ],
+  "candidates": [
+    {
+      "id": "c29_pro_thinking_003",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm that supports multiple languages and often produces more accurate stems than Porter Stemmer, as shown by stemming 'generously' to 'generous' vs 'gener'.",
+      "coverage_criteria": [
+        "Can list several languages supported by SnowballStemmer.",
+        "Can initialize SnowballStemmer with a language and stem a word.",
+        "Can explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video demonstrates SnowballStemmer, its language support, and compares its output with Porter Stemmer on 'generously'.",
+        "granularity_rationale": "Snowball Stemmer is a distinct tool with multilingual capability, a focused concept within stemming."
+      },
+      "anchors": [
+        "05:27 Stemming with Snowball Stemmer"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_004",
+      "label": "WordNet Lemmatizer for dictionary-based lemmatization",
+      "description": "WordNetLemmatizer reduces words to their base dictionary form (lemma) using the WordNet lexical database. It requires NLTK data download (wordnet corpora). Unlike stemming, lemmas are actual words (e.g., 'flies' -> 'fly').",
+      "coverage_criteria": [
+        "Can explain the difference between lemmatization and stemming.",
+        "Can instantiate WordNetLemmatizer and lemmatize a word.",
+        "Can identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video demonstrates lemmatization using WordNetLemmatizer, shows outputs on plural words, and contrasts with stemming implicitly.",
+        "granularity_rationale": "Lemmatization is a key NLP normalization technique; this candidate captures its NLTK implementation and prerequisites, suitable for assessment."
+      },
+      "anchors": [
+        "06:51 Lemmatization"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_001",
+      "label": "Initializing a spaCy pipeline and processing text into a Doc",
+      "description": "Use spacy.blank to create a language-specific pipeline and call it with a string to obtain a Doc object.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline 'nlp', process the string 'Olá mundo', and confirm the result is a Doc."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Sections 2 and 3 guide the student through creating blank pipelines for multiple languages and processing text, demonstrating the fundamental workflow.",
+        "granularity_rationale": "This is a single, atomic operation that is the prerequisite for all further spaCy processing."
+      },
+      "anchors": [
+        "2. Primeiros passos",
+        "3. Documentos, partições e tokens"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_002",
+      "label": "Tokens and spans in spaCy",
+      "description": "A Doc is a sequence of Token objects; a Span is a slice of the Doc. Access tokens by index.",
+      "coverage_criteria": [
+        "Given a Doc for 'três cachorros e dois gatos', write code to retrieve the first token and create a span for 'três cachorros'."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 3 explicitly teaches the Doc, Token, and Span concepts through exercises.",
+        "granularity_rationale": "Understanding the basic data structures is foundational and can be checked by asking for specific token and span retrieval."
+      },
+      "anchors": [
+        "3. Documentos, partições e tokens"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_003",
+      "label": "Lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns like percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers in a Doc using `like_num`. Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4 uses `like_num` and `token.i+1` to find percentages, teaching how to use lexical attributes.",
+        "granularity_rationale": "This concept is a specific, actionable technique for identifying patterns, not a broad overview."
+      },
+      "anchors": [
+        "4. Atributos léxicos"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_004",
+      "label": "Loading pre-trained NLP pipelines",
+      "description": "Use `spacy.load` to load a trained pipeline (e.g., `pt_core_news_sm`) that can predict linguistic annotations.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, then print the Doc's text."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 7 demonstrates loading the Portuguese pipeline with `spacy.load`.",
+        "granularity_rationale": "This is a single step that enables access to pre-trained models, a key functionality of spaCy."
+      },
+      "anchors": [
+        "7. Carregando os fluxos (pipelines) de processamento"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_005",
+      "label": "Components of a trained pipeline package",
+      "description": "Trained pipelines include config.cfg (language and settings), binary weights for predictions, and strings.json (vocabulary mapping), but do not include the original training data.",
+      "coverage_criteria": [
+        "List what is included in a spaCy pipeline package and explain why training data is not needed for predictions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 6 explains that training data is NOT included and describes config, weights, and strings.json.",
+        "granularity_rationale": "This is a specific factual knowledge point about pipeline packaging, suitable for a short comprehension check."
+      },
+      "anchors": [
+        "6. Biblioteca dos modelos (choice)"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 8, Part 1 has the student iterate tokens and print .pos_ and .dep_.",
+        "granularity_rationale": "This focuses on two specific annotation types that are commonly used together."
+      },
+      "anchors": [
+        "8. Prevendo anotações linguísticas"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_007",
+      "label": "Predicting named entities",
+      "description": "Trained pipelines can identify named entities in a Doc. Access them via doc.ents and get their text and label (.label_).",
+      "coverage_criteria": [
+        "Write code to iterate over doc.ents and print entity text and label. Use spacy.explain to describe a label."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 8, Part 2 and Section 9 demonstrate iterating entities and handling missed entities.",
+        "granularity_rationale": "Named entity recognition is a distinct NLP task that can be practiced independently."
+      },
+      "anchors": [
+        "8. Prevendo anotações linguísticas",
+        "9. Prevendo Entidades em um contexto"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_008",
+      "label": "Manual correction of model predictions",
+      "description": "When a trained model fails to recognize an entity, you can manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Given a Doc where 'iPhone X' is not recognized, write code to create a Span for those two tokens."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 9 explicitly instructs the student to create a span for 'iPhone X' when the model misses it.",
+        "granularity_rationale": "This teaches a practical workaround and emphasizes that models are not perfect, which is a valuable lesson."
+      },
+      "anchors": [
+        "9. Prevendo Entidades em um contexto"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_009",
+      "label": "Rule-based matching with Matcher",
+      "description": "The Matcher class allows finding token sequences based on patterns defined with token attributes and operators.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print the matched spans."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 11 walks through creating a Matcher, adding a pattern, and retrieving matches for 'iPhone X'.",
+        "granularity_rationale": "This is a focused tool for rule-based matching, distinct from statistical predictions."
+      },
+      "anchors": [
+        "11. Usando o comparador Matcher"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_010",
+      "label": "Writing complex match patterns",
+      "description": "Patterns can use lemmas (LEMMA), POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences.",
+      "coverage_criteria": [
+        "Write a pattern that matches a verb lemma 'baixar' followed by a proper noun, and a pattern for an adjective followed by one or two nouns."
+      ],
+      "source_roles": [
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 12 provides three exercises requiring patterns with lemmas, POS, and operators.",
+        "granularity_rationale": "This advances from simple literal matching to linguistic-aware patterns, a key skill for information extraction."
+      },
+      "anchors": [
+        "12. Escrevendo expressões de correspondência"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_001",
+      "label": "Processamento de Linguagem Natural (PLN) – conceito e desafios",
+      "description": "PLN é a área que estuda como fazer computadores entenderem línguas naturais. Por ser um problema não computável, as soluções são baseadas em aproximações estatísticas, resultando em incertezas e falsos positivos.",
+      "coverage_criteria": [
+        "Explicar que PLN trata da compreensão de linguagem natural por máquinas.",
+        "Mencionar que as abordagens são estatísticas e aproximadas.",
+        "Dar exemplos de aplicações como extração de informações de documentos ou chatbots."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo dedica os primeiros minutos a definir PLN, contrastar com a leitura humana e destacar os desafios (aproximação estatística).",
+        "granularity_rationale": "Conceito fundamental para contextualizar todo o restante do processamento de texto; um aluno precisa entender o propósito e limitações antes de usar ferramentas."
+      },
+      "anchors": [
+        "Processamento de Linguagem Natural (PLN)",
+        "Máquinas vs Linguagem"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_002",
+      "label": "spaCy – biblioteca de PLN pronta para produção",
+      "description": "spaCy é uma biblioteca open-source (MIT) para PLN, mantida pela Explosion.ai. Lançada em 2016, suporta 73 idiomas e é focada em uso em produção, com modelos pré-treinados de diferentes tamanhos.",
+      "coverage_criteria": [
+        "Identificar o spaCy como biblioteca de PLN com foco em produção.",
+        "Diferenciar spaCy de outras bibliotecas como NLTK (acadêmico).",
+        "Citar que suporta múltiplos idiomas e oferece modelos pequenos, médios e grandes."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo apresenta o spaCy, sua origem, licença, mantenedores e diferenciais em relação a outras bibliotecas.",
+        "granularity_rationale": "É necessário que o aluno saiba o que é o spaCy e suas características antes de usar a biblioteca."
+      },
+      "anchors": [
+        "Instalação e uso básico do spaCy",
+        "Trabalhando com texto (Bibliotecas)"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_003",
+      "label": "Modelos spaCy: blank vs pré-treinados e tamanhos",
+      "description": "O spaCy permite criar modelos em branco (blank) com regras específicas de um idioma, ou carregar modelos pré-treinados (sm, md, lg) que já vêm com pesos estatísticos. Modelos maiores oferecem mais acurácia, mas são mais lentos.",
+      "coverage_criteria": [
+        "Explicar a diferença entre blank('pt') e load('pt_core_news_lg').",
+        "Dizer que modelos pré-treinados incluem pesos para tarefas como POS e NER.",
+        "Comparar trade-offs de tamanho (pequeno, médio, grande) em velocidade e acurácia."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo mostra a diferença entre blank e pré-treinado, e discute os tamanhos (12MB, 40MB, 541MB) e a relação eficiência vs acurácia.",
+        "granularity_rationale": "O conceito é básico para iniciar o uso do spaCy e escolher o modelo adequado para uma tarefa."
+      },
+      "anchors": [
+        "O básico necessário (Code Demo)",
+        "Carregando um modelo pré-treinado",
+        "Diferentes modelos"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_004",
+      "label": "Tokenização – como o spaCy divide o texto em unidades",
+      "description": "Tokenização é o processo de dividir um texto em unidades linguísticas chamadas tokens (palavras, pontuação, etc.). Cada língua tem seu próprio tokenizador. Tokens são a base para análises como POS e dependências.",
+      "coverage_criteria": [
+        "Definir tokenização e dar exemplos de tokens (palavras, pontos).",
+        "Explicar que o tokenizador depende do idioma.",
+        "Usar list(doc) para visualizar os tokens de uma frase."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O vídeo destaca a tokenização como a primeira etapa essencial, mostrando como o spaCy separa 'Eduardo foi à feira.' em tokens e discute regras específicas do português.",
+        "granularity_rationale": "É um conceito fundamental e isolável; pode ser verificado com uma simples pergunta sobre o resultado de tokenizar uma frase."
+      },
+      "anchors": [
+        "Tokenização: Tokens e idiomas",
+        "Tokenização: Base para entender o contexto"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+    "title": "Decision-Making Tools V (Real Options)"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-real-options-definition-and-contrast-with-dcf-npv-d33ca312",
+      "label": "Real options definition and contrast with DCF/NPV",
+      "teaching_description": "Real options extend financial options theory to business investments, capturing the value of flexibility and learning under uncertainty that traditional DCF/NPV undervalues. They enable delayed, expanded, or abandoned decisions, turning negative expected value into positive by staging investments.",
+      "coverage_criteria": [
+        "Define real options and contrast them with static investment analysis like NPV.",
+        "Explain why traditional DCF can undervalue assets with embedded flexibility.",
+        "Identify at least two types of real options (delay, expand, abandon)."
+      ]
+    },
+    {
+      "concept_id": "concept-learning-and-adaptive-behavior-in-real-options-1a700886",
+      "label": "Learning and adaptive behavior in real options",
+      "teaching_description": "Real option value stems from the ability to observe outcomes (learn) and adjust actions (adaptive behavior). Staging investments transforms a negative NPV into positive by acting on new information. This shifts management focus from avoiding uncertainty to maximizing learning and flexibility.",
+      "coverage_criteria": [
+        "Restate why a two-step investment can outperform a one-step investment with the same overall probabilities.",
+        "Describe the mindset shift from static NPV planning to proactive real options thinking.",
+        "List the four strategic improvements from real options thinking (emphasize opportunities, enhance leverage, maximize rights, minimize obligations)."
+      ]
+    },
+    {
+      "concept_id": "concept-using-payoff-diagrams-to-identify-real-options-0e3d00f6",
+      "label": "Using payoff diagrams to identify real options",
+      "teaching_description": "A real option exists when the payoff structure resembles a call or put option diagram, featuring a kinked payoff limiting downside losses while allowing upside gains. This visual criterion helps recognize embedded options in business decisions.",
+      "coverage_criteria": [
+        "Sketch a call option payoff diagram and label the strike price.",
+        "Explain how limited losses and potential unlimited gains create option value."
+      ]
+    },
+    {
+      "concept_id": "concept-three-definitional-characteristics-of-a-real-option-5c1f2338",
+      "label": "Three definitional characteristics of a real option",
+      "teaching_description": "To qualify as a real option, an asset or decision must have: (1) a clearly defined underlying asset whose value varies unpredictably, (2) contingent payoffs triggered by a specific event, and (3) a limited life.",
+      "coverage_criteria": [
+        "List the three characteristics.",
+        "For a given business scenario, determine whether these characteristics are present."
+      ]
+    },
+    {
+      "concept_id": "concept-exclusivity-as-driver-of-significant-option-value-afecaf34",
+      "label": "Exclusivity as driver of significant option value",
+      "teaching_description": "An option has significant economic value only if the holder has exclusivity—the sole right to exercise it. Without exclusivity (e.g., anyone can buy at market price), the option value is zero.",
+      "coverage_criteria": [
+        "Explain why exclusivity is necessary for a real option to have economic value.",
+        "Contrast the landlord anecdote scenario with a proprietary technology option."
+      ]
+    },
+    {
+      "concept_id": "concept-six-determinants-of-real-option-value-6367267e",
+      "label": "Six determinants of real option value",
+      "teaching_description": "The value of a real option is driven by six factors: underlying asset value, variance of that value, expected dividends, strike price, option life, and risk-free interest rate. Uncertainty (variance) uniquely increases option value because of asymmetric payoffs, contrary to NPV logic.",
+      "coverage_criteria": [
+        "List the six determinants and their real-market equivalents.",
+        "Explain why higher variance increases option value, while higher dividends reduce it.",
+        "Predict the directional effect of a change in each determinant on a call option."
+      ]
+    },
+    {
+      "concept_id": "concept-replication-and-arbitrage-principles-in-option-pricing-cc93da31",
+      "label": "Replication and arbitrage principles in option pricing",
+      "teaching_description": "Option pricing models rely on: (1) replication—constructing a portfolio of the underlying asset and borrowing/lending that mimics the option's payoffs; (2) arbitrage—if two assets have identical payoffs, they must have the same price.",
+      "coverage_criteria": [
+        "Describe what a replicating portfolio is.",
+        "Explain why arbitrage forces options and replicating portfolios to have equal prices."
+      ]
+    },
+    {
+      "concept_id": "concept-model-choice-black-scholes-vs-binomial-for-real-options-f76742be",
+      "label": "Model choice: Black-Scholes vs. binomial for real options",
+      "teaching_description": "The Black-Scholes model assumes European exercise, constant variance, and no jumps, requiring only six inputs. The binomial model allows early exercise and changing variances but demands detailed price path data, often infeasible for real assets. Practitioners often prefer Black-Scholes for its parsimony.",
+      "coverage_criteria": [
+        "State the key restrictive assumptions of Black-Scholes.",
+        "Contrast the data requirements of the binomial model with its flexibility.",
+        "Articulate why practitioners might still prefer Black-Scholes despite its limitations."
+      ]
+    },
+    {
+      "concept_id": "concept-three-tests-for-applying-real-option-valuation-e1bad74b",
+      "label": "Three tests for applying real option valuation",
+      "teaching_description": "To validly apply real option valuation, three tests must be passed: (1) identify an embedded option, (2) verify exclusivity, (3) ensure the underlying asset and option are tradeable enough for option pricing models to work.",
+      "coverage_criteria": [
+        "List the three tests.",
+        "For a given case, argue whether each test is satisfied."
+      ]
+    },
+    {
+      "concept_id": "concept-proactive-vs-reactive-flexibility-in-real-options-870afb26",
+      "label": "Proactive vs. reactive flexibility in real options",
+      "teaching_description": "Reactive flexibility involves optimally exercising an existing option; proactive flexibility means managers can influence option value levers (e.g., increase uncertainty, extend duration) before exercise. Unlike financial options in deep markets, real options exist in contexts with few players, enabling proactive influence.",
+      "coverage_criteria": [
+        "Distinguish between reactive and proactive flexibility and give an example of each.",
+        "Explain why the limited-player environment in real business situations enables proactive flexibility."
+      ]
+    },
+    {
+      "concept_id": "concept-strategic-lever-selection-via-sensitivity-analysis-a382d707",
+      "label": "Strategic lever selection via sensitivity analysis",
+      "teaching_description": "Managers can decide which real option levers to influence by performing sensitivity analysis, revealing that increasing revenues (stock price) and cutting costs (exercise price) often have the largest impact on option value.",
+      "coverage_criteria": [
+        "Interpret a sensitivity table to identify the most impactful levers.",
+        "Explain why revenue improvement may be more valuable than cost reduction in option management."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introduction to Real Options",
+      "concept_ids": [
+        "concept-real-options-definition-and-contrast-with-dcf-npv-d33ca312",
+        "concept-learning-and-adaptive-behavior-in-real-options-1a700886"
+      ]
+    },
+    {
+      "label": "Identifying Real Options",
+      "concept_ids": [
+        "concept-using-payoff-diagrams-to-identify-real-options-0e3d00f6",
+        "concept-three-definitional-characteristics-of-a-real-option-5c1f2338",
+        "concept-exclusivity-as-driver-of-significant-option-value-afecaf34"
+      ]
+    },
+    {
+      "label": "Determinants of Option Value",
+      "concept_ids": [
+        "concept-six-determinants-of-real-option-value-6367267e"
+      ]
+    },
+    {
+      "label": "Option Pricing Models",
+      "concept_ids": [
+        "concept-replication-and-arbitrage-principles-in-option-pricing-cc93da31",
+        "concept-model-choice-black-scholes-vs-binomial-for-real-options-f76742be"
+      ]
+    },
+    {
+      "label": "Valuation Tests",
+      "concept_ids": [
+        "concept-three-tests-for-applying-real-option-valuation-e1bad74b"
+      ]
+    },
+    {
+      "label": "Strategic Flexibility Management",
+      "concept_ids": [
+        "concept-proactive-vs-reactive-flexibility-in-real-options-870afb26",
+        "concept-strategic-lever-selection-via-sensitivity-analysis-a382d707"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

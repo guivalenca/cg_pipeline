@@ -1,0 +1,408 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:24:04.753221+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+  "self_study_id": "62",
+  "source_body_path": "extraction/post-image/0062-book-representacao-vetorial-de-textos-utilizando-word-embeddings-em-python.md",
+  "source_body_sha256": "2ae7f3f2ca9c47f579d5d09ee5cf34d3b546518e2d955e0cf104d2f474c488ed",
+  "source_name": "Representação vetorial de textos - utilizando word embeddings em Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-62-001",
+      "label": "Gensim library for topic modeling and NLP",
+      "description": "Gensim is an open-source Python library originally developed for topic modeling, providing models and utilities for unsupervised text analysis including Word2Vec and preprocessing.",
+      "coverage_criteria": [
+        "Student can explain that Gensim is a Python library for NLP, mention its origin in topic modeling, and name at least two of its functionalities (e.g., Word2Vec, preprocessing, dictionary creation)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chapter introduces Gensim as a tool for topic modeling and highlights its use in NLP, starting from page 189.",
+        "granularity_rationale": "Concept covers the library's identity and purpose; assessable in a few questions about its role and capabilities."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Section '1 Biblioteca Gensim', page 189"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "Python"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-002",
+      "label": "Text preprocessing with gensim.utils.simple_preprocess()",
+      "description": "The function simple_preprocess() tokenizes a document, optionally removing accents and filtering tokens by minimum and maximum length.",
+      "coverage_criteria": [
+        "Student can write code to call simple_preprocess() on a string, specifying parameters deacc, min_len, max_len, and explain what each does."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 1 on pages 192-193 demonstrates using simple_preprocess with deacc and min_len, and the surrounding text explains the parameters.",
+        "granularity_rationale": "Single function with a clear interface; can be checked with a coding exercise and explanation of parameters."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 1 – Definição de um corpus e pré-processamento, page 193"
+        },
+        {
+          "kind": "page_number",
+          "locator": "192"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "simple_preprocess"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-003",
+      "label": "Tokenization with gensim.utils.tokenize()",
+      "description": "The gensim.utils.tokenize() function performs low-level tokenization, internally called by simple_preprocess(), and can be used directly for tokenizing words.",
+      "coverage_criteria": [
+        "Student can explain that tokenize() splits text into tokens and is less feature-rich than simple_preprocess, and can write a call to tokenize()."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Page 194 mentions tokenize() as an alternative for word tokenization, stating it is called internally by simple_preprocess.",
+        "granularity_rationale": "Narrow concept focusing on one utility function; can be assessed with a simple usage question."
+      },
+      "source_anchors": [
+        {
+          "kind": "page_number",
+          "locator": "194"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "tokenize"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-004",
+      "label": "Building a vocabulary with gensim.corpora.Dictionary()",
+      "description": "gensim.corpora.Dictionary creates a mapping between tokens and integer IDs from preprocessed documents, acting as the model's vocabulary.",
+      "coverage_criteria": [
+        "Given a list of tokenized documents, student can instantiate a Dictionary and explain its purpose in encoding words."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 2 on pages 194-195 uses corpDict to build a vocabulary from preprocessed documents, and the text describes its necessity before model creation.",
+        "granularity_rationale": "Concept covers a single class and its main role; easily testable with a code snippet and brief explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 2 – Vocabulário criado a partir dos documentos tokenizados e tratados, page 194"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "Dictionary",
+        "corpora"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-005",
+      "label": "Dense versus sparse vector representations",
+      "description": "Documents can be represented as vectors; dense vectors have all dimensions known and directly related, while sparse vectors have many unknown dimensions treated as zero.",
+      "coverage_criteria": [
+        "Student can define dense and sparse vectors and give an example of when each would be used in text representation."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Page 195 explicitly contrasts dense and sparse vectors, defining each and stating that unknown dimensions in sparse vectors are zero.",
+        "granularity_rationale": "Concept is a foundational distinction in vector representations; assessable with a definition and simple scenario."
+      },
+      "source_anchors": [
+        {
+          "kind": "page_number",
+          "locator": "195"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-006",
+      "label": "Training a Word2Vec model with gensim.models.Word2Vec()",
+      "description": "The Word2Vec class in Gensim trains word embeddings on a preprocessed corpus using continuous bag-of-words (CBOW) or skip-gram with options for hierarchical softmax or negative sampling.",
+      "coverage_criteria": [
+        "Student can write code to instantiate Word2Vec with a list of tokenized sentences, specify min_count and size, and explain that the model learns vector representations."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 3 on page 196 trains a Word2Vec model and the surrounding text explains the usage and parameters.",
+        "granularity_rationale": "Covers the central API for Word2Vec training; can be assessed with a coding task and a question on basic parameters."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 3 – Treinamento de um modelo de word2vec, page 196"
+        },
+        {
+          "kind": "page_number",
+          "locator": "197"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "Word2Vec",
+        "CBOW",
+        "Skip-Gram"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-007",
+      "label": "Word2Vec training parameters",
+      "description": "Key parameters for gensim.models.Word2Vec() include min_count, size, sg (0: skip-gram, 1: CBOW), window, hs (hierarchical softmax), negative (negative sampling), alpha (learning rate), seed, and corpus_file.",
+      "coverage_criteria": [
+        "Student can list at least four training parameters and explain how they affect the training process."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Pages 196-198 detail many parameters for Word2Vec, explaining each in the context of training.",
+        "granularity_rationale": "Combines multiple related parameters into a single concept about model configuration; can be tested with a matching or short-answer question."
+      },
+      "source_anchors": [
+        {
+          "kind": "page_number",
+          "locator": "197-198"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Word2Vec",
+        "Gensim"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-008",
+      "label": "Saving and loading Word2Vec models",
+      "description": "Gensim Word2Vec models can be saved to disk using save() and reloaded later with load(), facilitating reuse of trained embeddings.",
+      "coverage_criteria": [
+        "Student can write code to save a trained model to a file and load it back using gensim's save and load methods."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 4 (page 198-199) saves a model and Example 5 (page 199) loads it, explicitly showing the workflow.",
+        "granularity_rationale": "Narrow concept around two functions; easily checked with code completion."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 4 – Armazenando um modelo de word2vec, page 198"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Gensim",
+        "Word2Vec"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-009",
+      "label": "Using pre-trained word embeddings with gensim.downloader",
+      "description": "The gensim.downloader module allows loading publicly available pre-trained models like word2vec-google-news-300, which provides high-quality embeddings for downstream tasks.",
+      "coverage_criteria": [
+        "Student can write code to load a pre-trained model using gensim.downloader.load() and cite an example such as 'word2vec-google-news-300'."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 6 on page 200 demonstrates loading a pre-trained model, and the text explains the benefits of using large pre-trained embeddings.",
+        "granularity_rationale": "Single function with a clear purpose; testable with a code snippet and recognition of common models."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 6 – Carregando um modelo pré-treinado, page 200"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "gensim-downloader",
+        "word2vec-google-news-300"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-010",
+      "label": "Finding similar words with model.similar_by_word()",
+      "description": "The method similar_by_word() on a trained Word2Vec model returns the most semantically similar words to a given word and their similarity scores.",
+      "coverage_criteria": [
+        "Student can write code to retrieve the top-5 similar words for 'car' using similar_by_word and interpret the results."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 7 on pages 200-201 uses similar_by_word to find words similar to 'car' and 'house', showing the cosine similarity scores.",
+        "granularity_rationale": "Covers one method of the model; can be checked with a short coding exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 7 – Palavras similares a car e house, page 201"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Word2Vec",
+        "similar_by_word"
+      ]
+    },
+    {
+      "candidate_id": "candidate-62-011",
+      "label": "Brown Corpus as a standard NLP dataset",
+      "description": "The Brown Corpus is a collection of 500 English texts from 1961 containing over 1 million words, commonly used for NLP model training and evaluation.",
+      "coverage_criteria": [
+        "Student can describe the Brown Corpus (size, date, types of texts) and explain why it is a valuable resource for NLP."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Example 4 uses the Brown Corpus from NLTK, and page 199 describes its origin and size, noting its frequent use in NLP.",
+        "granularity_rationale": "Concept introduces a well-known dataset; can be assessed with a few factual questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "page_number",
+          "locator": "199"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Brown Corpus",
+        "NLTK"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-62-002",
+      "to_candidate_id": "candidate-62-004",
+      "reason": "The preprocessed documents from simple_preprocess() are used as input to gensim.corpora.Dictionary() to build the vocabulary.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 2 – Vocabulário criado a partir dos documentos tokenizados e tratados, page 194"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-002",
+      "to_candidate_id": "candidate-62-006",
+      "reason": "The preprocessed corpus is fed directly into Word2Vec for training, as shown in Example 3.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 3 – Treinamento de um modelo de word2vec, page 196"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-004",
+      "to_candidate_id": "candidate-62-006",
+      "reason": "The vocabulary created with Dictionary is used to index the word vectors produced by the trained Word2Vec model, as seen when displaying vectors in Example 3.",
+      "source_anchors": [
+        {
+          "kind": "page_number",
+          "locator": "196-197"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-006",
+      "to_candidate_id": "candidate-62-008",
+      "reason": "After training a Word2Vec model, it can be saved to disk using save() and later loaded with load().",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 4 – Armazenando um modelo de word2vec, page 198"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-009",
+      "to_candidate_id": "candidate-62-010",
+      "reason": "Once a pre-trained model is loaded via gensim.downloader, methods like similar_by_word() can be called on it to explore word similarities.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Example 7 – Palavras similares a car e house, page 201"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 11,
+    "source_local_connector_candidate_count": 5
+  }
+}

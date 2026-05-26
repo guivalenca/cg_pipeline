@@ -1,0 +1,76 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "display_code": "L08",
+    "workbook_row_number": 37,
+    "title": "Group decision-making process",
+    "date": "02/06/2026",
+    "professor": "Marcelo de Paula do Desterro Gorini",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This lesson addresses techniques and strategies for group decision-making, exploring practical ways to improve the collective process. Tools are presented to help groups organize ideas, evaluate alternatives, and reach more consistent consensus. Strategies for reducing common problems, such as conformity, excessive hierarchical influence, or reliance on a few opinions, are also discussed. The focus is on showing how structured behaviors and methods can make group decision-making more effective and balanced."
+  },
+  "self_study": {
+    "self_study_id": "40",
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 40,
+      "week": 7,
+      "sort": 5,
+      "title": "Making better decisions in groups",
+      "description": "This text reviews the literature to identify common problems in individual and group decision-making. Using a Bayesian framework, it explains how past experiences and new evidence interact in exploring hypotheses about different world states and possible actions. It acknowledges that biases, often unconscious, make information processing more efficient, but do not always lead to the best decision. It highlights that group decisions can help overcome these biases and broaden the search for solutions, especially when there is diversity of members. However, diverse groups also face their own challenges, requiring appropriate management strategies to improve the quality of collective decisions.",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5579088/",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Group decision-making process",
+      "class_date": "02/06/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0040-article-making-better-decisions-in-groups.md",
+      "sha256": "5039aab0ddabaa1a2d1598444babffaca173c7fbc7aad881dc4682686faa5631",
+      "word_count": 296,
+      "bytes": 4127,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/40/40-making-better-decisions-in-groups.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/40",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0040-article-making-better-decisions-in-groups.md",
+    "sha256": "5039aab0ddabaa1a2d1598444babffaca173c7fbc7aad881dc4682686faa5631",
+    "word_count": 296,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/40/40-making-better-decisions-in-groups.md",
+    "markdown": "---\nid: \"40\"\ntitle: \"Making better decisions in groups\"\nsource_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC5579088/\"\nfetch_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC5579088\"\nresolved_url: \"https://pmc.ncbi.nlm.nih.gov/articles/PMC5579088\"\nfirecrawl_title: \"Checking your browser - reCAPTCHA\"\ndescription: null\nfetched_at: \"2026-05-26T16:45:20.742422Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"617807a675764481ffd48c5402ac2e448e49a4729fb775ca31aac5b640251b31\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 218\nchar_count: 3348\ncontent_sha256: \"6b09634d5e1f992c52938f32fb58ec5eaf49f0b3cdf52f7ac590468cfc6af906\"\nimage_count: 1\nlink_count: 1\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\nChecking your browser before accessing pmc.ncbi.nlm.nih.gov ...\n\nClick [here](https://www.google.com/recaptcha/challengepage/#) if you are not automatically redirected after 5 seconds.\n\nreCAPTCHA\n\nRecaptcha requires verification.\n\nprotected by **reCAPTCHA**\n\nreCAPTCHA\n\nSelect all images with a **bus** Click verify once there are none left.\n\n|     |     |     |\n| --- | --- | --- |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n| ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) | ![](https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8) |\n\nPlease try again.\n\nPlease select all matching images.\n\nPlease also check the new images.\n\nPlease select around the object, or reload if there are none.\n\nVerify\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://www.google.com/recaptcha/enterprise/payload?p=06AFcWeA5ptkp8JPA1VearOnpWbDQMBIZDA7gzJSzdxJecQWz6AnXUyKS8FR0C0UCk-W_lpxVsGnJQyjOOaJvK6NJ38mc6jpflcbwcQiYwWxP5xp1Rb3uKOZS4-gH-GqxLn6ZgywXb1sV4KzeDUOU-ruTSUfz_B4PVwjhDL_0SjlGz9J3Hi0n0Q-IK711JT4FmJGD7N7WEJ6VL&k=6LcWVREsAAAAAM_wKdeto88B7lW8itjuq79Rvmj8"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

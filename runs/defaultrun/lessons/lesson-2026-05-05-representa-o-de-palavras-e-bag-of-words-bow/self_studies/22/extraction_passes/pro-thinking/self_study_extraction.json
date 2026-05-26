@@ -1,0 +1,270 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T02:55:13.207304+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+  "self_study_id": "22",
+  "source_body_path": "extraction/post-image/0022-article-a-simple-explanation-of-the-bag-of-words-model.md",
+  "source_body_sha256": "9608d7d24d700b4784fcb759d3c7cf7005f83a8245dd38e264587a38e859361e",
+  "source_name": "A Simple Explanation of the Bag-of-Words Model",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-22-001",
+      "label": "Bag-of-Words Model Definition",
+      "description": "The BOW model represents text as fixed-length vectors by counting the frequency of each word in the document. It disregards grammar and word order.",
+      "coverage_criteria": [
+        "Explain what BOW model is and how it represents text.",
+        "Identify that BOW outputs a vector of word counts."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly defines BOW as 'representation that turns arbitrary text into fixed-length vectors by counting how many times each word appears'.",
+        "granularity_rationale": "This is a foundational concept; students can be asked to define and give an example."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "A Simple Explanation of the Bag-of-Words Model"
+        },
+        {
+          "kind": "paragraph",
+          "locator": "The bag-of-words (BOW) model is a representation that turns arbitrary text into fixed-length vectors by counting how many times each word appears."
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-22-002",
+      "label": "Vocabulary in Bag-of-Words",
+      "description": "The vocabulary is the set of all unique words present in the document corpus. It forms the dimensions of the BOW vectors.",
+      "coverage_criteria": [
+        "Define vocabulary in BOW.",
+        "Given a set of documents, identify the vocabulary."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article defines vocabulary as 'the set of all words found in our document set' and shows how it determines vector dimensions.",
+        "granularity_rationale": "This is a specific component of BOW; checking this ensures understanding of vectorization."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-22-003",
+      "label": "BOW Vectorization Steps",
+      "description": "To vectorize text with BOW, first determine the vocabulary (unique words), then count occurrences of each word in each document to form a vector.",
+      "coverage_criteria": [
+        "List the two steps of BOW vectorization.",
+        "Apply counting to a simple example."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article walks through 'Step 1: Determine the Vocabulary' and 'Step 2: Count' with an example.",
+        "granularity_rationale": "This is a procedural concept; students can be asked to perform the steps on new text."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 2: Count"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-22-004",
+      "label": "Context Loss in Bag-of-Words",
+      "description": "BOW model loses word order and contextual information, functioning like a literal bag of words: only word presence/frequency counts, not position.",
+      "coverage_criteria": [
+        "Explain why BOW ignores word order.",
+        "Describe the trade-off of using BOW (simplicity vs context loss)."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article states 'Notice that we lose contextual information... It's like a literal bag-of-words: it only tells you what words occur... not where they occurred.'",
+        "granularity_rationale": "Understanding limitations is key; a single question can confirm this concept."
+      },
+      "source_anchors": [
+        {
+          "kind": "paragraph",
+          "locator": "Notice that we lose contextual information, e.g. where in the document the word appeared, when we use BOW. It's like a literal bag-of-words: it only tells you what words occur in the document, not where they occurred."
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-22-005",
+      "label": "BOW Implementation with Keras Tokenizer",
+      "description": "BOW can be implemented in Python using Keras' Tokenizer class: fit_on_texts to build vocabulary, then texts_to_matrix with mode='count' to get count vectors.",
+      "coverage_criteria": [
+        "Explain how to use Tokenizer for BOW.",
+        "Write code to fit tokenizer and get count matrix."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a code example using Keras Tokenizer, demonstrating fit_on_texts and texts_to_matrix with count mode.",
+        "granularity_rationale": "This is a practical implementation detail that can be checked with code-oriented questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Implementing BOW in Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": [
+        "Keras",
+        "Tokenizer"
+      ]
+    },
+    {
+      "candidate_id": "candidate-22-006",
+      "label": "Applications and Strengths of Bag-of-Words",
+      "description": "BOW is used in NLP tasks like Text Classification and profanity detection due to its simplicity and low computational cost, despite losing context.",
+      "coverage_criteria": [
+        "Name two applications of BOW.",
+        "Explain why BOW is useful despite its simplicity."
+      ],
+      "source_roles": [
+        "referencing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article mentions 'often used for Natural Language Processing (NLP) tasks like Text Classification' and a blog post for profanity detection, and states its strengths: simplicity, inexpensive to compute.",
+        "granularity_rationale": "This concept ties the technique to real-world use; questions can ask about when BOW is appropriate."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "How is BOW useful?"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Simple Explanation of the Bag-of-Words Model",
+      "source_year": "2019",
+      "name_drops": [
+        "Natural Language Processing",
+        "Text Classification"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-22-001",
+      "to_candidate_id": "candidate-22-002",
+      "reason": "BOW model relies on a vocabulary to define the vector dimensions.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-22-001",
+      "to_candidate_id": "candidate-22-003",
+      "reason": "The BOW model is realized by vectorizing text, as described in the two-step process.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 2: Count"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-22-001",
+      "to_candidate_id": "candidate-22-004",
+      "reason": "The BOW model is described as losing contextual information because it only counts words.",
+      "source_anchors": [
+        {
+          "kind": "paragraph",
+          "locator": "Notice that we lose contextual information..."
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-22-003",
+      "to_candidate_id": "candidate-22-002",
+      "reason": "The first step of vectorization is determining the vocabulary.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Step 1: Determine the Vocabulary"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-22-005",
+      "to_candidate_id": "candidate-22-003",
+      "reason": "The Python implementation performs the vectorization steps using Tokenizer.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Implementing BOW in Python"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-22-001",
+      "to_candidate_id": "candidate-22-006",
+      "reason": "The article explains how BOW is useful for NLP tasks due to its simplicity.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "How is BOW useful?"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 6,
+    "source_local_connector_candidate_count": 6
+  }
+}

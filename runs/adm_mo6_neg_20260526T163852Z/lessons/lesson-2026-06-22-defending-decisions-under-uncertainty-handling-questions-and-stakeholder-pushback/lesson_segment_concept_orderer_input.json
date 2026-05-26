@@ -1,0 +1,79 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+    "title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-cognitive-biases-that-distort-risk-decisions-8220c543",
+      "label": "Cognitive Biases that Distort Risk Decisions",
+      "teaching_description": "Decision makers often rely on cognitive simplifications that lead to biases such as prior hypothesis, adjustment/anchoring, escalating commitment, and insensitivity to predictability, which can cause errors in risk assessment.",
+      "coverage_criteria": [
+        "Name three cognitive biases mentioned in the source and describe how each can affect a risk decision.",
+        "Explain why awareness of cognitive biases is important for directors overseeing risk."
+      ]
+    },
+    {
+      "concept_id": "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+      "label": "Risk as both a threat and an opportunity",
+      "teaching_description": "When defending a decision under uncertainty, it is effective to acknowledge that risk includes both negative dangers and positive opportunities. Recognizing the dual nature of risk helps communicate that embracing risk can lead to upside, which is essential for credible recommendations.",
+      "coverage_criteria": [
+        "Explain why risk is both a threat and an opportunity, using an example.",
+        "Describe how acknowledging the dual nature of risk can enhance the credibility of a decision defense."
+      ]
+    },
+    {
+      "concept_id": "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf",
+      "label": "Scenario planning for stress-testing assumptions and preparing responses",
+      "teaching_description": "Scenario planning simulates plausible risk events to help leaders stress-test strategic assumptions and practice responses. This technique is directly applicable to preparing for stakeholder questions when defending a decision under uncertainty, embodying the 'Prepare to Be Wrong' principle.",
+      "coverage_criteria": [
+        "Explain what scenario planning is and how it helps stress-test assumptions.",
+        "Describe how scenario planning can be used to anticipate and prepare for stakeholder pushback."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Recognizing Cognitive Biases in Risk Decisions",
+      "concept_ids": [
+        "concept-cognitive-biases-that-distort-risk-decisions-8220c543"
+      ]
+    },
+    {
+      "label": "Framing Risk and Preparing for Pushback",
+      "concept_ids": [
+        "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+        "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

@@ -1,0 +1,263 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-37-001",
+      "label": "Sentiment analysis as text classification task",
+      "description": "Sentiment analysis is a subfield of text classification that determines the emotional tone (positive or negative) of text, with applications like product reviews and market prediction.",
+      "coverage_criteria": [
+        "Student can define sentiment analysis and give examples of its applications."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article begins by framing sentiment analysis as a text classification task and lists practical uses.",
+        "granularity_rationale": "This is a fundamental concept that establishes the problem domain; it is self-contained and checkable with a definition question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1. Análise de Sentimentos e o Dataset"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-37-002",
+      "label": "Large Movie Review Dataset (IMDb) for sentiment analysis",
+      "description": "The IMDb Large Movie Review Dataset contains 25,000 training and 25,000 test reviews from IMDb, each labeled as positive or negative, with balanced classes.",
+      "coverage_criteria": [
+        "Student can describe the IMDb dataset: its source, size, split, and label distribution."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article dedicates a subsection to describing this dataset, its origin, and its structure.",
+        "granularity_rationale": "Understanding the dataset characteristics is important before using it; it is a specific, checkable detail."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1. O Dataset de Análise de Sentimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["Large Movie Review Dataset", "IMDb"]
+    },
+    {
+      "candidate_id": "candidate-37-003",
+      "label": "Downloading and extracting the IMDb dataset using d2l utility",
+      "description": "The article shows how to register the dataset URL and hash in d2l.DATA_HUB and use d2l.download_extract to automatically download and extract the IMDb dataset.",
+      "coverage_criteria": [
+        "Student can use d2l.DATA_HUB to register a dataset and call d2l.download_extract to obtain the data directory.",
+        "Student can identify the expected directory structure (e.g., 'aclImdb' folder)."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The code snippet explicitly demonstrates the download step using d2l functions.",
+        "granularity_rationale": "This is a procedural step important for reproducibility; it is narrow enough to assess with a simple coding task."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.1. Lendo o Dataset"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["d2l.DATA_HUB", "d2l.download_extract"]
+    },
+    {
+      "candidate_id": "candidate-37-004",
+      "label": "Reading IMDb reviews and labels from directory structure",
+      "description": "The read_imdb function iterates over 'pos' and 'neg' subdirectories in the train/test split to read review text files and assign label 1 for positive, 0 for negative.",
+      "coverage_criteria": [
+        "Student can explain how the raw text files are organized and how the function constructs the data and labels lists.",
+        "Student can implement a similar file-reading loop for a differently structured dataset."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article provides a complete function that reads the dataset, which is a core data preparation step.",
+        "granularity_rationale": "This is a specific, small coding pattern; it can be assessed by asking the student to explain the logic or adapt it."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.1. Lendo o Dataset"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["read_imdb"]
+    },
+    {
+      "candidate_id": "candidate-37-005",
+      "label": "Word-level tokenization with d2l.tokenize",
+      "description": "The text is tokenized into words using d2l.tokenize with token='word', producing a list of tokens for each review.",
+      "coverage_criteria": [
+        "Student can use d2l.tokenize to split English text into word tokens.",
+        "Student can describe tokenization as a step in NLP preprocessing."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly calls d2l.tokenize to convert raw reviews into word tokens.",
+        "granularity_rationale": "Tokenization is a fundamental step; this concept is atomic and easily testable."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.2. Tokenização e Vocabulário"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["d2l.tokenize"]
+    },
+    {
+      "candidate_id": "candidate-37-006",
+      "label": "Building a vocabulary from training tokens with minimum frequency filter",
+      "description": "Using d2l.Vocab, a vocabulary is created from the training tokens, filtering out words that appear fewer than 5 times and reserving a special ' <pad>' token.",
+      "coverage_criteria": [
+        "Student can create a vocabulary object with d2l.Vocab and explain the role of min_freq and reserved_tokens.",
+        "Student can interpret a histogram of review lengths to understand token distribution."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article directly shows the vocabulary construction and the histogram plotting.",
+        "granularity_rationale": "This is a specific step in NLP pipelines, involving vocabulary parameters, and is small enough for a focused question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.2. Tokenização e Vocabulário"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["d2l.Vocab"]
+    },
+    {
+      "candidate_id": "candidate-37-007",
+      "label": "Padding and truncating sequences to uniform length for batched processing",
+      "description": "Reviews are padded or truncated to a fixed length (e.g., 500 tokens) using d2l.truncate_pad to enable efficient minibatching.",
+      "coverage_criteria": [
+        "Student can explain why variable-length sequences need padding and truncation.",
+        "Student can apply d2l.truncate_pad to standardize sequence lengths."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explicitly performs padding to length 500 and states the reason: reviews have different lengths and cannot be combined directly in minibatches.",
+        "granularity_rationale": "This is a practical preprocessing step; it can be checked by asking the student to perform padding on a small list of sequences."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.3. Preenchimento com o mesmo comprimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["d2l.truncate_pad"]
+    },
+    {
+      "candidate_id": "candidate-37-008",
+      "label": "Creating a data iterator for minibatch training",
+      "description": "Using d2l.load_array, a data iterator is created that yields minibatches of (features, labels) with a given batch size, enabling efficient training loops.",
+      "coverage_criteria": [
+        "Student can create a data iterator from padded features and labels using d2l.load_array.",
+        "Student can inspect the shape of minibatch tensors."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article directly creates train_iter with d2l.load_array and prints batch shapes.",
+        "granularity_rationale": "This is the final step in data preparation; it is a small, checkable piece of the pipeline."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.4. Criando o Iterador de Dados"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["d2l.load_array"]
+    },
+    {
+      "candidate_id": "candidate-37-009",
+      "label": "Wrapping the entire data loading process into a reusable function (load_data_imdb)",
+      "description": "The function load_data_imdb(batch_size, num_steps=500) encapsulates downloading, reading, tokenizing, building vocabulary, padding, and creating iterators, returning train/test iterators and the vocabulary.",
+      "coverage_criteria": [
+        "Student can write a similar data-loading function that bundles all preprocessing steps.",
+        "Student can explain the inputs and outputs of load_data_imdb."
+      ],
+      "source_roles": ["implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article consolidates all previous steps into a single function, emphasizing modularity and reusability.",
+        "granularity_rationale": "This higher-level concept integrates the pipeline; it can be assessed by asking the student to describe the function's flow."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.2. Juntando Tudo"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning",
+      "source_year": "2021",
+      "name_drops": ["load_data_imdb"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-37-001",
+      "to_candidate_id": "candidate-37-002",
+      "reason": "The article introduces sentiment analysis and then presents the IMDb dataset as the specific dataset used for this task.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1. Análise de Sentimentos e o Dataset"},
+        {"kind": "markdown_heading", "locator": "15.1.1. O Dataset de Análise de Sentimento"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-002",
+      "to_candidate_id": "candidate-37-003",
+      "reason": "After describing the dataset, the article proceeds to download it using d2l utilities.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1. O Dataset de Análise de Sentimento"},
+        {"kind": "markdown_heading", "locator": "15.1.1.1. Lendo o Dataset"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-003",
+      "to_candidate_id": "candidate-37-004",
+      "reason": "After downloading, the article defines a function to read the raw files and construct data and labels.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.1. Lendo o Dataset"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-004",
+      "to_candidate_id": "candidate-37-005",
+      "reason": "Once the data is read as text and labels, the next step is tokenizing the text into words.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.1. Lendo o Dataset"},
+        {"kind": "markdown_heading", "locator": "15.1.1.2. Tokenização e Vocabulário"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-005",
+      "to_candidate_id": "candidate-37-006",
+      "reason": "After tokenization, the article builds a vocabulary from the training tokens.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.2. Tokenização e Vocabulário"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-006",
+      "to_candidate_id": "candidate-37-007",
+      "reason": "With the vocabulary, the token sequences are then padded or truncated to a fixed length.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.2. Tokenização e Vocabulário"},
+        {"kind": "markdown_heading", "locator": "15.1.1.3. Preenchimento com o mesmo comprimento"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-007",
+      "to_candidate_id": "candidate-37-008",
+      "reason": "After padding, the fixed-length features and labels are used to create data iterators for training.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.3. Preenchimento com o mesmo comprimento"},
+        {"kind": "markdown_heading", "locator": "15.1.1.4. Criando o Iterador de Dados"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-37-008",
+      "to_candidate_id": "candidate-37-009",
+      "reason": "Finally, the article wraps all these steps into a single reusable function load_data_imdb, which uses the iterator creation step.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15.1.1.4. Criando o Iterador de Dados"},
+        {"kind": "markdown_heading", "locator": "15.1.2. Juntando Tudo"}
+      ]
+    }
+  ]
+}

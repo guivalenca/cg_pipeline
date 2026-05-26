@@ -1,0 +1,309 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_006",
+    "area": {
+      "id": "area_006",
+      "label": "Decision Criteria Under Uncertainty",
+      "rationale": "Candidates from two lessons cover the use of payoff tables and non-probabilistic decision criteria (Maximax, Maximin, Minimax Regret, Laplace, Hurwicz, Expected Value) along with decision environments. Together they teach the fundamentals of choosing among alternatives when outcomes are uncertain.",
+      "candidate_ids": [
+        "lr003_001",
+        "lr003_002",
+        "lr003_003",
+        "lr003_004",
+        "lr003_005",
+        "lr003_006",
+        "lr004_001",
+        "lr004_002",
+        "lr004_003",
+        "lr004_004",
+        "lr004_005",
+        "lr004_006",
+        "lr004_007",
+        "lr004_008"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr003_001",
+    "lr003_002",
+    "lr003_003",
+    "lr003_004",
+    "lr003_005",
+    "lr003_006",
+    "lr004_001",
+    "lr004_002",
+    "lr004_003",
+    "lr004_004",
+    "lr004_005",
+    "lr004_006",
+    "lr004_007",
+    "lr004_008"
+  ],
+  "candidates": [
+    {
+      "id": "lr003_001",
+      "label": "Payoff Table Structure",
+      "description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes.",
+      "coverage_criteria": [
+        "Given a description, construct a payoff table.",
+        "Identify alternatives and states in a payoff table."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_002",
+      "label": "Maximax (Optimistic) Criterion",
+      "description": "An optimistic approach: select the alternative with the best possible outcome. For profits, maximize the maximum; for costs, minimize the minimum.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion.",
+        "Explain the optimistic philosophy."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "application"
+    },
+    {
+      "id": "lr003_003",
+      "label": "Maximin (Conservative) Criterion",
+      "description": "A conservative approach: select the alternative with the best worst-case outcome. For profits, maximize the minimum; for costs, minimize the maximum.",
+      "coverage_criteria": [
+        "Apply maximin to a payoff table.",
+        "Explain the conservative assumption."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "application"
+    },
+    {
+      "id": "lr003_004",
+      "label": "Minimax Regret Criterion",
+      "description": "A decision criterion that minimizes the maximum regret. Regret is the difference between the best possible payoff and the actual payoff for each state. The alternative with the smallest maximum regret is chosen.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Apply the minimax regret criterion."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "application"
+    },
+    {
+      "id": "lr003_005",
+      "label": "Laplace Criterion",
+      "description": "A decision criterion that assumes all states of nature are equally likely and selects the alternative with the highest average payoff.",
+      "coverage_criteria": [
+        "Apply the Laplace criterion to a payoff table.",
+        "Explain the equal likelihood assumption."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "application"
+    },
+    {
+      "id": "lr003_006",
+      "label": "Hurwicz Criterion",
+      "description": "A decision criterion that balances optimism and pessimism using a coefficient of optimism (α). It computes a weighted average of the best and worst payoffs for each alternative.",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and α.",
+        "Explain how α reflects optimism."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_001",
+      "label": "Laplace Criterion (Equally Likely/Insufficient Reason)",
+      "description": "Decision rule that assumes all states of nature are equally likely, computing the average payoff for each alternative and selecting the highest average.",
+      "coverage_criteria": [
+        "Student can explain the equally likely assumption",
+        "Student can calculate average payoffs from a payoff table",
+        "Student can determine the optimal alternative using this criterion"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_002",
+      "label": "Hurwicz Criterion (Weighted Optimism/Pessimism)",
+      "description": "Decision rule that balances best and worst payoffs using a coefficient of optimism α, computing weighted average: α*best + (1-α)*worst, and selects the highest.",
+      "coverage_criteria": [
+        "Student can define the realism/Hurwicz criterion",
+        "Student can interpret the coefficient α as degree of optimism",
+        "Student can compute the weighted average for given α and identify optimal choice"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_003",
+      "label": "Decision Environments",
+      "description": "Four types of decision contexts: certainty (known outcomes), uncertainty (no probability information), risk (known probabilities), and conflict (adversarial decisions).",
+      "coverage_criteria": [
+        "Student can list the four environments",
+        "Student can distinguish them based on knowledge of states and probabilities"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_004",
+      "label": "Payoff Table as a Decision Tool",
+      "description": "A table that organizes payoffs for each decision alternative under various states of nature, used as input to decision criteria.",
+      "coverage_criteria": [
+        "Student can construct a payoff table given alternatives and states",
+        "Student can interpret payoffs from a table"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_005",
+      "label": "Maximax Criterion (Optimistic)",
+      "description": "Optimistic rule: choose the alternative with the maximum possible payoff (best of the best).",
+      "coverage_criteria": [
+        "Student can identify the maximax choice from a payoff table",
+        "Student can explain its optimistic nature"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_006",
+      "label": "Maximin Criterion (Pessimistic)",
+      "description": "Pessimistic rule: choose the alternative with the best worst-case payoff (guarantee a minimum).",
+      "coverage_criteria": [
+        "Student can determine the maximin choice from a payoff table",
+        "Student can explain its conservative philosophy"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_007",
+      "label": "Minimax Regret Criterion",
+      "description": "Minimize maximum regret: construct regret table, find worst regret for each alternative, choose the smallest worst regret.",
+      "coverage_criteria": [
+        "Student can construct a regret table from payoffs",
+        "Student can compute minimax regret and select alternative"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_008",
+      "label": "Expected Value Criterion (Decision under Risk)",
+      "description": "When probabilities are known, compute expected monetary value for each alternative and choose the highest.",
+      "coverage_criteria": [
+        "Student can assign given probabilities to states",
+        "Student can calculate expected payoffs",
+        "Student can determine optimal decision under risk"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

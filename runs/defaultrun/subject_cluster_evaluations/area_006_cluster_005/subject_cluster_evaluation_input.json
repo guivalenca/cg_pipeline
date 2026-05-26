@@ -1,0 +1,110 @@
+{
+  "artifact_type": "subject_cluster_evaluation_input",
+  "schema_version": "subject_cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "subject_candidate_clusters_artifact": "subject_merge_candidate_clusters.json",
+  "prompt_path": "subject_merge/cluster_evaluation.md",
+  "prompt": "# Subject Merge Cluster Evaluation\n\n## Quick Start\n\nDecide whether one tight candidate cluster represents one subject concept or multiple standalone subject concepts. Use only the provided candidate cards.\n\n## Identity Standard\n\nSame concept means the same teachable idea at the same level, testable with the same question.\n\nDifferent concept means one candidate adds materially different student behavior: implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower action.\n\nMerge same-level duplicates even when wording, lesson title, or language differs. Keep deepenings separate even when they reuse the same topic name.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"sm001\",\n      \"label\": \"Specific subject-level teachable idea\",\n      \"description\": \"Canonical understanding represented by this concept.\",\n      \"coverage_criteria\": [\"Observable check across merged lesson candidates.\"],\n      \"source_candidate_ids\": [\"candidate-id\"],\n      \"merge_rationale\": \"Why these candidates are the same subject concept or must stand alone.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"sm001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"sm001\",\n      \"explanation\": \"Why it is represented by sm001.\"\n    }\n  ]\n}\n```\n\nAllowed statuses are exactly `used_in` and `merged_into`. A standalone concept uses `used_in` pointing to its own accepted concept.\n\n## Never\n\n- Never use `review`.\n- Never use `pruned`.\n- Never create dependency edges.\n- Never emit final graph concept IDs.\n- Never split one lesson-local candidate into smaller atoms.\n- Never use web search or external knowledge.\n\n## Self-Check\n\n- Every input candidate ID appears exactly once in `candidate_assignments`.\n- Every `used_in` or `merged_into` reference points to an accepted concept that lists that candidate in `source_candidate_ids`.\n- Same-level duplicates were merged despite wording or language differences.\n- Different levels or behaviors remained separate.\n",
+  "task": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "scope_id": "si-mod6-COM",
+  "cluster": {
+    "id": "area_006__cluster_005",
+    "label": "One-hot Encoding for Words",
+    "rationale": "Both define one-hot encoding for vocabulary indexing, explaining its sparse high-dimensional nature.",
+    "candidate_ids": [
+      "lr010_004",
+      "lr011_001"
+    ],
+    "area_id": "area_006"
+  },
+  "clusters": [
+    {
+      "id": "area_006__cluster_005",
+      "label": "One-hot Encoding for Words",
+      "rationale": "Both define one-hot encoding for vocabulary indexing, explaining its sparse high-dimensional nature.",
+      "candidate_ids": [
+        "lr010_004",
+        "lr011_001"
+      ],
+      "area_id": "area_006"
+    }
+  ],
+  "input_candidate_ids": [
+    "lr010_004",
+    "lr011_001"
+  ],
+  "candidates": [
+    {
+      "id": "lr010_004",
+      "label": "One-hot Encoding",
+      "description": "A sparse representation where each word is a vector of zeros with a single 1 at the index corresponding to the word in the vocabulary.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_001",
+      "label": "One-Hot Encoding",
+      "description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    }
+  ],
+  "output_contract": {
+    "candidate_assignment_rule": "Return accepted subject concepts plus exactly one assignment for every input candidate. Allowed statuses are only used_in and merged_into. Never use review or pruned. When uncertain, create a standalone accepted concept.",
+    "accepted_concepts": [
+      {
+        "id": "stage-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "stage-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "stage-local-id",
+        "explanation": "Why it is represented by that accepted concept."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

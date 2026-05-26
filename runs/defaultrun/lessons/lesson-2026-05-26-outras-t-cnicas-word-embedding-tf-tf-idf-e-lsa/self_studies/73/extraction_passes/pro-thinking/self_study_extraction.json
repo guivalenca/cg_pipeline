@@ -1,0 +1,305 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:25:55.842527+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+  "self_study_id": "73",
+  "source_body_path": "extraction/post-image/0073-book-representacao-vetorial-de-texto-tf-idf.md",
+  "source_body_sha256": "6ea278aac53f51eab1db89ca6b6cf96405e1b579b763a604056d24fab51c4610",
+  "source_name": "Representação vetorial de texto TF-IDF",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-73-001",
+      "label": "TF-IDF: Term Frequency-Inverse Document Frequency",
+      "description": "A numerical statistic that reflects the importance of a word to a document in a collection, computed as tf * idf, where tf is term frequency (count of term in document divided by document length) and idf is inverse document frequency (log(total documents / documents containing term)).",
+      "coverage_criteria": [
+        "Student can write the TF-IDF formula and explain each component."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The text defines tf-idf as tf * idf, explains tf as frequency/divided by document length, and idf as log(N/df) to diminish weight of common terms.",
+        "granularity_rationale": "This is a key concept of the chapter, teachable as a single formula with components."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Definição do método TF-IDF"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-002",
+      "label": "Comparison between Bag of Words and TF-IDF",
+      "description": "Bag of words counts word occurrences without considering context or importance across documents. TF-IDF improves by weighting terms: frequent terms across many documents get lower weight, while rare but significant terms get higher weight.",
+      "coverage_criteria": [
+        "Student can explain at least two differences between bag of words and TF-IDF."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The text explicitly contrasts bag of words and TF-IDF, noting BOW's problem of highlighting frequent but irrelevant words, and TF-IDF's ability to adjust for term frequency across documents.",
+        "granularity_rationale": "Understanding the distinction is crucial for choosing the right text representation method."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Bag of words vs. TF-IDF"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Bag of Words",
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-003",
+      "label": "Using TfidfVectorizer from scikit-learn",
+      "description": "The TfidfVectorizer class from sklearn.feature_extraction.text converts a collection of text documents into a TF-IDF feature matrix, with configurable parameters like stop_words, ngram_range, max_df, etc.",
+      "coverage_criteria": [
+        "Student can write code that imports TfidfVectorizer, initializes it with stopwords, and applies fit_transform to a list of documents."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The text provides an example using TfidfVectorizer, showing parameters and usage with Wikipedia data and stopwords.",
+        "granularity_rationale": "This is a practical skill for applying TF-IDF in Python."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "scikit-learn",
+        "TfidfVectorizer",
+        "Python",
+        "nltk",
+        "stopwords"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-004",
+      "label": "Stopword removal using NLTK",
+      "description": "The nltk.corpus.stopwords module provides lists of common words to filter out during text preprocessing, which can be passed to TfidfVectorizer's stop_words parameter to ignore irrelevant terms.",
+      "coverage_criteria": [
+        "Student can download stopwords for a language and use them in TfidfVectorizer."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The example code uses stopwords from nltk to remove articles, prepositions, etc., improving TF-IDF results.",
+        "granularity_rationale": "Stopword removal is a key preprocessing step that can be taught independently but is closely tied to TF-IDF implementation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "NLTK",
+        "stopwords"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-005",
+      "label": "TF-IDF as a feature weighting scheme",
+      "description": "TF-IDF produces a matrix where each document is represented by weighted terms. Terms with high TF-IDF scores are those that appear frequently in a specific document but rarely in the overall corpus, making them discriminative features.",
+      "coverage_criteria": [
+        "Student can articulate why high TF-IDF terms are useful for distinguishing documents."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions that words repeating less have 'maior importância' (higher importance), indicating that TF-IDF highlights significant terms.",
+        "granularity_rationale": "Understanding output interpretation is essential for using TF-IDF effectively."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-006",
+      "label": "Document representation as weighted term vectors",
+      "description": "Each document is represented as a vector of TF-IDF weights for all terms in the vocabulary, allowing comparison using cosine similarity or other metrics.",
+      "coverage_criteria": [
+        "Student can explain that after TF-IDF, each document is a numerical vector."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The text describes that TF-IDF provides a vector of characteristics for each document, and shows the resulting matrix.",
+        "granularity_rationale": "This is a foundational concept for text representation in NLP."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Bag of words vs. TF-IDF"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "TF-IDF",
+        "vector representation"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-007",
+      "label": "Preparing documents for TF-IDF: splitting text",
+      "description": "To apply TF-IDF, text must be divided into individual documents (e.g., paragraphs, sentences). In the example, splitlines() breaks the Wikipedia content into paragraphs, each treated as a separate document.",
+      "coverage_criteria": [
+        "Student can split a long text into logical units for TF-IDF processing."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The code example uses splitlines() to split the Wikipedia page into paragraphs before feeding to TfidfVectorizer.",
+        "granularity_rationale": "This is a practical step in preparing data for TF-IDF analysis."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Python",
+        "splitlines()"
+      ]
+    },
+    {
+      "candidate_id": "candidate-73-008",
+      "label": "TF-IDF formula components",
+      "description": "Term frequency (tf) is the count of a term in a document normalized by document length. Inverse document frequency (idf) is log(total number of documents / number of documents containing the term). The product gives tf-idf.",
+      "coverage_criteria": [
+        "Student can calculate tf and idf for a given term in a small corpus."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The text provides the tf-idf formula and explains each part: tf is frequency divided by document length; idf uses log and document counts.",
+        "granularity_rationale": "Understanding the formula is crucial for deeper use of TF-IDF."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Definição do método TF-IDF"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-73-001",
+      "to_candidate_id": "candidate-73-008",
+      "reason": "The TF-IDF definition is explained through its formula components.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Definição do método TF-IDF"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-73-002",
+      "to_candidate_id": "candidate-73-001",
+      "reason": "The comparison highlights how TF-IDF improves over bag of words by incorporating inverse document frequency.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Bag of words vs. TF-IDF"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-73-003",
+      "to_candidate_id": "candidate-73-004",
+      "reason": "The implementation example uses stop_words parameter with NLTK stopwords.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-73-003",
+      "to_candidate_id": "candidate-73-007",
+      "reason": "The example code splits the text into paragraphs before passing to TfidfVectorizer.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-73-003",
+      "to_candidate_id": "candidate-73-001",
+      "reason": "TfidfVectorizer implements the TF-IDF formula.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 TF-IDF em Python"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 8,
+    "source_local_connector_candidate_count": 5
+  }
+}

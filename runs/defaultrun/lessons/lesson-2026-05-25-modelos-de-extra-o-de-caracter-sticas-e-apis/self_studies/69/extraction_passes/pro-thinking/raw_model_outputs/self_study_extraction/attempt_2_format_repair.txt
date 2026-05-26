@@ -1,0 +1,266 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-69-001",
+      "label": "Minimal Flask application pattern",
+      "description": "A minimal Flask app imports Flask, creates an instance with __name__, defines a route to a function returning HTML, and runs with flask run.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app with one route returning HTML",
+        "Can explain the need for __name__",
+        "Can run the app using flask --app hello run"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly walks through a minimal Flask application step by step under the heading 'A Minimal Application'.",
+        "granularity_rationale": "This is the foundational pattern required to start any Flask project; it is a single coherent idea that can be checked with a few questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "A Minimal Application"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask", "WSGI"]
+    },
+    {
+      "candidate_id": "candidate-69-002",
+      "label": "Running the Flask development server",
+      "description": "Use flask --app <module> run to start the development server, listen on localhost:5000 by default, and make it externally visible with --host=0.0.0.0.",
+      "coverage_criteria": [
+        "Can start a Flask app with flask run",
+        "Can specify the app module with --app",
+        "Can explain how to make the server accessible externally"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides explicit commands and explanations for running the server, including external visibility, under 'A Minimal Application' and 'Externally Visible Server'.",
+        "granularity_rationale": "Running the server is a distinct operational step; the concept is small and checkable."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "A Minimal Application"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-003",
+      "label": "Flask debug mode",
+      "description": "Enable debug mode with --debug to auto-reload on code changes and show an interactive debugger in the browser; it must not be used in production due to security risks.",
+      "coverage_criteria": [
+        "Can enable debug mode on the command line",
+        "Can describe what the interactive debugger does",
+        "Can state why debug mode is unsafe for production"
+      ],
+      "source_roles": ["introducing", "warning", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates a section to debug mode, explaining its features and security warning.",
+        "granularity_rationale": "Debug mode is a distinct operational setting with clear implications; it is small enough to assess with a few questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Debug Mode"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-004",
+      "label": "HTML escaping with markupsafe.escape()",
+      "description": "When returning user-supplied data in HTML, use escape() from markupsafe to prevent XSS attacks; Jinja templates do this automatically.",
+      "coverage_criteria": [
+        "Can explain why HTML escaping is necessary",
+        "Can use markupsafe.escape() on user input",
+        "Can predict that Jinja auto-escapes"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly demonstrates how to escape user input in HTML, warning about injection attacks under the heading 'HTML Escaping'.",
+        "granularity_rationale": "Escaping is a security-critical concept that is narrow and checkable with a short code example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "HTML Escaping"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["markupsafe", "Jinja"]
+    },
+    {
+      "candidate_id": "candidate-69-005",
+      "label": "Defining routes with @app.route decorator",
+      "description": "Use @app.route(url) to bind a view function to a URL; the function's return value becomes the response.",
+      "coverage_criteria": [
+        "Can define a simple route and return a string",
+        "Can explain that the route decorator registers a URL pattern"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces routing under the 'Routing' heading with code examples mapping index and hello routes.",
+        "granularity_rationale": "Route definition is a fundamental building block; this concept isolates the basic pattern without dynamic parts, making it small and checkable."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Routing"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-006",
+      "label": "Dynamic URL variable rules",
+      "description": "Flask routes can capture variable parts with <variable_name>, and optionally enforce type with converters like int, float, path, uuid.",
+      "coverage_criteria": [
+        "Can write a route with a variable path segment",
+        "Can use a converter (e.g., int:post_id)",
+        "Can list at least two converter types"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source covers variable rules in detail under 'Variable Rules', including a table of converters.",
+        "granularity_rationale": "This is a specific feature of Flask routing; it can be tested by asking for a route with an integer parameter."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Variable Rules"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-007",
+      "label": "Canonical URLs and trailing slash behavior",
+      "description": "Routes ending with / redirect if accessed without slash; routes without slash return 404 if accessed with slash, enforcing unique canonical URLs.",
+      "coverage_criteria": [
+        "Can predict the redirect behavior for a /projects/ route accessed as /projects",
+        "Can predict the 404 for /about accessed as /about/"
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Under 'Unique URLs / Redirection Behavior', the source explains the trailing slash logic with examples.",
+        "granularity_rationale": "This is a small, well-defined behavior; checking it requires understanding a simple rule."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Unique URLs / Redirection Behavior"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-008",
+      "label": "Building URLs with url_for()",
+      "description": "The url_for() function builds a URL to a given view function, accepting keyword arguments for variable parts; it ensures clean, absolute URLs and handles root paths.",
+      "coverage_criteria": [
+        "Can use url_for('index') to generate the root URL",
+        "Can explain why url_for is preferred over hard-coding URLs",
+        "Can pass arguments to url_for and see query parameters for unknown parts"
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a thorough explanation and examples for url_for under 'URL Building'.",
+        "granularity_rationale": "URL building is a key pattern for maintainable Flask apps; this concept can be assessed by asking the student to generate a URL for a profile page with a username."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "URL Building"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask", "url_for"]
+    },
+    {
+      "candidate_id": "candidate-69-009",
+      "label": "Handling HTTP methods in routes",
+      "description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source covers HTTP method handling under 'HTTP Methods' with both single-function and separate-function patterns.",
+        "granularity_rationale": "This is a focused topic that is testable with a simple login form scenario."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "HTTP Methods"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-010",
+      "label": "Serving static files in Flask",
+      "description": "Place static assets in a 'static' folder; Flask serves them at /static/<path>, and url_for('static', filename='...') generates URLs.",
+      "coverage_criteria": [
+        "Can explain where to put CSS/JS files",
+        "Can generate a URL for a static file using url_for",
+        "Can describe the default URL prefix /static"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly covers static files under 'Static Files' with instructions and url_for example.",
+        "granularity_rationale": "A specific operational task; can be checked by asking where to store style.css and how to link it."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Static Files"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask"]
+    },
+    {
+      "candidate_id": "candidate-69-011",
+      "label": "Rendering templates with Jinja",
+      "description": "Use render_template('name.html', var=value) to render Jinja templates; place templates in a 'templates' folder; Jinja auto-escapes HTML by default.",
+      "coverage_criteria": [
+        "Can render a template and pass a variable",
+        "Can create a template that uses {{ variable }} and {% if %} blocks",
+        "Can explain where Flask looks for templates"
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Under 'Rendering Templates', the source demonstrates render_template and explains template location and basic syntax.",
+        "granularity_rationale": "Template rendering is a core pattern; the concept size allows checking with a simple template file and variable substitution."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Rendering Templates"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask", "Jinja"]
+    },
+    {
+      "candidate_id": "candidate-69-012",
+      "label": "Flask context locals and test_request_context()",
+      "description": "Flask uses context locals to make request, session, etc., available per thread; use app.test_request_context() to simulate requests during testing.",
+      "coverage_criteria": [
+        "Can explain that request is a proxy to a thread-local object",
+        "Can use test_request_context to write a test that accesses request.path"
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explains context locals under 'Context Locals' and provides a test example.",
+        "granularity_rationale": "This concept addresses a common confusion for beginners; it can be checked by asking how to test a view function that uses request."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Context Locals"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "API Python com Flask",
+      "source_year": "2026",
+      "name_drops": ["Flask", "request"]
+    }
+  ],
+  "source_local_connector_candidates": []
+}

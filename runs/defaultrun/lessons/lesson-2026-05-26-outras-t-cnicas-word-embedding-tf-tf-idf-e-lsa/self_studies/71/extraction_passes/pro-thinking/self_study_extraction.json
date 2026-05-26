@@ -1,0 +1,476 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:25:59.983158+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+  "self_study_id": "71",
+  "source_body_path": "extraction/post-image/0071-video-a-complete-overview-of-word-embeddings.md",
+  "source_body_sha256": "79d85123a167861af41406a82a42ab7e138031d63deec8d52197bf4c7665e46b",
+  "source_name": "A Complete Overview of Word Embeddings",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-71-001",
+      "label": "Word embeddings are numerical representations of text for machine learning",
+      "description": "Word embeddings are dense vector representations that encode semantic meaning, allowing NLP models to process text as numbers.",
+      "coverage_criteria": [
+        "Student can state what word embeddings are and why numerical representations are needed."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces word embeddings as mathematical representations of text necessary for ML models.",
+        "granularity_rationale": "This is a foundational definition that sets the stage for all subsequent topics; it is narrow enough to be checked with a single recall question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:00] Introduction to Word Embeddings"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:13] Why Text Embeddings?"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-002",
+      "label": "One-hot encoding creates sparse, vocabulary-sized vectors",
+      "description": "One-hot encoding represents each word as a vector with a single 1 at the word's vocabulary index and 0s elsewhere, resulting in high-dimensional sparse vectors.",
+      "coverage_criteria": [
+        "Student can create a one-hot vector for a given word from a small vocabulary."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video uses a concrete example to illustrate how one-hot encoding works for a simple vocabulary.",
+        "granularity_rationale": "This is a specific encoding technique; the concept is small enough to be checked by asking the student to produce a one-hot vector."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:57] One-Hot Encoding"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-003",
+      "label": "Count-based text representations such as Bag-of-Words, N-gram, and TF-IDF",
+      "description": "Bag-of-Words counts word occurrences ignoring order; N-gram counts sequences of n words; TF-IDF weights term frequency by inverse document frequency to highlight important words.",
+      "coverage_criteria": [
+        "Student can compute Bag-of-Words and TF-IDF vectors for a small corpus."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly covers Bag-of-Words, N-gram, and TF-IDF as count-based techniques, with on-screen formulas and examples.",
+        "granularity_rationale": "Grouping these three together as 'count-based methods' creates a teachable block that contrasts with later embedding approaches; it is checkable with a few computation tasks."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:29] Count-Based Representation Techniques"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-004",
+      "label": "Shortcomings of count-based methods: no context, unknown words, sparse vectors",
+      "description": "Count-based methods ignore word context, cannot handle words not seen during training, and produce sparse vectors, which are computationally inefficient.",
+      "coverage_criteria": [
+        "Student can list at least two limitations of count-based representations."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video enumerates these three shortcomings explicitly as motivation for embeddings.",
+        "granularity_rationale": "This is a focused list that directly transitions to the need for dense embeddings; its small size makes it easy to verify."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:31] Shortcomings of Count-Based Methods"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-005",
+      "label": "Embeddings use dense vectors with fewer dimensions than the vocabulary",
+      "description": "Unlike one-hot encoding, word embeddings are dense vectors where most elements are non-zero, and the vector dimension is typically much smaller than the vocabulary size.",
+      "coverage_criteria": [
+        "Student can explain the difference between dense and sparse vectors."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video defines a dense vector and contrasts it with sparse representations right after introducing embeddings.",
+        "granularity_rationale": "This specific property of embeddings is a core checkable fact that supports understanding of embedding efficiency."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:06] Dense Vector Explained"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-006",
+      "label": "Word similarity is defined by shared contexts, not spelling",
+      "description": "Words like 'tea' and 'coffee' are considered similar because they appear with words like 'breakfast' or 'drink', while 'tea' and 'pea' are not similar despite similar spelling.",
+      "coverage_criteria": [
+        "Student can give an example of two contextually similar words and explain why they are similar."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video uses the 'tea/coffee' vs 'tea/pea' example to illustrate distributional similarity.",
+        "granularity_rationale": "This concept is small enough to check by asking for a definition and an original example."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:21] Similar Words Explained"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-007",
+      "label": "Embedding space places words so that distance indicates similarity",
+      "description": "In a multidimensional embedding space, the Euclidean or cosine distance between word vectors measures their semantic similarity; smaller distance means more similar.",
+      "coverage_criteria": [
+        "Student can interpret a 2D embedding plot and identify which words are most similar."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows 1D and 2D examples with distance calculations between 'tea', 'coffee', and 'pea'.",
+        "granularity_rationale": "This is a single, testable concept about the geometric interpretation of embeddings."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:56] Embedding Space Explained"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-008",
+      "label": "Ideal embeddings cluster similar words and support analogies",
+      "description": "In a well-trained embedding space, similar words group together (e.g., 'king', 'queen', 'sovereign') and vector arithmetic captures analogical relations like 'king - man + woman = queen'.",
+      "coverage_criteria": [
+        "Student can explain the analogy property and give an example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly states clustering and analogy properties as characteristics of an ideal embedding space.",
+        "granularity_rationale": "This is a higher-level property still checkable with a single analogy task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:04] Ideal Embedding Space"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-009",
+      "label": "Custom embedding layer trained as part of a model",
+      "description": "A neural network can include an embedding layer that is initialized randomly and trained end-to-end for a specific task, producing specialized word representations, but requiring large data.",
+      "coverage_criteria": [
+        "Student can describe how a custom embedding layer is trained within a model."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video presents the custom embedding layer as the first method for creating embeddings, with a diagram including the Transformer architecture.",
+        "granularity_rationale": "This method is distinct enough from other training approaches to stand alone and be checked with a simple explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[06:06] Custom Embedding Layer"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "Transformer"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-010",
+      "label": "Word2vec: CBOW and Skip-gram architectures",
+      "description": "Word2vec learns word embeddings by predicting a target word from context (CBOW) or context words from a target word (Skip-gram) using a single-layer neural network.",
+      "coverage_criteria": [
+        "Student can differentiate CBOW and Skip-gram and state which predicts what."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explains the two Word2vec variants with architecture diagrams and describes their prediction goals.",
+        "granularity_rationale": "This is a core embedding technique checkable by comparing the two sub-architectures."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[07:08] Word2vec"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "Word2vec",
+        "CBOW",
+        "Skip-gram"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-011",
+      "label": "GloVe combines local and global context via co-occurrence matrices",
+      "description": "GloVe extends Word2vec by training on a word co-occurrence matrix so that the dot product of word vectors approximates the log of their co-occurrence probability.",
+      "coverage_criteria": [
+        "Student can explain how GloVe differs from Word2vec regarding global information."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states GloVe adds global context to Word2vec and shows the co-occurrence matrix and training equation.",
+        "granularity_rationale": "This is a specific enhancement of Word2vec, checkable by asking for the key difference."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[08:25] GloVe (Global Vectors)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "GloVe"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-012",
+      "label": "fastText uses subword n-grams to handle rare and unknown words",
+      "description": "fastText represents each word as the sum of its character n-gram embeddings, enabling it to handle out-of-vocabulary words and morphologically rich languages.",
+      "coverage_criteria": [
+        "Student can explain how fastText's subword approach solves the out-of-vocabulary problem."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video describes fastText's subword training with an example and highlights its benefits for rare words.",
+        "granularity_rationale": "This is a focused technique that can be checked by asking how it handles an unseen word."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[09:03] fastText"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "fastText"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-013",
+      "label": "ELMo produces dynamic, context-dependent word representations",
+      "description": "ELMo uses a bidirectional LSTM to create word vectors that are functions of the entire input sentence, allowing it to distinguish homonyms like 'fair' in different contexts.",
+      "coverage_criteria": [
+        "Student can describe how ELMo provides different embeddings for the same word in different sentences."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video highlights ELMo's context-dependence with the 'fair' example and shows its architecture.",
+        "granularity_rationale": "This is a distinct approach to word representation, checkable by comparing static vs. dynamic embeddings."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[09:41] ELMo (Embeddings from Language Models)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "ELMo"
+      ]
+    },
+    {
+      "candidate_id": "candidate-71-014",
+      "label": "Pre-trained embeddings can be used statically or fine-tuned",
+      "description": "Pre-trained word vectors can be used as fixed features (static) or updated during task-specific training (fine-tuning) to adapt to the domain.",
+      "coverage_criteria": [
+        "Student can list the two ways of using pre-trained embeddings and give a scenario for each."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video clearly states the two modes of using pre-trained embeddings in a dedicated section.",
+        "granularity_rationale": "This practical decision point is checkable with a simple comparison question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[11:47] Using Pre-trained Word Embeddings"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-71-015",
+      "label": "Gensim library provides pre-trained word embeddings and similarity operations",
+      "description": "Gensim offers downloadable pre-trained models (Word2vec, GloVe, fastText) and functions like most_similar() and distance() to explore semantic relationships and analogies.",
+      "coverage_criteria": [
+        "Student can write code to load a pre-trained model from Gensim and find similar words."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates the Gensim library with code snippets for loading models and running similarity and analogy queries.",
+        "granularity_rationale": "This is a practical tool concept that can be assessed by asking for a code snippet."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[12:28] Gensim Library Demo"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "A Complete Overview of Word Embeddings",
+      "source_year": "2024",
+      "name_drops": [
+        "Gensim"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-71-004",
+      "to_candidate_id": "candidate-71-005",
+      "reason": "The shortcomings of count-based methods (no context, sparse vectors) motivate the introduction of dense embeddings, as stated in the video.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:31] Shortcomings of Count-Based Methods"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-71-010",
+      "to_candidate_id": "candidate-71-011",
+      "reason": "GloVe is presented as an extension of Word2vec that additionally incorporates global context via co-occurrence matrices.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[08:25] GloVe (Global Vectors)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-71-010",
+      "to_candidate_id": "candidate-71-012",
+      "reason": "fastText extends Word2vec by training on subwords instead of whole words, enabling better handling of rare and unknown words.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[09:03] fastText"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-71-010",
+      "to_candidate_id": "candidate-71-013",
+      "reason": "ELMo introduces context-dependent embeddings that overcome the static nature of Word2vec, as demonstrated by the homonym example.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[09:41] ELMo (Embeddings from Language Models)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-71-014",
+      "to_candidate_id": "candidate-71-015",
+      "reason": "The Gensim library demo illustrates static use of pre-trained embeddings, which is one of the two ways described for using pre-trained models.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[12:28] Gensim Library Demo"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 15,
+    "source_local_connector_candidate_count": 5
+  }
+}

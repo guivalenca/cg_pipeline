@@ -1,0 +1,181 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_001",
+        "m68_001"
+      ],
+      "merge_rationale": "Both candidates describe the same overarching concept of converting text to numerical features for NLP. The source-body candidate provides detailed methods and context; the metadata-only candidate confirms the topic focus but adds no new distinct information."
+    },
+    {
+      "id": "lr002",
+      "label": "Bag of Words (BoW)",
+      "description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate that clearly defines a specific and well-known feature extraction technique."
+    },
+    {
+      "id": "lr003",
+      "label": "TF-IDF",
+      "description": "A weighting scheme that scales term frequency by the inverse of document frequency to highlight words that are important to a specific document within a corpus.",
+      "coverage_criteria": [
+        "Compute the TF-IDF score for a term given term frequency and document frequency.",
+        "Explain why TF-IDF improves over simple term frequency.",
+        "Identify when to use TF-IDF in text analysis."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_003"
+      ],
+      "merge_rationale": "Standalone concept that introduces a specific numeric weighting method distinct from raw counts."
+    },
+    {
+      "id": "lr004",
+      "label": "One-hot Encoding",
+      "description": "A sparse representation where each word is a vector of zeros with a single 1 at the index corresponding to the word in the vocabulary.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_004"
+      ],
+      "merge_rationale": "Distinct concept covering a basic but limited word representation method."
+    },
+    {
+      "id": "lr005",
+      "label": "Word Embedding",
+      "description": "Dense, low-dimensional vector representations of words that capture semantic similarities, enabling analogies through vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings capture meaning (e.g., similar words have close vectors).",
+        "Give an example of an analogy solvable with embeddings.",
+        "Contrast word embeddings with one-hot encoding."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_005"
+      ],
+      "merge_rationale": "Standalone concept introducing the general idea of distributed word representations, which underlies specific methods like Word2Vec."
+    },
+    {
+      "id": "lr006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from large corpora using either the Continuous Bag of Words (CBOW) or skip-gram architecture.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram training objectives.",
+        "Explain how Word2Vec produces dense vectors for words.",
+        "Describe a practical use of pre-trained Word2Vec embeddings."
+      ],
+      "source_candidate_ids": [
+        "c67_pro_thinking_006"
+      ],
+      "merge_rationale": "Specific implementation of word embedding; it stands alone as a teachable model within the feature extraction lesson."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c66_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean AND operator is about database search refinement, not directly relevant to the lesson's focus on feature extraction models and APIs."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Implied AND in databases is a search engine behavior topic, unrelated to feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean OR operator pertains to database searching, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean NOT operator is a search refinement technique, off-topic for a feature extraction lesson."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Phrase searching with quotes is a search syntax topic, not related to extracting features from text for machine learning."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_006",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean search order and parentheses are about query construction, not feature extraction."
+    },
+    {
+      "candidate_id": "c66_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Boolean operators as mathematical sets is a conceptual foundation for search logic, but not aligned with the lesson's feature extraction focus."
+    },
+    {
+      "candidate_id": "c67_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "m68_001",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "Metadata-only candidate that aligns with the source-body candidate; it is fully represented by the richer details in lr001."
+    },
+    {
+      "candidate_id": "c67_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c67_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    }
+  ]
+}

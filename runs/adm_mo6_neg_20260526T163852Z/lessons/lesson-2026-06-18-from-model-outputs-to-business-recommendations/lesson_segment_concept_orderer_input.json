@@ -1,0 +1,87 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+    "title": "From Model Outputs to Business Recommendations"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+      "label": "Risk Mapping for Preliminary Risk Identification",
+      "teaching_description": "Risk mapping uses expert assessment to score probability and impact, creating a matrix that categorizes risks to guide quantitative analysis.",
+      "coverage_criteria": [
+        "Create a risk matrix given a list of risks, assign probability and impact scores, and explain how the matrix informs subsequent simulation focus."
+      ]
+    },
+    {
+      "concept_id": "concept-project-comparison-using-simulation-statistics-9446a388",
+      "label": "Project Comparison Using Simulation Statistics",
+      "teaching_description": "When comparing projects using simulation results, apply decision rules based on mean, standard deviation, coefficient of variation, and skewness to select the best project.",
+      "coverage_criteria": [
+        "Compare two projects using mean, standard deviation, and skewness; explain which project is preferable and why; compute and interpret the coefficient of variation."
+      ]
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "teaching_description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ]
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+      "label": "Sensitivity Analysis Using Tornado Charts",
+      "teaching_description": "Sensitivity analysis examines how changes in input parameters affect the output criterion (e.g., EMV). Tools like tornado charts and spider charts rank inputs (risk factors) by their impact, helping prioritize which factors to focus on in decision-making and risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs and explain quantile ranges and direction of impact.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Risk and Simulation Fundamentals",
+      "concept_ids": [
+        "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+        "concept-monte-carlo-simulation-definition-and-process-a03cf504"
+      ]
+    },
+    {
+      "label": "Simulation Output Analysis for Decisions",
+      "concept_ids": [
+        "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+        "concept-project-comparison-using-simulation-statistics-9446a388"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

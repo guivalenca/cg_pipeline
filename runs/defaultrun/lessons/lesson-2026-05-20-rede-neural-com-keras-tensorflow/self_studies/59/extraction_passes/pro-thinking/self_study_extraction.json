@@ -1,0 +1,214 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:23:19.795181+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "self_study_id": "59",
+  "source_body_path": "extraction/post-image/0059-article-gerenciamento-de-memoria-no-tensorflow.md",
+  "source_body_sha256": "3a7a89a47bb6e0f818ae2aa03fb3b0d0d5fcce4c42d7c4c8b6f353299822bcf4",
+  "source_name": "Gerenciamento de Memória no Tensorflow",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-59-001",
+      "label": "TensorFlow Default GPU Memory Allocation",
+      "description": "By default, TensorFlow maps nearly all GPU memory to a process to reduce memory fragmentation, often occupying more memory than needed and preventing other processes from using the GPU.",
+      "coverage_criteria": [
+        "Student can explain why TensorFlow occupies full GPU memory by default and identify the side effect of blocking concurrent GPU workloads."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly states that TensorFlow \"aggressively occupies the full GPU memory\" and explains it is a greedy strategy to avoid memory fragmentation, causing a bottleneck.",
+        "granularity_rationale": "This concept is small enough to be checked with a single question about the default behavior and its rationale."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Memory Allocation For a TensorFlow-Based Model on a GPU"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Memory Hygiene With TensorFlow During Model Training and Deployment for Inference",
+      "source_year": "2021",
+      "name_drops": [
+        "TensorFlow",
+        "CUDA_VISIBLE_DEVICES"
+      ]
+    },
+    {
+      "candidate_id": "candidate-59-002",
+      "label": "Configuring a Fixed GPU Memory Limit",
+      "description": "Using tf.config.experimental.set_virtual_device_configuration, a TensorFlow process can be limited to a fixed amount of GPU memory, enabling multiple processes to share the GPU concurrently.",
+      "coverage_criteria": [
+        "Student can write the code snippet to set a 4GB memory limit and explain how it allows a second inference process to run without out-of-memory errors."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a code example and demonstrates via nvidia-smi that limiting to 4GB allows a second process to run, overcoming the OOM issue.",
+        "granularity_rationale": "This is a discrete, actionable technique that can be verified with a short coding exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "First Option — Specifically Set The Memory"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Memory Hygiene With TensorFlow During Model Training and Deployment for Inference",
+      "source_year": "2021",
+      "name_drops": [
+        "tf.config.experimental.set_virtual_device_configuration",
+        "VirtualDeviceConfiguration"
+      ]
+    },
+    {
+      "candidate_id": "candidate-59-003",
+      "label": "Configuring Memory Growth in TensorFlow",
+      "description": "Enabling memory growth (tf.config.experimental.set_memory_growth) makes TensorFlow start with minimal memory and increase it as needed, but it does not release acquired memory even after load decreases.",
+      "coverage_criteria": [
+        "Student can write the code snippet for memory growth and explain the trade-off of not releasing memory."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source describes this as the second option and provides a code snippet, while explicitly warning that memory is not released after inference load completes.",
+        "granularity_rationale": "The concept is compact, focusing on a single API call and its documented behavior."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Second option — Set memory growth as per the need"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Memory Hygiene With TensorFlow During Model Training and Deployment for Inference",
+      "source_year": "2021",
+      "name_drops": [
+        "tf.config.experimental.set_memory_growth"
+      ]
+    },
+    {
+      "candidate_id": "candidate-59-004",
+      "label": "Monitoring GPU Memory with nvidia-smi",
+      "description": "The nvidia-smi command displays real‑time GPU memory usage, which helps observe how TensorFlow allocates memory under different configurations.",
+      "coverage_criteria": [
+        "Student can run nvidia-smi and interpret the memory usage output before and after loading a TensorFlow model."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source uses nvidia-smi screenshots repeatedly to illustrate memory states (initial, after allocation, under load), making it a key tool for verifying memory settings.",
+        "granularity_rationale": "This is a single command with straightforward output, easy to check with a practical exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Memory Allocation For a TensorFlow-Based Model on a GPU"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Memory Hygiene With TensorFlow During Model Training and Deployment for Inference",
+      "source_year": "2021",
+      "name_drops": [
+        "nvidia-smi"
+      ]
+    },
+    {
+      "candidate_id": "candidate-59-005",
+      "label": "Profiling GPU Usage with Weight & Biases and TensorBoard",
+      "description": "Tools like Weight & Biases and TensorBoard can generate system graphs showing GPU utilization, memory usage, temperature, and power, aiding in determining optimal memory limits for TensorFlow processes.",
+      "coverage_criteria": [
+        "Student can describe the types of GPU metrics available in Weight & Biases and how they help in selecting an optimal memory limit."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source recommends these tools to 'look at the System Graphs to come-up with an optimal memory size' and shows sample graphs from Weight & Biases.",
+        "granularity_rationale": "This is a specific recommendation for tooling, suitable for a short discussion question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "First Option — Specifically Set The Memory"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Memory Hygiene With TensorFlow During Model Training and Deployment for Inference",
+      "source_year": "2021",
+      "name_drops": [
+        "Weight & Biases",
+        "TensorBoard",
+        "wandb.ai",
+        "tensorflow.org/tensorboard"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-59-001",
+      "to_candidate_id": "candidate-59-002",
+      "reason": "The default greedy memory allocation causes out-of-memory errors when sharing the GPU; the source presents setting a fixed memory limit as a direct solution.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "TensorFlow has provided Two options to address this situation"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-59-001",
+      "to_candidate_id": "candidate-59-003",
+      "reason": "The same default behavior leads to the alternative solution of enabling memory growth, which the source introduces as a second option.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "TensorFlow has provided Two options to address this situation"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-59-002",
+      "to_candidate_id": "candidate-59-005",
+      "reason": "To determine the right memory limit for the fixed allocation, the source recommends using Weight & Biases and TensorBoard for profiling.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "First Option — Specifically Set The Memory"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-59-001",
+      "to_candidate_id": "candidate-59-004",
+      "reason": "nvidia-smi is used throughout the source to visualize the effect of TensorFlow's memory allocation on the GPU.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Memory Allocation For a TensorFlow-Based Model on a GPU"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 5,
+    "source_local_connector_candidate_count": 4
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "strategy": "video_gemini_two_pass",
+  "settings": {
+    "profile": "triage",
+    "model": "gemini-2.5-flash",
+    "fps": 0.33,
+    "media_resolution": "low",
+    "temperature": 0.2,
+    "max_output_tokens": 8192,
+    "prompt_version": "video_gemini_pass2_v1",
+    "chunk_longer_than_seconds": 3600,
+    "chunk_seconds": 1800,
+    "chunk_overlap_seconds": 5,
+    "max_transcript_chars_per_chunk": 60000,
+    "min_words": 150,
+    "timestamp_span_tolerance_seconds": 180,
+    "timestamp_span_min_ratio": 0.65,
+    "title_similarity_min": 0.45
+  },
+  "pass1_cache_key": "ae3a6af9dc04e78fdc2db8f58edb1b41cbb1dfbc05f35fe59be07fedf9fcd861",
+  "pass1_transcript_sha256": "c787c64d7a76e6b76ce64f4bc5575dc67578c3d08ac753839f7aad002b8835c0",
+  "chunks": [
+    {
+      "schema_version": "1.0",
+      "provider": "gemini_multimodal",
+      "strategy": "video_gemini_two_pass",
+      "source_url": "https://www.youtube.com/watch?v=CMrHM8a3hqw",
+      "audio_transcript_sha256": "c787c64d7a76e6b76ce64f4bc5575dc67578c3d08ac753839f7aad002b8835c0",
+      "model": "gemini-2.5-flash",
+      "fps": 0.33,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 8192,
+      "prompt_version": "video_gemini_pass2_v1",
+      "prompt_sha256": "3e6aecbd866c8bbb79c9b3bd609934fba8ebb187a92f45832afa50c7bca64d9b",
+      "chunk": {
+        "index": 1,
+        "start_seconds": null,
+        "end_seconds": null
+      },
+      "media_reference": {
+        "mode": "external_uri",
+        "file_uri": "https://www.youtube.com/watch?v=CMrHM8a3hqw",
+        "mime_type": "video/mp4",
+        "video_metadata": {
+          "fps": 0.33
+        }
+      },
+      "prompt": "You are the video acquisition layer for The Companion curriculum pipeline.\n\nTask: convert the provided video into cleaned markdown that downstream concept extraction can process without branching by source type.\n\nSource metadata:\n- XLSX row id: 12\n- XLSX row title: Natural Language Processing In 5 Minutes | What Is NLP And How Does It Work? | Simplilearn\n- Source URL or file: https://www.youtube.com/watch?v=CMrHM8a3hqw\n- Probed source title: Natural Language Processing In 5 Minutes | What Is NLP And How Does It Work? | Simplilearn\n- Probed duration seconds: 329.0\n- Chunk window: Full video\n- Gemini model: gemini-2.5-flash\n- Video sampling fps: 0.33\n- Media resolution: low\n- Prompt version: video_gemini_pass2_v1\n\nPass 1 audio transcript for temporal grounding:\n```text\n[00:00] Star Wars fans would be familiar with the golden, life-sized hospitality robot C-3PO.\n[00:06] While Star Wars might be set in a galaxy far, far away, the reality of having machines\n[00:11] talk and respond to us in a human-like manner is already a reality, which keeps getting\n[00:16] more and more realistic with every passing day.\n[00:19] The people you ask for queries on websites, your smart assistants, even calls made over\n[00:24] the internet, all of them have one thing in common: none of them are actually human.\n[00:29] Now, you must be thinking, if they are not human, how do they manage to sound and seem\n[00:34] so human-like, how do they respond to me so intelligently, and how are they so articulate?\n[00:39] This my friends, is the magic of natural language processing.\n[00:44] What is NLP?\n[00:46] Natural language processing, or NLP, refers to the branch of artificial intelligence that\n[00:50] gives the machines the ability to read, understand, and derive meaning from human languages.\n[00:56] NLP combines the field of linguistics and computer science to decipher language structure and\n[01:01] guidelines, and to make models which can comprehend, break down, and separate significant details\n[01:06] from text and speech.\n[01:08] Every day, humans interact with each other through public social media, transferring vast quantities\n[01:13] of freely available data to each other.\n[01:16] This data is extremely useful in understanding human behavior and customer habits.\n[01:22] Data analysts and machine learning experts utilize this data to give machines the ability\n[01:26] to mimic human linguistic behavior.\n[01:29] This helps save millions in terms of manpower and time, as you don't need to always have\n[01:33] a person present at the other end of a phone.\n[01:36] NLP is also a lot more widespread than you may realize.\n[01:40] You use it every day in seemingly normal and insignificant situations.\n[01:44] Don't know how to correctly spell a word?\n[01:46] Autocorrect has you covered.\n[01:49] Need to see if your article or thesis will get flagged for copyright violations?\n[01:53] That's okay.\n[01:54] A plagiarism checker will search through the web and find any cases of published documents,\n[01:58] which may match your work line by line.\n[02:01] While NLP seems really cool, yet a cutting-edge and complicated technology concept, it is actually\n[02:07] pretty easy to learn.\n[02:09] You start off with a document or an article.\n[02:11] To make your algorithm understand what is going on in it, you need to process it into\n[02:15] a form which is easily comprehensible by the machine.\n[02:19] This is no different than making a child learn to read for the first time.\n[02:24] You start off by performing segmentation, which is to break the entire document down\n[02:28] into its constituent sentences.\n[02:31] You can do this by segmenting the article along its punctuations like full stops and commas.\n[02:36] For the algorithm to understand these sentences, we get the words in a sentence and to explain\n[02:41] them individually to our algorithm.\n[02:43] So we break down our sentence into its constituent words and store them.\n[02:48] This is called tokenizing, where each word is called a token.\n[02:52] We can make the learning process faster by getting rid of non-essential words which do not\n[02:56] add much meaning to our statement and are just there to make our statement sound more cohesive.\n[03:01] These words such as \"are\" and \"the\" are called stop words.\n[03:06] Now that we have the basic form of our document, we need to explain it to our machine.\n[03:11] We first start off by explaining that some words like skipping, skips, skipped are the same\n[03:16] word with added prefixes and suffixes.\n[03:18] This is called stemming.\n[03:21] We also identify the base words for different word tense, mood, gender, etc.\n[03:26] This is called lemmatization, stemming from the base word \"limma\".\n[03:30] Now we explain the concept of nouns, verbs, articles and other parts of speech to the machine by\n[03:35] adding these tags to our words.\n[03:37] This is called part of speech tagging.\n[03:40] Next, we introduce our machine to pop culture references and everyday names by flagging names\n[03:45] of movies, important personalities or locations, etc. that may occur in the document.\n[03:51] This is called named entity tagging.\n[03:53] Once we have our base words and tags, we use a machine learning algorithm like Naive Bayes\n[03:58] to teach our model humans sentiment and speech.\n[04:01] At the end of the day, most of the techniques used in NLP are simple grammar techniques that\n[04:06] we have been taught in school.\n[04:08] Here is a question for you.\n[04:10] Which of these NLP techniques is used to obtain words from sentences?\n[04:14] A. Stemming B. Tokenization C. Limitization D. Segmentation\n[04:22] Give it a thought and leave your answers in the comment section below.\n[04:25] Three lucky winners will receive Amazon gift vouchers.\n[04:29] With the increasing demand for automated language solutions, companies are looking for NLP experts\n[04:33] to join them and are prepared to offer highly lucrative salaries as well.\n[04:38] If you want to learn more about NLP, you can check out Simply Learn's postgraduate program\n[04:42] in AI and Machine Learning in collaboration with IBM.\n[04:46] In this program, you will learn about frameworks like Keras and TensorFlow and get hands-on experience\n[04:51] and deep learning to become a truly experienced AI engineer.\n[04:55] That brings us to the end of this video on NLP.\n[04:58] We hope you enjoyed this video.\n[05:00] If you did, a thumbs up would be really appreciated.\n[05:04] Here's your reminder to subscribe to our channel and to click on the bell icon for more on the\n[05:08] latest technologies and trends.\n[05:10] Thank you for watching and stay tuned for more from Simply Learn.\n[05:13] Thank you for watching and stay tuned for more from Simply Learn.\n```\n\nReturn only the markdown body. Do not include YAML frontmatter.\n\nRequired markdown structure:\n\n## [MM:SS] Concise moment heading\n\n**Spoken content:** faithful summary or transcript-aligned excerpt of what is being said at this timestamp.\n\n**On-screen content:** slide text, code, equations, diagrams, tables, terminal output, whiteboard content, or visible UI state at this timestamp.\n\nVisual reference rule:\n- When a slide, diagram, chart, equation, code block, table, whiteboard, or UI state is useful for downstream extraction, emit an inline image placeholder using this exact form:\n  ![descriptive alt text](video-frame://12@MM:SS)\n- Use H:MM:SS in the URI timestamp when needed.\n- The alt text must briefly name the visual type and key labels, for example: ![diagram: tokenization pipeline with normalization, vectorization, classifier](video-frame://12@12:34)\n- Do not emit JSON for diagrams. The downstream Qwen-VL phase will convert frame placeholders to structured JSON later.\n\nBehavior rules:\n- Use the Pass 1 transcript as the timing anchor, but focus model capacity on visual reasoning.\n- Preserve code blocks with fenced markdown.\n- Preserve equations in readable markdown/LaTeX form.\n- Do not invent content outside the video or outside the chunk window.\n- Do not describe blank or repeated frames unless the visual content changes.\n- Prefer timestamp sections that span the whole chunk/video, not a dense frame-by-frame log.\n- If speech and visuals disagree, say so explicitly inside the relevant timestamp section.\n"
+    }
+  ],
+  "credential_fields_redacted": true
+}

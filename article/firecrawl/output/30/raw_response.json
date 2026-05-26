@@ -1,0 +1,3651 @@
+{
+  "success": true,
+  "provider": "spacy_gatsby_page_data",
+  "data": {
+    "markdown": "# Capítulo 1: Selecionando palavras, frases, nomes e alguns conceitos\n\nNeste capítulo vamos apresentar os conceitos básicos de processamento de texto utilizando a  biblioteca spaCy. Você vai aprender sobre as estruturas de dados, como trabalhar fluxos de processamento (pipelines) treinados e como usá-los para prever anotações linguísticas do seu texto.\n\n## 1. Introdução a biblioteca spaCy (slides)\n\n> spaCy slide deck: `chapter1_01_introduction-to-spacy`\n\n\n## 2. Primeiros passos\n\nVamos começar colocando a mão na massa! Neste exercício você fará\nexperimentos com alguns dos mais de 60 [idiomas disponíveis](https://spacy.io/usage/models#languages).\n\n### Parte 1: Inglês\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma inglês (“en”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n### Parte 2: Alemão\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma alemão (“de”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n### Parte 3: Espanhol\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma espanhol (“es”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n\n## 3. Documentos, partições e tokens\n\nQuando você chama o objeto `nlp` passando uma string como parâmetro, a spaCy\nfaz a toquenização do texto e cria um objeto do tipo documento. Neste exercício, você\nvai aprender mais sobre o documento `Doc`, assim como os objetos `Token` e\npartição `Span`.\n\n### Passo 1\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma português (“pt”).\n- Processe o texto e instancie um objeto `Doc` na variável `doc`.\n- Selecione o primeiro token do objeto `Doc` e imprima seu texto `text`.\n\n> spaCy interactive code block: `01_03_01`\n\n### Passo 2\n\n- Crie um objeto `nlp` vazio do idioma `Português`.\n- Processe o texto e instancie um objeto `Doc` na variável `doc`.\n- Crie uma partição do `Doc` para os tokens “três cachorros” e\n“três cachorros e dois gatos”.\n\n> spaCy interactive code block: `01_03_02`\n\n\n## 4. Atributos léxicos\n\nNeste exemplo, você poderá usar os objetos `Doc` e `Token` combinados com\natributos léxicos para encontrar referências de porcentagem em seu texto. Você irá procurar\npor dois elementos (tokens) sequenciais: um número e um sinal de porcentagem.\n\n- Use o atributo `like_num` para identificar se algum token no documento\n`doc` se assemelha a um número.\n- Selecione o token _seguinte_ ao token atual no documento. O índice para o\npróximo token no `doc` é `token.i + 1`.\n- Verifique se o atributo `text` do próximo token é o sinal de porcentagem ”%“.\n\n> spaCy interactive code block: `01_04`\n\n\n## 5. Fluxos de processamento treinados (slides)\n\n> spaCy slide deck: `chapter1_02_statistical-models`\n\n\n## 6. Biblioteca dos modelos (choice)\n\nO que **NÃO** está incluído nos fluxos de processamento (pipelines) que você pode carregar na spaCy?\n\n> spaCy multiple-choice exercise\n\nTodos os fluxos de processamento (pipelines) incluem um arquivo `config.cfg` que define o idioma de\ninicialização, os componentes do fluxo (pipeline) de processamento que devem ser carregados, bem como as informações\nsobre o treinamento do fluxo (pipeline) de processamento e as configurações que foram utilizadas neste treinamento.\n\nPara fazer a previsão de anotações linguísticas como o tagueamento de classes\ngramaticais, termos sintáticos e reconhecimento de entidades, os pacotes de fluxos de processamento (pipelines) incluem\nos pesos binários.\n\nOs fluxos de processamento treinados permitem a generalização a partir de um conjunto de\nexemplos de treinamento. Uma vez treinados, os modelos usam os pesos binários\npara fazer as previsões. É por este motivo que não é necessário que os dados de\ntreinamento sejam incluídos nos modelos.\n\nAs bibliotecas de fluxos de processamento (pipelines) incluem um arquivo `strings.json` que armazena o mapeamento\ndo vocabulário para códigos indexadores (hash). Isso permite que a spaCy utilize apenas os\ncódigos hash e faça a consulta da palavra correspondente, se necessário.\n\n\n## 7. Carregando os fluxos (pipelines) de processamento\n\nOs fluxos (pipelines) de processamento que estamos usando neste treinamento já vem pré-instalados. Para\nsaber mais informações sobre os fluxos (pipelines) de processamento treinados e como instalá-los em seu\ncomputador, consulte [essa documentação](https://spacy.io/usage/models).\n\n- Utilize `spacy.load` para carregar o fluxo (pipeline) de processamento pequeno do idioma português `\"pt_core_news_sm\"`.\n- Processe o texto e imprima o texto do documento.\n\n> spaCy interactive code block: `01_07`\n\n\n## 8. Prevendo anotações linguísticas\n\nAgora vamos experimentar um dos fluxos (pipelines) de processamento treinados da biblioteca spaCy e\nver o resultado de sua previsão. Fique à vontade e experimente com seu\npróprio texto! Use `spacy.explain` para saber o significado de um determinado\nmarcador. Por exemplo: `spacy.explain(\"PROPN\")` ou `spacy.explain(\"GPE\")`.\n\n### Parte 1\n\n- Processe o texto utilizando o objeto `nlp` e crie um `doc`.\n- Para cada token, imprima seu texto, sua classe gramatical  `.pos_` e seu\ntermo sintático `.dep_`\n\n> spaCy interactive code block: `01_08_01`\n\n### Parte 2\n\n- Processe o texto utilizando o objeto `nlp` e crie um `doc`.\n- Construa uma iteração em `doc.ents` e imprima os atributos texto e o\nmarcador `label_`.\n\n> spaCy interactive code block: `01_08_02`\n\n\n## 9. Prevendo Entidades em um contexto\n\nOs modelos são estatísticos e por isso não acertam 100% dos casos.  A acurácia\ndo modelo depende dos dados nos quais o modelo foi treinado e também dos\ndados que você está processando. Vamos ver um exemplo:\n\n- Processe o texto utilizando o objeto `nlp`.\n- Construa uma iteração nas entidades e imprima o texto e o marcador (label) da entidade.\n- Note que o modelo não previu “iPhone X”. Crie manualmente uma partição\npara esses tokens.\n\n> spaCy interactive code block: `01_09`\n\n\n## 10. Correspondência de texto baseada em regras (slides)\n\n> spaCy slide deck: `chapter1_03_rule-based-matching`\n\n\n## 11. Usando o comparador Matcher\n\nVamos agora testar o comparador de expressões  `Matcher` baseado em\nregras. Você vai usar o exemplo do exercício anterior e escrever uma expressão\nque faça a correspondência para a frase “iPhone X” no texto.\n\n- Importe o `Matcher` de `spacy.matcher`.\n- Inicialize o comparador com o objeto compartilhado `vocab`do `nlp`.\n- Crie uma expressão que faça a correspondência dos valores em `\"TEXT\"` para dois tokens:\n`\"iPhone\"` e `\"X\"`.\n- Use o método `matcher.add` e adicione essa expressão ao comparador.\n- Chame o comparador passando como parâmetro o `doc` e armazene o resultado\nna variável `matches`.\n- Itere nos resultados e selecione a partição de texto com o índice `start` até\n`end`.\n\n> spaCy interactive code block: `01_11`\n\n\n## 12. Escrevendo expressões de correspondência\n\nNeste exercício, você vai escrever algumas expressões mais complexas de\ncorrespondência, usando os atributos dos tokens e operadores.\n\n### Parte 1\n\n- Escreva **uma** expressão que corresponda às menções da versão IOS  _completa_:\n“iOS 7”, “iOS 11” e “iOS 10”.\n\n> spaCy interactive code block: `01_12_01`\n\n### Parte 2\n\n- Escreva **uma** expressão que corresponda às variações de “baixar” (tokens\nque tenham “baixar” como lema), seguido de um token da classe gramatical\nsubstativo próprio `\"PROPN\"`.\n\n> spaCy interactive code block: `01_12_02`\n\n### Part 3\n\n- Escreva **uma** expressão que corresponda a adjetivos (`\"ADJ\"`) seguidos por um\nou dois substantivos. (um substantivo obrigatório e um seguinte opcional).\n\n> spaCy interactive code block: `01_12_03`\n",
+    "metadata": {
+      "title": "Capítulo 1: Selecionando palavras, frases, nomes e alguns conceitos",
+      "description": "Neste capítulo vamos apresentar os conceitos básicos de processamento de texto utilizando a  biblioteca spaCy. Você vai aprender sobre as estruturas de dados, como trabalhar fluxos de processamento (pipelines) treinados e como usá-los para prever anotações linguísticas do seu texto.",
+      "statusCode": 200,
+      "contentType": "application/json",
+      "url": "https://course.spacy.io/pt/chapter1",
+      "sourceURL": "https://course.spacy.io/pt/chapter1",
+      "spacy_page_data_path": "/pt/chapter1",
+      "pageDataURL": "https://course.spacy.io/page-data/pt/chapter1/page-data.json"
+    },
+    "links": [],
+    "images": [],
+    "pageDataURL": "https://course.spacy.io/page-data/pt/chapter1/page-data.json",
+    "pageData": {
+      "componentChunkName": "component---src-templates-chapter-js",
+      "path": "/pt/chapter1",
+      "result": {
+        "data": {
+          "markdownRemark": {
+            "htmlAst": {
+              "type": "root",
+              "children": [
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "1",
+                    "title": "Introdução a biblioteca spaCy",
+                    "type": "slides"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "slides",
+                      "properties": {
+                        "source": "chapter1_01_introduction-to-spacy"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "2",
+                    "title": "Primeiros passos"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Vamos começar colocando a mão na massa! Neste exercício você fará\nexperimentos com alguns dos mais de 60 "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "a",
+                          "properties": {
+                            "href": "https://spacy.io/usage/models#languages"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "idiomas disponíveis"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 1: Inglês"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Utilize "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.blank"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para criar um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " vazio do idioma inglês (“en”)."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie uma variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e imprima o seu conteúdo."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "element",
+                          "tagName": "codeblock",
+                          "properties": {
+                            "id": "01_02_01"
+                          },
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 2: Alemão"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Utilize "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.blank"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para criar um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " vazio do idioma alemão (“de”)."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie uma variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e imprima o seu conteúdo."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "element",
+                          "tagName": "codeblock",
+                          "properties": {
+                            "id": "01_02_02"
+                          },
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 3: Espanhol"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Utilize "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.blank"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para criar um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " vazio do idioma espanhol (“es”)."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie uma variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e imprima o seu conteúdo."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "element",
+                          "tagName": "codeblock",
+                          "properties": {
+                            "id": "01_02_03"
+                          },
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "3",
+                    "title": "Documentos, partições e tokens"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Quando você chama o objeto "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "nlp"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " passando uma string como parâmetro, a spaCy\nfaz a toquenização do texto e cria um objeto do tipo documento. Neste exercício, você\nvai aprender mais sobre o documento "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Doc"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": ", assim como os objetos "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Token"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " e\npartição "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Span"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Passo 1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Utilize "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.blank"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para criar um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " vazio do idioma português (“pt”)."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto e instancie um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " na variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Selecione o primeiro token do objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e imprima seu texto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "text"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_03_01"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Você pode indexar um "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " da mesma maneira que você indexa uma lista em Python.\nPor exemplo, "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc[4]"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " irá retornar o token com índice 4, que é o quinto token do texto.\nLembre-se que em Python o primeiro índice é 0 e não 1."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Passo 2"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " vazio do idioma "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Português"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto e instancie um objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " na variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie uma partição do "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para os tokens “três cachorros” e\n“três cachorros e dois gatos”."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_03_02"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Criar uma partição do "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " é semelhante a particionar uma lista em Python usando\na notação "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": ":"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ". Lembre-se que essa indexação exclui o segundo índice, por exemplo:\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "0:4"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " mapeia os tokens indexados em 0 até o 3, não incluindo o índice 4."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "4",
+                    "title": "Atributos léxicos"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Neste exemplo, você poderá usar os objetos "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Doc"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " e "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Token"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " combinados com\natributos léxicos para encontrar referências de porcentagem em seu texto. Você irá procurar\npor dois elementos (tokens) sequenciais: um número e um sinal de porcentagem."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Use o atributo "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "like_num"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para identificar se algum token no documento\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " se assemelha a um número."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Selecione o token "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "em",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "seguinte"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " ao token atual no documento. O índice para o\npróximo token no "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " é "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "token.i + 1"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Verifique se o atributo "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "text"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " do próximo token é o sinal de porcentagem ”%“."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_04"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Para obter o token em uma determinada posição no texto, você pode indexar diretamente\na variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ". Por exemplo, para obter o token na posição 5 escreva "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc[5]"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "5",
+                    "title": "Fluxos de processamento treinados",
+                    "type": "slides"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "slides",
+                      "properties": {
+                        "source": "chapter1_02_statistical-models"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "6",
+                    "title": "Biblioteca dos modelos",
+                    "type": "choice"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "O que "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "strong",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "NÃO"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " está incluído nos fluxos de processamento (pipelines) que você pode carregar na spaCy?"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "choice",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "opt",
+                          "properties": {
+                            "text": "Um arquivo de configuração descrevendo como criar um fluxo (pipeline) de processamento."
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "p",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Todos os fluxos de processamento (pipelines) incluem um arquivo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "config.cfg"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " que define o idioma de\ninicialização, os componentes do fluxo (pipeline) de processamento que devem ser carregados, bem como as informações\nsobre o treinamento do fluxo (pipeline) de processamento e as configurações que foram utilizadas neste treinamento."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "opt",
+                          "properties": {
+                            "text": "Pesos binários para efetuar as previsões estatísticas."
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "p",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para fazer a previsão de anotações linguísticas como o tagueamento de classes\ngramaticais, termos sintáticos e reconhecimento de entidades, os pacotes de fluxos de processamento (pipelines) incluem\nos pesos binários."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "opt",
+                          "properties": {
+                            "correct": "true",
+                            "text": "Os dados nos quais o modelo foi treinado."
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "p",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Os fluxos de processamento treinados permitem a generalização a partir de um conjunto de\nexemplos de treinamento. Uma vez treinados, os modelos usam os pesos binários\npara fazer as previsões. É por este motivo que não é necessário que os dados de\ntreinamento sejam incluídos nos modelos."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "opt",
+                          "properties": {
+                            "text": "O vocabulário do fluxo (pipeline) de processamento e seus códigos indexadores (hashes)."
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "p",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "As bibliotecas de fluxos de processamento (pipelines) incluem um arquivo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "strings.json"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " que armazena o mapeamento\ndo vocabulário para códigos indexadores (hash). Isso permite que a spaCy utilize apenas os\ncódigos hash e faça a consulta da palavra correspondente, se necessário."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "7",
+                    "title": "Carregando os fluxos (pipelines) de processamento"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Os fluxos (pipelines) de processamento que estamos usando neste treinamento já vem pré-instalados. Para\nsaber mais informações sobre os fluxos (pipelines) de processamento treinados e como instalá-los em seu\ncomputador, consulte "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "a",
+                          "properties": {
+                            "href": "https://spacy.io/usage/models"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "essa documentação"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Utilize "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.load"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para carregar o fluxo (pipeline) de processamento pequeno do idioma português "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"pt_core_news_sm\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto e imprima o texto do documento."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_07"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Para carregar um fluxo (pipeline) de processamento , use "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.load"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " com o nome do modelo. Os nomes dos fluxos (pipelines) de processamento  variam de acordo com o idioma e os dados nos quais o modelo foi treinado,\npor isso verifique se você está usando o nome correto do modelo."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "8",
+                    "title": "Prevendo anotações linguísticas"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Agora vamos experimentar um dos fluxos (pipelines) de processamento treinados da biblioteca spaCy e\nver o resultado de sua previsão. Fique à vontade e experimente com seu\npróprio texto! Use "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "spacy.explain"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " para saber o significado de um determinado\nmarcador. Por exemplo: "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "spacy.explain(\"PROPN\")"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " ou "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "spacy.explain(\"GPE\")"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto utilizando o objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e crie um "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Para cada token, imprima seu texto, sua classe gramatical  "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": ".pos_"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e seu\ntermo sintático "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": ".dep_"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_08_01"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Para criar um "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ", chame o objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e coloque o texto como parâmetro.\nObserve que os atributos do token possuem o caractere “sublinhado” no final."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 2"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto utilizando o objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e crie um "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Construa uma iteração em "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc.ents"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e imprima os atributos texto e o\nmarcador "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "label_"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_08_02"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "p",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Para criar um "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ", chame o objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e coloque o texto como parâmetro.\nObserve que os atributos do token possuem o caractere “sublinhado” no final."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "9",
+                    "title": "Prevendo Entidades em um contexto"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Os modelos são estatísticos e por isso não acertam 100% dos casos.  A acurácia\ndo modelo depende dos dados nos quais o modelo foi treinado e também dos\ndados que você está processando. Vamos ver um exemplo:"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Processe o texto utilizando o objeto "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Construa uma iteração nas entidades e imprima o texto e o marcador (label) da entidade."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Note que o modelo não previu “iPhone X”. Crie manualmente uma partição\npara esses tokens."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_09"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "ul",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para criar um "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "doc"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ", chame o objeto "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "nlp"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " e coloque o texto como parâmetro.\nAs entidades reconhecidas estarão na propriedade "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "doc.ents"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": "."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "A forma mais fácil de criar um um objeto partição  ("
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "Span"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ") é utilizar a notação\nindexada, por exemplo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "doc[5:10]"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " para o token na posição 5 até a posição 10.\nObserve que o token na posição 10 não será incluído."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "10",
+                    "title": "Correspondência de texto baseada em regras",
+                    "type": "slides"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "slides",
+                      "properties": {
+                        "source": "chapter1_03_rule-based-matching"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "11",
+                    "title": "Usando o comparador Matcher"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Vamos agora testar o comparador de expressões  "
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "code",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Matcher"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": " baseado em\nregras. Você vai usar o exemplo do exercício anterior e escrever uma expressão\nque faça a correspondência para a frase “iPhone X” no texto."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Importe o "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Matcher"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " de "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "spacy.matcher"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Inicialize o comparador com o objeto compartilhado "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "vocab"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "do "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "nlp"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Crie uma expressão que faça a correspondência dos valores em "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"TEXT\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " para dois tokens:\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"iPhone\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"X\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Use o método "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "matcher.add"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e adicione essa expressão ao comparador."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Chame o comparador passando como parâmetro o "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "doc"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " e armazene o resultado\nna variável "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "matches"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Itere nos resultados e selecione a partição de texto com o índice "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "start"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " até\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "end"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_11"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "ul",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "O vocabulário compartilhado está disponível no atributo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "nlp.vocab"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": "."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Uma expressão é composta por uma lista de dicionários cuja chave é o nome do\natributo. Por exemplo:  "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "[{\"TEXT\": \"Hello\"}]"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " fará a correspondência do atributo\ntexto (TEXT) para o texto exatamente igual a “Hello”."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Os atributos "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "start"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " e "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "end"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " de cada resultado da correspondência são os\níndices no "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "doc"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " da partição de texto equivalente. Para retornar o resultado da\ncorrespondência, basta criar uma partição no "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "doc"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " usando os indices "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "start"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " e "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "end"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": "."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": "\n"
+                },
+                {
+                  "type": "element",
+                  "tagName": "exercise",
+                  "properties": {
+                    "id": "12",
+                    "title": "Escrevendo expressões de correspondência"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "p",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Neste exercício, você vai escrever algumas expressões mais complexas de\ncorrespondência, usando os atributos dos tokens e operadores."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Escreva "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "strong",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "uma"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " expressão que corresponda às menções da versão IOS  "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "em",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "completa"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ":\n“iOS 7”, “iOS 11” e “iOS 10”."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_12_01"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "ul",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para indicar a correspondência exata de um texto, você deve usar o atributo\n"
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "TEXT"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ". Por exemplo,  "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "{\"TEXT\": \"Apple\"}"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " fará a correspondência exata do\ntexto “Apple”."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para indicar a correspondência de um token com números, use o atributo\n"
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"IS_DIGIT\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ", que retornará "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "True"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " se o token tiver somente caracteres numéricos."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Parte 2"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Escreva "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "strong",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "uma"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " expressão que corresponda às variações de “baixar” (tokens\nque tenham “baixar” como lema), seguido de um token da classe gramatical\nsubstativo próprio "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"PROPN\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_12_02"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "ul",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para indicar um lema, use o atributo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"LEMMA\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " como expressão para o token.\nPor exemplo, "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "{\"LEMMA\": \"ser\"}"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " fará a correspondência para “sou”, “fui” ou “serei”."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para encontrar substativos próprios, você deve fazer a correspondência dos\ntokens cujo atributo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"POS\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " seja "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"PROPN\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": "."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "h3",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Part 3"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "ul",
+                      "properties": {},
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "li",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "Escreva "
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "strong",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "uma"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": " expressão que corresponda a adjetivos ("
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "code",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "\"ADJ\""
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": ") seguidos por um\nou dois substantivos. (um substantivo obrigatório e um seguinte opcional)."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    },
+                    {
+                      "type": "element",
+                      "tagName": "codeblock",
+                      "properties": {
+                        "id": "01_12_03"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        },
+                        {
+                          "type": "element",
+                          "tagName": "ul",
+                          "properties": {},
+                          "children": [
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Para identificar adjetivos, procure por tokens cujo atributo "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"POS\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " seja "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"ADJ\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ".\nPara substantivos procure por "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"NOUN\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": "."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            },
+                            {
+                              "type": "element",
+                              "tagName": "li",
+                              "properties": {},
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "value": "Operadores podem ser adicionados à expressão utilizando a chave "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"OP\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": ".\nPor exemplo: "
+                                },
+                                {
+                                  "type": "element",
+                                  "tagName": "code",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "value": "\"OP\": \"?\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "value": " para comparar zero ou uma vez."
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "value": "\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "value": "\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "value": "\n"
+                    }
+                  ]
+                }
+              ],
+              "data": {
+                "quirksMode": false
+              }
+            },
+            "frontmatter": {
+              "id": 1,
+              "title": "Capítulo 1: Selecionando palavras, frases, nomes e alguns conceitos",
+              "description": "Neste capítulo vamos apresentar os conceitos básicos de processamento de texto utilizando a  biblioteca spaCy. Você vai aprender sobre as estruturas de dados, como trabalhar fluxos de processamento (pipelines) treinados e como usá-los para prever anotações linguísticas do seu texto.",
+              "next": "/chapter2",
+              "prev": null
+            },
+            "fields": {
+              "lang": "pt"
+            },
+            "parent": {
+              "__typename": "File",
+              "name": "chapter1"
+            }
+          }
+        },
+        "pageContext": {
+          "slug": "/pt/chapter1",
+          "lang": "pt"
+        }
+      }
+    }
+  }
+}

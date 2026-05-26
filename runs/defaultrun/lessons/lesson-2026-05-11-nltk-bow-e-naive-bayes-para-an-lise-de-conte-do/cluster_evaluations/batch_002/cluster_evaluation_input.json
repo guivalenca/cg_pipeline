@@ -1,0 +1,690 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Naive Bayes Decision Rule Derivation",
+    "rationale": "These candidates derive the Naive Bayes decision rule mathematically, from Bayes theorem to the final classification formula.",
+    "candidate_ids": [
+      "c36_pro_thinking_004"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Naive Bayes Decision Rule Derivation",
+      "rationale": "These candidates derive the Naive Bayes decision rule mathematically, from Bayes theorem to the final classification formula.",
+      "candidate_ids": [
+        "c36_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Training Components: Prior and Likelihood",
+      "rationale": "These candidates cover the calculation of prior class probabilities and word likelihood probabilities during Naive Bayes training.",
+      "candidate_ids": [
+        "c36_pro_thinking_005",
+        "c36_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Smoothing and Logarithmic Transformation",
+      "rationale": "These candidates address Laplace smoothing and log transformation for numerical stability in Naive Bayes.",
+      "candidate_ids": [
+        "c36_pro_thinking_007",
+        "c36_pro_thinking_008",
+        "c39_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "Text Preprocessing for NLP",
+      "rationale": "These candidates describe text cleaning steps such as removing HTML, punctuation, stop words, lowercasing, tokenization, and stemming.",
+      "candidate_ids": [
+        "c36_pro_thinking_009",
+        "c38_pro_thinking_004",
+        "c38_pro_thinking_005",
+        "c38_pro_thinking_006",
+        "c39_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Binary Multinomial Naive Bayes",
+      "rationale": "These candidates discuss a variant of Naive Bayes that uses binary features indicating word presence rather than frequency.",
+      "candidate_ids": [
+        "c36_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Handling Unknown Words and Vocabulary",
+      "rationale": "These candidates cover strategies for dealing with out-of-vocabulary words and building vocabularies with frequency filters.",
+      "candidate_ids": [
+        "c36_pro_thinking_011",
+        "c37_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "IMDb Dataset Details and Loading",
+      "rationale": "These candidates describe the IMDb movie review dataset and the process of downloading and extracting it.",
+      "candidate_ids": [
+        "c37_pro_thinking_002",
+        "c37_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "Reading and Tokenizing IMDb Reviews",
+      "rationale": "These candidates explain how to read reviews from files and tokenize them into words.",
+      "candidate_ids": [
+        "c37_pro_thinking_004",
+        "c37_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Sequence Padding and Data Iterators",
+      "rationale": "These candidates discuss padding/truncating sequences and creating data iterators for minibatch training.",
+      "candidate_ids": [
+        "c37_pro_thinking_007",
+        "c37_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "Data Loading Pipeline Encapsulation",
+      "rationale": "These candidates present a reusable function that bundles all data preprocessing steps for the IMDb dataset.",
+      "candidate_ids": [
+        "c37_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_023",
+      "label": "NLP Definition and Context",
+      "rationale": "These candidates define natural language processing and its role in text classification tasks.",
+      "candidate_ids": [
+        "c38_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_024",
+      "label": "Feature Extraction with CountVectorizer and BoW",
+      "rationale": "These candidates illustrate using CountVectorizer to create bag-of-words representations, similar to the BoW model.",
+      "candidate_ids": [
+        "c38_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c36_pro_thinking_004",
+    "c36_pro_thinking_005",
+    "c36_pro_thinking_006",
+    "c36_pro_thinking_007",
+    "c36_pro_thinking_008",
+    "c39_pro_thinking_004",
+    "c36_pro_thinking_009",
+    "c38_pro_thinking_004",
+    "c38_pro_thinking_005",
+    "c38_pro_thinking_006",
+    "c39_pro_thinking_001",
+    "c36_pro_thinking_010",
+    "c36_pro_thinking_011",
+    "c37_pro_thinking_006",
+    "c37_pro_thinking_002",
+    "c37_pro_thinking_003",
+    "c37_pro_thinking_004",
+    "c37_pro_thinking_005",
+    "c37_pro_thinking_007",
+    "c37_pro_thinking_008",
+    "c37_pro_thinking_009",
+    "c38_pro_thinking_002",
+    "c38_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c36_pro_thinking_004",
+      "label": "Derivation of the Naive Bayes Decision Rule",
+      "description": "The Naive Bayes decision rule selects the class c that maximizes P(c) * product of P(word|c) over all words in the document, derived from Bayes' theorem and the independence assumption.",
+      "coverage_criteria": [
+        "The student can write the final decision rule formula.",
+        "The student can explain the steps: starting from maximizing P(c|d), applying Bayes rule, removing denominator, and applying independence."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article walks through the mathematical derivation step-by-step, from Bayes theorem to the final product formula, with explanatory equations.",
+        "granularity_rationale": "This is a procedural concept that can be assessed by asking the student to derive or explain the rule, which is a single cohesive task."
+      },
+      "anchors": [
+        "## DERIVATION"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_005",
+      "label": "Computing Prior Class Probabilities",
+      "description": "The prior probability P(c) is the proportion of documents belonging to a class, calculated as Nc/Ntotal.",
+      "coverage_criteria": [
+        "Given the counts of documents per class, the student can compute the prior probability.",
+        "The student can explain that the prior represents the overall prevalence of the class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines prior probability and shows how to compute it from the number of documents in each class.",
+        "granularity_rationale": "This is a small, self-contained concept that can be assessed with a single calculation question."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_006",
+      "label": "Computing Word Likelihood Probabilities",
+      "description": "The likelihood probability P(word|c) is the frequency of a word in documents of class c relative to all words in that class, typically smoothed.",
+      "coverage_criteria": [
+        "Given word counts per class, the student can calculate P(word|c).",
+        "The student can explain that the likelihood captures how indicative a word is for a class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details the likelihood probability calculation, including the formula with sum over vocabulary, and uses it in the worked example.",
+        "granularity_rationale": "This is a key calculation step that can be assessed with a focused numeric problem."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_007",
+      "label": "Laplace Smoothing to Avoid Zero Probabilities",
+      "description": "Laplace smoothing adds a constant (usually 1) to all word counts to prevent zero probabilities for unseen words in a class, which would zero out the entire product.",
+      "coverage_criteria": [
+        "The student can explain why zero probabilities are problematic in Naive Bayes.",
+        "The student can apply Laplace smoothing to a given count table."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article warns about the zero probability problem and introduces Laplace smoothing with a modified formula, demonstrating its use in the example.",
+        "granularity_rationale": "This is a specific technique that addresses a single issue and can be assessed with a simple modification question."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_008",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Taking the logarithm of the Naive Bayes product converts it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "The student can explain that log turns products into sums, avoiding underflow.",
+        "The student can transform a product expression into a log-sum."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article suggests using the log function to convert the product into a sum, improving efficiency.",
+        "granularity_rationale": "This is a simple optimization concept that can be checked with a definition and a small example."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_004",
+      "label": "Laplace Smoothing for Naive Bayes",
+      "description": "Technique to handle zero frequency problem in Naive Bayes by adding a small constant (usually 1) to all feature counts to avoid zero probabilities.",
+      "coverage_criteria": [
+        "Explain why zero probabilities are problematic in Naive Bayes.",
+        "Apply Laplace smoothing to word counts in a text classification example.",
+        "Describe the formula: (count + 1) / (total words + vocabulary size)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly addresses the zero-frequency problem and introduces Laplace smoothing as a solution with a detailed example.",
+        "granularity_rationale": "This is a specific technique within Naive Bayes, crucial for its practical use."
+      },
+      "anchors": [
+        "2 Análise do classificador Naïve Bayes"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_009",
+      "label": "Removing Stop Words in Text Classification",
+      "description": "Stop words are common words like 'the', 'a', 'is' that carry little sentiment information and can be removed to simplify the model and reduce noise.",
+      "coverage_criteria": [
+        "The student can identify common stop words.",
+        "The student can explain that removing stop words reduces vocabulary size and computation without losing sentiment signal."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions stop words removal as a way to streamline model training, noting that these words don't contribute to sentiment.",
+        "granularity_rationale": "This is a standard preprocessing step that can be assessed with a definition and simple practical task."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_004",
+      "label": "Basic Text Cleaning for NLP",
+      "description": "The initial preprocessing step removes HTML tags, special characters, and converts all text to lowercase to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Student can explain why removing HTML tags and special characters is important for text analysis."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the video demonstrates using regular expressions to clean a sample review, showing the removal of HTML tags and special characters, then applying lowercasing.",
+        "granularity_rationale": "This is a specific, checkable step in the preprocessing pipeline; a student can be asked to show code for cleaning text."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_005",
+      "label": "Stop Words Removal with NLTK",
+      "description": "Stop words are common words with little semantic value (e.g., 'the', 'is') that are removed using predefined lists, such as those provided by the NLTK library.",
+      "coverage_criteria": [
+        "Student can use NLTK to list English stop words and filter them from a text."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the instructor uses NLTK's stop words list to filter out words like 'it', 'is', and 'the' from the review text, showing the code and result.",
+        "granularity_rationale": "This is a discrete step that can be tested by asking the student to write a short code snippet to remove stop words."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_006",
+      "label": "Stemming with SnowballStemmer",
+      "description": "Stemming reduces words to their root form (e.g., 'running' to 'run') to consolidate similar terms, often implemented with algorithms like SnowballStemmer in NLTK.",
+      "coverage_criteria": [
+        "Student can explain the purpose of stemming and apply a stemmer to a word list."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the video introduces stemming as a grammar-based preprocessing step and applies it to the review text, showing that it condenses word forms.",
+        "granularity_rationale": "Stemming is a distinct NLP technique that the student can be asked to define and demonstrate with a single code line."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_001",
+      "label": "Data Preprocessing for Text Classification",
+      "description": "The process of preparing raw text data for machine learning classifiers, including lowercasing, removing special characters and punctuation, handling emails/URLs/numbers, tokenization, stop word removal, and stemming.",
+      "coverage_criteria": [
+        "Explain why text preprocessing is necessary before classification.",
+        "List common preprocessing steps and their purposes.",
+        "Implement preprocessing using Python's string methods, regex, and NLTK."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly walks through obtaining data, exploring it, and then a detailed preprocessing pipeline with code examples.",
+        "granularity_rationale": "This is a distinct phase in the text classification workflow, teachable as a set of atomic steps."
+      },
+      "anchors": [
+        "1 Obtenção e preparação dos dados",
+        "Preparação dos dados",
+        "Exploração dos dados"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_010",
+      "label": "Binary Multinomial Naive Bayes: Presence vs Frequency",
+      "description": "A variant of Naive Bayes that uses binary features (word present/absent) instead of word counts, emphasizing the importance of word occurrence over frequency.",
+      "coverage_criteria": [
+        "The student can contrast binary and frequency-based NB.",
+        "The student can explain that a single occurrence of a strong sentiment word may be enough to determine class."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces binary multinomial NB as an alternative that focuses on word presence, with rationale that a single word can change sentiment.",
+        "granularity_rationale": "This is a distinct modeling choice that can be assessed with comparison questions."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_011",
+      "label": "Dealing with Out-of-Vocabulary Words",
+      "description": "During testing, words not seen in training (unknown words) are typically ignored in probability calculations to avoid errors.",
+      "coverage_criteria": [
+        "The student can explain why unknown words are problematic.",
+        "The student can state that ignoring them is a simple strategy."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article recommends dropping unknown words that appear in the test set but not in the training vocabulary, as they cannot be assigned a likelihood.",
+        "granularity_rationale": "This is a small practical issue that can be assessed with a definition."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_006",
+      "label": "Building a vocabulary from training tokens with minimum frequency filter",
+      "description": "Using d2l.Vocab, a vocabulary is created from the training tokens, filtering out words that appear fewer than 5 times and reserving a special ' <pad>' token.",
+      "coverage_criteria": [
+        "Student can create a vocabulary object with d2l.Vocab and explain the role of min_freq and reserved_tokens.",
+        "Student can interpret a histogram of review lengths to understand token distribution."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article directly shows the vocabulary construction and the histogram plotting.",
+        "granularity_rationale": "This is a specific step in NLP pipelines, involving vocabulary parameters, and is small enough for a focused question."
+      },
+      "anchors": [
+        "15.1.1.2. Tokenização e Vocabulário"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_002",
+      "label": "Large Movie Review Dataset (IMDb) for sentiment analysis",
+      "description": "The IMDb Large Movie Review Dataset contains 25,000 training and 25,000 test reviews from IMDb, each labeled as positive or negative, with balanced classes.",
+      "coverage_criteria": [
+        "Student can describe the IMDb dataset: its source, size, split, and label distribution."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a subsection to describing this dataset, its origin, and its structure.",
+        "granularity_rationale": "Understanding the dataset characteristics is important before using it; it is a specific, checkable detail."
+      },
+      "anchors": [
+        "15.1.1. O Dataset de Análise de Sentimento"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_003",
+      "label": "Downloading and extracting the IMDb dataset using d2l utility",
+      "description": "The article shows how to register the dataset URL and hash in d2l.DATA_HUB and use d2l.download_extract to automatically download and extract the IMDb dataset.",
+      "coverage_criteria": [
+        "Student can use d2l.DATA_HUB to register a dataset and call d2l.download_extract to obtain the data directory.",
+        "Student can identify the expected directory structure (e.g., 'aclImdb' folder)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The code snippet explicitly demonstrates the download step using d2l functions.",
+        "granularity_rationale": "This is a procedural step important for reproducibility; it is narrow enough to assess with a simple coding task."
+      },
+      "anchors": [
+        "15.1.1.1. Lendo o Dataset"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_004",
+      "label": "Reading IMDb reviews and labels from directory structure",
+      "description": "The read_imdb function iterates over 'pos' and 'neg' subdirectories in the train/test split to read review text files and assign label 1 for positive, 0 for negative.",
+      "coverage_criteria": [
+        "Student can explain how the raw text files are organized and how the function constructs the data and labels lists.",
+        "Student can implement a similar file-reading loop for a differently structured dataset."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides a complete function that reads the dataset, which is a core data preparation step.",
+        "granularity_rationale": "This is a specific, small coding pattern; it can be assessed by asking the student to explain the logic or adapt it."
+      },
+      "anchors": [
+        "15.1.1.1. Lendo o Dataset"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_005",
+      "label": "Word-level tokenization with d2l.tokenize",
+      "description": "The text is tokenized into words using d2l.tokenize with token='word', producing a list of tokens for each review.",
+      "coverage_criteria": [
+        "Student can use d2l.tokenize to split English text into word tokens.",
+        "Student can describe tokenization as a step in NLP preprocessing."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly calls d2l.tokenize to convert raw reviews into word tokens.",
+        "granularity_rationale": "Tokenization is a fundamental step; this concept is atomic and easily testable."
+      },
+      "anchors": [
+        "15.1.1.2. Tokenização e Vocabulário"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_007",
+      "label": "Padding and truncating sequences to uniform length for batched processing",
+      "description": "Reviews are padded or truncated to a fixed length (e.g., 500 tokens) using d2l.truncate_pad to enable efficient minibatching.",
+      "coverage_criteria": [
+        "Student can explain why variable-length sequences need padding and truncation.",
+        "Student can apply d2l.truncate_pad to standardize sequence lengths."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly performs padding to length 500 and states the reason: reviews have different lengths and cannot be combined directly in minibatches.",
+        "granularity_rationale": "This is a practical preprocessing step; it can be checked by asking the student to perform padding on a small list of sequences."
+      },
+      "anchors": [
+        "15.1.1.3. Preenchimento com o mesmo comprimento"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_008",
+      "label": "Creating a data iterator for minibatch training",
+      "description": "Using d2l.load_array, a data iterator is created that yields minibatches of (features, labels) with a given batch size, enabling efficient training loops.",
+      "coverage_criteria": [
+        "Student can create a data iterator from padded features and labels using d2l.load_array.",
+        "Student can inspect the shape of minibatch tensors."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article directly creates train_iter with d2l.load_array and prints batch shapes.",
+        "granularity_rationale": "This is the final step in data preparation; it is a small, checkable piece of the pipeline."
+      },
+      "anchors": [
+        "15.1.1.4. Criando o Iterador de Dados"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_009",
+      "label": "Wrapping the entire data loading process into a reusable function (load_data_imdb)",
+      "description": "The function load_data_imdb(batch_size, num_steps=500) encapsulates downloading, reading, tokenizing, building vocabulary, padding, and creating iterators, returning train/test iterators and the vocabulary.",
+      "coverage_criteria": [
+        "Student can write a similar data-loading function that bundles all preprocessing steps.",
+        "Student can explain the inputs and outputs of load_data_imdb."
+      ],
+      "source_roles": [
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article consolidates all previous steps into a single function, emphasizing modularity and reusability.",
+        "granularity_rationale": "This higher-level concept integrates the pipeline; it can be assessed by asking the student to describe the function's flow."
+      },
+      "anchors": [
+        "15.1.2. Juntando Tudo"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_002",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of artificial intelligence focused on enabling computers to process and analyze human language, often used for tasks like text classification.",
+      "coverage_criteria": [
+        "Student can define NLP and give an example of an NLP task."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [09:29], the instructor explicitly introduces NLP as the area that develops techniques to manipulate textual information.",
+        "granularity_rationale": "This foundational concept is necessary to understand the domain of sentiment analysis; it can be assessed with a simple definition question."
+      },
+      "anchors": [
+        "[09:29] Importing Libraries for Natural Language Processing (NLP)"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_007",
+      "label": "Bag of Words Representation with CountVectorizer",
+      "description": "Bag of Words converts preprocessed text into a numerical matrix of token counts, where each column corresponds to a word, using scikit-learn's CountVectorizer, often with max_features to limit dimensionality.",
+      "coverage_criteria": [
+        "Student can create a BoW matrix from a list of texts using CountVectorizer and explain the max_features parameter."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [30:29], the instructor creates a bag of words using CountVectorizer with max_features=1000, explaining that it limits the number of word features to the top most frequent ones.",
+        "granularity_rationale": "The BoW concept is central to traditional text classification; checking the student's ability to instantiate and apply CountVectorizer confirms understanding of feature extraction."
+      },
+      "anchors": [
+        "[30:29] Creating and Training the Machine Learning Model"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

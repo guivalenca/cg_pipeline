@@ -1,0 +1,217 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "title": "Decision-making process and fundamentals of decision-making approaches."
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-integration-of-pestel-with-other-frameworks-b11c3c6f",
+      "label": "Integration of PESTEL with Other Frameworks",
+      "teaching_description": "Insights from a PESTEL analysis can be incorporated into strategic frameworks such as Ansoff's matrix, Porter's 5 forces, and SWOT analysis to support comprehensive decision-making.",
+      "coverage_criteria": [
+        "Name at least two strategic frameworks that can utilize PESTEL outputs."
+      ]
+    },
+    {
+      "concept_id": "concept-use-of-pestel-in-financial-analysis-845f5721",
+      "label": "Use of PESTEL in Financial Analysis",
+      "teaching_description": "In financial analysis, PESTEL factors influence model assumptions such as revenue growth, profit margins, cash reserves for carbon taxes, and debt service coverage ratios, aiding in risk assessment and forecasting.",
+      "coverage_criteria": [
+        "Give an example of how a PESTEL factor might affect a financial model assumption."
+      ]
+    },
+    {
+      "concept_id": "concept-consider-many-different-viewpoints-in-decision-making-67e8e16d",
+      "label": "Consider Many Different Viewpoints in Decision-Making",
+      "teaching_description": "Great decisions are shaped by consideration of many different viewpoints, without seeking consensus but not acting unilaterally; it requires discernment on whose opinion to seek and when to force a solution.",
+      "coverage_criteria": [
+        "Explain why considering many different viewpoints shapes great decisions.",
+        "Describe how to balance seeking input versus making a unilateral decision."
+      ]
+    },
+    {
+      "concept_id": "concept-make-decisions-close-to-the-action-a6a8400a",
+      "label": "Make Decisions Close to the Action",
+      "teaching_description": "Great decisions are made as close as possible to the action, involving those who do the work rather than only those in power, which requires trust and putting ego aside.",
+      "coverage_criteria": [
+        "Describe why involving front-line workers improves decision quality.",
+        "Identify situations where it is better to seek advice from those at the operational level."
+      ]
+    },
+    {
+      "concept_id": "concept-address-root-cause-in-decision-making-d4ade183",
+      "label": "Address Root Cause in Decision-Making",
+      "teaching_description": "Great decisions address the root cause of problems, not just symptoms, by engaging people who understand where issues originated and developing plans to fix the underlying cause.",
+      "coverage_criteria": [
+        "Differentiate between symptoms and root causes in a decision context.",
+        "Explain why focusing on root causes leads to more effective decisions."
+      ]
+    },
+    {
+      "concept_id": "concept-assign-clear-accountability-in-decisions-9cc18b39",
+      "label": "Assign Clear Accountability in Decisions",
+      "teaching_description": "Great decisions are made by a clearly accountable person who stands behind their decisions, even if they later turn out to be mistakes.",
+      "coverage_criteria": [
+        "Explain the importance of clear accountability in decision-making.",
+        "Describe how accountability fosters ownership and integrity in the decision process."
+      ]
+    },
+    {
+      "concept_id": "concept-balance-short-term-and-long-term-value-in-decisions-17a8f9f2",
+      "label": "Balance Short-Term and Long-Term Value in Decisions",
+      "teaching_description": "Great decisions consider the holistic impacts of a problem and balance long-term and short-term value, sometimes requiring sacrifice of immediate efficiency for long-term competence.",
+      "coverage_criteria": [
+        "Discuss how to evaluate trade-offs between short-term gains and long-term value in decision-making.",
+        "Provide examples where short-term sacrifices lead to long-term benefits."
+      ]
+    },
+    {
+      "concept_id": "concept-communicate-decisions-effectively-to-stakeholders-5adbae8b",
+      "label": "Communicate Decisions Effectively to Stakeholders",
+      "teaching_description": "Great decisions are communicated well to stakeholders, involving honesty and integrity even when facing difficult audiences or consequences.",
+      "coverage_criteria": [
+        "Outline key principles for effectively communicating decisions to stakeholders.",
+        "Explain the importance of transparency and integrity in decision communication."
+      ]
+    },
+    {
+      "concept_id": "concept-make-timely-decisions-972b810f",
+      "label": "Make Timely Decisions",
+      "teaching_description": "Great decisions are timely; they avoid procrastination, fear of mistakes, or blame-shifting by charting the best course forward with available information and acting promptly.",
+      "coverage_criteria": [
+        "Explain the importance of timeliness in decision-making.",
+        "Identify common barriers to timely decisions such as perfectionism or fear of disapproval."
+      ]
+    },
+    {
+      "concept_id": "concept-balance-gut-instinct-with-team-considerations-94c76019",
+      "label": "Balance Gut Instinct with Team Considerations",
+      "teaching_description": "While trusting one's gut can be valuable, great decisions also require considering whether that instinct is the best course for everyone involved.",
+      "coverage_criteria": [
+        "Discuss the role of intuition in decision-making.",
+        "Describe when it is appropriate to rely on gut instinct versus when broader team or organizational considerations should prevail."
+      ]
+    },
+    {
+      "concept_id": "concept-delaying-intuition-and-structured-judgment-0513dc51",
+      "label": "Delaying Intuition and Structured Judgment",
+      "teaching_description": "A decision-making approach that involves delaying intuitive judgments and instead collecting information on specific, independent attributes systematically before forming an overall evaluation. This method reduces bias and improves accuracy, as demonstrated in personnel selection contexts like the IDF and Google hiring.",
+      "coverage_criteria": [
+        "Explain why delaying intuition leads to better decisions.",
+        "Describe Kahneman's structured interviewing method and how it differs from holistic judgment.",
+        "Identify conditions under which intuition is reliable."
+      ]
+    },
+    {
+      "concept_id": "concept-optimism-bias-in-decision-making-64fbe9d3",
+      "label": "Optimism Bias in Decision-Making",
+      "teaching_description": "Optimism bias is the cognitive tendency to overestimate one's abilities and underestimate risks, leading to a high rate of failure among entrepreneurs but also fueling innovation and economic growth, as excessive risk-taking drives capitalism.",
+      "coverage_criteria": [
+        "Define optimism bias in decision-making.",
+        "Explain how optimism can be both detrimental and beneficial.",
+        "Summarize Kahneman's perspective on the necessity of excessive optimism for large successes."
+      ]
+    },
+    {
+      "concept_id": "concept-judgment-noise-3f73c647",
+      "label": "Judgment Noise",
+      "teaching_description": "Noise in human judgment refers to unwanted variability in decisions that should be similar. This variability is consistently underestimated by observers, as demonstrated by studies showing insurance underwriters' assessments varying more than expected.",
+      "coverage_criteria": [
+        "Define judgment noise.",
+        "Provide an example of judgment noise.",
+        "Explain why people underestimate noise."
+      ]
+    },
+    {
+      "concept_id": "concept-linear-thinking-and-exponential-change-f098b598",
+      "label": "Linear Thinking and Exponential Change",
+      "teaching_description": "The cognitive limitation that humans think linearly, making it difficult to properly assess exponential technological growth, which can lead to flawed decisions about technology adoption.",
+      "coverage_criteria": [
+        "Explain why humans are ill-suited to grasp exponential change.",
+        "Identify possible social consequences of rapid technological development.",
+        "Compare ex-ante and ex-post views on technological adoption."
+      ]
+    },
+    {
+      "concept_id": "concept-outcome-bias-and-evaluating-decision-quality-74909305",
+      "label": "Outcome Bias and Evaluating Decision Quality",
+      "teaching_description": "Outcome bias is the tendency to evaluate the quality of a decision based solely on its outcomes. To evaluate decisions effectively, one must consider the decision process and not just outcomes.",
+      "coverage_criteria": [
+        "Define outcome bias and give an example.",
+        "Explain why evaluating decisions by outcomes alone can be misleading.",
+        "Describe how a process-based evaluation differs from an outcome-based evaluation."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Using PESTEL Analysis in Decision-Making",
+      "concept_ids": [
+        "concept-integration-of-pestel-with-other-frameworks-b11c3c6f",
+        "concept-use-of-pestel-in-financial-analysis-845f5721"
+      ]
+    },
+    {
+      "label": "Gathering Information and Understanding the Problem",
+      "concept_ids": [
+        "concept-consider-many-different-viewpoints-in-decision-making-67e8e16d",
+        "concept-make-decisions-close-to-the-action-a6a8400a",
+        "concept-address-root-cause-in-decision-making-d4ade183"
+      ]
+    },
+    {
+      "label": "Making and Executing Effective Decisions",
+      "concept_ids": [
+        "concept-assign-clear-accountability-in-decisions-9cc18b39",
+        "concept-balance-short-term-and-long-term-value-in-decisions-17a8f9f2",
+        "concept-make-timely-decisions-972b810f",
+        "concept-communicate-decisions-effectively-to-stakeholders-5adbae8b"
+      ]
+    },
+    {
+      "label": "Balancing Intuition and Analysis",
+      "concept_ids": [
+        "concept-balance-gut-instinct-with-team-considerations-94c76019",
+        "concept-delaying-intuition-and-structured-judgment-0513dc51"
+      ]
+    },
+    {
+      "label": "Recognizing Cognitive Biases in Decision-Making",
+      "concept_ids": [
+        "concept-optimism-bias-in-decision-making-64fbe9d3",
+        "concept-judgment-noise-3f73c647",
+        "concept-outcome-bias-and-evaluating-decision-quality-74909305",
+        "concept-linear-thinking-and-exponential-change-f098b598"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

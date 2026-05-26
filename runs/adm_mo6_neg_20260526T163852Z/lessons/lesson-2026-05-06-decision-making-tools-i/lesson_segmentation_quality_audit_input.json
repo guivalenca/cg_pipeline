@@ -1,0 +1,129 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+    "title": "Decision-Making Tools I"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-payoff-table-8ec69664",
+      "label": "Payoff Table",
+      "teaching_description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes, used as input to decision criteria.",
+      "coverage_criteria": [
+        "Given a description, construct a payoff table and identify alternatives and states.",
+        "Interpret payoffs from a table."
+      ]
+    },
+    {
+      "concept_id": "concept-maximax-optimistic-criterion-92a5e247",
+      "label": "Maximax (Optimistic) Criterion",
+      "teaching_description": "An optimistic decision rule where one selects the alternative with the maximum possible payoff (best outcome). For profits, maximize the maximum; for costs, minimize the minimum. This concept covers identifying the maximax choice from a payoff table and explaining its optimistic nature.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion to select the alternative with the best possible outcome.",
+        "Explain the optimistic philosophy behind the maximax rule."
+      ]
+    },
+    {
+      "concept_id": "concept-maximin-criterion-f0376021",
+      "label": "Maximin Criterion",
+      "teaching_description": "Choose the alternative with the best worst-case payoff (maximize the minimum for profits, minimize the maximum for costs). This conservative approach guarantees a minimum outcome.",
+      "coverage_criteria": [
+        "Apply the maximin criterion to a payoff table to select the alternative with the best worst-case outcome.",
+        "Explain the conservative/pessimistic philosophy behind the maximin rule."
+      ]
+    },
+    {
+      "concept_id": "concept-minimax-regret-criterion-9023049f",
+      "label": "Minimax Regret Criterion",
+      "teaching_description": "A decision criterion that minimizes the maximum regret by constructing a regret table and selecting the alternative with the smallest maximum regret.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Apply the minimax regret criterion to choose an alternative."
+      ]
+    },
+    {
+      "concept_id": "concept-laplace-criterion-1cefa1f7",
+      "label": "Laplace Criterion",
+      "teaching_description": "Decision rule that assumes all states of nature are equally likely, computing the average payoff for each alternative and selecting the highest average.",
+      "coverage_criteria": [
+        "Explain the equal likelihood assumption",
+        "Calculate average payoffs from a payoff table",
+        "Determine the optimal alternative using this criterion"
+      ]
+    },
+    {
+      "concept_id": "concept-hurwicz-criterion-a9ee1edb",
+      "label": "Hurwicz Criterion",
+      "teaching_description": "A decision-making criterion that balances optimism and pessimism by computing a weighted average of the best and worst payoffs using a coefficient of optimism (α).",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and α.",
+        "Interpret α as degree of optimism.",
+        "Select the alternative with the highest weighted average."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Payoff Table Construction",
+      "concept_ids": [
+        "concept-payoff-table-8ec69664"
+      ]
+    },
+    {
+      "label": "Extreme Outcomes: Maximax and Maximin",
+      "concept_ids": [
+        "concept-maximax-optimistic-criterion-92a5e247",
+        "concept-maximin-criterion-f0376021"
+      ]
+    },
+    {
+      "label": "Regret and Equal Likelihood",
+      "concept_ids": [
+        "concept-minimax-regret-criterion-9023049f",
+        "concept-laplace-criterion-1cefa1f7"
+      ]
+    },
+    {
+      "label": "Balancing Optimism and Pessimism: Hurwicz",
+      "concept_ids": [
+        "concept-hurwicz-criterion-a9ee1edb"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

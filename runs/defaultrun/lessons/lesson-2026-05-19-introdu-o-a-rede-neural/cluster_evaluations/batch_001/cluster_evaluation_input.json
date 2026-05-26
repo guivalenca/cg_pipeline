@@ -1,0 +1,710 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-19-introdu-o-a-rede-neural/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "McCulloch-Pitts neuron and Hebbian learning",
+    "rationale": "Both are early foundational concepts in neural network history from the same source (c45); McCulloch-Pitts model (1943) and Hebbian learning (1949) are distinct but closely related historical milestones that can be taught together as origins of neural computation.",
+    "candidate_ids": [
+      "c45_pro_thinking_001",
+      "c45_pro_thinking_002"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "McCulloch-Pitts neuron and Hebbian learning",
+      "rationale": "Both are early foundational concepts in neural network history from the same source (c45); McCulloch-Pitts model (1943) and Hebbian learning (1949) are distinct but closely related historical milestones that can be taught together as origins of neural computation.",
+      "candidate_ids": [
+        "c45_pro_thinking_001",
+        "c45_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Rosenblatt's Perceptron",
+      "rationale": "Candidate c45_pro_thinking_003 describes the historical perceptron, while c46_pro_thinking_002 provides a modern explanation of perceptron architecture and Hebb's postulate. They cover the same teachable idea from different sources.",
+      "candidate_ids": [
+        "c45_pro_thinking_003",
+        "c46_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "ADALINE and MADALINE",
+      "rationale": "Standalone historical milestone; no other candidate covers adaptive linear elements or echo cancellation.",
+      "candidate_ids": [
+        "c45_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Minsky & Papert critique and AI winter",
+      "rationale": "Unique historical event; other candidates cover revival but not the limitations and funding halt.",
+      "candidate_ids": [
+        "c45_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Hopfield networks and neural network revival",
+      "rationale": "Distinct event from the AI winter; covers the resurgence of neural network research in 1982.",
+      "candidate_ids": [
+        "c45_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "LSTM (Long Short-Term Memory)",
+      "rationale": "c45_pro_thinking_007 introduces LSTM historically, c46_pro_thinking_005 explains LSTM architecture and gates, c47_pro_thinking_007 describes RNN gate types. All relate to gated recurrent units, particularly LSTM.",
+      "candidate_ids": [
+        "c45_pro_thinking_007",
+        "c46_pro_thinking_005",
+        "c47_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Gradient-based learning and backpropagation",
+      "rationale": "c45_pro_thinking_008 references LeCun's gradient-based learning; c46_pro_thinking_009 describes backpropagation algorithm; c47_pro_thinking_004 steps through backpropagation; c48_pro_thinking_005 explains backpropagation; c49_pro_thinking_006 covers backpropagation in Portuguese. All are about the core training algorithm.",
+      "candidate_ids": [
+        "c45_pro_thinking_008",
+        "c46_pro_thinking_009",
+        "c47_pro_thinking_004",
+        "c48_pro_thinking_005",
+        "c49_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Feedforward neural network architecture",
+      "rationale": "c46_pro_thinking_003 defines feedforward networks; c47_pro_thinking_001 describes neural network architecture with layers; c48_pro_thinking_001 explains network structure; c49_pro_thinking_004 covers feed-forward networks in Portuguese; c50_pro_thinking_001 covers perceptron as simple feedforward. All describe layered network structures.",
+      "candidate_ids": [
+        "c46_pro_thinking_003",
+        "c47_pro_thinking_001",
+        "c48_pro_thinking_001",
+        "c49_pro_thinking_004",
+        "c50_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Recurrent neural network (RNN) basics",
+      "rationale": "c46_pro_thinking_004 introduces RNNs and their feedback loops; no other candidate covers basic RNN without LSTM gating.",
+      "candidate_ids": [
+        "c46_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Autoencoder (AE)",
+      "rationale": "Standalone unsupervised architecture; no other candidate covers encoding-decoding for reconstruction.",
+      "candidate_ids": [
+        "c46_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Generative Adversarial Network (GAN)",
+      "rationale": "Distinct advanced architecture; no other candidate covers generator-discriminator framework.",
+      "candidate_ids": [
+        "c46_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Hebbian learning rule",
+      "rationale": "c46_pro_thinking_008 details Hebbian learning variations; c47_pro_thinking_007 (already clustered with LSTM) covers gating, not Hebbian. This cluster groups Hebbian-specific candidate.",
+      "candidate_ids": [
+        "c46_pro_thinking_008"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c45_pro_thinking_001",
+    "c45_pro_thinking_002",
+    "c45_pro_thinking_003",
+    "c46_pro_thinking_002",
+    "c45_pro_thinking_004",
+    "c45_pro_thinking_005",
+    "c45_pro_thinking_006",
+    "c45_pro_thinking_007",
+    "c46_pro_thinking_005",
+    "c47_pro_thinking_007",
+    "c45_pro_thinking_008",
+    "c46_pro_thinking_009",
+    "c47_pro_thinking_004",
+    "c48_pro_thinking_005",
+    "c49_pro_thinking_006",
+    "c46_pro_thinking_003",
+    "c47_pro_thinking_001",
+    "c48_pro_thinking_001",
+    "c49_pro_thinking_004",
+    "c50_pro_thinking_001",
+    "c46_pro_thinking_004",
+    "c46_pro_thinking_006",
+    "c46_pro_thinking_007",
+    "c46_pro_thinking_008"
+  ],
+  "candidates": [
+    {
+      "id": "c45_pro_thinking_001",
+      "label": "McCulloch-Pitts neuron model",
+      "description": "The first computational model of a neuron, proposed by Warren McCulloch and Walter Pitts in 1943, representing neurons as simple electrical circuits.",
+      "coverage_criteria": [
+        "Identify McCulloch and Pitts as the authors of the first neuron model in 1943."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video clearly states that the first step towards neural networks was in 1943 when McCulloch and Pitts wrote a paper on how neurons might work and modeled a simple neural network with electrical circuits.",
+        "granularity_rationale": "This candidate captures a single historical milestone without combining with later developments, making it checkable with a single identification question."
+      },
+      "anchors": [
+        "1943: McCulloch and Pitts"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_002",
+      "label": "Hebbian learning",
+      "description": "The principle that neural pathways are strengthened each time they are used, introduced by Donald Hebb in his 1949 book 'The Organization of Behavior'.",
+      "coverage_criteria": [
+        "State that Hebbian learning means neural pathways strengthen with use."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video mentions Hebb's book and the key idea that neural pathways are strengthened each time they are used.",
+        "granularity_rationale": "This is a distinct and foundational learning rule that can be assessed independently without requiring details from other milestones."
+      },
+      "anchors": [
+        "1949: Donald Hebb"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_003",
+      "label": "Rosenblatt's Perceptron",
+      "description": "A single-layer neural network model that computes a weighted sum of inputs, subtracts a threshold, and outputs one of two classes; built in hardware and the oldest neural network still in use.",
+      "coverage_criteria": [
+        "Explain how the perceptron performs binary classification using weighted sum and threshold.",
+        "Identify Rosenblatt as the creator of the perceptron in 1958."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video provides a detailed description of the perceptron: it computes a weighted sum, subtracts a threshold, and outputs one of two values; it is the oldest NN still in use.",
+        "granularity_rationale": "The perceptron is a core concept in neural networks, and focusing on its mechanism (weighted sum, threshold, binary output) allows assessment of fundamental understanding without overcomplicating with later variants."
+      },
+      "anchors": [
+        "1958: Frank Rosenblatt's Perceptron"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_002",
+      "label": "Perceptron",
+      "description": "The simplest neural network model with a single layer of weights and a hard limit activation function, computing a linear decision boundary.",
+      "coverage_criteria": [
+        "Explain the perceptron architecture: input, weights, bias, activation.",
+        "State the Hebb's postulate as an early learning rule for perceptrons."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source includes sections on 'Perceptron Architecture' and 'Hebb's Postulate', directly defining the perceptron and its learning rule.",
+        "granularity_rationale": "The perceptron is a fundamental building block; this candidate isolates its definition and basic operation for checking."
+      },
+      "anchors": [
+        "Perceptron Architecture",
+        "Hebb's Postulate"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_004",
+      "label": "ADALINE and MADALINE",
+      "description": "Early adaptive linear neural network models (Multiple Adaptive Linear Elements) developed by Bernard Widrow and Marcian Hoff; MADALINE was the first neural network applied to a real-world problem (echo cancellation) and remains in commercial use.",
+      "coverage_criteria": [
+        "Name ADALINE and MADALINE as early neural networks that used adaptive linear elements.",
+        "Identify echo cancellation as the real-world application of MADALINE."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that ADALINE and MADALINE were named for their use of multiple adaptive linear elements, that MADALINE was the first applied to a real-world problem, and that it is still in commercial use for eliminating echoes on phone lines.",
+        "granularity_rationale": "This candidate highlights an important step toward practical neural networks, distinct from the perceptron, and can be checked by asking about the name expansion and application."
+      },
+      "anchors": [
+        "1959: ADALINE and MADALINE"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_005",
+      "label": "Minsky & Papert critique and AI winter",
+      "description": "The 1969 book 'Perceptrons' by Marvin Minsky and Seymour Papert proved the limitations of perceptrons, leading to a halt in neural network funding and research until 1981.",
+      "coverage_criteria": [
+        "Explain that Minsky and Papert's work demonstrated limitations of perceptrons, causing a decline in neural network research."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video states that Minsky and Papert proved the perceptron to be limited, and progress halted due to fear and unfulfilled claims, causing a funding halt until 1981.",
+        "granularity_rationale": "This event is a distinct turning point in neural network history, and its impact can be assessed through a single question about the cause and effect of the research slowdown."
+      },
+      "anchors": [
+        "1969: Minsky and Papert's Critique"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_006",
+      "label": "Hopfield networks and the revival of neural network research",
+      "description": "John Hopfield's 1982 paper to the National Academy of Sciences, combined with the US-Japan Conference on Cooperative Competitive Neural Networks, rekindled interest and funding in neural networks after the AI winter.",
+      "coverage_criteria": [
+        "State that Hopfield's 1982 approach and the US-Japan conference helped restart neural network funding."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes Hopfield's likable and charismatic approach, and the US-Japan conference where Japan announced their fifth-generation effort, leading to renewed US funding.",
+        "granularity_rationale": "This candidate captures the revival trigger, distinct from the earlier decline, and can be assessed with a simple recall of the key figures and event."
+      },
+      "anchors": [
+        "1982: John Hopfield and US-Japan Conference"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_007",
+      "label": "Long Short-Term Memory (LSTM)",
+      "description": "A recurrent neural network framework proposed in 1997 by Hochreiter and Schmidhuber, designed to address long-term dependencies in sequences. (Source misspells names as Schimberger and Hochreicher.)",
+      "coverage_criteria": [
+        "Identify LSTM as a recurrent neural network framework proposed in 1997."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video states that a recurrent neural network framework, LSTM, was proposed by [Schimberger and Hochreicher] in 1997. (The actual authors are Hochreiter and Schmidhuber; we note the discrepancy.)",
+        "granularity_rationale": "LSTM is a specific advanced architecture in deep learning, and this candidate isolates its historical introduction without delving into its technical details, making it checkable."
+      },
+      "anchors": [
+        "1997: LSTM"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_005",
+      "label": "Long Short-Term Memory (LSTM)",
+      "description": "A specialized recurrent neural network that uses gated memory cells to learn long-term dependencies and mitigate the vanishing gradient problem.",
+      "coverage_criteria": [
+        "Describe the purpose of the forget, input, and output gates in an LSTM cell.",
+        "Compare LSTM with a simple RNN in terms of handling long sequences."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chart explicitly lists LSTM, and the Keras cheat sheet provides an LSTM layer example in code.",
+        "granularity_rationale": "LSTM is a key upgrade over basic RNNs; this candidate covers its core mechanism at a level suitable for targeted questioning."
+      },
+      "anchors": [
+        "Long / Short Term Memory (LSTM)",
+        "Keras LSTM example"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_007",
+      "label": "RNN Gate Types",
+      "description": "RNNs use gates to control information flow: input gate (write), forget gate (erase), output gate (reveal).",
+      "coverage_criteria": [
+        "The student can name the three gate types and explain their primary functions in an RNN cell."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source lists the types of gates in a table under 'Types of Gates'.",
+        "granularity_rationale": "This is a compact set of concepts essential for understanding gated RNNs like LSTM."
+      },
+      "anchors": [
+        "Types of Gates"
+      ]
+    },
+    {
+      "id": "c45_pro_thinking_008",
+      "label": "Gradient-based learning for document recognition",
+      "description": "Yann LeCun's 1998 paper 'Gradient-based learning applied to document recognition' advanced the application of gradient-based learning methods, notably in convolutional neural networks for document analysis.",
+      "coverage_criteria": [
+        "Identify Yann LeCun's 1998 publication on gradient-based learning for document recognition."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions LeCun's publication as a significant step in the timeline.",
+        "granularity_rationale": "This candidate highlights a key paper that influenced modern deep learning, and can be assessed by a single recall."
+      },
+      "anchors": [
+        "1998: Gradient-based Learning"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_009",
+      "label": "Backpropagation Algorithm",
+      "description": "The primary method for training neural networks by computing the gradient of the loss function with respect to weights through the chain rule and updating weights in the opposite direction.",
+      "coverage_criteria": [
+        "Explain the basic steps of backpropagation: forward pass, loss calculation, backward pass, weight update.",
+        "Discuss the role of the chain rule in backpropagation."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source contains sections on gradients, Hessians, steepest descent, and the LMS algorithm, which are all foundational to backpropagation. The sensitivity computation in the neural network section explicitly shows the chain rule.",
+        "granularity_rationale": "Backpropagation is central to modern neural network training; this candidate covers its high-level mechanism without requiring detailed calculus derivation."
+      },
+      "anchors": [
+        "General Minimization Algorithm",
+        "LMS Algorithm"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_004",
+      "label": "Backpropagation Algorithm",
+      "description": "Backpropagation updates weights by computing the loss gradient with respect to weights using the chain rule: ∂L/∂w. Steps: take a batch, forward to get loss, backpropagate gradients, update weights.",
+      "coverage_criteria": [
+        "The student can list the four steps of backpropagation and explain the role of the chain rule in gradient computation."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides the derivative formula and the step-by-step procedure for weight updates.",
+        "granularity_rationale": "Backpropagation is a core training algorithm; this granularity allows checking understanding of the process without requiring implementation details."
+      },
+      "anchors": [
+        "Backpropagation"
+      ]
+    },
+    {
+      "id": "c48_pro_thinking_005",
+      "label": "Backpropagation",
+      "description": "Backpropagation computes gradients of the cost function with respect to each parameter by propagating the error backward from the output layer to the input layer, using the chain rule.",
+      "coverage_criteria": [
+        "Explain the purpose of backpropagation in training.",
+        "Describe how gradients flow from the output to earlier layers."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes backpropagation as the method to compute gradients for each weight and bias, and provides code for one layer and then full backprop.",
+        "granularity_rationale": "This is a key algorithm in neural network training, testable by asking about its role and basic mechanism."
+      },
+      "anchors": [
+        "Idea",
+        "Code"
+      ]
+    },
+    {
+      "id": "c49_pro_thinking_006",
+      "label": "Retropropagação (Backpropagation)",
+      "description": "Algoritmo de treinamento de redes neurais que utiliza gradiente descendente: calcula a perda na saída, propaga os gradientes de erro para trás e atualiza os pesos para minimizar o erro.",
+      "coverage_criteria": [
+        "O estudante deve listar os passos fundamentais da retropropagação: forward pass, cálculo do erro, retropropagação do gradiente, atualização de pesos.",
+        "O estudante deve associar retropropagação ao gradiente descendente."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O capítulo detalha a retropropagação, incluindo o cálculo de gradientes e a atualização dos pesos, e mostra exemplos como XOR e Fizz Buzz.",
+        "granularity_rationale": "O algoritmo é central para redes neurais; pode ser verificado pedindo uma explicação conceitual dos passos."
+      },
+      "anchors": [
+        "Retropropagação"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_003",
+      "label": "Feedforward Neural Network",
+      "description": "A neural network where connections flow only from input to output without cycles, typically consisting of multiple layers of neurons.",
+      "coverage_criteria": [
+        "Describe the direction of information flow in a feedforward network.",
+        "Give an example of a problem suited for feedforward networks."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chart prominently features 'Feed Forward (FF)' as a major category, with deep feedforward examples mentioned.",
+        "granularity_rationale": "This candidate covers the core definition of a feedforward net, distinct from recurrent or other types."
+      },
+      "anchors": [
+        "Deep Feed Forward Example"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_001",
+      "label": "Neural Network Architecture",
+      "description": "Neural networks consist of layers: input layer, hidden layers, and output layer. Each unit in layer i computes a linear combination of inputs plus a bias: z_j^{[i]} = w_j^{[i]T}x + b_j^{[i]}.",
+      "coverage_criteria": [
+        "The student can describe the typical architecture of a neural network, name the types of layers, and write the formula for a neuron's pre-activation output."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a diagram (described in text) and the formula for a layer's output, introducing the vocabulary and mathematical notation.",
+        "granularity_rationale": "This concept is a foundational building block; it is small enough to be checked by asking the student to identify layers and write the output equation."
+      },
+      "anchors": [
+        "Architecture"
+      ]
+    },
+    {
+      "id": "c48_pro_thinking_001",
+      "label": "Neural Network Architecture",
+      "description": "A neural network is a layered structure of interconnected neurons (mathematical functions) where each neuron receives inputs, applies weights and bias, and passes the result through a sigmoid activation function to produce an output.",
+      "coverage_criteria": [
+        "Describe the flow of data through a neural network (input -> hidden -> output).",
+        "Explain the role of weights and biases in a neuron."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces neural networks with a diagram and description of neurons as sigmoid functions and their connections.",
+        "granularity_rationale": "This is a foundational concept that can be checked with a couple of questions about network structure."
+      },
+      "anchors": [
+        "Idea"
+      ]
+    },
+    {
+      "id": "c49_pro_thinking_004",
+      "label": "Redes Neurais Feed-Forward",
+      "description": "Uma rede neural feed-forward é organizada em camadas sequenciais (entrada, ocultas, saída), onde cada neurônio recebe saídas da camada anterior, aplica pesos e função de ativação, e transmite para a próxima.",
+      "coverage_criteria": [
+        "O estudante deve descrever a arquitetura de uma rede feed-forward, mencionando camadas de entrada, ocultas e de saída.",
+        "O estudante deve explicar como a informação flui da entrada para a saída."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O capítulo descreve a topologia feed-forward idealizada, com camadas discretas de neurônios conectados em sequência.",
+        "granularity_rationale": "Conceito central que define a estrutura básica de redes multicamadas; pode ser verificado pedindo para identificar componentes e fluxo de dados."
+      },
+      "anchors": [
+        "Redes Neurais Feed-Forward"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_001",
+      "label": "Perceptron Simples",
+      "description": "Modelo matemático de rede neural com uma única camada, proposto por Frank Rosenblatt em 1958, que classifica padrões usando entradas, pesos, bias e função de ativação degrau.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de desenhar o diagrama do perceptron simples indicando entradas, pesos, bias, somador e função de ativação.",
+        "O aluno deve explicar a relação matemática entre as entradas e a saída em um perceptron simples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A fonte dedica toda a seção 'Perceptron Simples' para explicar o conceito, diagrama, modelo matemático e algoritmo de treinamento, demonstrando que é um ensino central.",
+        "granularity_rationale": "O conceito é suficientemente focado para ser verificável com perguntas sobre a estrutura e a função do perceptron, sem se confundir com detalhes do treinamento ou dados."
+      },
+      "anchors": [
+        "05:00 Perceptron Simples",
+        "04:04 O que são Redes Neurais?"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_004",
+      "label": "Recurrent Neural Network (RNN)",
+      "description": "A neural network with feedback connections that allow it to maintain a memory state, making it suitable for sequential data processing.",
+      "coverage_criteria": [
+        "Explain how RNNs differ from feedforward networks due to recurrent loops.",
+        "Identify an application domain where RNNs are preferred."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chart defines RNN and includes a 'Recurrent Cell' component; the TensorFlow section mentions RNN models.",
+        "granularity_rationale": "The RNN is a distinct class of neural architectures, requiring its own checkable definition."
+      },
+      "anchors": [
+        "Recurrent Neural Network (RNN)",
+        "Recurrent Cell"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_006",
+      "label": "Autoencoder (AE)",
+      "description": "An unsupervised neural network that encodes input into a compressed representation and then decodes it back to reconstruct the original input, used for dimensionality reduction and feature learning.",
+      "coverage_criteria": [
+        "Sketch the general structure of an autoencoder (encoder, bottleneck, decoder).",
+        "Explain how an autoencoder can be used for data compression."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chart includes Auto Encoder and Denoising AE, highlighting their role in reconstruction tasks.",
+        "granularity_rationale": "Autoencoders represent a fundamental unsupervised architecture, checkable by their components and purpose."
+      },
+      "anchors": [
+        "Auto Encoder (AE)",
+        "Denoising AE (DAE)"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_007",
+      "label": "Generative Adversarial Network (GAN)",
+      "description": "A framework where two networks, a generator and a discriminator, compete against each other to produce increasingly realistic synthetic data.",
+      "coverage_criteria": [
+        "Describe the roles of the generator and discriminator in a GAN.",
+        "Explain the adversarial training process in simple terms."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chart explicitly names Generative Adversarial Network as one of the advanced neural network types.",
+        "granularity_rationale": "GANs are a notable modern architecture; the candidate covers the core adversarial concept without overwhelming detail."
+      },
+      "anchors": [
+        "Generative Adversarial Network (GAN)"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_008",
+      "label": "Hebbian Learning Rule",
+      "description": "Based on Hebb's postulate, neurons that fire together strengthen their connection, providing a biological motivation for early neural network learning algorithms.",
+      "coverage_criteria": [
+        "State Hebb's postulate in your own words.",
+        "Describe one unsupervised learning rule derived from Hebbian learning."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source dedicates a section to 'Hebb's Postulate' and lists variations of Hebbian learning rules (supervised Hebb, unsupervised Hebb).",
+        "granularity_rationale": "This candidate isolates the Hebbian principle, a historically important learning concept, down to a checkable idea."
+      },
+      "anchors": [
+        "Hebb's Postulate",
+        "Variations of Hebbian Learning"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

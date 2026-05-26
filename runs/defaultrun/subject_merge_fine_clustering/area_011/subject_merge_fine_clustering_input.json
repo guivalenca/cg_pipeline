@@ -1,0 +1,188 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_011",
+    "area": {
+      "id": "area_011",
+      "label": "Gensim for Vector Space Models",
+      "rationale": "Gensim-specific: corpus, dictionary, doc2bow, TF-IDF model, similarity queries, and training Word2Vec.",
+      "candidate_ids": [
+        "lr006_013",
+        "lr006_014",
+        "lr006_015",
+        "lr006_016",
+        "lr006_017",
+        "lr006_018",
+        "lr009_013",
+        "lr009_014"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr006_013",
+    "lr006_014",
+    "lr006_015",
+    "lr006_016",
+    "lr006_017",
+    "lr006_018",
+    "lr009_013",
+    "lr009_014"
+  ],
+  "candidates": [
+    {
+      "id": "lr006_013",
+      "label": "Documento, Corpus e Streaming no Gensim",
+      "description": "No Gensim, um documento é uma sequência de texto (str), um corpus é uma coleção de documentos para treinamento não supervisionado, e o streaming permite processar grandes corpora sem carregar tudo em memória.",
+      "coverage_criteria": [
+        "Defina documento e corpus no Gensim.",
+        "Explique como o Gensim lida com grandes conjuntos de dados usando streaming."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_014",
+      "label": "Vetores Esparsos no Gensim",
+      "description": "Vetores no Gensim representam documentos como bag-of-words esparsas, onde cada feature é um contador de palavra, omitindo zeros para economia de memória.",
+      "coverage_criteria": [
+        "Explique o que é um vetor esparso no Gensim.",
+        "Interprete um vetor como [(0,2), (1,1)]."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_015",
+      "label": "Modelos no Gensim como Transformações",
+      "description": "Um modelo no Gensim aprende uma transformação entre espaços vetoriais (ex.: BOW para TF-IDF) a partir de um corpus de treinamento e pode ser aplicado a novos documentos.",
+      "coverage_criteria": [
+        "Defina o papel de um modelo no Gensim.",
+        "Dê um exemplo de transformação que um modelo pode realizar."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_016",
+      "label": "Dicionário Gensim e Vetorização com doc2bow",
+      "description": "A classe Dictionary mapeia cada palavra do corpus para um ID inteiro único, e o método doc2bow converte documentos tokenizados em vetores bag-of-words.",
+      "coverage_criteria": [
+        "Explique o propósito de um Dictionary no Gensim.",
+        "Use um dicionário para converter um texto curto em um vetor BOW."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_017",
+      "label": "Modelo TF-IDF no Gensim",
+      "description": "O modelo TF-IDF transforma vetores bag-of-words ponderando as frequências dos termos pela inversa da frequência nos documentos, dando menos peso a palavras comuns e mais a palavras raras.",
+      "coverage_criteria": [
+        "Explique o efeito do TF-IDF sobre os pesos das palavras.",
+        "Compare os pesos de palavras frequentes e raras após aplicar TF-IDF."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_018",
+      "label": "Similarity Queries with Gensim",
+      "description": "After transforming a corpus with a model (e.g., TF-IDF), Gensim can compute similarity scores between a query document and all documents in the corpus, enabling search and clustering.",
+      "coverage_criteria": [
+        "Explain how to perform a similarity query in Gensim.",
+        "Interpret similarity scores from a given output.",
+        "Sort documents by relevance using similarity scores."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_013",
+      "label": "Gensim Library and Text Preprocessing",
+      "description": "Gensim is an open-source NLP library providing tools for text preprocessing and analysis. Key preprocessing steps include tokenizing text with simple_preprocess() or tokenize(), and building a vocabulary with gensim.corpora.Dictionary(), which maps tokens to integer IDs for model training.",
+      "coverage_criteria": [
+        "Explain that Gensim is a Python library for NLP with origins in topic modeling.",
+        "Use simple_preprocess() to tokenize text and filter by length.",
+        "Create a Dictionary from tokenized documents and explain its role."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_014",
+      "label": "Training Word2Vec Models with Gensim",
+      "description": "Gensim's Word2Vec class trains word embeddings on preprocessed sentences. Key parameters (e.g., min_count, size, sg, window, hs, negative) control the training, and the resulting model can be saved and loaded for later use.",
+      "coverage_criteria": [
+        "Instantiate a Word2Vec model with a list of tokenized sentences and basic parameters.",
+        "List at least four training parameters and explain their effects.",
+        "Save and load a trained Word2Vec model using gensim.save() and gensim.load()."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

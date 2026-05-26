@@ -1,0 +1,139 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-75-001",
+      "label": "Entity-Level Sentiment Analysis",
+      "description": "Sentiment analysis where the polarity (positive, negative, neutral) is determined with respect to a specific entity mentioned in a text, rather than the overall text.",
+      "coverage_criteria": [
+        "Given a tweet and an entity, student can correctly identify the sentiment towards that entity as positive, negative, or neutral."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The dataset description explicitly defines the task as 'entity-level sentiment analysis' where given a message and an entity, judge the sentiment about the entity.",
+        "granularity_rationale": "This defines a specific sub-task of sentiment analysis that is distinct from document-level or sentence-level sentiment; it can be assessed by a single focused question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "About Dataset"},
+        {"kind": "text", "locator": "Overview paragraph"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Twitter Sentiment Analysis Dataset",
+      "source_year": "2021",
+      "name_drops": ["Twitter"]
+    },
+    {
+      "candidate_id": "candidate-75-002",
+      "label": "Sentiment Classes: Positive, Negative, Neutral",
+      "description": "In this dataset, sentiment labels are three: Positive, Negative, and Neutral. Irrelevant messages are considered Neutral.",
+      "coverage_criteria": [
+        "Student can list the three sentiment classes and explain that irrelevant messages are mapped to Neutral."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The overview states: 'There are three classes in this dataset: Positive, Negative, and Neutral. We regard messages that are not relevant to the entity (i.e. Irrelevant) as Neutral.'",
+        "granularity_rationale": "This is a fundamental aspect of the dataset's labeling scheme, checkable by asking the student to name and explain the classes."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "About Dataset"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Twitter Sentiment Analysis Dataset",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-75-003",
+      "label": "Dataset Split and Evaluation Metric",
+      "description": "The dataset is provided as two CSV files: twitter_training.csv for training and twitter_validation.csv for validation, with top 1 classification accuracy as the evaluation metric.",
+      "coverage_criteria": [
+        "Student can state that the dataset comes with a predefined training/validation split and that the evaluation uses top 1 accuracy."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The Usage section says: 'Please use twitter_training.csv as the training set and twitter_validation.csv as the validation set. Top 1 classification accuracy is used as the metric.'",
+        "granularity_rationale": "Understanding dataset splits and metrics is essential for practical machine learning projects, and this can be checked with a simple recall question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Usage"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Twitter Sentiment Analysis Dataset",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-75-004",
+      "label": "Public Domain Dataset (CC0)",
+      "description": "The dataset is made available under the CC0 Public Domain license, allowing unrestricted use for research and development.",
+      "coverage_criteria": [
+        "Student can explain that the dataset can be freely used without licensing restrictions."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The License section explicitly states 'CC0: Public Domain'.",
+        "granularity_rationale": "This is a simple fact about the dataset that can be assessed with a single question about its usage rights."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "License"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Twitter Sentiment Analysis Dataset",
+      "source_year": "2021",
+      "name_drops": ["CC0"]
+    },
+    {
+      "candidate_id": "candidate-75-005",
+      "label": "Twitter Entity Sentiment Analysis Dataset",
+      "description": "A Kaggle dataset containing multi-lingual tweets annotated with entity-level sentiment labels, intended for training and evaluating sentiment classification models.",
+      "coverage_criteria": [
+        "Student can identify this dataset as a resource for entity-level sentiment analysis on tweets."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The entire source page describes this specific dataset.",
+        "granularity_rationale": "Knowing about this dataset as a concrete resource is useful for practical projects and can be checked with a simple identification question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Twitter Sentiment Analysis"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Twitter Sentiment Analysis Dataset",
+      "source_year": "2021",
+      "name_drops": ["Kaggle"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-75-005",
+      "to_candidate_id": "candidate-75-001",
+      "reason": "This dataset is an example of entity-level sentiment analysis data.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "About Dataset"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-75-005",
+      "to_candidate_id": "candidate-75-002",
+      "reason": "The dataset uses three sentiment classes: Positive, Negative, Neutral.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "About Dataset"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-75-005",
+      "to_candidate_id": "candidate-75-003",
+      "reason": "The dataset provides a training set and a validation set with a specified metric.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Usage"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-75-005",
+      "to_candidate_id": "candidate-75-004",
+      "reason": "The dataset is licensed under CC0 Public Domain.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "License"}
+      ]
+    }
+  ]
+}

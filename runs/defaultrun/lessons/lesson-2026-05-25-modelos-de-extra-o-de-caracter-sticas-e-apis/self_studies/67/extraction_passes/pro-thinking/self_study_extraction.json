@@ -1,0 +1,309 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:25:58.151262+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+  "self_study_id": "67",
+  "source_body_path": "extraction/post-image/0067-article-feature-extraction-and-embeddings-in-nlp-a-beginners-guide-to-understand-natural-language.md",
+  "source_body_sha256": "a8c599af53b6dd96ba45298cd5154631c19063b2108118e2c1c598fc80dd4814",
+  "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-67-001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of converting cleaned text into numerical features that machine learning models can process, a crucial step in natural language processing.",
+      "coverage_criteria": [
+        "Explain why text needs to be transformed into numerical features for NLP modeling.",
+        "Provide examples of feature extraction methods."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article's introduction and 'Feature Extraction:' section define feature extraction as the step after cleaning and normalization, necessary for modeling.",
+        "granularity_rationale": "This concept is a foundational idea that can be assessed by asking about the purpose and general approach of feature extraction."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Introduction"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Feature Extraction:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-67-002",
+      "label": "Bag of Words (BoW)",
+      "description": "A representation of documents as a multiset of words, ignoring order but keeping multiplicity, often expressed as a document-term matrix of term frequencies.",
+      "coverage_criteria": [
+        "Describe how a document is transformed into a bag-of-words vector.",
+        "Compute term frequencies for a given set of documents.",
+        "Explain the purpose of a document-term matrix."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Bag of Words:' section explicitly describes the method, provides an example ('Tackling is the best part of football'), and shows a document-term matrix via an image.",
+        "granularity_rationale": "Bag of Words is a specific, well-known technique that can be assessed with a few questions about its mechanics and limitations."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Bag of Words:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-67-003",
+      "label": "TF-IDF",
+      "description": "Term Frequency-Inverse Document Frequency, a weighting scheme that highlights words important to a document by scaling term frequency inversely with document frequency.",
+      "coverage_criteria": [
+        "Calculate TF-IDF for a word given its term frequency and the number of documents containing it.",
+        "Explain why TF-IDF helps identify significant words.",
+        "Contrast TF-IDF with simple term frequency."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'TF-IDF:' section explains the limitation of Bag of Words and defines TF-IDF with a worked example through an included image.",
+        "granularity_rationale": "TF-IDF is a standalone concept that can be checked by asking about its formula, purpose, and when it is used."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "TF-IDF:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-67-004",
+      "label": "One-hot Encoding",
+      "description": "A method of representing words as binary vectors with a single 1 at the index corresponding to the word, treating each word as an independent class.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a word from a given vocabulary list.",
+        "Explain why one-hot encoding becomes impractical for large vocabularies."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'One-hot Encoding:' section describes it as assigning 1 for the present word and 0 for others, and includes an example with the sentence 'The cat sat on the mat.'",
+        "granularity_rationale": "One-hot encoding is a simple, fundamental idea that can be assessed by asking students to produce or interpret a one-hot representation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "One-hot Encoding:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-67-005",
+      "label": "Word Embedding",
+      "description": "Dense, fixed-size vector representations of words that capture semantic relationships, where similar words have similar vectors and analogies can be performed with vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings differ from sparse representations like one-hot encoding.",
+        "Describe how embeddings capture semantic similarity (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+        "Give an example of an analogy embedings can solve."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Word Embedding:' section introduces the need for dense, fixed-size vectors that show word similarity and analogies, and includes a visualization of 7-dimensional embeddings mapped to 2D.",
+        "granularity_rationale": "Word embedding is a core concept in modern NLP; it can be checked by asking about its properties and how it differs from earlier representations."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Word Embedding:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-67-006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from a corpus, using either Continuous Bag of Words (CBOW) or skip-gram architectures to capture contextual meaning.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram in Word2Vec.",
+        "Explain how Word2Vec generates dense vector representations.",
+        "Describe a use case for pre-trained Word2Vec embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Word2Vec:' section defines it as a two-layer net, explains the CBOW and skip-gram variants, and includes a diagram comparing them.",
+        "granularity_rationale": "Word2Vec is a specific, widely-used technique that can be assessed with questions about its architecture and training approaches."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Word2Vec:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": [
+        "Word2Vec"
+      ]
+    },
+    {
+      "candidate_id": "candidate-67-007",
+      "label": "GloVe",
+      "description": "Global Vectors for Word Representation, an unsupervised algorithm that learns word embeddings by factorizing a word co-occurrence matrix, capturing global corpus statistics.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'GloVe:' section describes it as an unsupervised algorithm using a global co-occurrence matrix and mentions training on zero-level co-occurrence, with an example of analogies captured.",
+        "granularity_rationale": "GloVe is a distinct embedding method; it can be checked by asking about its reliance on global statistics versus local context."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "GloVe:"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Feature Extraction and Embeddings in NLP: A Beginners guide to understand Natural Language Processing",
+      "source_year": "2021",
+      "name_drops": [
+        "GloVe"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-67-001",
+      "to_candidate_id": "candidate-67-002",
+      "reason": "The article presents Bag of Words as a concrete feature extraction method, nested under the 'Feature Extraction:' section.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Feature Extraction:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-001",
+      "to_candidate_id": "candidate-67-003",
+      "reason": "TF-IDF is introduced as another feature extraction technique, directly after Bag of Words in the same section.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Feature Extraction:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-001",
+      "to_candidate_id": "candidate-67-004",
+      "reason": "One-hot Encoding is described as a numerical representation method within the feature extraction discussion.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Feature Extraction:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-002",
+      "to_candidate_id": "candidate-67-003",
+      "reason": "TF-IDF is explicitly introduced as a solution to the problem in Bag of Words where all words are treated equally, improving upon BoW by weighting words.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "TF-IDF:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-004",
+      "to_candidate_id": "candidate-67-005",
+      "reason": "The Word Embedding section explains that one-hot encoding fails for large vocabularies, and embeddings provide a fixed-size, dense, semantic-aware alternative.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Word Embedding:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-005",
+      "to_candidate_id": "candidate-67-006",
+      "reason": "Word2Vec is introduced as a widely-used technique for learning word embeddings, forming a subset of the word embedding concept.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Word2Vec:"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-67-005",
+      "to_candidate_id": "candidate-67-007",
+      "reason": "GloVe is presented as another word embedding method, described under the 'Word Embedding:' section alongside Word2Vec.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "GloVe:"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 7,
+    "source_local_connector_candidate_count": 7
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_013",
+    "area": {
+      "id": "area_013",
+      "label": "Risk Assessment and Decision Recommendations",
+      "rationale": "Candidates cover sensitivity analysis, risk mapping, project comparison using simulation statistics, viewing risk as both threat and opportunity, and scenario planning. This cluster teaches how to interpret model outputs and defend decisions under uncertainty.",
+      "candidate_ids": [
+        "lr012_002",
+        "lr012_003",
+        "lr012_004",
+        "lr013_002",
+        "lr013_003"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr012_002",
+    "lr012_003",
+    "lr012_004",
+    "lr013_002",
+    "lr013_003"
+  ],
+  "candidates": [
+    {
+      "id": "lr012_002",
+      "label": "Sensitivity Analysis to Identify Key Risk Factors",
+      "description": "Sensitivity analysis uses tornado graphs and spider charts to rank risk factors by their impact on the output criterion, helping prioritize factors for risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado graph: identify the factor with the widest bar, explain quantile ranges, and determine direction of impact."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+      "lesson_title": "From Model Outputs to Business Recommendations",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_003",
+      "label": "Risk Mapping for Preliminary Risk Identification",
+      "description": "Risk mapping uses expert assessment to score probability and impact, creating a matrix that categorizes risks to guide quantitative analysis.",
+      "coverage_criteria": [
+        "Create a risk matrix given a list of risks, assign probability and impact scores, and explain how the matrix informs subsequent simulation focus."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+      "lesson_title": "From Model Outputs to Business Recommendations",
+      "depth": "math"
+    },
+    {
+      "id": "lr012_004",
+      "label": "Project Comparison Using Simulation Statistics",
+      "description": "When comparing projects using simulation results, apply decision rules based on mean, standard deviation, coefficient of variation, and skewness to select the best project.",
+      "coverage_criteria": [
+        "Compare two projects using mean, standard deviation, and skewness; explain which project is preferable and why; compute and interpret the coefficient of variation."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+      "lesson_title": "From Model Outputs to Business Recommendations",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr013_002",
+      "label": "Risk as both a threat and an opportunity",
+      "description": "When defending a decision under uncertainty, it is effective to acknowledge that risk includes both negative dangers and positive opportunities. Recognizing the dual nature of risk helps communicate that embracing risk can lead to upside, which is essential for credible recommendations.",
+      "coverage_criteria": [
+        "Explain why risk is both a threat and an opportunity, using an example.",
+        "Describe how acknowledging the dual nature of risk can enhance the credibility of a decision defense."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+      "lesson_title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr013_003",
+      "label": "Scenario planning for stress-testing assumptions and preparing responses",
+      "description": "Scenario planning simulates plausible risk events to help leaders stress-test strategic assumptions and practice responses. This technique is directly applicable to preparing for stakeholder questions when defending a decision under uncertainty, embodying the 'Prepare to Be Wrong' principle.",
+      "coverage_criteria": [
+        "Explain what scenario planning is and how it helps stress-test assumptions.",
+        "Describe how scenario planning can be used to anticipate and prepare for stakeholder pushback."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+      "lesson_title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

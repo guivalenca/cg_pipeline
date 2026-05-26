@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "strategy": "video_gemini_two_pass",
+  "settings": {
+    "profile": "triage",
+    "model": "gemini-2.5-flash",
+    "fps": 0.33,
+    "media_resolution": "low",
+    "temperature": 0.2,
+    "max_output_tokens": 8192,
+    "prompt_version": "video_gemini_pass2_v1",
+    "chunk_longer_than_seconds": 3600,
+    "chunk_seconds": 1800,
+    "chunk_overlap_seconds": 5,
+    "max_transcript_chars_per_chunk": 60000,
+    "min_words": 150,
+    "timestamp_span_tolerance_seconds": 180,
+    "timestamp_span_min_ratio": 0.65,
+    "title_similarity_min": 0.45
+  },
+  "pass1_cache_key": "ed4c292491f5b71412336d28096622f844b45c773ce89e96a756d788ab4775ef",
+  "pass1_transcript_sha256": "8b19e87327d7cbce6e8d4538cd1093c4d7136f6d6093cf45e7088b4eeaa2419d",
+  "chunks": [
+    {
+      "schema_version": "1.0",
+      "provider": "gemini_multimodal",
+      "strategy": "video_gemini_two_pass",
+      "source_url": "https://www.youtube.com/watch?v=vZAXpvHhQow",
+      "audio_transcript_sha256": "8b19e87327d7cbce6e8d4538cd1093c4d7136f6d6093cf45e7088b4eeaa2419d",
+      "model": "gemini-2.5-flash",
+      "fps": 0.33,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 8192,
+      "prompt_version": "video_gemini_pass2_v1",
+      "prompt_sha256": "3e61a9a91855763da1ed4e46ac59516d2c0bd64d000c9633a94d4dbb307ba150",
+      "chunk": {
+        "index": 1,
+        "start_seconds": null,
+        "end_seconds": null
+      },
+      "media_reference": {
+        "mode": "external_uri",
+        "file_uri": "https://www.youtube.com/watch?v=vZAXpvHhQow",
+        "mime_type": "video/mp4",
+        "video_metadata": {
+          "fps": 0.33
+        }
+      },
+      "prompt": "You are the video acquisition layer for The Companion curriculum pipeline.\n\nTask: convert the provided video into cleaned markdown that downstream concept extraction can process without branching by source type.\n\nSource metadata:\n- XLSX row id: 72\n- XLSX row title: Calculate TF-IDF in NLP (Simple Example)\n- Source URL or file: https://www.youtube.com/watch?v=vZAXpvHhQow\n- Probed source title: Calculate TF-IDF in NLP (Simple Example)\n- Probed duration seconds: 501.0\n- Chunk window: Full video\n- Gemini model: gemini-2.5-flash\n- Video sampling fps: 0.33\n- Media resolution: low\n- Prompt version: video_gemini_pass2_v1\n\nPass 1 audio transcript for temporal grounding:\n```text\n[00:00] Hello guys, in this video we will talk about TF-IDF and how it should be calculated with\n[00:16] a very simple example. So, let's start. A very popular representation for text is\n[00:23] a product of term frequency and inverse document frequency, commonly referred to as TF-IDF.\n[00:30] The TF-IDF value of a term T in a given document D is like this. Note that a TF-IDF value is\n[00:39] specific to a single document D, where IDF depends on the entire corpus. Systems employing the\n[00:47] back of words representation typically go through steps of stemming and stop words elimination\n[00:53] before doing term counts. Term counts within the document from the TF values\n[00:59] for each term and the document counts across the corpus from the IDF values. Each document\n[01:06] thus becomes a feature vector and the corpus is set of these feature vectors. This can be\n[01:13] used in a data mining algorithm for classification, clustering or retrieval.\n[01:19] That was a quick introduction to TF-IDF and now let's go to a simple task. Let's have a situation.\n[01:26] We have some sentences. The first one is: A quick brown fox jumps over the lazy dog. What a fox!\n[01:35] The second one: A quick brown fox jumps over the lazy fox. What a fox!\n[01:42] Please keep in mind that all the sentences in our corpus are defined as small d. So we have D1 and D2.\n[01:53] Based on this rule, our corpus is defined as the big D. Now we have some data. This data led us to shape a main question.\n[02:04] And the question is like this: How word fox is relevant to corpus-D documents? Remember we have documents D1 and D2.\n[02:18] Let's go to the solution part. Let's start in here with some definitions. What is DFIDF?\n[02:26] In the first part of this calculation we need to clarify that DF is the frequency of any term in a given\n[02:35] document. We need to calculate DF for document number one and document number two by a given\n[02:44] argument, a word fox. So let's calculate. For document number one we have 12 words in total. In this context,\n[02:55] we have a word fox occurred two times. Knowing this information we can calculate DF like this.\n[03:04] 2 divided by 12 equals 0.17. In the same way we calculate DF for document number two. In this case,\n[03:17] we have fox occurred three times in this document. So the calculation will be as follow.\n[03:25] 3 divided by 12 equal to 0.25. Keeping in mind that D1 and D2 has the same number of total words.\n[03:38] The first part of calculation is done. Now we have to move to the second part. We need to calculate\n[03:47] IDF. IDF. IDF is constant per corpus and account for the ratio of documents that include data specific term.\n[03:56] We need to calculate IDF for full corpus that we have. For this we are using a logarithm.\n[04:05] In this equation, at the upper side, we need to look at how many documents at our corpus a given word fox is accurate.\n[04:17] Now we see that award fox is accurate in document number one and in document number two.\n[04:25] So, at the upper side of our equation, we need to input a value of two.\n[04:32] On the lower side of this equation, we have to input a value of total documents that our corpus consists of.\n[04:41] And that means we have to input value of two because we have two documents in total in our corpus.\n[04:50] That resulting into logarithm 2 divided by two and it is equal to zero.\n[04:58] Now we have enough information to calculate TF IDF for all documents in our corpus D.\n[05:08] We have document number one and document number two. So, we will calculate TF IDF separately for each document in our corpus.\n[05:18] For the first document, TF IDF equal to 0.17 from the first part of our calculation multiplied by 0.\n[05:31] It is from second part of our calculation.\n[05:33] And it is equal to zero.\n[05:36] For the second document, we calculate TF IDF in the same rules that we applied for the first document.\n[05:43] Let's do like this. 0.25 from the first part of our calculation.\n[05:49] And multiplied by 0 from the second part of our calculations.\n[05:55] And it is equal to zero.\n[05:57] Now we have calculated TF IDF for all documents in our corpus.\n[06:04] And for document number one, TF IDF equal to zero.\n[06:09] For the second document in our corpus, we have calculated TF IDF and it is equal to zero again.\n[06:16] Now we have calculated TF IDF for all the documents in our corpus.\n[06:22] And that means that now we can answer to the main question in this task.\n[06:27] How a word fox is relevant to corpus D documents?\n[06:32] And the answer is: Using TF IDF that we have calculated just before, the word fox is equally relevant\n[06:42] for both documents D1 and document D2 because we have the same values of TF IDF.\n[06:49] It's zero.\n[06:51] This calculation can be applied in any amount of documents that you have in your corpus.\n[06:59] And one more time again, what is TF and IDF?\n[07:04] TF is a simple choice to use the raw count of a term in a document.\n[07:10] And the IDF, inverse document frequency, is a measurement of how much information the word\n[07:18] provides in our corpus.\n[07:20] By saying corpus, I mean across all the documents that we are having.\n[07:26] So by summarizing this video, TF IDF is a statistical measurement that evaluates how\n[07:32] relevant a word is to a document in a collection of documents.\n[07:36] This is done by multiplying two metrics: how many times a word appears in a document,\n[07:43] and the inverse document frequency of the words across the set of documents.\n[07:48] It has many uses, most importantly in automated text analysis, and is very useful for scoring words\n[07:56] in machine learning algorithms for NLP.\n[07:59] TF IDF was invented for document search and information retrieval.\n[08:04] I hope that this video was useful for you, and I wish you never stop learning.\n[08:09] If you like this one, please subscribe me and you will get more similar useful videos in future.\n[08:16] So, see you there.\n```\n\nReturn only the markdown body. Do not include YAML frontmatter.\n\nRequired markdown structure:\n\n## [MM:SS] Concise moment heading\n\n**Spoken content:** faithful summary or transcript-aligned excerpt of what is being said at this timestamp.\n\n**On-screen content:** slide text, code, equations, diagrams, tables, terminal output, whiteboard content, or visible UI state at this timestamp.\n\nVisual reference rule:\n- When a slide, diagram, chart, equation, code block, table, whiteboard, or UI state is useful for downstream extraction, emit an inline image placeholder using this exact form:\n  ![descriptive alt text](video-frame://72@MM:SS)\n- Use H:MM:SS in the URI timestamp when needed.\n- The alt text must briefly name the visual type and key labels, for example: ![diagram: tokenization pipeline with normalization, vectorization, classifier](video-frame://72@12:34)\n- Do not emit JSON for diagrams. The downstream Qwen-VL phase will convert frame placeholders to structured JSON later.\n\nBehavior rules:\n- Use the Pass 1 transcript as the timing anchor, but focus model capacity on visual reasoning.\n- Preserve code blocks with fenced markdown.\n- Preserve equations in readable markdown/LaTeX form.\n- Do not invent content outside the video or outside the chunk window.\n- Do not describe blank or repeated frames unless the visual content changes.\n- Prefer timestamp sections that span the whole chunk/video, not a dense frame-by-frame log.\n- If speech and visuals disagree, say so explicitly inside the relevant timestamp section.\n"
+    }
+  ],
+  "credential_fields_redacted": true
+}

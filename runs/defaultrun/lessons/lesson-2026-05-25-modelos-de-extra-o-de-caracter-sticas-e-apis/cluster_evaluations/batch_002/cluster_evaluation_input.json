@@ -1,0 +1,448 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "GloVe",
+    "rationale": "Specific embedding method, distinct from Word2Vec.",
+    "candidate_ids": [
+      "c67_pro_thinking_007"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "GloVe",
+      "rationale": "Specific embedding method, distinct from Word2Vec.",
+      "candidate_ids": [
+        "c67_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Python Implementation of NLP Feature Extraction",
+      "rationale": "This candidate focuses on the practical coding aspect, distinct from the theoretical feature extraction concept.",
+      "candidate_ids": [
+        "m68_002"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Comparison of Word Embeddings vs. Feature Extraction Systems",
+      "rationale": "This candidate is about contrasting the two approaches, which is a higher-level analytical concept.",
+      "candidate_ids": [
+        "m68_003"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "Building a Python API for NLP Models",
+      "rationale": "This candidate covers API development, which is separate from feature extraction techniques.",
+      "candidate_ids": [
+        "m68_004"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Minimal Flask application setup",
+      "rationale": "This is the foundational Flask pattern, distinct from other Flask-specific topics.",
+      "candidate_ids": [
+        "c69_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Running Flask development server",
+      "rationale": "Operational step, distinct from routing or debugging.",
+      "candidate_ids": [
+        "c69_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "Flask debug mode",
+      "rationale": "Specific feature, distinct from basic server running.",
+      "candidate_ids": [
+        "c69_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "HTML escaping in Flask",
+      "rationale": "Security-related topic, distinct from routing or templates.",
+      "candidate_ids": [
+        "c69_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Defining routes with @app.route",
+      "rationale": "Basic routing mechanism, could be grouped with dynamic rules but separated for clarity.",
+      "candidate_ids": [
+        "c69_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "Dynamic URL variable rules",
+      "rationale": "Extension of basic routing, but distinct enough to stand alone.",
+      "candidate_ids": [
+        "c69_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_023",
+      "label": "Canonical URLs and trailing slash behavior",
+      "rationale": "Specific behavior related to routing, distinct from defining routes.",
+      "candidate_ids": [
+        "c69_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_024",
+      "label": "URL building with url_for()",
+      "rationale": "Utility function for generating URLs, distinct from route definition.",
+      "candidate_ids": [
+        "c69_pro_thinking_008"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c67_pro_thinking_007",
+    "m68_002",
+    "m68_003",
+    "m68_004",
+    "c69_pro_thinking_001",
+    "c69_pro_thinking_002",
+    "c69_pro_thinking_003",
+    "c69_pro_thinking_004",
+    "c69_pro_thinking_005",
+    "c69_pro_thinking_006",
+    "c69_pro_thinking_007",
+    "c69_pro_thinking_008"
+  ],
+  "candidates": [
+    {
+      "id": "c67_pro_thinking_007",
+      "label": "GloVe",
+      "description": "Global Vectors for Word Representation, an unsupervised algorithm that learns word embeddings by factorizing a word co-occurrence matrix, capturing global corpus statistics.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'GloVe:' section describes it as an unsupervised algorithm using a global co-occurrence matrix and mentions training on zero-level co-occurrence, with an example of analogies captured.",
+        "granularity_rationale": "GloVe is a distinct embedding method; it can be checked by asking about its reliance on global statistics versus local context."
+      },
+      "anchors": [
+        "GloVe:"
+      ]
+    },
+    {
+      "id": "m68_002",
+      "label": "Python Implementation of NLP Feature Extraction",
+      "description": "Using Python libraries and coding practices to implement feature extraction pipelines for natural language processing tasks.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction (e.g., NLTK, spaCy, scikit-learn)."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "The title ends with 'with Python', explicitly tying the feature extraction topic to Python implementation. Additionally, the parent lesson aims to familiarize developers with Python API development, reinforcing the Python implementation aspect.",
+        "granularity_rationale": "This is a practical, implementation-focused candidate that complements the theoretical 'Feature Extraction in NLP' concept. It is specific enough to be separately assessed."
+      },
+      "anchors": [
+        "Self-study title: Feature Extraction in Natural Language Processing with Python",
+        "Self-study description: ...com Python.",
+        "Lesson description: ...familiarização com o desenvolvimento de API Python."
+      ]
+    },
+    {
+      "id": "m68_003",
+      "label": "Comparison of NLP Systems Using Word Embeddings vs. Feature Extraction",
+      "description": "Contrasting approaches that use pre-trained word embeddings (e.g., Word2Vec) with traditional feature extraction methods for building NLP models.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "The parent lesson's description explicitly states the objective is to compare systems implemented using Embedding Words models and models based on feature extraction. This directly supports a candidate about comparing these two types of NLP approaches.",
+        "granularity_rationale": "This is a distinct, assessable concept focusing on comparative analysis of modeling paradigms, not just feature extraction alone. It bridges two topics from the lesson context."
+      },
+      "anchors": [
+        "Lesson description: ...comparar os sistemas implementados utilizando modelos com Embedding Words e os modelos baseados em extração de características.",
+        "Parent lesson title: Modelos de Extração de Características e APIs"
+      ]
+    },
+    {
+      "id": "m68_004",
+      "label": "Building a Python API for NLP Models",
+      "description": "Developing a Python-based API to serve or integrate NLP models, covering common frameworks and deployment considerations.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python (e.g., Flask, FastAPI).",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "The parent lesson description mentions familiarization with Python API development, and the title includes 'APIs'. The self-study URL points to a Medium article on feature extraction in NLP with Python, which could serve as background for the API topic. The combined metadata implies a teaching signal around building Python APIs, likely in the context of NLP systems.",
+        "granularity_rationale": "This is a separate practical skill set from pure NLP feature extraction. It is specific enough to be a standalone candidate but directly relevant to the lesson's stated goal."
+      },
+      "anchors": [
+        "Lesson description: ...familiarização com o desenvolvimento de API Python.",
+        "Parent lesson title: ...e APIs"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_001",
+      "label": "Minimal Flask application pattern",
+      "description": "A minimal Flask app imports Flask, creates an instance with __name__, defines a route to a function returning HTML, and runs with flask run.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app with one route returning HTML",
+        "Can explain the need for __name__",
+        "Can run the app using flask --app hello run"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly walks through a minimal Flask application step by step under the heading 'A Minimal Application'.",
+        "granularity_rationale": "This is the foundational pattern required to start any Flask project; it is a single coherent idea that can be checked with a few questions."
+      },
+      "anchors": [
+        "A Minimal Application"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_002",
+      "label": "Running the Flask development server",
+      "description": "Use flask --app <module> run to start the development server, listen on localhost:5000 by default, and make it externally visible with --host=0.0.0.0.",
+      "coverage_criteria": [
+        "Can start a Flask app with flask run",
+        "Can specify the app module with --app",
+        "Can explain how to make the server accessible externally"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides explicit commands and explanations for running the server, including external visibility, under 'A Minimal Application' and 'Externally Visible Server'.",
+        "granularity_rationale": "Running the server is a distinct operational step; the concept is small and checkable."
+      },
+      "anchors": [
+        "A Minimal Application"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_003",
+      "label": "Flask debug mode",
+      "description": "Enable debug mode with --debug to auto-reload on code changes and show an interactive debugger in the browser; it must not be used in production due to security risks.",
+      "coverage_criteria": [
+        "Can enable debug mode on the command line",
+        "Can describe what the interactive debugger does",
+        "Can state why debug mode is unsafe for production"
+      ],
+      "source_roles": [
+        "introducing",
+        "warning",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source dedicates a section to debug mode, explaining its features and security warning.",
+        "granularity_rationale": "Debug mode is a distinct operational setting with clear implications; it is small enough to assess with a few questions."
+      },
+      "anchors": [
+        "Debug Mode"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_004",
+      "label": "HTML escaping with markupsafe.escape()",
+      "description": "When returning user-supplied data in HTML, use escape() from markupsafe to prevent XSS attacks; Jinja templates do this automatically.",
+      "coverage_criteria": [
+        "Can explain why HTML escaping is necessary",
+        "Can use markupsafe.escape() on user input",
+        "Can predict that Jinja auto-escapes"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly demonstrates how to escape user input in HTML, warning about injection attacks under the heading 'HTML Escaping'.",
+        "granularity_rationale": "Escaping is a security-critical concept that is narrow and checkable with a short code example."
+      },
+      "anchors": [
+        "HTML Escaping"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_005",
+      "label": "Defining routes with @app.route decorator",
+      "description": "Use @app.route(url) to bind a view function to a URL; the function's return value becomes the response.",
+      "coverage_criteria": [
+        "Can define a simple route and return a string",
+        "Can explain that the route decorator registers a URL pattern"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces routing under the 'Routing' heading with code examples mapping index and hello routes.",
+        "granularity_rationale": "Route definition is a fundamental building block; this concept isolates the basic pattern without dynamic parts, making it small and checkable."
+      },
+      "anchors": [
+        "Routing"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_006",
+      "label": "Dynamic URL variable rules",
+      "description": "Flask routes can capture variable parts with <variable_name>, and optionally enforce type with converters like int, float, path, uuid.",
+      "coverage_criteria": [
+        "Can write a route with a variable path segment",
+        "Can use a converter (e.g., int:post_id)",
+        "Can list at least two converter types"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source covers variable rules in detail under 'Variable Rules', including a table of converters.",
+        "granularity_rationale": "This is a specific feature of Flask routing; it can be tested by asking for a route with an integer parameter."
+      },
+      "anchors": [
+        "Variable Rules"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_007",
+      "label": "Canonical URLs and trailing slash behavior",
+      "description": "Routes ending with / redirect if accessed without slash; routes without slash return 404 if accessed with slash, enforcing unique canonical URLs.",
+      "coverage_criteria": [
+        "Can predict the redirect behavior for a /projects/ route accessed as /projects",
+        "Can predict the 404 for /about accessed as /about/"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Under 'Unique URLs / Redirection Behavior', the source explains the trailing slash logic with examples.",
+        "granularity_rationale": "This is a small, well-defined behavior; checking it requires understanding a simple rule."
+      },
+      "anchors": [
+        "Unique URLs / Redirection Behavior"
+      ]
+    },
+    {
+      "id": "c69_pro_thinking_008",
+      "label": "Building URLs with url_for()",
+      "description": "The url_for() function builds a URL to a given view function, accepting keyword arguments for variable parts; it ensures clean, absolute URLs and handles root paths.",
+      "coverage_criteria": [
+        "Can use url_for('index') to generate the root URL",
+        "Can explain why url_for is preferred over hard-coding URLs",
+        "Can pass arguments to url_for and see query parameters for unknown parts"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a thorough explanation and examples for url_for under 'URL Building'.",
+        "granularity_rationale": "URL building is a key pattern for maintainable Flask apps; this concept can be assessed by asking the student to generate a URL for a profile page with a username."
+      },
+      "anchors": [
+        "URL Building"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

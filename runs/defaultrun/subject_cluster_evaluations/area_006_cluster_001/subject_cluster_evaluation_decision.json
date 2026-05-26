@@ -1,0 +1,67 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-20T01:04:18.105436+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr003_001",
+    "lr003_002"
+  ],
+  "accepted": [
+    {
+      "id": "sm001",
+      "label": "Bag-of-Words Model Definition and Vocabulary Construction",
+      "description": "The bag-of-words (BOW) model represents documents as fixed-length vectors of word counts, using a vocabulary built from unique words across the corpus. Word order and grammar are disregarded, and documents are represented as vectors with each dimension corresponding to a vocabulary word.",
+      "coverage_criteria": [
+        "Define the BOW model and explain how it converts text into word count vectors, disregarding word order and grammar.",
+        "Define vocabulary in BOW, explain how it determines vector dimensions, and how out-of-vocabulary words are handled."
+      ],
+      "source_candidate_ids": [
+        "lr003_001",
+        "lr003_002"
+      ],
+      "merge_rationale": "These candidates both define core aspects of the bag-of-words model at the definition level. The vocabulary construction is an integral part of understanding how BOW works and is typically taught together. They represent one teachable concept."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Bag-of-Words Model Definition and Vocabulary Construction",
+      "description": "The bag-of-words (BOW) model represents documents as fixed-length vectors of word counts, using a vocabulary built from unique words across the corpus. Word order and grammar are disregarded, and documents are represented as vectors with each dimension corresponding to a vocabulary word.",
+      "coverage_criteria": [
+        "Define the BOW model and explain how it converts text into word count vectors, disregarding word order and grammar.",
+        "Define vocabulary in BOW, explain how it determines vector dimensions, and how out-of-vocabulary words are handled."
+      ],
+      "source_candidate_ids": [
+        "lr003_001",
+        "lr003_002"
+      ],
+      "merge_rationale": "These candidates both define core aspects of the bag-of-words model at the definition level. The vocabulary construction is an integral part of understanding how BOW works and is typically taught together. They represent one teachable concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr003_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm001"
+      ]
+    },
+    {
+      "candidate_id": "lr003_002",
+      "status": "merged_into",
+      "merged_into": "sm001",
+      "explanation": "The vocabulary construction is a sub-component essential to defining the BOW model; it is naturally included when defining BOW."
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 1,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

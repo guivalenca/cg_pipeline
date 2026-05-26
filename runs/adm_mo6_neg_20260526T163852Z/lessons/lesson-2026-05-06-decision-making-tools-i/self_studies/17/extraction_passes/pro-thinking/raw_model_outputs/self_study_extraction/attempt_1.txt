@@ -1,0 +1,200 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-17-001",
+      "label": "Minimax Regret Decision Criterion",
+      "description": "A decision rule selects actions to minimize the maximum regret over all possible payoff distributions, where regret is the difference between the best achievable payoff and the payoff obtained.",
+      "coverage_criteria": [
+        "Student can explain what minimax regret means.",
+        "Student can identify a decision scenario where such a criterion would apply."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The paper defines minimax regret as minimizing the maximum regret over all decision problems and centers its investigation on this criterion.",
+        "granularity_rationale": "This concept is a foundational decision-making criterion that can be assessed with a single definition and a simple example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Introduction"},
+        {"kind": "markdown_heading", "locator": "2 Decision Problems, Rules and Selection"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": ["Wald (1950)", "Robbins (1952)"]
+    },
+    {
+      "candidate_id": "candidate-17-002",
+      "label": "Regret Definition and Calculation",
+      "description": "Regret is the discounted sum of differences between the maximum expected payoff and the actual expected payoff per round, measuring loss due to ignorance of the optimal action.",
+      "coverage_criteria": [
+        "Student can state the formula for regret.",
+        "Student can compute regret for a simple decision problem with given payoffs and a specified rule."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The paper explicitly defines regret in Section 2 as the discounted value of opportunity loss and uses it throughout the analysis.",
+        "granularity_rationale": "The definition is precise and can be checked by asking the student to write the regret formula and apply it."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Decision Problems, Rules and Selection"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-17-003",
+      "label": "Bernoulli Equivalent Decision Rule",
+      "description": "A rule that can be applied to any payoff environment by behaving as if in a Bernoulli environment where success probabilities equal expected payoffs, using randomization based on observed payoffs.",
+      "coverage_criteria": [
+        "Student can explain how a Bernoulli equivalent rule transforms continuous payoffs into binary outcomes.",
+        "Student can give an example of applying such a rule."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The paper introduces Bernoulli equivalent rules in Section 3.2 and proves they are essential for extending minimax regret results to continuous payoffs.",
+        "granularity_rationale": "This concept is a specific technique that can be tested by having the student describe the transformation procedure."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3.2 Linearity and Bernoulli Equivalence"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-17-004",
+      "label": "Worst Case Prior in Decision Making",
+      "description": "The prior distribution over decision problems that maximizes the expected regret of a Bayesian optimal rule. Minimax regret rules are Bayesian optimal under such a prior.",
+      "coverage_criteria": [
+        "Student can define 'worst case prior'.",
+        "Student can explain its role in characterizing minimax regret behavior."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The paper defines worst case prior in Section 3.3 and proves that minimax regret is attained iff the rule is Bayesian optimal under a worst case prior.",
+        "granularity_rationale": "The concept is discrete and can be checked by asking the student to recall the definition and its connection to minimax regret."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3.3 The Result"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": ["Berry and Fristedt (1985)"]
+    },
+    {
+      "candidate_id": "candidate-17-005",
+      "label": "Single Round Memory Rule for Two-Armed Bandit",
+      "description": "A rule with only one round of memory that attains minimax regret when the discount factor δ ≤ √2 − 1 ≈ 0.41. It chooses each action equally initially, then repeats the previous action with probability equal to the payoff received.",
+      "coverage_criteria": [
+        "Student can describe the rule's behavior.",
+        "Student can state the discount factor range where it is optimal."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 4.2.1 explicitly derives this rule and proves it attains minimax regret for δ ≤ 0.41.",
+        "granularity_rationale": "The rule is simple and can be tested by asking the student to implement it for a given sequence of payoffs."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "4.2.1 Single round memory"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": ["Robbins (1952)"]
+    },
+    {
+      "candidate_id": "candidate-17-006",
+      "label": "Two-Round Memory Rule (Robbins' Rule)",
+      "description": "A rule with two rounds of memory that attains minimax regret for δ ≤ (√5 − 1)/2 ≈ 0.62. For binary payoffs, it prescribes staying after a success and switching only after two consecutive failures; for continuous payoffs, a linear extension is used.",
+      "coverage_criteria": [
+        "Student can explain the rule's behavior for binary payoffs.",
+        "Student can identify the discount factor bound where it is optimal."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 4.2.2 presents the two-round memory rule and proves its optimality for δ ≤ 0.62.",
+        "granularity_rationale": "The rule's description in terms of a stochastic automaton is checkable with a few state transitions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "4.2.2 Two round memory"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": ["Robbins (1956)", "stochastic automaton"]
+    },
+    {
+      "candidate_id": "candidate-17-007",
+      "label": "Minimax Regret and Bayesian Optimality Equivalence",
+      "description": "Any rule that attains minimax regret is Bayesian optimal under a worst case prior, establishing a formal connection between distribution-free and Bayesian decision theories.",
+      "coverage_criteria": [
+        "Student can state the theorem linking minimax regret to Bayesian optimality.",
+        "Student can sketch the proof idea (minimax theorem / zero-sum game)."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Proposition 1 in Section 3.3 states this equivalence, and the paper discusses it extensively.",
+        "granularity_rationale": "This is a key theoretical link that can be tested by asking the student to explain the relationship."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3.3 The Result"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-17-008",
+      "label": "Continuous Payoff Model (S-Model) in Bandit Problems",
+      "description": "The extension of two-armed bandit problems from binary payoffs (Bernoulli model) to continuous payoffs in [0,1] (S-model), handled via Bernoulli equivalent rules that maintain linearity.",
+      "coverage_criteria": [
+        "Student can differentiate between the Bernoulli model and the S-model.",
+        "Student can explain why Bernoulli equivalent rules are needed for the S-model."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The paper introduces the S-model (payoffs in [0,1]) in Section 2 and demonstrates how Bernoulli equivalent rules extend results from binary payoffs.",
+        "granularity_rationale": "The distinction is clear and can be tested by asking the student to provide examples of each model."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Decision Problems, Rules and Selection"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to Minimize Maximum Regret in Repeated Decision Making",
+      "source_year": "2003",
+      "name_drops": ["S-model", "Bernoulli"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-17-001",
+      "to_candidate_id": "candidate-17-004",
+      "reason": "The paper proves that a rule attains minimax regret if and only if it is Bayesian optimal under a worst case prior (Proposition 1), connecting the minimax criterion directly to the concept of worst case prior.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3.3 The Result"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-17-003",
+      "to_candidate_id": "candidate-17-001",
+      "reason": "The characterization of minimax regret relies on Bernoulli equivalent rules; Proposition 1 shows that a minimax regret rule can be found within the set of Bernoulli equivalent symmetric rules, linking the technique to the criterion.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3.3 The Result"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-17-005",
+      "to_candidate_id": "candidate-17-006",
+      "reason": "The single round memory rule is optimal for lower discount factors (δ ≤ 0.41), while the two-round memory rule extends the range of optimality to higher discount factors (δ ≤ 0.62), showing a progression in needed memory complexity.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "4.2.1 Single round memory"},
+        {"kind": "markdown_heading", "locator": "4.2.2 Two round memory"}
+      ]
+    }
+  ]
+}

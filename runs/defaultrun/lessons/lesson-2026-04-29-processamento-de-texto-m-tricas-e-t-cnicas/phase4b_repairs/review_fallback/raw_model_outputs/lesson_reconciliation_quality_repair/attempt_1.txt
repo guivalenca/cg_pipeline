@@ -1,0 +1,165 @@
+{
+  "new_accepted_concepts": [
+    {
+      "id": "repair001",
+      "label": "Expressões Regulares: Definição e Metacaracteres Básicos",
+      "description": "Introduz expressões regulares como método para busca de padrões em textos e apresenta o conceito de metacaracteres, que são símbolos com significados especiais.",
+      "coverage_criteria": [
+        "Definir o que é uma expressão regular.",
+        "Citar pelo menos três metacaracteres e explicar brevemente sua função."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_001",
+        "c17_pro_thinking_001",
+        "c17_pro_thinking_002"
+      ],
+      "merge_rationale": "Estes candidatos cobrem a definição e o papel das expressões regulares no PLN e introduzem os metacaracteres, fornecendo a base conceitual necessária."
+    },
+    {
+      "id": "repair002",
+      "label": "Metacaracteres Representantes: Ponto, Lista e Lista Negada",
+      "description": "Descreve os metacaracteres representantes: ponto (.) que representa qualquer caractere, lista ([...]) que busca um dos caracteres listados e lista negada ([^...]) que busca caracteres que não estão na lista.",
+      "coverage_criteria": [
+        "Explicar o que o ponto, a lista e a lista negada representam em uma regex.",
+        "Dado um texto, escrever uma regex que utilize lista para buscar palavras com um conjunto específico de caracteres."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_002"
+      ],
+      "merge_rationale": "Candidato único que cobre esses metacaracteres representantes de forma completa."
+    },
+    {
+      "id": "repair003",
+      "label": "Metacaracteres Quantificadores",
+      "description": "Apresenta os quantificadores: asterisco (*) para zero ou mais, opcional (?) para zero ou uma, mais (+) para uma ou mais e chaves ({x,y}) para um número específico de repetições, com exemplos usando classes de caracteres.",
+      "coverage_criteria": [
+        "Diferenciar o uso de *, + e ? com exemplos.",
+        "Escrever uma regex utilizando {x,y} para limitar repetições."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_003",
+        "c17_pro_thinking_004"
+      ],
+      "merge_rationale": "Ambos os candidatos tratam de quantificadores; o primeiro apresenta os quatro tipos e o segundo demonstra o uso do {2} com classes de caracteres, reforçando o conceito."
+    },
+    {
+      "id": "repair004",
+      "label": "Âncoras: Circunflexo e Cifrão",
+      "description": "Explica que o circunflexo (^) ancora a busca no início da linha/string e o cifrão ($) no final, destacando que ^ dentro de colchetes tem função de negação.",
+      "coverage_criteria": [
+        "Explicar a função das âncoras ^ e $.",
+        "Escrever uma regex que encontre uma palavra no início de uma linha e outra no final."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_004",
+        "c17_pro_thinking_003"
+      ],
+      "merge_rationale": "Ambos descrevem o uso de ^ e $ como âncoras, com exemplos complementares."
+    },
+    {
+      "id": "repair005",
+      "label": "Alternação e Agrupamento",
+      "description": "Mostra o uso do pipe (|) para alternância (OU) e dos parênteses ( ) para agrupar partes da regex, permitindo construir padrões com múltiplas opções.",
+      "coverage_criteria": [
+        "Utilizar | e () para criar uma regex que capture uma entre várias palavras.",
+        "Diferenciar (rato|Roma) de [rato|Roma]."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005",
+        "c17_pro_thinking_005"
+      ],
+      "merge_rationale": "O primeiro candidato inclui alternância e agrupamento entre vários metacaracteres, e o segundo foca especificamente nesses dois recursos, justificando a união."
+    },
+    {
+      "id": "repair006",
+      "label": "Escapando Metacaracteres",
+      "description": "Ensina que a contrabarra (\) é usada para tratar metacaracteres como literais, por exemplo, \\. para um ponto literal ou \\( para parênteses literal.",
+      "coverage_criteria": [
+        "Identificar em uma regex quais caracteres estão escapados e por quê.",
+        "Escrever uma regex que encontre um parêntese literal em um texto."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005",
+        "c17_pro_thinking_006"
+      ],
+      "merge_rationale": "Ambos abordam o conceito de escape, com o primeiro como parte de uma introdução mais ampla e o segundo com demonstração detalhada."
+    },
+    {
+      "id": "repair007",
+      "label": "Classes de Caracteres por Atalho",
+      "description": "Apresenta os atalhos \\d (dígito), \\w (alfanumérico), \\s (espaçamento) e suas negações \\D, \\W, \\S, que simplificam a construção de padrões comuns.",
+      "coverage_criteria": [
+        "Substituir [0-9] por \\d em uma regex.",
+        "Explicar a diferença entre \\w e \\W."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005"
+      ],
+      "merge_rationale": "Este candidato aborda especificamente os atalhos de classes de caracteres, permitindo um conceito isolado."
+    },
+    {
+      "id": "repair008",
+      "label": "Métodos Básicos do Módulo re do Python",
+      "description": "Explora os métodos principais do módulo re do Python: match(), search(), findall() para busca de padrões, e split(), sub(), group() para manipulação de strings.",
+      "coverage_criteria": [
+        "Usar re.search para encontrar a primeira ocorrência de um padrão.",
+        "Aplicar re.sub para substituir um padrão em um texto.",
+        "Extrair subgrupos de um match com group()."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_006",
+        "c16_pro_thinking_007"
+      ],
+      "merge_rationale": "Ambos cobrem os métodos do módulo re, um com foco em busca direta e o outro em divisão, substituição e extração, formando um conjunto completo."
+    },
+    {
+      "id": "repair009",
+      "label": "Aplicações Práticas de Regex",
+      "description": "Ilustra casos reais de uso de expressões regulares: extração de e-mails, números de telefone, divisão de frases, detecção de acrônimos e validação de formatos como datas e IPs.",
+      "coverage_criteria": [
+        "Explicar como uma regex pode validar um formato de data.",
+        "Modificar uma regex de extração de e-mail para incluir um domínio específico.",
+        "Escrever código Python que usa split para separar frases."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_008",
+        "c16_pro_thinking_009",
+        "c16_pro_thinking_010",
+        "c16_pro_thinking_011",
+        "c17_pro_thinking_008"
+      ],
+      "merge_rationale": "Todos demonstram tarefas comuns de processamento de texto que são resolvidas com regex, fornecendo uma visão prática unificada."
+    },
+    {
+      "id": "repair010",
+      "label": "Similaridade Léxica",
+      "description": "Define similaridade léxica como a medida de sobreposição de palavras ou caracteres entre dois fragmentos de texto, sem considerar significado, e discute os níveis de granularidade (caractere, palavra, frase).",
+      "coverage_criteria": [
+        "Explicar o que é similaridade léxica e dar um exemplo.",
+        "Diferenciar similaridade em nível de caractere e de palavra."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_001",
+        "c19_pro_thinking_001",
+        "c18_pro_thinking_008"
+      ],
+      "merge_rationale": "Os três candidatos abordam o tópico sob diferentes perspectivas, consolidando a definição e as variações de granularidade."
+    },
+    {
+      "id": "repair011",
+      "label": "Distância de Edição Mínima e Levenshtein",
+      "description": "Apresenta a distância de edição mínima como o número mínimo de operações (inserção, deleção, substituição) para transformar uma string em outra, e a variante Levenshtein onde a substituição custa 2.",
+      "coverage_criteria": [
+        "Calcular a distância de edição mínima entre duas strings.",
+        "Computar a distância de Levenshtein e explicar a diferença de custo."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_002",
+        "c18_pro_thinking_003"
+      ],
+      "merge_rationale": "Ambos tratam de algoritmos de distância de edição, sendo o segundo uma variação direta, justificando o agrupamento."
+    },
+    {
+      "id": "repair012",
+      "label": "Similaridade de Jaccard",
+      "description

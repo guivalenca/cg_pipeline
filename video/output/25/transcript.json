@@ -1,0 +1,657 @@
+{
+  "schema_version": "1.0",
+  "transcript_source": "manual_captions",
+  "caption_language": "en-j3PyPqV-e1s",
+  "duration_seconds": 386.0,
+  "transcript_sha256": "cdc7c4ae4f791dc9555ec3fdd570a3fd7b57c342a5094709a2940180eae5e12f",
+  "segments": [
+    {
+      "start_seconds": 0.5,
+      "duration_seconds": 3.28,
+      "text": "YUFENG GUO: Natural language has many challenges that are unique"
+    },
+    {
+      "start_seconds": 3.78,
+      "duration_seconds": 3.1200000000000006,
+      "text": "and separate it from other data types like images"
+    },
+    {
+      "start_seconds": 6.9,
+      "duration_seconds": 1.3499999999999996,
+      "text": "and structured data."
+    },
+    {
+      "start_seconds": 8.25,
+      "duration_seconds": 3.630000000000001,
+      "text": "So it requires a slightly different approach."
+    },
+    {
+      "start_seconds": 11.88,
+      "duration_seconds": 2.789999999999999,
+      "text": "Today, we'll explore a foundational piece"
+    },
+    {
+      "start_seconds": 14.67,
+      "duration_seconds": 3.6599999999999984,
+      "text": "of modeling natural language, called \"bag of words.\""
+    },
+    {
+      "start_seconds": 18.33,
+      "duration_seconds": 0.8800000000000026,
+      "text": "What does it mean?"
+    },
+    {
+      "start_seconds": 19.21,
+      "duration_seconds": 2.3299999999999983,
+      "text": "And how do we use it to process text?"
+    },
+    {
+      "start_seconds": 21.54,
+      "duration_seconds": 3.84,
+      "text": "Stay tuned to find out."
+    },
+    {
+      "start_seconds": 25.38,
+      "duration_seconds": 3.3740000000000023,
+      "text": "[THEME SONG]"
+    },
+    {
+      "start_seconds": 31.65,
+      "duration_seconds": 1.9400000000000048,
+      "text": "Welcome to \"AI Adventures,\" where"
+    },
+    {
+      "start_seconds": 33.59,
+      "duration_seconds": 4.419999999999995,
+      "text": "we explore the art, science, and tools of machine learning."
+    },
+    {
+      "start_seconds": 38.01,
+      "duration_seconds": 1.3700000000000045,
+      "text": "My name is Yufeng Guo."
+    },
+    {
+      "start_seconds": 39.38,
+      "duration_seconds": 2.309999999999995,
+      "text": "And on this episode, we're going to look"
+    },
+    {
+      "start_seconds": 41.69,
+      "duration_seconds": 5.510000000000005,
+      "text": "at how to use bag of words to classify natural language."
+    },
+    {
+      "start_seconds": 47.2,
+      "duration_seconds": 2.0799999999999983,
+      "text": "Natural language is special because it"
+    },
+    {
+      "start_seconds": 49.28,
+      "duration_seconds": 3.6299999999999955,
+      "text": "has structure inherent in the language while at the same time"
+    },
+    {
+      "start_seconds": 52.91,
+      "duration_seconds": 2.4100000000000037,
+      "text": "being very free-form."
+    },
+    {
+      "start_seconds": 55.32,
+      "duration_seconds": 2.9099999999999966,
+      "text": "There are many ways you can say the same thing."
+    },
+    {
+      "start_seconds": 58.23,
+      "duration_seconds": 2.210000000000001,
+      "text": "And you can also say very similar words,"
+    },
+    {
+      "start_seconds": 60.44,
+      "duration_seconds": 2.5500000000000043,
+      "text": "and yet mean very different things."
+    },
+    {
+      "start_seconds": 62.99,
+      "duration_seconds": 1.7700000000000031,
+      "text": "So in much of machine learning, we"
+    },
+    {
+      "start_seconds": 64.76,
+      "duration_seconds": 4.3799999999999955,
+      "text": "aim to turn our data into matrices or tensors."
+    },
+    {
+      "start_seconds": 69.14,
+      "duration_seconds": 2.519999999999996,
+      "text": "This is very natural for images since that's already"
+    },
+    {
+      "start_seconds": 71.66,
+      "duration_seconds": 2.700000000000003,
+      "text": "their inherent representation."
+    },
+    {
+      "start_seconds": 74.36,
+      "duration_seconds": 2.730000000000004,
+      "text": "Structured data often meets a similar fate,"
+    },
+    {
+      "start_seconds": 77.09,
+      "duration_seconds": 3.6899999999999977,
+      "text": "with numbers in a spreadsheet mapping very directly to input"
+    },
+    {
+      "start_seconds": 80.78,
+      "duration_seconds": 1.5300000000000011,
+      "text": "matrix values."
+    },
+    {
+      "start_seconds": 82.31,
+      "duration_seconds": 2.6400000000000006,
+      "text": "But with natural language, we need"
+    },
+    {
+      "start_seconds": 84.95,
+      "duration_seconds": 4.61999999999999,
+      "text": "to somehow find a way to turn words into numbers so we can"
+    },
+    {
+      "start_seconds": 89.57,
+      "duration_seconds": 2.680000000000007,
+      "text": "stick them into those matrices."
+    },
+    {
+      "start_seconds": 92.25,
+      "duration_seconds": 1.9399999999999977,
+      "text": "There are many ways that we can do this."
+    },
+    {
+      "start_seconds": 94.19,
+      "duration_seconds": 5.6200000000000045,
+      "text": "And today, we'll focus on an approach called \"bag of words.\""
+    },
+    {
+      "start_seconds": 99.81,
+      "duration_seconds": 2.6400000000000006,
+      "text": "Let's pretend for a moment that we're learning English"
+    },
+    {
+      "start_seconds": 102.45,
+      "duration_seconds": 2.049999999999997,
+      "text": "for the first time ever."
+    },
+    {
+      "start_seconds": 104.5,
+      "duration_seconds": 3.200000000000003,
+      "text": "And for some reason, the first words"
+    },
+    {
+      "start_seconds": 107.7,
+      "duration_seconds": 3.480000000000004,
+      "text": "we have chosen to learn in our entire vocabulary"
+    },
+    {
+      "start_seconds": 111.18,
+      "duration_seconds": 1.3999999999999915,
+      "text": "are these 10 shown here--"
+    },
+    {
+      "start_seconds": 112.58,
+      "duration_seconds": 4.1200000000000045,
+      "text": "words like \"dataframe\" and \"graph,\" \"plot,\" \"color,\""
+    },
+    {
+      "start_seconds": 116.7,
+      "duration_seconds": 1.6799999999999926,
+      "text": "and \"activation.\""
+    },
+    {
+      "start_seconds": 118.38,
+      "duration_seconds": 2.8500000000000085,
+      "text": "And so we want to be able to identify,"
+    },
+    {
+      "start_seconds": 121.23,
+      "duration_seconds": 3.8100000000000023,
+      "text": "given some arbitrary text, whether that topic"
+    },
+    {
+      "start_seconds": 125.04,
+      "duration_seconds": 5.029999999999987,
+      "text": "is about pandas, keras, or Matplotlib."
+    },
+    {
+      "start_seconds": 130.07,
+      "duration_seconds": 2.6100000000000136,
+      "text": "How might we do that?"
+    },
+    {
+      "start_seconds": 132.68,
+      "duration_seconds": 3.2399999999999807,
+      "text": "Perhaps if we looked at a sentence, like \"how"
+    },
+    {
+      "start_seconds": 135.92,
+      "duration_seconds": 3.210000000000008,
+      "text": "to plot dataframe bar graph,\" we would"
+    },
+    {
+      "start_seconds": 139.13,
+      "duration_seconds": 4.275000000000006,
+      "text": "recognize just the words \"plot,\" \"dataframe,\" and \"graph.\""
+    },
+    {
+      "start_seconds": 143.405,
+      "duration_seconds": 3.344999999999999,
+      "text": "The rest of the sentence would look like a foreign language,"
+    },
+    {
+      "start_seconds": 146.75,
+      "duration_seconds": 1.5,
+      "text": "just gibberish."
+    },
+    {
+      "start_seconds": 148.25,
+      "duration_seconds": 2.1899999999999977,
+      "text": "Knowing only those three words in this sentence,"
+    },
+    {
+      "start_seconds": 150.44,
+      "duration_seconds": 2.219999999999999,
+      "text": "though, we might still be able to get"
+    },
+    {
+      "start_seconds": 152.66,
+      "duration_seconds": 3.5500000000000114,
+      "text": "some sense of what it's about."
+    },
+    {
+      "start_seconds": 156.21,
+      "duration_seconds": 3.4799999999999898,
+      "text": "And the way you might capture this information in an array"
+    },
+    {
+      "start_seconds": 159.69,
+      "duration_seconds": 3.8400000000000034,
+      "text": "or matrix would be to first make an array that represents"
+    },
+    {
+      "start_seconds": 163.53,
+      "duration_seconds": 1.6500000000000057,
+      "text": "your entire vocabulary."
+    },
+    {
+      "start_seconds": 165.18,
+      "duration_seconds": 3.180000000000007,
+      "text": "So in this case, we have an array of just length 10."
+    },
+    {
+      "start_seconds": 168.36,
+      "duration_seconds": 3.359999999999985,
+      "text": "We'd set all those values to 0 and turn"
+    },
+    {
+      "start_seconds": 171.72,
+      "duration_seconds": 2.1899999999999977,
+      "text": "on the array indices that correspond"
+    },
+    {
+      "start_seconds": 173.91,
+      "duration_seconds": 3.5,
+      "text": "to the words in the sentence by setting them to 1."
+    },
+    {
+      "start_seconds": 177.41,
+      "duration_seconds": 2.8100000000000023,
+      "text": "Notice that this has nothing to do with the order"
+    },
+    {
+      "start_seconds": 180.22,
+      "duration_seconds": 3.0660000000000025,
+      "text": "the words appear in the input sentence,"
+    },
+    {
+      "start_seconds": 183.286,
+      "duration_seconds": 2.544000000000011,
+      "text": "but everything to do with the order of the words"
+    },
+    {
+      "start_seconds": 185.83,
+      "duration_seconds": 2.369999999999976,
+      "text": "in our vocabulary list."
+    },
+    {
+      "start_seconds": 188.2,
+      "duration_seconds": 4.650000000000006,
+      "text": "So now we've encoded or translated the English sentence"
+    },
+    {
+      "start_seconds": 192.85,
+      "duration_seconds": 4.530000000000001,
+      "text": "into an array of numbers based on our somewhat limited"
+    },
+    {
+      "start_seconds": 197.38,
+      "duration_seconds": 2.6299999999999955,
+      "text": "understanding of English."
+    },
+    {
+      "start_seconds": 200.01,
+      "duration_seconds": 2.910000000000025,
+      "text": "The words we don't recognize, we'll just ignore."
+    },
+    {
+      "start_seconds": 202.92000000000002,
+      "duration_seconds": 2.4899999999999807,
+      "text": "Notice that this has the effect of scrambling up"
+    },
+    {
+      "start_seconds": 205.41,
+      "duration_seconds": 4.990000000000009,
+      "text": "the order of the words, like, say, a bag of words."
+    },
+    {
+      "start_seconds": 210.4,
+      "duration_seconds": 3.0900000000000034,
+      "text": "Of course, we should do the same for our labels."
+    },
+    {
+      "start_seconds": 213.49,
+      "duration_seconds": 3.259999999999991,
+      "text": "This is much simpler, since there are only three of them."
+    },
+    {
+      "start_seconds": 216.75,
+      "duration_seconds": 2.1599999999999966,
+      "text": "In our case, we have some sentences"
+    },
+    {
+      "start_seconds": 218.91,
+      "duration_seconds": 1.8600000000000136,
+      "text": "that have more than one label attached"
+    },
+    {
+      "start_seconds": 220.77,
+      "duration_seconds": 1.9499999999999886,
+      "text": "to them at the same time, however,"
+    },
+    {
+      "start_seconds": 222.72,
+      "duration_seconds": 4.0800000000000125,
+      "text": "since a sentence can talk about multiple topics at once."
+    },
+    {
+      "start_seconds": 226.8,
+      "duration_seconds": 3.8999999999999773,
+      "text": "In that case, we want to set all the relevant indices to 1,"
+    },
+    {
+      "start_seconds": 230.7,
+      "duration_seconds": 2.8500000000000227,
+      "text": "leaving the rest as 0, just like we did for the words"
+    },
+    {
+      "start_seconds": 233.55,
+      "duration_seconds": 2.469999999999999,
+      "text": "from our training data."
+    },
+    {
+      "start_seconds": 236.02,
+      "duration_seconds": 2.219999999999999,
+      "text": "Now we've turned the inputs as well as"
+    },
+    {
+      "start_seconds": 238.24,
+      "duration_seconds": 2.8499999999999943,
+      "text": "the outputs, which both used to be words,"
+    },
+    {
+      "start_seconds": 241.09,
+      "duration_seconds": 2.219999999999999,
+      "text": "into arrays of numbers."
+    },
+    {
+      "start_seconds": 243.31,
+      "duration_seconds": 3.75,
+      "text": "And we can let machine learning do what it does best--"
+    },
+    {
+      "start_seconds": 247.06,
+      "duration_seconds": 3.329999999999984,
+      "text": "map one set of numbers to another set of numbers."
+    },
+    {
+      "start_seconds": 250.39,
+      "duration_seconds": 2.480000000000018,
+      "text": "All the heavy lifting is done in the preprocessing"
+    },
+    {
+      "start_seconds": 252.87,
+      "duration_seconds": 2.769999999999982,
+      "text": "as we transformed or encoded that text"
+    },
+    {
+      "start_seconds": 255.64,
+      "duration_seconds": 2.632000000000005,
+      "text": "into numerical representations."
+    },
+    {
+      "start_seconds": 258.272,
+      "duration_seconds": 3.6270000000000095,
+      "text": "Bag of words is a pretty simple approach for doing this task,"
+    },
+    {
+      "start_seconds": 261.899,
+      "duration_seconds": 3.120999999999981,
+      "text": "though it's worth pointing out that it might surprise you"
+    },
+    {
+      "start_seconds": 265.02,
+      "duration_seconds": 4.009999999999991,
+      "text": "how well it works in some situations."
+    },
+    {
+      "start_seconds": 269.03,
+      "duration_seconds": 3.730000000000018,
+      "text": "How might we build a bag of words modeled with code?"
+    },
+    {
+      "start_seconds": 272.76,
+      "duration_seconds": 3.0500000000000114,
+      "text": "Keras has a convenient preprocessing library"
+    },
+    {
+      "start_seconds": 275.81,
+      "duration_seconds": 3.509999999999991,
+      "text": "that we can use to handle much of this for us."
+    },
+    {
+      "start_seconds": 279.32,
+      "duration_seconds": 2.400000000000034,
+      "text": "Using the Tokenizer class, we can"
+    },
+    {
+      "start_seconds": 281.72,
+      "duration_seconds": 2.0399999999999636,
+      "text": "select the size of the vocabulary"
+    },
+    {
+      "start_seconds": 283.76,
+      "duration_seconds": 1.3799999999999955,
+      "text": "we'd like to utilize."
+    },
+    {
+      "start_seconds": 285.14,
+      "duration_seconds": 3.6000000000000227,
+      "text": "In our example, we just had 10 words, which is quite small,"
+    },
+    {
+      "start_seconds": 288.74,
+      "duration_seconds": 3.4499999999999886,
+      "text": "but in our code, let's choose something bigger, like 400."
+    },
+    {
+      "start_seconds": 292.19,
+      "duration_seconds": 2.839999999999975,
+      "text": "This will then be fit on the entire body of the text"
+    },
+    {
+      "start_seconds": 295.03,
+      "duration_seconds": 2.230000000000018,
+      "text": "from your training data, selecting out"
+    },
+    {
+      "start_seconds": 297.26,
+      "duration_seconds": 3.259999999999991,
+      "text": "the most common 400 words."
+    },
+    {
+      "start_seconds": 300.52,
+      "duration_seconds": 3.390000000000043,
+      "text": "With the tokenization process complete, building the model"
+    },
+    {
+      "start_seconds": 303.91,
+      "duration_seconds": 2.099999999999966,
+      "text": "becomes quite straightforward and similar"
+    },
+    {
+      "start_seconds": 306.01,
+      "duration_seconds": 2.2200000000000273,
+      "text": "to working with other structured data."
+    },
+    {
+      "start_seconds": 308.23,
+      "duration_seconds": 3.659999999999968,
+      "text": "Since each row is now just an input of 1s and 0s,"
+    },
+    {
+      "start_seconds": 311.89,
+      "duration_seconds": 3.4499999999999886,
+      "text": "using something as simple as a standard, fully connected,"
+    },
+    {
+      "start_seconds": 315.34,
+      "duration_seconds": 3.0300000000000296,
+      "text": "deep neural network can be quite effective."
+    },
+    {
+      "start_seconds": 318.37,
+      "duration_seconds": 3.8999999999999773,
+      "text": "If you're planning on having multiple label classification,"
+    },
+    {
+      "start_seconds": 322.27,
+      "duration_seconds": 3.0300000000000296,
+      "text": "where more than one label might be true for a single input,"
+    },
+    {
+      "start_seconds": 325.3,
+      "duration_seconds": 4.3799999999999955,
+      "text": "as we do here, be sure that we choose a sigmoid activation"
+    },
+    {
+      "start_seconds": 329.68,
+      "duration_seconds": 3.569999999999993,
+      "text": "instead of the more common Softmax activation function,"
+    },
+    {
+      "start_seconds": 333.25,
+      "duration_seconds": 3.740000000000009,
+      "text": "and pair it with binary cross-entropy loss."
+    },
+    {
+      "start_seconds": 336.99,
+      "duration_seconds": 0.9399999999999977,
+      "text": "So there you have it--"
+    },
+    {
+      "start_seconds": 337.93,
+      "duration_seconds": 2.430000000000007,
+      "text": "the bag of words model in a nutshell."
+    },
+    {
+      "start_seconds": 340.36,
+      "duration_seconds": 2.6100000000000136,
+      "text": "Understanding how bag of words works"
+    },
+    {
+      "start_seconds": 342.97,
+      "duration_seconds": 2.2199999999999704,
+      "text": "and its advantages and drawbacks can"
+    },
+    {
+      "start_seconds": 345.19,
+      "duration_seconds": 2.8500000000000227,
+      "text": "help you build your foundation in natural language processing"
+    },
+    {
+      "start_seconds": 348.04,
+      "duration_seconds": 4.139999999999986,
+      "text": "as you move on to more advanced approaches to encoding text."
+    },
+    {
+      "start_seconds": 352.18,
+      "duration_seconds": 1.9499999999999886,
+      "text": "For more details and examples, be"
+    },
+    {
+      "start_seconds": 354.13,
+      "duration_seconds": 2.8799999999999955,
+      "text": "sure to check out the expanded blog post I have linked below"
+    },
+    {
+      "start_seconds": 357.01,
+      "duration_seconds": 1.7699999999999818,
+      "text": "in the description."
+    },
+    {
+      "start_seconds": 358.78,
+      "duration_seconds": 2.480000000000018,
+      "text": "Thanks for watching this episode of \"Cloud AI Adventures.\""
+    },
+    {
+      "start_seconds": 361.26,
+      "duration_seconds": 1.6200000000000045,
+      "text": "And if you enjoyed it, please like it"
+    },
+    {
+      "start_seconds": 362.88,
+      "duration_seconds": 3.0,
+      "text": "and subscribe to get all the latest episodes right"
+    },
+    {
+      "start_seconds": 365.88,
+      "duration_seconds": 1.1200000000000045,
+      "text": "when they come out."
+    },
+    {
+      "start_seconds": 367.0,
+      "duration_seconds": 2.5400000000000205,
+      "text": "For now, get started on your natural language processing"
+    },
+    {
+      "start_seconds": 369.54,
+      "duration_seconds": 2.009999999999991,
+      "text": "journey by checking out the tensor flow"
+    },
+    {
+      "start_seconds": 371.55,
+      "duration_seconds": 2.159999999999968,
+      "text": "word embedding tutorial I've linked below"
+    },
+    {
+      "start_seconds": 373.71,
+      "duration_seconds": 1.9800000000000182,
+      "text": "in the description."
+    },
+    {
+      "start_seconds": 375.69,
+      "duration_seconds": 3.0500000000000114,
+      "text": "[MUSIC PLAYING]"
+    }
+  ],
+  "text": "YUFENG GUO: Natural language has many challenges that are unique\nand separate it from other data types like images\nand structured data.\nSo it requires a slightly different approach.\nToday, we'll explore a foundational piece\nof modeling natural language, called \"bag of words.\"\nWhat does it mean?\nAnd how do we use it to process text?\nStay tuned to find out.\n[THEME SONG]\nWelcome to \"AI Adventures,\" where\nwe explore the art, science, and tools of machine learning.\nMy name is Yufeng Guo.\nAnd on this episode, we're going to look\nat how to use bag of words to classify natural language.\nNatural language is special because it\nhas structure inherent in the language while at the same time\nbeing very free-form.\nThere are many ways you can say the same thing.\nAnd you can also say very similar words,\nand yet mean very different things.\nSo in much of machine learning, we\naim to turn our data into matrices or tensors.\nThis is very natural for images since that's already\ntheir inherent representation.\nStructured data often meets a similar fate,\nwith numbers in a spreadsheet mapping very directly to input\nmatrix values.\nBut with natural language, we need\nto somehow find a way to turn words into numbers so we can\nstick them into those matrices.\nThere are many ways that we can do this.\nAnd today, we'll focus on an approach called \"bag of words.\"\nLet's pretend for a moment that we're learning English\nfor the first time ever.\nAnd for some reason, the first words\nwe have chosen to learn in our entire vocabulary\nare these 10 shown here--\nwords like \"dataframe\" and \"graph,\" \"plot,\" \"color,\"\nand \"activation.\"\nAnd so we want to be able to identify,\ngiven some arbitrary text, whether that topic\nis about pandas, keras, or Matplotlib.\nHow might we do that?\nPerhaps if we looked at a sentence, like \"how\nto plot dataframe bar graph,\" we would\nrecognize just the words \"plot,\" \"dataframe,\" and \"graph.\"\nThe rest of the sentence would look like a foreign language,\njust gibberish.\nKnowing only those three words in this sentence,\nthough, we might still be able to get\nsome sense of what it's about.\nAnd the way you might capture this information in an array\nor matrix would be to first make an array that represents\nyour entire vocabulary.\nSo in this case, we have an array of just length 10.\nWe'd set all those values to 0 and turn\non the array indices that correspond\nto the words in the sentence by setting them to 1.\nNotice that this has nothing to do with the order\nthe words appear in the input sentence,\nbut everything to do with the order of the words\nin our vocabulary list.\nSo now we've encoded or translated the English sentence\ninto an array of numbers based on our somewhat limited\nunderstanding of English.\nThe words we don't recognize, we'll just ignore.\nNotice that this has the effect of scrambling up\nthe order of the words, like, say, a bag of words.\nOf course, we should do the same for our labels.\nThis is much simpler, since there are only three of them.\nIn our case, we have some sentences\nthat have more than one label attached\nto them at the same time, however,\nsince a sentence can talk about multiple topics at once.\nIn that case, we want to set all the relevant indices to 1,\nleaving the rest as 0, just like we did for the words\nfrom our training data.\nNow we've turned the inputs as well as\nthe outputs, which both used to be words,\ninto arrays of numbers.\nAnd we can let machine learning do what it does best--\nmap one set of numbers to another set of numbers.\nAll the heavy lifting is done in the preprocessing\nas we transformed or encoded that text\ninto numerical representations.\nBag of words is a pretty simple approach for doing this task,\nthough it's worth pointing out that it might surprise you\nhow well it works in some situations.\nHow might we build a bag of words modeled with code?\nKeras has a convenient preprocessing library\nthat we can use to handle much of this for us.\nUsing the Tokenizer class, we can\nselect the size of the vocabulary\nwe'd like to utilize.\nIn our example, we just had 10 words, which is quite small,\nbut in our code, let's choose something bigger, like 400.\nThis will then be fit on the entire body of the text\nfrom your training data, selecting out\nthe most common 400 words.\nWith the tokenization process complete, building the model\nbecomes quite straightforward and similar\nto working with other structured data.\nSince each row is now just an input of 1s and 0s,\nusing something as simple as a standard, fully connected,\ndeep neural network can be quite effective.\nIf you're planning on having multiple label classification,\nwhere more than one label might be true for a single input,\nas we do here, be sure that we choose a sigmoid activation\ninstead of the more common Softmax activation function,\nand pair it with binary cross-entropy loss.\nSo there you have it--\nthe bag of words model in a nutshell.\nUnderstanding how bag of words works\nand its advantages and drawbacks can\nhelp you build your foundation in natural language processing\nas you move on to more advanced approaches to encoding text.\nFor more details and examples, be\nsure to check out the expanded blog post I have linked below\nin the description.\nThanks for watching this episode of \"Cloud AI Adventures.\"\nAnd if you enjoyed it, please like it\nand subscribe to get all the latest episodes right\nwhen they come out.\nFor now, get started on your natural language processing\njourney by checking out the tensor flow\nword embedding tutorial I've linked below\nin the description.\n[MUSIC PLAYING]\n",
+  "cache_key": "259683fa21a3320ece6873deb92048ece7ce2d66e5d1e2cce88a0e31ffce46ca",
+  "cache_status": "cache"
+}

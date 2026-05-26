@@ -1,0 +1,94 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+    "display_code": "L11",
+    "workbook_row_number": 70,
+    "title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+    "date": "26/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Reconhecimento de voz",
+      "Redes Neurais",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ],
+    "description": "Ao longo deste encontro, outras técnicas de Word Embedding serão apresentadas as pessoas desenvolvedoras. Assim, o objetivo desta abordagem é que elas possam comparar as técnicas que foram apresentadas e verificar que cada uma delas possui um tipo de aplicação característica para sua aplicação."
+  },
+  "self_study": {
+    "self_study_id": "74",
+    "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 74,
+      "week": 6,
+      "sort": 10,
+      "title": "Introduction to Latent Semantic Analysis",
+      "description": "Este autoestudo traz uma introdução ao conceito de Latent Semantic Analysis (LSA). Nele, são abordados os principais conceitos da LSA e a sua relevância para o processamento de linguagem natural. Assistir aos vídeos 1 à 4 da playlist indicada.",
+      "url": "https://www.youtube.com/playlist?list=PLroeQp1c-t3qwyrsq66tBxfR6iX6kSslt",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Determinação do conteúdo em PLN",
+        "Gramáticas lógicas",
+        "Pré-processamento e morfologia (Análise morfológica)",
+        "Processamento do discurso",
+        "Redes Neurais",
+        "Representação de palavras",
+        "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+        "Sintaxe da sentença (Análise sintática)",
+        "Vetores multidimensionais"
+      ],
+      "parent_class": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "class_date": "26/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "video",
+      "status": "passed",
+      "path": "extraction/post-image/0074-video-introduction-to-latent-semantic-analysis.md",
+      "sha256": "185a502de57d5b93fc28e7ca13bbbcbf2a2587063a4df18145a9d394171d807a",
+      "word_count": 1012,
+      "bytes": 6371,
+      "source_markdown": "video/output/74/74-introduction-to-latent-semantic-analysis.md",
+      "artifact_dir": "video/output/74",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0074-video-introduction-to-latent-semantic-analysis.md",
+    "sha256": "185a502de57d5b93fc28e7ca13bbbcbf2a2587063a4df18145a9d394171d807a",
+    "word_count": 1012,
+    "source_markdown": "video/output/74/74-introduction-to-latent-semantic-analysis.md",
+    "markdown": "---\nid: \"74\"\ntitle: \"Introduction to Latent Semantic Analysis\"\nsource_url: \"https://www.youtube.com/playlist?list=PLroeQp1c-t3qwyrsq66tBxfR6iX6kSslt\"\nfetch_url: \"https://www.youtube.com/watch?v=hB51kkus-Rc\"\nresolved_url: \"https://www.youtube.com/watch?v=hB51kkus-Rc\"\nfirecrawl_title: null\ndescription: null\nfetched_at: \"2026-05-12T05:31:46.401328Z\"\nprovider: \"gemini_multimodal\"\nstrategy: \"video_gemini_two_pass\"\ncache_key: \"c6243a73c15bcd67654e700c78f7644d29859355732ab699d36c17c6ad502aab\"\ncache_keys:\n  - \"c6243a73c15bcd67654e700c78f7644d29859355732ab699d36c17c6ad502aab\"\ngemini_model: \"gemini-2.5-flash\"\ngemini_media_resolution: \"low\"\ngemini_fps: 0.1\nprompt_version: \"video_gemini_pass2_v1\"\nduration_seconds: 204.0\ntranscript_source: \"local_whisper_vtt\"\ntranscript_sha256: \"0be0a6c401275dd6f1eedfc14ee0702310a2180e9efe02afe6d2a1cf988e1219\"\nword_count: 920\nchar_count: 5254\ncontent_sha256: \"71f20001c6e04fb69d52c05025ba9835e19db6e5d994141cdf37bd520f4c1214\"\nimage_count: 5\nlink_count: 0\ntotal_token_count: 11125\nestimated_input_tokens: 7874\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n## 00:00 Introduction to Latent Semantic Analysis\n\n**Spoken content:**\n- [00:00] JOSHUA COOK: Hi, my name is Joshua Cook,\n- [00:06] and I'm a curriculum developer with Databricks.\n- [00:08] Today, we're going to be talking about latent semantic analysis.\n- [00:11] There is a link to the notebook I'll\n- [00:13] be using in the video description\n- [00:14] if you would like to follow along.\n- [00:16] Before we begin, let's define some basic vocabulary.\n## 00:19 Basic Vocabulary for NLP\n\n**Spoken content:**\n- [00:19] Natural language processing refers\n- [00:21] to a family of techniques that are\n- [00:22] used to derive meaning from text data.\n- [00:25] A document refers to some collection of words\n- [00:28] and represents the rows or instances of our data set.\n- [00:31] A body is a collection of documents\n- [00:34] and represents the entire data set.\n- [00:36] A dictionary is the set of all words\n- [00:38] that occur in at least one document in the data set.\n- [00:42] A topic is a collection of words that co-occur.\n\n**On-screen content:**\n![definitions of Natural Language Processing, Document, Body, Dictionary, Topic](video-frame://74@00:19)\n\n## 00:45 Understanding Latent Semantic Analysis\n\n**Spoken content:**\n- [00:45] In this lesson, we're going to be talking about latent semantic\n- [00:48] analysis.\n- [00:48] So the word latent means hidden, and in this context\n- [00:52] refers to features that cannot be directly measured.\n- [00:55] What we're going to be measuring or what has already\n- [00:57] been measured are the words that are in our data set.\n- [00:59] What we're interested in is latent features, hidden features,\n- [01:03] that represent something essential in the data set.\n- [01:06] Latent semantic analysis is a natural language processing\n- [01:09] technique, as well as an unsupervised learning\n- [01:11] technique, this as opposed to supervised learning.\n- [01:13] So in supervised learning, we would have a target or a label.\n- [01:16] With latent semantic analysis, we don't have this.\n- [01:19] We're looking at something that's latent or inherent\n- [01:21] to the data itself.\n- [01:23] The aim of latent semantic analysis is to create representations\n- [01:27] of the text data in terms of these topics or latent features.\n- [01:32] A side benefit of this is that we're\n- [01:33] going to be able to reduce the dimensionality\n- [01:36] of the original text-based data set.\n## 01:38 Latent Semantic Analysis Process\n\n**Spoken content:**\n- [01:38] As you can see in this diagram, latent semantic analysis\n- [01:41] consists of two steps.\n- [01:43] The first step is to generate a document term matrix,\n- [01:46] and the second step is to perform a singular value decomposition\n- [01:50] on that document term matrix.\n- [01:52] The basic idea of a document term matrix\n\n**On-screen content:**\n![diagram: Latent Semantic Analysis process showing Raw Text Data -> Document Term Matrix -> Singular Value Decomposition -> Topic-Encoded Data](video-frame://74@01:39)\n\n## 01:52 Document-Term Matrix Explained\n\n**Spoken content:**\n- [01:54] is that text documents can be represented\n- [01:57] as points in Euclidean space.\n- [01:59] You might know these as vectors.\n- [02:02] Here is an example of a document term matrix.\n- [02:04] As you can see, each row in this matrix\n- [02:06] represents one of our documents.\n- [02:08] In this case, one of four simple sentence fragments.\n- [02:11] And then each column represents a word from the dictionary.\n- [02:15] That is, a word that shows up in at least one\n- [02:17] of the four documents.\n- [02:20] If you look at the first row, the quick brown fox,\n- [02:23] you can see that the word brown has the value 1,\n- [02:26] the word fox has the value 1, the word quick has the value 1,\n- [02:29] and the word the has the value 1.\n- [02:31] And everywhere else is zeros.\n- [02:33] So here we see these four documents as vectors.\n- [02:36] As you can see, the quick brown fox is 1, 0, 1, 0, 1, 0, 1, 0.\n- [02:42] The second step in a latent semantic analysis\n\n**On-screen content:**\n![diagram: documents as vectors in Euclidean space](video-frame://74@01:50)\n![table: Document-Term Matrix with rows as sentences and columns as words, showing binary presence/absence](video-frame://74@02:01)\n![code: four documents represented as binary vectors](video-frame://74@02:30)\n\n## 02:42 Singular Value Decomposition (SVD)\n\n**Spoken content:**\n- [02:44] is to do a singular value decomposition on the document term matrix.\n- [02:48] The singular value decomposition is similar to a principal component\n- [02:52] analysis, if you're familiar with this statistical technique.\n- [02:55] It's going to reduce the dimensionality of the original data set\n- [02:59] by encoding it using these latent features.\n- [03:02] With latent semantic analysis, these latent features\n- [03:04] represent topics in the original text data.\n- [03:08] In the next few videos, we're going\n## 03:08 Next Steps: Building LSA with Scikit-learn\n\n**Spoken content:**\n- [03:09] to be looking at building a latent semantic analysis\n- [03:12] using the open source Python library scikit-learn.\n- [03:16] First, we'll look at a trivial implementation\n- [03:18] using these four sentence fragments that we just looked at.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

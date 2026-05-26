@@ -1,0 +1,138 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-7-001",
+      "label": "Compiler: Whole-Program Translator",
+      "description": "A compiler translates an entire high-level language program into machine code before execution, producing an executable file.",
+      "coverage_criteria": [
+        "Student can explain that a compiler converts the whole program at once and saves machine code."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines a compiler and describes its translation process in the 'What is a Compiler?' section.",
+        "granularity_rationale": "The concept is a single, self-contained teachable idea that can be assessed with a few focused questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is a Compiler?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-7-002",
+      "label": "Interpreter: Line-by-Line Executor",
+      "description": "An interpreter translates and executes a high-level language program line by line, without producing a separate machine code file.",
+      "coverage_criteria": [
+        "Student can explain that an interpreter works one statement at a time and does not save machine code."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces the interpreter concept in the 'What is an Interpreter?' section, contrasting it with compilers.",
+        "granularity_rationale": "This is a distinct, checkable concept that complements the compiler definition and is essential for understanding the difference."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is an Interpreter?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-7-003",
+      "label": "Error Handling: Bulk vs Line-by-Line",
+      "description": "Compilers display all errors after compiling the entire program, while interpreters show errors for each line as it is executed.",
+      "coverage_criteria": [
+        "Student can contrast how compilers and interpreters report errors and the implications for debugging."
+      ],
+      "source_roles": ["comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source's comparison table explicitly states error display differences: 'Errors are displayed in Compiler after Compiling together' vs 'Errors are displayed in every single line.'",
+        "granularity_rationale": "The error handling distinction is a practical concept that can be verified with simple questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Difference Between Compiler and Interpreter"},
+        {"kind": "table_row", "locator": "Errors are displayed..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-7-004",
+      "label": "Speed: Compiled Faster, Interpreted Slower",
+      "description": "Compiled code runs faster because the translation occurs beforehand, while interpreted code runs slower due to line-by-line translation overhead.",
+      "coverage_criteria": [
+        "Student can explain why compiled programs execute faster than interpreted ones."
+      ],
+      "source_roles": ["comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source repeatedly states that 'Compiled codes run faster than Interpreter' and 'Interpreted codes run slower than Compiler', providing rationale.",
+        "granularity_rationale": "This is a critical distinction that can be tested by asking for performance comparisons and reasons."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Difference Between Compiler and Interpreter"},
+        {"kind": "table_row", "locator": "Compiled codes run faster..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-7-005",
+      "label": "Optimization: Compiler Advantage",
+      "description": "Compilers can optimize code because they analyze the entire program upfront, whereas interpreters have limited optimization due to line-by-line processing.",
+      "coverage_criteria": [
+        "Student can explain how compilers achieve better optimization and why interpreters lag."
+      ],
+      "source_roles": ["comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source states in the table: 'The compiler can see code upfront which helps in running the code faster because of performing Optimization' vs 'Interpreters work by line... Optimization is slower'.",
+        "granularity_rationale": "This concept is specific enough to verify via a direct question about optimization capabilities."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Difference Between Compiler and Interpreter"},
+        {"kind": "table_row", "locator": "Optimization..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-7-006",
+      "label": "Use Environments: Production vs Development",
+      "description": "Compilers are typically used in production environments for their performance, while interpreters are favored in development for easier debugging and flexibility.",
+      "coverage_criteria": [
+        "Student can match compiler and interpreter to appropriate use cases and explain why."
+      ],
+      "source_roles": ["comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions 'The use of Compilers mostly happens in Production Environment' and 'The use of Interpreters is mostly in Programming and Development Environments' in the comparison table.",
+        "granularity_rationale": "This is a practical concept that can be tested by asking which type is used where and why."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Difference Between Compiler and Interpreter"},
+        {"kind": "table_row", "locator": "Production Environment..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Diferença entre Compilador e Interpretador",
+      "source_year": "2025",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-7-001",
+      "to_candidate_id": "candidate-7-002",
+      "reason": "The source directly compares the compiler and interpreter as two different translation models, highlighting their contrasting approaches.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Difference Between Compiler and Interpreter"}
+      ]
+    }
+  ]
+}

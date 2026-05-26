@@ -1,0 +1,676 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-06-02-group-decision-making-process/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Decision by Expert (Internal)",
+    "rationale": "These candidates both describe delegating the decision process to an expert, one internal and one external, but they are distinct enough to warrant separate clusters.",
+    "candidate_ids": [
+      "c38_pro_thinking_002"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Decision by Expert (Internal)",
+      "rationale": "These candidates both describe delegating the decision process to an expert, one internal and one external, but they are distinct enough to warrant separate clusters.",
+      "candidate_ids": [
+        "c38_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Decision by Expert (External)",
+      "rationale": "Distinct from internal expert because the expert is not a group member; this cluster handles that specific method.",
+      "candidate_ids": [
+        "c38_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Averaging Individual Rankings or Ratings",
+      "rationale": "This candidate describes a specific technique for narrowing options using aggregated individual rankings.",
+      "candidate_ids": [
+        "c38_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Random Choice",
+      "rationale": "A trivial and arbitrary decision method; distinct from other structured techniques.",
+      "candidate_ids": [
+        "c38_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Majority Rule",
+      "rationale": "A common voting method with specific pros and cons; distinct from other voting-based methods.",
+      "candidate_ids": [
+        "c38_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Decision by Minority",
+      "rationale": "A method where a small subset drives the decision; distinct from majority and consensus.",
+      "candidate_ids": [
+        "c38_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Consensus and Related Concepts",
+      "rationale": "These candidates all relate to achieving consensus in group decision-making: the ideal of unanimity, the risk of groupthink suppressing dissent, and the supermajority fallback when consensus is incomplete.",
+      "candidate_ids": [
+        "c38_pro_thinking_008",
+        "c38_pro_thinking_009",
+        "c38_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Explicit Decision-Making Procedure",
+      "rationale": "This candidate emphasizes the importance of clarifying the decision process upfront, a foundational guideline.",
+      "candidate_ids": [
+        "c38_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Key Takeaways: Participation and Discussion",
+      "rationale": "Both candidates are key takeaways from the same source, emphasizing behaviors that improve group decisions: encouraging broad participation and thoroughly discussing pros and cons.",
+      "candidate_ids": [
+        "c38_pro_thinking_011",
+        "c38_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Data Pitfalls in Decision-Making",
+      "rationale": "These seven candidates from the same source all describe common pitfalls in using data for decisions, forming a thematic group about data misuse. However, each pitfall is distinct and may later be split during evaluation.",
+      "candidate_ids": [
+        "c39_pro_thinking_001",
+        "c39_pro_thinking_002",
+        "c39_pro_thinking_003",
+        "c39_pro_thinking_004",
+        "c39_pro_thinking_005",
+        "c39_pro_thinking_006",
+        "c39_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Bayesian Decision-Making Framework",
+      "rationale": "This candidate introduces a specific theoretical framework (Bayesian) for integrating priors and evidence, distinct from the other candidates.",
+      "candidate_ids": [
+        "c40_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Overcoming Individual Biases with Group Decisions",
+      "rationale": "This candidate describes a general advantage of group decision-making in reducing unconscious biases, distinct from the data pitfalls cluster.",
+      "candidate_ids": [
+        "c40_pro_thinking_002"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c38_pro_thinking_002",
+    "c38_pro_thinking_003",
+    "c38_pro_thinking_004",
+    "c38_pro_thinking_005",
+    "c38_pro_thinking_006",
+    "c38_pro_thinking_007",
+    "c38_pro_thinking_008",
+    "c38_pro_thinking_009",
+    "c38_pro_thinking_010",
+    "c38_pro_thinking_001",
+    "c38_pro_thinking_011",
+    "c38_pro_thinking_012",
+    "c39_pro_thinking_001",
+    "c39_pro_thinking_002",
+    "c39_pro_thinking_003",
+    "c39_pro_thinking_004",
+    "c39_pro_thinking_005",
+    "c39_pro_thinking_006",
+    "c39_pro_thinking_007",
+    "c40_pro_thinking_001",
+    "c40_pro_thinking_002"
+  ],
+  "candidates": [
+    {
+      "id": "c38_pro_thinking_002",
+      "label": "Decision by an Expert in the Group",
+      "description": "A method where the group defers to an internal expert to provide insight, but still discusses the issue and makes the final decision together.",
+      "coverage_criteria": [
+        "Student can define the method.",
+        "Student can explain its efficiency and the risk of dissatisfaction if discussion is skipped.",
+        "Student can give an example of when it might be appropriate."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video defines and illustrates the method with a personal example, making the concept concrete.",
+        "granularity_rationale": "This is one specific, named technique among seven, clearly bounded and teachable in a short session."
+      },
+      "anchors": [
+        "1. Decision by an Expert in the Group",
+        "01:06"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_003",
+      "label": "Decision by an Expert Outside the Group",
+      "description": "When the group lacks expertise, they seek advice from an external expert (e.g., consultant) and use that to inform their decision, but the group makes the final choice.",
+      "coverage_criteria": [
+        "Student can define the method and contrast with internal expert method.",
+        "Student can identify a scenario where it is appropriate.",
+        "Student can explain the risk of losing valuable input from group members if discussion is bypassed."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly presents this as a distinct method and notes its advantages and pitfalls.",
+        "granularity_rationale": "A clearly differentiated technique that can be assessed with a compare-and-contrast question."
+      },
+      "anchors": [
+        "2. Decision by an Expert Outside the Group",
+        "02:13"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_004",
+      "label": "Averaging Individual Rankings or Ratings",
+      "description": "Group members individually rank or rate alternatives, then the group averages the scores to surface top options, used primarily to spark discussion rather than make final decisions.",
+      "coverage_criteria": [
+        "Student can define the method.",
+        "Student can explain why it is not ideal for final decisions but useful for narrowing options.",
+        "Student can describe a hiring committee scenario where this method is applied."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes the method and gives a concrete example (hiring committee ranking candidates), illustrating its practical use.",
+        "granularity_rationale": "A distinct technique with clear steps, easily checked through scenario-based questions."
+      },
+      "anchors": [
+        "3. Averaging Individual Rankings or Ratings",
+        "03:07"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_005",
+      "label": "Random Choice",
+      "description": "When a group is stuck or the decision is trivial, they resort to arbitrary methods like flipping a coin; not suitable for meaningful decisions.",
+      "coverage_criteria": [
+        "Student can define random choice as a decision method.",
+        "Student can identify situations where it might be acceptable (trivial decisions) and when it should not be used (important decisions).",
+        "Student can explain why it undermines decision quality."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video presents random choice as a method and explicitly warns that it is not good for meaningful decisions.",
+        "granularity_rationale": "A simple concept that can be assessed with a recognition or explanation question."
+      },
+      "anchors": [
+        "4. Random Choice",
+        "04:35"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_006",
+      "label": "Majority Rule",
+      "description": "More than 50% vote decides; efficient but may leave minority dissatisfied and lead to unintended alliances and reduced cohesiveness over time.",
+      "coverage_criteria": [
+        "Student can define majority rule.",
+        "Student can explain its efficiency and potential negative effects (dissatisfaction, alliances, toxic politics).",
+        "Student can give an example from politics or reality shows."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video defines majority rule and discusses both its common use and its drawbacks, making it a nuanced concept.",
+        "granularity_rationale": "A well-defined decision method with specific pros and cons, suitable for a short-answer assessment."
+      },
+      "anchors": [
+        "5. Majority Rule",
+        "05:21"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_007",
+      "label": "Decision by Minority",
+      "description": "A small, often dominant subset (less than 50%) pushes through a decision, using tactics like rushing or framing objections negatively, leading to widespread dissatisfaction.",
+      "coverage_criteria": [
+        "Student can define decision by minority.",
+        "Student can identify the manipulative communication tactics described (e.g., 'Does anybody have any objections?').",
+        "Student can explain why this method is harmful to group morale and decision quality."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video clearly defines this method and emphasizes its negative consequences with specific examples of strategic communication.",
+        "granularity_rationale": "A distinct concept that can be tested by asking students to recognize or describe the method and its pitfalls."
+      },
+      "anchors": [
+        "6. Decision by Minority",
+        "06:36"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_008",
+      "label": "Decision by Consensus",
+      "description": "All group members support a course of action after thorough discussion, listening, and combining/eliminating alternatives, leading to high-quality decisions and buy-in.",
+      "coverage_criteria": [
+        "Student can define consensus as unanimous support.",
+        "Student can describe the process steps (express views, listen, emphasize agreement, combine/eliminate alternatives).",
+        "Student can explain why it is considered ideal and how it differs from majority rule.",
+        "Student can identify that a supermajority is a common fallback."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video presents consensus as the gold standard, detailing the process and its benefits.",
+        "granularity_rationale": "A multi-step concept that can be broken down into checkable behaviors (process steps and outcomes)."
+      },
+      "anchors": [
+        "7. Decision by Consensus",
+        "08:04"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_009",
+      "label": "Groupthink",
+      "description": "A risk in consensus-seeking where the desire for harmony suppresses dissent, leading members to self-censor and not voice disagreements.",
+      "coverage_criteria": [
+        "Student can define groupthink.",
+        "Student can explain how it relates to consensus (trying to agree too quickly).",
+        "Student can describe why it harms decision quality."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly warns about groupthink as a pitfall of pursuing consensus, describing the symptoms (not voicing disagreement).",
+        "granularity_rationale": "A well-known concept that can be assessed with a definition and recognition question."
+      },
+      "anchors": [
+        "7. Decision by Consensus",
+        "09:26"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_010",
+      "label": "Supermajority as Consensus Fallback",
+      "description": "When full consensus is not reached, a supermajority (two-thirds or more) is a practical fallback; remaining holdouts may still agree to go along after being heard.",
+      "coverage_criteria": [
+        "Student can define supermajority.",
+        "Student can explain its role as a fallback position in consensus building.",
+        "Student can describe the typical reaction of holdouts ('I'll go along with it')."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes the supermajority as a common and acceptable outcome in consensus processes, with a typical statement from holdouts.",
+        "granularity_rationale": "A specific threshold concept that can be tested with a definition and scenario question."
+      },
+      "anchors": [
+        "7. Decision by Consensus",
+        "08:45"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_001",
+      "label": "Explicit Decision-Making Procedure",
+      "description": "Groups should spell out the decision-making process ahead of time; following an explicit procedure leads to more effective decisions.",
+      "coverage_criteria": [
+        "Student can explain why clarifying the decision-making process in advance benefits group effectiveness.",
+        "Student can cite or summarize the research finding (Randy Hirakawa) that explicit procedures improve decision quality."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly presents this as an overall consideration, referencing Hirakawa's research, indicating it is an important principle.",
+        "granularity_rationale": "This is a single, foundational guideline that can be assessed with a straightforward explanation or recall question."
+      },
+      "anchors": [
+        "Overall Considerations for Group Decision Making",
+        "00:18"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_011",
+      "label": "Encouraging Participation from All Members",
+      "description": "To improve group decision-making, leaders should actively encourage high levels of participation so that all members feel heard.",
+      "coverage_criteria": [
+        "Student can state this as a key takeaway.",
+        "Student can explain why participation leads to better decisions and satisfaction."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Listed as a key takeaway, this principle is directly stated as important for effective group decision making.",
+        "granularity_rationale": "A simple, actionable guideline that can be assessed through recall or application."
+      },
+      "anchors": [
+        "Key Takeaways",
+        "10:06"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_012",
+      "label": "Discussing Advantages and Disadvantages of Options",
+      "description": "Groups should fully discuss the advantages and disadvantages of each option before deciding, to ensure informed choice.",
+      "coverage_criteria": [
+        "Student can state this as a key takeaway.",
+        "Student can explain why weighing pros and cons improves decision quality."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The key takeaways slide explicitly mentions discussing advantages and disadvantages fully.",
+        "granularity_rationale": "A straightforward principle assessable via explanation or example."
+      },
+      "anchors": [
+        "Key Takeaways",
+        "10:06"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_001",
+      "label": "Not Using Any Data in Decision-Making",
+      "description": "Relying on gut reactions rather than data can lead to suboptimal decisions; managers should use tangible data to inform changes affecting profits, performance, and people.",
+      "coverage_criteria": [
+        "Student can explain why relying solely on gut feelings is risky and give an example of when data should be used."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states the pitfall, provides quotes from professors, and explains the importance of using data.",
+        "granularity_rationale": "This is a single, focused pitfall that can be taught and assessed in a few questions."
+      },
+      "anchors": [
+        "Pitfall No. 1: Not Using Any Data"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_002",
+      "label": "Assuming More Data Is Better",
+      "description": "Collecting excessive data without a plan can be overwhelming and counterproductive; quality over quantity matters.",
+      "coverage_criteria": [
+        "Student can describe the downside of collecting data without a clear plan and the importance of selective data collection."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section quotes alumni warning against gathering everything and highlights the need for planning.",
+        "granularity_rationale": "It addresses one specific error in data usage, suitable for targeted learning."
+      },
+      "anchors": [
+        "Pitfall No. 2: Assuming More Is Better"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_003",
+      "label": "Not Asking the Right Questions",
+      "description": "Good data collection begins with asking smart questions; without the right focus, data can be useless or misleading.",
+      "coverage_criteria": [
+        "Student can explain why framing the right questions is crucial for effective data-driven decisions and give an example of a poor vs. good question."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section quotes Shayla Barber emphasizing the importance of asking the right questions to avoid useless or misleading data.",
+        "granularity_rationale": "This is a distinct skill in decision-making that can be practiced with examples."
+      },
+      "anchors": [
+        "Pitfall No. 3: Not Asking the Right Questions"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_004",
+      "label": "Failing to Connect Data Across Core Competencies",
+      "description": "Not sharing data across different areas of a company can prevent valuable insights; looking beyond a data set’s initial label can yield discoveries.",
+      "coverage_criteria": [
+        "Student can explain the importance of cross-functional data sharing and give an example of how connecting data can lead to new insights."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article warns that data sharing across core competencies is vital and that failing to connect the dots is a pitfall.",
+        "granularity_rationale": "It is a specific organizational behavior that can be discussed and evaluated."
+      },
+      "anchors": [
+        "Pitfall No. 4: Failing to Connect the Dots"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_005",
+      "label": "Focusing on Vanity Metrics Instead of KPIs",
+      "description": "It is a common mistake to focus on easily available but uninformative 'vanity metrics' rather than substantive key performance indicators (KPIs).",
+      "coverage_criteria": [
+        "Student can distinguish between vanity metrics and KPIs, and provide examples of each."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section defines vanity metrics and KPIs and warns against the pitfall of focusing on the wrong ones.",
+        "granularity_rationale": "This concept is concrete and can be taught with clear examples and comparisons."
+      },
+      "anchors": [
+        "Pitfall No. 5: Focusing on the Wrong Metrics"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_006",
+      "label": "Rejecting Data That Contradicts Preconceptions",
+      "description": "Managers may reject data that does not support their hypothesis, leading to biased decision-making; data should be evaluated objectively.",
+      "coverage_criteria": [
+        "Student can describe the danger of dismissing data that conflicts with a preferred narrative and explain the importance of objectivity."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section shares a personal story about rejecting data that contradicted a hypothesis, illustrating the pitfall.",
+        "granularity_rationale": "It addresses a specific behavioral bias that can be checked with scenario-based questions."
+      },
+      "anchors": [
+        "Pitfall No. 6: Telling the Data What to Do"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_007",
+      "label": "Letting Data Dominate Over Human Judgment",
+      "description": "While data is valuable, it cannot substitute for human intelligence and contextual understanding; decisions still require smarts and proper use of data.",
+      "coverage_criteria": [
+        "Student can explain why human judgment remains essential even when data is available and give an example where data alone might mislead."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The final pitfall emphasizes that data is only as useful as the humans using it, quoting Daniel Snow.",
+        "granularity_rationale": "It captures the critical balance between data and human insight, a distinct and teachable concept."
+      },
+      "anchors": [
+        "Pitfall No. 7: Letting Data Dominate"
+      ]
+    },
+    {
+      "id": "c40_pro_thinking_001",
+      "label": "Bayesian decision-making framework",
+      "description": "The article describes a Bayesian framework where past experiences (priors) are combined with new evidence to evaluate hypotheses about world states and decide on actions.",
+      "coverage_criteria": [
+        "Student can explain how prior beliefs and new evidence are integrated in the Bayesian decision-making process."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The self-study description explicitly mentions that the article uses a Bayesian framework to explain how past experiences and new evidence interact in exploring hypotheses. The actual article content is behind a CAPTCHA, so this extraction relies on the provided summary.",
+        "granularity_rationale": "This concept is focused on one specific framework, making it discrete enough to be assessed with a few targeted questions."
+      },
+      "anchors": [
+        "Making better decisions in groups"
+      ]
+    },
+    {
+      "id": "c40_pro_thinking_002",
+      "label": "Overcoming individual biases with group decisions",
+      "description": "Group decisions can help overcome unconscious biases that affect individual decision-making, by broadening the search for solutions and bringing in diverse perspectives.",
+      "coverage_criteria": [
+        "Student can describe at least two ways that group decision-making reduces the impact of individual biases."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The self-study description states that the article highlights how group decisions can help overcome biases and broaden the solution search. The actual article content is behind a CAPTCHA, so this extraction relies on the provided summary.",
+        "granularity_rationale": "This is a focused teachable idea about a specific advantage of group decision-making, easily checkable with a few questions."
+      },
+      "anchors": [
+        "Making better decisions in groups"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

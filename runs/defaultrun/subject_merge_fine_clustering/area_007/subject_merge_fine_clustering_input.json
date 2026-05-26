@@ -1,0 +1,187 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_007",
+    "area": {
+      "id": "area_007",
+      "label": "NLTK Text Processing",
+      "rationale": "NLTK-specific functionality: loading corpora, treebanks, search methods, concordance, frequency distributions, and custom tools.",
+      "candidate_ids": [
+        "lr004_001",
+        "lr004_002",
+        "lr004_003",
+        "lr004_005",
+        "lr004_007",
+        "lr004_008",
+        "lr004_009",
+        "lr004_010"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr004_001",
+    "lr004_002",
+    "lr004_003",
+    "lr004_005",
+    "lr004_007",
+    "lr004_008",
+    "lr004_009",
+    "lr004_010"
+  ],
+  "candidates": [
+    {
+      "id": "lr004_001",
+      "label": "Loading and exploring NLTK's Portuguese text corpora",
+      "description": "How to import and access NLTK's built-in Portuguese corpora, including the examples module, Machado de Assis works, and the MacMorpho tagged corpus, to retrieve text, words, and tagged words.",
+      "coverage_criteria": [
+        "Imports a Portuguese corpus like nltk.corpus.machado.",
+        "Lists file IDs and retrieves raw text or words for a file.",
+        "For MacMorpho, accesses tagged_words and distinguishes between words and tagged tokens."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_002",
+      "label": "Working with the Floresta treebank",
+      "description": "How to access the Floresta Portuguese treebank, simplify its complex part-of-speech tags, and retrieve parsed syntactic trees.",
+      "coverage_criteria": [
+        "Imports nltk.corpus.floresta and lists words or tagged words.",
+        "Writes a function to simplify tags (e.g., 'H+n' to 'n').",
+        "Accesses parsed_sents() and can explain that they represent syntactic structure."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_003",
+      "label": "Searching text with NLTK's built-in and regex methods",
+      "description": "Using NLTK's concordance, similar, collocations, and findall with regex to locate words and analyze their contexts.",
+      "coverage_criteria": [
+        "Uses concordance() to display a word in context.",
+        "Uses similar() to find words with similar distribution.",
+        "Uses collocations() to extract frequent multi-word expressions.",
+        "Applies findall() with a regex pattern to search text."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_005",
+      "label": "Analyzing tokenized text with NLTK and Python",
+      "description": "Performing basic text analysis operations on tokenized lists, including extracting unique vocabulary, filtering/transforming tokens with list comprehensions, computing frequency distributions, and finding n-grams containing a target word.",
+      "coverage_criteria": [
+        "Uses set() and sorted() to obtain the unique vocabulary of a tokenized text.",
+        "Writes a list comprehension to filter tokens by length or case.",
+        "Creates a FreqDist and retrieves the most frequent words.",
+        "Generates n-grams and filters those containing a specific word, displaying the most frequent."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_007",
+      "label": "Implementing a custom concordance tool",
+      "description": "Writing a Python function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Defines a function that takes a word and context width, iterates over tokenized sentences, and prints formatted concordance lines."
+      ],
+      "source_roles": [
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_008",
+      "label": "Stemming with Porter Stemmer in NLTK",
+      "description": "Using the Porter Stemmer algorithm to reduce words to their stems through rule-based suffix stripping.",
+      "coverage_criteria": [
+        "Applies PorterStemmer to a list of words and observes the stemmed outputs.",
+        "Explains that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_009",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_010",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

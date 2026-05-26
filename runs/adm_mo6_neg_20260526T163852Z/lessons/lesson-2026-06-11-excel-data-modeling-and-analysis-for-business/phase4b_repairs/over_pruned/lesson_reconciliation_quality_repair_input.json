@@ -1,0 +1,1062 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-06-11-excel-data-modeling-and-analysis-for-business/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+  "lesson": {
+    "id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+    "title": "Excel Data Modeling and Analysis for Business",
+    "description": "This instruction presents concepts and practices of data modeling and analysis applied to business problems. Students use Excel to organize, process, and interpret information in a structured way. The focus is on transforming data into insights that support decision-making.",
+    "date": "11/06/2026",
+    "display_code": "L11"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-26T18:00:03.789609+00:00",
+    "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+    "lesson": {
+      "id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+      "title": "Excel Data Modeling and Analysis for Business",
+      "description": "This instruction presents concepts and practices of data modeling and analysis applied to business problems. Students use Excel to organize, process, and interpret information in a structured way. The focus is on transforming data into insights that support decision-making.",
+      "date": "11/06/2026",
+      "display_code": "L11"
+    },
+    "scores": {
+      "concept_validity": 2,
+      "granularity": 3,
+      "evidence_preservation": 3,
+      "assignment_quality": 3,
+      "pruning_review_quality": 3,
+      "coverage_criteria": 3,
+      "lesson_coherence": 1,
+      "net_phase4_benefit": 1
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "over_pruned"
+    ],
+    "metrics": {
+      "input_candidate_count": 38,
+      "reconciled_candidate_count": 2,
+      "pruned_candidate_count": 33,
+      "review_count": 0,
+      "deterministic_review_count": 0,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 3,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 0,
+      "off_lesson_accepted_count": 0,
+      "accepted_candidate_assignment_count": 5,
+      "source_body_candidate_count": 38,
+      "assignment_count": 38,
+      "accepted_ratio": 0.0526,
+      "pruned_ratio": 0.8684,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0,
+      "review_ratio": 0.0
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "over_pruned",
+        "candidate_ids": [
+          "c50_pro_thinking_001",
+          "c50_pro_thinking_002",
+          "c50_pro_thinking_003",
+          "c50_pro_thinking_004",
+          "c50_pro_thinking_005",
+          "c50_pro_thinking_006",
+          "c50_pro_thinking_007",
+          "c50_pro_thinking_008",
+          "c50_pro_thinking_009",
+          "c50_pro_thinking_010",
+          "c50_pro_thinking_011",
+          "c50_pro_thinking_012",
+          "c50_pro_thinking_013",
+          "c50_pro_thinking_014",
+          "c50_pro_thinking_015",
+          "c50_pro_thinking_016",
+          "c50_pro_thinking_017",
+          "c50_pro_thinking_018",
+          "c50_pro_thinking_019",
+          "c50_pro_thinking_020",
+          "c50_pro_thinking_021",
+          "c50_pro_thinking_022",
+          "c51_pro_thinking_001",
+          "c51_pro_thinking_002",
+          "c51_pro_thinking_003",
+          "c51_pro_thinking_004",
+          "c51_pro_thinking_005",
+          "c51_pro_thinking_006",
+          "c51_pro_thinking_007",
+          "c51_pro_thinking_008",
+          "c51_pro_thinking_009",
+          "c51_pro_thinking_010",
+          "c51_pro_thinking_011"
+        ],
+        "explanation": "The accepted/pruned balance suggests useful lesson-local concepts may have been discarded and need targeted re-evaluation."
+      }
+    ]
+  },
+  "repair_reason": "over_pruned",
+  "target_candidate_ids": [
+    "c50_pro_thinking_001",
+    "c50_pro_thinking_002",
+    "c50_pro_thinking_003",
+    "c50_pro_thinking_004",
+    "c50_pro_thinking_005",
+    "c50_pro_thinking_006",
+    "c50_pro_thinking_007",
+    "c50_pro_thinking_008",
+    "c50_pro_thinking_009",
+    "c50_pro_thinking_010",
+    "c50_pro_thinking_011",
+    "c50_pro_thinking_012",
+    "c50_pro_thinking_013",
+    "c50_pro_thinking_014",
+    "c50_pro_thinking_015",
+    "c50_pro_thinking_016",
+    "c50_pro_thinking_017",
+    "c50_pro_thinking_018",
+    "c50_pro_thinking_019",
+    "c50_pro_thinking_020",
+    "c50_pro_thinking_021",
+    "c50_pro_thinking_022",
+    "c51_pro_thinking_001",
+    "c51_pro_thinking_002",
+    "c51_pro_thinking_003",
+    "c51_pro_thinking_004",
+    "c51_pro_thinking_005",
+    "c51_pro_thinking_006",
+    "c51_pro_thinking_007",
+    "c51_pro_thinking_008",
+    "c51_pro_thinking_009",
+    "c51_pro_thinking_010",
+    "c51_pro_thinking_011"
+  ],
+  "target_candidates": [
+    {
+      "id": "c50_pro_thinking_001",
+      "label": "Augmented Analytics Definition",
+      "description": "Augmented analytics uses AI and machine learning to assist with data preparation, insight generation, and insight explanation, enhancing how people explore and analyze data in BI platforms.",
+      "coverage_criteria": [
+        "Student can define augmented analytics in their own words.",
+        "Student can list the key components: data prep, insight generation, insight explanation.",
+        "Student can explain the role of AI/ML in augmented analytics."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines augmented analytics in the opening sections, citing Gartner and explaining its components.",
+        "granularity_rationale": "This candidate captures the core definition at a level checkable with 1-2 definitional questions."
+      },
+      "anchors": [
+        "Definition"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_002",
+      "label": "Role of Machine Learning in Augmented Analytics",
+      "description": "Machine learning reduces tedious data tasks and provides recommendations within BI platforms, learning user preferences to personalize analysis.",
+      "coverage_criteria": [
+        "Student can explain how ML contributes to augmented analytics (e.g., automating cleaning, providing recommendations).",
+        "Student can give an example of ML personalization in analytics."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'The role of machine learning in augmented analytics' explicitly describes how ML helps people in analysis and learns semantics and preferences.",
+        "granularity_rationale": "This isolates ML's function from the broader definition, enabling focused questions on ML's specific contributions."
+      },
+      "anchors": [
+        "The role of machine learning in augmented analytics"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_003",
+      "label": "Augmented Analytics vs. Automation",
+      "description": "Augmented analytics guides users to discover insights, whereas automation removes human decision-making; augmentation preserves human context and domain knowledge.",
+      "coverage_criteria": [
+        "Student can distinguish between augmented analytics and automation.",
+        "Student can explain why domain knowledge remains crucial in augmented analytics."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Augmented analytics vs. automation' clearly contrasts the two concepts and emphasizes the role of human context.",
+        "granularity_rationale": "This is a distinct comparison that is checkable with a few discriminative questions."
+      },
+      "anchors": [
+        "Augmented analytics vs. automation"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_004",
+      "label": "Target Users of Augmented Analytics",
+      "description": "Augmented analytics benefits business users, executives, analysts, and data stewards by enabling less technical users to get insights quickly and helping advanced users work faster.",
+      "coverage_criteria": [
+        "Student can list the main user groups of augmented analytics.",
+        "Student can explain the specific value for each group."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Who is augmented analytics for?' section explicitly identifies user groups and their benefits.",
+        "granularity_rationale": "This is a self-contained topic about users, suitable for a short quiz."
+      },
+      "anchors": [
+        "Who is augmented analytics for?"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_005",
+      "label": "Agility: Increasing Speed to Insight",
+      "description": "AI-powered augmentation accelerates insight discovery by surfacing relevant data, suggesting paths, and personalizing over time based on user behavior.",
+      "coverage_criteria": [
+        "Student can define agility in the context of augmented analytics.",
+        "Student can describe how augmented analytics increases speed to insight."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Agility: Increasing speed to insight' sub-section provides details on how augmentation accelerates analysis.",
+        "granularity_rationale": "This is a single benefit with clear explanation, easily tested."
+      },
+      "anchors": [
+        "Agility: Increasing speed to insight"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_006",
+      "label": "Accuracy: Providing a More Complete Picture",
+      "description": "Machines perform thorough, repetitive analysis to uncover all relevant insights, helping humans avoid confirmation bias.",
+      "coverage_criteria": [
+        "Student can explain how augmented analytics improves accuracy.",
+        "Student can describe how it helps avoid confirmation bias."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Accuracy' sub-section describes how AI looks under every rock to enable complete analysis.",
+        "granularity_rationale": "Single benefit, checkable with a few questions."
+      },
+      "anchors": [
+        "Accuracy: Providing a more complete picture"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_007",
+      "label": "Efficiency: Automating Operational Tasks",
+      "description": "Augmented analytics automates repetitive tasks like data preparation, discovery, and statistical analysis, saving time and effort.",
+      "coverage_criteria": [
+        "Student can give examples of tasks automated by augmented analytics.",
+        "Student can explain the efficiency benefit."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Efficiency' sub-section explains task automation as an augmented analytics benefit.",
+        "granularity_rationale": "Single benefit, clear scope."
+      },
+      "anchors": [
+        "Efficiency: Automating operational tasks"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_008",
+      "label": "Confidence: Powerful Analysis in Context",
+      "description": "Augmented analytics tools are easy to use, surface data in context, and integrate into workflows, allowing users to confirm instincts and make confident decisions.",
+      "coverage_criteria": [
+        "Student can explain how augmented analytics builds user confidence.",
+        "Student can describe the role of context in analysis confidence."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Confidence' sub-section details how ease of use and context boost confidence in decisions.",
+        "granularity_rationale": "Single benefit, testable."
+      },
+      "anchors": [
+        "Confidence: Powerful analysis in context"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_009",
+      "label": "Automatic Data Identification",
+      "description": "BI platforms with AI can automatically detect data attributes like geographic or personal information, and can read tables from PDFs and text documents for analysis.",
+      "coverage_criteria": [
+        "Student can describe what automatic data identification does.",
+        "Student can give examples of detectable attributes."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The bolded 'Automatic data identification' paragraph explains this feature.",
+        "granularity_rationale": "A specific feature, small enough for one question."
+      },
+      "anchors": [
+        "Automatic data identification"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_010",
+      "label": "Automated Statistical Technique Selection",
+      "description": "Augmented analytics can automatically select the best forecasting, clustering, and statistical algorithms and explain drivers behind outliers.",
+      "coverage_criteria": [
+        "Student can identify what statistical techniques augmented analytics can automate.",
+        "Student can explain how it helps users without statistical expertise."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Statistical techniques' sub-section describes automatic algorithm selection and explanation.",
+        "granularity_rationale": "A specific feature, checkable."
+      },
+      "anchors": [
+        "Statistical techniques"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_011",
+      "label": "Smart Data Preparation",
+      "description": "Algorithms index and group related words, and recommend cleaning steps like removing nulls or splitting fields, minimizing manual data cleanup.",
+      "coverage_criteria": [
+        "Student can list smart data prep capabilities.",
+        "Student can explain how it speeds data preparation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Smart data prep' sub-section explains these algorithmic helps.",
+        "granularity_rationale": "Specific feature, small scope."
+      },
+      "anchors": [
+        "Smart data prep"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_012",
+      "label": "AI-Driven Recommendations",
+      "description": "Augmented analytics systems provide recommendations for data sources, chart types, and relevant content based on user role and behavior, aiding onboarding and discovery.",
+      "coverage_criteria": [
+        "Student can give examples of recommendations provided by augmented analytics.",
+        "Student can explain how recommendations help users."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Recommendations' sub-section details recommendation types across prep, discovery, analysis, and sharing.",
+        "granularity_rationale": "A key feature, testable."
+      },
+      "anchors": [
+        "Recommendations"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_013",
+      "label": "Natural Language Interactions",
+      "description": "Natural language query lets users type plain-language questions, and natural language generation creates textual explanations of insights, making data accessible without query language knowledge.",
+      "coverage_criteria": [
+        "Student can define natural language query and generation in augmented analytics.",
+        "Student can explain how they lower the barrier to data analysis."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Natural language interactions' sub-section explains both query and generation capabilities.",
+        "granularity_rationale": "A distinct feature set, checkable."
+      },
+      "anchors": [
+        "Natural language interactions"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_014",
+      "label": "Misconceptions of AI and ML",
+      "description": "Misconceptions about AI and ML, such as fear of job replacement, can stall adoption of augmented analytics. Users need to understand and trust the value.",
+      "coverage_criteria": [
+        "Student can identify common misconceptions about AI/ML in analytics.",
+        "Student can explain the impact of misconceptions on adoption."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Misconceptions of AI and ML' section discusses barriers to adoption.",
+        "granularity_rationale": "This challenge is self-contained and checkable."
+      },
+      "anchors": [
+        "Misconceptions of AI and ML"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_015",
+      "label": "Augmented Analytics Limitations",
+      "description": "Machines lack full context and intent understanding, requiring human domain expertise; inflated expectations can lead to sunk costs.",
+      "coverage_criteria": [
+        "Student can list limitations of augmented analytics.",
+        "Student can explain the risk of inflated expectations."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Augmented analytics limitations' section details these pitfalls.",
+        "granularity_rationale": "A focused topic on limitations."
+      },
+      "anchors": [
+        "Augmented analytics limitations"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_016",
+      "label": "Data Literacy and Analytics Proficiency",
+      "description": "Organizations must prioritize data literacy and critical thinking so employees can validate AI recommendations and avoid bad decisions.",
+      "coverage_criteria": [
+        "Student can explain the importance of data literacy for augmented analytics.",
+        "Student can describe consequences of lacking data literacy."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Data literacy and analytics proficiency' section stresses the human element.",
+        "granularity_rationale": "A specific, teachable concept about prerequisite skills."
+      },
+      "anchors": [
+        "Data literacy and analytics proficiency"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_017",
+      "label": "Data Governance and Management",
+      "description": "Reliable AI requires quality data; without sound data governance and management, AI recommendations may be unreliable.",
+      "coverage_criteria": [
+        "Student can link data governance to AI reliability in augmented analytics.",
+        "Student can explain the risks of poor data governance."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Data governance, management, and curation' section establishes this dependency.",
+        "granularity_rationale": "A clear, important prerequisite for successful augmented analytics."
+      },
+      "anchors": [
+        "Data governance, management, and curation"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_018",
+      "label": "Ethical Use of AI",
+      "description": "Organizations must guard against black box AI, requiring transparent and explainable AI to ensure trustworthy, unbiased decisions.",
+      "coverage_criteria": [
+        "Student can define explainable AI in the context of augmented analytics.",
+        "Student can list ethical concerns with AI in analytics."
+      ],
+      "source_roles": [
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Ethical use of AI' section advocates for transparency and explainability.",
+        "granularity_rationale": "An essential consideration for implementation, checkable with ethical reasoning questions."
+      },
+      "anchors": [
+        "Ethical use of AI"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_019",
+      "label": "Start with Modern BI Foundation",
+      "description": "Adopt modern BI and analytics before scaling AI; these features extend self-service environments.",
+      "coverage_criteria": [
+        "Student can explain why a modern BI foundation is a prerequisite for augmented analytics.",
+        "Student can describe the relationship between modern BI and AI features."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Start with a solid foundation of modern analytics' section gives this best practice.",
+        "granularity_rationale": "A single actionable best practice."
+      },
+      "anchors": [
+        "Start with a solid foundation of modern analytics"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_020",
+      "label": "Prove Success Before Scaling AI Analytics",
+      "description": "Start with a scoped test in a specific department or use case before expanding AI analytics investments.",
+      "coverage_criteria": [
+        "Student can describe the recommended approach for implementing augmented analytics.",
+        "Student can explain the value of a scoped test."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Prove success before scaling AI analytics investments' section advises this incremental approach.",
+        "granularity_rationale": "A concise, practical recommendation."
+      },
+      "anchors": [
+        "Prove success before scaling AI analytics investments"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_021",
+      "label": "Demystify and Educate to Build Trust",
+      "description": "Build trust and data literacy through education and demonstrating AI's practical benefits to foster adoption.",
+      "coverage_criteria": [
+        "Student can explain the importance of demystifying AI for adoption.",
+        "Student can give examples of educational activities to promote augmented analytics."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Demystify and educate to build trust and data literacy' section stresses education.",
+        "granularity_rationale": "A practical strategy for change management."
+      },
+      "anchors": [
+        "Demystify and educate to build trust and data literacy"
+      ]
+    },
+    {
+      "id": "c50_pro_thinking_022",
+      "label": "Nurture Collaboration and Community",
+      "description": "Encourage communication between data champions and domain experts to support AI analytics adoption and effective use.",
+      "coverage_criteria": [
+        "Student can describe the role of collaboration in augmented analytics success.",
+        "Student can identify key stakeholders for collaboration."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Nurture success with collaboration and community' section advises on fostering cross-role communication.",
+        "granularity_rationale": "A pointed organizational best practice."
+      },
+      "anchors": [
+        "Nurture success with collaboration and community"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_001",
+      "label": "MBA em IA e Dados para Negócios",
+      "description": "Programa de MBA que conecta tecnologia com estratégia e negócios, com início em agosto de 2026.",
+      "coverage_criteria": [
+        "O aluno consegue identificar o nome do programa e a data de início."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O cabeçalho da página apresenta diretamente o programa como destaque.",
+        "granularity_rationale": "Ideia simples e verificável sobre uma oferta específica."
+      },
+      "anchors": [
+        "# MBA em IA e Dados para Negócios"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_002",
+      "label": "Infraestrutura de ponta do campus Inteli",
+      "description": "Campus com mais de 10 mil m², incluindo ateliês, espaços makers, biblioteca, restaurante, academia ao ar livre, projetado para inspirar criatividade e colaboração.",
+      "coverage_criteria": [
+        "O aluno consegue listar ao menos três elementos da infraestrutura mencionados."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Infraestrutura de ponta' descreve detalhadamente o campus.",
+        "granularity_rationale": "O conceito é pequeno e verificável por enumeração."
+      },
+      "anchors": [
+        "### Infraestrutura de ponta"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_003",
+      "label": "Nota máxima do MEC nos cinco cursos de graduação",
+      "description": "O Inteli obteve nota máxima do Ministério da Educação nos cinco cursos de bacharelado, atestando qualidade do modelo pedagógico.",
+      "coverage_criteria": [
+        "O aluno consegue afirmar que a nota é máxima e citar que se aplica a cinco cursos."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção '5 vezes nota máxima no MEC' apresenta o feito.",
+        "granularity_rationale": "Fato único e verificável."
+      },
+      "anchors": [
+        "### 5 vezes nota máxima no MEC"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_004",
+      "label": "Metodologia de Aprendizagem Baseada em Projetos (PBL)",
+      "description": "O Inteli adota a Aprendizagem Baseada em Projetos, onde alunos enfrentam desafios reais propostos por empresas, desenvolvendo competências técnicas e maturidade profissional.",
+      "coverage_criteria": [
+        "O aluno consegue explicar o que é PBL e como é aplicado no Inteli."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Metodologia: aprender fazendo' explica o PBL.",
+        "granularity_rationale": "Conceito central da instituição, com tamanho adequado para verificação."
+      },
+      "anchors": [
+        "### Metodologia: aprender fazendo"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_005",
+      "label": "Centro de Desenvolvimento e Liderança (CDL)",
+      "description": "Equipe dedicada ao desenvolvimento de carreira desde o primeiro dia, com mentorias personalizadas e currículo focado em soft skills, visão estratégica e tomada de decisão.",
+      "coverage_criteria": [
+        "O aluno consegue descrever o objetivo do CDL e mencionar ao menos um serviço oferecido."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Carreira, Liderança e Empregabilidade' descreve o CDL.",
+        "granularity_rationale": "Serviço específico da instituição, pequeno e verificável."
+      },
+      "anchors": [
+        "### Carreira, Liderança e Empregabilidade: três pilares, um só destino"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_006",
+      "label": "Trilhas de protagonismo no quarto ano",
+      "description": "No quarto ano, o aluno escolhe entre trilhas empreendedora, acadêmica ou corporativa, com mentoria especializada e conexão com o mercado.",
+      "coverage_criteria": [
+        "O aluno consegue nomear as três trilhas e explicar que ocorrem no quarto ano."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Protagonismo' detalha as trilhas.",
+        "granularity_rationale": "Conceito focado e verificável."
+      },
+      "anchors": [
+        "### Protagonismo: você escolhe, o Inteli potencializa"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_007",
+      "label": "Parcerias com mais de 90 empresas e 685 protótipos",
+      "description": "Durante a graduação, cada aluno desenvolve 16 projetos reais com empresas parceiras, totalizando mais de 685 protótipos.",
+      "coverage_criteria": [
+        "O aluno consegue citar os números de empresas e protótipos."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção '+ de 90 empresas parceiras' apresenta os dados.",
+        "granularity_rationale": "Fatos numéricos, pequenos e verificáveis."
+      },
+      "anchors": [
+        "## + de 90 empresas parceiras de projetos e + de 685 protótipos desenvolvidos"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_008",
+      "label": "Cursos executivos em IA e dados para negócios",
+      "description": "O Inteli oferece cursos executivos como Compass, AI for Business e Data Science for Decision Makers, para líderes que querem integrar IA e dados aos negócios.",
+      "coverage_criteria": [
+        "O aluno consegue nomear pelo menos dois cursos executivos mencionados."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Cursos Executivos' lista os programas.",
+        "granularity_rationale": "Ideia específica e verificável."
+      },
+      "anchors": [
+        "### Cursos Executivos"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_009",
+      "label": "Programas para o Ensino Básico com metodologias ativas",
+      "description": "O Inteli desenvolve programas para o Ensino Básico utilizando PBL e integrando tecnologia, negócios e habilidades humanas.",
+      "coverage_criteria": [
+        "O aluno consegue identificar que o programa usa metodologias ativas e integra múltiplas áreas."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Ensino Básico' descreve a iniciativa.",
+        "granularity_rationale": "Conceito focado, adequado para verificação."
+      },
+      "anchors": [
+        "### Ensino Básico"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_010",
+      "label": "Histórias de alunos: Bernardo e Kathlyn Diwan",
+      "description": "Depoimentos de alunos mostram a rotina e a preparação para o mercado: Bernardo (Sistemas de Informação) e Kathlyn Diwan (AWS).",
+      "coverage_criteria": [
+        "O aluno consegue identificar os nomes e respectivas áreas dos alunos citados."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Histórias de quem vive a experiência Inteli' apresenta os casos.",
+        "granularity_rationale": "Pequeno conjunto de exemplos, fácil de verificar."
+      },
+      "anchors": [
+        "## Histórias de quem vive a **experiência Inteli**"
+      ]
+    },
+    {
+      "id": "c51_pro_thinking_011",
+      "label": "Presença na mídia destacando inovação e PBL",
+      "description": "O Inteli foi destaque na Forbes, Exame, Veja e Jornal Nacional por sua metodologia PBL, parcerias e impacto em IA.",
+      "coverage_criteria": [
+        "O aluno consegue citar pelo menos dois veículos de mídia que publicaram sobre o Inteli."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Inteli na Mídia' lista as matérias.",
+        "granularity_rationale": "Conjunto de referências, pequeno e verificável."
+      },
+      "anchors": [
+        "## Inteli na Mídia"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-11-excel-data-modeling-and-analysis-for-business-001",
+      "label": "Excel Data Model basics",
+      "description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ],
+      "source_candidate_ids": [
+        "c49_pro_thinking_001",
+        "c49_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the foundational purpose and the key step to use the Data Model, forming one teachable concept."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-11-excel-data-modeling-and-analysis-for-business-002",
+      "label": "Creating relationships in the Excel Data Model",
+      "description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ],
+      "source_candidate_ids": [
+        "c49_pro_thinking_003",
+        "c49_pro_thinking_004",
+        "c49_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates cover different aspects of establishing relationships: auto-detection, manual creation, and a best practice tip, which together form a unified topic."
+    }
+  ],
+  "current_pruned_candidates": [
+    {
+      "candidate_id": "c50_pro_thinking_001",
+      "pruning_reason": "unrelated",
+      "explanation": "Augmented analytics definition is not part of Excel data modeling; this lesson focuses on Excel features."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_002",
+      "pruning_reason": "unrelated",
+      "explanation": "ML role in augmented analytics is beyond the scope of an Excel data modeling lesson."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_003",
+      "pruning_reason": "unrelated",
+      "explanation": "Comparison between augmented analytics and automation is off-topic for Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_004",
+      "pruning_reason": "unrelated",
+      "explanation": "Target users of augmented analytics is irrelevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_005",
+      "pruning_reason": "unrelated",
+      "explanation": "Agility benefit of augmented analytics is not related to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_006",
+      "pruning_reason": "unrelated",
+      "explanation": "Accuracy improvement from augmented analytics is off-topic for Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_007",
+      "pruning_reason": "unrelated",
+      "explanation": "Efficiency through task automation in augmented analytics is not covered in Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_008",
+      "pruning_reason": "unrelated",
+      "explanation": "Confidence building in augmented analytics is unrelated to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_009",
+      "pruning_reason": "unrelated",
+      "explanation": "Automatic data identification in BI platforms is not part of Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_010",
+      "pruning_reason": "unrelated",
+      "explanation": "Automated statistical technique selection is beyond Excel data modeling scope."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_011",
+      "pruning_reason": "unrelated",
+      "explanation": "Smart data preparation features are not relevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_012",
+      "pruning_reason": "unrelated",
+      "explanation": "AI-driven recommendations are off-topic for an Excel data modeling lesson."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_013",
+      "pruning_reason": "unrelated",
+      "explanation": "Natural language interactions are not part of Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_014",
+      "pruning_reason": "unrelated",
+      "explanation": "Misconceptions about AI/ML are not relevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_015",
+      "pruning_reason": "unrelated",
+      "explanation": "Augmented analytics limitations are not part of Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_016",
+      "pruning_reason": "unrelated",
+      "explanation": "Data literacy requirement is not specific to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_017",
+      "pruning_reason": "unrelated",
+      "explanation": "Data governance discussion is not part of Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_018",
+      "pruning_reason": "unrelated",
+      "explanation": "Ethical use of AI is off-topic for Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_019",
+      "pruning_reason": "unrelated",
+      "explanation": "Starting with modern BI foundation is not relevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_020",
+      "pruning_reason": "unrelated",
+      "explanation": "Proving success before scaling AI is off-topic for Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_021",
+      "pruning_reason": "unrelated",
+      "explanation": "Demystifying AI to build trust is not part of Excel data modeling."
+    },
+    {
+      "candidate_id": "c50_pro_thinking_022",
+      "pruning_reason": "unrelated",
+      "explanation": "Collaboration and community nurturing are not relevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_001",
+      "pruning_reason": "unrelated",
+      "explanation": "MBA program details are not relevant to Excel data modeling."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_002",
+      "pruning_reason": "unrelated",
+      "explanation": "Campus infrastructure information is off-topic for Excel data modeling."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_003",
+      "pruning_reason": "unrelated",
+      "explanation": "MEC score achievement is unrelated to Excel data modeling."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_004",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate describes Inteli's Project-Based Learning methodology, which is unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_005",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate describes Inteli's Career Development and Leadership Center, which is unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_006",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate describes Inteli's fourth-year protagonism tracks, which is unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_007",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate presents statistics about Inteli's industry partnerships and prototypes, which are unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_008",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate lists Inteli's executive courses in AI and data, which are unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_009",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate describes Inteli's programs for Basic Education, which are unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_010",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate presents student testimonials about Inteli's experience, which are unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    },
+    {
+      "candidate_id": "c51_pro_thinking_011",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate lists media highlights about Inteli, which are unrelated to the Excel Data Modeling and Analysis for Business lesson."
+    }
+  ],
+  "current_review_candidates": [],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

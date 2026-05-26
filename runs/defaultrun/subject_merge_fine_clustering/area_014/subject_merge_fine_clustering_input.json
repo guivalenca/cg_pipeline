@@ -1,0 +1,251 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_014",
+    "area": {
+      "id": "area_014",
+      "label": "Neural Network Training and Implementation",
+      "rationale": "Backpropagation, activation functions, loss, gradient descent, linear algebra, training procedure, data prep, overfitting, regularization, accuracy, manual vs library implementation.",
+      "candidate_ids": [
+        "lr007_008",
+        "lr007_013",
+        "lr007_014",
+        "lr007_018",
+        "lr007_019",
+        "lr007_020",
+        "lr007_021",
+        "lr007_023",
+        "lr007_024",
+        "lr007_025",
+        "lr007_026"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr007_008",
+    "lr007_013",
+    "lr007_014",
+    "lr007_018",
+    "lr007_019",
+    "lr007_020",
+    "lr007_021",
+    "lr007_023",
+    "lr007_024",
+    "lr007_025",
+    "lr007_026"
+  ],
+  "candidates": [
+    {
+      "id": "lr007_008",
+      "label": "Backpropagation",
+      "description": "The core learning algorithm for neural networks that computes the gradient of the loss function with respect to weights using the chain rule and updates weights in the opposite direction to minimize error.",
+      "coverage_criteria": [
+        "List the four main steps of backpropagation: forward pass, loss computation, backward pass (gradient calculation), weight update.",
+        "Explain the role of the chain rule in propagating gradients from output to input layers."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_013",
+      "label": "Activation Functions",
+      "description": "Non-linear activation functions (sigmoid, tanh, ReLU, step, softmax) applied to neuron outputs introduce non-linearity into the network, enabling learning of complex patterns. The sigmoid maps any real to (0,1); tanh to (-1,1); ReLU outputs max(0,x); step produces binary output.",
+      "coverage_criteria": [
+        "List at least three activation functions with their formulas and typical output ranges.",
+        "Explain why non-linear activation functions are necessary in hidden layers.",
+        "Compare ReLU with sigmoid in terms of gradient flow and practical usage."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_014",
+      "label": "Loss Functions",
+      "description": "Loss functions quantify the prediction error during training, guiding weight updates. Mean squared error is used for regression, binary cross-entropy for classification; logistic loss is commonly used for binary classification.",
+      "coverage_criteria": [
+        "Match loss functions (MSE, binary cross-entropy) to the appropriate problem type.",
+        "Write the logistic loss formula and explain its intuition."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "math"
+    },
+    {
+      "id": "lr007_018",
+      "label": "Overfitting and Regularization",
+      "description": "Overfitting occurs when a model learns training noise and fails to generalize; underfitting is the opposite. Dropout is a regularization technique that randomly drops neurons during training to prevent overfitting.",
+      "coverage_criteria": [
+        "Define overfitting and underfitting with examples.",
+        "Explain how dropout works and why it reduces overfitting."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_019",
+      "label": "Linear Algebra Foundations",
+      "description": "Neural network computations rely on linear vector spaces, inner products, norms, and linear transformations. These concepts underpin weight matrices and forward/backward passes.",
+      "coverage_criteria": [
+        "Define a linear vector space and list two axioms.",
+        "Compute the dot product of two vectors and explain its role in a neuron's weighted sum."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr007_020",
+      "label": "Gradient Descent Optimization",
+      "description": "Gradient descent minimizes the loss by iteratively updating parameters: w = w - η * ∇J. The learning rate η controls step size; bias is an additional parameter; Adam adapts η per parameter; an epoch is one full pass over the dataset.",
+      "coverage_criteria": [
+        "Write the gradient descent update rule for a weight.",
+        "Explain the role of the learning rate and describe the advantage of the Adam optimizer.",
+        "Define epoch and distinguish it from an iteration over a single sample."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing",
+        "implementing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "math"
+    },
+    {
+      "id": "lr007_021",
+      "label": "Neural Network Training Implementation",
+      "description": "Training involves: forward propagation to compute outputs; random weight initialization to break symmetry; a loop over epochs performing forward, cost, backward, and update steps; layer dimensions determine parameter shapes; caches store intermediate values for backprop.",
+      "coverage_criteria": [
+        "List the steps in one training iteration (forward, cost, backward, update).",
+        "Explain why weights are initialized randomly and what happens if they are set to zero.",
+        "Describe the purpose of caching in forward propagation."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_023",
+      "label": "Data Preparation for Neural Networks",
+      "description": "Non-numeric inputs must be encoded (e.g., binary encoding, one-hot encoding) for neural networks. Datasets consist of features (attributes) and a target column, and data often needs to be numeric and normalized.",
+      "coverage_criteria": [
+        "Choose an encoding scheme for a categorical variable (e.g., one-hot encoding) and justify.",
+        "Given a CSV, identify the feature columns and the target column."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "application"
+    },
+    {
+      "id": "lr007_024",
+      "label": "Divisão Treino/Teste",
+      "description": "A técnica de separar dados em conjuntos de treino e teste para avaliar a generalização de modelos.",
+      "coverage_criteria": [
+        "O aluno deve escrever código para dividir um dataset em treino e teste.",
+        "O aluno deve explicar por que não se deve usar o mesmo conjunto para treino e teste."
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "application"
+    },
+    {
+      "id": "lr007_025",
+      "label": "Implementação Manual vs Bibliotecas",
+      "description": "Comparação entre implementar um perceptron do zero e usar scikit-learn, destacando a redução de código e complexidade.",
+      "coverage_criteria": [
+        "O aluno deve listar funções do scikit-learn usadas em substituição à implementação manual.",
+        "O aluno deve identificar vantagens e desvantagens de cada abordagem."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr007_026",
+      "label": "Acurácia",
+      "description": "Métrica de avaliação que calcula a proporção de predições corretas, variando de 0 a 1.",
+      "coverage_criteria": [
+        "O aluno deve calcular a acurácia a partir de predições e classes reais.",
+        "O aluno deve interpretar uma acurácia de 1.0 como separação perfeita para dados linearmente separáveis."
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

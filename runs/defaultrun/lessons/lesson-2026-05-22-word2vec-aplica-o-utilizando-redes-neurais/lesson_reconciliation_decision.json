@@ -1,0 +1,513 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:59:08.374412+00:00",
+  "scope_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c61_pro_thinking_001",
+    "c61_pro_thinking_002",
+    "c61_pro_thinking_003",
+    "c61_pro_thinking_004",
+    "c61_pro_thinking_005",
+    "c61_pro_thinking_006",
+    "c61_pro_thinking_007",
+    "c61_pro_thinking_008",
+    "c61_pro_thinking_009",
+    "c61_pro_thinking_010",
+    "c61_pro_thinking_011",
+    "c62_pro_thinking_001",
+    "c62_pro_thinking_002",
+    "c62_pro_thinking_003",
+    "c62_pro_thinking_004",
+    "c62_pro_thinking_005",
+    "c62_pro_thinking_006",
+    "c62_pro_thinking_007",
+    "c62_pro_thinking_008",
+    "c62_pro_thinking_009",
+    "c62_pro_thinking_010",
+    "c62_pro_thinking_011",
+    "c63_pro_thinking_001",
+    "c63_pro_thinking_002",
+    "c63_pro_thinking_003",
+    "c63_pro_thinking_004",
+    "c63_pro_thinking_005",
+    "c63_pro_thinking_006",
+    "c63_pro_thinking_007",
+    "c63_pro_thinking_008",
+    "c63_pro_thinking_009",
+    "c63_pro_thinking_010",
+    "c63_pro_thinking_011",
+    "m64_001",
+    "m64_002",
+    "m64_003",
+    "m64_004"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts. This concept covers the idea that a word's meaning can be inferred from the company it keeps, demonstrated through contextual inference examples.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_005",
+        "c63_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates describe the same fundamental idea that meaning arises from context; c61_pro_thinking_005 provides the formal statement, while c63_pro_thinking_004 offers practical demonstration with sentence completion."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Word Vectors as Numerical Representations",
+      "description": "Words can be encoded as vectors of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, or gender. This concept forms the basis for representing text data in a continuous vector space.",
+      "coverage_criteria": [
+        "Explain that a word vector is a numerical encoding of a word's features.",
+        "Provide examples of possible features for a given word (e.g., 'king' could have high authority, male, royalty).",
+        "Distinguish between hand-crafted features and automatically learned features."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate stands alone as the foundational building block for understanding how words are represented before discussing learning algorithms."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Vector Arithmetic for Semantic Analogies",
+      "description": "Word vectors learned by Word2Vec support vector arithmetic that reflects semantic relationships, enabling analogy solving (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+      "coverage_criteria": [
+        "Given a word vector equation, predict the expected result word for a simple analogy.",
+        "Explain that vector difference can capture the relationship between two words.",
+        "Perform vector addition or subtraction to solve an analogy task."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_001",
+        "c63_pro_thinking_011"
+      ],
+      "merge_rationale": "c63_pro_thinking_001 introduces the concept of arithmetic with word vectors, and c63_pro_thinking_011 provides specific concrete examples; together they cover the skill of using vector arithmetic to express analogies."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Semantic and Syntactic Relationships in Word2Vec Embeddings",
+      "description": "Word2Vec embeddings capture a variety of linguistic relationships, including verb tenses, capital-country associations, and gender pairs, by encoding them as consistent vector offsets.",
+      "coverage_criteria": [
+        "Provide at least two distinct types of linguistic relationships that word vectors can capture (e.g., tense, geography).",
+        "Explain why such relationships emerge from the training objective."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate stands alone as an overview of the emergent properties of Word2Vec vectors, distinct from the mechanics of arithmetic."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Similarity Measures for Word Vectors",
+      "description": "Euclidean distance and cosine similarity are two metrics used to quantify the similarity between word vectors. Euclidean distance measures straight-line distance in vector space, while cosine similarity measures the angle between vectors, often preferred in high-dimensional spaces.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two vectors.",
+        "Compute cosine similarity between two vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and when each might be more appropriate."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_001",
+        "c61_pro_thinking_009"
+      ],
+      "merge_rationale": "These two candidates cover complementary similarity metrics that are typically introduced together in the context of vector spaces; combining them creates a coherent concept on measuring proximity."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Training Data Generation for Word2Vec",
+      "description": "How training samples are created for Word2Vec: using a sliding window to form context-target pairs, representing words with one-hot encoding, and the distinction between CBOW and Skip-gram architectures.",
+      "coverage_criteria": [
+        "Given a short text and window size, generate input-output pairs with context and target words.",
+        "Explain that each word is represented as a one-hot vector of vocabulary size.",
+        "Distinguish CBOW (predict target from context) from Skip-gram (predict context from target)."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_005",
+        "c63_pro_thinking_006",
+        "c63_pro_thinking_008"
+      ],
+      "merge_rationale": "These candidates describe essential aspects of generating training data for Word2Vec: the sliding window mechanism, one-hot representation, and the high-level CBOW/Skip-gram variants. Together they form a single coherent concept about data preparation and architectural choice."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Word Embeddings as Neural Network Weights",
+      "description": "In Word2Vec, the word embeddings are the learned weights connecting the one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "Indicate that after training, the embedding for a word is extracted from the weight matrix of the neural network."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate alone explains how embeddings are obtained from the training process, demystifying a key output of Word2Vec."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "Aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_candidate_ids": [
+        "m64_002"
+      ],
+      "merge_rationale": "This metadata-only candidate represents the application side of the lesson, where Word2Vec can be used for sentiment analysis. It fills a gap not covered by the source body candidates."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts. This concept covers the idea that a word's meaning can be inferred from the company it keeps, demonstrated through contextual inference examples.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_005",
+        "c63_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates describe the same fundamental idea that meaning arises from context; c61_pro_thinking_005 provides the formal statement, while c63_pro_thinking_004 offers practical demonstration with sentence completion."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Word Vectors as Numerical Representations",
+      "description": "Words can be encoded as vectors of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, or gender. This concept forms the basis for representing text data in a continuous vector space.",
+      "coverage_criteria": [
+        "Explain that a word vector is a numerical encoding of a word's features.",
+        "Provide examples of possible features for a given word (e.g., 'king' could have high authority, male, royalty).",
+        "Distinguish between hand-crafted features and automatically learned features."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate stands alone as the foundational building block for understanding how words are represented before discussing learning algorithms."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Vector Arithmetic for Semantic Analogies",
+      "description": "Word vectors learned by Word2Vec support vector arithmetic that reflects semantic relationships, enabling analogy solving (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+      "coverage_criteria": [
+        "Given a word vector equation, predict the expected result word for a simple analogy.",
+        "Explain that vector difference can capture the relationship between two words.",
+        "Perform vector addition or subtraction to solve an analogy task."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_001",
+        "c63_pro_thinking_011"
+      ],
+      "merge_rationale": "c63_pro_thinking_001 introduces the concept of arithmetic with word vectors, and c63_pro_thinking_011 provides specific concrete examples; together they cover the skill of using vector arithmetic to express analogies."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Semantic and Syntactic Relationships in Word2Vec Embeddings",
+      "description": "Word2Vec embeddings capture a variety of linguistic relationships, including verb tenses, capital-country associations, and gender pairs, by encoding them as consistent vector offsets.",
+      "coverage_criteria": [
+        "Provide at least two distinct types of linguistic relationships that word vectors can capture (e.g., tense, geography).",
+        "Explain why such relationships emerge from the training objective."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate stands alone as an overview of the emergent properties of Word2Vec vectors, distinct from the mechanics of arithmetic."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Similarity Measures for Word Vectors",
+      "description": "Euclidean distance and cosine similarity are two metrics used to quantify the similarity between word vectors. Euclidean distance measures straight-line distance in vector space, while cosine similarity measures the angle between vectors, often preferred in high-dimensional spaces.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two vectors.",
+        "Compute cosine similarity between two vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and when each might be more appropriate."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_001",
+        "c61_pro_thinking_009"
+      ],
+      "merge_rationale": "These two candidates cover complementary similarity metrics that are typically introduced together in the context of vector spaces; combining them creates a coherent concept on measuring proximity."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Training Data Generation for Word2Vec",
+      "description": "How training samples are created for Word2Vec: using a sliding window to form context-target pairs, representing words with one-hot encoding, and the distinction between CBOW and Skip-gram architectures.",
+      "coverage_criteria": [
+        "Given a short text and window size, generate input-output pairs with context and target words.",
+        "Explain that each word is represented as a one-hot vector of vocabulary size.",
+        "Distinguish CBOW (predict target from context) from Skip-gram (predict context from target)."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_005",
+        "c63_pro_thinking_006",
+        "c63_pro_thinking_008"
+      ],
+      "merge_rationale": "These candidates describe essential aspects of generating training data for Word2Vec: the sliding window mechanism, one-hot representation, and the high-level CBOW/Skip-gram variants. Together they form a single coherent concept about data preparation and architectural choice."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Word Embeddings as Neural Network Weights",
+      "description": "In Word2Vec, the word embeddings are the learned weights connecting the one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "Indicate that after training, the embedding for a word is extracted from the weight matrix of the neural network."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate alone explains how embeddings are obtained from the training process, demystifying a key output of Word2Vec."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "Aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_candidate_ids": [
+        "m64_002"
+      ],
+      "merge_rationale": "This metadata-only candidate represents the application side of the lesson, where Word2Vec can be used for sentiment analysis. It fills a gap not covered by the source body candidates."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c61_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c61_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c61_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr001",
+      "explanation": "This candidate demonstrates the distributional hypothesis through examples and is fully represented by lr001."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_011",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr003",
+      "explanation": "This candidate provides specific analogy examples that illustrate the vector arithmetic concept; it is represented by lr003."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_002",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_004",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_006",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_007",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_008",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_009",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_011",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_001",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_002",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_004",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_006",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_007",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_008",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_005",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_011",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr002"
+      ]
+    },
+    {
+      "candidate_id": "m64_001",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Broad NLP introduction not specific to Word2Vec or the lesson's focus on sentiment analysis application."
+    },
+    {
+      "candidate_id": "m64_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "m64_003",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Deep learning for NLP is too broad and not focused on the specific Word2Vec application taught in this lesson."
+    },
+    {
+      "candidate_id": "m64_004",
+      "status": "pruned",
+      "reason": "unsupported_metadata_only",
+      "explanation": "The Word2Vec topic is already covered in detail by source-backed concepts; this metadata-only label adds no distinct teachable content."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "m64_001",
+      "reason": "too_broad",
+      "explanation": "Broad NLP introduction not specific to Word2Vec or the lesson's focus on sentiment analysis application."
+    },
+    {
+      "candidate_id": "m64_003",
+      "reason": "too_broad",
+      "explanation": "Deep learning for NLP is too broad and not focused on the specific Word2Vec application taught in this lesson."
+    },
+    {
+      "candidate_id": "m64_004",
+      "reason": "unsupported_metadata_only",
+      "explanation": "The Word2Vec topic is already covered in detail by source-backed concepts; this metadata-only label adds no distinct teachable content."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 37,
+    "accepted_count": 8,
+    "pruned_count": 3,
+    "candidate_assignment_count": 37,
+    "review_count": 21
+  }
+}

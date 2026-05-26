@@ -1,0 +1,197 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T02:58:00.788858+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "self_study_id": "29",
+  "source_body_path": "extraction/post-image/0029-video-video-nltk-tutorial-in-python.md",
+  "source_body_sha256": "8e27b46dc8b493cf50c7a9100f115630a1becbeefedec8ef0b404f4e7afe2f2e",
+  "source_name": "(Vídeo) NLTK Tutorial in Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-29-001",
+      "label": "NLTK word_tokenize for better tokenization",
+      "description": "Using nltk.word_tokenize splits text into tokens while properly handling contractions like 'wasn't' into 'was' and \"n't\", unlike regex-based splitting.",
+      "coverage_criteria": [
+        "Can explain why nltk.word_tokenize is better than simple regex splitting for handling English contractions.",
+        "Can demonstrate using nltk.word_tokenize on a sentence with contractions.",
+        "Can identify that 'was' and 'not' become separate tokens, useful for negation handling."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly demonstrates tokenization using both regex and NLTK's word_tokenize, highlighting the advantage of better handling contractions like 'wasn't'.",
+        "granularity_rationale": "Tokenization is a single step in NLP pipeline, and this candidate isolates the specific feature of handling contractions—small enough for focused assessment."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:33 Tokenization"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "(Vídeo) NLTK Tutorial in Python",
+      "source_year": "2026",
+      "name_drops": [
+        "nltk.word_tokenize"
+      ]
+    },
+    {
+      "candidate_id": "candidate-29-002",
+      "label": "Porter Stemmer algorithm",
+      "description": "Porter Stemmer is a rule-based stemming algorithm that reduces words to their stems by applying a series of suffix stripping rules.",
+      "coverage_criteria": [
+        "Can describe the basic operation of Porter Stemmer as rule-based stemming.",
+        "Can use PorterStemmer from nltk.stem to stem a list of words.",
+        "Can identify that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates initializing PorterStemmer, applying it to plural words, and showing the stemmed outputs, explaining the rule-based approach.",
+        "granularity_rationale": "Porter Stemmer is one specific stemming algorithm; understanding its behavior is a focused concept suitable for assessment."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "03:46 Stemming with Porter Stemmer"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "(Vídeo) NLTK Tutorial in Python",
+      "source_year": "2026",
+      "name_drops": [
+        "PorterStemmer",
+        "nltk.stem"
+      ]
+    },
+    {
+      "candidate_id": "candidate-29-003",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "description": "Snowball Stemmer is a stemming algorithm that supports multiple languages and often produces more accurate stems than Porter Stemmer, as shown by stemming 'generously' to 'generous' vs 'gener'.",
+      "coverage_criteria": [
+        "Can list several languages supported by SnowballStemmer.",
+        "Can initialize SnowballStemmer with a language and stem a word.",
+        "Can explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates SnowballStemmer, its language support, and compares its output with Porter Stemmer on 'generously'.",
+        "granularity_rationale": "Snowball Stemmer is a distinct tool with multilingual capability, a focused concept within stemming."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:27 Stemming with Snowball Stemmer"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "(Vídeo) NLTK Tutorial in Python",
+      "source_year": "2026",
+      "name_drops": [
+        "SnowballStemmer",
+        "SnowballStemmer.languages"
+      ]
+    },
+    {
+      "candidate_id": "candidate-29-004",
+      "label": "WordNet Lemmatizer for dictionary-based lemmatization",
+      "description": "WordNetLemmatizer reduces words to their base dictionary form (lemma) using the WordNet lexical database. It requires NLTK data download (wordnet corpora). Unlike stemming, lemmas are actual words (e.g., 'flies' -> 'fly').",
+      "coverage_criteria": [
+        "Can explain the difference between lemmatization and stemming.",
+        "Can instantiate WordNetLemmatizer and lemmatize a word.",
+        "Can identify that lemmatization depends on a lexical database like WordNet."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates lemmatization using WordNetLemmatizer, shows outputs on plural words, and contrasts with stemming implicitly.",
+        "granularity_rationale": "Lemmatization is a key NLP normalization technique; this candidate captures its NLTK implementation and prerequisites, suitable for assessment."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "06:51 Lemmatization"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "(Vídeo) NLTK Tutorial in Python",
+      "source_year": "2026",
+      "name_drops": [
+        "WordNetLemmatizer",
+        "WordNet"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-29-001",
+      "to_candidate_id": "candidate-29-002",
+      "reason": "Tokenization is a prerequisite for stemming; the source first tokenizes text then applies stemming.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:33 Tokenization"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "03:46 Stemming with Porter Stemmer"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-29-001",
+      "to_candidate_id": "candidate-29-004",
+      "reason": "Tokenization precedes lemmatization; the source tokenizes text then applies lemmatization.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:33 Tokenization"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "06:51 Lemmatization"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-29-002",
+      "to_candidate_id": "candidate-29-004",
+      "reason": "Stemming and lemmatization are alternative text normalization techniques; the source compares them by showing different outputs for the same words.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "03:46 Stemming with Porter Stemmer"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "06:51 Lemmatization"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 4,
+    "source_local_connector_candidate_count": 3
+  }
+}

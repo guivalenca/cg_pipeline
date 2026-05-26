@@ -1,0 +1,579 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Loading and accessing Portuguese text corpora in NLTK",
+    "rationale": "All candidates involve loading or accessing NLTK's built-in Portuguese text resources using the examples module, machado corpus, or other corpora. They share the theme of accessing pre-loaded Portuguese data.",
+    "candidate_ids": [
+      "c28_pro_thinking_001",
+      "c28_pro_thinking_011"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Loading and accessing Portuguese text corpora in NLTK",
+      "rationale": "All candidates involve loading or accessing NLTK's built-in Portuguese text resources using the examples module, machado corpus, or other corpora. They share the theme of accessing pre-loaded Portuguese data.",
+      "candidate_ids": [
+        "c28_pro_thinking_001",
+        "c28_pro_thinking_011"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Text search and context analysis with NLTK's concordance, similar, and collocations",
+      "rationale": "These candidates cover methods to explore word context: concordance displays word in context, similar finds words with similar distribution, and collocations extract significant multi-word expressions. They represent different facets of searching text.",
+      "candidate_ids": [
+        "c28_pro_thinking_002",
+        "c28_pro_thinking_003",
+        "c28_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Regular expression search in NLTK texts",
+      "rationale": "This candidate focuses on using findall with regex patterns to search text, which is a more advanced search technique distinct from the built-in methods.",
+      "candidate_ids": [
+        "c28_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Random text generation in NLTK",
+      "rationale": "This candidate covers the generate method for producing random text based on a source text. It is a self-contained feature not closely related to other candidates.",
+      "candidate_ids": [
+        "c28_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Tokenization and list-based text processing in NLTK",
+      "rationale": "These candidates involve understanding tokenized text as lists, extracting vocabulary, applying list comprehensions, and computing frequency distributions. They represent foundational NLTK list-of-words operations.",
+      "candidate_ids": [
+        "c28_pro_thinking_007",
+        "c28_pro_thinking_008",
+        "c28_pro_thinking_009",
+        "c28_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "N-gram extraction and filtering in NLTK",
+      "rationale": "This candidate uses ngrams and FreqDist to find n-grams containing a target word, a specific text analysis task beyond basic token operations.",
+      "candidate_ids": [
+        "c28_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Accessing and using the MacMorpho POS-tagged corpus",
+      "rationale": "This candidate focuses on loading the MacMorpho corpus and accessing its words, sentences, and tagged words, which is a distinct task of working with a POS-tagged corpus.",
+      "candidate_ids": [
+        "c28_pro_thinking_013"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Accessing and using the Floresta treebank (simplifying tags and parsed sentences)",
+      "rationale": "These candidates involve the Floresta corpus: one focuses on simplifying complex tags, and the other on accessing parsed sentences. Both are about the Floresta treebank.",
+      "candidate_ids": [
+        "c28_pro_thinking_014",
+        "c28_pro_thinking_015"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Encoding handling (ISO 8859-1) for Portuguese text in NLTK",
+      "rationale": "This candidate addresses the specific encoding need for Portuguese text files, a practical but standalone detail.",
+      "candidate_ids": [
+        "c28_pro_thinking_016"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Custom concordance function implementation in NLTK",
+      "rationale": "This candidate walks through writing a concordance function from scratch, combining indexing and formatting. It is a self-contained programming task.",
+      "candidate_ids": [
+        "c28_pro_thinking_017"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Tokenization with NLTK's word_tokenize for handling contractions",
+      "rationale": "This candidate highlights the advantage of word_tokenize over regex splitting for English contractions. It is a specific tokenization improvement.",
+      "candidate_ids": [
+        "c29_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Porter Stemmer algorithm in NLTK",
+      "rationale": "This candidate explains the Porter Stemmer, a rule-based stemming approach, its behavior, and limitations.",
+      "candidate_ids": [
+        "c29_pro_thinking_002"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c28_pro_thinking_001",
+    "c28_pro_thinking_011",
+    "c28_pro_thinking_002",
+    "c28_pro_thinking_003",
+    "c28_pro_thinking_004",
+    "c28_pro_thinking_005",
+    "c28_pro_thinking_006",
+    "c28_pro_thinking_007",
+    "c28_pro_thinking_008",
+    "c28_pro_thinking_009",
+    "c28_pro_thinking_010",
+    "c28_pro_thinking_012",
+    "c28_pro_thinking_013",
+    "c28_pro_thinking_014",
+    "c28_pro_thinking_015",
+    "c28_pro_thinking_016",
+    "c28_pro_thinking_017",
+    "c29_pro_thinking_001",
+    "c29_pro_thinking_002"
+  ],
+  "candidates": [
+    {
+      "id": "c28_pro_thinking_001",
+      "label": "Loading pre-defined Portuguese texts with NLTK",
+      "description": "Using NLTK's examples module to load Portuguese literary texts and newspaper corpora for linguistic analysis.",
+      "coverage_criteria": [
+        "Student can import the Portuguese examples module and list the available text objects (e.g., ptext1, ptext2) with their descriptions."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly shows the import and setup of Portuguese texts and how to view them.",
+        "granularity_rationale": "Loading data is a fundamental first step; this candidate focuses solely on the loading process, which is small enough for one to three focused questions."
+      },
+      "anchors": [
+        "Python Programming, with Portuguese Examples"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_011",
+      "label": "Accessing the Machado de Assis corpus in NLTK",
+      "description": "Loading the complete works of Machado de Assis from nltk.corpus.machado, inspecting file IDs, and retrieving raw text or word lists.",
+      "coverage_criteria": [
+        "Student can import the machado corpus, list its file IDs, and access the words or raw text of a specific work."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows how to load the machado corpus, list fileids(), and access words and raw text.",
+        "granularity_rationale": "This is a step-by-step corpus access procedure, testable with a handful of commands."
+      },
+      "anchors": [
+        "Accessing the Machado Text Corpus"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_002",
+      "label": "Generating a concordance for a word",
+      "description": "Using the concordance() method to display a word in its surrounding context within a text.",
+      "coverage_criteria": [
+        "Student can call the concordance method on a text object and interpret the output showing the word in context."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a direct example with ptext1.concordance('olhos') and explains its use.",
+        "granularity_rationale": "Concordance generation is a single, well-defined operation that can be tested with a specific word."
+      },
+      "anchors": [
+        "Searching Text"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_003",
+      "label": "Finding words with similar contextual distribution",
+      "description": "Using the similar() method to identify words that appear in similar contexts based on their distribution in the text.",
+      "coverage_criteria": [
+        "Student can use similar() on a text object and list words that share similar contexts."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates similar() on ptext1 and ptext3 with example outputs.",
+        "granularity_rationale": "This is a specific, checkable function call that can be verified with a single question."
+      },
+      "anchors": [
+        "Searching Text"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_004",
+      "label": "Extracting significant collocations from text",
+      "description": "Using the collocations() method to find statistically significant word pairs or phrases.",
+      "coverage_criteria": [
+        "Student can call collocations() on a text and identify common multi-word expressions."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows collocations() output for ptext1, listing phrases like 'Quincas Borba' and 'Lobo Neves'.",
+        "granularity_rationale": "This is a discrete, checkable operation that requires understanding the output of one method."
+      },
+      "anchors": [
+        "Searching Text"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_005",
+      "label": "Searching text with regular expressions",
+      "description": "Using the findall() method with regex patterns to extract words or phrases matching a pattern.",
+      "coverage_criteria": [
+        "Student can construct a regex pattern and apply findall() to retrieve matching strings from a text."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates findall() with a regex pattern to capture words after 'olhos'.",
+        "granularity_rationale": "This is a specific technique combining regex with NLTK's search, testable with a short exercise."
+      },
+      "anchors": [
+        "Searching Text"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_006",
+      "label": "Generating random text based on a source text",
+      "description": "Using the generate() method to produce random sentences that mimic the style of the training text.",
+      "coverage_criteria": [
+        "Student can invoke generate() on a text object and explain that the output is based on the text's statistical model."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows generate() on ptext3 with a sample output.",
+        "granularity_rationale": "This is a simple, self-contained feature that can be assessed with a single question."
+      },
+      "anchors": [
+        "Searching Text"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_007",
+      "label": "Tokenizing text into words and punctuation",
+      "description": "Understanding that NLTK represents text as a list of tokens (words and punctuation) that have been segmented.",
+      "coverage_criteria": [
+        "Student can explain that a sentence like psent1 is a list of string tokens and can inspect its length."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly shows psent1 as a tokenized list and discusses its length and individual tokens.",
+        "granularity_rationale": "Tokenization is a core concept; this candidate isolates the recognition of tokenized form, which is small enough for a couple of questions."
+      },
+      "anchors": [
+        "Texts as List of Words"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_008",
+      "label": "Extracting the unique vocabulary of a text",
+      "description": "Using Python's set and sorted to obtain the distinct words in a tokenized text.",
+      "coverage_criteria": [
+        "Student can apply set() to a tokenized list to get unique words and sort them."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows sorted(set(psent1)) to get the vocabulary.",
+        "granularity_rationale": "This is a simple one-liner that can be verified by asking for the vocabulary of a short list."
+      },
+      "anchors": [
+        "Texts as List of Words"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_009",
+      "label": "Using list comprehensions to filter and transform text",
+      "description": "Applying Python list comprehensions to perform operations like case conversion, filtering by endings, or length constraints on tokens.",
+      "coverage_criteria": [
+        "Student can write a list comprehension that converts tokens to uppercase or filters tokens longer than a given length."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides several list comprehension examples on tokens, such as [w.upper() for w in psent2].",
+        "granularity_rationale": "List comprehensions are a versatile tool; this candidate focuses on their application to text processing, which is a specific, testable skill."
+      },
+      "anchors": [
+        "Texts as List of Words"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_010",
+      "label": "Computing word frequency distributions",
+      "description": "Using FreqDist to count word occurrences, find the most common word, and sample frequent words.",
+      "coverage_criteria": [
+        "Student can create a FreqDist from a text, query the count of a specific word, and retrieve the most frequent tokens."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates FreqDist with ptext1, showing fd1['olhos'] and fd1.max().",
+        "granularity_rationale": "Frequency distribution is a fundamental NLP operation; this candidate covers the basic API calls, which can be assessed with a few questions."
+      },
+      "anchors": [
+        "Texts as List of Words"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_012",
+      "label": "Extracting n-grams containing a specific word",
+      "description": "Using ngrams() and FreqDist to find the most common sequences (e.g., 5-grams) that include a target word.",
+      "coverage_criteria": [
+        "Student can generate 5-grams from a text and filter those containing a given word, then display the most frequent ones."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a program that finds most common ngrams containing a target word, using ngrams and FreqDist.",
+        "granularity_rationale": "This candidate focuses on a specific ngram extraction pattern, which can be tested with a different target word."
+      },
+      "anchors": [
+        "Accessing the Machado Text Corpus"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_013",
+      "label": "Accessing the MacMorpho POS-tagged corpus",
+      "description": "Loading the MAC-MORPHO corpus, which contains Brazilian Portuguese news text with part-of-speech tags, and retrieving words, sentences, or tagged words.",
+      "coverage_criteria": [
+        "Student can import mac_morpho, access its words, sents, and tagged_words, and distinguish between simple words and tagged tokens."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly shows how to access mac_morpho and its different representations.",
+        "granularity_rationale": "This is a well-defined corpus access task, suitable for a practical exercise."
+      },
+      "anchors": [
+        "Accessing the MacMorpho Tagged Corpus"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_014",
+      "label": "Accessing the Floresta treebank and simplifying its tags",
+      "description": "Loading the Floresta corpus, retrieving words and tagged words, and simplifying its complex tags (e.g., 'H+n' to 'n').",
+      "coverage_criteria": [
+        "Student can import floresta, list its words and tagged words, and write a function to strip the syntactic portion of a tag."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows loading floresta, accessing tagged words, and creating simplify_tag to extract the POS part.",
+        "granularity_rationale": "This task combines corpus access and a simple string manipulation, which is a focused, testable skill."
+      },
+      "anchors": [
+        "Accessing the Floresta Portuguese Treebank"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_015",
+      "label": "Using the Floresta treebank's parsed sentences",
+      "description": "Accessing parsed_sents() from the Floresta corpus to obtain syntactic trees (nested structures), which can be visualized or traversed.",
+      "coverage_criteria": [
+        "Student can retrieve parsed sentences and explain that they represent syntactic structure, and optionally draw a tree."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source shows floresta.parsed_sents() and mentions the draw() method for visualization.",
+        "granularity_rationale": "This is a specific feature of the treebank; understanding parsed outputs is a small, checkable concept."
+      },
+      "anchors": [
+        "Accessing the Floresta Portuguese Treebank"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_016",
+      "label": "Understanding ISO 8859-1 encoding for Portuguese text",
+      "description": "Awareness that Portuguese text often uses ISO 8859-1 encoding in NLTK resources, and how to decode such text in Python.",
+      "coverage_criteria": [
+        "Student can explain the need for specifying encoding when opening Portuguese text files and can decode bytes using ISO 8859-1."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides an example of reading a file with 'ISO 8859-1' decoding and discusses the encoding.",
+        "granularity_rationale": "Encoding is a practical detail; this candidate focuses on a single encoding standard, which is testable with a short explanation."
+      },
+      "anchors": [
+        "Character Encodings"
+      ]
+    },
+    {
+      "id": "c28_pro_thinking_017",
+      "label": "Implementing a basic concordance function",
+      "description": "Writing a function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Student can define a function that takes a word and context width, iterates over sentences, and prints formatted concordance lines."
+      ],
+      "source_roles": [
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a complete concordance() function in the Processing Tasks section.",
+        "granularity_rationale": "This is a self-contained coding task that encapsulates indexing and formatting, suitable for a practical assessment."
+      },
+      "anchors": [
+        "Processing Tasks",
+        "Simple Concordancing"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_001",
+      "label": "NLTK word_tokenize for better tokenization",
+      "description": "Using nltk.word_tokenize splits text into tokens while properly handling contractions like 'wasn't' into 'was' and \"n't\", unlike regex-based splitting.",
+      "coverage_criteria": [
+        "Can explain why nltk.word_tokenize is better than simple regex splitting for handling English contractions.",
+        "Can demonstrate using nltk.word_tokenize on a sentence with contractions.",
+        "Can identify that 'was' and 'not' become separate tokens, useful for negation handling."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly demonstrates tokenization using both regex and NLTK's word_tokenize, highlighting the advantage of better handling contractions like 'wasn't'.",
+        "granularity_rationale": "Tokenization is a single step in NLP pipeline, and this candidate isolates the specific feature of handling contractions—small enough for focused assessment."
+      },
+      "anchors": [
+        "02:33 Tokenization"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_002",
+      "label": "Porter Stemmer algorithm",
+      "description": "Porter Stemmer is a rule-based stemming algorithm that reduces words to their stems by applying a series of suffix stripping rules.",
+      "coverage_criteria": [
+        "Can describe the basic operation of Porter Stemmer as rule-based stemming.",
+        "Can use PorterStemmer from nltk.stem to stem a list of words.",
+        "Can identify that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video demonstrates initializing PorterStemmer, applying it to plural words, and showing the stemmed outputs, explaining the rule-based approach.",
+        "granularity_rationale": "Porter Stemmer is one specific stemming algorithm; understanding its behavior is a focused concept suitable for assessment."
+      },
+      "anchors": [
+        "03:46 Stemming with Porter Stemmer"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+    "display_code": "L14",
+    "workbook_row_number": 57,
+    "title": "Decision-Making in the Age of AI",
+    "date": "24/06/2026",
+    "professor": "Marcelo de Paula do Desterro Gorini",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "Artificial intelligence is reshaping how decisions are made but it has not replaced the need for human judgment. This lesson explores the evolving relationship between AI-powered tools and the decision-maker, examining when to trust algorithms, when to override them, and how to build decision processes that leverage the best of both."
+  },
+  "self_study": {
+    "self_study_id": "58",
+    "lesson_id": "lesson-2026-06-24-decision-making-in-the-age-of-ai",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 58,
+      "week": 10,
+      "sort": 8,
+      "title": "AI and the future of human decision-making",
+      "description": "As AI transforms decision-making, how can organizations make quality decisions, anchored in human agency and trust?",
+      "url": "https://www.deloitte.com/us/en/insights/topics/talent/human-capital-trends/2026/decision-making-with-ai.html",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Decision-Making in the Age of AI",
+      "class_date": "24/06/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0058-article-ai-and-the-future-of-human-decision-making.md",
+      "sha256": "eee3792687e135c26e1bde88c9d5f6a012de0065e03492fbe0a49e1c0da2c0cc",
+      "word_count": 735,
+      "bytes": 5383,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/58/58-ai-and-the-future-of-human-decision-making.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/58",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0058-article-ai-and-the-future-of-human-decision-making.md",
+    "sha256": "eee3792687e135c26e1bde88c9d5f6a012de0065e03492fbe0a49e1c0da2c0cc",
+    "word_count": 735,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/58/58-ai-and-the-future-of-human-decision-making.md",
+    "markdown": "---\nid: \"58\"\ntitle: \"AI and the future of human decision-making\"\nsource_url: \"https://www.deloitte.com/us/en/insights/topics/talent/human-capital-trends/2026/decision-making-with-ai.html\"\nfetch_url: \"https://www.deloitte.com/us/en/insights/topics/talent/human-capital-trends/2026/decision-making-with-ai.html\"\nresolved_url: \"https://www.deloitte.com/us/en/insights/topics/talent/human-capital-trends/2026/decision-making-with-ai.html\"\nfirecrawl_title: \"Decision-making with AI | Deloitte Insights\"\ndescription: \"As AI becomes a decision maker, accountability is critical. Learn how to design decision making with AI that preserves human agency, trust, and accountability., The most powerful, simple and trusted way to gather experience data. Start your journey to experience management and try a free account today., The most powerful, simple and trusted way to gather experience data. Start your journey to experience management and try a free account today.\"\nfetched_at: \"2026-05-26T16:50:21.551479Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"5c8a8a9674acdaf9012d68ed34162a145716629974e43213c689d7ccf4fc69a6\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html;charset=utf-8\"\nword_count: 553\nchar_count: 3950\ncontent_sha256: \"107044f5a13b1423638ae206ebddb5cadca7dbc2b20fecfae504c7825090b873\"\nimage_count: 18\nlink_count: 81\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# AI and the future of human decision-making\n\nAs AI transforms decision-making, how can organizations make quality decisions, anchored in human agency and trust?\n\nBy David Mallon, Julie Duda, Stefano Besana, Maya Bodan\n\n9-min read•4 March 2026\n\n![AI and the future of human decision-making banner image](https://www.deloitte.com/content/dam/insights/articles/2026/us188560_ghct2026_human-decision-making/content-images/US188560_Mobile-375x344.png)\n\n## Introduction\n\nAI has the potential to transform human decision-making. However, organizations should first treat this process as a strategic discipline and then design human–machine decision-making relationships accordingly. \n\nThese stories illustrate important questions: What could have been done differently? How do organizations improve input and oversight when AI is involved in decisions? What is the best mix of AI and human in each decision, leveraging enough machine autonomy to improve speed, consistency, and scale while also maintaining sufficient human agency?\n\n### Running with scissors: AI and decision-making\nLeaders today face a torrent of choices in conditions that are noisier, faster, and riskier than ever. ... Today’s cautionary tales can become tomorrow’s competitive advantage.\n\nAccording to a 2023 Oracle study, 85% of business leaders regret or question decisions they had made in the past. Additionally, 72% of those leaders say the volume of data and their lack of trust in data has stopped them from making *any* decision at all.\n\nMany are turning to AI as a solution. In our 2026 Global Human Capital Trends survey, 60% of executives now regularly use AI to support their decisions.\n\n### Elements of a decision framework\n\n| Element | Defining Question | Implications |\n| --- | --- | --- |\n| Risk profile | - Potential consequences and reversibility | - Higher risk: Greater diligence and consultation |\n| Frequency | - Often-made or one-off | - Frequent: Opportunities to experiment or automate<br>- One-off: Bespoke analysis and explicit leadership calls |\n| Urgency vs. importance | - Time sensitivity vs. strategic value | - Route as: Do-now, schedule, delegate, or ignore. |\n| Horizon | - Timing of consequences<br>- Cyber | - Align KPIs, funding, and risk to the time horizon: win now vs. build future<br>- Cyber |\n| Certainty/risk/uncertainty | - Knowns vs. predictable unknowns vs true unknowns | - Knowns/quantifiable: model risk<br>- Uncertain: use adaptive playbooks. |\n| Level of chaos (Cynefin) | - How obvious is connection between cause and effect | If environment is…<br>- **Clear:** Use best practice<br>- **Complicated:** Use expert analysis<br>- **Complex:** Probe-sense-respond<br>- **Chaotic:** Act to stabilize |\n| Option-creating vs. commitment | - Expands or constrains future choices | - Expands: Treat like experiment<br>- Commits: Treat like capital investments. |\n| Guardrail-critical vs. value-seeking | - Degree of sensitivity, regulation, or special requirements for decision makers (i.e., certification) | - Guardrails: Use rules & audits<br>- Value-seeking: Use creative risk-return calculus. |\n\n### Elevating both humans and machines as decision makers\n\nOrganizations should design for the decision-making competence they need: building human decision-making skill and measuring AI performance with rigor befitting their mission-critical contributions. \n\n### Design for human agency\n\n**Build accountability through human agency.** Clearly connect choices to choosers, giving decision-makers confidence grounded in comprehension (not mere compliance).\n\n**Determine the level of AI agency based on desired outcomes.** Design how much autonomy AI agents have based on the risk profile of the decision.\n\n### Decision-making that works for humans and machines\n\nOrganizations that elevate decision-making... Technology can accelerate analysis and clarify uncertainty, but it cannot replace human purpose, values, and judgment behind choices.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://www.deloitte.com/content/dam/insights/articles/2026/us188560_ghct2026_human-decision-making/content-images/US188560_Mobile-375x344.png"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

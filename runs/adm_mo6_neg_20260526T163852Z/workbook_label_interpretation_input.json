@@ -1,0 +1,10 @@
+{
+  "artifact_type": "workbook_label_interpretation_input",
+  "schema_version": "workbook_label_interpretation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/workbook_label_interpretation.md",
+  "prompt": "You are classifying workbook labels for the Concept Graph Creation v0 pipeline.\n\nUse the provided source ledger context and classify only the labels listed in\n`labels_to_classify`. Relevant workbook context for each label is provided in\n`label_contexts`. Reuse any labels provided in `existing_interpretations`\nwithout changing their pattern, confidence, or rationale.\n\nAllowed patterns:\n\n- `prerequisite_hint`: a foundation concept that may be needed before the\n  active NLP lesson synthesis.\n- `lesson_cluster`: a direct NLP or lesson-theme cluster that should be active\n  in v0 synthesis.\n- `application_adjacent_signal`: useful application or software-engineering\n  context that should remain audit-only.\n- `ignored_ambiguous`: too broad, administrative, or ambiguous for active v0\n  synthesis.\n\nReturn one valid JSON object with a `classifications` array. Include exactly one\nrow for every label in `labels_to_classify`.\n\nEach row must have:\n\n- `label`: exactly the input label.\n- `pattern`: one of the allowed patterns above.\n- `confidence`: short confidence label.\n- `rationale`: one concise reason grounded in the provided workbook context.\n\nThe pipeline code will assemble the final `workbook_label_interpretation.v0`\nartifact from your classifications, including context rows, summaries, active\noutputs, audit-only rows, and ignored labels.\n",
+  "existing_interpretations": {},
+  "label_contexts": {},
+  "labels_to_classify": []
+}

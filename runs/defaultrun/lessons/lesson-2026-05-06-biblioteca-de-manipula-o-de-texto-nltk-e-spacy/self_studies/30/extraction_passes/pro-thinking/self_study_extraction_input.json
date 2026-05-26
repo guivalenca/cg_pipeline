@@ -1,0 +1,80 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+    "display_code": "L04",
+    "workbook_row_number": 27,
+    "title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+    "date": "06/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Manipulação de texto",
+      "Representação de palavras"
+    ],
+    "description": "O objetivo deste encontro é consolidar as técnicas apresentadas de processamento de textos nos encontros anteriores utilizando as bibliotecas NLTK e Spacy. O objetivo desta aplicação é permitir que a pessoa desenvolvedora consiga compreender como as ferramentas de mercado são utilizadas na implementação de técnicas de processamento de linguagem natural."
+  },
+  "self_study": {
+    "self_study_id": "30",
+    "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 30,
+      "week": 3,
+      "sort": 11,
+      "title": "Curso de spaCy",
+      "description": "Realizar o capítulo 1 do treinamento PLN Avançado com spaCy. Ao término deste autoestudo, espera-se que os estudantes possam compreender como utilizar a biblioteca spaCy para processar textos.",
+      "url": "https://course.spacy.io/pt/chapter1",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Manipulação de texto",
+        "Representação de palavras"
+      ],
+      "parent_class": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "class_date": "06/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0030-article-curso-de-spacy.md",
+      "sha256": "738deb172a265039124bbf8a37e7544ab940556182f879ab9f27ae13f8bd7f6e",
+      "word_count": 1231,
+      "bytes": 8862,
+      "source_markdown": "article/firecrawl/output/30/30-curso-de-spacy.md",
+      "artifact_dir": "article/firecrawl/output/30",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0030-article-curso-de-spacy.md",
+    "sha256": "738deb172a265039124bbf8a37e7544ab940556182f879ab9f27ae13f8bd7f6e",
+    "word_count": 1231,
+    "source_markdown": "article/firecrawl/output/30/30-curso-de-spacy.md",
+    "markdown": "---\nid: \"30\"\ntitle: \"Curso de spaCy\"\nsource_url: \"https://course.spacy.io/pt/chapter1\"\nfetch_url: \"https://course.spacy.io/pt/chapter1\"\nresolved_url: \"https://course.spacy.io/pt/chapter1\"\nfirecrawl_title: \"Capítulo 1: Selecionando palavras, frases, nomes e alguns conceitos\"\ndescription: \"Neste capítulo vamos apresentar os conceitos básicos de processamento de texto utilizando a  biblioteca spaCy. Você vai aprender sobre as estruturas de dados, como trabalhar fluxos de processamento (pipelines) treinados e como usá-los para prever anotações linguísticas do seu texto.\"\nfetched_at: \"2026-05-12T03:59:51.552498Z\"\nprovider: \"firecrawl\"\nstrategy: \"spacy_course_gatsby\"\ncache_key: \"6b8839b9a5ecb38afe187477397421f97a223f7ddfb43df97e38081acde377cf\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"application/json\"\nword_count: 1117\nchar_count: 7545\ncontent_sha256: \"1dcb4d6853cd276ab7867c1c9e106cec40704d3e9709b35be5c824be4b469aad\"\nimage_count: 0\nlink_count: 0\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes:\n  - \"separate_screenshot\"\n  - \"spacy_gatsby_page_data_extractor\"\n---\n\n# Capítulo 1: Selecionando palavras, frases, nomes e alguns conceitos\n\nNeste capítulo vamos apresentar os conceitos básicos de processamento de texto utilizando a  biblioteca spaCy. Você vai aprender sobre as estruturas de dados, como trabalhar fluxos de processamento (pipelines) treinados e como usá-los para prever anotações linguísticas do seu texto.\n\n## 1. Introdução a biblioteca spaCy (slides)\n\n> spaCy slide deck: `chapter1_01_introduction-to-spacy`\n\n\n## 2. Primeiros passos\n\nVamos começar colocando a mão na massa! Neste exercício você fará\nexperimentos com alguns dos mais de 60 [idiomas disponíveis](https://spacy.io/usage/models#languages).\n\n### Parte 1: Inglês\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma inglês (“en”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n### Parte 2: Alemão\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma alemão (“de”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n### Parte 3: Espanhol\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma espanhol (“es”).\n- Crie uma variável `doc` e imprima o seu conteúdo.\n\n\n## 3. Documentos, partições e tokens\n\nQuando você chama o objeto `nlp` passando uma string como parâmetro, a spaCy\nfaz a toquenização do texto e cria um objeto do tipo documento. Neste exercício, você\nvai aprender mais sobre o documento `Doc`, assim como os objetos `Token` e\npartição `Span`.\n\n### Passo 1\n\n- Utilize `spacy.blank` para criar um objeto `nlp` vazio do idioma português (“pt”).\n- Processe o texto e instancie um objeto `Doc` na variável `doc`.\n- Selecione o primeiro token do objeto `Doc` e imprima seu texto `text`.\n\n> spaCy interactive code block: `01_03_01`\n\n### Passo 2\n\n- Crie um objeto `nlp` vazio do idioma `Português`.\n- Processe o texto e instancie um objeto `Doc` na variável `doc`.\n- Crie uma partição do `Doc` para os tokens “três cachorros” e\n“três cachorros e dois gatos”.\n\n> spaCy interactive code block: `01_03_02`\n\n\n## 4. Atributos léxicos\n\nNeste exemplo, você poderá usar os objetos `Doc` e `Token` combinados com\natributos léxicos para encontrar referências de porcentagem em seu texto. Você irá procurar\npor dois elementos (tokens) sequenciais: um número e um sinal de porcentagem.\n\n- Use o atributo `like_num` para identificar se algum token no documento\n`doc` se assemelha a um número.\n- Selecione o token _seguinte_ ao token atual no documento. O índice para o\npróximo token no `doc` é `token.i + 1`.\n- Verifique se o atributo `text` do próximo token é o sinal de porcentagem ”%“.\n\n> spaCy interactive code block: `01_04`\n\n\n## 5. Fluxos de processamento treinados (slides)\n\n> spaCy slide deck: `chapter1_02_statistical-models`\n\n\n## 6. Biblioteca dos modelos (choice)\n\nO que **NÃO** está incluído nos fluxos de processamento (pipelines) que você pode carregar na spaCy?\n\n> spaCy multiple-choice exercise\n\nTodos os fluxos de processamento (pipelines) incluem um arquivo `config.cfg` que define o idioma de\ninicialização, os componentes do fluxo (pipeline) de processamento que devem ser carregados, bem como as informações\nsobre o treinamento do fluxo (pipeline) de processamento e as configurações que foram utilizadas neste treinamento.\n\nPara fazer a previsão de anotações linguísticas como o tagueamento de classes\ngramaticais, termos sintáticos e reconhecimento de entidades, os pacotes de fluxos de processamento (pipelines) incluem\nos pesos binários.\n\nOs fluxos de processamento treinados permitem a generalização a partir de um conjunto de\nexemplos de treinamento. Uma vez treinados, os modelos usam os pesos binários\npara fazer as previsões. É por este motivo que não é necessário que os dados de\ntreinamento sejam incluídos nos modelos.\n\nAs bibliotecas de fluxos de processamento (pipelines) incluem um arquivo `strings.json` que armazena o mapeamento\ndo vocabulário para códigos indexadores (hash). Isso permite que a spaCy utilize apenas os\ncódigos hash e faça a consulta da palavra correspondente, se necessário.\n\n\n## 7. Carregando os fluxos (pipelines) de processamento\n\nOs fluxos (pipelines) de processamento que estamos usando neste treinamento já vem pré-instalados. Para\nsaber mais informações sobre os fluxos (pipelines) de processamento treinados e como instalá-los em seu\ncomputador, consulte [essa documentação](https://spacy.io/usage/models).\n\n- Utilize `spacy.load` para carregar o fluxo (pipeline) de processamento pequeno do idioma português `\"pt_core_news_sm\"`.\n- Processe o texto e imprima o texto do documento.\n\n> spaCy interactive code block: `01_07`\n\n\n## 8. Prevendo anotações linguísticas\n\nAgora vamos experimentar um dos fluxos (pipelines) de processamento treinados da biblioteca spaCy e\nver o resultado de sua previsão. Fique à vontade e experimente com seu\npróprio texto! Use `spacy.explain` para saber o significado de um determinado\nmarcador. Por exemplo: `spacy.explain(\"PROPN\")` ou `spacy.explain(\"GPE\")`.\n\n### Parte 1\n\n- Processe o texto utilizando o objeto `nlp` e crie um `doc`.\n- Para cada token, imprima seu texto, sua classe gramatical  `.pos_` e seu\ntermo sintático `.dep_`\n\n> spaCy interactive code block: `01_08_01`\n\n### Parte 2\n\n- Processe o texto utilizando o objeto `nlp` e crie um `doc`.\n- Construa uma iteração em `doc.ents` e imprima os atributos texto e o\nmarcador `label_`.\n\n> spaCy interactive code block: `01_08_02`\n\n\n## 9. Prevendo Entidades em um contexto\n\nOs modelos são estatísticos e por isso não acertam 100% dos casos.  A acurácia\ndo modelo depende dos dados nos quais o modelo foi treinado e também dos\ndados que você está processando. Vamos ver um exemplo:\n\n- Processe o texto utilizando o objeto `nlp`.\n- Construa uma iteração nas entidades e imprima o texto e o marcador (label) da entidade.\n- Note que o modelo não previu “iPhone X”. Crie manualmente uma partição\npara esses tokens.\n\n> spaCy interactive code block: `01_09`\n\n\n## 10. Correspondência de texto baseada em regras (slides)\n\n> spaCy slide deck: `chapter1_03_rule-based-matching`\n\n\n## 11. Usando o comparador Matcher\n\nVamos agora testar o comparador de expressões  `Matcher` baseado em\nregras. Você vai usar o exemplo do exercício anterior e escrever uma expressão\nque faça a correspondência para a frase “iPhone X” no texto.\n\n- Importe o `Matcher` de `spacy.matcher`.\n- Inicialize o comparador com o objeto compartilhado `vocab`do `nlp`.\n- Crie uma expressão que faça a correspondência dos valores em `\"TEXT\"` para dois tokens:\n`\"iPhone\"` e `\"X\"`.\n- Use o método `matcher.add` e adicione essa expressão ao comparador.\n- Chame o comparador passando como parâmetro o `doc` e armazene o resultado\nna variável `matches`.\n- Itere nos resultados e selecione a partição de texto com o índice `start` até\n`end`.\n\n> spaCy interactive code block: `01_11`\n\n\n## 12. Escrevendo expressões de correspondência\n\nNeste exercício, você vai escrever algumas expressões mais complexas de\ncorrespondência, usando os atributos dos tokens e operadores.\n\n### Parte 1\n\n- Escreva **uma** expressão que corresponda às menções da versão IOS  _completa_:\n“iOS 7”, “iOS 11” e “iOS 10”.\n\n> spaCy interactive code block: `01_12_01`\n\n### Parte 2\n\n- Escreva **uma** expressão que corresponda às variações de “baixar” (tokens\nque tenham “baixar” como lema), seguido de um token da classe gramatical\nsubstativo próprio `\"PROPN\"`.\n\n> spaCy interactive code block: `01_12_02`\n\n### Part 3\n\n- Escreva **uma** expressão que corresponda a adjetivos (`\"ADJ\"`) seguidos por um\nou dois substantivos. (um substantivo obrigatório e um seguinte opcional).\n\n> spaCy interactive code block: `01_12_03`\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

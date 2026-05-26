@@ -1,0 +1,2193 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+  "lesson": {
+    "id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+    "title": "Processamento de texto, métricas e técnicas",
+    "description": "Durante este encontro, as técnicas de PLN apresentadas no encontro anterior serão aplicadas em texto para realizar sua caracterização. As métricas e técnicas utilizadas para essa caracterização serão apresentadas aos estudantes com o objetivo que eles possam realizar sua aplicação de forma independente das aplicações desenvolvidas por elas.",
+    "date": "29/04/2026",
+    "display_code": "L02"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-19T17:30:49.468145+00:00",
+    "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+    "lesson": {
+      "id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "title": "Processamento de texto, métricas e técnicas",
+      "description": "Durante este encontro, as técnicas de PLN apresentadas no encontro anterior serão aplicadas em texto para realizar sua caracterização. As métricas e técnicas utilizadas para essa caracterização serão apresentadas aos estudantes com o objetivo que eles possam realizar sua aplicação de forma independente das aplicações desenvolvidas por elas.",
+      "date": "29/04/2026",
+      "display_code": "L02"
+    },
+    "scores": {
+      "concept_validity": 3,
+      "granularity": 2,
+      "evidence_preservation": 3,
+      "assignment_quality": 1,
+      "pruning_review_quality": 0,
+      "coverage_criteria": 3,
+      "lesson_coherence": 3,
+      "net_phase4_benefit": 0
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "review_needed",
+      "deterministic_review_fallback"
+    ],
+    "metrics": {
+      "input_candidate_count": 76,
+      "reconciled_candidate_count": 1,
+      "pruned_candidate_count": 0,
+      "review_count": 74,
+      "deterministic_review_count": 74,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 2,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 0,
+      "off_lesson_accepted_count": 0,
+      "accepted_candidate_assignment_count": 2,
+      "source_body_candidate_count": 76,
+      "assignment_count": 76,
+      "accepted_ratio": 0.0132,
+      "pruned_ratio": 0.0,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0,
+      "review_ratio": 0.9737
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "review_fallback",
+        "candidate_ids": [
+          "c14_pro_thinking_002",
+          "c15_pro_thinking_012",
+          "c15_pro_thinking_013",
+          "c15_pro_thinking_014",
+          "c15_pro_thinking_015",
+          "c15_pro_thinking_016",
+          "c15_pro_thinking_017",
+          "c15_pro_thinking_018",
+          "c15_pro_thinking_019",
+          "c15_pro_thinking_020",
+          "c15_pro_thinking_021",
+          "c15_pro_thinking_022",
+          "c15_pro_thinking_023",
+          "c15_pro_thinking_024",
+          "c15_pro_thinking_025",
+          "c14_pro_thinking_003",
+          "c14_pro_thinking_004",
+          "c14_pro_thinking_005",
+          "c14_pro_thinking_006",
+          "c15_pro_thinking_002",
+          "c15_pro_thinking_003",
+          "c15_pro_thinking_004",
+          "c15_pro_thinking_005",
+          "c15_pro_thinking_006",
+          "c15_pro_thinking_007",
+          "c15_pro_thinking_008",
+          "c15_pro_thinking_009",
+          "c15_pro_thinking_010",
+          "c15_pro_thinking_011",
+          "c16_pro_thinking_001",
+          "c17_pro_thinking_001",
+          "c17_pro_thinking_002",
+          "c16_pro_thinking_002",
+          "c16_pro_thinking_003",
+          "c16_pro_thinking_004",
+          "c16_pro_thinking_005",
+          "c17_pro_thinking_003",
+          "c17_pro_thinking_004",
+          "c17_pro_thinking_005",
+          "c17_pro_thinking_006",
+          "c16_pro_thinking_006",
+          "c16_pro_thinking_007",
+          "c16_pro_thinking_008",
+          "c16_pro_thinking_009",
+          "c16_pro_thinking_010",
+          "c16_pro_thinking_011",
+          "c17_pro_thinking_008",
+          "c17_pro_thinking_007",
+          "c18_pro_thinking_001",
+          "c18_pro_thinking_002",
+          "c18_pro_thinking_003",
+          "c18_pro_thinking_005",
+          "c18_pro_thinking_006",
+          "c18_pro_thinking_007",
+          "c18_pro_thinking_008",
+          "c18_pro_thinking_009",
+          "c19_pro_thinking_001",
+          "c19_pro_thinking_003",
+          "c20_pro_thinking_005",
+          "c18_pro_thinking_004",
+          "c19_pro_thinking_002",
+          "c19_pro_thinking_004",
+          "c19_pro_thinking_005",
+          "c19_pro_thinking_006",
+          "c19_pro_thinking_007",
+          "c19_pro_thinking_008",
+          "c19_pro_thinking_009",
+          "c19_pro_thinking_010",
+          "c20_pro_thinking_001",
+          "c20_pro_thinking_002",
+          "c20_pro_thinking_003",
+          "c20_pro_thinking_004",
+          "c20_pro_thinking_006",
+          "c20_pro_thinking_007"
+        ],
+        "explanation": "Review is not allowed as a final Phase 4 state."
+      }
+    ]
+  },
+  "repair_reason": "review_fallback",
+  "target_candidate_ids": [
+    "c14_pro_thinking_002",
+    "c15_pro_thinking_012",
+    "c15_pro_thinking_013",
+    "c15_pro_thinking_014",
+    "c15_pro_thinking_015",
+    "c15_pro_thinking_016",
+    "c15_pro_thinking_017",
+    "c15_pro_thinking_018",
+    "c15_pro_thinking_019",
+    "c15_pro_thinking_020",
+    "c15_pro_thinking_021",
+    "c15_pro_thinking_022",
+    "c15_pro_thinking_023",
+    "c15_pro_thinking_024",
+    "c15_pro_thinking_025",
+    "c14_pro_thinking_003",
+    "c14_pro_thinking_004",
+    "c14_pro_thinking_005",
+    "c14_pro_thinking_006",
+    "c15_pro_thinking_002",
+    "c15_pro_thinking_003",
+    "c15_pro_thinking_004",
+    "c15_pro_thinking_005",
+    "c15_pro_thinking_006",
+    "c15_pro_thinking_007",
+    "c15_pro_thinking_008",
+    "c15_pro_thinking_009",
+    "c15_pro_thinking_010",
+    "c15_pro_thinking_011",
+    "c16_pro_thinking_001",
+    "c17_pro_thinking_001",
+    "c17_pro_thinking_002",
+    "c16_pro_thinking_002",
+    "c16_pro_thinking_003",
+    "c16_pro_thinking_004",
+    "c16_pro_thinking_005",
+    "c17_pro_thinking_003",
+    "c17_pro_thinking_004",
+    "c17_pro_thinking_005",
+    "c17_pro_thinking_006",
+    "c16_pro_thinking_006",
+    "c16_pro_thinking_007",
+    "c16_pro_thinking_008",
+    "c16_pro_thinking_009",
+    "c16_pro_thinking_010",
+    "c16_pro_thinking_011",
+    "c17_pro_thinking_008",
+    "c17_pro_thinking_007",
+    "c18_pro_thinking_001",
+    "c18_pro_thinking_002",
+    "c18_pro_thinking_003",
+    "c18_pro_thinking_005",
+    "c18_pro_thinking_006",
+    "c18_pro_thinking_007",
+    "c18_pro_thinking_008",
+    "c18_pro_thinking_009",
+    "c19_pro_thinking_001",
+    "c19_pro_thinking_003",
+    "c20_pro_thinking_005",
+    "c18_pro_thinking_004",
+    "c19_pro_thinking_002",
+    "c19_pro_thinking_004",
+    "c19_pro_thinking_005",
+    "c19_pro_thinking_006",
+    "c19_pro_thinking_007",
+    "c19_pro_thinking_008",
+    "c19_pro_thinking_009",
+    "c19_pro_thinking_010",
+    "c20_pro_thinking_001",
+    "c20_pro_thinking_002",
+    "c20_pro_thinking_003",
+    "c20_pro_thinking_004",
+    "c20_pro_thinking_006",
+    "c20_pro_thinking_007"
+  ],
+  "target_candidates": [
+    {
+      "id": "c14_pro_thinking_002",
+      "label": "Main applications of NLP",
+      "description": "NLP is used to understand customer opinions, interpret receipts and invoices, analyze documents and classify content, and analyze trends from news and online articles.",
+      "coverage_criteria": [
+        "Student can list at least three of the four main uses of NLP shown in the source."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source slide at 00:17 presents a bulleted list of four main uses of NLP.",
+        "granularity_rationale": "A short list of applications, small enough to check with one recall question requiring enumeration."
+      },
+      "anchors": [
+        "00:17 Main Uses of NLP"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_012",
+      "label": "Aplicação de recuperação de informação (information retrieval) em PLN",
+      "description": "Consiste em recuperar informação relevante a partir de um texto de pesquisa, como o buscador Google que entende a consulta e retorna resultados satisfatórios.",
+      "coverage_criteria": [
+        "Descrever o que é information retrieval em PLN",
+        "Dar um exemplo de sistema que utiliza essa aplicação"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona o Google como exemplo de information retrieval, explicando como o PLN ajuda a entender a pesquisa e retornar resultados.",
+        "granularity_rationale": "Conceito bem definido, adequado para verificação com pergunta sobre definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_013",
+      "label": "Aplicação de tradução automática (machine translation) em PLN",
+      "description": "A tradução automática utiliza PLN para compreender o significado das palavras no contexto e sugerir a tradução mais adequada, como no Google Tradutor.",
+      "coverage_criteria": [
+        "Explicar como o PLN é usado em machine translation",
+        "Citar um exemplo de ferramenta de tradução automática"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve o funcionamento do Google Tradutor como aplicação de PLN para tradução.",
+        "granularity_rationale": "Conceito claro e delimitado, verificável com definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_014",
+      "label": "Aplicação de sistemas de recomendação (recommendation systems) em PLN",
+      "description": "Sistemas de recomendação sugerem conteúdo similar ao que o usuário consome, utilizando PLN para analisar categorias, títulos e descrições, como nas sugestões da Amazon.",
+      "coverage_criteria": [
+        "Descrever como o PLN é aplicado em sistemas de recomendação",
+        "Dar um exemplo de plataforma que utiliza recomendação baseada em PLN"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto explica que a Amazon usa PLN para sugerir livros similares com base na categoria, título e descrição.",
+        "granularity_rationale": "Conceito específico, pode ser avaliado com perguntas sobre o mecanismo e exemplos."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_015",
+      "label": "Aplicação de respostas inteligentes (smart replies) em PLN",
+      "description": "Sistemas como o Gmail usam PLN para sugerir respostas automáticas a partir das palavras-chave de um e-mail recebido.",
+      "coverage_criteria": [
+        "Explicar o que são smart replies em PLN",
+        "Dar um exemplo de serviço que oferece respostas inteligentes"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona o Gmail como exemplo de aplicação que sugere respostas rápidas automáticas.",
+        "granularity_rationale": "Conceito simples, verificável com definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_016",
+      "label": "Aplicação de reconhecimento de voz (voice recognition) em PLN",
+      "description": "Assistentes como Siri e Cortana utilizam PLN para reconhecer a voz do usuário e executar tarefas a partir de comandos falados.",
+      "coverage_criteria": [
+        "Explicar a relação entre PLN e reconhecimento de voz",
+        "Citar exemplos de assistentes de voz que utilizam PLN"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto lista Siri e Cortana como exemplos de aplicações que precisam de reconhecimento de voz.",
+        "granularity_rationale": "Conceito direto, avaliável com pergunta sobre função e exemplos."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_017",
+      "label": "Aplicação de análise de sentimento (sentiment analysis) em PLN",
+      "description": "Consiste em analisar comentários em redes sociais para determinar se o sentimento sobre um produto é positivo ou negativo, auxiliando empresas na percepção do consumidor.",
+      "coverage_criteria": [
+        "Definir análise de sentimento no contexto de PLN",
+        "Dar um exemplo de onde a análise de sentimento pode ser aplicada"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona que empresas podem verificar a percepção do consumidor analisando sentimentos em comentários no Facebook e Twitter.",
+        "granularity_rationale": "Conceito bem delimitado, apropriado para verificação com definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_018",
+      "label": "Aplicação de sites de perguntas e respostas em PLN",
+      "description": "Sites de Q&A usam PLN para verificar se uma pergunta já foi respondida ou para mostrar perguntas similares, otimizando a busca por informações.",
+      "coverage_criteria": [
+        "Explicar como o PLN é usado em sites de perguntas e respostas",
+        "Dar um exemplo de funcionalidade melhorada por PLN nesses sites"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto afirma que sites de perguntas e respostas utilizam PLN para verificar duplicidade e sugerir perguntas similares.",
+        "granularity_rationale": "Conceito específico, verificável com pergunta sobre a aplicação e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_019",
+      "label": "Aplicação de extração de informação (information extraction) em PLN",
+      "description": "Extração de informação refere-se a obter automaticamente dados estruturados como entidades, relacionamentos e atributos a partir de textos.",
+      "coverage_criteria": [
+        "Definir extração de informação em PLN",
+        "Dar um exemplo do que pode ser extraído de um texto"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve extração de informação como aplicação importante que identifica entidades e relacionamentos.",
+        "granularity_rationale": "Conceito claro, pode ser avaliado com pergunta sobre definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_020",
+      "label": "Aplicação de sumarização de texto (text summarization) em PLN",
+      "description": "Técnica que permite encurtar grandes textos, criando um resumo com os principais pontos; é usada em chatbots para entender pontos-chave de conversas.",
+      "coverage_criteria": [
+        "Explicar o que é sumarização de texto em PLN",
+        "Citar uma aplicação prática da sumarização de texto"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define sumarização de texto e menciona seu uso em chatbots.",
+        "granularity_rationale": "Conceito bem definido, verificado com pergunta sobre definição e uso."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_021",
+      "label": "Aplicação de classificação de texto (text classification) em PLN",
+      "description": "Processo de atribuir tags ou categorias a um texto com base em seu conteúdo, importante para lidar com dados não estruturados como e-mails e redes sociais.",
+      "coverage_criteria": [
+        "Definir classificação de texto em PLN",
+        "Dar um exemplo de dado não estruturado que pode ser classificado"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto explica que classificação de texto é uma das principais tarefas do PLN para extrair informação relevante de dados não estruturados.",
+        "granularity_rationale": "Conceito simples, verificável com definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_022",
+      "label": "Aplicação de modelagem de tópicos (topic modeling) em PLN",
+      "description": "Tarefa de extrair os principais tópicos (conjuntos de palavras) de uma coleção de documentos, importante para sistemas de recomendação.",
+      "coverage_criteria": [
+        "Explicar o que é modelagem de tópicos",
+        "Citar uma aplicação que utiliza modelagem de tópicos"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define modelagem de tópicos e a relaciona com sistemas de recomendação.",
+        "granularity_rationale": "Conceito específico, adequado para verificação com definição e exemplo."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_023",
+      "label": "Aplicação de OCR (optical character recognition) em PLN",
+      "description": "OCR é a tecnologia para reconhecimento automático de texto em documentos impressos, manuscritos ou digitalizados, convertendo-os em formato legível pela máquina.",
+      "coverage_criteria": [
+        "Descrever o que é OCR e sua relação com PLN",
+        "Dar um exemplo de uso de OCR"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto explica OCR como aplicação de PLN para reconhecimento de texto, exemplificando com cartões e passaportes.",
+        "granularity_rationale": "Conceito direto, verificável com pergunta sobre funcionalidade e exemplos."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_024",
+      "label": "Aplicação de named entity recognition em PLN",
+      "description": "Técnica usada na extração de informação para identificar, segmentar e classificar entidades do mundo real em textos, como pessoas, lugares e empresas.",
+      "coverage_criteria": [
+        "Definir named entity recognition no contexto de PLN",
+        "Dar exemplos de tipos de entidades reconhecidas"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve named entity recognition como técnica popular para identificar entidades em textos.",
+        "granularity_rationale": "Conceito bem delimitado, adequado para verificação com pergunta de definição e exemplos."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_025",
+      "label": "Aplicação de natural language generation em PLN",
+      "description": "Processo que transforma dados estruturados em linguagem natural, usado para automatizar a produção de conteúdo, como relatórios personalizados.",
+      "coverage_criteria": [
+        "Explicar o que é natural language generation",
+        "Dar um exemplo de aplicação que poderia usar NLG"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define natural language generation como a transformação de dados estruturados em linguagem humana, usado para gerar conteúdo automaticamente.",
+        "granularity_rationale": "Conceito claro, verificável com definição e exemplo de uso."
+      },
+      "anchors": [
+        "3 Avaliação da adequada aplicação do processamento de linguagem natural em problemas reais"
+      ]
+    },
+    {
+      "id": "c14_pro_thinking_003",
+      "label": "API Natural Language (Google Cloud)",
+      "description": "Google Cloud's API Natural Language provides pre-trained models for developers to work with natural language understanding features.",
+      "coverage_criteria": [
+        "Student can describe the purpose of API Natural Language and distinguish it from other Google Cloud NLP tools."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The slide at 00:32 explicitly introduces API Natural Language and explains its function with pre-trained models.",
+        "granularity_rationale": "A single tool description, checkable with one short-answer question about its purpose."
+      },
+      "anchors": [
+        "00:32 API Natural Language"
+      ]
+    },
+    {
+      "id": "c14_pro_thinking_004",
+      "label": "AutoML Natural Language (Google Cloud)",
+      "description": "AutoML Natural Language allows users to create and deploy custom machine learning models for natural language tasks.",
+      "coverage_criteria": [
+        "Student can describe the purpose of AutoML Natural Language and how it differs from pre-trained APIs."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The slide at 00:38 presents AutoML Natural Language and explains it enables custom model creation and implementation.",
+        "granularity_rationale": "A single tool description, checkable with one question about its custom model capability."
+      },
+      "anchors": [
+        "00:38 AutoML Natural Language"
+      ]
+    },
+    {
+      "id": "c14_pro_thinking_005",
+      "label": "Dialogflow (Google Cloud)",
+      "description": "Dialogflow is a complete development package for building conversational interfaces and deploying them on websites or applications.",
+      "coverage_criteria": [
+        "Student can identify Dialogflow as a tool for creating conversational interfaces and explain where it can be deployed."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The slide at 00:44 describes Dialogflow as a development package for conversational interfaces and mentions deployment on websites and apps.",
+        "granularity_rationale": "A focused tool explanation, checkable with one question about its use case."
+      },
+      "anchors": [
+        "00:44 Dialogflow"
+      ]
+    },
+    {
+      "id": "c14_pro_thinking_006",
+      "label": "Document AI (Google Cloud)",
+      "description": "Document AI is a tool for reading and interpreting documents and data at scale.",
+      "coverage_criteria": [
+        "Student can state what Document AI does and note its emphasis on scale."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The slide at 00:50 states that Document AI is a tool for reading and interpreting documents and data at scale.",
+        "granularity_rationale": "A concise tool description, checkable with a single recall question."
+      },
+      "anchors": [
+        "00:50 Document AI"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_002",
+      "label": "Desafio de segmentação em PLN",
+      "description": "A segmentação é o desafio de decompor corretamente textos em unidades como sentenças; dados complexos (tabelas, gráficos, abreviações) dificultam essa tarefa.",
+      "coverage_criteria": [
+        "Explicar o que é o desafio de segmentação em PLN",
+        "Dar um exemplo de texto onde a segmentação é difícil"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve problemas de segmentação com um exemplo de quebra de sentenças.",
+        "granularity_rationale": "Conceito isolado que pode ser verificado com questões sobre definição e exemplos."
+      },
+      "anchors": [
+        "Problemas de segmentação"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_003",
+      "label": "Desafio de análise de contexto em PLN",
+      "description": "A análise de contexto é uma das tarefas mais desafiadoras em PLN, pois palavras idênticas podem ter significados diferentes dependendo do contexto; usa-se gráficos de conhecimento e estatística para inferir o contexto correto.",
+      "coverage_criteria": [
+        "Explicar por que a análise de contexto é desafiadora em PLN",
+        "Descrever como gráficos de conhecimento podem ajudar na análise de contexto"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto aborda o desafio de análise de contexto, comparando frases com a palavra 'colher' em contextos diferentes.",
+        "granularity_rationale": "Conceito de tamanho moderado que pode ser avaliado com questões sobre definição e técnica."
+      },
+      "anchors": [
+        "Análise de contexto"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_004",
+      "label": "Desafio de extração do significado semântico em PLN",
+      "description": "Extrair o significado semântico é desafiador porque frases com palavras idênticas podem ter significados diferentes; é necessário combinar metodologias linguísticas e semânticas para que a máquina entenda o sentido real.",
+      "coverage_criteria": [
+        "Explicar o que é o desafio de extração do significado semântico",
+        "Dar exemplo de duas frases com palavras semelhantes mas semântica diferente"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto exemplifica frases 'O gato come o inseto' e 'O inseto come a comida do gato' para ilustrar o desafio semântico.",
+        "granularity_rationale": "Conceito específico, verificável com definição e exemplo."
+      },
+      "anchors": [
+        "Extração do significado semântico"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_005",
+      "label": "Desafio da ambiguidade em PLN",
+      "description": "Ambiguidade ocorre quando uma palavra tem dois ou mais significados, dificultando o entendimento da máquina; exemplo: 'Ela sentou na cadeira e quebrou o braço'.",
+      "coverage_criteria": [
+        "Definir ambiguidade no contexto de PLN",
+        "Dar um exemplo de frase ambígua e explicar as possíveis interpretações"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto cita a ambiguidade como um dos maiores desafios do PLN e fornece um exemplo claro.",
+        "granularity_rationale": "Conceito pequeno, facilmente avaliável com uma pergunta sobre definição e exemplo."
+      },
+      "anchors": [
+        "Extração do significado semântico"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_006",
+      "label": "Desafio de erros ortográficos em PLN",
+      "description": "Erros ortográficos representam um desafio pois a máquina precisa identificar e corrigir palavras escritas incorretamente, como 'orrida' para 'corrida'.",
+      "coverage_criteria": [
+        "Explicar como erros ortográficos impactam o PLN",
+        "Dar um exemplo de correção ortográfica que um sistema de PLN pode realizar"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona que erros ortográficos são um grande desafio e exemplifica com a busca 'orrida de cavalos'.",
+        "granularity_rationale": "Conceito simples, verificável com definição e exemplo."
+      },
+      "anchors": [
+        "Extração do significado semântico"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_007",
+      "label": "Desafio de neologismos em PLN",
+      "description": "Neologismos são novos termos ou conceitos que surgem na língua e são difíceis de ensinar para as máquinas, como a expressão 'dar um bolo'.",
+      "coverage_criteria": [
+        "Definir neologismo e explicar por que é um desafio para PLN",
+        "Dar um exemplo de neologismo que a máquina teria dificuldade de entender"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto cita neologismos como desafio e usa o exemplo 'dar um bolo'.",
+        "granularity_rationale": "Conceito específico, adequado para verificação com pergunta direta."
+      },
+      "anchors": [
+        "Neologismos"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_008",
+      "label": "Desafio de figuras de linguagem e abreviações em PLN",
+      "description": "Figuras de linguagem como ironia e o uso de abreviações (ex.: 'vc', 'blz') e acrônimos (ex.: 'SQN') dificultam o entendimento da máquina.",
+      "coverage_criteria": [
+        "Explicar por que figuras de linguagem são desafiadoras para máquinas",
+        "Listar algumas abreviações comuns que afetam o PLN"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve esses desafios com exemplos de ironia, abreviações e acrônimos.",
+        "granularity_rationale": "Conceito amplo, mas pode ser verificado com perguntas sobre definição e exemplos."
+      },
+      "anchors": [
+        "Figuras de linguagem e o uso de abreviações e acrônimos"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_009",
+      "label": "Desafio de correferência em PLN",
+      "description": "Coreference resolution é a tarefa de identificar todas as expressões que se referem à mesma entidade do mundo real, como 'eu' e 'minha' referindo-se à mesma pessoa.",
+      "coverage_criteria": [
+        "Explicar o que é correferência em PLN",
+        "Identificar correferências em uma frase de exemplo"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define coreference resolution e exemplifica com 'Eu votei no Zezinho porque ele...'.",
+        "granularity_rationale": "Conceito específico e bem delimitado, adequado para verificação."
+      },
+      "anchors": [
+        "Figuras de linguagem e o uso de abreviações e acrônimos"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_010",
+      "label": "Desafio de negação e especulação em PLN",
+      "description": "Negação e especulação são categorias gramaticais que indicam negação de proposição ou grau de confiança; identificar essas expressões é importante, por exemplo, em relatórios médicos, mas ainda apresenta erros.",
+      "coverage_criteria": [
+        "Diferenciar negação e especulação com exemplos",
+        "Explicar por que a identificação de negação e especulação é relevante em PLN"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto explica negação e especulação com exemplos e cita sua aplicação em biomedicina.",
+        "granularity_rationale": "Conceito de escopo restrito, pode ser avaliado com perguntas de definição e aplicação."
+      },
+      "anchors": [
+        "Uso de negações e especulação"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_011",
+      "label": "Recursos limitados de PLN para a língua portuguesa",
+      "description": "A maioria das ferramentas e estudos de PLN são baseados em inglês; o português possui recursos limitados, mas iniciativas como a WordNet.Br ajudam a superar essa limitação.",
+      "coverage_criteria": [
+        "Explicar por que a língua portuguesa representa um desafio adicional para PLN",
+        "Citar um recurso específico para PLN em português"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona que a maioria das ferramentas usa inglês e cita a WordNet.Br como recurso para português.",
+        "granularity_rationale": "Conceito simples e direto, verificável com uma pergunta sobre o desafio e o recurso."
+      },
+      "anchors": [
+        "Uso de negações e especulação"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_001",
+      "label": "Definição e papel das expressões regulares no PLN",
+      "description": "Expressões regulares são métodos poderosos e flexíveis para detectar padrões de caracteres em textos, funcionando como notações algébricas que representam padrões de busca. Elas são essenciais no PLN para lidar com variações linguísticas, como conjugações verbais.",
+      "coverage_criteria": [
+        "Explicar o que são expressões regulares e por que são úteis no PLN",
+        "Dar um exemplo de busca que seria difícil sem regex"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto introduz o conceito na seção 1 e utiliza o exemplo do verbo 'escrever' para demonstrar a necessidade de padrões flexíveis.",
+        "granularity_rationale": "Conceito fundamental que estabelece a motivação e definição, suficiente para uma verificação inicial de compreensão."
+      },
+      "anchors": [
+        "1 Expressões regulares no processamento de linguagem natural (PLN)"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_001",
+      "label": "Regular Expression Definition",
+      "description": "A regular expression (RegExp or regex) is a formal method to specify a text pattern for matching combinations of characters in a string.",
+      "coverage_criteria": [
+        "Define regular expression in one sentence.",
+        "Explain the purpose of using regex for pattern matching."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video directly defines regex at the beginning, stating it's a formal method to specify a text pattern.",
+        "granularity_rationale": "The definition is a fundamental concept that can be checked with a single question."
+      },
+      "anchors": [
+        "What are Regular Expressions (RegExp)?"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_002",
+      "label": "Metacharacters",
+      "description": "Metacharacters are special symbols in regular expressions that have special meanings (e.g., ^, $, |, (, ), [, ], {, }) and form the building blocks of regex patterns.",
+      "coverage_criteria": [
+        "List at least three metacharacters and their functions.",
+        "Distinguish between a metacharacter and a literal character."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly introduces the term 'metacharacters' at 02:46 and describes them as symbols with special powers.",
+        "granularity_rationale": "Understanding metacharacters is essential for reading and writing regex, and can be assessed by asking to identify and explain a few."
+      },
+      "anchors": [
+        "Understanding Regular Expressions and Metacharacters"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_002",
+      "label": "Metacaracteres representantes: ponto, lista e lista negada",
+      "description": "Metacaracteres representantes atuam como outros caracteres: o ponto (.) representa qualquer caractere exceto \\n; a lista ([...]) busca um dos caracteres listados; a lista negada ([^...]) busca caracteres que NÃO estão na lista.",
+      "coverage_criteria": [
+        "Dado um conjunto de palavras e um padrão com metacaractere representante, indicar quais palavras casam",
+        "Escrever uma regex usando lista para buscar palavras que começam com vogais maiúsculas ou minúsculas",
+        "Diferenciar lista de lista negada com exemplos"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 1 e os exemplos nas páginas 73-74 explicam cada metacaractere representante e mostram correspondências com as palavras 'Bola cola sola mola'.",
+        "granularity_rationale": "Cada tipo de metacaractere é suficientemente distinto para ser um conceito separado, e seu uso correto é verificável com exercícios simples."
+      },
+      "anchors": [
+        "Metacaracteres representantes"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_003",
+      "label": "Metacaracteres quantificadores: asterisco, opcional, mais e chaves",
+      "description": "Quantificadores definem repetições do elemento anterior: * (zero ou mais), ? (zero ou uma), + (uma ou mais), {x,y} (de x a y vezes).",
+      "coverage_criteria": [
+        "Explicar a diferença entre * e +",
+        "Usar {x,y} para limitar repetições em uma regex",
+        "Corrigir uma regex que usa ? para tornar um caractere opcional"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 2 e os exemplos com 'Bola cola sola mola ola sol' demonstram cada quantificador.",
+        "granularity_rationale": "Os quatro quantificadores formam um grupo lógico e são fundamentais para a construção de padrões flexíveis, mas cada um pode ser avaliado separadamente."
+      },
+      "anchors": [
+        "Metacaracteres quantificadores"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_004",
+      "label": "Metacaracteres âncoras: circunflexo e cifrão",
+      "description": "Âncoras delimitam a posição na linha/string: ^ busca no início, $ busca no fim. Cuidado: ^ fora de colchetes é âncora; dentro, é negação.",
+      "coverage_criteria": [
+        "Escrever uma regex que encontre a primeira palavra de uma frase que comece com letra maiúscula",
+        "Explicar por que ^ em [^a-z] não é uma âncora",
+        "Usar $ para extrair a última palavra de uma linha"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 3 e o exemplo 'rato roeu a roupa do rei de Roma' nas páginas 76-77 mostram o uso de ^ e $.",
+        "granularity_rationale": "As âncoras são conceitos simples e independentes que podem ser verificados com exercícios pontuais."
+      },
+      "anchors": [
+        "Metacaracteres âncoras"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_005",
+      "label": "Outros metacaracteres: alternância, agrupamento, escape e atalhos de classes",
+      "description": "Inclui | (ou), () (agrupamento), \\\\ (escape) para literalizar metacaracteres ou criar atalhos como \\\\d (dígito), \\\\w (alfanumérico), \\\\s (espaçamento) e suas negações \\\\D, \\\\W, \\\\S.",
+      "coverage_criteria": [
+        "Usar | e () para buscar uma de várias palavras",
+        "Diferenciar (rato|Roma) de [rato|Roma]",
+        "Usar \\\\. para buscar um ponto literal",
+        "Substituir [0-9] por \\\\d em uma regex"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 4 e 5 e os exemplos nas páginas 77-79 cobrem esses metacaracteres e atalhos.",
+        "granularity_rationale": "Embora diversos, esses metacaracteres especiais formam um grupo de 'outros' que complementa os anteriores; cada sub-recurso é verificável separadamente."
+      },
+      "anchors": [
+        "Outros metacaracteres"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_003",
+      "label": "Regex Anchors ^ and $",
+      "description": "The caret (^) and dollar sign ($) are anchors that match the start and end of a line/string respectively, ensuring the whole string matches the pattern.",
+      "coverage_criteria": [
+        "Explain what '^' and '$' specify in a regex.",
+        "Given a regex, determine if it matches at the start, end, or anywhere."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "In the DDD regex breakdown at 04:02, the hosts explain that ^ and $ delimit the beginning and end of the pattern.",
+        "granularity_rationale": "Anchors are a specific, checkable regex concept; a student can be asked to explain their role or apply them in a simple exercise."
+      },
+      "anchors": [
+        "DDD Regular Expression Breakdown"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_004",
+      "label": "Character Classes and Quantifiers",
+      "description": "Character classes like [0-9] match any character from a set, and quantifiers like {2} specify the exact number of occurrences of the preceding element.",
+      "coverage_criteria": [
+        "Explain what [0-9] matches.",
+        "Explain what {2} means when placed after a character class."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "During the DDD regex breakdown, the video explains that [0-9] matches any digit and {2} means exactly two occurrences.",
+        "granularity_rationale": "These are two fundamental building blocks of regex syntax that can be checked with focused questions."
+      },
+      "anchors": [
+        "DDD Regular Expression Breakdown"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_005",
+      "label": "Grouping and Alternation",
+      "description": "Parentheses () group parts of a regex, and the pipe | acts as an OR operator to specify alternatives.",
+      "coverage_criteria": [
+        "Explain the purpose of parentheses in a regex.",
+        "Explain the function of the pipe symbol."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "In the DDD regex breakdown, the video explains that parentheses represent a group and the pipe allows two types of DDD formats.",
+        "granularity_rationale": "Grouping and alternation are distinct regex concepts that can be assessed independently, e.g., by asking to interpret a simple grouped regex."
+      },
+      "anchors": [
+        "DDD Regular Expression Breakdown"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_006",
+      "label": "Escaping Metacharacters",
+      "description": "To match a literal character that is also a metacharacter (e.g., '(' or ')'), a backslash \\ is used to escape it, treating it as a normal character.",
+      "coverage_criteria": [
+        "Given a regex, identify which characters are escaped and why.",
+        "Write a regex that matches a literal parenthesis."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explains that \\( and \\) match literal parentheses, and that escaping is necessary because unescaped parentheses are metacharacters.",
+        "granularity_rationale": "Escaping is a specific, checkable regex skill; a student can be asked to explain or apply it in a small task."
+      },
+      "anchors": [
+        "DDD Regular Expression Breakdown"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_006",
+      "label": "Métodos básicos do módulo re em Python: match, search, findall",
+      "description": "Python oferece o módulo re com: match() busca padrão apenas no início da string; search() busca primeira ocorrência em qualquer lugar; findall() retorna todas as ocorrências não sobrepostas como lista. Retornam None se não encontrado.",
+      "coverage_criteria": [
+        "Usar re.search para encontrar a primeira palavra que começa com 'R' em um texto",
+        "Explicar a diferença entre match e search com exemplos",
+        "Utilizar findall para contar quantas vezes um padrão aparece"
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 6 e as Figuras 1 e 2 (páginas 79-81) introduzem e exemplificam esses métodos, mostrando código Python.",
+        "granularity_rationale": "Cada método tem comportamento distinto; a tríade cobre as consultas básicas, sendo adequado para verificação com pequenos trechos de código."
+      },
+      "anchors": [
+        "2 Implementação em Python"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_007",
+      "label": "Métodos adicionais do módulo re: split, sub, group",
+      "description": "split() divide string por padrão e retorna lista; sub() substitui ocorrências do padrão por novo valor; group() extrai subgrupos de um match.",
+      "coverage_criteria": [
+        "Usar re.split para dividir um texto em palavras, excluindo pontuação",
+        "Aplicar re.sub para substituir todas as ocorrências de uma palavra em um texto",
+        "Extrair partes de um número de telefone usando grupos"
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O Quadro 6 lista split e sub, e os exemplos de aplicação (split para frases na página 84, sub para remover parênteses na página 86) demonstram seu uso.",
+        "granularity_rationale": "Cada método oferece uma operação diferente de manipulação de texto, e podem ser verificados individualmente com tarefas práticas."
+      },
+      "anchors": [
+        "2 Implementação em Python"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_008",
+      "label": "Extração de endereços de e-mail com regex",
+      "description": "Padrão [a-z0-9]+@[a-z\\\\.]+ identifica e-mails: parte local alfanumérica, @, domínio com letras e pontos. Uso de quantificador + e lista de caracteres.",
+      "coverage_criteria": [
+        "Explicar cada parte da regex [a-z0-9]+@[a-z\\\\.]+",
+        "Modificar a regex para permitir endereços com sublinhado",
+        "Testar a regex em um texto com múltiplos e-mails e verificar extração correta"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A Figura 3 e a análise detalhada nas páginas 81-82 apresentam o padrão e explicam seu funcionamento.",
+        "granularity_rationale": "Este é um exemplo de aplicação prática que combina metacaracteres já ensinados; a verificação pode ser feita pedindo ao aluno que construa ou explique a regex."
+      },
+      "anchors": [
+        "Identificação de endereços de e-mails"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_009",
+      "label": "Extração de números de telefone com regex",
+      "description": "Padrão [0-9]+-[0-9]+ para detectar números de telefone com formato contendo hífen. Adaptável para outros separadores.",
+      "coverage_criteria": [
+        "Explicar o papel dos símbolos + e - na regex",
+        "Modificar a regex para aceitar números no formato (XX) XXXXX-XXXX",
+        "Aplicar a regex em uma lista de textos para extrair telefones"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A Figura 4 e a explicação nas páginas 82-83 mostram o padrão e sua decomposição.",
+        "granularity_rationale": "Outro caso de aplicação direta, envolvendo metacaracteres quantificadores e literais, adequado para prática de construção de padrões."
+      },
+      "anchors": [
+        "Identificação de números de telefone"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_010",
+      "label": "Divisão de texto em frases usando re.split com \\.\\s",
+      "description": "Para dividir um texto em frases, usa-se re.split com padrão \\\\.\\\\s, que busca ponto seguido de espaço, evitando quebras em números decimais como '3.2.1.21'.",
+      "coverage_criteria": [
+        "Explicar por que o padrão \\\\.\\\\s é melhor que apenas \\\\. para separar frases",
+        "Dar um exemplo de como adaptar o padrão para incluir outros finais de frase como '!' e '?'",
+        "Escrever código Python que conte o número de frases em um texto usando split"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A Figura 5 e o texto na página 84 explicam o uso do split com o padrão \\\\.\\\\s e a importância do espaço para evitar falsos positivos.",
+        "granularity_rationale": "Este conceito mostra um cuidado importante em PLN com regex, e pode ser verificado com uma tarefa de segmentação de frases."
+      },
+      "anchors": [
+        "Análise de textos"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_011",
+      "label": "Detecção de acrônimos e associações termo-significado com regex",
+      "description": "Padrão \\\\S* \\\\(.[^\\\\)]*\\\\) identifica pares 'Termo (significado)', usando \\\\S* para o termo, espaço, parênteses literal, .* exceto fecha parênteses, e fecha parênteses literal. Implementação usa match, search, sub para construir dicionário.",
+      "coverage_criteria": [
+        "Explicar o significado de cada parte da regex \\\\S* \\\\(.[^\\\\)]*\\\\)",
+        "Modificar o padrão para capturar siglas seguidas por dois pontos e definição",
+        "Implementar em Python um script que extrai todas as abreviaturas e suas definições de um texto"
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A Figura 6 e as explicações nas páginas 84-86 detalham a construção do padrão e o código Python para extrair pares.",
+        "granularity_rationale": "Esta aplicação avançada combina vários metacaracteres e métodos; a verificação pode cobrir tanto a compreensão da regex quanto a implementação."
+      },
+      "anchors": [
+        "Detectar acrônimos e correspondências"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_008",
+      "label": "Validation of Common Data Formats with Regex",
+      "description": "Regular expressions are commonly used to validate text patterns like dates, IP addresses, emails, and phone numbers.",
+      "coverage_criteria": [
+        "Name at least three types of data that can be validated with regex.",
+        "Explain why regex is suitable for format validation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video lists several data types (dates, IPs, emails, URLs, telephone, CPF, credit cards) that can be validated with regex, and shows example regex patterns.",
+        "granularity_rationale": "Recognizing real-world applications motivates learning and can be checked by asking for examples."
+      },
+      "anchors": [
+        "Practical Applications and Examples"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_007",
+      "label": "Regex in JavaScript",
+      "description": "In JavaScript, regular expressions can be created using forward slashes as delimiters, e.g., /[^0-9]/.",
+      "coverage_criteria": [
+        "Write a simple regex in JavaScript syntax.",
+        "Explain the difference between using slashes and quotes for regex in JavaScript."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video shows a JavaScript code example using forward slashes to create a regex that negates any group of numbers.",
+        "granularity_rationale": "This is a language-specific syntax detail that can be checked with a short coding or identification task."
+      },
+      "anchors": [
+        "JavaScript RegExp Example"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_001",
+      "label": "Lexical Similarity",
+      "description": "Lexical similarity measures how similar two text fragments are based on the overlap of words or characters, without considering meaning.",
+      "coverage_criteria": [
+        "Explain what lexical similarity is.",
+        "Give an example of lexical similarity between two sentences.",
+        "Distinguish lexical similarity from semantic similarity."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text defines lexical similarity as measuring how similar two text fragments are based on word overlap, citing example sentences.",
+        "granularity_rationale": "This is a foundational concept that can be assessed with definition and simple examples, suitable for a single check."
+      },
+      "anchors": [
+        "Similaridade textual"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_002",
+      "label": "Minimum Edit Distance",
+      "description": "Minimum edit distance is the minimum number of operations (insertion, deletion, substitution) needed to transform one string into another, used to measure string similarity.",
+      "coverage_criteria": [
+        "Calculate the minimum edit distance between two example strings.",
+        "Explain the operations and their costs."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text provides a definition and an example with 'ABADAC' to 'CADA', showing steps and cost.",
+        "granularity_rationale": "This is a specific algorithm that can be checked with a simple exercise, keeping the concept focused."
+      },
+      "anchors": [
+        "Minimum edit distance"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_003",
+      "label": "Levenshtein Distance",
+      "description": "Levenshtein distance is a variant of edit distance where substitution has cost 2 (considered as deletion plus insertion), used to measure string dissimilarity.",
+      "coverage_criteria": [
+        "Compute Levenshtein distance between two strings.",
+        "Explain how it differs from minimum edit distance in cost assignment."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explains Levenshtein distance, noting its cost difference and giving an example with the same strings resulting in cost 4.",
+        "granularity_rationale": "This is a distinct variant that can be tested alongside minimum edit distance, providing a clear comparison point."
+      },
+      "anchors": [
+        "Distância de Levenshtein"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_005",
+      "label": "Jaccard Similarity",
+      "description": "Jaccard similarity measures the overlap between two sets by dividing the size of their intersection by the size of their union, yielding a value between 0 and 1.",
+      "coverage_criteria": [
+        "Compute Jaccard similarity for two sets of words or items.",
+        "Interpret the resulting similarity value."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text provides the formula, an example with sentences, and a Python implementation.",
+        "granularity_rationale": "This metric is well-defined and can be checked with a straightforward calculation, making it a suitable candidate."
+      },
+      "anchors": [
+        "Similaridade de Jaccard"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_006",
+      "label": "Cosine Similarity",
+      "description": "Cosine similarity measures the cosine of the angle between two vectors, often used in text comparison to determine similarity, with values closer to 1 indicating higher similarity.",
+      "coverage_criteria": [
+        "Calculate cosine similarity between two text vectors given word frequencies.",
+        "Explain the significance of cosine similarity values near 1, 0, or -1."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text provides the formula, step-by-step calculation with an example, and a Python implementation.",
+        "granularity_rationale": "This is a widely used metric that can be checked with a vector calculation, appropriate for a focused assessment."
+      },
+      "anchors": [
+        "Similaridade de cosseno"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_007",
+      "label": "Classification of String Similarity Algorithms",
+      "description": "String similarity algorithms can be categorized as character-based (edit distance methods like Levenshtein) or term-based (token-based methods like cosine, Jaccard), each suited for different tasks.",
+      "coverage_criteria": [
+        "List examples of character-based and term-based algorithms.",
+        "Explain when one category might be preferred over the other."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text describes the two categories and lists algorithms under each, referencing Gomaa and Fahmy (2013).",
+        "granularity_rationale": "This is a high-level classification that can be assessed with a matching or explanation task, providing a conceptual overview."
+      },
+      "anchors": [
+        "Similaridade textual em diferentes aplicações de processamento de linguagem natural (PLN)"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_008",
+      "label": "Granularity Levels in Lexical Similarity",
+      "description": "Lexical similarity can be computed at different granularity levels: character-level, word-level, and phrase-level, depending on how text fragments are partitioned before comparison.",
+      "coverage_criteria": [
+        "Give examples of character-level versus word-level similarity.",
+        "Explain why granularity matters for different NLP tasks."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text mentions that lexical similarity can be computed at character, word, or phrase levels, with character level used for comparing strings like 'corre' and 'correr'.",
+        "granularity_rationale": "This conceptual distinction can be checked with examples, making it a discrete, teachable idea."
+      },
+      "anchors": [
+        "Similaridade léxica"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_009",
+      "label": "Applications of Lexical Similarity",
+      "description": "Lexical similarity methods are applied in search engines to rank results, in recommendation systems, spell checking, and text prediction like autocomplete and email replies.",
+      "coverage_criteria": [
+        "List at least three applications of lexical similarity.",
+        "Explain how lexical similarity helps in one specific application."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source gives examples such as Google search results, autocomplete, email reply suggestions, and recommendation systems.",
+        "granularity_rationale": "This is an overview that can be assessed by asking students to identify and explain applications, providing context for the methods."
+      },
+      "anchors": [
+        "Métodos de aplicação de similaridade textual"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_001",
+      "label": "Similaridade Léxica",
+      "description": "Similaridade léxica mede o grau de similaridade entre duas strings com base na sequência de caracteres, resultando em um valor entre 0 e 1.",
+      "coverage_criteria": [
+        "O estudante explica que a similaridade léxica compara a estrutura letra por letra, sem considerar significado."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define explicitamente similaridade léxica e a contrasta com a semântica na seção 1.",
+        "granularity_rationale": "Conceito atômico necessário para compreender a diferença fundamental entre os tipos de similaridade."
+      },
+      "anchors": [
+        "1 Diferenciação entre similaridade léxica e similaridade semântica"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_003",
+      "label": "Aplicações de Medidas de Similaridade",
+      "description": "Medidas de similaridade são usadas em clusterização de documentos, tradução automática, classificação de texto, sumarização e detecção de duplicatas.",
+      "coverage_criteria": [
+        "O estudante cita ao menos três aplicações reais de similaridade textual."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto lista aplicações na introdução e exemplifica com sistema de cadastro e Google Tradutor.",
+        "granularity_rationale": "Contextualiza a relevância prática das medidas, sem detalhar implementações."
+      },
+      "anchors": [
+        "Introdução"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_005",
+      "label": "Dimensionality reduction with PCA",
+      "description": "Dimensionality reduction reduces the number of random variables to consider, useful for visualization and efficiency. PCA is a key algorithm provided by scikit-learn.",
+      "coverage_criteria": [
+        "State the purpose of dimensionality reduction.",
+        "Name PCA as a dimensionality reduction technique.",
+        "Give an example application like visualization."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Dimensionality reduction' section mentions reducing random variables and lists PCA, and shows a visualization example.",
+        "granularity_rationale": "This concept is distinct and specific, covering a common preprocessing/analysis step, and can be checked with a few targeted questions."
+      },
+      "anchors": [
+        "Dimensionality reduction"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_004",
+      "label": "N-grams for Text Prediction",
+      "description": "N-grams are contiguous sequences of n items from a text, used in language models to predict next words based on probability counts.",
+      "coverage_criteria": [
+        "Define unigram, bigram, and trigram with examples.",
+        "Calculate the probability of a word given its preceding n-gram context using given text data."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text describes n-grams, gives examples of autocomplete and email replies, and shows probability calculation with 'Eu quero estudar'.",
+        "granularity_rationale": "This is a practical technique that can be assessed with a simple probability calculation exercise, fitting within one to three questions."
+      },
+      "anchors": [
+        "N-grams"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_002",
+      "label": "Similaridade Semântica",
+      "description": "Similaridade semântica considera o significado das palavras em determinado contexto, permitindo trocas que mantenham o sentido.",
+      "coverage_criteria": [
+        "O estudante diferencia similaridade semântica da léxica com exemplos como 'carro' e 'automóvel'."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto define e exemplifica similaridade semântica em contraste com a léxica.",
+        "granularity_rationale": "Conceito central do capítulo, permite avaliar compreensão básica."
+      },
+      "anchors": [
+        "1 Diferenciação entre similaridade léxica e similaridade semântica"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_004",
+      "label": "Similaridade Baseada em Conhecimento vs. Corpus",
+      "description": "A similaridade semântica pode ser calculada por algoritmos baseados em corpus (grandes bases de texto) ou baseados em conhecimento (redes semânticas como WordNet).",
+      "coverage_criteria": [
+        "O estudante distingue as duas abordagens, identificando que a baseada em conhecimento usa ontologias como a WordNet."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto cita Gomaa e Fahmy (2013) explicando as duas categorias de cálculo.",
+        "granularity_rationale": "Conceito que organiza os métodos de similaridade e prepara para estudo da WordNet."
+      },
+      "anchors": [
+        "2 Similaridade semântica e ontologias de conhecimento"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_005",
+      "label": "WordNet",
+      "description": "WordNet é um grande banco de dados léxicos do inglês que organiza palavras em synsets (conjuntos de sinônimos) com relações semânticas, funcionando como uma ontologia.",
+      "coverage_criteria": [
+        "O estudante explica que a WordNet agrupa sinônimos e inclui relações hierárquicas como hiperonímia e hiponímia."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto dedica várias páginas a descrever a WordNet, sua estrutura e seu uso.",
+        "granularity_rationale": "Conceito fundamental para entender medidas de similaridade baseadas em conhecimento."
+      },
+      "anchors": [
+        "2 Similaridade semântica e ontologias de conhecimento"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_006",
+      "label": "Path Similarity (Similaridade de Caminho)",
+      "description": "Medida de similaridade semântica que calcula o inverso da distância mais curta entre dois conceitos em uma taxonomia: Path Similarity = 1/(distância + 1).",
+      "coverage_criteria": [
+        "Dada uma hierarquia de conceitos, o estudante calcula a similaridade de caminho entre dois termos, como 'cavalo' e 'animal'."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto explica o Path Similarity com exemplo numérico usando a fórmula.",
+        "granularity_rationale": "Método específico e concreto que o estudante pode aplicar imediatamente."
+      },
+      "anchors": [
+        "2 Similaridade semântica e ontologias de conhecimento"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_007",
+      "label": "Lowest Common Subsumer (LCS)",
+      "description": "Medida de similaridade que identifica o ancestral comum mais específico de dois conceitos; quanto mais próximo o ancestral, maior a similaridade.",
+      "coverage_criteria": [
+        "O estudante identifica o LCS em uma pequena taxonomia e explica como a distância ao LCS influencia a similaridade."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve o LCS com exemplos de 'papagaio' e 'canário' tendo ancestral 'ave'.",
+        "granularity_rationale": "Complemento ao Path Similarity, mostra outra medida baseada em ontologia."
+      },
+      "anchors": [
+        "2 Similaridade semântica e ontologias de conhecimento"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_008",
+      "label": "Relações Semânticas em Ontologias",
+      "description": "Tipos de relações entre palavras em ontologias: sinonímia, antonímia, meronímia, holonímia, hiponímia, hiperonímia, homonímia e polissemia.",
+      "coverage_criteria": [
+        "O estudante define e exemplifica cada tipo de relação (ex.: meronímia é 'parte de', como 'pneu' é parte de 'carro')."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto lista e explica cada relação, sendo base para compreender a estrutura da WordNet.",
+        "granularity_rationale": "Conjunto de definições necessárias para navegar ontologias; cada relação é pequena, mas agrupadas formam um conceito coeso."
+      },
+      "anchors": [
+        "Relações semânticas em uma ontologia"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_009",
+      "label": "Acesso à WordNet com NLTK",
+      "description": "A biblioteca NLTK em Python permite acessar a WordNet para obter synsets, definições e sinônimos de palavras.",
+      "coverage_criteria": [
+        "O estudante escreve um script Python que importa a WordNet do NLTK e recupera synsets e definições de uma palavra em inglês."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 3 fornece exemplos de código e explica o uso do NLTK com WordNet.",
+        "granularity_rationale": "Habilidade prática que concretiza o uso das medidas de similaridade."
+      },
+      "anchors": [
+        "3 Acesso à WordNet utilizando o NLTK"
+      ]
+    },
+    {
+      "id": "c19_pro_thinking_010",
+      "label": "WordNet em Português com NLTK (OpenWN-PT)",
+      "description": "O NLTK suporta a Open Multilingual Wordnet, permitindo consultar a WordNet em português usando o parâmetro lang='por', como a OpenWN-PT.",
+      "coverage_criteria": [
+        "O estudante recupera synsets de palavras em português (ex.: 'gato') utilizando NLTK e descreve as limitações (definições em inglês)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto mostra exemplos com lang='por' e discute a Open Multilingual Wordnet.",
+        "granularity_rationale": "Extensão natural do uso do NLTK para o contexto lusófono, importante para o curso."
+      },
+      "anchors": [
+        "Exemplos em português na WordNet"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_001",
+      "label": "scikit-learn: Machine Learning in Python",
+      "description": "An open-source Python library providing simple and efficient tools for predictive data analysis, built on NumPy, SciPy, and matplotlib.",
+      "coverage_criteria": [
+        "Identify scikit-learn as a machine learning library for Python.",
+        "Name the foundational libraries it is built on.",
+        "State its license and accessibility."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source body features scikit-learn as the central subject, with a header 'scikit-learn' and bullet points describing its characteristics.",
+        "granularity_rationale": "This concept provides a foundational understanding of the library, which is essential before using its sub-features."
+      },
+      "anchors": [
+        "scikit-learn"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_002",
+      "label": "Classification algorithms in scikit-learn",
+      "description": "Classification involves identifying which category an object belongs to, with applications like spam detection and image recognition. scikit-learn provides algorithms including gradient boosting, nearest neighbors, random forest, and logistic regression.",
+      "coverage_criteria": [
+        "Define classification as a supervised learning task.",
+        "List at least three classification algorithms available in scikit-learn.",
+        "Give an example application of classification."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Classification' section on the homepage directly introduces classification, lists algorithms, and shows applications.",
+        "granularity_rationale": "This focuses on one specific ML task, classification, which is central to the activity on classifiers, making it checkable with simple recall and identification."
+      },
+      "anchors": [
+        "Classification"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_003",
+      "label": "Model selection with grid search and cross-validation",
+      "description": "Model selection involves comparing, validating, and choosing parameters and models using techniques like grid search and cross-validation to improve accuracy. scikit-learn provides implementations for these.",
+      "coverage_criteria": [
+        "Explain the purpose of model selection.",
+        "Describe what grid search and cross-validation are used for.",
+        "Identify that scikit-learn offers these tools."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Model selection' section explicitly mentions grid search, cross validation, and metrics, linking them to improved accuracy via parameter tuning.",
+        "granularity_rationale": "Model selection is a key step in building a classifier pipeline, and the concept is focused enough for a few questions on these specific techniques."
+      },
+      "anchors": [
+        "Model selection"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_004",
+      "label": "Preprocessing for machine learning",
+      "description": "Preprocessing involves feature extraction and normalization to transform input data for use with machine learning algorithms. scikit-learn provides tools for preprocessing and feature extraction.",
+      "coverage_criteria": [
+        "Define preprocessing in the context of ML.",
+        "Name at least one preprocessing technique mentioned in the source.",
+        "Explain why preprocessing is important for ML algorithms."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Preprocessing' section describes feature extraction and normalization, and lists the algorithms: preprocessing, feature extraction.",
+        "granularity_rationale": "Preprocessing is an essential component of any ML pipeline, and this concept captures the general idea and tools, allowing for a few simple checks."
+      },
+      "anchors": [
+        "Preprocessing"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_006",
+      "label": "Clustering algorithms in scikit-learn",
+      "description": "Clustering automatically groups similar objects into sets, useful for customer segmentation. scikit-learn provides k-Means, HDBSCAN, and hierarchical clustering.",
+      "coverage_criteria": [
+        "Define clustering as an unsupervised learning task.",
+        "Name at least two clustering algorithms from scikit-learn.",
+        "Give an example application."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Clustering' section introduces clustering, lists algorithms, and gives an application.",
+        "granularity_rationale": "While not directly about classifiers, it is a relevant ML task presented on the homepage, and the concept is clear and checkable."
+      },
+      "anchors": [
+        "Clustering"
+      ]
+    },
+    {
+      "id": "c20_pro_thinking_007",
+      "label": "Regression algorithms in scikit-learn",
+      "description": "Regression predicts a continuous-valued attribute associated with an object, with applications like drug response and stock prices. scikit-learn provides gradient boosting, nearest neighbors, random forest, and ridge regression.",
+      "coverage_criteria": [
+        "Define regression as a supervised learning task.",
+        "List at least three regression algorithms available in scikit-learn.",
+        "Give an example application."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Regression' section explicitly describes regression, applications, and algorithms.",
+        "granularity_rationale": "This covers another major ML task, and the concept is well-supported by the source, with clear checks."
+      },
+      "anchors": [
+        "Regression"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas-001",
+      "label": "NLP Definition and Suitability Criteria",
+      "description": "Natural Language Processing (NLP) is a branch of artificial intelligence that uses machine learning to process and interpret texts and data. Three characteristics indicate when NLP is appropriate: the need to understand human communication, the requirement for the machine to respond with precision, and the ability to process and analyze large volumes of data for predictions or suggestions.",
+      "coverage_criteria": [
+        "Define NLP as presented in the lesson.",
+        "List the three characteristics that make NLP suitable for problem-solving.",
+        "Give an example of a problem that would benefit from these characteristics."
+      ],
+      "source_candidate_ids": [
+        "c14_pro_thinking_001",
+        "c15_pro_thinking_001"
+      ],
+      "merge_rationale": "These candidates describe foundational NLP concepts: the definition and the criteria for its applicability. They are closely related and together form a compact introduction to NLP, suitable for teaching as a single concept."
+    }
+  ],
+  "current_pruned_candidates": [],
+  "current_review_candidates": [
+    {
+      "candidate_id": "c14_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_012",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_013",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_014",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_015",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_016",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_017",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_018",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_019",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_020",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_021",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_022",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_023",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_024",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_025",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_009",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_010",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_011",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_009",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_010",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_011",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_009",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_005",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_008",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_009",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_010",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_001",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_002",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_003",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_004",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_006",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_007",
+      "pruning_reason": null,
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

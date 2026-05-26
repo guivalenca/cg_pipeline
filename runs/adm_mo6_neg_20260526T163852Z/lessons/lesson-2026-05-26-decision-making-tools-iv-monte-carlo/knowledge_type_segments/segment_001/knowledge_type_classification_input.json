@@ -1,0 +1,86 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-26-decision-making-tools-iv-monte-carlo/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+    "title": "Decision-Making Tools IV (Monte Carlo)"
+  },
+  "segment": {
+    "segment_id": "segment_001",
+    "label": "Introduction to Monte Carlo Simulation",
+    "concept_ids": [
+      "concept-risk-vs-uncertainty-544f3de5",
+      "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+      "concept-monte-carlo-simulation-definition-and-process-a03cf504"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-risk-vs-uncertainty-544f3de5",
+      "label": "Risk vs. Uncertainty",
+      "teaching_description": "Risk involves situations where probabilities can be calculated from known outcomes (e.g., roulette), while uncertainty involves unknown probabilities requiring judgment (e.g., launching new technology). Standard models fail under uncertainty; Monte Carlo helps model those unknowns.",
+      "coverage_criteria": [
+        "Student can differentiate between risk and uncertainty and explain why Monte Carlo is useful under uncertainty."
+      ],
+      "source_candidate_ids": [
+        "lr007_008"
+      ]
+    },
+    {
+      "concept_id": "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+      "label": "The Problem with Single-Number Forecasts: Certainty Trap and Deterministic Models",
+      "teaching_description": "Deterministic models produce a single outcome based on fixed inputs, creating an illusion of certainty (the certainty trap). This hides risks and variability, leading to managing a number rather than exposure. Monte Carlo simulation addresses this by incorporating uncertainty.",
+      "coverage_criteria": [
+        "Student can explain why single-number forecasts are misleading and contrast deterministic and probabilistic approaches."
+      ],
+      "source_candidate_ids": [
+        "lr007_007"
+      ]
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "teaching_description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ],
+      "source_candidate_ids": [
+        "lr007_001",
+        "lr012_001"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

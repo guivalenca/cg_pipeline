@@ -1,0 +1,74 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "display_code": "L10",
+    "workbook_row_number": 65,
+    "title": "Modelos de Extração de Características e APIs",
+    "date": "25/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [],
+    "description": "O objetivo deste encontro é comparar os sistemas implementados utilizando modelos com Embedding Words e os modelos baseados em extração de características. Ao término do encontro, espera-se que as pessoas desenvolvedoras possam estar familiarizadas com as características comuns destes sistemas e suas peculiaridades de implementação. Também será realizada uma familiarização com o desenvolvimento de API Python."
+  },
+  "self_study": {
+    "self_study_id": "66",
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 66,
+      "week": 6,
+      "sort": 2,
+      "title": "Operadores de álgebra booleana",
+      "description": "Este autoestudo apresenta o uso de operadores de álgebra booleana em queries. Estes operadores podem ser úteis em sistemas de busca de informações textuais.",
+      "url": "https://libguides.mit.edu/c.php?g=175963 e p=1158594",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Modelos de Extração de Características e APIs",
+      "class_date": "25/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0066-article-operadores-de-algebra-booleana.md",
+      "sha256": "1eb496840f0a769e6fe49f97c892ea1afd01cf2e65c2b06bb02111c996b1b8d5",
+      "word_count": 636,
+      "bytes": 4255,
+      "source_markdown": "article/firecrawl/output/66/66-operadores-de-algebra-booleana.md",
+      "artifact_dir": "article/firecrawl/output/66",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0066-article-operadores-de-algebra-booleana.md",
+    "sha256": "1eb496840f0a769e6fe49f97c892ea1afd01cf2e65c2b06bb02111c996b1b8d5",
+    "word_count": 636,
+    "source_markdown": "article/firecrawl/output/66/66-operadores-de-algebra-booleana.md",
+    "markdown": "---\nid: \"66\"\ntitle: \"Operadores de álgebra booleana\"\nsource_url: \"https://libguides.mit.edu/c.php?g=175963&p=1158594\"\nfetch_url: \"https://libguides.mit.edu/c.php?g=175963&p=1158594\"\nresolved_url: \"https://libguides.mit.edu/c.php?g=175963&p=1158594\"\nfirecrawl_title: \"Boolean operators - Database Search Tips - LibGuides at MIT Libraries\"\ndescription: null\nfetched_at: \"2026-05-12T03:59:52.637914Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"1e5b1add0c7b31563d09bc435237541fea5455fb17c1a0030d32f4e53601f245\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=UTF-8\"\nword_count: 466\nchar_count: 2930\ncontent_sha256: \"be299661981e3a382b3a7657b690660e225da84a9f76b81ae114ba99610ab8f8\"\nimage_count: 3\nlink_count: 17\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# Database Search Tips: Boolean operators\n\nLearn strategies on effective database searching for best results.\n\n## What to look for\n\nBoolean operators form the basis of mathematical sets and database logic.\n\n- They connect your search words together to either narrow or broaden your set of results.\n- The three basic boolean operators are: **AND**, **OR**, and **NOT**.\n\n### Why use Boolean operators?\n\n- To focus a search, particularly when your topic contains multiple search terms.\n- To connect various pieces of information to find exactly what you're looking for.\n- Example:\n\n  \n  second creation (title) AND wilmut and campbell (author) AND 2000 (year)\n\n## Using AND\n\nUse AND in a search to:\n\n- narrow your results\n- tell the database that **ALL** search terms must be present in the resulting records\n- example: cloning AND humans AND ethics\n\nThe purple triangle in the middle of the Venn diagram below represents the result set for this search. It is a small set using AND, the combination of all three search words.\n\nImage summary: A three-circle Venn diagram shows the search terms cloning, ethics, and humans. The result set for AND is the small central overlap where all three circles intersect, indicating records that contain all three concepts. [Original image: and.gif](https://lgimages.s3.amazonaws.com/data/imagemanager/7506/and.gif)\n\nBe aware:  In many, but not all, databases, the AND is implied.\n\n- For example, Google automatically puts an AND in between your search terms.\n- Though all your search terms are included in the results, they may not be connected together in the way you want.\n- For example, this search: college students test anxiety is translated to: college AND students AND test AND anxiety. The words may appear individually throughout the resulting records.\n- You can search using phrases to make your results more specific.\n- For example: \"college students\" AND \"test anxiety\". This way, the phrases show up in the results as you expect them to be.\n\n## Using OR\n\nUse OR in a search to:\n\n- connect two or more similar concepts (synonyms)\n- broaden your results, telling the database that ANY of your search terms can be present in the resulting records\n- example: cloning OR genetics OR reproduction\n\nAll three circles represent the result set for this search. It is a big set because any of those words are valid using the OR operator.\n\nImage summary: A Venn diagram shows three overlapping circles labeled cloning, genetics, and reproduction. For OR searches, any record containing one or more of these terms is included, so the result set is larger than with AND. [Original image: or.gif](https://lgimages.s3.amazonaws.com/data/imagemanager/7506/or.gif)\n\n## Using NOT\n\nUse NOT in a search to:\n\n- exclude words from your search\n- narrow your search, telling the database to ignore concepts that may be implied by your search terms\n- example: cloning NOT sheep\n\n## Search order\n\nDatabases follow commands you type in and return results based on those commands. Be aware of the logical order in which words are connected when using Boolean operators:\n\n- Databases usually recognize AND as the primary operator, and will connect concepts with AND together first.\n- If you use a combination of AND and OR operators in a search, enclose the words to be \"ORed\" together in parentheses.\n\nExamples:\n\n- ethics AND (cloning OR reproductive techniques)\n- (ethic* OR moral*) AND (bioengineering OR cloning)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

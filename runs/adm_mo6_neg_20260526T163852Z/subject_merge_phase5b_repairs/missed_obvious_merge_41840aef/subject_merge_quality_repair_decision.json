@@ -1,0 +1,69 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-26T19:18:31.957116+00:00",
+  "scope_id": "adm-mod6-NEG",
+  "stage_name": "subject_merge_quality_repair",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr004_008",
+    "lr005_007"
+  ],
+  "accepted": [
+    {
+      "id": "repair001",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. Given known probabilities for states of nature, compute the expected monetary value for each alternative and choose the highest. This rule is appropriate for risk-neutral decision makers.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table given probabilities.",
+        "Explain why the EMV criterion is optimal under risk neutrality.",
+        "Determine the optimal decision under risk using EMV."
+      ],
+      "source_candidate_ids": [
+        "lr004_008",
+        "lr005_007"
+      ],
+      "merge_rationale": "Both candidates teach the same core idea: the EMV criterion for decision-making under risk. They differ only in wording and minor detail; merging them into a single concept eliminates redundancy while preserving the full teachable content."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "repair001",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. Given known probabilities for states of nature, compute the expected monetary value for each alternative and choose the highest. This rule is appropriate for risk-neutral decision makers.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table given probabilities.",
+        "Explain why the EMV criterion is optimal under risk neutrality.",
+        "Determine the optimal decision under risk using EMV."
+      ],
+      "source_candidate_ids": [
+        "lr004_008",
+        "lr005_007"
+      ],
+      "merge_rationale": "Both candidates teach the same core idea: the EMV criterion for decision-making under risk. They differ only in wording and minor detail; merging them into a single concept eliminates redundancy while preserving the full teachable content."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr004_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair001"
+      ]
+    },
+    {
+      "candidate_id": "lr005_007",
+      "status": "merged_into",
+      "merged_into": "repair001",
+      "explanation": "This candidate provides additional nuance on risk neutrality and is represented by the merged concept."
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 1,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

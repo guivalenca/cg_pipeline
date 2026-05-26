@@ -1,0 +1,94 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-20T01:05:21.734550+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr010_004",
+    "lr011_001"
+  ],
+  "accepted": [
+    {
+      "id": "sm_def_onehot",
+      "label": "One-Hot Encoding Definition",
+      "description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ],
+      "source_candidate_ids": [
+        "lr011_001"
+      ],
+      "merge_rationale": "This candidate stands alone as the fundamental definition of one-hot encoding for words."
+    },
+    {
+      "id": "sm_impl_onehot",
+      "label": "One-Hot Encoding Implementation and Comparison",
+      "description": "One-hot encoding implementation and analysis, including producing one-hot vectors, explaining the dimensionality problem, and comparing one-hot encoding to dense embeddings.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "lr010_004"
+      ],
+      "merge_rationale": "This candidate covers a deeper understanding, including implementation and comparison to dense embeddings, making it a separate concept from the basic definition."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sm_def_onehot",
+      "label": "One-Hot Encoding Definition",
+      "description": "One-hot encoding represents each word as a sparse vector with a 1 at the vocabulary index and zeros elsewhere, resulting in high-dimensional, inefficient representations.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a given word from a small vocabulary.",
+        "Explain why one-hot vectors are sparse and high-dimensional."
+      ],
+      "source_candidate_ids": [
+        "lr011_001"
+      ],
+      "merge_rationale": "This candidate stands alone as the fundamental definition of one-hot encoding for words."
+    },
+    {
+      "id": "sm_impl_onehot",
+      "label": "One-Hot Encoding Implementation and Comparison",
+      "description": "One-hot encoding implementation and analysis, including producing one-hot vectors, explaining the dimensionality problem, and comparing one-hot encoding to dense embeddings.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "lr010_004"
+      ],
+      "merge_rationale": "This candidate covers a deeper understanding, including implementation and comparison to dense embeddings, making it a separate concept from the basic definition."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr010_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm_impl_onehot"
+      ]
+    },
+    {
+      "candidate_id": "lr011_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm_def_onehot"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 2,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

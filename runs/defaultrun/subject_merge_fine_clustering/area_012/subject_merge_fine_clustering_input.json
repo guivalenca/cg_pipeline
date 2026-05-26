@@ -1,0 +1,143 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_012",
+    "area": {
+      "id": "area_012",
+      "label": "Using Pre-trained Embeddings and Sentence Vectors",
+      "rationale": "Loading pre-trained embeddings, nearest neighbor search, sentence averaging, and implementing NLP models with embeddings.",
+      "candidate_ids": [
+        "lr009_006",
+        "lr009_008",
+        "lr009_009",
+        "lr009_011",
+        "lr009_012",
+        "lr010_009"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr009_006",
+    "lr009_008",
+    "lr009_009",
+    "lr009_011",
+    "lr009_012",
+    "lr010_009"
+  ],
+  "candidates": [
+    {
+      "id": "lr009_006",
+      "label": "Training Data Generation for Word2Vec",
+      "description": "How training samples are created for Word2Vec: using a sliding window to form context-target pairs, representing words with one-hot encoding, and the distinction between CBOW and Skip-gram architectures.",
+      "coverage_criteria": [
+        "Given a short text and window size, generate input-output pairs with context and target words.",
+        "Explain that each word is represented as a one-hot vector of vocabulary size.",
+        "Distinguish CBOW (predict target from context) from Skip-gram (predict context from target)."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_008",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "Aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_roles": [],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "application"
+    },
+    {
+      "id": "lr009_009",
+      "label": "Nearest Neighbor Retrieval using Word Vectors",
+      "description": "Finding the most similar words or items in a vector space by computing distances (e.g., cosine similarity) to all candidates and selecting the closest ones. This underlies functions like closest() for color vectors and similar_by_word() for word embeddings.",
+      "coverage_criteria": [
+        "Describe the process of scanning all vectors to find the closest one.",
+        "Explain why naive nearest neighbor search is inefficient for large spaces.",
+        "Use similar_by_word() to retrieve semantically similar words from a trained Word2Vec model."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_011",
+      "label": "Using Pre-trained Word Embeddings",
+      "description": "Several publicly available pre-trained word vectors, such as GloVe (300-dimensional) and Google's word2vec model, can be easily loaded via libraries like spaCy or gensim.downloader. These provide ready-to-use semantic spaces without training from scratch.",
+      "coverage_criteria": [
+        "State that GloVe vectors are 300-dimensional and available in spaCy.",
+        "Write code to load a pre-trained model using gensim.downloader.load() (e.g., 'word2vec-google-news-300').",
+        "Explain the benefit of using pre-trained embeddings for NLP tasks."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_012",
+      "label": "Sentence Similarity through Averaged Word Vectors",
+      "description": "A sentence can be represented as the average of its word vectors. Cosine similarity between these sentence vectors can then be used to find semantically similar sentences, enabling applications like sentence retrieval.",
+      "coverage_criteria": [
+        "Compute the average word vector for a given sentence.",
+        "Explain how sentence vectors allow comparison of longer texts.",
+        "Describe using cosine similarity to measure sentence similarity."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_009",
+      "label": "Comparing Word Embedding and Feature Extraction Approaches for NLP",
+      "description": "Analyzing the differences between NLP systems built using pre-trained word embeddings (e.g., Word2Vec, GloVe) versus traditional feature extraction methods, including trade-offs in dimensionality, semantic capture, and model complexity.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ],
+      "source_roles": [],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

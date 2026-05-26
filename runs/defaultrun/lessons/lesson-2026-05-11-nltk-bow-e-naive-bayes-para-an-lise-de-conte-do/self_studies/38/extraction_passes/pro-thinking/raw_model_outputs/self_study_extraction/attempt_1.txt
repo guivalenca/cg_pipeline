@@ -1,0 +1,266 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-38-001",
+      "label": "Sentiment Analysis Definition and Purpose",
+      "description": "Sentiment analysis is the use of machine learning to classify text as expressing positive, negative, or other sentiments, enabling automated monitoring of customer opinions.",
+      "coverage_criteria": [
+        "Student can define sentiment analysis and provide an example of its business application."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video defines sentiment analysis at [03:03] and explains its application in a business context (e.g., Banco do Brasil).",
+        "granularity_rationale": "This is a high-level concept that sets the stage for the entire pipeline; it can be checked with a single definition question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:03] What is Sentiment Analysis?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-38-002",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of artificial intelligence focused on enabling computers to process and analyze human language, often used for tasks like text classification.",
+      "coverage_criteria": [
+        "Student can define NLP and give an example of an NLP task."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [09:29], the instructor explicitly introduces NLP as the area that develops techniques to manipulate textual information.",
+        "granularity_rationale": "This foundational concept is necessary to understand the domain of sentiment analysis; it can be assessed with a simple definition question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[09:29] Importing Libraries for Natural Language Processing (NLP)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["NLTK"]
+    },
+    {
+      "candidate_id": "candidate-38-003",
+      "label": "Labeled Data Necessity for Supervised Sentiment Analysis",
+      "description": "Supervised sentiment analysis models require a dataset with text paired with sentiment labels (e.g., positive/negative) to learn patterns.",
+      "coverage_criteria": [
+        "Student can explain why labeled data is needed and describe how it might be obtained (e.g., manual annotation)."
+      ],
+      "source_roles": ["explaining", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The instructor at [13:27] discusses the need for pre-annotated data and gives the example of dividing 50k records among operational staff to manually label them.",
+        "granularity_rationale": "This is a key prerequisite concept; it can be checked by asking the student to justify the need for labeled data in this context."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[13:27] Dataset Overview and Sentiment Annotation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-38-004",
+      "label": "Basic Text Cleaning for NLP",
+      "description": "The initial preprocessing step removes HTML tags, special characters, and converts all text to lowercase to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Student can explain why removing HTML tags and special characters is important for text analysis."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [18:43], the video demonstrates using regular expressions to clean a sample review, showing the removal of HTML tags and special characters, then applying lowercasing.",
+        "granularity_rationale": "This is a specific, checkable step in the preprocessing pipeline; a student can be asked to show code for cleaning text."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["re (regular expressions)"]
+    },
+    {
+      "candidate_id": "candidate-38-005",
+      "label": "Stop Words Removal with NLTK",
+      "description": "Stop words are common words with little semantic value (e.g., 'the', 'is') that are removed using predefined lists, such as those provided by the NLTK library.",
+      "coverage_criteria": [
+        "Student can use NLTK to list English stop words and filter them from a text."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [18:43], the instructor uses NLTK's stop words list to filter out words like 'it', 'is', and 'the' from the review text, showing the code and result.",
+        "granularity_rationale": "This is a discrete step that can be tested by asking the student to write a short code snippet to remove stop words."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["NLTK"]
+    },
+    {
+      "candidate_id": "candidate-38-006",
+      "label": "Stemming with SnowballStemmer",
+      "description": "Stemming reduces words to their root form (e.g., 'running' to 'run') to consolidate similar terms, often implemented with algorithms like SnowballStemmer in NLTK.",
+      "coverage_criteria": [
+        "Student can explain the purpose of stemming and apply a stemmer to a word list."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [18:43], the video introduces stemming as a grammar-based preprocessing step and applies it to the review text, showing that it condenses word forms.",
+        "granularity_rationale": "Stemming is a distinct NLP technique that the student can be asked to define and demonstrate with a single code line."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["NLTK", "SnowballStemmer"]
+    },
+    {
+      "candidate_id": "candidate-38-007",
+      "label": "Bag of Words Representation with CountVectorizer",
+      "description": "Bag of Words converts preprocessed text into a numerical matrix of token counts, where each column corresponds to a word, using scikit-learn's CountVectorizer, often with max_features to limit dimensionality.",
+      "coverage_criteria": [
+        "Student can create a BoW matrix from a list of texts using CountVectorizer and explain the max_features parameter."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [30:29], the instructor creates a bag of words using CountVectorizer with max_features=1000, explaining that it limits the number of word features to the top most frequent ones.",
+        "granularity_rationale": "The BoW concept is central to traditional text classification; checking the student's ability to instantiate and apply CountVectorizer confirms understanding of feature extraction."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["CountVectorizer", "scikit-learn"]
+    },
+    {
+      "candidate_id": "candidate-38-008",
+      "label": "Naive Bayes for Text Classification",
+      "description": "The Naive Bayes algorithm, especially MultinomialNB, is effective for text classification tasks like sentiment analysis, using BoW features to compute probabilities of sentiment classes.",
+      "coverage_criteria": [
+        "Student can explain why Multinomial Naive Bayes is suitable for word count data and compare it to other variants."
+      ],
+      "source_roles": ["introducing", "explaining", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [09:29] and [30:29], the instructor mentions using GaussianNB, MultinomialNB, and BernoulliNB, and later trains the model on the BoW features, discussing the choice based on data type.",
+        "granularity_rationale": "Understanding the choice of algorithm is a critical decision in the pipeline; the student can be asked to compare the suitability of different Naive Bayes variants for text."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["MultinomialNB", "GaussianNB", "BernoulliNB", "Naive Bayes"]
+    },
+    {
+      "candidate_id": "candidate-38-009",
+      "label": "Train/Test Split and Accuracy Evaluation",
+      "description": "The dataset is split into training and testing sets using train_test_split to evaluate the classifier's performance, typically measuring accuracy as the proportion of correct predictions.",
+      "coverage_criteria": [
+        "Student can perform a train/test split and compute accuracy of a classification model."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [30:29], the video shows splitting the data and later evaluating accuracy, which is a standard model evaluation step.",
+        "granularity_rationale": "This is a fundamental ML practice that can be checked by asking the student to write the relevant code and interpret the accuracy score."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["train_test_split", "accuracy_score"]
+    },
+    {
+      "candidate_id": "candidate-38-010",
+      "label": "Model Persistence with Pickle",
+      "description": "Trained machine learning models can be saved to disk using Python's pickle module, allowing reuse without retraining.",
+      "coverage_criteria": [
+        "Student can save and load a scikit-learn model using pickle."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [09:29] and [30:29], the instructor mentions using pickle to save the model, highlighting its importance for productionalizing the pipeline.",
+        "granularity_rationale": "Saving a model is a small, practical skill that can be easily tested by asking the student to write the two lines of code."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Como Fazer Análise de Sentimentos com Dados Textuais",
+      "source_year": "2026",
+      "name_drops": ["pickle"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-38-003",
+      "to_candidate_id": "candidate-38-008",
+      "reason": "Labeled data provides the target variable (sentiment) required for supervised training of the Naive Bayes classifier.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[13:27] Dataset Overview and Sentiment Annotation"},
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-004",
+      "to_candidate_id": "candidate-38-007",
+      "reason": "Cleaned text is a prerequisite for creating the Bag of Words representation; unprocessed text would introduce noise and irrelevant tokens.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"},
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-005",
+      "to_candidate_id": "candidate-38-007",
+      "reason": "Stop words removal reduces the feature space, making the Bag of Words matrix more meaningful by discarding common, uninformative words.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"},
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-006",
+      "to_candidate_id": "candidate-38-007",
+      "reason": "Stemming consolidates word variants to a common root, reducing sparsity in the Bag of Words matrix and thus improving model generalization.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[18:43] Preprocessing Text Data"},
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-007",
+      "to_candidate_id": "candidate-38-008",
+      "reason": "The Bag of Words matrix serves as the input features for the Naive Bayes classifier, which assumes feature independence among word counts.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-008",
+      "to_candidate_id": "candidate-38-009",
+      "reason": "The trained Naive Bayes classifier is evaluated on a held-out test set to compute accuracy, which quantifies its predictive performance.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-38-008",
+      "to_candidate_id": "candidate-38-010",
+      "reason": "The trained model can be serialized and saved to disk with pickle, enabling it to be loaded later for inference without retraining.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[30:29] Creating and Training the Machine Learning Model"}
+      ]
+    }
+  ]
+}

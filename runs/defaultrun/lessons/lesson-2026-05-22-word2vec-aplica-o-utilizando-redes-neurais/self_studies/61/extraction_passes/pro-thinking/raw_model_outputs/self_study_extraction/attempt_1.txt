@@ -1,0 +1,315 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-61-001",
+      "label": "Euclidean Distance as a Similarity Measure",
+      "description": "Euclidean distance can be used to quantify how similar two vectors are in a vector space; smaller distance indicates greater similarity.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two 2D points given coordinates.",
+        "Explain that closer points have smaller Euclidean distance.",
+        "Given a set of vectors, identify which one is closest to a target using Euclidean distance."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces Euclidean distance in the animal space example, provides Python code to compute it, and uses it to find similar animals (capybara vs panda).",
+        "granularity_rationale": "This concept is a fundamental mathematical building block for many similarity-based operations with word vectors. It is small enough to test with simple computation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Animal similarity and simple linear algebra"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["Euclidean distance"]
+    },
+    {
+      "candidate_id": "candidate-61-002",
+      "label": "Nearest Neighbor Search in Vector Space",
+      "description": "Given a vector space and a query vector, the closest neighbors can be found by computing distances to all items and selecting the smallest ones.",
+      "coverage_criteria": [
+        "Describe the process of scanning all vectors to find the closest one.",
+        "Explain why naive nearest neighbor search is inefficient for large spaces.",
+        "Identify that the closest() function in the source implements this by sorting by distance."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source demonstrates a closest() function that finds the ten closest color names to a given RGB value, and mentions scalability issues and alternatives like kdtree or Annoy.",
+        "granularity_rationale": "This concept isolates the basic algorithm for nearest neighbor, a core operation in vector-based retrieval, without diving into optimized indexing structures."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Finding the closest item"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["kdtree", "Annoy"]
+    },
+    {
+      "candidate_id": "candidate-61-003",
+      "label": "Vector Arithmetic Operations",
+      "description": "Vectors can be added, subtracted, and averaged component-wise, enabling combination and comparison of concepts represented as vectors.",
+      "coverage_criteria": [
+        "Add two vectors by summing corresponding components.",
+        "Subtract one vector from another to find the difference.",
+        "Compute the mean of a list of vectors.",
+        "Explain how the mean vector represents the 'center' of a set of vectors."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides functions addv, subtractv, meanv in Python code within the color vectors section and uses them for color arithmetic, demonstrating how vector operations correspond to combining colors.",
+        "granularity_rationale": "The concept covers basic vector algebra operations that are essential for later analogies and sentence averaging, and is testable with simple component-wise calculations."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Vector math"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-61-004",
+      "label": "Analogies through Vector Differences",
+      "description": "Analogies can be solved by subtracting the vector of one word from another and adding the difference to a third word's vector, e.g., 'pink is to red as X is to blue'.",
+      "coverage_criteria": [
+        "Given vectors for 'pink', 'red', and 'blue', compute the vector for X that satisfies 'pink - red = X - blue'.",
+        "Explain that the difference vector captures the relationship between two words.",
+        "Provide an example of an analogy derived from a vector space."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly demonstrates analogies with color vectors (pink:red::?:blue) and with animal vectors (tarantula:hamster::chicken:kitten), showing that vector differences can model relational similarity.",
+        "granularity_rationale": "This is a specific application of vector arithmetic that is central to word vector 'magic'; it is a single skill that can be tested with a small computation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Animal similarity and simple linear algebra"},
+        {"kind": "markdown_heading", "locator": "Color magic"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-61-005",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts; a word's meaning can be inferred from the company it keeps.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why 'hot' and 'cold' might be considered similar under this hypothesis despite being antonyms."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces the Distributional Hypothesis with a clear example (cold/warm/hot/cool and yesterday/today/tomorrow/Tuesday) and states that words with similar distributions have similar meanings.",
+        "granularity_rationale": "This is a fundamental theoretical concept that underpins all count-based and predictive word vector methods; it is a single claim that can be tested by having students identify context-based relationships."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Distributional semantics"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["Distributional Hypothesis"]
+    },
+    {
+      "candidate_id": "candidate-61-006",
+      "label": "Word Vectors from Co-occurrence Counts",
+      "description": "Word vectors can be constructed by counting how often each word appears in each possible context (e.g., neighboring words), forming a high-dimensional vector per word.",
+      "coverage_criteria": [
+        "Explain how a co-occurrence matrix is built from a text corpus.",
+        "Given a small corpus, construct a simple co-occurrence matrix.",
+        "Identify that the resulting vector for a word reflects its distributional context."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source walks through creating a spreadsheet from a Dickens sentence, counting word contexts, and explaining that the counts form word vectors, with 'best' and 'worst' having identical vectors because they appear in the same context.",
+        "granularity_rationale": "This concept introduces the concrete method of turning text into vectors, a key step in understanding word embeddings; it is small enough to test with a simple example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Word vectors by counting contexts"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-61-007",
+      "label": "Dimensionality Reduction for Word Vectors",
+      "description": "High-dimensional word vectors from co-occurrence counts often contain redundant information; dimensionality reduction techniques (like SVD) can compress them into a smaller number of meaningful dimensions.",
+      "coverage_criteria": [
+        "Explain why raw co-occurrence vectors can be too high-dimensional.",
+        "Name dimensionality reduction as a solution.",
+        "State that typical word vectors have 100-300 dimensions after reduction."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source discusses that many dimensions are superfluous and can be eliminated or combined via dimensionality reduction, mentioning that count-based vectors often use 100-300 dimensions.",
+        "granularity_rationale": "This concept bridges the gap between raw counts and practical word embeddings; it is a single technique that can be tested by asking why reduction is needed and what dimensions are typical."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Contexts and dimensionality"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["dimensionality reduction"]
+    },
+    {
+      "candidate_id": "candidate-61-008",
+      "label": "Pre-trained GloVe Word Vectors",
+      "description": "GloVe (Global Vectors for Word Representation) is a set of pre-trained 300-dimensional word vectors available in spaCy, providing a ready-to-use semantic space for English.",
+      "coverage_criteria": [
+        "State that GloVe vectors are 300-dimensional and pre-trained.",
+        "Identify that GloVe vectors are included in spaCy's 'en' model.",
+        "Explain that using pre-trained vectors saves the effort of training on a corpus."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces GloVe as a downloadable database of pre-trained vectors from Stanford, included with spaCy, and states they will be used for the rest of the tutorial.",
+        "granularity_rationale": "This is a practical resource concept, informing students that they can leverage existing vectors; it's small and testable with factual recall."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "GloVe vectors"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["GloVe", "spaCy", "Stanford"]
+    },
+    {
+      "candidate_id": "candidate-61-009",
+      "label": "Cosine Similarity for High-Dimensional Vectors",
+      "description": "Cosine similarity measures the cosine of the angle between two vectors, providing a useful similarity metric for high-dimensional spaces where Euclidean distance may be less informative.",
+      "coverage_criteria": [
+        "Define cosine similarity formula.",
+        "Explain that cosine similarity ranges from -1 to 1, with 1 meaning identical direction.",
+        "Compare and contrast cosine similarity with Euclidean distance.",
+        "Given two vectors, compute cosine similarity (using a formula or Python)."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a cosine() function implementation and uses it to verify that 'dog' and 'puppy' are more similar than 'trousers' and 'octopus', explaining it is more suited to high-dimensional spaces.",
+        "granularity_rationale": "Cosine similarity is a specific alternative metric that is essential for working with word vectors; it's a small, well-defined concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Cosine similarity and finding closest neighbors"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["cosine similarity"]
+    },
+    {
+      "candidate_id": "candidate-61-010",
+      "label": "Word Vector Arithmetic with Pre-trained Embeddings",
+      "description": "Arithmetic on GloVe word vectors can reveal meaningful semantic relationships, e.g., 'water' + 'frozen' yields 'ice', and 'wine' - 'alcohol' yields words like 'dinner'.",
+      "coverage_criteria": [
+        "Perform vector addition or subtraction with GloVe vectors (hypothetically) and interpret results.",
+        "Explain that such arithmetic reflects learned semantic relationships from training data.",
+        "Given example arithmetic, predict plausible results based on semantic intuition."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source demonstrates several examples: 'wine' - 'alcohol' returns food-related words, 'water' + 'frozen' returns 'ice', 'blue' - 'sky' + 'grass' returns 'green', showing that pre-trained vectors encode relationships.",
+        "granularity_rationale": "This is a practical skill demonstrating the 'magic' of word vectors, combining vector arithmetic and pre-trained embeddings in a testable way."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Fun with spaCy, Dracula, and vector arithmetic"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": ["GloVe", "spaCy"]
+    },
+    {
+      "candidate_id": "candidate-61-011",
+      "label": "Sentence Similarity via Averaged Word Vectors",
+      "description": "A sentence vector can be obtained by averaging the word vectors of its constituent words, and this can be used to find semantically similar sentences in a corpus.",
+      "coverage_criteria": [
+        "Explain how to compute a sentence vector from word vectors.",
+        "Compute the average of multiple word vectors (component-wise).",
+        "Describe that cosine similarity between sentence vectors can measure sentence similarity."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines a sentvec() function that averages word vectors of a sentence, then uses it with spacy_closest_sent() to find sentences in Dracula similar to a query, yielding plausible results.",
+        "granularity_rationale": "This is a specific technique for extending word vectors to longer texts, small enough to test by having students compute a mean and interpret similarity."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Sentence similarity"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Understanding word vectors",
+      "source_year": "2024",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-61-001",
+      "to_candidate_id": "candidate-61-002",
+      "reason": "The Euclidean distance function is used within the closest() function to measure distances between vectors and identify nearest neighbors.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Finding the closest item"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-003",
+      "to_candidate_id": "candidate-61-004",
+      "reason": "The source applies vector subtraction and addition to color vectors to solve analogies, e.g., pink - red + blue yields light blue.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Color magic"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-005",
+      "to_candidate_id": "candidate-61-006",
+      "reason": "The distributional hypothesis motivates the construction of word vectors by counting contexts, as demonstrated with the Dickens sentence.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Word vectors by counting contexts"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-006",
+      "to_candidate_id": "candidate-61-007",
+      "reason": "The high dimensionality of co-occurrence vectors leads to the need for dimensionality reduction, as discussed in the context of practical word vectors.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Contexts and dimensionality"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-008",
+      "to_candidate_id": "candidate-61-009",
+      "reason": "The source introduces cosine similarity as a metric better suited for the high-dimensional GloVe vectors when finding nearest neighbors.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Cosine similarity and finding closest neighbors"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-008",
+      "to_candidate_id": "candidate-61-010",
+      "reason": "The source demonstrates word arithmetic using pre-trained GloVe vectors from spaCy, showing operations like water + frozen = ice.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Fun with spaCy, Dracula, and vector arithmetic"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-009",
+      "to_candidate_id": "candidate-61-011",
+      "reason": "The source uses cosine similarity to compare sentence vectors when finding similar sentences.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Sentence similarity"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-003",
+      "to_candidate_id": "candidate-61-011",
+      "reason": "The meanv function (vector mean) is used to compute the average of word vectors for a sentence, enabling sentence-level similarity.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Sentence similarity"}
+      ]
+    }
+  ]
+}

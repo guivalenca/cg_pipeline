@@ -1,0 +1,101 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Natural Language Challenges",
+      "description": "Natural language is inherently structured yet free-form; the same meaning can be expressed in many ways, and similar words can convey different meanings, making NLP distinct from other data types.",
+      "coverage_criteria": [
+        "Give examples of sentences where similar words convey different meanings, and explain why NLP requires special approaches compared to tabular data."
+      ],
+      "source_candidate_ids": [
+        "c25_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate covering foundational NLP challenge."
+    },
+    {
+      "id": "lr002",
+      "label": "Multi-label Encoding with Binary Vectors",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each index corresponds to a label, allowing a single example to have multiple 1s, unlike one-hot encoding for multi-class.",
+      "coverage_criteria": [
+        "Encode a set of labels for a given text using a binary vector, and contrast with one-hot encoding for multi-class."
+      ],
+      "source_candidate_ids": [
+        "c25_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate covering label encoding for multi-label tasks."
+    },
+    {
+      "id": "lr003",
+      "label": "Sigmoid Activation for Multi-label Classification",
+      "description": "For multi-label text classification with a bag-of-words model, the output layer should use sigmoid activation with binary cross-entropy loss, as it allows independent binary predictions per label, while softmax is for multi-class.",
+      "coverage_criteria": [
+        "Explain why sigmoid activation is preferred over softmax for multi-label classification, and select the appropriate loss function."
+      ],
+      "source_candidate_ids": [
+        "c25_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate covering model output configuration for multi-label."
+    },
+    {
+      "id": "lr004",
+      "label": "HashVectorizer: Hashing-based Vectorization",
+      "description": "Scikit-learn's HashVectorizer applies a hash function to map terms to numerical indices, saving memory but making it impossible to recover original feature names, unlike CountVectorizer.",
+      "coverage_criteria": [
+        "Explain one advantage and one disadvantage of using HashVectorizer compared to CountVectorizer."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate introducing HashVectorizer as an alternative vectorizer."
+    },
+    {
+      "id": "lr005",
+      "label": "TfidfVectorizer: TF-IDF Weighting",
+      "description": "Scikit-learn's TfidfVectorizer assigns weights to terms combining term frequency (TF) and inverse document frequency (IDF), giving higher importance to discriminative terms across the corpus, unlike simple count-based BoW.",
+      "coverage_criteria": [
+        "Define TF-IDF and explain how it differs from simple count-based vectorization."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate introducing TfidfVectorizer as an alternative weighting method."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c25_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c25_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c25_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c24_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c24_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    }
+  ]
+}

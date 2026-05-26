@@ -1,0 +1,306 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:26:27.181974+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+  "self_study_id": "81",
+  "source_body_path": "extraction/post-image/0081-article-metricas-de-software-usando-biblioteca-python.md",
+  "source_body_sha256": "19512c1c0e6dfbfec13fa4f38773a1ae5a981d25ccf45f7457efd5db6e87b093",
+  "source_name": "Métricas de Software usando Biblioteca Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-81-001",
+      "label": "Purpose of codemetrics library",
+      "description": "codemetrics is a Python library designed to mine source control management (SCM) repositories and extract insights about a code base, inspired by Adam Tornhill's books.",
+      "coverage_criteria": [
+        "Student can explain what codemetrics does and what it is used for."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source states 'Mine your SCM for insight on your software' and 'Code metrics is a simple Python module that leverage pandas and your source control management (SCM) tool to generate insight on your code base.'",
+        "granularity_rationale": "This is a single high-level idea that gives the overall motivation, suitable for a standalone checkable concept."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "codemetrics"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "codemetrics",
+        "Adam Tornhill"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-002",
+      "label": "Supported SCM tools: git and Subversion",
+      "description": "codemetrics currently supports mining repositories from git and Subversion (SVN).",
+      "coverage_criteria": [
+        "Student can list the two SCM tools that codemetrics supports."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions 'For now, only Subversion and git are supported.'",
+        "granularity_rationale": "This is a concise, specific fact that can be quickly checked."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_paragraph",
+          "locator": "For now, only Subversion and git are supported."
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "git",
+        "Subversion"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-003",
+      "label": "Installation via pip",
+      "description": "codemetrics can be installed using the pip package manager with the command 'pip install codemetrics'.",
+      "coverage_criteria": [
+        "Student can write the pip command to install codemetrics."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source includes an Installation section with 'pip install codemetrics'.",
+        "granularity_rationale": "A single practical step that is essential for using the library."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Installation"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "pip"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-004",
+      "label": "Key dependencies: pandas, lizard, cloc",
+      "description": "codemetrics relies on pandas for data manipulation, lizard for code complexity calculation, and cloc.pl for line counts.",
+      "coverage_criteria": [
+        "Student can name the three main dependencies of codemetrics and their roles."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source lists the dependencies: 'pandas: for data munching', 'lizard: for code complexity calculation', 'cloc.pl (script): for line counts'.",
+        "granularity_rationale": "Knowing these dependencies helps understand the library's capabilities and integration points."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_list",
+          "locator": "Dependencies list under 'codemetrics' heading"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "pandas",
+        "lizard",
+        "cloc"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-005",
+      "label": "Retrieving lines of code (LOC) with get_cloc",
+      "description": "Using cm.get_cloc(project, cloc_program) returns a DataFrame with line count statistics for the project.",
+      "coverage_criteria": [
+        "Student can write a code snippet to retrieve LOC data using cm.get_cloc."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The usage example shows 'loc_df = cm.get_cloc(project, cloc_program='/path/to/cloc')'.",
+        "granularity_rationale": "This is a specific function call that can be practiced and checked."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Usage example: loc_df = cm.get_cloc(...)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "get_cloc"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-006",
+      "label": "Retrieving commit log with get_log",
+      "description": "cm.get_log(project) fetches the revision log from the SCM repository as a pandas DataFrame.",
+      "coverage_criteria": [
+        "Student can write a code snippet to obtain the log using cm.get_log."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The example includes 'log_df = cm.get_log(project)'.",
+        "granularity_rationale": "A discrete, observable operation that forms the basis for further analysis."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Usage example: log_df = cm.get_log(project)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "get_log"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-007",
+      "label": "Calculating file ages with get_ages",
+      "description": "cm.get_ages(log_df) computes age-related metrics for files based on the log DataFrame.",
+      "coverage_criteria": [
+        "Student can write a code snippet to compute ages using cm.get_ages."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The usage shows 'ages_df = cm.get_ages(log_df)'.",
+        "granularity_rationale": "This is a simple function that produces a meaningful metric from the log, making it a checkable step."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Usage example: ages_df = cm.get_ages(log_df)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "get_ages"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-008",
+      "label": "Computing diff stats for Subversion",
+      "description": "For SVN projects, after obtaining the log, one can compute lines added and removed per revision using cm.svn.get_diff_stats with chunks=False.",
+      "coverage_criteria": [
+        "Student can explain how to get diff stats for an SVN project in codemetrics."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The SVN-specific code block applies 'cm.svn.get_diff_stats' to the log.",
+        "granularity_rationale": "This is a distinct variant of usage for a specific SCM, worth separating."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Subversion diff stats example"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "cm.svn.get_diff_stats"
+      ]
+    },
+    {
+      "candidate_id": "candidate-81-009",
+      "label": "MIT License",
+      "description": "codemetrics is distributed under the MIT License, a permissive open-source license.",
+      "coverage_criteria": [
+        "Student can state the license under which codemetrics is released."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The License section states 'Licensed under the term of MIT License'.",
+        "granularity_rationale": "Licensing is a common piece of information for open-source tools, and this is a single fact."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "License"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "codemetrics GitHub README",
+      "source_year": "2024",
+      "name_drops": [
+        "MIT License"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-81-005",
+      "to_candidate_id": "candidate-81-006",
+      "reason": "In the usage example, get_cloc and get_log are called sequentially to collect different aspects of project data, establishing a workflow connection.",
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Usage example: loc_df = cm.get_cloc(...); log_df = cm.get_log(...)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-81-006",
+      "to_candidate_id": "candidate-81-007",
+      "reason": "get_ages directly depends on the log DataFrame returned by get_log, as shown in 'ages_df = cm.get_ages(log_df)'.",
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Usage example: ages_df = cm.get_ages(log_df)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-81-006",
+      "to_candidate_id": "candidate-81-008",
+      "reason": "The SVN diff stats computation builds upon the log retrieved by get_log, as demonstrated in the SVN code block.",
+      "source_anchors": [
+        {
+          "kind": "markdown_code_block",
+          "locator": "Subversion diff stats example"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 9,
+    "source_local_connector_candidate_count": 3
+  }
+}

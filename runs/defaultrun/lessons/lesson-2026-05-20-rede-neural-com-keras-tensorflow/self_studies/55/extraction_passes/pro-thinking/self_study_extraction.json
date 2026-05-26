@@ -1,0 +1,713 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:26:36.930366+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "self_study_id": "55",
+  "source_body_path": "extraction/post-image/0055-article-keras-cheat-sheet-neural-networks-in-python.md",
+  "source_body_sha256": "223dec62ef0794ac92db7c5912a090e1119b897fcecb51bbdc2358bd64461ea9",
+  "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-55-001",
+      "label": "End-to-end Keras workflow for binary classification",
+      "description": "The overall pipeline for building a neural network in Keras: import modules, create a Sequential model, add Dense layers, compile with optimizer and loss, fit on data, and generate predictions.",
+      "coverage_criteria": [
+        "Student can explain each line of the basic example code and its role in a Keras workflow.",
+        "Student can write a similar minimal script for a binary classification problem."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The cheat sheet opens with a 'A Basic Example' section showing a complete, runnable code snippet that demonstrates every essential step of a Keras neural network pipeline.",
+        "granularity_rationale": "This candidate captures the high‑level workflow, allowing assessment of overall comprehension with one or two questions about the sequence and purpose of the steps."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "A Basic Example"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Keras",
+        "Sequential",
+        "Dense",
+        "compile",
+        "fit",
+        "predict"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-002",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets (MNIST, CIFAR-10, Boston Housing, IMDb) from tensorflow.keras.datasets and split them into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three datasets available in tensorflow.keras.datasets.",
+        "Student can demonstrate loading one dataset and unpacking it into x_train, y_train, x_test, y_test."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Data' section provides explicit import statements and code for loading four different datasets, each showing the correct syntax.",
+        "granularity_rationale": "This concept is a single action (load_data) that can be verified by asking the student to recall the available datasets and the unpacking pattern."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Keras Data Sets"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Keras",
+        "tensorflow.keras.datasets",
+        "mnist",
+        "cifar10",
+        "boston_housing",
+        "imdb"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-003",
+      "label": "Loading external data from a URL with NumPy",
+      "description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset directly from a URL and split it into feature matrix X and target vector y.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Other' subsection under 'Data' provides a concrete example of using urlopen and np.loadtxt on a specific diabetes dataset URL.",
+        "granularity_rationale": "The task involves two specific functions; it is small enough to test with a prompt like 'load a dataset from this URL'."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Other"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "NumPy",
+        "urllib",
+        "np.loadtxt"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-004",
+      "label": "Preprocessing: sequence padding with pad_sequences",
+      "description": "Pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, specifying a maxlen.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Sequence Padding' subsection directly illustrates padding on the IMDb dataset with a maxlen of 80, showing the call for both train and test.",
+        "granularity_rationale": "Pad_sequences is a single‑purpose utility that can be checked with a short coding question or explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Sequence Padding"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "pad_sequences",
+        "Keras preprocessing"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-005",
+      "label": "Preprocessing: one‑hot encoding with to_categorical",
+      "description": "Convert integer class labels to one‑hot encoded matrices using to_categorical from tensorflow.keras.utils, specifying num_classes.",
+      "coverage_criteria": [
+        "Student can describe why one‑hot encoding is used for multi‑class classification.",
+        "Student can transform label vectors using to_categorical(y, num_classes)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'One‑Hot Encoding' subsection shows to_categorical applied to the MNIST and CIFAR‑10 label sets, with the num_classes variable clearly defined.",
+        "granularity_rationale": "This is a focused preprocessing step that can be assessed with a single coding exercise or conceptual question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "One-Hot Encoding"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "to_categorical",
+        "one‑hot encoding"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-006",
+      "label": "Preprocessing: train/test split with sklearn",
+      "description": "Use sklearn.model_selection.train_test_split to split a dataset into training and test portions, controlling test_size and random_state.",
+      "coverage_criteria": [
+        "Student can import train_test_split and call it on features and labels.",
+        "Student can explain the roles of test_size and random_state."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Train And Test Sets' subsection provides the exact import and call for train_test_split on an external dataset.",
+        "granularity_rationale": "Splitting is a routine step, easily checked by asking to produce the split code with given parameters."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Train And Test Sets"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "train_test_split",
+        "sklearn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-007",
+      "label": "Preprocessing: standardization/normalization with StandardScaler",
+      "description": "Fit a StandardScaler to training data and transform both training and test sets to have zero mean and unit variance.",
+      "coverage_criteria": [
+        "Student can explain the difference between standardization and normalization.",
+        "Student can write the code to apply StandardScaler and transform datasets."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Standardization/Normalization' subsection illustrates using StandardScaler from sklearn.preprocessing on the Boston Housing dataset.",
+        "granularity_rationale": "This is a single scaling technique; a student can demonstrate it with a short coding task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Standardization/Normalization"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "StandardScaler",
+        "sklearn.preprocessing"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-008",
+      "label": "Building an MLP for binary classification with Dense layers",
+      "description": "Construct a Sequential model with input, hidden, and output Dense layers for binary classification, using relu activation for hidden layers and sigmoid for output.",
+      "coverage_criteria": [
+        "Student can add Dense layers with specified units, input_dim, and activations.",
+        "Student can describe why relu and sigmoid are used in this structure."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Multi-Layer Perceptron (MLP) – Binary Classification' subsection shows a concrete three‑layer MLP architecture with the exact parameters.",
+        "granularity_rationale": "This focuses on one specific architecture pattern, testable by asking the student to code an MLP for a binary problem."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Multi-Layer Perceptron (MLP)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Binary Classification"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Dense",
+        "relu",
+        "sigmoid",
+        "Sequential"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-009",
+      "label": "Building an MLP for multi‑class classification with Dropout",
+      "description": "Stack Dense layers with relu activation, interspersed with Dropout for regularization, and a softmax output layer for multi‑class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used in the output layer."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Multi-Class Classification' subsection under MLP provides a complete architecture with Dropout and a softmax output.",
+        "granularity_rationale": "The concept focuses on the specific combination of Dropout and multi‑class output, checkable with a code‑writing exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Multi-Class Classification"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Dropout",
+        "softmax",
+        "Dense"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-010",
+      "label": "Building an MLP for regression",
+      "description": "Use Dense layers without activation on the output to perform regression with a neural network.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Regression' subsection demonstrates a two‑layer MLP where the output Dense layer has no activation function specified.",
+        "granularity_rationale": "This tiny architectural variation can be assessed by asking to build a regression model."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Regression"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Dense"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-011",
+      "label": "Building a Convolutional Neural Network (CNN) in Keras",
+      "description": "Construct a CNN using Conv2D for convolution, Activation layers, MaxPooling2D for downsampling, Dropout for regularization, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Convolutional Neural Network (CNN)' section provides a complete architecture with Conv2D, MaxPooling2D, Dropout, Flatten, and Dense.",
+        "granularity_rationale": "This candidate covers the unique CNN layer patterns; several coding questions can target individual components."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Convolutional Neural Network (CNN)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Conv2D",
+        "MaxPooling2D",
+        "Flatten",
+        "Dropout",
+        "Activation"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-012",
+      "label": "Building a Recurrent Neural Network (RNN) with LSTM",
+      "description": "Create an RNN by adding an Embedding layer to handle integer sequences and an LSTM layer with dropout parameters, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Recurrent Neural Network (RNN)' subsection shows a model with Embedding, LSTM, and Dense with sigmoid activation.",
+        "granularity_rationale": "The three‑layer RNN is a compact unit that can be tested by asking for its implementation and parameter explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Recurrent Neural Network (RNN)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "Embedding",
+        "LSTM",
+        "dropout",
+        "recurrent_dropout"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-013",
+      "label": "Inspecting a Keras model",
+      "description": "Retrieve model information using output_shape, summary(), get_config(), and get_weights() after defining the architecture.",
+      "coverage_criteria": [
+        "Student can call model.summary() to see layer details.",
+        "Student can explain what get_config() and get_weights() return."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Inspect Model' section succinctly lists all four inspection commands with brief explanations.",
+        "granularity_rationale": "Each inspection method is a standalone call; verification can be done by asking to list and use them."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Inspect Model"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "output_shape",
+        "summary",
+        "get_config",
+        "get_weights"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-014",
+      "label": "Compiling a Keras model for different tasks",
+      "description": "Specify the optimizer, loss function, and metrics via model.compile(), choosing appropriate values for binary classification, multi‑class classification, regression, and RNN tasks.",
+      "coverage_criteria": [
+        "Student can compile a model with binary_crossentropy loss for binary classification.",
+        "Student can select categorical_crossentropy and softmax for multi‑class problems.",
+        "Student can use mse loss and mae metric for regression."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Compile Model' section provides four explicit compile calls, each tailored to a different task, illustrating the correct loss/metric combinations.",
+        "granularity_rationale": "The compile step is a single function call; the concept can be checked by presenting scenarios and asking for the appropriate compile line."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Compile Model"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "compile",
+        "optimizer",
+        "loss",
+        "metrics",
+        "binary_crossentropy",
+        "categorical_crossentropy",
+        "mse"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-015",
+      "label": "Training a Keras model with fit()",
+      "description": "Train the compiled model using model.fit() with training data, specifying batch_size, epochs, verbosity, and optional validation_data to monitor validation performance.",
+      "coverage_criteria": [
+        "Student can call fit() with required arguments.",
+        "Student can explain the roles of batch_size, epochs, and validation_data."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Model Training' subsection shows a complete fit() call with all common parameters.",
+        "granularity_rationale": "Training is a single method invocation; assessment can focus on parameter understanding."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Model Training"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "fit",
+        "batch_size",
+        "epochs",
+        "validation_data"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-016",
+      "label": "Evaluating a Keras model on test data",
+      "description": "Use model.evaluate() to compute loss and metrics on a test set, returning a score list.",
+      "coverage_criteria": [
+        "Student can evaluate a model with test data and a batch size.",
+        "Student can interpret the output of evaluate()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Evaluate Your Model's Performance' section provides the exact evaluate() call.",
+        "granularity_rationale": "Evaluation is a simple function call; a question can ask to write the line and explain the result."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Evaluate Your Model's Performance"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "evaluate",
+        "score"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-017",
+      "label": "Making predictions with predict and predict_classes",
+      "description": "Generate predictions on new data using model.predict() for probabilities and model.predict_classes() for class labels, both accepting a batch_size argument.",
+      "coverage_criteria": [
+        "Student can call predict and predict_classes on test data.",
+        "Student can explain the difference between predict and predict_classes."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Prediction' subsection shows both predict and predict_classes calls with batch_size.",
+        "granularity_rationale": "This covers two related methods, easily tested with a coding prompt."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Prediction"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "predict",
+        "predict_classes"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-018",
+      "label": "Saving and reloading Keras models",
+      "description": "Persist a trained model to an HDF5 file with model.save() and reload it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can save a model to a .h5 file.",
+        "Student can load a saved model and verify its architecture."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Save/Reload Models' section provides the exact imports and calls for saving and loading.",
+        "granularity_rationale": "This is a pair of straightforward commands that can be checked by asking to write the save/load code."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Save/Reload Models"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "save",
+        "load_model",
+        "h5"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-019",
+      "label": "Fine‑tuning by adjusting optimizer parameters",
+      "description": "Customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and then compiling the model with that optimizer.",
+      "coverage_criteria": [
+        "Student can create an RMSprop optimizer object with custom parameters.",
+        "Student can use that optimizer in model.compile()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Optimization Parameters' subsection under 'Model Fine‑Tuning' explicitly creates an RMSprop object with lr and decay, then compiles with it.",
+        "granularity_rationale": "Adjusting optimizer parameters is a focused task; the concept can be tested by asking the student to set a learning rate of 0.001."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Optimization Parameters"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "RMSprop",
+        "learning rate",
+        "decay"
+      ]
+    },
+    {
+      "candidate_id": "candidate-55-020",
+      "label": "Fine‑tuning with Early Stopping",
+      "description": "Prevent overfitting by using the EarlyStopping callback, which stops training when a monitored metric (e.g., validation loss) fails to improve after a given patience.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The 'Early Stopping' subsection shows the creation of an EarlyStopping monitor with patience=2 and its use in fit() via the callbacks parameter.",
+        "granularity_rationale": "Early stopping is a single callback that can be assessed with a short coding exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Early Stopping"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Keras Cheat Sheet: Neural Networks in Python",
+      "source_year": "2024",
+      "name_drops": [
+        "EarlyStopping",
+        "callback",
+        "patience"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-55-002",
+      "to_candidate_id": "candidate-55-005",
+      "reason": "The cheat sheet first loads the MNIST dataset (candidate-55-002) and then applies one‑hot encoding to its labels (candidate-55-005), linking them in a typical preprocessing pipeline.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Keras Data Sets"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "One-Hot Encoding"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-55-005",
+      "to_candidate_id": "candidate-55-009",
+      "reason": "After one‑hot encoding the labels, the cheat sheet presents a multi‑class MLP architecture (candidate-55-009) that expects one‑hot encoded targets, demonstrating how preprocessing feeds into model definition.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "One-Hot Encoding"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Multi-Class Classification"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-55-004",
+      "to_candidate_id": "candidate-55-012",
+      "reason": "The RNN example (candidate-55-012) uses pre‑padded sequences from the sequence padding step (candidate-55-004), showing the necessity of padding for variable‑length input in an RNN.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Sequence Padding"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Recurrent Neural Network (RNN)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-55-014",
+      "to_candidate_id": "candidate-55-015",
+      "reason": "The model must be compiled (candidate-55-014) before it can be trained with fit() (candidate-55-015). The cheat sheet presents them in immediate sequence.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Compile Model"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Model Training"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-55-015",
+      "to_candidate_id": "candidate-55-016",
+      "reason": "After training, the cheat sheet immediately shows how to evaluate the model (candidate-55-016) on test data, establishing the typical train‑then‑evaluate workflow.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Model Training"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Evaluate Your Model's Performance"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 20,
+    "source_local_connector_candidate_count": 5
+  }
+}

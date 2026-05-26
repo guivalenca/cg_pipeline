@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "strategy": "video_gemini_two_pass",
+  "settings": {
+    "profile": "triage",
+    "model": "gemini-2.5-flash",
+    "fps": 0.33,
+    "media_resolution": "low",
+    "temperature": 0.2,
+    "max_output_tokens": 8192,
+    "prompt_version": "video_gemini_pass2_v1",
+    "chunk_longer_than_seconds": 3600,
+    "chunk_seconds": 1800,
+    "chunk_overlap_seconds": 5,
+    "max_transcript_chars_per_chunk": 60000,
+    "min_words": 150,
+    "timestamp_span_tolerance_seconds": 180,
+    "timestamp_span_min_ratio": 0.65,
+    "title_similarity_min": 0.45
+  },
+  "pass1_cache_key": "be90ea82f17bec51a205ea31edd3cca7bd9b0bbd0eaf89ed1891663bdf13f987",
+  "pass1_transcript_sha256": "0888469e6525e314f91061c9e8ee51f07334a3e8ad1799d57f38db5f19f8ed63",
+  "chunks": [
+    {
+      "schema_version": "1.0",
+      "provider": "gemini_multimodal",
+      "strategy": "video_gemini_two_pass",
+      "source_url": "https://www.youtube.com/watch?v=n0LmyI075mg",
+      "gemini_media_source": "https://www.youtube.com/watch?v=n0LmyI075mg",
+      "audio_transcript_sha256": "0888469e6525e314f91061c9e8ee51f07334a3e8ad1799d57f38db5f19f8ed63",
+      "model": "gemini-2.5-flash",
+      "fps": 0.33,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 8192,
+      "prompt_version": "video_gemini_pass2_v1",
+      "prompt_sha256": "ed6a52ea10463ec3a870c5fdd523ee0d68e7dc94f26fb2a7de7eca1b3a6c402b",
+      "chunk": {
+        "index": 1,
+        "start_seconds": null,
+        "end_seconds": null
+      },
+      "media_reference": {
+        "mode": "external_uri",
+        "file_uri": "https://www.youtube.com/watch?v=n0LmyI075mg",
+        "mime_type": "video/mp4",
+        "video_metadata": {
+          "fps": 0.33
+        }
+      },
+      "prompt": "You are the video acquisition layer for The Companion curriculum pipeline.\n\nTask: convert the provided video into cleaned markdown that downstream concept extraction can process without branching by source type.\n\nSource metadata:\n- XLSX row id: 35\n- XLSX row title: Monte Carlo Simulation Made Super Easy!\n- Source URL or file: https://www.youtube.com/watch?v=n0LmyI075mg\n- Probed source title: Monte Carlo Simulation Made Super Easy!\n- Probed duration seconds: 432.0\n- Chunk window: Full video\n- Gemini model: gemini-2.5-flash\n- Video sampling fps: 0.33\n- Media resolution: low\n- Prompt version: video_gemini_pass2_v1\n\nPass 1 audio transcript for temporal grounding:\n```text\n[00:01] Hello and welcome. Today we're working on how to do Monte Carlo simulation in Excel.\n[00:06] Now I'm just trying to show you the easiest example I can show you.\n[00:10] And so this is a little income statement. So sales and variable cost and fixed cost\n[00:16] and you'll end up with a profit, hopefully, right? So sales minus variable cost minus fixed cost\n[00:21] gives us a profit or it could be a loss. Now to do Monte Carlo simulation, we need to know\n[00:28] the mean and we need to know the standard deviation of some numbers or group of numbers.\n[00:34] And so at Monte Carlo simulation says, look, instead of just doing one, let's do it a thousand times\n[00:41] or here I'm going to show you how to do it ten thousand times. It's just as easy to do it five\n[00:46] hundred or a thousand or ten thousand in Excel. So let's get started. Here's what we're going to do\n[00:51] with the estimate. We're going to use a function called the norm inverse. So the norm.inv, the\n[01:01] probability, I want to randomize this number for the probability. So I've got rand, R-A-N-D is a\n[01:08] function in Excel and I need to open the bracket and close the bracket. And what we'll have is this\n[01:14] number will be randomized from zero to one. And then because it's in this function, we're going to say,\n[01:21] we're going to use the mean and we're going to use the standard deviation and hit OK.\n[01:27] And we have estimated our sales. Now I can copy this down. I can copy the variable cost and the\n[01:36] fixed cost. So let's check the fixed cost. It's based on the mean of 150 and the standard deviation\n[01:42] of 15,000. And what will happen is you'll notice every time we enter something, every time we change\n[01:48] a formula or type something in, these numbers will randomize and come up with a new set of numbers.\n[01:54] So for example, we'll take 708 minus the 356 minus the 176. We'll hit enter and those three numbers\n[02:03] will update automatically, but the formula will still stay. 6, 16, 338, 130, and then 147 right now\n[02:12] is our profit calculation. So here's what we're going to do. We're going to say, OK, the 10,000 simulation,\n[02:19] this is simulation zero, and I'm going to point to the here now at 74,000. Every time we hit enter,\n[02:27] it's going to update and randomize again. So this is called a volatile function. So what I want to do\n[02:33] is I want to do a column for 10,000. So I have zero right here. And what I'm going to do is on the home\n[02:42] ribbon, I'm going to go to the right here and do a series. The series I want is in a column. I want\n[02:51] it to go up by one. So the step value is one. I want it to stop at 10,000. So I'm going to hit OK.\n[02:58] And so you see what I have now is I've got 10,000 cells in a column and it's numbered one through 10,000.\n[03:06] So what I'm going to do, here's a little trick to do Monte Carlo simulation. Anything you can estimate,\n[03:12] you can do Monte Carlo simulation. Sounds super fancy, but it's not really. Here's what happens.\n[03:18] I'm going to highlight this entire column with the cells to the right. I'm going to go to the data\n[03:27] ribbon. And then do you see this what if analysis? We're going to do a data table. So the data table,\n[03:34] we could put two different inputs, a row and a column. Here I've got a column, but I don't want\n[03:39] it to use new numbers. I want it to just recalculate. So I'm going to use a blank cell.\n[03:45] I'm pointing to a blank cell. You see there's nothing in there. I want to hit OK. And it'll\n[03:50] take just a second to refresh. And what we'll see is that this number, this original profit is\n[03:59] then recalculated and simulated 10,000 times. Now, the cool thing about this is we can now\n[04:06] highlight this and do the mean and the min and the max and figure out what's our risk of loss.\n[04:12] And that what we're worried about that, we do not want to lose money or we want the risk of losing\n[04:18] money to be really small. So I'm going to select this entire column and I'm going to name it. This is\n[04:23] called a named range. So I can go to formulas and name manager and I can say, I want a new and I'm going\n[04:33] to call this profit. So I've just named this range to be called profit. So there it is.\n[04:42] We see it's G4 through G10,003. All right. So now for the mean, the mean is the average.\n[04:52] So the average, and I can just start typing in profit and you see it says, hey, do you want this\n[04:58] profit right there? Yes, I do. And you see it selects everything in blue. So what is the average\n[05:04] of all those profit numbers? Well, it's 109,789. What is the minimum? Well, the min of profit\n[05:15] is 173. And that's a loss because it's in parentheses. That's a negative number. So we're worried about a\n[05:25] loss. There's a negative. The worst of all the 10,000 is negative 173. So $173,000 loss.\n[05:33] For max, we can do the maximum number of profit. Well, that's 433. Do you see the minimum change a\n[05:43] little bit? Well, what percent of the time of these 10,000 do we have a loss? So here's what I want to\n[05:50] do. I want to go to, I'm just going to do the number as a general number. I'm going to do count\n[05:57] ifs. Count ifs is a function. And it's going to say, what's the range and what's my criteria? Well,\n[06:05] the range is profit, comma, and then my risk of loss is anything. I need to start with a quote\n[06:14] less than zero. And quote again, close my brackets. And it says 740 times out of the 10,000\n[06:26] is how many times we're less than zero. So that would be the 749 losses. And you see every time\n[06:34] it's going to update, we know this. If I divide this by the 10,000, then I'll have some kind\n[06:41] of estimate. I need to make it a percentage. So about 7% of the time we would lose money in\n[06:49] this example. Now, if we change this, we change fixed costs from 150 to 200,000, the risk of loss\n[06:57] will go up. So now it's 21%. We're worried about the risk of loss. And that's how you do\n[07:06] the Monte Carlo simulation, 10,000 simulations. Excel can do it.\n```\n\nReturn only the markdown body. Do not include YAML frontmatter.\n\nRequired markdown structure:\n\n## [MM:SS] Concise moment heading\n\n**Spoken content:** faithful summary or transcript-aligned excerpt of what is being said at this timestamp.\n\n**On-screen content:** slide text, code, equations, diagrams, tables, terminal output, whiteboard content, or visible UI state at this timestamp.\n\nVisual reference rule:\n- When a slide, diagram, chart, equation, code block, table, whiteboard, or UI state is useful for downstream extraction, emit an inline image placeholder using this exact form:\n  ![descriptive alt text](video-frame://35@MM:SS)\n- Use H:MM:SS in the URI timestamp when needed.\n- The alt text must briefly name the visual type and key labels, for example: ![diagram: tokenization pipeline with normalization, vectorization, classifier](video-frame://35@12:34)\n- Do not emit JSON for diagrams. The downstream Qwen-VL phase will convert frame placeholders to structured JSON later.\n\nBehavior rules:\n- Use the Pass 1 transcript as the timing anchor, but focus model capacity on visual reasoning.\n- Preserve code blocks with fenced markdown.\n- Preserve equations in readable markdown/LaTeX form.\n- Do not invent content outside the video or outside the chunk window.\n- Do not describe blank or repeated frames unless the visual content changes.\n- Prefer timestamp sections that span the whole chunk/video, not a dense frame-by-frame log.\n- If speech and visuals disagree, say so explicitly inside the relevant timestamp section.\n"
+    }
+  ],
+  "credential_fields_redacted": true
+}

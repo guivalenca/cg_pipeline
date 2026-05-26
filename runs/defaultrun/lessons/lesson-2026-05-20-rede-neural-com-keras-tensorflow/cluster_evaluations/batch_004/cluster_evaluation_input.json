@@ -1,0 +1,516 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-20-rede-neural-com-keras-tensorflow/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "cluster": {
+    "id": "cluster_038",
+    "label": "TensorFlow in industry applications",
+    "rationale": "These candidates give real-world examples of TensorFlow usage by companies (Google, PayPal, Twitter, GE), illustrating its practical impact.",
+    "candidate_ids": [
+      "c57_pro_thinking_012"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_038",
+      "label": "TensorFlow in industry applications",
+      "rationale": "These candidates give real-world examples of TensorFlow usage by companies (Google, PayPal, Twitter, GE), illustrating its practical impact.",
+      "candidate_ids": [
+        "c57_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_039",
+      "label": "TensorFlow Quantum",
+      "rationale": "These candidates mention TensorFlow Quantum (TFQ), a library for combining quantum computing with machine learning, announced in 2020.",
+      "candidate_ids": [
+        "c57_pro_thinking_013"
+      ]
+    },
+    {
+      "id": "cluster_040",
+      "label": "Becoming an ML specialist",
+      "rationale": "These candidates outline the four pillars for becoming an ML specialist (programming, math, theory, practice) and mention the TensorFlow Developer Certificate.",
+      "candidate_ids": [
+        "c57_pro_thinking_014",
+        "c57_pro_thinking_015"
+      ]
+    },
+    {
+      "id": "cluster_041",
+      "label": "TensorFlow CPU/GPU package installation",
+      "rationale": "These candidates detail installing TensorFlow via pip, covering packages for CPU, GPU Linux, and GPU Windows, and verifying installation with test commands.",
+      "candidate_ids": [
+        "c58_pro_thinking_001",
+        "c58_pro_thinking_002",
+        "c58_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_042",
+      "label": "NVIDIA GPU dependencies for TensorFlow",
+      "rationale": "These candidates list the required NVIDIA software (driver, CUDA Toolkit, cuDNN) and versions for GPU support, including the optional TensorRT.",
+      "candidate_ids": [
+        "c58_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_043",
+      "label": "GPU support by OS and Windows-specific setup",
+      "rationale": "These candidates cover the OS limitations (no GPU on macOS, restrictions on Windows), recommend Miniconda for Windows, and mention the Microsoft Visual C++ Redistributable dependency.",
+      "candidate_ids": [
+        "c58_pro_thinking_005",
+        "c58_pro_thinking_006",
+        "c58_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_044",
+      "label": "System requirements for TensorFlow",
+      "rationale": "These candidates specify the supported operating systems, Python versions, and pip versions for TensorFlow installation, providing a prerequisites checklist.",
+      "candidate_ids": [
+        "c58_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_045",
+      "label": "GPU memory management in TensorFlow",
+      "rationale": "These candidates explain TensorFlow's default aggressive GPU memory allocation, how to set fixed memory limits, enable memory growth, and monitor usage with nvidia-smi and profiling tools.",
+      "candidate_ids": [
+        "c59_pro_thinking_001",
+        "c59_pro_thinking_002",
+        "c59_pro_thinking_003",
+        "c59_pro_thinking_004",
+        "c59_pro_thinking_005"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c57_pro_thinking_012",
+    "c57_pro_thinking_013",
+    "c57_pro_thinking_014",
+    "c57_pro_thinking_015",
+    "c58_pro_thinking_001",
+    "c58_pro_thinking_002",
+    "c58_pro_thinking_003",
+    "c58_pro_thinking_004",
+    "c58_pro_thinking_005",
+    "c58_pro_thinking_006",
+    "c58_pro_thinking_008",
+    "c58_pro_thinking_007",
+    "c59_pro_thinking_001",
+    "c59_pro_thinking_002",
+    "c59_pro_thinking_003",
+    "c59_pro_thinking_004",
+    "c59_pro_thinking_005"
+  ],
+  "candidates": [
+    {
+      "id": "c57_pro_thinking_012",
+      "label": "TensorFlow in industry",
+      "description": "TensorFlow is used by many companies, including Google (search, Gmail, translate), PayPal (fraud detection), Twitter (tweet ranking), and General Electric (MRI brain anatomy identification).",
+      "coverage_criteria": [
+        "List at least two real-world applications of TensorFlow.",
+        "Explain how TensorFlow is used in one of those applications."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video provides specific examples of companies using TensorFlow.",
+        "granularity_rationale": "This concept helps connect TensorFlow to practical use cases, testable with a few recall questions."
+      },
+      "anchors": [
+        "Real-World Applications of TensorFlow",
+        "[07:40]"
+      ]
+    },
+    {
+      "id": "c57_pro_thinking_013",
+      "label": "TensorFlow Quantum",
+      "description": "Announced in March 2020, TensorFlow Quantum (TFQ) provides tools for researchers to combine machine learning and quantum computing, enabling modeling of quantum systems.",
+      "coverage_criteria": [
+        "State when TensorFlow Quantum was announced (March 2020).",
+        "Explain the purpose of TFQ (to bridge ML and quantum computing)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video introduces TensorFlow Quantum as an upcoming initiative.",
+        "granularity_rationale": "This is a focused future-oriented concept that can be checked with a couple of facts."
+      },
+      "anchors": [
+        "The Future of TensorFlow: Quantum Computing",
+        "[08:10]"
+      ]
+    },
+    {
+      "id": "c57_pro_thinking_014",
+      "label": "ML Specialist Pillars",
+      "description": "To become an ML specialist, one should build a solid foundation in four pillars: programming, mathematics/statistics, machine learning theory, and hands-on practice.",
+      "coverage_criteria": [
+        "List the four pillars for becoming an ML specialist.",
+        "Explain why each pillar is important."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video outlines these four pillars based on TensorFlow team's belief.",
+        "granularity_rationale": "This concept summarizes essential learning areas for ML, testable with enumeration."
+      },
+      "anchors": [
+        "Becoming a Machine Learning Specialist",
+        "[08:43]"
+      ]
+    },
+    {
+      "id": "c57_pro_thinking_015",
+      "label": "TensorFlow certification",
+      "description": "There is a certification program called TensorFlow Developer Certificate that offers benefits but is not free.",
+      "coverage_criteria": [
+        "Name the certification program.",
+        "State whether it is free or paid."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video mentions the TensorFlow Developer Certificate program.",
+        "granularity_rationale": "This is a small piece of information that can be checked simply."
+      },
+      "anchors": [
+        "Becoming a Machine Learning Specialist",
+        "[09:32]"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_001",
+      "label": "Pacotes pip do TensorFlow para CPU e GPU",
+      "description": "O TensorFlow oferece diferentes pacotes pip: 'tensorflow' para CPU, 'tensorflow[and-cuda]' para suporte a GPU em Linux/WSL2, e 'tensorflow-cpu' para compilação somente CPU.",
+      "coverage_criteria": [
+        "Identificar o pacote pip adequado para cada cenário (somente CPU, GPU Linux, GPU Windows)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo apresenta explicitamente os comandos de instalação com os diferentes pacotes e uma nota sobre o tensorflow-cpu.",
+        "granularity_rationale": "O conceito é pequeno o suficiente para ser verificado com uma pergunta direta sobre os nomes dos pacotes e seus usos."
+      },
+      "anchors": [
+        "Instale o TensorFlow com pip"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_002",
+      "label": "Verificação de instalação do TensorFlow na CPU",
+      "description": "Para confirmar que o TensorFlow foi instalado corretamente na CPU, executa-se um script que cria um tensor de números aleatórios e imprime sua soma reduzida, esperando obter um valor escalar como saída.",
+      "coverage_criteria": [
+        "O estudante deve saber o comando exato de verificação: python3 -c \"import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))\" e interpretar o resultado como sucesso."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O guia fornece o comando exato e explica que 'se um tensor for retornado, você instalou o TensorFlow com sucesso'.",
+        "granularity_rationale": "Testa um único comando e sua interpretação, sendo facilmente verificável com uma pergunta prática."
+      },
+      "anchors": [
+        "4. Verifique a instalação"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_003",
+      "label": "Verificação de instalação do TensorFlow com GPU",
+      "description": "A instalação com suporte a GPU é verificada listando os dispositivos físicos de GPU reconhecidos pelo TensorFlow usando tf.config.list_physical_devices('GPU').",
+      "coverage_criteria": [
+        "Escrever o comando python3 -c \"import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))\" e saber que o retorno de uma lista de dispositivos GPU confirma a instalação."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O guia inclui o comando específico para verificação de GPU e a condição de sucesso.",
+        "granularity_rationale": "Conceito unitário e prático, verificável com uma única questão de execução de código."
+      },
+      "anchors": [
+        "4. Verifique a instalação"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_004",
+      "label": "Dependências de software NVIDIA para GPU no TensorFlow",
+      "description": "Para suporte a GPU, o TensorFlow exige driver NVIDIA versão 450.80.02+, CUDA Toolkit 11.8 e cuDNN SDK 8.6.0; TensorRT 7 é opcional para otimização de inferência.",
+      "coverage_criteria": [
+        "Listar as três dependências obrigatórias e suas versões mínimas, e diferenciar o papel opcional do TensorRT."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 'Requisitos de software' detalha as versões exatas dos softwares NVIDIA necessários.",
+        "granularity_rationale": "Esta é uma lista de requisitos bem definida que pode ser verificada solicitando-se a enumeração das dependências."
+      },
+      "anchors": [
+        "Requisitos de software"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_005",
+      "label": "Suporte a GPU por sistema operacional no TensorFlow",
+      "description": "O TensorFlow não oferece suporte oficial a GPU no macOS. No Windows Native, o suporte a GPU é limitado a versões inferiores a 2.11 e requer Miniconda. Linux e Windows WSL2 suportam GPU com CUDA.",
+      "coverage_criteria": [
+        "Identificar quais sistemas operacionais suportam GPU, mencionar a restrição de versão no Windows e a ausência no macOS."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo afirma claramente que 'Atualmente não há suporte oficial de GPU para executar o TensorFlow no MacOS' e que 'Anything above 2.10 is not supported on the GPU on Windows Native'.",
+        "granularity_rationale": "Conhecimento fundamental para escolher o ambiente de desenvolvimento, verificável com perguntas de múltipla escolha."
+      },
+      "anchors": [
+        "Instruções passo a passo (macOS)",
+        "Instruções passo a passo (Windows Native)"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_006",
+      "label": "Recomendação do Miniconda para GPU no Windows",
+      "description": "Para instalação com suporte a GPU no Windows Native, é recomendado o uso do Miniconda para criar um ambiente isolado e instalar CUDA e cuDNN via conda-forge, utilizando os comandos específicos.",
+      "coverage_criteria": [
+        "Saber que o Miniconda é a abordagem recomendada, e descrever os passos: criar ambiente 'tf' com Python 3.9, ativar e instalar cudatoolkit e cudnn via conda."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção do Windows Native descreve o Miniconda como 'a abordagem recomendada para instalar o TensorFlow com suporte a GPU' e fornece comandos passo a passo.",
+        "granularity_rationale": "Prática específica o suficiente para ser testada pedindo a sequência de comandos."
+      },
+      "anchors": [
+        "3. Instale o Miniconda"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_008",
+      "label": "Dependência do Microsoft Visual C++ Redistributable no Windows",
+      "description": "No Windows Native, a instalação do TensorFlow requer o Microsoft Visual C++ Redistributable para Visual Studio 2015, 2017 e 2019, que fornece a DLL msvcp140_1.dll necessária a partir da versão 2.1.0.",
+      "coverage_criteria": [
+        "O estudante deve saber que essa dependência é obrigatória e como obtê-la no site da Microsoft."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção do Windows Native especifica essa necessidade e fornece o link para download.",
+        "granularity_rationale": "Um pré-requisito único e verificável com uma pergunta direta."
+      },
+      "anchors": [
+        "2. Instale o Microsoft Visual C++ Redistribuível"
+      ]
+    },
+    {
+      "id": "c58_pro_thinking_007",
+      "label": "Requisitos de sistema para TensorFlow",
+      "description": "O TensorFlow é suportado em Ubuntu 16.04+ (64 bits), macOS 10.12.6+, Windows 7+ (64 bits) ou WSL2 no Windows 10 19044+, e requer Python 3.9-3.11 e pip versão >=19.0 (Linux/Windows) ou >=20.3 (macOS).",
+      "coverage_criteria": [
+        "Listar os sistemas operacionais e versões de Python e pip suportados."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "As seções 'Requisitos de sistema' e 'Requisitos de software' detalham essas especificações.",
+        "granularity_rationale": "Informações factuais que podem ser checadas com uma única pergunta de enumeração."
+      },
+      "anchors": [
+        "Requisitos de sistema",
+        "Requisitos de software"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_001",
+      "label": "TensorFlow Default GPU Memory Allocation",
+      "description": "By default, TensorFlow maps nearly all GPU memory to a process to reduce memory fragmentation, often occupying more memory than needed and preventing other processes from using the GPU.",
+      "coverage_criteria": [
+        "Student can explain why TensorFlow occupies full GPU memory by default and identify the side effect of blocking concurrent GPU workloads."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that TensorFlow \"aggressively occupies the full GPU memory\" and explains it is a greedy strategy to avoid memory fragmentation, causing a bottleneck.",
+        "granularity_rationale": "This concept is small enough to be checked with a single question about the default behavior and its rationale."
+      },
+      "anchors": [
+        "Memory Allocation For a TensorFlow-Based Model on a GPU"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_002",
+      "label": "Configuring a Fixed GPU Memory Limit",
+      "description": "Using tf.config.experimental.set_virtual_device_configuration, a TensorFlow process can be limited to a fixed amount of GPU memory, enabling multiple processes to share the GPU concurrently.",
+      "coverage_criteria": [
+        "Student can write the code snippet to set a 4GB memory limit and explain how it allows a second inference process to run without out-of-memory errors."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a code example and demonstrates via nvidia-smi that limiting to 4GB allows a second process to run, overcoming the OOM issue.",
+        "granularity_rationale": "This is a discrete, actionable technique that can be verified with a short coding exercise."
+      },
+      "anchors": [
+        "First Option — Specifically Set The Memory"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_003",
+      "label": "Configuring Memory Growth in TensorFlow",
+      "description": "Enabling memory growth (tf.config.experimental.set_memory_growth) makes TensorFlow start with minimal memory and increase it as needed, but it does not release acquired memory even after load decreases.",
+      "coverage_criteria": [
+        "Student can write the code snippet for memory growth and explain the trade-off of not releasing memory."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes this as the second option and provides a code snippet, while explicitly warning that memory is not released after inference load completes.",
+        "granularity_rationale": "The concept is compact, focusing on a single API call and its documented behavior."
+      },
+      "anchors": [
+        "Second option — Set memory growth as per the need"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_004",
+      "label": "Monitoring GPU Memory with nvidia-smi",
+      "description": "The nvidia-smi command displays real‑time GPU memory usage, which helps observe how TensorFlow allocates memory under different configurations.",
+      "coverage_criteria": [
+        "Student can run nvidia-smi and interpret the memory usage output before and after loading a TensorFlow model."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source uses nvidia-smi screenshots repeatedly to illustrate memory states (initial, after allocation, under load), making it a key tool for verifying memory settings.",
+        "granularity_rationale": "This is a single command with straightforward output, easy to check with a practical exercise."
+      },
+      "anchors": [
+        "Memory Allocation For a TensorFlow-Based Model on a GPU"
+      ]
+    },
+    {
+      "id": "c59_pro_thinking_005",
+      "label": "Profiling GPU Usage with Weight & Biases and TensorBoard",
+      "description": "Tools like Weight & Biases and TensorBoard can generate system graphs showing GPU utilization, memory usage, temperature, and power, aiding in determining optimal memory limits for TensorFlow processes.",
+      "coverage_criteria": [
+        "Student can describe the types of GPU metrics available in Weight & Biases and how they help in selecting an optimal memory limit."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source recommends these tools to 'look at the System Graphs to come-up with an optimal memory size' and shows sample graphs from Weight & Biases.",
+        "granularity_rationale": "This is a specific recommendation for tooling, suitable for a short discussion question."
+      },
+      "anchors": [
+        "First Option — Specifically Set The Memory"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

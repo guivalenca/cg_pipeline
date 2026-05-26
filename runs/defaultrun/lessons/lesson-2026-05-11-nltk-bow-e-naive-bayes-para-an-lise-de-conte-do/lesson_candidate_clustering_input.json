@@ -1,0 +1,1514 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+    "title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+    "description": "Ao longo do encontro, as técnicas de NLTK, BoW e Naive Bayes são aplicadas para realizar a implementação de um sistema que analise os sentimentos das pessoas dados os textos expostos por elas. Além do objetivo de implementar o sistema, este encontro também apresenta aos estudantes o processo de implementação destes algoritmos para solucionar problemas abordando quais preocupações devem ser latentes durante sua arquitetura.",
+    "date": "11/05/2026",
+    "display_code": "L05"
+  },
+  "input_candidate_ids": [
+    "c34_pro_thinking_001",
+    "c34_pro_thinking_002",
+    "c34_pro_thinking_003",
+    "c34_pro_thinking_004",
+    "c34_pro_thinking_005",
+    "c34_pro_thinking_006",
+    "c34_pro_thinking_007",
+    "c34_pro_thinking_008",
+    "c34_pro_thinking_009",
+    "c34_pro_thinking_010",
+    "c34_pro_thinking_011",
+    "c34_pro_thinking_012",
+    "c34_pro_thinking_013",
+    "c34_pro_thinking_014",
+    "c34_pro_thinking_015",
+    "c34_pro_thinking_016",
+    "c35_pro_thinking_001",
+    "c35_pro_thinking_002",
+    "c35_pro_thinking_003",
+    "c35_pro_thinking_004",
+    "c35_pro_thinking_005",
+    "c35_pro_thinking_006",
+    "c35_pro_thinking_007",
+    "c35_pro_thinking_008",
+    "c35_pro_thinking_009",
+    "c35_pro_thinking_010",
+    "c35_pro_thinking_011",
+    "c36_pro_thinking_001",
+    "c36_pro_thinking_002",
+    "c36_pro_thinking_003",
+    "c36_pro_thinking_004",
+    "c36_pro_thinking_005",
+    "c36_pro_thinking_006",
+    "c36_pro_thinking_007",
+    "c36_pro_thinking_008",
+    "c36_pro_thinking_009",
+    "c36_pro_thinking_010",
+    "c36_pro_thinking_011",
+    "c37_pro_thinking_001",
+    "c37_pro_thinking_002",
+    "c37_pro_thinking_003",
+    "c37_pro_thinking_004",
+    "c37_pro_thinking_005",
+    "c37_pro_thinking_006",
+    "c37_pro_thinking_007",
+    "c37_pro_thinking_008",
+    "c37_pro_thinking_009",
+    "c38_pro_thinking_001",
+    "c38_pro_thinking_002",
+    "c38_pro_thinking_003",
+    "c38_pro_thinking_004",
+    "c38_pro_thinking_005",
+    "c38_pro_thinking_006",
+    "c38_pro_thinking_007",
+    "c38_pro_thinking_008",
+    "c38_pro_thinking_009",
+    "c38_pro_thinking_010",
+    "c39_pro_thinking_001",
+    "c39_pro_thinking_002",
+    "c39_pro_thinking_003",
+    "c39_pro_thinking_004",
+    "c39_pro_thinking_005",
+    "c39_pro_thinking_006",
+    "c39_pro_thinking_007",
+    "c39_pro_thinking_008",
+    "c39_pro_thinking_009"
+  ],
+  "candidates": [
+    {
+      "id": "c34_pro_thinking_001",
+      "label": "Probability",
+      "description": "The chance of an event to occur, with sum of all probabilities equal to 1.",
+      "coverage_criteria": [
+        "Define probability and give an example (e.g., coin toss)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces probability in the section 'What is Probability?' as a foundational concept for Naive Bayes.",
+        "granularity_rationale": "This is a single, checkable definition suitable for one straightforward question."
+      },
+      "anchors": [
+        "What is Probability?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_002",
+      "label": "Conditional Probability",
+      "description": "The probability of an event given that another event has occurred, defined by P(A|B)=P(A∩B)/P(B).",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Explain what P(A|B) means in words."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source covers conditional probability in the section 'What is Conditional Probability?' with its formula, directly leading to Bayes rule.",
+        "granularity_rationale": "It is a fundamental concept that can be tested with one or two questions about the formula and interpretation."
+      },
+      "anchors": [
+        "What is Conditional Probability?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_003",
+      "label": "Bayes Theorem (Bayes Rule)",
+      "description": "Bayes theorem relates conditional probabilities: P(B|A) = P(A|B) * P(B) / P(A). It allows updating probabilities based on new evidence.",
+      "coverage_criteria": [
+        "Write the Bayes theorem formula.",
+        "Name the terms (posterior, likelihood, prior, evidence).",
+        "Compute a simple probability using the formula."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents Bayes rule in the 'Bayes Rule' section with an image and explains each term, forming the core of the Naive Bayes algorithm.",
+        "granularity_rationale": "It is a single formula with well-defined components; two or three questions can verify understanding."
+      },
+      "anchors": [
+        "Bayes Rule"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_004",
+      "label": "Naive Bayes Classifier",
+      "description": "A probabilistic machine learning algorithm that applies Bayes theorem with the 'naive' assumption that features are independent given the class. It computes the posterior probability for each class and predicts the one with the maximum.",
+      "coverage_criteria": [
+        "State the naive assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines and explains the Naive Bayes algorithm in the section 'What is Naive Bayes Algorithm?' and 'How Naive Bayes Works?' with a golf example.",
+        "granularity_rationale": "This is the central concept, broken down into its two key parts (Bayes theorem + independence) which can be covered in a few focused questions."
+      },
+      "anchors": [
+        "What is Naive Bayes Algorithm?",
+        "How Naive Bayes Works?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_005",
+      "label": "Feature Independence Assumption (Why 'Naive')",
+      "description": "Naive Bayes assumes all features are independent of each other given the class label. This unrealistic assumption is why it is called 'naive', but it often still works well in practice.",
+      "coverage_criteria": [
+        "Explain the independence assumption of Naive Bayes.",
+        "State why the algorithm is called 'naive'.",
+        "Give an example where features may not be independent."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly discusses why the algorithm is called naive in the section 'Why is it Naive?', connecting it to multicollinearity.",
+        "granularity_rationale": "This is a single assumption that can be checked with one or two direct questions."
+      },
+      "anchors": [
+        "Why is it Naive?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_006",
+      "label": "Multicollinearity",
+      "description": "Multicollinearity refers to high correlation among independent features. Naive Bayes performs poorly when multicollinearity is present because it violates the independence assumption.",
+      "coverage_criteria": [
+        "Define multicollinearity.",
+        "Explain how it affects Naive Bayes.",
+        "Describe a method to detect multicollinearity (e.g., Pearson correlation)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source covers multicollinearity in its own section ('What is Multicollinearity?'), linking it to the naive assumption and why Naive Bayes may underperform.",
+        "granularity_rationale": "It is a specific concept that can be tested with definition, impact, and detection questions."
+      },
+      "anchors": [
+        "What is Multicollinearity?",
+        "How to Check Multicollinearity?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_007",
+      "label": "Bernoulli Naive Bayes",
+      "description": "A variant of Naive Bayes used when features are binary/bool or the target variable is binary. It assumes Bernoulli distributed features.",
+      "coverage_criteria": [
+        "State when Bernoulli Naive Bayes should be used.",
+        "Give an example application (e.g., sentiment analysis with positive/negative).",
+        "Recognize a code snippet using 'BernoulliNB'."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces Bernoulli Naive Bayes in the 'Types of Naive Bayes' section with a use case (binary target) and a code example using scikit-learn.",
+        "granularity_rationale": "This is one of three concrete algorithm variants; it is small enough for a couple of recall and application questions."
+      },
+      "anchors": [
+        "1. Bernoulli Naive Bayes"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_008",
+      "label": "Multinomial Naive Bayes",
+      "description": "A Naive Bayes variant suitable for discrete features, especially text classification where features represent word counts or frequencies.",
+      "coverage_criteria": [
+        "Identify the typical use case for Multinomial Naive Bayes.",
+        "Explain why it is suitable for text classification.",
+        "Interpret a scikit-learn code snippet with 'MultinomialNB'."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes Multinomial Naive Bayes as the go‑to for text classification, with a code example and explanation.",
+        "granularity_rationale": "It is a distinct algorithm variant that can be checked with a couple of targeted questions about its purpose and application."
+      },
+      "anchors": [
+        "2. Multinomial Naive Bayes"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_009",
+      "label": "Gaussian Naive Bayes",
+      "description": "A Naive Bayes variant for continuous features that assumes a Gaussian (normal) distribution of the data per class.",
+      "coverage_criteria": [
+        "State when Gaussian Naive Bayes is used.",
+        "Explain the distribution assumption.",
+        "Identify a code snippet using 'GaussianNB'."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source covers Gaussian Naive Bayes in the 'Types of Naive Bayes' section, noting it is for continuous predictor variables and provides code.",
+        "granularity_rationale": "It is one of three variants and can be tested with questions about its assumptions and usage."
+      },
+      "anchors": [
+        "3. Gaussian Naive Bayes"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_010",
+      "label": "Zero Frequency Error",
+      "description": "A problem where Naive Bayes assigns zero probability to a category that appears in the test data but was not seen during training, making the entire posterior probability zero.",
+      "coverage_criteria": [
+        "Define the zero frequency error in Naive Bayes.",
+        "Explain why it occurs.",
+        "Name a common technique to fix it."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source discusses the zero frequency error as a key disadvantage in the 'Disadvantages' subsection under 'Advantages and Disadvantages of Naive Bayes'.",
+        "granularity_rationale": "This is a single, well-defined pitfall that can be assessed with one or two questions."
+      },
+      "anchors": [
+        "Advantages and Disadvantages of Naive Bayes"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_011",
+      "label": "Laplace Smoothing",
+      "description": "A technique to handle zero frequency errors by adding a small constant (usually 1) to every count, preventing zero probabilities.",
+      "coverage_criteria": [
+        "Describe how Laplace smoothing solves the zero frequency error.",
+        "Explain the effect of the smoothing parameter α."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions Laplace smoothing as the remedy for zero frequency error in the 'Disadvantages' and 'How to Improve Naive Bayes?' sections.",
+        "granularity_rationale": "It is a specific technique tightly coupled to a specific problem, making it a natural small concept."
+      },
+      "anchors": [
+        "Advantages and Disadvantages of Naive Bayes",
+        "How to Improve Naive Bayes?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_012",
+      "label": "Applications of Naive Bayes",
+      "description": "Naive Bayes is widely used for text classification, sentiment analysis, recommendation systems, and real‑time predictions due to its speed and performance on text data.",
+      "coverage_criteria": [
+        "List at least three real‑world applications of Naive Bayes.",
+        "Explain why it is suitable for text classification."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source enumerates applications in the 'Applications of Naive Bayes' section with examples and images.",
+        "granularity_rationale": "The concept groups several applications under one teachable idea that can be evaluated with a short list question."
+      },
+      "anchors": [
+        "Applications of Naive Bayes"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_013",
+      "label": "Advantages of Naive Bayes",
+      "description": "Key advantages include faster training and prediction, requirement of less training data (when features are independent), and strong performance on categorical/text data.",
+      "coverage_criteria": [
+        "List at least two advantages of Naive Bayes.",
+        "Explain why Naive Bayes is considered fast."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents advantages in the 'Advantages' subsection with clear points (faster, less data, performance).",
+        "granularity_rationale": "This is a condensed list that can be tested by asking for specific benefits."
+      },
+      "anchors": [
+        "Advantages"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_014",
+      "label": "Disadvantages of Naive Bayes",
+      "description": "Disadvantages include the unrealistic assumption of feature independence and the zero frequency error when an unseen category appears in test data.",
+      "coverage_criteria": [
+        "Explain the main drawback related to feature independence.",
+        "Describe the zero frequency problem."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source lists disadvantages in the 'Disadvantages' subsection, explicitly naming independent features and zero frequency.",
+        "granularity_rationale": "Two well‑defined drawbacks that can be checked with a couple of questions."
+      },
+      "anchors": [
+        "Disadvantages"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_015",
+      "label": "When to Use Naive Bayes",
+      "description": "Naive Bayes is suitable when features are relatively independent, for text classification problems, and when fast prediction is required.",
+      "coverage_criteria": [
+        "State at least two scenarios where Naive Bayes is a good choice.",
+        "Identify situations when Naive Bayes should be avoided."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source gives clear guidance in the 'When to Use Naive Bayes?' section, including when to avoid it.",
+        "granularity_rationale": "It is a concise decision rule that can be verified with a short question."
+      },
+      "anchors": [
+        "When to Use Naive Bayes?"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_016",
+      "label": "How to Improve Naive Bayes",
+      "description": "Techniques to boost Naive Bayes performance: remove correlated features, engineer features, apply domain knowledge, use probabilistic features, Laplace smoothing, and feature transformations like Box‑Cox/Yeo‑Johnson.",
+      "coverage_criteria": [
+        "Name at least three strategies to improve Naive Bayes.",
+        "Explain how feature transformation helps."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a bulleted list of improvement methods in the 'How to Improve Naive Bayes?' section.",
+        "granularity_rationale": "The section groups several practical tips; a single concept with a checklist question is appropriate."
+      },
+      "anchors": [
+        "How to Improve Naive Bayes?"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_001",
+      "label": "Naive Bayes as a probabilistic classifier with naive independence assumptions",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the strong (naive) assumption that all features are conditionally independent given the class label.",
+      "coverage_criteria": [
+        "Define Naive Bayes as a probabilistic classifier.",
+        "Explain what the naive independence assumption means.",
+        "Identify why the assumption is considered naive."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video directly states: 'Naive Bayes is a probabilistic classifier based on applying Bayes' theorem with strong, also called naive, independence assumptions between the features.' and elaborates with an example.",
+        "granularity_rationale": "This is a foundational concept; checking it requires the student to understand the classifier's definition and the core assumption, which can be assessed with a couple of focused questions."
+      },
+      "anchors": [
+        "[00:18] Naive Bayes Classifier Definition"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_002",
+      "label": "Bayes' theorem and its application to classification",
+      "description": "Bayes' theorem states P(A|B) = P(B|A)*P(A)/P(B); in classification, this becomes P(y|X) = P(X|y)*P(y)/P(X), where y is the class label and X is the feature vector.",
+      "coverage_criteria": [
+        "Write Bayes' theorem formula.",
+        "Apply Bayes' theorem to compute class posterior probability given features.",
+        "Identify the terms: prior, likelihood, and evidence in the classification context."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video presents Bayes' theorem and then maps it to classification, with on-screen content showing the formulas and the mapping explicitly.",
+        "granularity_rationale": "The concept is foundational and verifiable by asking the student to state the theorem and adapt it to features and classes."
+      },
+      "anchors": [
+        "[00:32] Bayes' Theorem"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_003",
+      "label": "Factorization of P(X|y) under feature independence",
+      "description": "Under the naive assumption, P(X|y) = ∏ᵢ P(xᵢ|y), which simplifies the calculation of class conditional probabilities.",
+      "coverage_criteria": [
+        "Derive the factorization of P(X|y) from the independence assumption.",
+        "Explain why this factorization reduces computational complexity.",
+        "Identify that this assumption may not hold in real data."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly states: 'we can split this part here, P of X given Y, into the different components and say this is the product' and shows the product formula on screen.",
+        "granularity_rationale": "This is a key mathematical step; the student can demonstrate understanding by writing the product and explaining its derivation."
+      },
+      "anchors": [
+        "[01:38] Splitting P(X|y) and Log-Trick"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_004",
+      "label": "Prior probability calculation as class frequency",
+      "description": "The prior probability P(y) for a class is estimated as the frequency of that class in the training data, i.e., number of samples of class y divided by total samples.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a given dataset.",
+        "Explain why the prior is based on class frequency.",
+        "Implement the calculation in code using basic operations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "In the video, it says 'P of Y is called the prior probability, and we can simply calculate this as the frequency of each class' and then in the fit method, self._priors[idx] = X_c.shape[0] / float(n_samples).",
+        "granularity_rationale": "This is a concrete calculation that can be tested by asking the student to compute priors for a small dataset."
+      },
+      "anchors": [
+        "[03:07] Prior and Class Conditional Probabilities",
+        "[05:41] Fit Method: Calculate Mean, Variance, and Prior"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_005",
+      "label": "Class conditional probability modeled with Gaussian distribution",
+      "description": "For continuous features, P(xᵢ|y) is modeled using a Gaussian (normal) distribution parameterized by mean and variance of feature values for each class.",
+      "coverage_criteria": [
+        "State that Naive Bayes often uses Gaussian distribution for continuous features.",
+        "Identify that mean and variance are estimated per feature per class.",
+        "Explain why a Gaussian is a reasonable choice for modeling continuous probabilities."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explains: 'P of Xi given Y is known as the class conditional probability. And for this, we model this with a Gaussian distribution.' and shows the formula and a plot.",
+        "granularity_rationale": "This is a specific modeling choice that can be assessed by asking the student to justify the use of Gaussian and describe its parameters."
+      },
+      "anchors": [
+        "[03:07] Prior and Class Conditional Probabilities"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_006",
+      "label": "Gaussian probability density function formula",
+      "description": "The Gaussian PDF is given by P(x|y) = (1/√(2πσ²)) * exp(-(x-μ)²/(2σ²)), where μ and σ² are class-specific mean and variance.",
+      "coverage_criteria": [
+        "Write the Gaussian PDF formula.",
+        "Identify the parameters: mean and variance.",
+        "Compute the PDF value for a given x, μ, and σ."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The formula is shown on screen and later implemented in the _pdf method, with code that directly translates the mathematical formula.",
+        "granularity_rationale": "This is a crucial formula; the student can be tested by asking them to write the formula or implement a simple version."
+      },
+      "anchors": [
+        "[11:29] PDF Function (Gaussian Probability Density Function)",
+        "[03:07] Prior and Class Conditional Probabilities"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_007",
+      "label": "Log-trick for numerical stability in Naive Bayes",
+      "description": "To avoid underflow from multiplying many small probabilities, the argmax over log-sum of probabilities is used: argmax_y (log P(y) + ∑ᵢ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Explain why multiplying probabilities can lead to numerical issues.",
+        "Derive the log-sum form from the original product form.",
+        "Apply log-trick to compute class posterior."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video details the log-trick: 'Instead of the product, we do a sum. And then we apply the logarithm... we can change the product with a sum' and shows the formula step-by-step.",
+        "granularity_rationale": "This is a specific technique that can be tested by asking the student to transform a given expression or explain its purpose."
+      },
+      "anchors": [
+        "[01:38] Splitting P(X|y) and Log-Trick",
+        "[02:03] Selecting Class with Highest Posterior Probability"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_008",
+      "label": "Naive Bayes training procedure: computing per-class statistics",
+      "description": "Training involves computing the mean and variance of each feature for each class, and the prior probability as the fraction of samples per class.",
+      "coverage_criteria": [
+        "Describe the training procedure for Gaussian Naive Bayes.",
+        "For a given dataset, compute the required statistics manually.",
+        "Explain that training is just summarizing the data without iterative optimization."
+      ],
+      "source_roles": [
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video summarizes: 'In the training step, we calculate the mean, the variance and the prior, so the frequency for each class with our training set.' and then the fit method implements exactly this.",
+        "granularity_rationale": "This is a procedural concept; it can be checked by asking the student to list the training steps or compute them on a small example."
+      },
+      "anchors": [
+        "[03:53] Steps for Naive Bayes",
+        "[05:41] Fit Method: Calculate Mean, Variance, and Prior"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_009",
+      "label": "Naive Bayes prediction: posterior calculation and argmax",
+      "description": "For a new sample, the class with the highest log-posterior (log prior + sum of log class conditionals) is chosen as the prediction.",
+      "coverage_criteria": [
+        "Write the formula for the log-posterior.",
+        "Explain the role of argmax in classification.",
+        "Step through a prediction example for a simple dataset."
+      ],
+      "source_roles": [
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video says: 'In the prediction step, we calculate the posterior for each class with the formula... choose the class with the highest posterior probability' and the predict method returns self._classes[np.argmax(posteriors)].",
+        "granularity_rationale": "This is the core prediction mechanism; the student can demonstrate understanding by performing a class prediction given prior and conditional probabilities."
+      },
+      "anchors": [
+        "[02:03] Selecting Class with Highest Posterior Probability",
+        "[10:57] Predict Method: Return Class with Highest Posterior"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_010",
+      "label": "Python implementation details: NaiveBayes class structure",
+      "description": "The classifier is implemented as a Python class with methods fit() and predict(), using NumPy arrays, and storing learned parameters as class attributes.",
+      "coverage_criteria": [
+        "Outline the structure of the NaiveBayes class.",
+        "Explain the purpose of the fit and predict methods.",
+        "Identify the attributes stored by the model after training."
+      ],
+      "source_roles": [
+        "implementing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video creates a NaiveBayes class with fit and predict methods, using self._mean, self._var, self._priors, etc., and the code is shown step-by-step.",
+        "granularity_rationale": "This is an implementation concept; it can be checked by asking the student to describe the class API or fill in missing parts."
+      },
+      "anchors": [
+        "[04:23] Python Class Structure",
+        "[08:27] Predict Method: Helper Function and Posterior Calculation"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_011",
+      "label": "Testing Naive Bayes with accuracy evaluation",
+      "description": "A standard test harness using sklearn's datasets.make_classification and train_test_split, then computing accuracy (percentage of correct predictions).",
+      "coverage_criteria": [
+        "Set up a test for Naive Bayes using a synthetic dataset.",
+        "Compute accuracy from true and predicted labels.",
+        "Interpret the accuracy score to assess model performance."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video concludes by testing the classifier with code: generating a toy dataset, splitting, fitting, predicting, and printing accuracy, with the output 0.965.",
+        "granularity_rationale": "This covers model evaluation; the student can be asked to write a similar evaluation script or compute accuracy for given predictions."
+      },
+      "anchors": [
+        "[13:31] Testing the Naive Bayes Classifier"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_001",
+      "label": "Sentiment Analysis as Binary Text Classification",
+      "description": "Sentiment analysis involves classifying the sentiment of a text (e.g., positive or negative) based on the presence of sentiment-bearing words.",
+      "coverage_criteria": [
+        "Given a sentence, the student can identify whether the overall sentiment is positive or negative.",
+        "The student can list common positive and negative cue words."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces sentiment analysis with clear examples, showing that words like 'great', 'delicious' indicate positive sentiment and 'pathetic', 'horrible' indicate negative sentiment, and demonstrating that changing one word can flip sentiment.",
+        "granularity_rationale": "This concept is foundational and can be assessed with simple classification tasks or word identification questions."
+      },
+      "anchors": [
+        "## SENTIMENT ANALYSIS"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_002",
+      "label": "Bag-of-Words Model in Text Analytics",
+      "description": "The bag-of-words assumption posits that for classification, only word frequencies matter, ignoring word order.",
+      "coverage_criteria": [
+        "The student can explain that bag-of-words disregards syntax and word order.",
+        "Given a short text, the student can produce a bag-of-words representation (word counts)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly describes bag-of-words as a key assumption of Naive Bayes, using an example to show that only word frequency counts, not position.",
+        "granularity_rationale": "This is a single, well-defined concept that can be checked with a definition or a small counting exercise."
+      },
+      "anchors": [
+        "## NAIVE-BAYES THEOREM"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_003",
+      "label": "Naive Bayes Classifier for Text",
+      "description": "Naive Bayes is a probabilistic classifier that uses Bayes' theorem with the 'naive' assumption of feature independence, commonly applied to text classification tasks like sentiment analysis.",
+      "coverage_criteria": [
+        "The student can state that Naive Bayes uses conditional probability to assign a class to a document.",
+        "The student can identify the 'naive' independence assumption as key."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides a full derivation of the Naive Bayes decision rule, starting from Bayes theorem and incorporating the independence assumption, explicitly targeting sentiment analysis.",
+        "granularity_rationale": "This concept is broad enough to encompass the core idea but can be assessed with high-level understanding questions."
+      },
+      "anchors": [
+        "## DERIVATION"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_004",
+      "label": "Derivation of the Naive Bayes Decision Rule",
+      "description": "The Naive Bayes decision rule selects the class c that maximizes P(c) * product of P(word|c) over all words in the document, derived from Bayes' theorem and the independence assumption.",
+      "coverage_criteria": [
+        "The student can write the final decision rule formula.",
+        "The student can explain the steps: starting from maximizing P(c|d), applying Bayes rule, removing denominator, and applying independence."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article walks through the mathematical derivation step-by-step, from Bayes theorem to the final product formula, with explanatory equations.",
+        "granularity_rationale": "This is a procedural concept that can be assessed by asking the student to derive or explain the rule, which is a single cohesive task."
+      },
+      "anchors": [
+        "## DERIVATION"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_005",
+      "label": "Computing Prior Class Probabilities",
+      "description": "The prior probability P(c) is the proportion of documents belonging to a class, calculated as Nc/Ntotal.",
+      "coverage_criteria": [
+        "Given the counts of documents per class, the student can compute the prior probability.",
+        "The student can explain that the prior represents the overall prevalence of the class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines prior probability and shows how to compute it from the number of documents in each class.",
+        "granularity_rationale": "This is a small, self-contained concept that can be assessed with a single calculation question."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_006",
+      "label": "Computing Word Likelihood Probabilities",
+      "description": "The likelihood probability P(word|c) is the frequency of a word in documents of class c relative to all words in that class, typically smoothed.",
+      "coverage_criteria": [
+        "Given word counts per class, the student can calculate P(word|c).",
+        "The student can explain that the likelihood captures how indicative a word is for a class."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details the likelihood probability calculation, including the formula with sum over vocabulary, and uses it in the worked example.",
+        "granularity_rationale": "This is a key calculation step that can be assessed with a focused numeric problem."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_007",
+      "label": "Laplace Smoothing to Avoid Zero Probabilities",
+      "description": "Laplace smoothing adds a constant (usually 1) to all word counts to prevent zero probabilities for unseen words in a class, which would zero out the entire product.",
+      "coverage_criteria": [
+        "The student can explain why zero probabilities are problematic in Naive Bayes.",
+        "The student can apply Laplace smoothing to a given count table."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article warns about the zero probability problem and introduces Laplace smoothing with a modified formula, demonstrating its use in the example.",
+        "granularity_rationale": "This is a specific technique that addresses a single issue and can be assessed with a simple modification question."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_008",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Taking the logarithm of the Naive Bayes product converts it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "The student can explain that log turns products into sums, avoiding underflow.",
+        "The student can transform a product expression into a log-sum."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article suggests using the log function to convert the product into a sum, improving efficiency.",
+        "granularity_rationale": "This is a simple optimization concept that can be checked with a definition and a small example."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_009",
+      "label": "Removing Stop Words in Text Classification",
+      "description": "Stop words are common words like 'the', 'a', 'is' that carry little sentiment information and can be removed to simplify the model and reduce noise.",
+      "coverage_criteria": [
+        "The student can identify common stop words.",
+        "The student can explain that removing stop words reduces vocabulary size and computation without losing sentiment signal."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions stop words removal as a way to streamline model training, noting that these words don't contribute to sentiment.",
+        "granularity_rationale": "This is a standard preprocessing step that can be assessed with a definition and simple practical task."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_010",
+      "label": "Binary Multinomial Naive Bayes: Presence vs Frequency",
+      "description": "A variant of Naive Bayes that uses binary features (word present/absent) instead of word counts, emphasizing the importance of word occurrence over frequency.",
+      "coverage_criteria": [
+        "The student can contrast binary and frequency-based NB.",
+        "The student can explain that a single occurrence of a strong sentiment word may be enough to determine class."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces binary multinomial NB as an alternative that focuses on word presence, with rationale that a single word can change sentiment.",
+        "granularity_rationale": "This is a distinct modeling choice that can be assessed with comparison questions."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_011",
+      "label": "Dealing with Out-of-Vocabulary Words",
+      "description": "During testing, words not seen in training (unknown words) are typically ignored in probability calculations to avoid errors.",
+      "coverage_criteria": [
+        "The student can explain why unknown words are problematic.",
+        "The student can state that ignoring them is a simple strategy."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article recommends dropping unknown words that appear in the test set but not in the training vocabulary, as they cannot be assigned a likelihood.",
+        "granularity_rationale": "This is a small practical issue that can be assessed with a definition."
+      },
+      "anchors": [
+        "## TRAINING THE MODEL"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_001",
+      "label": "Sentiment analysis as text classification task",
+      "description": "Sentiment analysis is a subfield of text classification that determines the emotional tone (positive or negative) of text, with applications like product reviews and market prediction.",
+      "coverage_criteria": [
+        "Student can define sentiment analysis and give examples of its applications."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article begins by framing sentiment analysis as a text classification task and lists practical uses.",
+        "granularity_rationale": "This is a fundamental concept that establishes the problem domain; it is self-contained and checkable with a definition question."
+      },
+      "anchors": [
+        "15.1. Análise de Sentimentos e o Dataset"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_002",
+      "label": "Large Movie Review Dataset (IMDb) for sentiment analysis",
+      "description": "The IMDb Large Movie Review Dataset contains 25,000 training and 25,000 test reviews from IMDb, each labeled as positive or negative, with balanced classes.",
+      "coverage_criteria": [
+        "Student can describe the IMDb dataset: its source, size, split, and label distribution."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a subsection to describing this dataset, its origin, and its structure.",
+        "granularity_rationale": "Understanding the dataset characteristics is important before using it; it is a specific, checkable detail."
+      },
+      "anchors": [
+        "15.1.1. O Dataset de Análise de Sentimento"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_003",
+      "label": "Downloading and extracting the IMDb dataset using d2l utility",
+      "description": "The article shows how to register the dataset URL and hash in d2l.DATA_HUB and use d2l.download_extract to automatically download and extract the IMDb dataset.",
+      "coverage_criteria": [
+        "Student can use d2l.DATA_HUB to register a dataset and call d2l.download_extract to obtain the data directory.",
+        "Student can identify the expected directory structure (e.g., 'aclImdb' folder)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The code snippet explicitly demonstrates the download step using d2l functions.",
+        "granularity_rationale": "This is a procedural step important for reproducibility; it is narrow enough to assess with a simple coding task."
+      },
+      "anchors": [
+        "15.1.1.1. Lendo o Dataset"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_004",
+      "label": "Reading IMDb reviews and labels from directory structure",
+      "description": "The read_imdb function iterates over 'pos' and 'neg' subdirectories in the train/test split to read review text files and assign label 1 for positive, 0 for negative.",
+      "coverage_criteria": [
+        "Student can explain how the raw text files are organized and how the function constructs the data and labels lists.",
+        "Student can implement a similar file-reading loop for a differently structured dataset."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides a complete function that reads the dataset, which is a core data preparation step.",
+        "granularity_rationale": "This is a specific, small coding pattern; it can be assessed by asking the student to explain the logic or adapt it."
+      },
+      "anchors": [
+        "15.1.1.1. Lendo o Dataset"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_005",
+      "label": "Word-level tokenization with d2l.tokenize",
+      "description": "The text is tokenized into words using d2l.tokenize with token='word', producing a list of tokens for each review.",
+      "coverage_criteria": [
+        "Student can use d2l.tokenize to split English text into word tokens.",
+        "Student can describe tokenization as a step in NLP preprocessing."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly calls d2l.tokenize to convert raw reviews into word tokens.",
+        "granularity_rationale": "Tokenization is a fundamental step; this concept is atomic and easily testable."
+      },
+      "anchors": [
+        "15.1.1.2. Tokenização e Vocabulário"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_006",
+      "label": "Building a vocabulary from training tokens with minimum frequency filter",
+      "description": "Using d2l.Vocab, a vocabulary is created from the training tokens, filtering out words that appear fewer than 5 times and reserving a special ' <pad>' token.",
+      "coverage_criteria": [
+        "Student can create a vocabulary object with d2l.Vocab and explain the role of min_freq and reserved_tokens.",
+        "Student can interpret a histogram of review lengths to understand token distribution."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article directly shows the vocabulary construction and the histogram plotting.",
+        "granularity_rationale": "This is a specific step in NLP pipelines, involving vocabulary parameters, and is small enough for a focused question."
+      },
+      "anchors": [
+        "15.1.1.2. Tokenização e Vocabulário"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_007",
+      "label": "Padding and truncating sequences to uniform length for batched processing",
+      "description": "Reviews are padded or truncated to a fixed length (e.g., 500 tokens) using d2l.truncate_pad to enable efficient minibatching.",
+      "coverage_criteria": [
+        "Student can explain why variable-length sequences need padding and truncation.",
+        "Student can apply d2l.truncate_pad to standardize sequence lengths."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly performs padding to length 500 and states the reason: reviews have different lengths and cannot be combined directly in minibatches.",
+        "granularity_rationale": "This is a practical preprocessing step; it can be checked by asking the student to perform padding on a small list of sequences."
+      },
+      "anchors": [
+        "15.1.1.3. Preenchimento com o mesmo comprimento"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_008",
+      "label": "Creating a data iterator for minibatch training",
+      "description": "Using d2l.load_array, a data iterator is created that yields minibatches of (features, labels) with a given batch size, enabling efficient training loops.",
+      "coverage_criteria": [
+        "Student can create a data iterator from padded features and labels using d2l.load_array.",
+        "Student can inspect the shape of minibatch tensors."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article directly creates train_iter with d2l.load_array and prints batch shapes.",
+        "granularity_rationale": "This is the final step in data preparation; it is a small, checkable piece of the pipeline."
+      },
+      "anchors": [
+        "15.1.1.4. Criando o Iterador de Dados"
+      ]
+    },
+    {
+      "id": "c37_pro_thinking_009",
+      "label": "Wrapping the entire data loading process into a reusable function (load_data_imdb)",
+      "description": "The function load_data_imdb(batch_size, num_steps=500) encapsulates downloading, reading, tokenizing, building vocabulary, padding, and creating iterators, returning train/test iterators and the vocabulary.",
+      "coverage_criteria": [
+        "Student can write a similar data-loading function that bundles all preprocessing steps.",
+        "Student can explain the inputs and outputs of load_data_imdb."
+      ],
+      "source_roles": [
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article consolidates all previous steps into a single function, emphasizing modularity and reusability.",
+        "granularity_rationale": "This higher-level concept integrates the pipeline; it can be assessed by asking the student to describe the function's flow."
+      },
+      "anchors": [
+        "15.1.2. Juntando Tudo"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_001",
+      "label": "Sentiment Analysis Definition and Purpose",
+      "description": "Sentiment analysis is the use of machine learning to classify text as expressing positive, negative, or other sentiments, enabling automated monitoring of customer opinions.",
+      "coverage_criteria": [
+        "Student can define sentiment analysis and provide an example of its business application."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video defines sentiment analysis at [03:03] and explains its application in a business context (e.g., Banco do Brasil).",
+        "granularity_rationale": "This is a high-level concept that sets the stage for the entire pipeline; it can be checked with a single definition question."
+      },
+      "anchors": [
+        "[03:03] What is Sentiment Analysis?"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_002",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of artificial intelligence focused on enabling computers to process and analyze human language, often used for tasks like text classification.",
+      "coverage_criteria": [
+        "Student can define NLP and give an example of an NLP task."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [09:29], the instructor explicitly introduces NLP as the area that develops techniques to manipulate textual information.",
+        "granularity_rationale": "This foundational concept is necessary to understand the domain of sentiment analysis; it can be assessed with a simple definition question."
+      },
+      "anchors": [
+        "[09:29] Importing Libraries for Natural Language Processing (NLP)"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_003",
+      "label": "Labeled Data Necessity for Supervised Sentiment Analysis",
+      "description": "Supervised sentiment analysis models require a dataset with text paired with sentiment labels (e.g., positive/negative) to learn patterns.",
+      "coverage_criteria": [
+        "Student can explain why labeled data is needed and describe how it might be obtained (e.g., manual annotation)."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The instructor at [13:27] discusses the need for pre-annotated data and gives the example of dividing 50k records among operational staff to manually label them.",
+        "granularity_rationale": "This is a key prerequisite concept; it can be checked by asking the student to justify the need for labeled data in this context."
+      },
+      "anchors": [
+        "[13:27] Dataset Overview and Sentiment Annotation"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_004",
+      "label": "Basic Text Cleaning for NLP",
+      "description": "The initial preprocessing step removes HTML tags, special characters, and converts all text to lowercase to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Student can explain why removing HTML tags and special characters is important for text analysis."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the video demonstrates using regular expressions to clean a sample review, showing the removal of HTML tags and special characters, then applying lowercasing.",
+        "granularity_rationale": "This is a specific, checkable step in the preprocessing pipeline; a student can be asked to show code for cleaning text."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_005",
+      "label": "Stop Words Removal with NLTK",
+      "description": "Stop words are common words with little semantic value (e.g., 'the', 'is') that are removed using predefined lists, such as those provided by the NLTK library.",
+      "coverage_criteria": [
+        "Student can use NLTK to list English stop words and filter them from a text."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the instructor uses NLTK's stop words list to filter out words like 'it', 'is', and 'the' from the review text, showing the code and result.",
+        "granularity_rationale": "This is a discrete step that can be tested by asking the student to write a short code snippet to remove stop words."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_006",
+      "label": "Stemming with SnowballStemmer",
+      "description": "Stemming reduces words to their root form (e.g., 'running' to 'run') to consolidate similar terms, often implemented with algorithms like SnowballStemmer in NLTK.",
+      "coverage_criteria": [
+        "Student can explain the purpose of stemming and apply a stemmer to a word list."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [18:43], the video introduces stemming as a grammar-based preprocessing step and applies it to the review text, showing that it condenses word forms.",
+        "granularity_rationale": "Stemming is a distinct NLP technique that the student can be asked to define and demonstrate with a single code line."
+      },
+      "anchors": [
+        "[18:43] Preprocessing Text Data"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_007",
+      "label": "Bag of Words Representation with CountVectorizer",
+      "description": "Bag of Words converts preprocessed text into a numerical matrix of token counts, where each column corresponds to a word, using scikit-learn's CountVectorizer, often with max_features to limit dimensionality.",
+      "coverage_criteria": [
+        "Student can create a BoW matrix from a list of texts using CountVectorizer and explain the max_features parameter."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [30:29], the instructor creates a bag of words using CountVectorizer with max_features=1000, explaining that it limits the number of word features to the top most frequent ones.",
+        "granularity_rationale": "The BoW concept is central to traditional text classification; checking the student's ability to instantiate and apply CountVectorizer confirms understanding of feature extraction."
+      },
+      "anchors": [
+        "[30:29] Creating and Training the Machine Learning Model"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_008",
+      "label": "Naive Bayes for Text Classification",
+      "description": "The Naive Bayes algorithm, especially MultinomialNB, is effective for text classification tasks like sentiment analysis, using BoW features to compute probabilities of sentiment classes.",
+      "coverage_criteria": [
+        "Student can explain why Multinomial Naive Bayes is suitable for word count data and compare it to other variants."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [09:29] and [30:29], the instructor mentions using GaussianNB, MultinomialNB, and BernoulliNB, and later trains the model on the BoW features, discussing the choice based on data type.",
+        "granularity_rationale": "Understanding the choice of algorithm is a critical decision in the pipeline; the student can be asked to compare the suitability of different Naive Bayes variants for text."
+      },
+      "anchors": [
+        "[30:29] Creating and Training the Machine Learning Model"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_009",
+      "label": "Train/Test Split and Accuracy Evaluation",
+      "description": "The dataset is split into training and testing sets using train_test_split to evaluate the classifier's performance, typically measuring accuracy as the proportion of correct predictions.",
+      "coverage_criteria": [
+        "Student can perform a train/test split and compute accuracy of a classification model."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [30:29], the video shows splitting the data and later evaluating accuracy, which is a standard model evaluation step.",
+        "granularity_rationale": "This is a fundamental ML practice that can be checked by asking the student to write the relevant code and interpret the accuracy score."
+      },
+      "anchors": [
+        "[30:29] Creating and Training the Machine Learning Model"
+      ]
+    },
+    {
+      "id": "c38_pro_thinking_010",
+      "label": "Model Persistence with Pickle",
+      "description": "Trained machine learning models can be saved to disk using Python's pickle module, allowing reuse without retraining.",
+      "coverage_criteria": [
+        "Student can save and load a scikit-learn model using pickle."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [09:29] and [30:29], the instructor mentions using pickle to save the model, highlighting its importance for productionalizing the pipeline.",
+        "granularity_rationale": "Saving a model is a small, practical skill that can be easily tested by asking the student to write the two lines of code."
+      },
+      "anchors": [
+        "[30:29] Creating and Training the Machine Learning Model"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_001",
+      "label": "Data Preprocessing for Text Classification",
+      "description": "The process of preparing raw text data for machine learning classifiers, including lowercasing, removing special characters and punctuation, handling emails/URLs/numbers, tokenization, stop word removal, and stemming.",
+      "coverage_criteria": [
+        "Explain why text preprocessing is necessary before classification.",
+        "List common preprocessing steps and their purposes.",
+        "Implement preprocessing using Python's string methods, regex, and NLTK."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly walks through obtaining data, exploring it, and then a detailed preprocessing pipeline with code examples.",
+        "granularity_rationale": "This is a distinct phase in the text classification workflow, teachable as a set of atomic steps."
+      },
+      "anchors": [
+        "1 Obtenção e preparação dos dados",
+        "Preparação dos dados",
+        "Exploração dos dados"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_002",
+      "label": "Bag of Words (BoW) Feature Representation",
+      "description": "Representing text as a vector of word frequencies (or presence) using the most frequent words as features. This transforms unstructured text into numerical feature vectors for classifier input.",
+      "coverage_criteria": [
+        "Describe how the Bag of Words model represents documents.",
+        "Explain how to select the vocabulary size (e.g., top N words).",
+        "Create BoW feature vectors from tokenized text using a predefined vocabulary."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly creates a list of the 1500 most frequent words and uses them as features, checking if each word appears in a given message.",
+        "granularity_rationale": "This is a specific and fundamental text representation technique."
+      },
+      "anchors": [
+        "Construção do modelo de predição"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_003",
+      "label": "Naive Bayes Classification Algorithm",
+      "description": "A probabilistic supervised learning algorithm based on Bayes' theorem with the 'naive' assumption of feature independence. It calculates class probabilities given a document and assigns the class with highest probability.",
+      "coverage_criteria": [
+        "State Bayes' theorem and how it is applied to text classification.",
+        "Explain the naive assumption and why it is used.",
+        "Compute class probabilities for a simple example given word counts."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The chapter has a dedicated section 'Análise do classificador Naïve Bayes' explaining the theorem, the naive assumption, and an example calculation.",
+        "granularity_rationale": "This is the core algorithm concept, distinct from its implementation."
+      },
+      "anchors": [
+        "2 Análise do classificador Naïve Bayes"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_004",
+      "label": "Laplace Smoothing for Naive Bayes",
+      "description": "Technique to handle zero frequency problem in Naive Bayes by adding a small constant (usually 1) to all feature counts to avoid zero probabilities.",
+      "coverage_criteria": [
+        "Explain why zero probabilities are problematic in Naive Bayes.",
+        "Apply Laplace smoothing to word counts in a text classification example.",
+        "Describe the formula: (count + 1) / (total words + vocabulary size)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly addresses the zero-frequency problem and introduces Laplace smoothing as a solution with a detailed example.",
+        "granularity_rationale": "This is a specific technique within Naive Bayes, crucial for its practical use."
+      },
+      "anchors": [
+        "2 Análise do classificador Naïve Bayes"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_005",
+      "label": "Practical SMS Spam Detection with Multinomial Naive Bayes",
+      "description": "Applying the Multinomial Naive Bayes classifier using Python's scikit-learn on the SMS Spam Collection dataset to classify messages as spam or ham, including training/testing split and prediction.",
+      "coverage_criteria": [
+        "Load the SMS Spam Collection dataset and preprocess it.",
+        "Split data into training and test sets.",
+        "Train a MultinomialNB classifier and predict on test data."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The entire practical study section walks through loading the SMS dataset, preprocessing, vectorizing, training the model, and evaluating.",
+        "granularity_rationale": "This is a complete applied example that ties together preprocessing and classification."
+      },
+      "anchors": [
+        "3 Aplicação do classificador em um estudo prático"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_006",
+      "label": "Model Evaluation Metrics for Text Classification",
+      "description": "Metrics to assess classifier performance: accuracy, precision, recall, F1-score, and the confusion matrix for binary classification.",
+      "coverage_criteria": [
+        "Define a confusion matrix and the terms TP, FP, TN, FN.",
+        "Calculate accuracy, precision, recall, and F1-score from a confusion matrix.",
+        "Interpret what each metric indicates about model performance."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source has a dedicated subsection 'Avaliação do modelo de predição' explaining these metrics and showing code to generate them.",
+        "granularity_rationale": "These are standard evaluation measures, essential to assess any classifier."
+      },
+      "anchors": [
+        "Avaliação do modelo de predição"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_007",
+      "label": "Hyperparameter Tuning with GridSearchCV",
+      "description": "Searching for optimal model parameters using exhaustive grid search with cross-validation to improve classifier performance.",
+      "coverage_criteria": [
+        "Explain the purpose of hyperparameter tuning.",
+        "Describe the difference between Grid Search and Random Search.",
+        "Use GridSearchCV in scikit-learn to find the best parameters for a Naive Bayes model."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly discusses the need for tuning hyperparameters and provides a code example using GridSearchCV.",
+        "granularity_rationale": "This is a key practical skill to improve models beyond default settings."
+      },
+      "anchors": [
+        "Ajuste dos hiperparâmetros"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_008",
+      "label": "Train-Test Split for Model Validation",
+      "description": "Splitting the dataset into training and testing sets to evaluate model generalization and detect overfitting.",
+      "coverage_criteria": [
+        "Explain why splitting data is necessary.",
+        "Use train_test_split from scikit-learn to split a dataset.",
+        "Discuss the consequences of not splitting data (overfitting)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source discusses dividing the data for training and testing, explaining overfitting, and using train_test_split.",
+        "granularity_rationale": "This is a fundamental step in any supervised learning pipeline."
+      },
+      "anchors": [
+        "Treinamento do modelo de predição"
+      ]
+    },
+    {
+      "id": "c39_pro_thinking_009",
+      "label": "Imbalanced Class Distribution in Text Data",
+      "description": "Recognizing when one class has many more examples than another (e.g., ham vs. spam) and its potential impact on model performance.",
+      "coverage_criteria": [
+        "Identify an imbalanced dataset from class distribution output.",
+        "Discuss why imbalanced data can be problematic for classification.",
+        "Mention potential mitigation strategies."
+      ],
+      "source_roles": [
+        "referencing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source prints the distribution of classes (4825 ham, 747 spam) and implicitly highlights the imbalance.",
+        "granularity_rationale": "A softer but important concept for practical classification work."
+      },
+      "anchors": [
+        "Exploração dos dados"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

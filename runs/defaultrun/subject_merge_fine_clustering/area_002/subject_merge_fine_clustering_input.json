@@ -1,0 +1,202 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_002",
+    "area": {
+      "id": "area_002",
+      "label": "Text Preprocessing and Tokenization",
+      "rationale": "Focuses on initial text processing steps: segmentation, tokenization, stop word removal, cleaning, and encoding handling.",
+      "candidate_ids": [
+        "lr001_004",
+        "lr003_007",
+        "lr004_004",
+        "lr004_006",
+        "lr005_017",
+        "lr005_018",
+        "lr005_021",
+        "lr005_022",
+        "lr006_010"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr001_004",
+    "lr003_007",
+    "lr004_004",
+    "lr004_006",
+    "lr005_017",
+    "lr005_018",
+    "lr005_021",
+    "lr005_022",
+    "lr006_010"
+  ],
+  "candidates": [
+    {
+      "id": "lr001_004",
+      "label": "Text Preprocessing: Segmentation, Tokenization, and Stop Words",
+      "description": "The initial NLP steps: breaking documents into sentences (segmentation), sentences into words (tokenization), and removing common stop words to focus on meaningful content.",
+      "coverage_criteria": [
+        "Explain segmentation, tokenization, and the role of stop words in NLP preprocessing."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_007",
+      "label": "Text Preprocessing: Tokenization and Stopword Removal",
+      "description": "Tokenization splits text into individual words (tokens). Stopwords are common low-information words that are often removed to reduce noise and vocabulary size. NLTK provides built-in stopword lists.",
+      "coverage_criteria": [
+        "Define tokenization and stopword removal.",
+        "Write code to remove stopwords using NLTK."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_004",
+      "label": "Tokenization with NLTK",
+      "description": "Understanding tokenization as converting text into a list of words and punctuation, and using nltk.word_tokenize for better handling of contractions than simple regex splitting.",
+      "coverage_criteria": [
+        "Recognizes that NLTK represents tokenized text as a list of string tokens.",
+        "Uses nltk.word_tokenize to split a sentence with contractions and explains why it is advantageous."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr004_006",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "description": "Awareness that many Portuguese text resources use ISO 8859-1 encoding and how to decode such text in Python when reading files.",
+      "coverage_criteria": [
+        "Explains why specifying encoding is necessary when opening Portuguese text files.",
+        "Decodes bytes using 'ISO 8859-1' encoding in Python."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_017",
+      "label": "Stop Words Removal",
+      "description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_018",
+      "label": "Basic Text Cleaning",
+      "description": "Lowercasing text and removing HTML tags, special characters, and punctuation to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Explain why lowercasing and removing special characters helps text analysis.",
+        "Apply cleaning to a raw text sample."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "application"
+    },
+    {
+      "id": "lr005_021",
+      "label": "Word-level Tokenization",
+      "description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_022",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr006_010",
+      "label": "Pré-processamento para Word Embeddings",
+      "description": "Etapas comuns de pré-processamento incluem conversão para minúsculas, remoção de pontuações e stop words, e tokenização, com o objetivo de uniformizar o texto antes da vetorização.",
+      "coverage_criteria": [
+        "Liste as etapas típicas de pré-processamento para word embeddings.",
+        "Explique o propósito de cada etapa."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

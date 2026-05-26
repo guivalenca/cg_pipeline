@@ -1,0 +1,77 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "display_code": "L08",
+    "workbook_row_number": 37,
+    "title": "Group decision-making process",
+    "date": "02/06/2026",
+    "professor": "Marcelo de Paula do Desterro Gorini",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This lesson addresses techniques and strategies for group decision-making, exploring practical ways to improve the collective process. Tools are presented to help groups organize ideas, evaluate alternatives, and reach more consistent consensus. Strategies for reducing common problems, such as conformity, excessive hierarchical influence, or reliance on a few opinions, are also discussed. The focus is on showing how structured behaviors and methods can make group decision-making more effective and balanced."
+  },
+  "self_study": {
+    "self_study_id": "39",
+    "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 39,
+      "week": 7,
+      "sort": 4,
+      "title": "The Seven Pitfalls of Data-Driven Decision-Making (And How to Avoid Them)",
+      "description": "The promised powers of incorporating data into decision-making read like an advertisement: Make decisions better, faster, and more accurately! Minimize uncertainty and maximize returns! Gain agility and accountability! Facilitate innovation and disruption in all the right ways! And in reality all the hype is as advertised—when data is done right. But when data is mishandled, ignored, or even tortured, it no longer delivers the same superlative benefits.",
+      "url": "https://marriott.byu.edu/magazine/feature/the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Group decision-making process",
+      "class_date": "02/06/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0039-article-the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them.md",
+      "sha256": "9ad7ac0fe6738098256bb3d416ec920bdede1772a66a516984d17bd77e6ed504",
+      "word_count": 972,
+      "bytes": 6319,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/39/39-the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/39",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0039-article-the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them.md",
+    "sha256": "9ad7ac0fe6738098256bb3d416ec920bdede1772a66a516984d17bd77e6ed504",
+    "word_count": 972,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/39/39-the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them.md",
+    "markdown": "---\nid: \"39\"\ntitle: \"The Seven Pitfalls of Data-Driven Decision-Making (And How to Avoid Them)\"\nsource_url: \"https://marriott.byu.edu/magazine/feature/the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them\"\nfetch_url: \"https://marriott.byu.edu/magazine/feature/the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them\"\nresolved_url: \"https://marriott.byu.edu/magazine/feature/the-seven-pitfalls-of-data-driven-decision-making-and-how-to-avoid-them\"\nfirecrawl_title: \"The Seven Pitfalls of Data-Driven Decision-Making (And How to Avoid Them)\"\ndescription: \"The promised powers of incorporating data into decision-making read like an advertisement: Make decisions better, faster, and more accurately! Minimize uncertainty and maximize returns! Gain agility and accountability! Facilitate innovation and disruption in all the right ways!\"\nfetched_at: \"2026-05-26T16:45:44.190060Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"4920993708b0e2bddd427dd63e7ff7cea4a47d9814f2a685812a7ea23c752fe0\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html;charset=UTF-8\"\nword_count: 806\nchar_count: 4895\ncontent_sha256: \"7f971cc592e0a781831bbc43b57b345def206a502b8d6f7fdabb2f267ac27d10\"\nimage_count: 11\nlink_count: 24\nwarnings:\n  - \"possible_boilerplate\"\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# The Seven Pitfalls of Data-Driven Decision-Making (And How to Avoid Them)\n\nBy [Lisa Ann Thomson](https://marriott.byu.edu/magazine/lisa-ann-thomson)\n\nThe promised powers of incorporating data into decision-making read like an advertisement: Make decisions better, faster, and more accurately! Minimize uncertainty and maximize returns! Gain agility and accountability! Facilitate innovation and disruption in all the right ways!\n\nAnd in reality all the hype is as advertised—when data is done right. But when data is mishandled, ignored, or even tortured, it no longer delivers the same superlative benefits.\n\n![A man in black and white pointing to a graph showing data behind him](https://brightspotcdn.byu.edu/dims4/default/ac3d1ff/2147483647/strip/true/crop/1200x819+0+0/resize/840x573!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot-us-east-2.s3.us-east-2.amazonaws.com%2F24%2Fab%2Fd5105a374c0b86247b36f25710ac%2Fgettyimages-57260477c-done.jpg)\n\nThrough BYU Analytics, a consultancy run by MBA students, BYU Marriott is preparing grads who know how to best make data-driven decisions. Check out these cautions from professors and alumni to ensure that your data is living up to its promises.\n\n## Pitfall No. 1: Not Using Any Data\n\nGuts are good at telling us when we’re hungry or when we’ve made a mistake, but when it comes to making changes that affect profits, performance, and people, it’s better to rely on something a little more tangible.\n\nJeff Dotson, BYU Marriott associate professor of marketing and faculty advisor to BYU Analytics, is perplexed by the many companies that still do not use data in their decision-making processes. “There are a lot of managers who still operate in a mind-set that existed twenty years ago: making decisions based upon gut reactions and not necessarily harnessing the value of data to make those decisions,” he says. \n\n“Humans are really incredible, capable computers,” says Daniel Snow, associate director of BYU Marriott’s MBA program and associate professor of global supply chain management. \n\n## Pitfall No. 2: Assuming More Is Better\n\n“Some people feel you can gather everything and then parse it out later,” says Joanie Westwood, a data-science consultant and 2016 MBA alum. “But this can be challenging and overwhelming.”\n\n![A black and white man thinking while holding papers](https://brightspotcdn.byu.edu/dims4/default/22d44d3/2147483647/strip/true/crop/703x900+0+0/resize/703x900!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot-us-east-2.s3.us-east-2.amazonaws.com%2Fc9%2Fb5%2Fdadbcf154c858b8d32ca556cd401%2Fgettyimages-57260496b-done.jpg)\n\nA little planning before collecting data can go a long way, particularly when it comes to communicating the results. “Sometimes people show data for the sake of showing data. They assume the more data, the better,” says Jorge Ramirez, a 2015 MBA alum.\n\n## Pitfall No. 3: Not Asking the Right Questions\n\nCollecting good data—and digging into it—starts with asking smart questions. “If you aren’t asking the right questions, looking in the right places, or doing things the right way, the data can be useless or, even worse, misleading,” says Shayla Barber, a 2016 MBA grad who is now an event marketing manager for Adobe.\n\n## Pitfall No. 4: Failing to Connect the Dots\n\nThough too much data can muddle good decision-making, it’s vital that companies share their data across core competencies. Looking beyond a data set’s initial label can yield surprising discoveries.\n\n## Pitfall No. 5: Focusing on the Wrong Metrics\n\nIn the age of big data, the most readily available data sets aren’t always the most informative. “The most-common pitfall I see is focusing on ‘vanity metrics’ over substantive key performance indicators,” says Larson.\n\nKey performance indicators—also known as KPIs—are the critical measurements of successful performance, such as the percentage of visitors to a website who actually make a purchase.\n\n## Pitfall No. 6: Telling the Data What to Do\n\nWhen it comes to managing data, 2016 MBA alum Collin Burton remembers one experience in particular. “When I brought data that showed the opposite of his hypothesis, he rejected it because it didn’t support the story he was trying to tell,” he recalls.\n\n## Pitfall No. 7: Letting Data Dominate\n\nFor all the promise of data, it is ultimately only as useful as the humans delving into it. “Lots of data does not substitute for smarts or for using it correctly,” Snow says. \n\nAnd in the end, that’s all business leaders want: to make the right decisions for their shareholders, customers, and employees.\n\n---\n\nWritten by Lisa Ann Thomson\n\n**About the Author**\n\n_Lisa Ann Thomson is a data-driven freelancer based in Salt Lake City. As a writer for more than twenty years, she has long understood that her final products are no better than the data she amasses, analyzes, and synthesizes into stories and articles._\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://brightspotcdn.byu.edu/dims4/default/ac3d1ff/2147483647/strip/true/crop/1200x819+0+0/resize/840x573!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot-us-east-2.s3.us-east-2.amazonaws.com%2F24%2Fab%2Fd5105a374c0b86247b36f25710ac%2Fgettyimages-57260477c-done.jpg",
+      "https://brightspotcdn.byu.edu/dims4/default/22d44d3/2147483647/strip/true/crop/703x900+0+0/resize/703x900!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot-us-east-2.s3.us-east-2.amazonaws.com%2Fc9%2Fb5%2Fdadbcf154c858b8d32ca556cd401%2Fgettyimages-57260496b-done.jpg"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

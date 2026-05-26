@@ -1,0 +1,1642 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Text Summarization Objectives and Types",
+    "rationale": "c77 candidates 001-006 all introduce foundational classifications and goals of text summarization from the same source section, including objectives, mono/multi-document, extractive/abstractive, indicative/informative, generic/user-oriented, and supervised/unsupervised. They form a coherent group about the taxonomy of summarization.",
+    "candidate_ids": [
+      "c77_pro_thinking_001",
+      "c77_pro_thinking_002",
+      "c77_pro_thinking_003",
+      "c77_pro_thinking_004",
+      "c77_pro_thinking_005",
+      "c77_pro_thinking_006"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Text Summarization Objectives and Types",
+      "rationale": "c77 candidates 001-006 all introduce foundational classifications and goals of text summarization from the same source section, including objectives, mono/multi-document, extractive/abstractive, indicative/informative, generic/user-oriented, and supervised/unsupervised. They form a coherent group about the taxonomy of summarization.",
+      "candidate_ids": [
+        "c77_pro_thinking_001",
+        "c77_pro_thinking_002",
+        "c77_pro_thinking_003",
+        "c77_pro_thinking_004",
+        "c77_pro_thinking_005",
+        "c77_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Summarization Processing Steps",
+      "rationale": "c77 candidates 007-011 cover the steps in summarization processing: intermediate representation, sentence scoring, selection algorithms, reformulation, and compression rate. These are sequential or closely related sub-processes described in the same source section.",
+      "candidate_ids": [
+        "c77_pro_thinking_007",
+        "c77_pro_thinking_008",
+        "c77_pro_thinking_009",
+        "c77_pro_thinking_010",
+        "c77_pro_thinking_011"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Extractive Summarization Example with Python",
+      "rationale": "c77_pro_thinking_012 is a standalone practical example of extractive summarization using Python and NLTK. It is distinct from the theoretical concepts and not closely related to other candidates, so it forms its own cluster.",
+      "candidate_ids": [
+        "c77_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Extractive vs Abstractive Summarization and BERT-based Methods",
+      "rationale": "c78 candidates focus on extractive and abstractive summarization methods, including BERT embeddings, K-medoid clustering, keyword extraction, GPT-2 fine-tuning, and data challenges. They share a common theme of modern NLP approaches for summarization.",
+      "candidate_ids": [
+        "c78_pro_thinking_001",
+        "c78_pro_thinking_002",
+        "c78_pro_thinking_003",
+        "c78_pro_thinking_004",
+        "c78_pro_thinking_005",
+        "c78_pro_thinking_006",
+        "c78_pro_thinking_007",
+        "c78_pro_thinking_008",
+        "c78_pro_thinking_009",
+        "c78_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "UML Deployment Diagrams",
+      "rationale": "c79 candidates all relate to UML deployment diagrams, including nodes, artifacts, relationships, and use cases. They form a self-contained set on a specific UML diagram type, unrelated to summarization or GitHub features.",
+      "candidate_ids": [
+        "c79_pro_thinking_001",
+        "c79_pro_thinking_002",
+        "c79_pro_thinking_003",
+        "c79_pro_thinking_004",
+        "c79_pro_thinking_005",
+        "c79_pro_thinking_006",
+        "c79_pro_thinking_007",
+        "c79_pro_thinking_008",
+        "c79_pro_thinking_009",
+        "c79_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "ISO 25010 Software Quality Characteristics",
+      "rationale": "c80 candidates cover the ISO 25010 quality model and its characteristics and sub-characteristics. They are tightly related and should be grouped to avoid fragmenting a single standard.",
+      "candidate_ids": [
+        "c80_pro_thinking_001",
+        "c80_pro_thinking_002",
+        "c80_pro_thinking_003",
+        "c80_pro_thinking_004",
+        "c80_pro_thinking_005",
+        "c80_pro_thinking_006",
+        "c80_pro_thinking_007",
+        "c80_pro_thinking_008",
+        "c80_pro_thinking_009",
+        "c80_pro_thinking_010",
+        "c80_pro_thinking_011",
+        "c80_pro_thinking_012",
+        "c80_pro_thinking_013",
+        "c80_pro_thinking_014",
+        "c80_pro_thinking_015",
+        "c80_pro_thinking_016",
+        "c80_pro_thinking_017",
+        "c80_pro_thinking_018",
+        "c80_pro_thinking_019",
+        "c80_pro_thinking_020",
+        "c80_pro_thinking_021",
+        "c80_pro_thinking_022"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "codemetrics Library Usage",
+      "rationale": "c81 candidates describe the codemetrics library, including its purpose, dependencies, and usage examples. They form a distinct cluster about a specific Python tool for code metrics.",
+      "candidate_ids": [
+        "c81_pro_thinking_001",
+        "c81_pro_thinking_002",
+        "c81_pro_thinking_003",
+        "c81_pro_thinking_004",
+        "c81_pro_thinking_005",
+        "c81_pro_thinking_006",
+        "c81_pro_thinking_007",
+        "c81_pro_thinking_008",
+        "c81_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "GitHub Platform Features (Copilot, Actions, Codespaces, Security, Projects, Reviews)",
+      "rationale": "c82 candidates cover various GitHub features including Copilot, Actions, Codespaces, Advanced Security, Dependabot, Projects, and code review. They all relate to the GitHub platform but are distinct enough that they could be evaluated further. For clustering, we group them as they all originate from the same source and describe GitHub's capabilities.",
+      "candidate_ids": [
+        "c82_pro_thinking_001",
+        "c82_pro_thinking_002",
+        "c82_pro_thinking_003",
+        "c82_pro_thinking_004",
+        "c82_pro_thinking_005",
+        "c82_pro_thinking_006",
+        "c82_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c77_pro_thinking_001",
+    "c77_pro_thinking_002",
+    "c77_pro_thinking_003",
+    "c77_pro_thinking_004",
+    "c77_pro_thinking_005",
+    "c77_pro_thinking_006",
+    "c77_pro_thinking_007",
+    "c77_pro_thinking_008",
+    "c77_pro_thinking_009",
+    "c77_pro_thinking_010",
+    "c77_pro_thinking_011",
+    "c77_pro_thinking_012",
+    "c78_pro_thinking_001",
+    "c78_pro_thinking_002",
+    "c78_pro_thinking_003",
+    "c78_pro_thinking_004",
+    "c78_pro_thinking_005",
+    "c78_pro_thinking_006",
+    "c78_pro_thinking_007",
+    "c78_pro_thinking_008",
+    "c78_pro_thinking_009",
+    "c78_pro_thinking_010",
+    "c79_pro_thinking_001",
+    "c79_pro_thinking_002",
+    "c79_pro_thinking_003",
+    "c79_pro_thinking_004",
+    "c79_pro_thinking_005",
+    "c79_pro_thinking_006",
+    "c79_pro_thinking_007",
+    "c79_pro_thinking_008",
+    "c79_pro_thinking_009",
+    "c79_pro_thinking_010",
+    "c80_pro_thinking_001",
+    "c80_pro_thinking_002",
+    "c80_pro_thinking_003",
+    "c80_pro_thinking_004",
+    "c80_pro_thinking_005",
+    "c80_pro_thinking_006",
+    "c80_pro_thinking_007",
+    "c80_pro_thinking_008",
+    "c80_pro_thinking_009",
+    "c80_pro_thinking_010",
+    "c80_pro_thinking_011",
+    "c80_pro_thinking_012",
+    "c80_pro_thinking_013",
+    "c80_pro_thinking_014",
+    "c80_pro_thinking_015",
+    "c80_pro_thinking_016",
+    "c80_pro_thinking_017",
+    "c80_pro_thinking_018",
+    "c80_pro_thinking_019",
+    "c80_pro_thinking_020",
+    "c80_pro_thinking_021",
+    "c80_pro_thinking_022",
+    "c81_pro_thinking_001",
+    "c81_pro_thinking_002",
+    "c81_pro_thinking_003",
+    "c81_pro_thinking_004",
+    "c81_pro_thinking_005",
+    "c81_pro_thinking_006",
+    "c81_pro_thinking_007",
+    "c81_pro_thinking_008",
+    "c81_pro_thinking_009",
+    "c82_pro_thinking_001",
+    "c82_pro_thinking_002",
+    "c82_pro_thinking_003",
+    "c82_pro_thinking_004",
+    "c82_pro_thinking_005",
+    "c82_pro_thinking_006",
+    "c82_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c77_pro_thinking_001",
+      "label": "Text Summarization Objectives",
+      "description": "Text summarization aims to condense information from one or more source texts into a shorter version that preserves the main ideas and important content, serving as a tool for accessibility and efficient information retrieval.",
+      "coverage_criteria": [
+        "Student can state the primary goal of text summarization and list its benefits for readers and producers."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces summarization objectives from both reader and producer perspectives, emphasizing the need for condensed information in the face of abundant data.",
+        "granularity_rationale": "This is a foundational concept that can be assessed with a single definition and purpose question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_002",
+      "label": "Mono-document vs Multi-document Summarization",
+      "description": "Summarization can be classified by the number of input documents: mono-document summarization produces a summary from a single text, while multi-document summarization synthesizes information from multiple related documents, often dealing with greater information volume.",
+      "coverage_criteria": [
+        "Student can differentiate between mono-document and multi-document summarization and provide an example scenario for each."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly describes these two types under the classification by number of processed texts, noting multi-document algorithms are very important for processing large information sets.",
+        "granularity_rationale": "This binary classification is straightforward and can be checked with a compare/contrast question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_003",
+      "label": "Extractive vs Abstractive Summarization",
+      "description": "Extractive summarization selects and concatenates unchanged sentences from the source text, while abstractive summarization may rephrase or generate new sentences, potentially altering structure and meaning, and requiring more complex NLP.",
+      "coverage_criteria": [
+        "Student can explain the difference between extractive and abstractive summarization, and identify which is more complex and why."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines extratos (extractive) and abstratos (abstractive), provides the example of a news summary, and discusses that abstractive is highly complex, leading to more research in extractive methods.",
+        "granularity_rationale": "This is a central classification in summarization, checkable with a definition and example question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_004",
+      "label": "Indicative vs Informative Summaries",
+      "description": "Indicative summaries provide a vague idea of the content and cannot replace the source, while informative summaries preserve the main content and can act as substitutes, allowing users to understand the subject without reading the full text.",
+      "coverage_criteria": [
+        "Student can distinguish between indicative and informative summaries and explain when each is more appropriate."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes these two types, noting indicative are easier to produce automatically but less useful, while informative are more valuable but harder to evaluate.",
+        "granularity_rationale": "This distinction is a practical classification that can be assessed with a definition and use-case question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_005",
+      "label": "Generic vs User-Oriented Summaries",
+      "description": "Generic summaries present the most important information without considering the user's background, while user-oriented summaries tailor the content based on the user's knowledge, providing context for novices or novelty for experts.",
+      "coverage_criteria": [
+        "Student can differentiate between generic and user-oriented summaries and describe a scenario where user-oriented would be beneficial."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces this classification, explaining that user-oriented summaries can be customized to the user's knowledge level, giving the example of a layperson vs. an expert.",
+        "granularity_rationale": "This is a single dimension of classification that can be checked with a straightforward comparison question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_006",
+      "label": "Supervised vs Unsupervised Summarization",
+      "description": "Supervised summarization treats sentence inclusion as a classification task trained on labeled examples, while unsupervised summarization uses pre-defined features and heuristics to determine sentence importance without needing training data.",
+      "coverage_criteria": [
+        "Student can explain the difference between supervised and unsupervised approaches to summarization and give an example of each."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents this classification, describing supervised as a classification task and unsupervised as using specialized algorithms with a predefined set of features.",
+        "granularity_rationale": "This is a method-level distinction that can be assessed with a definition and characteristic question."
+      },
+      "anchors": [
+        "1 Objetivos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_007",
+      "label": "Intermediate Representation in Summarization",
+      "description": "The first step of summarization processing is creating an intermediate representation that captures the main aspects of the text, such as topic representations using word frequency tables or more complex indicators.",
+      "coverage_criteria": [
+        "Student can define intermediate representation and describe one common method (e.g., topic representation with word weights)."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source details that even the simplest systems derive an intermediate representation, and topic representation approaches convert text into topics with word weights.",
+        "granularity_rationale": "This is a distinct, fundamental step in summarization that can be checked with a single definition and example question."
+      },
+      "anchors": [
+        "2 Processos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_008",
+      "label": "Sentence Scoring for Summarization",
+      "description": "After intermediate representation, each sentence receives a score indicating its importance, often based on how well it expresses key topics or a combination of indicator evidence, sometimes using machine learning to determine indicator weights.",
+      "coverage_criteria": [
+        "Student can explain the purpose of sentence scoring and describe a common method (e.g., scoring based on word frequency or topic coverage)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states that after intermediate representation, each sentence is scored for importance, with topic-based scoring related to how well it expresses the document's topics.",
+        "granularity_rationale": "This is a key processing step that can be assessed with a description question, distinct from the representation and selection steps."
+      },
+      "anchors": [
+        "2 Processos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_009",
+      "label": "Sentence Selection Algorithms",
+      "description": "The summarization system selects a set of high-scoring sentences to form a summary of desired length, often using greedy approaches that recalculate importance considering redundancy, or global optimization that maximizes importance and coherence while minimizing redundancy.",
+      "coverage_criteria": [
+        "Student can describe the goal of sentence selection and outline one approach (e.g., greedy selection with redundancy penalization)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explains that in the third step, the system selects the best combination of important sentences, with methods like recalculating scores based on similarity to avoid redundancy, or global selection with constraints.",
+        "granularity_rationale": "This is a core algorithmic step that can be checked with a description of the selection process."
+      },
+      "anchors": [
+        "2 Processos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_010",
+      "label": "Reformulation in Abstractive Summarization",
+      "description": "In abstractive summarization, a final reformulation step rewrites or paraphrases the selected content to produce a fluent, concise summary, which may involve natural language generation techniques.",
+      "coverage_criteria": [
+        "Student can explain when reformulation is applied and its role in abstractive summarization."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source notes that reformulation is applied only in cases of abstractive summarization, as shown in the figure and described in the text.",
+        "granularity_rationale": "This is a specific step distinct from the others, applicable only to one type, making it a clear checkable concept."
+      },
+      "anchors": [
+        "2 Processos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_011",
+      "label": "Compression Rate in Summarization",
+      "description": "The compression rate defines the size of the summary relative to the source text; for example, a 60% compression rate means the summary will be 40% of the original text's length in words, guiding the summarization output.",
+      "coverage_criteria": [
+        "Student can define compression rate and calculate the target summary length given a rate."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces compression rate as the factor that guides the summarization result, giving a concrete example of 60% compression.",
+        "granularity_rationale": "This is a simple, checkable parameter that can be assessed with a definition and calculation question."
+      },
+      "anchors": [
+        "2 Processos da sumarização de textos"
+      ]
+    },
+    {
+      "id": "c77_pro_thinking_012",
+      "label": "Extractive Summarization Example using Python and NLTK",
+      "description": "An extractive summarization workflow in Python that uses urllib to fetch a news article, BeautifulSoup to extract the main content, NLTK for tokenization and stopword removal, and then scores sentences by word frequency to select the top sentences as the summary.",
+      "coverage_criteria": [
+        "Student can list the main steps of the example: fetching data, parsing HTML, tokenizing, removing stopwords, creating frequency distribution, scoring sentences, and selecting top sentences."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a detailed 10-step Python code example of extractive summarization, with explanations, illustrating a practical application of the concepts.",
+        "granularity_rationale": "This is a concrete, checkable example that can be assessed by having the student outline the steps or identify the purpose of key libraries."
+      },
+      "anchors": [
+        "3 Algoritmos de sumarização de textos"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_001",
+      "label": "Extractive summarization selects important sentences directly from the source text",
+      "description": "Extractive summarization works by identifying and concatenating the most salient sentences or spans from the original document. It tends to be grammatically correct and accurate because it reuses existing sentences.",
+      "coverage_criteria": [
+        "Describe how extractive summarization differs from abstractive summarization.",
+        "List at least one advantage of extractive summarization (e.g., grammatical correctness, accuracy)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines extractive summarization at [01:54] and contrasts it with abstractive summarization at [02:54].",
+        "granularity_rationale": "This is a foundational definition that can be assessed with two short questions, making it an appropriate checkable concept."
+      },
+      "anchors": [
+        "[01:54] Introduction: Text Summarization Approaches",
+        "[02:54] Extractive vs. Abstractive Summarization"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_002",
+      "label": "Abstractive summarization generates paraphrased summaries that may contain new sentences",
+      "description": "Abstractive summarization produces a summary by generating new sentences that paraphrase the source content. It requires deeper semantic understanding and is more challenging than extractive methods, as the model must creatively rephrase information.",
+      "coverage_criteria": [
+        "Explain what abstractive summarization is and how it differs from extractive summarization.",
+        "State one reason why abstractive summarization is more difficult (e.g., need for semantic modeling, paraphrase generation)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes abstractive summarization and its challenges at [02:54], emphasizing the need for semantic representation and creative generation.",
+        "granularity_rationale": "Distinguishing abstractive from extractive summarization is a key learning point, testable with direct questions."
+      },
+      "anchors": [
+        "[02:54] Extractive vs. Abstractive Summarization"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_003",
+      "label": "BERT can generate sentence embeddings used for clustering in extractive summarization",
+      "description": "Pre-trained BERT models can convert each sentence into a fixed-length vector (e.g., 768 dimensions) that captures semantic meaning. These sentence embeddings are then clustered (e.g., with K-medoids) to select representative sentences for an extractive summary.",
+      "coverage_criteria": [
+        "Explain what a sentence embedding is and how BERT can produce one.",
+        "Describe why sentence embeddings are useful for extractive summarization (to group semantically similar sentences)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video introduces the extractive summarization pipeline at [05:10], explicitly describing how BERT transforms sentences into 768-dimensional vectors.",
+        "granularity_rationale": "Sentence embeddings are a core NLP technique; this concept checks understanding of their role in summarization with two focused questions."
+      },
+      "anchors": [
+        "[05:10] Approach: Overall Outline (Extractive Part)"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_004",
+      "label": "K-medoid clustering selects actual sentences as cluster centers for extractive summaries",
+      "description": "After obtaining sentence embeddings, K-medoid clustering groups similar sentences and uses actual data points (sentences) as cluster medoids. This ensures the extractive summary consists of real sentences from the text, unlike K-Means which can produce virtual centroids.",
+      "coverage_criteria": [
+        "Compare K-Means and K-Medoid, highlighting that K-Medoid uses actual data points as centers.",
+        "Explain how K-Medoid can be applied to select representative sentences for a summary."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video details K-medoid clustering at [07:01] and its application within the extractive summarization pipeline at [05:10].",
+        "granularity_rationale": "Understanding why and how K-medoid is used for extractive summarization is specific enough to be assessed with a short explanation."
+      },
+      "anchors": [
+        "[07:01] K-Means vs K-Medoid Clustering",
+        "[05:10] Approach: Overall Outline (Extractive Part)"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_005",
+      "label": "Keyword extraction from source text guides abstractive summarization models",
+      "description": "In the abstractive summarization approach, important keywords (typically nouns and verbs) are automatically extracted using techniques like NLTK part-of-speech tagging or fine-tuned BERT. These keywords provide a condensed representation of the text’s core topics for the summarization model.",
+      "coverage_criteria": [
+        "Name at least one method for extracting keywords (e.g., POS tagging, BERT).",
+        "Explain how extracted keywords are used in the abstractive summarization pipeline (as part of the input to GPT-2)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explains keyword extraction with NLTK and BERT at [12:22] and its role in the abstractive summarization pipeline.",
+        "granularity_rationale": "Keyword extraction is a critical preprocessing step whose function and methods can be checked with two direct questions."
+      },
+      "anchors": [
+        "[12:22] Approach: Overall Outline (Abstractive Part)"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_006",
+      "label": "GPT-2 is fine-tuned for abstractive summarization using a multi-loss training strategy",
+      "description": "The abstractive summarization model uses GPT-2 fine-tuned with two objectives: language modeling (predicting the next token) and multiple-choice prediction (distinguishing true summaries from distractors). The input includes special tokens like `<summarize>` and keywords, and the total loss is a weighted sum (LM:MC = 2:1).",
+      "coverage_criteria": [
+        "Describe the two training tasks used for fine-tuning GPT-2: language modeling and multiple-choice.",
+        "Explain the purpose of the multiple-choice loss in improving summarization quality.",
+        "State how special tokens like `<summarize>` are used in the input format."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video thoroughly explains the training strategy, input format, special tokens, and loss weighting at [13:48] and [17:13].",
+        "granularity_rationale": "This multi-loss approach is a key innovation of the paper, and can be assessed with multiple questions about its components."
+      },
+      "anchors": [
+        "[13:48] Training Strategy of the Abstractive Summarization GPT-2",
+        "[17:13] Intuition of the Training Strategy"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_007",
+      "label": "Masked self-attention in GPT-2 prevents the model from attending to future tokens",
+      "description": "During language modeling, GPT-2 applies a mask to its self-attention mechanism so that each token can only attend to previous tokens (and itself). This auto-regressive property ensures that prediction of the next token is based solely on the preceding context, enabling coherent text generation.",
+      "coverage_criteria": [
+        "Explain what masked self-attention is and why it is necessary for training GPT-2 as a language model.",
+        "Describe how the masking works (setting attention weights to -inf before softmax for future positions)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video mentions masked self-attention as part of the training strategy intuition at [17:51], noting it blocks information from the right.",
+        "granularity_rationale": "Masked self-attention is a fundamental mechanism in transformers; its purpose can be checked with a concise explanation."
+      },
+      "anchors": [
+        "[17:13] Intuition of the Training Strategy"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_008",
+      "label": "Special tokens like `<summarize>` serve as context cues during GPT-2 fine-tuning",
+      "description": "By inserting a special token such as `<summarize>` between keywords and the summary in the input sequence, the model learns to associate this token with the summarization task. This helps GPT-2 condition its output on the preceding keywords and generate an appropriate summary.",
+      "coverage_criteria": [
+        "Give an example of how special tokens are used in input formatting for fine-tuning GPT-2.",
+        "Explain why such tokens help the model perform task-specific generation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes the use of `<summarize>` to separate keywords and the summary at [13:48] and how GPT-2 learns this cue at [17:13].",
+        "granularity_rationale": "The role of control tokens is a concrete, teachable detail of language model fine-tuning that can be checked with a short answer."
+      },
+      "anchors": [
+        "[13:48] Training Strategy of the Abstractive Summarization GPT-2",
+        "[17:13] Intuition of the Training Strategy"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_009",
+      "label": "Low availability of domain-specific data makes fine-tuning large models difficult",
+      "description": "The COVID-19 research dataset contains far fewer document-summary pairs than general summarization datasets (35k vs 286k). Moreover, specialized scientific terminology may not be well covered in the pre-training data of models like BERT and GPT-2, hindering effective fine-tuning.",
+      "coverage_criteria": [
+        "Quantify the data size challenge mentioned in the video (e.g., compare 35k vs 286k pairs).",
+        "Explain why limited domain data and esoteric terminology can degrade fine-tuning performance."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly discusses the low-resource challenge at [04:13], including dataset size comparison and terminology mismatch.",
+        "granularity_rationale": "This concept highlights a practical constraint in NLP projects, and students can be asked to recall specific numbers and reasons."
+      },
+      "anchors": [
+        "[04:13] Low-Resource Challenge"
+      ]
+    },
+    {
+      "id": "c78_pro_thinking_010",
+      "label": "Using extractive summary sentences as input to abstractive summarization could improve performance",
+      "description": "The presenter proposes that, as an alternative to using only keywords, one could feed sentences extracted by an extractive summarization method directly into an abstractive summarization model. This hybrid approach may yield better summaries by providing richer context.",
+      "coverage_criteria": [
+        "Summarize the future work suggestion made at the end of the video.",
+        "Discuss one potential benefit of using extracted sentences instead of just keywords for abstractive summarization."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video concludes with this suggestion at [21:16], explicitly proposing the combination of extractive and abstractive methods.",
+        "granularity_rationale": "This forward-looking idea encourages synthesis of the two summarization approaches and can be assessed with a short reflective question."
+      },
+      "anchors": [
+        "[21:16] Conclusion and Suggestion"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_001",
+      "label": "Purpose of UML Deployment Diagrams",
+      "description": "Deployment diagrams model the physical architecture of a system, showing the relationships between software and hardware components and the physical distribution of processing.",
+      "coverage_criteria": [
+        "Student can state that deployment diagrams show the hardware nodes and the software artifacts deployed on them, along with communication paths."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines deployment diagrams as modeling physical architecture and showing hardware/software relationships.",
+        "granularity_rationale": "This concept is a distinct, checkable idea that introduces the diagram type and its primary use, suitable for a single focused question."
+      },
+      "anchors": [
+        "Diagramas de Implementação"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_002",
+      "label": "Nodes in UML Deployment Diagrams",
+      "description": "Nodes represent computational resources such as computers, sensors, printers, or servers. They can be connected by communication paths to describe network structures.",
+      "coverage_criteria": [
+        "Student can define a node in UML and give examples of hardware resources that nodes represent."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Nós nos Modelos UML' defines nodes as model elements representing computational resources.",
+        "granularity_rationale": "Nodes are a fundamental building block of deployment diagrams, and this concept is small enough to check with one question."
+      },
+      "anchors": [
+        "Nós nos Modelos UML"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_003",
+      "label": "Node Instances in UML",
+      "description": "An instance of a node represents an actual occurrence of a node, based on an existing node definition.",
+      "coverage_criteria": [
+        "Student can explain that a node instance is a specific concrete occurrence of a node type."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Instâncias do Nó' describes node instances as instanciations of nodes.",
+        "granularity_rationale": "This is a distinct but simple concept that can be checked with one question about what a node instance is."
+      },
+      "anchors": [
+        "Instâncias do Nó"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_004",
+      "label": "Artifacts in UML",
+      "description": "Artifacts are model elements that represent physical software entities like executable files, libraries, components, documents, and databases.",
+      "coverage_criteria": [
+        "Student can list examples of artifacts and explain that they represent deployable software units."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Artefatos' defines artifacts as physical units of execution.",
+        "granularity_rationale": "Artifacts are a core element in deployment diagrams, distinct from nodes, and can be checked with a simple listing or identification question."
+      },
+      "anchors": [
+        "Artefatos"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_005",
+      "label": "Execution Environments in UML",
+      "description": "An execution environment is a type of node that represents a specific execution platform, such as an operating system or database management system, providing context for execution.",
+      "coverage_criteria": [
+        "Student can define execution environment as a node that offers a runtime platform and give examples."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Ambientes de Execução' defines execution environments as a type of node.",
+        "granularity_rationale": "This concept is distinct from general nodes and adds to the detail of deployment diagrams, checkable with one or two questions."
+      },
+      "anchors": [
+        "Ambientes de Execução"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_006",
+      "label": "Devices in UML Deployment Diagrams",
+      "description": "A device is a type of node that represents a physical computational resource in a system, such as an application server.",
+      "coverage_criteria": [
+        "Student can differentiate a device from a general node in UML deployment diagrams."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Dispositivos' defines device as a type of node representing a physical resource.",
+        "granularity_rationale": "Devices are a specialized node type, and this concept isolates that specialization for focused assessment."
+      },
+      "anchors": [
+        "Dispositivos"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_007",
+      "label": "Deployment Specifications in UML",
+      "description": "A deployment specification is a configuration file (e.g., XML or text) that defines how an artifact is deployed onto a node.",
+      "coverage_criteria": [
+        "Student can explain that a deployment specification is a configuration artifact that guides the deployment process."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Especificações de Implementação' describes deployment specifications as configuration files.",
+        "granularity_rationale": "This concept covers a specific type of artifact used in deployment, distinct and checkable with a single question."
+      },
+      "anchors": [
+        "Especificações de Implementação"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_008",
+      "label": "Relationships in UML Deployment Diagrams",
+      "description": "Relationships in deployment diagrams include communication paths between nodes and deployment relationships that link artifacts to nodes.",
+      "coverage_criteria": [
+        "Student can identify the two primary relationship types in deployment diagrams: communication paths and deployment relationships."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Relacionamentos em Diagramas de Implementação' describes connections between model elements.",
+        "granularity_rationale": "Relationships are a key structural concept, and this candidate covers the types without delving into excessive detail, suitable for a couple of questions."
+      },
+      "anchors": [
+        "Relacionamentos em Diagramas de Implementação"
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_009",
+      "label": "Deployment Diagrams vs Component Diagrams",
+      "description": "Deployment diagrams show where components and artifacts are used in the deployed system, while component diagrams define the composition of components and artifacts in the system.",
+      "coverage_criteria": [
+        "Student can explain the difference: deployment diagrams focus on physical allocation, component diagrams on logical composition."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source includes a note explicitly distinguishing deployment diagrams from component diagrams.",
+        "granularity_rationale": "This distinction is a common point of confusion and is succinctly explained in the source, making it a checkable concept with one comparison question."
+      },
+      "anchors": [
+        "Nota: Os diagramas de implementação são distintos dos diagramas de componentes."
+      ]
+    },
+    {
+      "id": "c79_pro_thinking_010",
+      "label": "Use Cases for UML Deployment Diagrams",
+      "description": "Deployment diagrams are effective for modeling embedded systems, client-server systems, and distributed systems.",
+      "coverage_criteria": [
+        "Student can list three types of systems for which deployment diagrams are particularly useful."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that deployment diagrams are effective for these three system types.",
+        "granularity_rationale": "This concept captures the practical application context, which can be checked by listing the system types."
+      },
+      "anchors": [
+        "Diagramas de Implementação"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_001",
+      "label": "ISO 25010 Quality Model",
+      "description": "A framework defined by ISO/IEC 25010 that categorizes software product quality into nine characteristics and their sub-characteristics for evaluation.",
+      "coverage_criteria": [
+        "The student can name the nine quality characteristics of ISO 25010."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces the ISO 25010 quality model as the cornerstone of product quality evaluation, describing its purpose and listing its characteristics.",
+        "granularity_rationale": "This candidate captures the high-level model, which is the central topic of the source, allowing assessment of overall understanding before diving into details."
+      },
+      "anchors": [
+        "ISO/IEC 25010"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_002",
+      "label": "Purpose of a Software Product Quality Model",
+      "description": "The quality model determines which quality characteristics are considered when evaluating a software product's properties, aiming to satisfy stakeholder needs.",
+      "coverage_criteria": [
+        "The student can explain why a quality model is used in software evaluation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states that the quality model is the cornerstone of an evaluation system and determines the quality characteristics to be assessed.",
+        "granularity_rationale": "This is a distinct conceptual point about the role of quality models, separate from the specific ISO 25010 characteristics, making it a standalone teachable idea."
+      },
+      "anchors": [
+        "First paragraph under the heading"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_003",
+      "label": "Functional Suitability",
+      "description": "Degree to which a product provides functions that meet stated and implied needs under specified conditions, as defined by ISO 25010.",
+      "coverage_criteria": [
+        "The student can define functional suitability and list its three sub-characteristics."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines functional suitability and breaks it down into completeness, correctness, and appropriateness.",
+        "granularity_rationale": "This candidate corresponds to one of the nine top-level quality characteristics, which is a natural unit for teaching and assessment."
+      },
+      "anchors": [
+        "ISO/IEC 25010",
+        "This characteristic represents the degree to which a product or system provides functions that meet stated and implied needs when used under specified conditions."
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_004",
+      "label": "Functional Completeness",
+      "description": "The degree to which the set of functions covers all specified tasks and user objectives.",
+      "coverage_criteria": [
+        "The student can explain what functional completeness means in the context of software quality."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source lists functional completeness as a sub-characteristic of functional suitability and provides its definition.",
+        "granularity_rationale": "Sub-characteristics like this are specific enough for testing precise knowledge while still being clearly defined concepts."
+      },
+      "anchors": [
+        "Functional completeness"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_005",
+      "label": "Functional Correctness",
+      "description": "The degree to which a product provides accurate results when used by intended users.",
+      "coverage_criteria": [
+        "The student can define functional correctness."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source directly defines this term.",
+        "granularity_rationale": "It's a concrete sub-characteristic that can be tested with examples or scenarios."
+      },
+      "anchors": [
+        "Functional correctness"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_006",
+      "label": "Functional Appropriateness",
+      "description": "The degree to which the functions facilitate the accomplishment of specified tasks and objectives.",
+      "coverage_criteria": [
+        "The student can explain functional appropriateness."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides this definition.",
+        "granularity_rationale": "It's a distinct sub-characteristic suitable for targeted questioning."
+      },
+      "anchors": [
+        "Functional appropriateness"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_007",
+      "label": "Performance Efficiency",
+      "description": "Degree to which a product performs its functions within specified time and resource constraints, as per ISO 25010.",
+      "coverage_criteria": [
+        "The student can define performance efficiency and list its sub-characteristics (time behaviour, resource utilization, capacity)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces performance efficiency and details its sub-characteristics.",
+        "granularity_rationale": "It's a main quality characteristic, an appropriate unit for lesson objectives."
+      },
+      "anchors": [
+        "This characteristic represents the degree to which a product performs its functions within specified time and throughput parameters and is efficient in the use of resources (such as CPU, memory, storage, network devices, energy, materials...) under specified conditions."
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_008",
+      "label": "Time Behaviour",
+      "description": "The degree to which response time and throughput rates meet requirements.",
+      "coverage_criteria": [
+        "The student can explain time behaviour as a quality sub-characteristic."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Defined in the source under performance efficiency.",
+        "granularity_rationale": "A specific, measurable aspect of performance suitable for targeted checks."
+      },
+      "anchors": [
+        "Time behaviour"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_009",
+      "label": "Resource Utilization",
+      "description": "The degree to which the amounts and types of resources used meet requirements.",
+      "coverage_criteria": [
+        "The student can define resource utilization and give examples of resources."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source lists and defines this term.",
+        "granularity_rationale": "A focused sub-characteristic ideal for checking understanding of efficiency concerns."
+      },
+      "anchors": [
+        "Resource utilization"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_010",
+      "label": "Capacity",
+      "description": "The degree to which the maximum limits of a product or system parameter meet requirements.",
+      "coverage_criteria": [
+        "The student can explain capacity in the context of performance efficiency."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides this definition.",
+        "granularity_rationale": "It is a distinct sub-characteristic that can be assessed separately."
+      },
+      "anchors": [
+        "Capacity"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_011",
+      "label": "Compatibility",
+      "description": "Degree to which a product can exchange information and share environments with other products, as per ISO 25010.",
+      "coverage_criteria": [
+        "The student can define compatibility and distinguish co-existence from interoperability."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines compatibility and breaks it into two sub-characteristics.",
+        "granularity_rationale": "A high-level quality characteristic that is critical for system integration, making it a natural teaching point."
+      },
+      "anchors": [
+        "Degree to which a product, system or component can exchange information with other products, systems or components, and/or perform its required functions while sharing the same common environment and resources."
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_012",
+      "label": "Co-existence",
+      "description": "The ability of a product to perform efficiently while sharing resources with other products without negative impact.",
+      "coverage_criteria": [
+        "The student can explain co-existence and give an example."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines co-existence.",
+        "granularity_rationale": "It is a specific sub-characteristic that can be tested with scenario-based questions."
+      },
+      "anchors": [
+        "Co-existence"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_013",
+      "label": "Interoperability",
+      "description": "The degree to which a system can exchange and mutually use information with other products.",
+      "coverage_criteria": [
+        "The student can define interoperability."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a definition.",
+        "granularity_rationale": "It is a commonly referenced sub-characteristic suitable for standalone assessment."
+      },
+      "anchors": [
+        "Interoperability"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_014",
+      "label": "Interaction Capability",
+      "description": "Degree to which a product can be interacted with by users to complete tasks, covering usability aspects, as defined by ISO 25010.",
+      "coverage_criteria": [
+        "The student can list the sub-characteristics of interaction capability and explain its overall goal."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces interaction capability as a quality characteristic and elaborates its sub-characteristics.",
+        "granularity_rationale": "It represents the usability dimension, a core quality area, making it a key concept."
+      },
+      "anchors": [
+        "Degree to which a product or system can be interacted with by specified users to exchange information in the user interface to complete specific tasks in a variety of contexts of use."
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_015",
+      "label": "Appropriateness Recognizability",
+      "description": "The degree to which users can recognize if a product is appropriate for their needs.",
+      "coverage_criteria": [
+        "The student can explain what appropriateness recognizability means."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines this sub-characteristic.",
+        "granularity_rationale": "It is a detailed usability sub-characteristic that can be tested with examples."
+      },
+      "anchors": [
+        "Appropriateness recognizability"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_016",
+      "label": "Learnability",
+      "description": "The degree to which the functions can be learned by users within a specified time.",
+      "coverage_criteria": [
+        "The student can define learnability and its importance."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Provided in the source.",
+        "granularity_rationale": "A focused concept that is easy to assess."
+      },
+      "anchors": [
+        "Learnability"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_017",
+      "label": "Operability",
+      "description": "The degree to which a product has attributes that make it easy to operate and control.",
+      "coverage_criteria": [
+        "The student can explain operability."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines this term.",
+        "granularity_rationale": "It's a specific usability attribute suitable for testing."
+      },
+      "anchors": [
+        "Operability"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_018",
+      "label": "User Error Protection",
+      "description": "The degree to which a system prevents users from making operation errors.",
+      "coverage_criteria": [
+        "The student can define user error protection and give an example."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source includes this sub-characteristic.",
+        "granularity_rationale": "It's a concrete safety-related usability concept."
+      },
+      "anchors": [
+        "User error protection"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_019",
+      "label": "User Engagement",
+      "description": "The degree to which a user interface presents functions and information in an inviting and motivating manner.",
+      "coverage_criteria": [
+        "The student can explain user engagement in the context of software quality."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Defined in the source.",
+        "granularity_rationale": "A subjective but distinct sub-characteristic suitable for standalone assessment."
+      },
+      "anchors": [
+        "User engagement"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_020",
+      "label": "Inclusivity",
+      "description": "The degree to which a product or system can be used by people of various backgrounds (such as people of various ages, abilities, cultures, ethnicities, languages, genders, economic situations, etc.).",
+      "coverage_criteria": [
+        "The student can explain inclusivity in the context of software interaction capability."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines this sub-characteristic under interaction capability.",
+        "granularity_rationale": "It is a specific sub-characteristic that addresses accessibility and diversity, suitable for targeted assessment."
+      },
+      "anchors": [
+        "Inclusivity"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_021",
+      "label": "User assistance",
+      "description": "The degree to which a product can be used by people with the widest range of characteristics and capabilities to achieve specified goals in a specified context of use.",
+      "coverage_criteria": [
+        "The student can define user assistance."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines user assistance.",
+        "granularity_rationale": "It is a distinct sub-characteristic focusing on assistive features, making it suitable for standalone questioning."
+      },
+      "anchors": [
+        "User assistance"
+      ]
+    },
+    {
+      "id": "c80_pro_thinking_022",
+      "label": "Self-descriptiveness",
+      "description": "The degree to which a product presents appropriate information, where needed by the user, to make its capabilities and use immediately obvious to the user without excessive interactions with a product or other resources.",
+      "coverage_criteria": [
+        "The student can explain self-descriptiveness."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides this definition.",
+        "granularity_rationale": "It is a focused sub-characteristic suitable for evaluating understanding of intuitive design."
+      },
+      "anchors": [
+        "Self-descriptiveness"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_001",
+      "label": "Purpose of codemetrics library",
+      "description": "codemetrics is a Python library designed to mine source control management (SCM) repositories and extract insights about a code base, inspired by Adam Tornhill's books.",
+      "coverage_criteria": [
+        "Student can explain what codemetrics does and what it is used for."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states 'Mine your SCM for insight on your software' and 'Code metrics is a simple Python module that leverage pandas and your source control management (SCM) tool to generate insight on your code base.'",
+        "granularity_rationale": "This is a single high-level idea that gives the overall motivation, suitable for a standalone checkable concept."
+      },
+      "anchors": [
+        "codemetrics"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_002",
+      "label": "Supported SCM tools: git and Subversion",
+      "description": "codemetrics currently supports mining repositories from git and Subversion (SVN).",
+      "coverage_criteria": [
+        "Student can list the two SCM tools that codemetrics supports."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions 'For now, only Subversion and git are supported.'",
+        "granularity_rationale": "This is a concise, specific fact that can be quickly checked."
+      },
+      "anchors": [
+        "For now, only Subversion and git are supported."
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_003",
+      "label": "Installation via pip",
+      "description": "codemetrics can be installed using the pip package manager with the command 'pip install codemetrics'.",
+      "coverage_criteria": [
+        "Student can write the pip command to install codemetrics."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source includes an Installation section with 'pip install codemetrics'.",
+        "granularity_rationale": "A single practical step that is essential for using the library."
+      },
+      "anchors": [
+        "Installation"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_004",
+      "label": "Key dependencies: pandas, lizard, cloc",
+      "description": "codemetrics relies on pandas for data manipulation, lizard for code complexity calculation, and cloc.pl for line counts.",
+      "coverage_criteria": [
+        "Student can name the three main dependencies of codemetrics and their roles."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source lists the dependencies: 'pandas: for data munching', 'lizard: for code complexity calculation', 'cloc.pl (script): for line counts'.",
+        "granularity_rationale": "Knowing these dependencies helps understand the library's capabilities and integration points."
+      },
+      "anchors": [
+        "Dependencies list under 'codemetrics' heading"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_005",
+      "label": "Retrieving lines of code (LOC) with get_cloc",
+      "description": "Using cm.get_cloc(project, cloc_program) returns a DataFrame with line count statistics for the project.",
+      "coverage_criteria": [
+        "Student can write a code snippet to retrieve LOC data using cm.get_cloc."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The usage example shows 'loc_df = cm.get_cloc(project, cloc_program='/path/to/cloc')'.",
+        "granularity_rationale": "This is a specific function call that can be practiced and checked."
+      },
+      "anchors": [
+        "Usage example: loc_df = cm.get_cloc(...)"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_006",
+      "label": "Retrieving commit log with get_log",
+      "description": "cm.get_log(project) fetches the revision log from the SCM repository as a pandas DataFrame.",
+      "coverage_criteria": [
+        "Student can write a code snippet to obtain the log using cm.get_log."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The example includes 'log_df = cm.get_log(project)'.",
+        "granularity_rationale": "A discrete, observable operation that forms the basis for further analysis."
+      },
+      "anchors": [
+        "Usage example: log_df = cm.get_log(project)"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_007",
+      "label": "Calculating file ages with get_ages",
+      "description": "cm.get_ages(log_df) computes age-related metrics for files based on the log DataFrame.",
+      "coverage_criteria": [
+        "Student can write a code snippet to compute ages using cm.get_ages."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The usage shows 'ages_df = cm.get_ages(log_df)'.",
+        "granularity_rationale": "This is a simple function that produces a meaningful metric from the log, making it a checkable step."
+      },
+      "anchors": [
+        "Usage example: ages_df = cm.get_ages(log_df)"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_008",
+      "label": "Computing diff stats for Subversion",
+      "description": "For SVN projects, after obtaining the log, one can compute lines added and removed per revision using cm.svn.get_diff_stats with chunks=False.",
+      "coverage_criteria": [
+        "Student can explain how to get diff stats for an SVN project in codemetrics."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The SVN-specific code block applies 'cm.svn.get_diff_stats' to the log.",
+        "granularity_rationale": "This is a distinct variant of usage for a specific SCM, worth separating."
+      },
+      "anchors": [
+        "Subversion diff stats example"
+      ]
+    },
+    {
+      "id": "c81_pro_thinking_009",
+      "label": "MIT License",
+      "description": "codemetrics is distributed under the MIT License, a permissive open-source license.",
+      "coverage_criteria": [
+        "Student can state the license under which codemetrics is released."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The License section states 'Licensed under the term of MIT License'.",
+        "granularity_rationale": "Licensing is a common piece of information for open-source tools, and this is a single fact."
+      },
+      "anchors": [
+        "License"
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_001",
+      "label": "GitHub Copilot AI Coding Assistant",
+      "description": "GitHub Copilot is an AI-powered tool that assists developers in writing, testing, and fixing code. It provides code completions, chat, and agent modes to automate tasks across the software development lifecycle.",
+      "coverage_criteria": [
+        "The student can describe the purpose of GitHub Copilot and list at least two ways it assists in development (e.g., code generation, code review, debugging)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source body prominently features GitHub Copilot, describing it as an AI partner that works at each step of the SDLC, with demonstrations of code refactoring and agent mode.",
+        "granularity_rationale": "This candidate focuses on the core concept of Copilot as an AI assistant, narrow enough to be checked with a few questions about its functionalities."
+      },
+      "anchors": [
+        "Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle."
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_002",
+      "label": "GitHub Actions CI/CD Automation",
+      "description": "GitHub Actions is a CI/CD tool that automates software workflows, including building, testing, and deploying code, directly from GitHub repositories.",
+      "coverage_criteria": [
+        "The student can explain what CI/CD is and how GitHub Actions supports automation of software delivery."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source highlights 'Automate your path to production' with GitHub Actions, showcasing a workflow dashboard and emphasizing secure, reliable CI/CD.",
+        "granularity_rationale": "This candidate captures a single platform feature, suitable for a brief check on understanding of automation in DevOps."
+      },
+      "anchors": [
+        "Automate your path to production"
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_003",
+      "label": "GitHub Codespaces Cloud Development Environment",
+      "description": "GitHub Codespaces provides a fully configured, cloud-based development environment that can be launched instantly, allowing developers to code from anywhere.",
+      "coverage_criteria": [
+        "The student can describe what a cloud development environment is and how Codespaces enables remote development without local setup."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents Codespaces with the heading 'Code instantly from anywhere' and a picker screenshot comparing local and Codespaces.",
+        "granularity_rationale": "The concept is distinct from other GitHub features and can be verified by asking the student to identify its purpose."
+      },
+      "anchors": [
+        "Code instantly from anywhere"
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_004",
+      "label": "GitHub Advanced Security with Copilot Autofix",
+      "description": "GitHub Advanced Security includes Copilot Autofix, which automatically identifies and fixes vulnerabilities in code, reducing security debt and mean time to recovery.",
+      "coverage_criteria": [
+        "The student can explain how Copilot Autofix helps remediate security vulnerabilities, potentially with an example like XSS prevention."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a detailed example of Copilot Autofix fixing an XSS vulnerability, along with a security campaign dashboard and statistics.",
+        "granularity_rationale": "This candidate is specific enough to test understanding of automated security fixes without delving into broader security concepts."
+      },
+      "anchors": [
+        "Apply fixes in seconds. Spend less time debugging and more time building features with Copilot Autofix.",
+        "Copilot Autofix identifies vulnerable code and provides an explanation, together with a secure code suggestion to remediate the vulnerability."
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_005",
+      "label": "GitHub Dependabot for Dependency Management",
+      "description": "Dependabot automatically updates vulnerable dependencies in a project, providing supported fixes and managing breaking changes to maintain software supply chain security.",
+      "coverage_criteria": [
+        "The student can describe what Dependabot does and why dependency management is important for security."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions 'Dependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes' and shows a dependency list.",
+        "granularity_rationale": "This is a single tool within GitHub's security features, making it appropriate for a focused check."
+      },
+      "anchors": [
+        "Dependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes."
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_006",
+      "label": "GitHub Projects for Issue Tracking and Planning",
+      "description": "GitHub Projects provides a project management tool integrated with repositories, allowing teams to organize tasks, track progress, and plan roadmaps using boards and tables.",
+      "coverage_criteria": [
+        "The student can explain how GitHub Projects helps manage software projects, mentioning features like custom views, status tracking, and sub-issue progress."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source features 'Plan with clarity. Organize everything from high-level roadmaps to everyday tasks.' with a project board example and an issue with sub-issues.",
+        "granularity_rationale": "This candidate covers project management features, which are distinct from coding tools, and can be assessed by asking about task organization."
+      },
+      "anchors": [
+        "Plan with clarity. Organize everything from high-level roadmaps to everyday tasks."
+      ]
+    },
+    {
+      "id": "c82_pro_thinking_007",
+      "label": "GitHub Code Review with Copilot Assistance",
+      "description": "GitHub's code review feature allows team members to review code changes together, with optional initial reviews by Copilot to increase speed and quality.",
+      "coverage_criteria": [
+        "The student can describe the code review process on GitHub and how Copilot can be used to automate initial reviews."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states 'Review code changes together Assign initial reviews to Copilot for greater speed and quality' and shows a pull request status with approvals.",
+        "granularity_rationale": "This candidate focuses on the code review process as enhanced by AI, specific enough to check understanding of modern development practices."
+      },
+      "anchors": [
+        "Review code changes together"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

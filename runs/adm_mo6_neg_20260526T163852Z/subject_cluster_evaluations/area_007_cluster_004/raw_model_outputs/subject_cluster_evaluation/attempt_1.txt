@@ -1,0 +1,38 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Folding Back Procedure",
+      "description": "The folding back procedure solves a decision tree from right to left: at chance nodes, compute EMV; at decision nodes, select the alternative with the highest EMV. The EMV at the root is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_candidate_ids": ["lr005_006"],
+      "merge_rationale": "This candidate covers the overall folding back procedure. It is a standalone concept because it describes the full algorithm, which is distinct from the specific net benefit calculation."
+    },
+    {
+      "id": "sm002",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ],
+      "source_candidate_ids": ["lr005_016"],
+      "merge_rationale": "This candidate details the subtraction of costs from expected outcomes to compute net benefit, which is a finer-grained step within the folding back procedure. It represents a distinct concept at a more detailed level, so it stands alone."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr005_006",
+      "status": "used_in",
+      "accepted_ids": ["sm001"]
+    },
+    {
+      "candidate_id": "lr005_016",
+      "status": "used_in",
+      "accepted_ids": ["sm002"]
+    }
+  ]
+}

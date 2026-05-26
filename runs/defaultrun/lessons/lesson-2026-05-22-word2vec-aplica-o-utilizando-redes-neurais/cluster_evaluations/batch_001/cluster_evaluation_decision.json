@@ -1,0 +1,356 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:49:32.918473+00:00",
+  "scope_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c61_pro_thinking_001",
+    "c61_pro_thinking_005",
+    "c61_pro_thinking_009",
+    "c63_pro_thinking_001",
+    "c63_pro_thinking_002",
+    "c63_pro_thinking_004",
+    "c63_pro_thinking_009",
+    "c63_pro_thinking_011",
+    "c61_pro_thinking_002",
+    "c62_pro_thinking_010",
+    "c61_pro_thinking_003",
+    "c61_pro_thinking_004",
+    "c61_pro_thinking_006",
+    "c61_pro_thinking_007",
+    "c61_pro_thinking_008",
+    "c62_pro_thinking_009",
+    "c61_pro_thinking_011",
+    "c61_pro_thinking_010",
+    "c62_pro_thinking_001",
+    "c62_pro_thinking_002",
+    "c62_pro_thinking_003",
+    "c62_pro_thinking_004",
+    "c62_pro_thinking_006",
+    "c62_pro_thinking_007",
+    "c62_pro_thinking_008",
+    "c62_pro_thinking_005",
+    "c62_pro_thinking_011",
+    "c63_pro_thinking_003",
+    "c63_pro_thinking_010"
+  ],
+  "accepted": [
+    {
+      "id": "lr001",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts. This concept covers the idea that a word's meaning can be inferred from the company it keeps, demonstrated through contextual inference examples.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_005",
+        "c63_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates describe the same fundamental idea that meaning arises from context; c61_pro_thinking_005 provides the formal statement, while c63_pro_thinking_004 offers practical demonstration with sentence completion."
+    },
+    {
+      "id": "lr002",
+      "label": "Word Vectors as Numerical Representations",
+      "description": "Words can be encoded as vectors of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, or gender. This concept forms the basis for representing text data in a continuous vector space.",
+      "coverage_criteria": [
+        "Explain that a word vector is a numerical encoding of a word's features.",
+        "Provide examples of possible features for a given word (e.g., 'king' could have high authority, male, royalty).",
+        "Distinguish between hand-crafted features and automatically learned features."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate stands alone as the foundational building block for understanding how words are represented before discussing learning algorithms."
+    },
+    {
+      "id": "lr003",
+      "label": "Vector Arithmetic for Semantic Analogies",
+      "description": "Word vectors learned by Word2Vec support vector arithmetic that reflects semantic relationships, enabling analogy solving (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+      "coverage_criteria": [
+        "Given a word vector equation, predict the expected result word for a simple analogy.",
+        "Explain that vector difference can capture the relationship between two words.",
+        "Perform vector addition or subtraction to solve an analogy task."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_001",
+        "c63_pro_thinking_011"
+      ],
+      "merge_rationale": "c63_pro_thinking_001 introduces the concept of arithmetic with word vectors, and c63_pro_thinking_011 provides specific concrete examples; together they cover the skill of using vector arithmetic to express analogies."
+    },
+    {
+      "id": "lr004",
+      "label": "Semantic and Syntactic Relationships in Word2Vec Embeddings",
+      "description": "Word2Vec embeddings capture a variety of linguistic relationships, including verb tenses, capital-country associations, and gender pairs, by encoding them as consistent vector offsets.",
+      "coverage_criteria": [
+        "Provide at least two distinct types of linguistic relationships that word vectors can capture (e.g., tense, geography).",
+        "Explain why such relationships emerge from the training objective."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate stands alone as an overview of the emergent properties of Word2Vec vectors, distinct from the mechanics of arithmetic."
+    },
+    {
+      "id": "lr005",
+      "label": "Similarity Measures for Word Vectors",
+      "description": "Euclidean distance and cosine similarity are two metrics used to quantify the similarity between word vectors. Euclidean distance measures straight-line distance in vector space, while cosine similarity measures the angle between vectors, often preferred in high-dimensional spaces.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two vectors.",
+        "Compute cosine similarity between two vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and when each might be more appropriate."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_001",
+        "c61_pro_thinking_009"
+      ],
+      "merge_rationale": "These two candidates cover complementary similarity metrics that are typically introduced together in the context of vector spaces; combining them creates a coherent concept on measuring proximity."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts. This concept covers the idea that a word's meaning can be inferred from the company it keeps, demonstrated through contextual inference examples.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_005",
+        "c63_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates describe the same fundamental idea that meaning arises from context; c61_pro_thinking_005 provides the formal statement, while c63_pro_thinking_004 offers practical demonstration with sentence completion."
+    },
+    {
+      "id": "lr002",
+      "label": "Word Vectors as Numerical Representations",
+      "description": "Words can be encoded as vectors of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, or gender. This concept forms the basis for representing text data in a continuous vector space.",
+      "coverage_criteria": [
+        "Explain that a word vector is a numerical encoding of a word's features.",
+        "Provide examples of possible features for a given word (e.g., 'king' could have high authority, male, royalty).",
+        "Distinguish between hand-crafted features and automatically learned features."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_002"
+      ],
+      "merge_rationale": "This candidate stands alone as the foundational building block for understanding how words are represented before discussing learning algorithms."
+    },
+    {
+      "id": "lr003",
+      "label": "Vector Arithmetic for Semantic Analogies",
+      "description": "Word vectors learned by Word2Vec support vector arithmetic that reflects semantic relationships, enabling analogy solving (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+      "coverage_criteria": [
+        "Given a word vector equation, predict the expected result word for a simple analogy.",
+        "Explain that vector difference can capture the relationship between two words.",
+        "Perform vector addition or subtraction to solve an analogy task."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_001",
+        "c63_pro_thinking_011"
+      ],
+      "merge_rationale": "c63_pro_thinking_001 introduces the concept of arithmetic with word vectors, and c63_pro_thinking_011 provides specific concrete examples; together they cover the skill of using vector arithmetic to express analogies."
+    },
+    {
+      "id": "lr004",
+      "label": "Semantic and Syntactic Relationships in Word2Vec Embeddings",
+      "description": "Word2Vec embeddings capture a variety of linguistic relationships, including verb tenses, capital-country associations, and gender pairs, by encoding them as consistent vector offsets.",
+      "coverage_criteria": [
+        "Provide at least two distinct types of linguistic relationships that word vectors can capture (e.g., tense, geography).",
+        "Explain why such relationships emerge from the training objective."
+      ],
+      "source_candidate_ids": [
+        "c63_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate stands alone as an overview of the emergent properties of Word2Vec vectors, distinct from the mechanics of arithmetic."
+    },
+    {
+      "id": "lr005",
+      "label": "Similarity Measures for Word Vectors",
+      "description": "Euclidean distance and cosine similarity are two metrics used to quantify the similarity between word vectors. Euclidean distance measures straight-line distance in vector space, while cosine similarity measures the angle between vectors, often preferred in high-dimensional spaces.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two vectors.",
+        "Compute cosine similarity between two vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and when each might be more appropriate."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_001",
+        "c61_pro_thinking_009"
+      ],
+      "merge_rationale": "These two candidates cover complementary similarity metrics that are typically introduced together in the context of vector spaces; combining them creates a coherent concept on measuring proximity."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c61_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c61_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c61_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr001",
+      "explanation": "This candidate demonstrates the distributional hypothesis through examples and is fully represented by lr001."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_011",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "This candidate provides specific analogy examples that illustrate the vector arithmetic concept; it is represented by lr003."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_002",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_004",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_006",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_007",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_008",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_009",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_011",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_001",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_002",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_004",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_006",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_007",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_008",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_005",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_011",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_003",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_010",
+      "status": "review",
+      "explanation": "Deterministically added because cluster evaluation omitted this input candidate."
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 29,
+    "accepted_count": 5,
+    "pruned_count": 0,
+    "candidate_assignment_count": 29,
+    "review_count": 21
+  }
+}

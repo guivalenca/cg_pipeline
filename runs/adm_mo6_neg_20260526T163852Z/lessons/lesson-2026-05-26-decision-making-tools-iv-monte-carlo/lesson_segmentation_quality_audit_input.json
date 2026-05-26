@@ -1,0 +1,191 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+    "title": "Decision-Making Tools IV (Monte Carlo)"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-business-value-and-communication-of-monte-carlo-simulation-c0a43c5a",
+      "label": "Business Value and Communication of Monte Carlo Simulation",
+      "teaching_description": "Monte Carlo simulation helps CFOs replace opinion-based forecasting with data-driven odds, quantify risks, and communicate more confidently to stakeholders. Outputs like percentiles and probability ranges enable answering board questions and providing mathematical context for guidance.",
+      "coverage_criteria": [
+        "Student can explain the value of Monte Carlo for financial decision-makers and how simulation results improve stakeholder communication."
+      ]
+    },
+    {
+      "concept_id": "concept-financial-distributions-for-monte-carlo-normal-triangular-uniform-dc00b58c",
+      "label": "Financial Distributions for Monte Carlo: Normal, Triangular, Uniform",
+      "teaching_description": "For Monte Carlo simulation in financial forecasting, three useful distributions are normal (mean and standard deviation), triangular (minimum, most likely, maximum) often mapping to bear/base/bull cases, and uniform (equal likelihood within a range). The triangular distribution is especially popular for three-point estimates.",
+      "coverage_criteria": [
+        "Student can distinguish between normal, triangular, and uniform distributions and explain when to use each in a Monte Carlo model."
+      ]
+    },
+    {
+      "concept_id": "concept-interpreting-simulation-output-with-percentiles-b945e564",
+      "label": "Interpreting Simulation Output with Percentiles",
+      "teaching_description": "Monte Carlo simulations produce a probability distribution of outcomes; percentiles (e.g., 10th, 50th, 90th) quantify the range of possible outcomes. You can tighten forecast intervals by using the 10th to 90th percentile instead of min-max extremes. The 5th percentile is particularly useful for assessing downside risk.",
+      "coverage_criteria": [
+        "Given simulation output, student can interpret percentiles to describe the range of likely outcomes and assess risk."
+      ]
+    },
+    {
+      "concept_id": "concept-multi-input-monte-carlo-forecasting-589d81dc",
+      "label": "Multi-Input Monte Carlo Forecasting",
+      "teaching_description": "Monte Carlo can handle complex equations with multiple uncertain inputs (e.g., regional revenues and expense categories). By modelling each input with a distribution, the simulation produces a distribution of the output (like operating income), replacing static best/worst-case math with a data-driven likely range.",
+      "coverage_criteria": [
+        "Student can explain how to incorporate multiple uncertain inputs into a Monte Carlo model and interpret the resulting output distribution."
+      ]
+    },
+    {
+      "concept_id": "concept-estimating-standard-deviation-from-range-range-4-rule-36fc7fd6",
+      "label": "Estimating Standard Deviation from Range (Range/4 Rule)",
+      "teaching_description": "When using a normal distribution without a known standard deviation, a quick estimate is to divide the range (max - min) by 4. This rule of thumb provides an approximate standard deviation for simulation inputs.",
+      "coverage_criteria": [
+        "Student can apply the range/4 rule to estimate standard deviation from a given range."
+      ]
+    },
+    {
+      "concept_id": "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+      "label": "The Problem with Single-Number Forecasts: Certainty Trap and Deterministic Models",
+      "teaching_description": "Deterministic models produce a single outcome based on fixed inputs, creating an illusion of certainty (the certainty trap). This hides risks and variability, leading to managing a number rather than exposure. Monte Carlo simulation addresses this by incorporating uncertainty.",
+      "coverage_criteria": [
+        "Student can explain why single-number forecasts are misleading and contrast deterministic and probabilistic approaches."
+      ]
+    },
+    {
+      "concept_id": "concept-risk-vs-uncertainty-544f3de5",
+      "label": "Risk vs. Uncertainty",
+      "teaching_description": "Risk involves situations where probabilities can be calculated from known outcomes (e.g., roulette), while uncertainty involves unknown probabilities requiring judgment (e.g., launching new technology). Standard models fail under uncertainty; Monte Carlo helps model those unknowns.",
+      "coverage_criteria": [
+        "Student can differentiate between risk and uncertainty and explain why Monte Carlo is useful under uncertainty."
+      ]
+    },
+    {
+      "concept_id": "concept-comparing-risk-profiles-for-decision-making-22cd6841",
+      "label": "Comparing Risk Profiles for Decision Making",
+      "teaching_description": "Even when projects have the same expected value, Monte Carlo can reveal different risk profiles. By comparing percentiles (e.g., 5th percentile) or probability of loss, a decision-maker can choose based on risk tolerance, not just average.",
+      "coverage_criteria": [
+        "Student can compare two projects using simulation output and select the option aligned with a given risk appetite."
+      ]
+    },
+    {
+      "concept_id": "concept-limitations-simulation-organises-ignorance-897d802d",
+      "label": "Limitations: Simulation Organises Ignorance",
+      "teaching_description": "Monte Carlo simulation does not eliminate uncertainty or predict the future; it structures our understanding of ignorance by mapping possible outcomes. It aids judgment but does not replace it.",
+      "coverage_criteria": [
+        "Student can explain that simulation is a tool for organising ignorance, not eliminating it, and discuss its limitations."
+      ]
+    },
+    {
+      "concept_id": "concept-excel-implementation-of-monte-carlo-simulation-e55589a1",
+      "label": "Excel Implementation of Monte Carlo Simulation",
+      "teaching_description": "To implement Monte Carlo in Excel: model uncertain inputs (e.g., Sales, Costs) with mean and standard deviation; generate random trials using =NORM.INV(RAND(), mean, std_dev) for each input; run thousands of trials efficiently with a Data Table that recalculates a linked profit formula for each iteration in a column.",
+      "coverage_criteria": [
+        "Student can set up an Excel sheet to run a Monte Carlo simulation by modelling inputs, using NORM.INV with RAND, and automating trials with a Data Table."
+      ]
+    },
+    {
+      "concept_id": "concept-analyzing-simulation-output-in-excel-0e785e51",
+      "label": "Analyzing Simulation Output in Excel",
+      "teaching_description": "After running a Monte Carlo simulation in Excel, analyze the results by calculating descriptive statistics (AVERAGE, MIN, MAX) to understand central tendency and range, and use COUNTIFS to count outcomes below a threshold (e.g., profit < 0) to quantify risk as a percentage.",
+      "coverage_criteria": [
+        "Student can compute summary statistics and the probability of loss from a set of simulated profits in Excel."
+      ]
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-by-changing-input-parameters-123897bf",
+      "label": "Sensitivity Analysis by Changing Input Parameters",
+      "teaching_description": "After building the simulation, change an input mean (e.g., Fixed Costs) to observe the impact on risk of loss, demonstrating how Monte Carlo simulation supports decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can adjust a parameter (e.g., increase Fixed Costs) and predict how the risk of loss would change.",
+        "Student can interpret the new risk percentage in context of a business decision (e.g., '21% risk now, so maybe we should reduce fixed costs')."
+      ]
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "teaching_description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introduction to Monte Carlo Simulation",
+      "concept_ids": [
+        "concept-risk-vs-uncertainty-544f3de5",
+        "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+        "concept-monte-carlo-simulation-definition-and-process-a03cf504"
+      ]
+    },
+    {
+      "label": "Input Distributions and Estimation",
+      "concept_ids": [
+        "concept-financial-distributions-for-monte-carlo-normal-triangular-uniform-dc00b58c",
+        "concept-estimating-standard-deviation-from-range-range-4-rule-36fc7fd6"
+      ]
+    },
+    {
+      "label": "Building a Monte Carlo Simulation in Excel",
+      "concept_ids": [
+        "concept-excel-implementation-of-monte-carlo-simulation-e55589a1",
+        "concept-multi-input-monte-carlo-forecasting-589d81dc"
+      ]
+    },
+    {
+      "label": "Analyzing Simulation Results",
+      "concept_ids": [
+        "concept-analyzing-simulation-output-in-excel-0e785e51",
+        "concept-interpreting-simulation-output-with-percentiles-b945e564"
+      ]
+    },
+    {
+      "label": "Decision Making, Communication, and Limitations",
+      "concept_ids": [
+        "concept-comparing-risk-profiles-for-decision-making-22cd6841",
+        "concept-sensitivity-analysis-by-changing-input-parameters-123897bf",
+        "concept-business-value-and-communication-of-monte-carlo-simulation-c0a43c5a",
+        "concept-limitations-simulation-organises-ignorance-897d802d"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

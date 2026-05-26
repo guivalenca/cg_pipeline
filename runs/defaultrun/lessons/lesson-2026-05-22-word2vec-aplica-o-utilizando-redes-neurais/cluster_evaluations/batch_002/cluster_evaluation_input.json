@@ -1,0 +1,274 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Training Data Generation for Word2Vec",
+    "rationale": "These candidates detail how training samples are created by sliding a context window over text (CBOW and Skip-gram) and how words are represented as one-hot vectors.",
+    "candidate_ids": [
+      "c63_pro_thinking_005",
+      "c63_pro_thinking_006",
+      "c63_pro_thinking_008"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Training Data Generation for Word2Vec",
+      "rationale": "These candidates detail how training samples are created by sliding a context window over text (CBOW and Skip-gram) and how words are represented as one-hot vectors.",
+      "candidate_ids": [
+        "c63_pro_thinking_005",
+        "c63_pro_thinking_006",
+        "c63_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Word Embeddings as Neural Network Weights",
+      "rationale": "This candidate clarifies that word vectors are the learned weights between layers in the neural network, demystifying how embeddings are obtained.",
+      "candidate_ids": [
+        "c63_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Workbook Metadata Candidates (PLN, Sentiment Analysis, Deep Learning, Word2Vec)",
+      "rationale": "These candidates come from workbook metadata and cover NLP, sentiment analysis, deep learning for NLP, and Word2Vec. They are not directly extracted from source bodies but represent potential topics in the lesson. Since they are metadata-only and may overlap with source-backed concepts, they are grouped together for later evaluation to see if they fill gaps or are already covered.",
+      "candidate_ids": [
+        "m64_001",
+        "m64_002",
+        "m64_003",
+        "m64_004"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c63_pro_thinking_005",
+    "c63_pro_thinking_006",
+    "c63_pro_thinking_008",
+    "c63_pro_thinking_007",
+    "m64_001",
+    "m64_002",
+    "m64_003",
+    "m64_004"
+  ],
+  "candidates": [
+    {
+      "id": "c63_pro_thinking_005",
+      "label": "Training data for Word2Vec is generated by sliding a window over text",
+      "description": "By moving a fixed-size window across the text, we create input-output pairs: the context words (input) and the target word (output) to fill a blank.",
+      "coverage_criteria": [
+        "Given a short text, the student can produce training samples using a window of size 3 or 5, identifying context and target words."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly generates training samples from a paragraph using a window of three words.",
+        "granularity_rationale": "This is a concrete step in the Word2Vec pipeline, turning raw text into supervised training data."
+      },
+      "anchors": [
+        "[07:41] Generating Training Samples for Word Embeddings"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_006",
+      "label": "Word2Vec neural network uses one-hot encoded inputs and outputs",
+      "description": "Words are converted to one-hot vectors of size equal to vocabulary, and the network learns to produce a probability distribution over the vocabulary as output.",
+      "coverage_criteria": [
+        "The student can explain that each input word is a vector with a 1 at its index and 0s elsewhere, and the output layer has a softmax over all words."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video describes the input layer as one-hot encoded vectors of size 5000 for a vocabulary of 5000 words.",
+        "granularity_rationale": "Understanding the input/output representation is essential to understanding how the network processes text."
+      },
+      "anchors": [
+        "[09:40] Neural Network Architecture for Word2Vec"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_008",
+      "label": "CBOW and Skip-Gram are two Word2Vec training techniques",
+      "description": "Continuous Bag-of-Words (CBOW) predicts the target word from context words; Skip-Gram predicts context words from the target word.",
+      "coverage_criteria": [
+        "The student can distinguish between CBOW and Skip-gram based on the direction of prediction."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly contrasts the two: 'you have context... predict target' vs 'target and based on that we try to predict context'.",
+        "granularity_rationale": "These are the two primary variants of Word2Vec, and understanding their difference is a key learning outcome."
+      },
+      "anchors": [
+        "[14:05] CBOW vs. Skip-Gram"
+      ]
+    },
+    {
+      "id": "c63_pro_thinking_007",
+      "label": "Word embeddings are the learned weights between layers",
+      "description": "In Word2Vec, the word vector for a word is the weight vector connecting its one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "The student can indicate that after training, the embedding for a word is found in the weight matrix of the neural network."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly states: 'the word vector for king would be these weights w1 w2 w3 w4' and later for skip-gram the embedding is between input and hidden.",
+        "granularity_rationale": "This demystifies how embeddings are actually obtained from the training process."
+      },
+      "anchors": [
+        "[12:28] Training and Learning Word Embeddings",
+        "[15:27] Skip-Gram Architecture"
+      ]
+    },
+    {
+      "id": "m64_001",
+      "label": "Processamento de Linguagem Natural (PLN)",
+      "description": "Introdução às técnicas de processamento de linguagem natural, com foco na análise de sentimentos.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar os conceitos básicos de PLN e identificar aplicações de análise de sentimentos."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "O título 'Processando a Linguagem' e a descrição mencionam explicitamente processamento de linguagem no contexto de análise de sentimentos. Essas são evidências diretas de que o conteúdo aborda PLN e análise de sentimentos.",
+        "granularity_rationale": "Conceito amplo, porém é o mais específico que a metadata permite sem adivinhar sub-tópicos. Posteriormente pode ser refinado com mais evidências."
+      },
+      "anchors": [
+        "Processando a Linguagem",
+        "Processando a Linguagem no contexto de análise de sentimentos."
+      ]
+    },
+    {
+      "id": "m64_002",
+      "label": "Análise de Sentimentos",
+      "description": "Técnicas para classificar a polaridade de textos, como positivo, negativo ou neutro.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de aplicar modelos simples para classificar sentimentos em amostras de texto."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Tanto a descrição quanto a etiqueta 'Análise de sentimentos' indicam diretamente que o estudo cobre esse tópico. A aula pai sobre Word2Vec e redes neurais sugere que a análise de sentimentos pode ser implementada com essas técnicas, mas a metadata do self-study foca explicitamente em processamento de linguagem e análise de sentimentos.",
+        "granularity_rationale": "Conceito bem definido e comumente ensinado como um tópico independente dentro de PLN. É um candidato natural dado o contexto."
+      },
+      "anchors": [
+        "Processando a Linguagem no contexto de análise de sentimentos.",
+        "Análise de sentimentos"
+      ]
+    },
+    {
+      "id": "m64_003",
+      "label": "Aprendizado Profundo para PLN",
+      "description": "Aplicação de redes neurais profundas em tarefas de processamento de linguagem natural.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de descrever como redes neurais podem ser usadas para tarefas de PLN, como análise de sentimentos."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "A referência ao livro 'Aprendizado profundo para leigos' e a aula pai sobre Word2Vec e redes neurais implicam que o estudo aborda aprendizado profundo, especificamente no contexto de linguagem. Mesmo que o título e a descrição não mencionem explicitamente aprendizado profundo, a referência bibliográfica e o contexto da aula tornam plausível a inclusão desse conceito como um sub-tópico do processamento de linguagem.",
+        "granularity_rationale": "É um conceito intermediário que conecta a técnica de redes neurais (vista em aulas anteriores) com aplicações em PLN. Não é excessivamente granular, pois é uma área de estudo estabelecida."
+      },
+      "anchors": [
+        "Livro: Mueller, John P. Aprendizado profundo para leigos.",
+        "Word2Vec - Aplicação utilizando Redes Neurais"
+      ]
+    },
+    {
+      "id": "m64_004",
+      "label": "Word2Vec",
+      "description": "Modelo de embeddings de palavras que representa palavras como vetores densos para capturar semântica.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar o funcionamento básico do Word2Vec e sua utilidade em tarefas de PLN."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "Embora o título e a descrição do self-study não mencionem Word2Vec, a aula pai ('Word2Vec - Aplicação utilizando Redes Neurais') indica que este estudo é uma continuação que aplica Word2Vec. Portanto, o conceito Word2Vec é implicitamente coberto ou pré-requisito para este estudo. Como o self-study está diretamente ligado a essa aula, é defensável incluir Word2Vec como um candidato.",
+        "granularity_rationale": "Word2Vec é um tópico específico, comumente ensinado em cursos de PLN e aprendizado profundo. É um conceito bem delimitado e ensinável."
+      },
+      "anchors": [
+        "Word2Vec - Aplicação utilizando Redes Neurais"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,411 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+    "title": "Introdução a Rede Neural"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-rede-neural-artificial-76d2ec1e",
+      "label": "Rede Neural Artificial",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Uma rede neural artificial é um modelo preditivo inspirado no cérebro, composto por neurônios artificiais conectados que realizam cálculos ponderados sobre as entradas e produzem saídas através de funções de ativação.",
+      "coverage_criteria": [
+        "Definir o que é uma rede neural artificial e seus componentes principais (neurônios, conexões, função de ativação).",
+        "Descrever como um neurônio artificial calcula sua saída a partir das entradas, pesos e função de ativação."
+      ]
+    },
+    {
+      "concept_id": "concept-mcculloch-pitts-neuron-model-9e9f0593",
+      "label": "McCulloch-Pitts neuron model",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The first computational model of a neuron proposed by McCulloch and Pitts in 1943, representing neurons as simple electrical circuits with binary outputs.",
+      "coverage_criteria": [
+        "Identify McCulloch and Pitts as the authors of the first formal neuron model in 1943.",
+        "Describe the basic idea of a simplified neuron with binary output."
+      ]
+    },
+    {
+      "concept_id": "concept-hebbian-learning-7faca799",
+      "label": "Hebbian learning",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The principle that neural connections are strengthened when the pre- and post-synaptic neurons fire together, introduced by Donald Hebb in 1949 and later formalized as a learning rule.",
+      "coverage_criteria": [
+        "State Hebb's postulate: 'neurons that fire together wire together'.",
+        "Give one example of a Hebbian-like learning rule."
+      ]
+    },
+    {
+      "concept_id": "concept-perceptron-3bfd5110",
+      "label": "Perceptron",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A single-layer neural network model by Frank Rosenblatt (1958) that computes a weighted sum of inputs, subtracts a threshold, and outputs a binary class; it defines a linear decision boundary.",
+      "coverage_criteria": [
+        "Explain the perceptron architecture: inputs, weights, bias, activation (step function).",
+        "State that the perceptron performs binary classification and can learn simple linearly separable patterns."
+      ]
+    },
+    {
+      "concept_id": "concept-adaline-and-madaline-1122c21b",
+      "label": "ADALINE and MADALINE",
+      "knowledge_type": "applied",
+      "teaching_description": "Early adaptive linear neural networks (ADALINE, MADALINE) developed by Widrow and Hoff (1959) that used adaptive linear elements; MADALINE was the first neural network applied to a real-world problem (echo cancellation).",
+      "coverage_criteria": [
+        "Explain what ADALINE and MADALINE stand for.",
+        "Identify echo cancellation as the first real-world application of a neural network (MADALINE)."
+      ]
+    },
+    {
+      "concept_id": "concept-minsky-papert-critique-and-the-ai-winter-028d2954",
+      "label": "Minsky & Papert critique and the AI winter",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The 1969 book 'Perceptrons' by Minsky and Papert proved the limitations of single-layer perceptrons, leading to a halt in neural network funding and research throughout the 1970s.",
+      "coverage_criteria": [
+        "Explain that Minsky and Papert demonstrated the inability of perceptrons to solve non-linearly separable problems (like XOR), causing a funding freeze.",
+        "Define the term 'AI winter' in the context of neural networks."
+      ]
+    },
+    {
+      "concept_id": "concept-hopfield-networks-and-the-revival-of-neural-network-research-4ba34b9d",
+      "label": "Hopfield networks and the revival of neural network research",
+      "knowledge_type": "conceptual",
+      "teaching_description": "John Hopfield's 1982 paper and the US-Japan Conference on Cooperative Competitive Neural Networks rekindled interest and funding in neural networks, ending the AI winter.",
+      "coverage_criteria": [
+        "State that Hopfield's 1982 approach and the US-Japan conference helped restart neural network funding.",
+        "Mention that the conference and the Japanese fifth-generation project spurred renewed investment."
+      ]
+    },
+    {
+      "concept_id": "concept-long-short-term-memory-lstm-6044db99",
+      "label": "Long Short-Term Memory (LSTM)",
+      "knowledge_type": "procedural",
+      "teaching_description": "A specialized recurrent neural network architecture using gated memory cells (forget, input, output gates) to learn long-term dependencies and mitigate the vanishing gradient problem; introduced by Hochreiter and Schmidhuber in 1997.",
+      "coverage_criteria": [
+        "Explain the purpose of an LSTM: to handle long-term dependencies in sequences.",
+        "Name the three gates and their basic roles (forget, input, output).",
+        "Contrast LSTM with a simple RNN in terms of memory capability."
+      ]
+    },
+    {
+      "concept_id": "concept-feedforward-neural-network-architecture-9cbfd548",
+      "label": "Feedforward neural network architecture",
+      "knowledge_type": "procedural",
+      "teaching_description": "A neural network organized into sequential layers (input, hidden, output) where connections flow only forward without cycles; each neuron computes a weighted sum plus bias followed by an activation function.",
+      "coverage_criteria": [
+        "Sketch a diagram of a feedforward network with at least one hidden layer.",
+        "Explain the function of weights and biases in a feedforward neuron."
+      ]
+    },
+    {
+      "concept_id": "concept-recurrent-neural-network-rnn-basics-cf62bd2b",
+      "label": "Recurrent Neural Network (RNN) basics",
+      "knowledge_type": "procedural",
+      "teaching_description": "A neural network architecture with feedback connections that pass information from one time step to the next, creating an internal memory suitable for sequential data.",
+      "coverage_criteria": [
+        "Explain how recurrent loops distinguish RNNs from feedforward networks.",
+        "Give an example of a task that benefits from recurrent architecture (e.g., language modeling, time series prediction)."
+      ]
+    },
+    {
+      "concept_id": "concept-autoencoder-fc4c9de6",
+      "label": "Autoencoder",
+      "knowledge_type": "conceptual",
+      "teaching_description": "An unsupervised neural network that compresses input into a lower-dimensional representation (encoding) and reconstructs the original input (decoding), useful for dimensionality reduction and feature learning.",
+      "coverage_criteria": [
+        "Sketch the encoder-bottleneck-decoder structure.",
+        "Explain how an autoencoder can be used for data compression or denoising."
+      ]
+    },
+    {
+      "concept_id": "concept-generative-adversarial-network-gan-779f2f0a",
+      "label": "Generative Adversarial Network (GAN)",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A framework where a generator network creates synthetic data and a discriminator network tries to distinguish it from real data; adversarial training improves both.",
+      "coverage_criteria": [
+        "Explain the roles of the generator and discriminator.",
+        "Describe the adversarial training process as a two-player game."
+      ]
+    },
+    {
+      "concept_id": "concept-convolutional-neural-networks-7aa30e0e",
+      "label": "Convolutional Neural Networks",
+      "knowledge_type": "conceptual",
+      "teaching_description": "CNNs are architectures for grid-structured data (e.g., images) that use convolutional layers to detect spatial features, pooling layers to reduce dimensionality, and fully-connected layers for classification. Output size depends on input, filter, stride, and padding.",
+      "coverage_criteria": [
+        "Describe the operation of a convolutional layer (filter, stride, feature map).",
+        "Compute the output size of a convolutional layer given input dimensions, filter size, and padding."
+      ]
+    },
+    {
+      "concept_id": "concept-deep-residual-networks-5c9977b6",
+      "label": "Deep Residual Networks",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Deep Residual Networks (DRNs) use skip connections (residual blocks) to allow gradients to flow through very deep architectures, mitigating the vanishing gradient problem and enabling training of networks like ResNet.",
+      "coverage_criteria": [
+        "Explain what a residual block is and why it helps train very deep networks.",
+        "Name a well-known residual network architecture."
+      ]
+    },
+    {
+      "concept_id": "concept-perceptron-and-its-limitations-f26bba6a",
+      "label": "Perceptron and Its Limitations",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The perceptron is a single neuron with step activation: output = step(∑ w_i x_i + b). Its training rule: w = w + η (d - y) x. It only solves linearly separable problems; XOR requires a hidden layer (e.g., two-layer network computing AND and OR).",
+      "coverage_criteria": [
+        "Write the perceptron forward pass and training update rule.",
+        "Explain why a single perceptron cannot solve XOR and how a hidden layer enables the solution."
+      ]
+    },
+    {
+      "concept_id": "concept-perceptron-multicamadas-598c1f3e",
+      "label": "Perceptron Multicamadas",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Introdução ao perceptron multicamadas como uma extensão para resolver problemas não-linearmente separáveis.",
+      "coverage_criteria": [
+        "O aluno deve diferenciar um perceptron simples de um multicamadas pela presença de camadas ocultas.",
+        "O aluno deve justificar a necessidade de camadas múltiplas para datasets não-lineares."
+      ]
+    },
+    {
+      "concept_id": "concept-backpropagation-df359e01",
+      "label": "Backpropagation",
+      "knowledge_type": "procedural",
+      "teaching_description": "The core learning algorithm for neural networks that computes the gradient of the loss function with respect to weights using the chain rule and updates weights in the opposite direction to minimize error.",
+      "coverage_criteria": [
+        "List the four main steps of backpropagation: forward pass, loss computation, backward pass (gradient calculation), weight update.",
+        "Explain the role of the chain rule in propagating gradients from output to input layers."
+      ]
+    },
+    {
+      "concept_id": "concept-activation-functions-a31ff1ef",
+      "label": "Activation Functions",
+      "knowledge_type": "procedural",
+      "teaching_description": "Non-linear activation functions (sigmoid, tanh, ReLU, step, softmax) applied to neuron outputs introduce non-linearity into the network, enabling learning of complex patterns. The sigmoid maps any real to (0,1); tanh to (-1,1); ReLU outputs max(0,x); step produces binary output.",
+      "coverage_criteria": [
+        "List at least three activation functions with their formulas and typical output ranges.",
+        "Explain why non-linear activation functions are necessary in hidden layers.",
+        "Compare ReLU with sigmoid in terms of gradient flow and practical usage."
+      ]
+    },
+    {
+      "concept_id": "concept-loss-functions-bbc65e2b",
+      "label": "Loss Functions",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Loss functions quantify the prediction error during training, guiding weight updates. Mean squared error is used for regression, binary cross-entropy for classification; logistic loss is commonly used for binary classification.",
+      "coverage_criteria": [
+        "Match loss functions (MSE, binary cross-entropy) to the appropriate problem type.",
+        "Write the logistic loss formula and explain its intuition."
+      ]
+    },
+    {
+      "concept_id": "concept-overfitting-and-regularization-e7bf95e9",
+      "label": "Overfitting and Regularization",
+      "knowledge_type": "procedural",
+      "teaching_description": "Overfitting occurs when a model learns training noise and fails to generalize; underfitting is the opposite. Dropout is a regularization technique that randomly drops neurons during training to prevent overfitting.",
+      "coverage_criteria": [
+        "Define overfitting and underfitting with examples.",
+        "Explain how dropout works and why it reduces overfitting."
+      ]
+    },
+    {
+      "concept_id": "concept-linear-algebra-foundations-be63bc1d",
+      "label": "Linear Algebra Foundations",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Neural network computations rely on linear vector spaces, inner products, norms, and linear transformations. These concepts underpin weight matrices and forward/backward passes.",
+      "coverage_criteria": [
+        "Define a linear vector space and list two axioms.",
+        "Compute the dot product of two vectors and explain its role in a neuron's weighted sum."
+      ]
+    },
+    {
+      "concept_id": "concept-gradient-descent-optimization-7690d3cc",
+      "label": "Gradient Descent Optimization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Gradient descent minimizes the loss by iteratively updating parameters: w = w - η * ∇J. The learning rate η controls step size; bias is an additional parameter; Adam adapts η per parameter; an epoch is one full pass over the dataset.",
+      "coverage_criteria": [
+        "Write the gradient descent update rule for a weight.",
+        "Explain the role of the learning rate and describe the advantage of the Adam optimizer.",
+        "Define epoch and distinguish it from an iteration over a single sample."
+      ]
+    },
+    {
+      "concept_id": "concept-neural-network-training-implementation-30a8ca1e",
+      "label": "Neural Network Training Implementation",
+      "knowledge_type": "procedural",
+      "teaching_description": "Training involves: forward propagation to compute outputs; random weight initialization to break symmetry; a loop over epochs performing forward, cost, backward, and update steps; layer dimensions determine parameter shapes; caches store intermediate values for backprop.",
+      "coverage_criteria": [
+        "List the steps in one training iteration (forward, cost, backward, update).",
+        "Explain why weights are initialized randomly and what happens if they are set to zero.",
+        "Describe the purpose of caching in forward propagation."
+      ]
+    },
+    {
+      "concept_id": "concept-data-preparation-for-neural-networks-841ecd20",
+      "label": "Data Preparation for Neural Networks",
+      "knowledge_type": "applied",
+      "teaching_description": "Non-numeric inputs must be encoded (e.g., binary encoding, one-hot encoding) for neural networks. Datasets consist of features (attributes) and a target column, and data often needs to be numeric and normalized.",
+      "coverage_criteria": [
+        "Choose an encoding scheme for a categorical variable (e.g., one-hot encoding) and justify.",
+        "Given a CSV, identify the feature columns and the target column."
+      ]
+    },
+    {
+      "concept_id": "concept-implementa-o-manual-vs-bibliotecas-8c16d20e",
+      "label": "Implementação Manual vs Bibliotecas",
+      "knowledge_type": "procedural",
+      "teaching_description": "Comparação entre implementar um perceptron do zero e usar scikit-learn, destacando a redução de código e complexidade.",
+      "coverage_criteria": [
+        "O aluno deve listar funções do scikit-learn usadas em substituição à implementação manual.",
+        "O aluno deve identificar vantagens e desvantagens de cada abordagem."
+      ]
+    },
+    {
+      "concept_id": "concept-acur-cia-bdcd37bc",
+      "label": "Acurácia",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Métrica de avaliação que calcula a proporção de predições corretas, variando de 0 a 1.",
+      "coverage_criteria": [
+        "O aluno deve calcular a acurácia a partir de predições e classes reais.",
+        "O aluno deve interpretar uma acurácia de 1.0 como separação perfeita para dados linearmente separáveis."
+      ]
+    },
+    {
+      "concept_id": "concept-building-a-sequential-model-with-dense-layers-74c93f61",
+      "label": "Building a Sequential Model with Dense Layers",
+      "knowledge_type": "procedural",
+      "teaching_description": "Construct a simple feedforward neural network using Keras Sequential model by stacking Dense layers, specifying input shape, number of units, and activation functions, and understand common activations like ReLU and softmax.",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer, specifying units and activation.",
+        "Explain the purpose of activation functions on hidden and output layers."
+      ]
+    },
+    {
+      "concept_id": "concept-train-test-split-for-model-evaluation-3e355edb",
+      "label": "Train-Test Split for Model Evaluation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Splitting a dataset into training and testing subsets to evaluate model generalization and detect overfitting, using sklearn's train_test_split with parameters test_size and random_state to control split proportions and reproducibility.",
+      "coverage_criteria": [
+        "Explain why separating training and testing data is necessary.",
+        "Use sklearn.model_selection.train_test_split to split features and labels.",
+        "Describe the purpose of test_size and random_state.",
+        "Discuss overfitting if no split is performed."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Conceitos Fundamentais de Redes Neurais",
+      "concept_ids": [
+        "concept-mcculloch-pitts-neuron-model-9e9f0593",
+        "concept-rede-neural-artificial-76d2ec1e"
+      ]
+    },
+    {
+      "label": "História e Desenvolvimento das Redes Neurais",
+      "concept_ids": [
+        "concept-adaline-and-madaline-1122c21b",
+        "concept-minsky-papert-critique-and-the-ai-winter-028d2954",
+        "concept-hopfield-networks-and-the-revival-of-neural-network-research-4ba34b9d"
+      ]
+    },
+    {
+      "label": "Perceptron e Aprendizado Hebbiano",
+      "concept_ids": [
+        "concept-hebbian-learning-7faca799",
+        "concept-perceptron-3bfd5110",
+        "concept-perceptron-and-its-limitations-f26bba6a"
+      ]
+    },
+    {
+      "label": "Multicamadas e Feedforward",
+      "concept_ids": [
+        "concept-perceptron-multicamadas-598c1f3e",
+        "concept-feedforward-neural-network-architecture-9cbfd548"
+      ]
+    },
+    {
+      "label": "Fundamentos Matemáticos e Algoritmos de Aprendizado",
+      "concept_ids": [
+        "concept-linear-algebra-foundations-be63bc1d",
+        "concept-activation-functions-a31ff1ef",
+        "concept-backpropagation-df359e01",
+        "concept-loss-functions-bbc65e2b"
+      ]
+    },
+    {
+      "label": "Otimização e Regularização",
+      "concept_ids": [
+        "concept-gradient-descent-optimization-7690d3cc",
+        "concept-neural-network-training-implementation-30a8ca1e",
+        "concept-overfitting-and-regularization-e7bf95e9"
+      ]
+    },
+    {
+      "label": "Redes Neurais Recorrentes",
+      "concept_ids": [
+        "concept-recurrent-neural-network-rnn-basics-cf62bd2b",
+        "concept-long-short-term-memory-lstm-6044db99"
+      ]
+    },
+    {
+      "label": "Arquiteturas Avançadas: CNN, ResNet, Autoencoder, GAN",
+      "concept_ids": [
+        "concept-convolutional-neural-networks-7aa30e0e",
+        "concept-deep-residual-networks-5c9977b6",
+        "concept-autoencoder-fc4c9de6",
+        "concept-generative-adversarial-network-gan-779f2f0a"
+      ]
+    },
+    {
+      "label": "Preparação e Avaliação de Dados",
+      "concept_ids": [
+        "concept-data-preparation-for-neural-networks-841ecd20",
+        "concept-train-test-split-for-model-evaluation-3e355edb",
+        "concept-acur-cia-bdcd37bc"
+      ]
+    },
+    {
+      "label": "Construção de Modelos",
+      "concept_ids": [
+        "concept-building-a-sequential-model-with-dense-layers-74c93f61",
+        "concept-implementa-o-manual-vs-bibliotecas-8c16d20e"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

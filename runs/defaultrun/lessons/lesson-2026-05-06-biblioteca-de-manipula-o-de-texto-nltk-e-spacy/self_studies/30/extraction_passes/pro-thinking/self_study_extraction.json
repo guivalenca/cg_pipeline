@@ -1,0 +1,412 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:00:05.431123+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+  "self_study_id": "30",
+  "source_body_path": "extraction/post-image/0030-article-curso-de-spacy.md",
+  "source_body_sha256": "738deb172a265039124bbf8a37e7544ab940556182f879ab9f27ae13f8bd7f6e",
+  "source_name": "Curso de spaCy",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-30-001",
+      "label": "Initializing a spaCy pipeline and processing text into a Doc",
+      "description": "Use spacy.blank to create a language-specific pipeline and call it with a string to obtain a Doc object.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline 'nlp', process the string 'Olá mundo', and confirm the result is a Doc."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Sections 2 and 3 guide the student through creating blank pipelines for multiple languages and processing text, demonstrating the fundamental workflow.",
+        "granularity_rationale": "This is a single, atomic operation that is the prerequisite for all further spaCy processing."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2. Primeiros passos"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "3. Documentos, partições e tokens"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "spaCy",
+        "spacy.blank",
+        "Doc"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-002",
+      "label": "Tokens and spans in spaCy",
+      "description": "A Doc is a sequence of Token objects; a Span is a slice of the Doc. Access tokens by index.",
+      "coverage_criteria": [
+        "Given a Doc for 'três cachorros e dois gatos', write code to retrieve the first token and create a span for 'três cachorros'."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 3 explicitly teaches the Doc, Token, and Span concepts through exercises.",
+        "granularity_rationale": "Understanding the basic data structures is foundational and can be checked by asking for specific token and span retrieval."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3. Documentos, partições e tokens"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "Doc",
+        "Token",
+        "Span"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-003",
+      "label": "Lexical attributes for pattern detection",
+      "description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns like percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers in a Doc using `like_num`. Write a loop to detect a number followed by a '%' sign."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 4 uses `like_num` and `token.i+1` to find percentages, teaching how to use lexical attributes.",
+        "granularity_rationale": "This concept is a specific, actionable technique for identifying patterns, not a broad overview."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "4. Atributos léxicos"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "like_num"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-004",
+      "label": "Loading pre-trained NLP pipelines",
+      "description": "Use `spacy.load` to load a trained pipeline (e.g., `pt_core_news_sm`) that can predict linguistic annotations.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, then print the Doc's text."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 7 demonstrates loading the Portuguese pipeline with `spacy.load`.",
+        "granularity_rationale": "This is a single step that enables access to pre-trained models, a key functionality of spaCy."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "7. Carregando os fluxos (pipelines) de processamento"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "spacy.load",
+        "pt_core_news_sm"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-005",
+      "label": "Components of a trained pipeline package",
+      "description": "Trained pipelines include config.cfg (language and settings), binary weights for predictions, and strings.json (vocabulary mapping), but do not include the original training data.",
+      "coverage_criteria": [
+        "List what is included in a spaCy pipeline package and explain why training data is not needed for predictions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 6 explains that training data is NOT included and describes config, weights, and strings.json.",
+        "granularity_rationale": "This is a specific factual knowledge point about pipeline packaging, suitable for a short comprehension check."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "6. Biblioteca dos modelos (choice)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "config.cfg",
+        "binary weights",
+        "strings.json"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-006",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 8, Part 1 has the student iterate tokens and print .pos_ and .dep_.",
+        "granularity_rationale": "This focuses on two specific annotation types that are commonly used together."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "8. Prevendo anotações linguísticas"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        ".pos_",
+        ".dep_"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-007",
+      "label": "Predicting named entities",
+      "description": "Trained pipelines can identify named entities in a Doc. Access them via doc.ents and get their text and label (.label_).",
+      "coverage_criteria": [
+        "Write code to iterate over doc.ents and print entity text and label. Use spacy.explain to describe a label."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 8, Part 2 and Section 9 demonstrate iterating entities and handling missed entities.",
+        "granularity_rationale": "Named entity recognition is a distinct NLP task that can be practiced independently."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "8. Prevendo anotações linguísticas"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "9. Prevendo Entidades em um contexto"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        ".ents",
+        ".label_",
+        "spacy.explain"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-008",
+      "label": "Manual correction of model predictions",
+      "description": "When a trained model fails to recognize an entity, you can manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Given a Doc where 'iPhone X' is not recognized, write code to create a Span for those two tokens."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 9 explicitly instructs the student to create a span for 'iPhone X' when the model misses it.",
+        "granularity_rationale": "This teaches a practical workaround and emphasizes that models are not perfect, which is a valuable lesson."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "9. Prevendo Entidades em um contexto"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "Span"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-009",
+      "label": "Rule-based matching with Matcher",
+      "description": "The Matcher class allows finding token sequences based on patterns defined with token attributes and operators.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print the matched spans."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 11 walks through creating a Matcher, adding a pattern, and retrieving matches for 'iPhone X'.",
+        "granularity_rationale": "This is a focused tool for rule-based matching, distinct from statistical predictions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "11. Usando o comparador Matcher"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "Matcher",
+        "spacy.matcher"
+      ]
+    },
+    {
+      "candidate_id": "candidate-30-010",
+      "label": "Writing complex match patterns",
+      "description": "Patterns can use lemmas (LEMMA), POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences.",
+      "coverage_criteria": [
+        "Write a pattern that matches a verb lemma 'baixar' followed by a proper noun, and a pattern for an adjective followed by one or two nouns."
+      ],
+      "source_roles": [
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "Section 12 provides three exercises requiring patterns with lemmas, POS, and operators.",
+        "granularity_rationale": "This advances from simple literal matching to linguistic-aware patterns, a key skill for information extraction."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "12. Escrevendo expressões de correspondência"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Curso de spaCy",
+      "source_year": "2026",
+      "name_drops": [
+        "LEMMA",
+        "PROPN",
+        "ADJ",
+        "operators"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-30-001",
+      "to_candidate_id": "candidate-30-002",
+      "reason": "The source teaches that after creating a Doc, you can access its tokens and create spans.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3. Documentos, partições e tokens"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-001",
+      "to_candidate_id": "candidate-30-003",
+      "reason": "Section 4 relies on having a Doc to iterate tokens and check like_num.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "4. Atributos léxicos"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-004",
+      "to_candidate_id": "candidate-30-006",
+      "reason": "Section 8 uses the loaded pipeline to predict .pos_ and .dep_.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "8. Prevendo anotações linguísticas"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-004",
+      "to_candidate_id": "candidate-30-007",
+      "reason": "Section 8 and 9 use the loaded pipeline to predict entities via .ents.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "8. Prevendo anotações linguísticas"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "9. Prevendo Entidades em um contexto"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-004",
+      "to_candidate_id": "candidate-30-005",
+      "reason": "Section 6 explains the contents of the loaded pipeline to clarify what is and isn't included.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "6. Biblioteca dos modelos (choice)"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-007",
+      "to_candidate_id": "candidate-30-008",
+      "reason": "Section 9 demonstrates that when the model fails to recognize 'iPhone X', a manual span is created.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "9. Prevendo Entidades em um contexto"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-30-009",
+      "to_candidate_id": "candidate-30-010",
+      "reason": "Section 11 introduces Matcher with a literal pattern; Section 12 extends to patterns with linguistic attributes and operators.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "11. Usando o comparador Matcher"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "12. Escrevendo expressões de correspondência"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 10,
+    "source_local_connector_candidate_count": 7
+  }
+}

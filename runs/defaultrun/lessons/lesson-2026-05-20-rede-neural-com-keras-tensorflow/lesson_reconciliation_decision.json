@@ -1,0 +1,1466 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:59:08.371334+00:00",
+  "scope_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c53_pro_thinking_001",
+    "c53_pro_thinking_002",
+    "c53_pro_thinking_003",
+    "c53_pro_thinking_004",
+    "c53_pro_thinking_005",
+    "c53_pro_thinking_006",
+    "c53_pro_thinking_007",
+    "c53_pro_thinking_008",
+    "c54_pro_thinking_001",
+    "c54_pro_thinking_002",
+    "c54_pro_thinking_003",
+    "c54_pro_thinking_004",
+    "c54_pro_thinking_005",
+    "c54_pro_thinking_006",
+    "c54_pro_thinking_007",
+    "c54_pro_thinking_008",
+    "c54_pro_thinking_009",
+    "c54_pro_thinking_010",
+    "c55_pro_thinking_001",
+    "c55_pro_thinking_002",
+    "c55_pro_thinking_003",
+    "c55_pro_thinking_004",
+    "c55_pro_thinking_005",
+    "c55_pro_thinking_006",
+    "c55_pro_thinking_007",
+    "c55_pro_thinking_008",
+    "c55_pro_thinking_009",
+    "c55_pro_thinking_010",
+    "c55_pro_thinking_011",
+    "c55_pro_thinking_012",
+    "c55_pro_thinking_013",
+    "c55_pro_thinking_014",
+    "c55_pro_thinking_015",
+    "c55_pro_thinking_016",
+    "c55_pro_thinking_017",
+    "c55_pro_thinking_018",
+    "c55_pro_thinking_019",
+    "c55_pro_thinking_020",
+    "c56_pro_thinking_001",
+    "c56_pro_thinking_002",
+    "c56_pro_thinking_003",
+    "c56_pro_thinking_004",
+    "c56_pro_thinking_005",
+    "c57_pro_thinking_001",
+    "c57_pro_thinking_002",
+    "c57_pro_thinking_003",
+    "c57_pro_thinking_004",
+    "c57_pro_thinking_005",
+    "c57_pro_thinking_006",
+    "c57_pro_thinking_007",
+    "c57_pro_thinking_008",
+    "c57_pro_thinking_009",
+    "c57_pro_thinking_010",
+    "c57_pro_thinking_011",
+    "c57_pro_thinking_012",
+    "c57_pro_thinking_013",
+    "c57_pro_thinking_014",
+    "c57_pro_thinking_015",
+    "c58_pro_thinking_001",
+    "c58_pro_thinking_002",
+    "c58_pro_thinking_003",
+    "c58_pro_thinking_004",
+    "c58_pro_thinking_005",
+    "c58_pro_thinking_006",
+    "c58_pro_thinking_007",
+    "c58_pro_thinking_008",
+    "c59_pro_thinking_001",
+    "c59_pro_thinking_002",
+    "c59_pro_thinking_003",
+    "c59_pro_thinking_004",
+    "c59_pro_thinking_005"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "What is Keras?",
+      "description": "Keras is a high-level deep learning API, available standalone and integrated into TensorFlow (tf.keras), designed to simplify the implementation of neural networks.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "State that Keras is available standalone and as tf.keras."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_001",
+        "c56_pro_thinking_001"
+      ],
+      "merge_rationale": "Both candidates introduce Keras as a high-level API that simplifies neural network development, making them suitable for a single introductory concept."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Keras Backend Flexibility",
+      "description": "Keras supports multiple backend computation engines such as TensorFlow, Theano, PlaidML, MXNet, and CNTK, with TensorFlow adopting Keras as its official high-level API.",
+      "coverage_criteria": [
+        "List at least two backend engines supported by Keras.",
+        "Explain that TensorFlow has integrated Keras as its official high-level API."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_002"
+      ],
+      "merge_rationale": "The single candidate captures the backend flexibility; it stands alone as a focused teachable concept."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Keras Model Types",
+      "description": "Keras provides two primary ways to define a neural network: the Sequential model for linear stacks of layers, and the Functional API for complex architectures with shared layers or multiple inputs/outputs.",
+      "coverage_criteria": [
+        "Differentiate between Sequential and Functional models in Keras.",
+        "Give an example of when to use each model type."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_005"
+      ],
+      "merge_rationale": "The candidate explicitly describes the two model types, forming a clear, self-contained distinction."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Building a Sequential Model with Dense Layers",
+      "description": "A simple feedforward neural network in Keras can be constructed using the Sequential model and stacking Dense layers with specified units and activation functions (e.g., ReLU for hidden layers, softmax for the output layer).",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer specifying units and activation.",
+        "Explain the choice of activation functions for hidden and output layers."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_005",
+        "c54_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates demonstrate the same core skill: constructing a Sequential model by adding Dense layers, with examples and explanations."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Compiling a Keras Model",
+      "description": "Before training, a Keras model must be compiled using model.compile() to configure the learning process by specifying a loss function (e.g., categorical_crossentropy), an optimizer (e.g., rmsprop), and metrics (e.g., accuracy).",
+      "coverage_criteria": [
+        "Identify the three main arguments to model.compile() and their purposes.",
+        "Choose appropriate loss, optimizer, and metrics for a given classification task."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_006",
+        "c54_pro_thinking_005",
+        "c55_pro_thinking_014",
+        "c56_pro_thinking_004"
+      ],
+      "merge_rationale": "All candidates describe the compilation step with model.compile(), covering the same required parameters and purpose; they naturally form one cohesive concept."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Training a Keras Model with fit()",
+      "description": "The model.fit() method trains the compiled model on training data, with key hyperparameters such as epochs (number of passes over the dataset) and batch_size (samples per gradient update).",
+      "coverage_criteria": [
+        "Write a model.fit() call with the required arguments.",
+        "Explain the roles of epochs and batch_size in the training process."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_007",
+        "c54_pro_thinking_008",
+        "c55_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates all cover the same training function, illustrating its usage and explaining hyperparameters, thus they can be merged."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Evaluating a Keras Model on Test Data",
+      "description": "After training, model.evaluate() computes the loss and any specified metrics (e.g., accuracy) on a held‑out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Write a model.evaluate() call on test data.",
+        "Interpret the printed loss and accuracy values."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_008",
+        "c54_pro_thinking_010",
+        "c55_pro_thinking_016"
+      ],
+      "merge_rationale": "All candidates demonstrate the evaluation step with model.evaluate(), using similar code and explanations, supporting a single concept."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Making Predictions with Keras Models",
+      "description": "Trained Keras models can generate predictions on new data using model.predict() to obtain probability distributions, and np.argmax() (or model.predict_classes()) to get the predicted class labels.",
+      "coverage_criteria": [
+        "Use model.predict() to get predictions on test data.",
+        "Apply np.argmax() to convert probabilities to class labels."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_009",
+        "c55_pro_thinking_017"
+      ],
+      "merge_rationale": "Both candidates describe the prediction step and how to interpret the output, with complementary details (predict_classes vs. argmax) that together form a complete concept."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Normalizing Pixel Values for Neural Networks",
+      "description": "To improve training stability, pixel values of images (originally 0‑255) should be normalized to the [0,1] range by dividing by 255.",
+      "coverage_criteria": [
+        "Explain why pixel normalization is beneficial.",
+        "Demonstrate the normalization step in code (dividing by 255)."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_003",
+        "c54_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates cover the normalization of pixel values, either as a standalone step or as part of broader preprocessing; they share the same teachable idea."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Reshaping and Flattening Image Data for Dense Layers",
+      "description": "Since Dense layers expect 1D input, 2D image arrays must be reshaped into 1D vectors, either manually with .reshape() or by inserting a Flatten layer as the first layer in the model.",
+      "coverage_criteria": [
+        "Perform manual reshaping of image data from 2D to 1D.",
+        "Explain how a Flatten layer can replace manual reshaping."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_006",
+        "c54_pro_thinking_007"
+      ],
+      "merge_rationale": "These candidates address the same preprocessing requirement—reshaping images to 1D—with alternative methods, forming a complete lesson-local concept."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "One‑Hot Encoding for Categorical Labels",
+      "description": "For multi‑class classification, integer labels must be converted to one‑hot encoded vectors using tf.keras.utils.to_categorical() so that the model output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Describe why one‑hot encoding is necessary for categorical crossentropy loss.",
+        "Use tf.keras.utils.to_categorical() to transform labels."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_004",
+        "c55_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates teach one‑hot encoding with to_categorical, making them direct duplicates that can be merged."
+    },
+    {
+      "id": "batch_001__lr012",
+      "label": "Inspecting a Keras Model",
+      "description": "Keras provides several methods to inspect a model's architecture and weights, including summary(), get_config(), and get_weights().",
+      "coverage_criteria": [
+        "Call model.summary() to view layer details.",
+        "Explain what get_config() and get_weights() return."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_013"
+      ],
+      "merge_rationale": "The single candidate lists all inspection methods succinctly, representing a standalone utility concept."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Saving and reloading Keras models",
+      "description": "How to persist a trained Keras model to an HDF5 file using model.save() and restore it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can write the code to save a model to a .h5 file.",
+        "Student can reload a saved model and confirm its architecture."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_018"
+      ],
+      "merge_rationale": "Single candidate, stands alone as a distinct action for model persistence."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Fine-tuning with custom optimizer parameters",
+      "description": "How to customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and compiling the model with it.",
+      "coverage_criteria": [
+        "Student can create an optimizer object with custom parameters.",
+        "Student can use the optimizer in model.compile()."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_019"
+      ],
+      "merge_rationale": "Single candidate covering a focused aspect of fine-tuning."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Fine-tuning with Early Stopping",
+      "description": "How to use the EarlyStopping callback to stop training when a monitored metric (e.g., validation loss) stops improving after a given patience, preventing overfitting.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_020"
+      ],
+      "merge_rationale": "Single candidate, a specific callback mechanism for training control."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Keras model building workflow",
+      "description": "The sequential pipeline for building a neural network in Keras: import modules, create a Sequential model, add layers, compile with optimizer and loss, fit on data, and make predictions. This high-level process applies to classification tasks.",
+      "coverage_criteria": [
+        "Student can list the steps: define, compile, fit, evaluate, predict.",
+        "Student can explain the role of each step in a basic Keras script."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_001",
+        "c56_pro_thinking_003"
+      ],
+      "merge_rationale": "Both candidates describe the same end-to-end workflow, one from a cheat sheet example and the other from a tutorial overview; merging avoids redundancy while preserving the complete pipeline."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb directly from tensorflow.keras.datasets, including splitting into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three available datasets.",
+        "Student can write the code to load one dataset and unpack it into (x_train, y_train), (x_test, y_test)."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_002",
+        "c55_pro_thinking_002"
+      ],
+      "merge_rationale": "c54_pro_thinking_002 focuses on MNIST loading, which is a subset of the broader dataset loading covered by c55_pro_thinking_002; merging creates a unified concept on the general skill."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset consists of 28x28 grayscale images of handwritten digits 0-9, with 60,000 training and 10,000 test samples. It is a common beginner dataset for deep learning.",
+      "coverage_criteria": [
+        "Student can recall the image size, number of classes, and train/test split.",
+        "Student can explain why MNIST is often used as an introductory dataset."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate providing factual background essential for understanding a typical Keras tutorial."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Inspecting data shape and labels",
+      "description": "After loading data, how to inspect array shapes (e.g., train_images.shape) and visualize samples using matplotlib to verify the data before modeling.",
+      "coverage_criteria": [
+        "Student can print and interpret the shape of training data and labels.",
+        "Student can display a single image using plt.imshow() or plt.matshow()."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate covering a common verification step in data preprocessing."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Sequence padding for RNNs",
+      "description": "How to pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, with specification of maxlen, to prepare data for recurrent neural networks.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate, a specific text preprocessing step for RNNs."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Train/test split with sklearn",
+      "description": "How to partition a dataset into training and test subsets using sklearn.model_selection.train_test_split, controlling proportions with test_size and reproducibility with random_state.",
+      "coverage_criteria": [
+        "Student can import and call train_test_split on features and labels.",
+        "Student can explain the purpose of test_size and random_state."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate, a standard splitting utility for model evaluation."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Standardization with StandardScaler",
+      "description": "How to standardize features by scaling them to have zero mean and unit variance using StandardScaler from sklearn.preprocessing, fitting on training data and transforming both train and test sets.",
+      "coverage_criteria": [
+        "Student can fit and transform data with StandardScaler.",
+        "Student can distinguish standardization from normalization."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate, a commonly applied preprocessing method for numeric data."
+    },
+    {
+      "id": "batch_002__lr011",
+      "label": "Building an MLP for binary classification",
+      "description": "Constructing a Sequential model with Dense layers for binary classification: relu activation for hidden layers and sigmoid for the output layer.",
+      "coverage_criteria": [
+        "Student can create an MLP with the correct activation functions.",
+        "Student can explain why sigmoid is suitable for binary output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate targeting a specific architecture pattern for binary problems."
+    },
+    {
+      "id": "batch_002__lr012",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "description": "Stacking Dense layers with relu activation, interspersed with Dropout for regularization, and ending with a softmax output layer for multi-class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used for multi-class output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate covering a common regularization technique combined with multi-class output."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Building an MLP for regression",
+      "description": "Construct a regression neural network using Dense layers without activation on the output to predict continuous values.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific regression architecture with Keras."
+    },
+    {
+      "id": "batch_003__lr002",
+      "label": "Building a CNN in Keras",
+      "description": "Construct a convolutional neural network using Conv2D, Activation, MaxPooling2D, Dropout, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_011"
+      ],
+      "merge_rationale": "Single candidate covering a complete CNN architecture with standard Keras layers."
+    },
+    {
+      "id": "batch_003__lr003",
+      "label": "Building an RNN with LSTM",
+      "description": "Create a recurrent neural network by adding an Embedding layer and an LSTM layer with dropout, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_012"
+      ],
+      "merge_rationale": "Single candidate showing a compact RNN architecture with LSTM for sequence classification."
+    },
+    {
+      "id": "batch_003__lr004",
+      "label": "Loading external data from a URL with NumPy",
+      "description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset from a URL and split it into feature matrix and target vector.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific data loading technique essential for training models."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "What is Keras?",
+      "description": "Keras is a high-level deep learning API, available standalone and integrated into TensorFlow (tf.keras), designed to simplify the implementation of neural networks.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "State that Keras is available standalone and as tf.keras."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_001",
+        "c56_pro_thinking_001"
+      ],
+      "merge_rationale": "Both candidates introduce Keras as a high-level API that simplifies neural network development, making them suitable for a single introductory concept."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Keras Backend Flexibility",
+      "description": "Keras supports multiple backend computation engines such as TensorFlow, Theano, PlaidML, MXNet, and CNTK, with TensorFlow adopting Keras as its official high-level API.",
+      "coverage_criteria": [
+        "List at least two backend engines supported by Keras.",
+        "Explain that TensorFlow has integrated Keras as its official high-level API."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_002"
+      ],
+      "merge_rationale": "The single candidate captures the backend flexibility; it stands alone as a focused teachable concept."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Keras Model Types",
+      "description": "Keras provides two primary ways to define a neural network: the Sequential model for linear stacks of layers, and the Functional API for complex architectures with shared layers or multiple inputs/outputs.",
+      "coverage_criteria": [
+        "Differentiate between Sequential and Functional models in Keras.",
+        "Give an example of when to use each model type."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_005"
+      ],
+      "merge_rationale": "The candidate explicitly describes the two model types, forming a clear, self-contained distinction."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Building a Sequential Model with Dense Layers",
+      "description": "A simple feedforward neural network in Keras can be constructed using the Sequential model and stacking Dense layers with specified units and activation functions (e.g., ReLU for hidden layers, softmax for the output layer).",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer specifying units and activation.",
+        "Explain the choice of activation functions for hidden and output layers."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_005",
+        "c54_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates demonstrate the same core skill: constructing a Sequential model by adding Dense layers, with examples and explanations."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Compiling a Keras Model",
+      "description": "Before training, a Keras model must be compiled using model.compile() to configure the learning process by specifying a loss function (e.g., categorical_crossentropy), an optimizer (e.g., rmsprop), and metrics (e.g., accuracy).",
+      "coverage_criteria": [
+        "Identify the three main arguments to model.compile() and their purposes.",
+        "Choose appropriate loss, optimizer, and metrics for a given classification task."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_006",
+        "c54_pro_thinking_005",
+        "c55_pro_thinking_014",
+        "c56_pro_thinking_004"
+      ],
+      "merge_rationale": "All candidates describe the compilation step with model.compile(), covering the same required parameters and purpose; they naturally form one cohesive concept."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Training a Keras Model with fit()",
+      "description": "The model.fit() method trains the compiled model on training data, with key hyperparameters such as epochs (number of passes over the dataset) and batch_size (samples per gradient update).",
+      "coverage_criteria": [
+        "Write a model.fit() call with the required arguments.",
+        "Explain the roles of epochs and batch_size in the training process."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_007",
+        "c54_pro_thinking_008",
+        "c55_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates all cover the same training function, illustrating its usage and explaining hyperparameters, thus they can be merged."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Evaluating a Keras Model on Test Data",
+      "description": "After training, model.evaluate() computes the loss and any specified metrics (e.g., accuracy) on a held‑out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Write a model.evaluate() call on test data.",
+        "Interpret the printed loss and accuracy values."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_008",
+        "c54_pro_thinking_010",
+        "c55_pro_thinking_016"
+      ],
+      "merge_rationale": "All candidates demonstrate the evaluation step with model.evaluate(), using similar code and explanations, supporting a single concept."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Making Predictions with Keras Models",
+      "description": "Trained Keras models can generate predictions on new data using model.predict() to obtain probability distributions, and np.argmax() (or model.predict_classes()) to get the predicted class labels.",
+      "coverage_criteria": [
+        "Use model.predict() to get predictions on test data.",
+        "Apply np.argmax() to convert probabilities to class labels."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_009",
+        "c55_pro_thinking_017"
+      ],
+      "merge_rationale": "Both candidates describe the prediction step and how to interpret the output, with complementary details (predict_classes vs. argmax) that together form a complete concept."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Normalizing Pixel Values for Neural Networks",
+      "description": "To improve training stability, pixel values of images (originally 0‑255) should be normalized to the [0,1] range by dividing by 255.",
+      "coverage_criteria": [
+        "Explain why pixel normalization is beneficial.",
+        "Demonstrate the normalization step in code (dividing by 255)."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_003",
+        "c54_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates cover the normalization of pixel values, either as a standalone step or as part of broader preprocessing; they share the same teachable idea."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Reshaping and Flattening Image Data for Dense Layers",
+      "description": "Since Dense layers expect 1D input, 2D image arrays must be reshaped into 1D vectors, either manually with .reshape() or by inserting a Flatten layer as the first layer in the model.",
+      "coverage_criteria": [
+        "Perform manual reshaping of image data from 2D to 1D.",
+        "Explain how a Flatten layer can replace manual reshaping."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_006",
+        "c54_pro_thinking_007"
+      ],
+      "merge_rationale": "These candidates address the same preprocessing requirement—reshaping images to 1D—with alternative methods, forming a complete lesson-local concept."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "One‑Hot Encoding for Categorical Labels",
+      "description": "For multi‑class classification, integer labels must be converted to one‑hot encoded vectors using tf.keras.utils.to_categorical() so that the model output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Describe why one‑hot encoding is necessary for categorical crossentropy loss.",
+        "Use tf.keras.utils.to_categorical() to transform labels."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_004",
+        "c55_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates teach one‑hot encoding with to_categorical, making them direct duplicates that can be merged."
+    },
+    {
+      "id": "batch_001__lr012",
+      "label": "Inspecting a Keras Model",
+      "description": "Keras provides several methods to inspect a model's architecture and weights, including summary(), get_config(), and get_weights().",
+      "coverage_criteria": [
+        "Call model.summary() to view layer details.",
+        "Explain what get_config() and get_weights() return."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_013"
+      ],
+      "merge_rationale": "The single candidate lists all inspection methods succinctly, representing a standalone utility concept."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Saving and reloading Keras models",
+      "description": "How to persist a trained Keras model to an HDF5 file using model.save() and restore it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can write the code to save a model to a .h5 file.",
+        "Student can reload a saved model and confirm its architecture."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_018"
+      ],
+      "merge_rationale": "Single candidate, stands alone as a distinct action for model persistence."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Fine-tuning with custom optimizer parameters",
+      "description": "How to customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and compiling the model with it.",
+      "coverage_criteria": [
+        "Student can create an optimizer object with custom parameters.",
+        "Student can use the optimizer in model.compile()."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_019"
+      ],
+      "merge_rationale": "Single candidate covering a focused aspect of fine-tuning."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Fine-tuning with Early Stopping",
+      "description": "How to use the EarlyStopping callback to stop training when a monitored metric (e.g., validation loss) stops improving after a given patience, preventing overfitting.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_020"
+      ],
+      "merge_rationale": "Single candidate, a specific callback mechanism for training control."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Keras model building workflow",
+      "description": "The sequential pipeline for building a neural network in Keras: import modules, create a Sequential model, add layers, compile with optimizer and loss, fit on data, and make predictions. This high-level process applies to classification tasks.",
+      "coverage_criteria": [
+        "Student can list the steps: define, compile, fit, evaluate, predict.",
+        "Student can explain the role of each step in a basic Keras script."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_001",
+        "c56_pro_thinking_003"
+      ],
+      "merge_rationale": "Both candidates describe the same end-to-end workflow, one from a cheat sheet example and the other from a tutorial overview; merging avoids redundancy while preserving the complete pipeline."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb directly from tensorflow.keras.datasets, including splitting into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three available datasets.",
+        "Student can write the code to load one dataset and unpack it into (x_train, y_train), (x_test, y_test)."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_002",
+        "c55_pro_thinking_002"
+      ],
+      "merge_rationale": "c54_pro_thinking_002 focuses on MNIST loading, which is a subset of the broader dataset loading covered by c55_pro_thinking_002; merging creates a unified concept on the general skill."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset consists of 28x28 grayscale images of handwritten digits 0-9, with 60,000 training and 10,000 test samples. It is a common beginner dataset for deep learning.",
+      "coverage_criteria": [
+        "Student can recall the image size, number of classes, and train/test split.",
+        "Student can explain why MNIST is often used as an introductory dataset."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_001"
+      ],
+      "merge_rationale": "Single candidate providing factual background essential for understanding a typical Keras tutorial."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Inspecting data shape and labels",
+      "description": "After loading data, how to inspect array shapes (e.g., train_images.shape) and visualize samples using matplotlib to verify the data before modeling.",
+      "coverage_criteria": [
+        "Student can print and interpret the shape of training data and labels.",
+        "Student can display a single image using plt.imshow() or plt.matshow()."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate covering a common verification step in data preprocessing."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Sequence padding for RNNs",
+      "description": "How to pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, with specification of maxlen, to prepare data for recurrent neural networks.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate, a specific text preprocessing step for RNNs."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Train/test split with sklearn",
+      "description": "How to partition a dataset into training and test subsets using sklearn.model_selection.train_test_split, controlling proportions with test_size and reproducibility with random_state.",
+      "coverage_criteria": [
+        "Student can import and call train_test_split on features and labels.",
+        "Student can explain the purpose of test_size and random_state."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate, a standard splitting utility for model evaluation."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Standardization with StandardScaler",
+      "description": "How to standardize features by scaling them to have zero mean and unit variance using StandardScaler from sklearn.preprocessing, fitting on training data and transforming both train and test sets.",
+      "coverage_criteria": [
+        "Student can fit and transform data with StandardScaler.",
+        "Student can distinguish standardization from normalization."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate, a commonly applied preprocessing method for numeric data."
+    },
+    {
+      "id": "batch_002__lr011",
+      "label": "Building an MLP for binary classification",
+      "description": "Constructing a Sequential model with Dense layers for binary classification: relu activation for hidden layers and sigmoid for the output layer.",
+      "coverage_criteria": [
+        "Student can create an MLP with the correct activation functions.",
+        "Student can explain why sigmoid is suitable for binary output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate targeting a specific architecture pattern for binary problems."
+    },
+    {
+      "id": "batch_002__lr012",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "description": "Stacking Dense layers with relu activation, interspersed with Dropout for regularization, and ending with a softmax output layer for multi-class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used for multi-class output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate covering a common regularization technique combined with multi-class output."
+    },
+    {
+      "id": "batch_003__lr001",
+      "label": "Building an MLP for regression",
+      "description": "Construct a regression neural network using Dense layers without activation on the output to predict continuous values.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific regression architecture with Keras."
+    },
+    {
+      "id": "batch_003__lr002",
+      "label": "Building a CNN in Keras",
+      "description": "Construct a convolutional neural network using Conv2D, Activation, MaxPooling2D, Dropout, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_011"
+      ],
+      "merge_rationale": "Single candidate covering a complete CNN architecture with standard Keras layers."
+    },
+    {
+      "id": "batch_003__lr003",
+      "label": "Building an RNN with LSTM",
+      "description": "Create a recurrent neural network by adding an Embedding layer and an LSTM layer with dropout, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_012"
+      ],
+      "merge_rationale": "Single candidate showing a compact RNN architecture with LSTM for sequence classification."
+    },
+    {
+      "id": "batch_003__lr004",
+      "label": "Loading external data from a URL with NumPy",
+      "description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset from a URL and split it into feature matrix and target vector.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_003"
+      ],
+      "merge_rationale": "Single candidate demonstrating a specific data loading technique essential for training models."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c53_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_017",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr009",
+        "batch_001__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr012"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_018",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_019",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_020",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr012"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Using Kaggle Kernels is an environment/setup convenience, not a teachable concept about building neural networks with Keras/TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_001",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "General definition of TensorFlow is not a lesson-local concept about building neural networks; it does not directly teach network construction."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "The computational graph approach is background information not required for hands‑on model building with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_003",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Historical facts about TensorFlow (Google Brain, release years) do not constitute a teachable concept for building neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_004",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "DistBelief is an obsolete predecessor; mentioning it is incidental and does not add to a lesson on current Keras/TensorFlow usage."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_005",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Design goals like flexibility and portability are marketing aspects, not actionable concepts for constructing neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_006",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "The TensorFlow ecosystem (TF.js, Lite, TFX) is too broad; the lesson focuses on core Keras model building, not deployment variants."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_007",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorBoard is a visualization tool supplementary to model building; it is not a central lesson concept."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_008",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Hub pre‑trained models are useful but not a primary concept for a lesson on building custom neural networks with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_009",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Generic ML model definition is a prerequisite, not specific to building neural networks with Keras/TensorFlow in this lesson."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_010",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Playground is an exploratory tool; it does not directly teach the construction of neural networks in Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_011",
+      "status": "pruned",
+      "reason": "too_broad",
+      "explanation": "Competitor comparisons (PyTorch, CNTK) are meta‑information that does not help a student build neural networks with Keras/TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_012",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Industry applications of TensorFlow are not directly relevant to building neural networks with Keras and TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_013",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "TensorFlow Quantum is a specialized library not directly related to building standard neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_014",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Career pillars for ML specialist are general advice, not specific to building neural networks with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_015",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "TensorFlow certification is administrative, not a teachable concept for this lesson."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_001",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Installation package details are setup steps, not core to learning neural network construction."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "CPU installation verification is a setup step, not a neural network concept."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_003",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "GPU installation verification is a setup step, not part of neural network building."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_004",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "NVIDIA software dependencies are environment configuration, not directly about neural networks."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_005",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "GPU support by OS is setup information, not part of neural network content."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_006",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Miniconda recommendation for Windows is a setup tool, not a core lesson concept."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_008",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Microsoft Visual C++ dependency is environment configuration, not about neural networks."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "System requirements are prerequisites, not teachable neural network concepts."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_001",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Default GPU memory allocation is a low-level detail, not essential for learning to build neural networks."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_002",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Configuring fixed GPU memory limits is an operational detail, not a core neural network concept."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_003",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Memory growth configuration is a setup detail, not part of neural network building."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_004",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Monitoring GPU memory with nvidia-smi is a debugging tool, not a teachable neural network concept."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_005",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Profiling GPU usage is an advanced optimization topic, not core to this lesson."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c53_pro_thinking_002",
+      "reason": "low_teaching_value",
+      "explanation": "Using Kaggle Kernels is an environment/setup convenience, not a teachable concept about building neural networks with Keras/TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_001",
+      "reason": "low_teaching_value",
+      "explanation": "General definition of TensorFlow is not a lesson-local concept about building neural networks; it does not directly teach network construction."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_002",
+      "reason": "low_teaching_value",
+      "explanation": "The computational graph approach is background information not required for hands‑on model building with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_003",
+      "reason": "too_broad",
+      "explanation": "Historical facts about TensorFlow (Google Brain, release years) do not constitute a teachable concept for building neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_004",
+      "reason": "incidental",
+      "explanation": "DistBelief is an obsolete predecessor; mentioning it is incidental and does not add to a lesson on current Keras/TensorFlow usage."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_005",
+      "reason": "low_teaching_value",
+      "explanation": "Design goals like flexibility and portability are marketing aspects, not actionable concepts for constructing neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_006",
+      "reason": "too_broad",
+      "explanation": "The TensorFlow ecosystem (TF.js, Lite, TFX) is too broad; the lesson focuses on core Keras model building, not deployment variants."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_007",
+      "reason": "low_teaching_value",
+      "explanation": "TensorBoard is a visualization tool supplementary to model building; it is not a central lesson concept."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_008",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Hub pre‑trained models are useful but not a primary concept for a lesson on building custom neural networks with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_009",
+      "reason": "too_broad",
+      "explanation": "Generic ML model definition is a prerequisite, not specific to building neural networks with Keras/TensorFlow in this lesson."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_010",
+      "reason": "low_teaching_value",
+      "explanation": "TensorFlow Playground is an exploratory tool; it does not directly teach the construction of neural networks in Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_011",
+      "reason": "too_broad",
+      "explanation": "Competitor comparisons (PyTorch, CNTK) are meta‑information that does not help a student build neural networks with Keras/TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_012",
+      "reason": "unrelated",
+      "explanation": "Industry applications of TensorFlow are not directly relevant to building neural networks with Keras and TensorFlow."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_013",
+      "reason": "unrelated",
+      "explanation": "TensorFlow Quantum is a specialized library not directly related to building standard neural networks."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_014",
+      "reason": "unrelated",
+      "explanation": "Career pillars for ML specialist are general advice, not specific to building neural networks with Keras."
+    },
+    {
+      "candidate_id": "c57_pro_thinking_015",
+      "reason": "unrelated",
+      "explanation": "TensorFlow certification is administrative, not a teachable concept for this lesson."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_001",
+      "reason": "low_teaching_value",
+      "explanation": "Installation package details are setup steps, not core to learning neural network construction."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_002",
+      "reason": "low_teaching_value",
+      "explanation": "CPU installation verification is a setup step, not a neural network concept."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_003",
+      "reason": "low_teaching_value",
+      "explanation": "GPU installation verification is a setup step, not part of neural network building."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_004",
+      "reason": "unrelated",
+      "explanation": "NVIDIA software dependencies are environment configuration, not directly about neural networks."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_005",
+      "reason": "unrelated",
+      "explanation": "GPU support by OS is setup information, not part of neural network content."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_006",
+      "reason": "unrelated",
+      "explanation": "Miniconda recommendation for Windows is a setup tool, not a core lesson concept."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_008",
+      "reason": "unrelated",
+      "explanation": "Microsoft Visual C++ dependency is environment configuration, not about neural networks."
+    },
+    {
+      "candidate_id": "c58_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "System requirements are prerequisites, not teachable neural network concepts."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_001",
+      "reason": "low_teaching_value",
+      "explanation": "Default GPU memory allocation is a low-level detail, not essential for learning to build neural networks."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_002",
+      "reason": "low_teaching_value",
+      "explanation": "Configuring fixed GPU memory limits is an operational detail, not a core neural network concept."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_003",
+      "reason": "low_teaching_value",
+      "explanation": "Memory growth configuration is a setup detail, not part of neural network building."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_004",
+      "reason": "low_teaching_value",
+      "explanation": "Monitoring GPU memory with nvidia-smi is a debugging tool, not a teachable neural network concept."
+    },
+    {
+      "candidate_id": "c59_pro_thinking_005",
+      "reason": "low_teaching_value",
+      "explanation": "Profiling GPU usage is an advanced optimization topic, not core to this lesson."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 71,
+    "accepted_count": 28,
+    "pruned_count": 29,
+    "candidate_assignment_count": 71,
+    "review_count": 0
+  }
+}

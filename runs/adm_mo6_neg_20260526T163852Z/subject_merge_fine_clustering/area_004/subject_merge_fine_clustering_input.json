@@ -1,0 +1,185 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_004",
+    "area": {
+      "id": "area_004",
+      "label": "Cognitive Biases and Heuristics in Decision-Making",
+      "rationale": "Candidates cover a range of cognitive biases (optimism bias, judgment noise, outcome bias, linear thinking, etc.), the concept of heuristics, and the bias of prior hypothesis. This group represents the psychological limitations and mental shortcuts influencing decision quality.",
+      "candidate_ids": [
+        "lr001_003",
+        "lr001_004",
+        "lr001_005",
+        "lr001_014",
+        "lr001_015",
+        "lr006_001",
+        "lr006_002",
+        "lr013_001"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr001_003",
+    "lr001_004",
+    "lr001_005",
+    "lr001_014",
+    "lr001_015",
+    "lr006_001",
+    "lr006_002",
+    "lr013_001"
+  ],
+  "candidates": [
+    {
+      "id": "lr001_003",
+      "label": "Delaying Intuition and Structured Judgment",
+      "description": "A decision-making approach that involves delaying intuitive judgments and instead collecting information on specific, independent attributes systematically before forming an overall evaluation. This method reduces bias and improves accuracy, as demonstrated in personnel selection contexts like the IDF and Google hiring.",
+      "coverage_criteria": [
+        "Explain why delaying intuition leads to better decisions.",
+        "Describe Kahneman's structured interviewing method and how it differs from holistic judgment.",
+        "Identify conditions under which intuition is reliable."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr001_004",
+      "label": "Optimism Bias in Decision-Making",
+      "description": "Optimism bias is the cognitive tendency to overestimate one's abilities and underestimate risks, leading to a high rate of failure among entrepreneurs but also fueling innovation and economic growth, as excessive risk-taking drives capitalism.",
+      "coverage_criteria": [
+        "Define optimism bias in decision-making.",
+        "Explain how optimism can be both detrimental and beneficial.",
+        "Summarize Kahneman's perspective on the necessity of excessive optimism for large successes."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_005",
+      "label": "Judgment Noise",
+      "description": "Noise in human judgment refers to unwanted variability in decisions that should be similar. This variability is consistently underestimated by observers, as demonstrated by studies showing insurance underwriters' assessments varying more than expected.",
+      "coverage_criteria": [
+        "Define judgment noise.",
+        "Provide an example of judgment noise.",
+        "Explain why people underestimate noise."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_014",
+      "label": "Linear Thinking and Exponential Change",
+      "description": "The cognitive limitation that humans think linearly, making it difficult to properly assess exponential technological growth, which can lead to flawed decisions about technology adoption.",
+      "coverage_criteria": [
+        "Explain why humans are ill-suited to grasp exponential change.",
+        "Identify possible social consequences of rapid technological development.",
+        "Compare ex-ante and ex-post views on technological adoption."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr001_015",
+      "label": "Outcome Bias and Evaluating Decision Quality",
+      "description": "Outcome bias is the tendency to evaluate the quality of a decision based solely on its outcomes. To evaluate decisions effectively, one must consider the decision process and not just outcomes.",
+      "coverage_criteria": [
+        "Define outcome bias and give an example.",
+        "Explain why evaluating decisions by outcomes alone can be misleading.",
+        "Describe how a process-based evaluation differs from an outcome-based evaluation."
+      ],
+      "source_roles": [],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "lesson_title": "Decision-making process and fundamentals of decision-making approaches.",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_001",
+      "label": "Definition and everyday examples of heuristics",
+      "description": "Heuristics are mental shortcuts or rules of thumb developed from past experiences that enable quick decisions, sacrificing optimality for speed. Everyday examples include choosing default outfits or ordering familiar food.",
+      "coverage_criteria": [
+        "Define heuristic and provide an everyday example.",
+        "Explain why heuristics prioritize speed over perfection."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+      "lesson_title": "Heuristics and Biases",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_002",
+      "label": "Limitations and intellectual humility regarding heuristics",
+      "description": "Heuristics can lead to over-reliance in areas like political views, causing uninformed positions and resistance to facts. Because of such errors, it is crucial to practice intellectual humility: acknowledging uncertainty and remaining open to opposing perspectives.",
+      "coverage_criteria": [
+        "Explain how heuristics can bias political opinions and why intellectual humility is important when relying on mental shortcuts."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+      "lesson_title": "Heuristics and Biases",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr013_001",
+      "label": "Cognitive Biases that Distort Risk Decisions",
+      "description": "Decision makers often rely on cognitive simplifications that lead to biases such as prior hypothesis, adjustment/anchoring, escalating commitment, and insensitivity to predictability, which can cause errors in risk assessment.",
+      "coverage_criteria": [
+        "Name three cognitive biases mentioned in the source and describe how each can affect a risk decision.",
+        "Explain why awareness of cognitive biases is important for directors overseeing risk."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+      "lesson_title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

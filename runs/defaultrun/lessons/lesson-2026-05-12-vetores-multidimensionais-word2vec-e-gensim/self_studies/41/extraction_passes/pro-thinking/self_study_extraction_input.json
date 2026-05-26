@@ -1,0 +1,95 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+    "display_code": "L06",
+    "workbook_row_number": 40,
+    "title": "Vetores multidimensionais: Word2Vec e Gensim",
+    "date": "12/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Linguagem estruturada",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Reconhecimento de voz",
+      "Redes Neurais",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ],
+    "description": "O objetivo deste encontro é apresentar para as pessoas desenvolvedoras outras formas de representar vetores de palavras: o Word2Vec e o Gensim."
+  },
+  "self_study": {
+    "self_study_id": "41",
+    "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 41,
+      "week": 4,
+      "sort": 9,
+      "title": "What is word2vec? - Programming with Text",
+      "description": "Vídeo que apresenta as aplicações que são possíveis de se realizar com a representação vetorial das palavras.",
+      "url": "https://www.youtube.com/watch?v=LSS_bos_TPI",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Determinação do conteúdo em PLN",
+        "Gramáticas lógicas",
+        "Linguagem estruturada",
+        "Pré-processamento e morfologia (Análise morfológica)",
+        "Processamento do discurso",
+        "Redes Neurais",
+        "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+        "Sintaxe da sentença (Análise sintática)",
+        "Vetores multidimensionais"
+      ],
+      "parent_class": "Vetores multidimensionais: Word2Vec e Gensim",
+      "class_date": "12/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "video",
+      "status": "passed",
+      "path": "extraction/post-image/0041-video-what-is-word2vec-programming-with-text.md",
+      "sha256": "b809dc54802deb96cd7459c843703059d00b63a3b8a4b14b521024cddb3badc7",
+      "word_count": 1413,
+      "bytes": 9356,
+      "source_markdown": "video/output/41/41-what-is-word2vec-programming-with-text.md",
+      "artifact_dir": "video/output/41",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0041-video-what-is-word2vec-programming-with-text.md",
+    "sha256": "b809dc54802deb96cd7459c843703059d00b63a3b8a4b14b521024cddb3badc7",
+    "word_count": 1413,
+    "source_markdown": "video/output/41/41-what-is-word2vec-programming-with-text.md",
+    "markdown": "---\nid: \"41\"\ntitle: \"What is word2vec? - Programming with Text\"\nsource_url: \"https://www.youtube.com/watch?v=LSS_bos_TPI\"\nfetch_url: \"https://www.youtube.com/watch?v=LSS_bos_TPI\"\nresolved_url: \"https://www.youtube.com/watch?v=LSS_bos_TPI\"\nfirecrawl_title: null\ndescription: null\nfetched_at: \"2026-05-12T04:43:45.895349Z\"\nprovider: \"gemini_multimodal\"\nstrategy: \"video_gemini_two_pass\"\ncache_key: \"62181053a33317f35c413f14e77e406024287db0d8497246eff974ae31cdfb18\"\ncache_keys:\n  - \"62181053a33317f35c413f14e77e406024287db0d8497246eff974ae31cdfb18\"\ngemini_model: \"gemini-2.5-flash\"\ngemini_media_resolution: \"low\"\ngemini_fps: 0.33\nprompt_version: \"video_gemini_pass2_v1\"\nduration_seconds: 620.0\ntranscript_source: \"manual_captions\"\ntranscript_sha256: \"9f481cfac0326ac8e1b57bee7c9912a264a9fa6550384a30464a1d2c562cd671\"\nword_count: 1323\nchar_count: 8263\ncontent_sha256: \"9a45ee1e35882ecda95ef89e84425c1ef3719a5dbc626dd8f277fde971207171\"\nimage_count: 10\nlink_count: 0\ntotal_token_count: 41911\nestimated_input_tokens: 33343\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n## 00:00 Introduction to Word2Vec\n\n**Spoken content:** The speaker introduces a new session about \"word2vec,\" acknowledging that he has used it but gained a deeper understanding after reading an \"amazing tutorial by Allison Parrish.\" He mentions the tutorial is a Python notebook titled \"Understanding Word Vectors\" posted as a Gist on GitHub. He encourages viewers to read the tutorial directly but will also explain it in his own words. He notes the tutorial's Creative Commons 4.0 license for content and Creative Commons Zero for code, allowing reuse with attribution.\n\n**On-screen content:**\nThe video shows a split screen. On the left, a web browser displays a GitHub Gist titled \"understanding-word-vectors.ipynb\" by \"aparrish.\" The Gist's description states: \"Understanding word vectors: A tutorial for 'Reading and Writing Electronic Text,' a class I teach at ITP. (Python 2.7) Code examples released under CC0, other text released under CC BY 4.0.\"\nThe right side of the screen shows the speaker, a man with glasses and a beard, wearing a dark hoodie, standing in front of a white background. He gestures enthusiastically.\n![GitHub Gist: Understanding Word Vectors by Allison Parrish](video-frame://41@00:42)\n\n## 01:27 Allison Parrish's Talk and Course Goal\n\n**Spoken content:** The speaker also recommends Allison Parrish's YouTube talk, \"Experimental Creative Writing with the Vectorized Word,\" from the Strange Loop conference, as further inspiration. He states his end goal for this tutorial series is to create a P5.js sketch in the browser to interact with word2vec, specifically to answer \"what is word2vec?\" and then use it in projects to create \"weird stuff with text on a web page.\"\n\n**On-screen content:**\nThe left side of the screen now shows a YouTube video titled \"Experimental Creative Writing with the Vectorized Word\" by Allison Parrish, from the \"Strange Loop\" channel.\n![YouTube video: Experimental Creative Writing with the Vectorized Word](video-frame://41@01:30)\n\n## 02:10 What is Word Embedding?\n\n**Spoken content:** The speaker moves to a whiteboard to explain \"word2vec.\" He describes it as a machine learning process, similar to classification or regression analysis, that produces \"word embeddings.\" A word embedding means that any given word, like \"apple,\" can be associated with a vector—an array of numbers (e.g., 0.7, 1.2, -0.345...). This allows for mathematical operations on words. He poses a question: \"Apple\" + \"Purple\" = \"Plum\"? He suggests that by quantifying words as numerical vectors, we can perform mathematical operations (like addition) on these vectors, and then find the word whose vector is most similar to the resulting vector. This is possible because of the data the word2vec model is trained on.\n\n**On-screen content:**\nThe speaker is now standing in front of a whiteboard.\nInitially, the whiteboard has \"word2vec\" written at the top.\n![whiteboard: word2vec](video-frame://41@02:15)\nAs he speaks, he adds:\n- \"word embedding\" to the right of \"word2vec.\"\n- An arrow from \"apple\" to a bracketed list of numbers: \"[0.7, 1.2, -0.345,...]\"\n- Below that, he writes: `\"apple\"` + `\"purple\"` => `\"plum\"`\n- He then draws arrows from \"apple\" and \"purple\" to empty brackets, implying they also have numerical representations that can be added.\n![whiteboard: word2vec, word embedding, \"apple\" -> [0.7, 1.2, -0.345,...], \"apple\" + \"purple\" => \"plum\"](video-frame://41@03:07)\nHe also draws a square with a circle and an arrow inside, labeled \"velocity,\" to illustrate vectors.\n![whiteboard: vector illustration with velocity](video-frame://41@07:05)\nHe then draws another square, showing \"apple\" as a point, an arrow representing \"purple,\" and the resulting point as \"plum.\"\n![whiteboard: vector addition of \"apple\" and \"purple\" to get \"plum\"](video-frame://41@07:24)\n\n## 05:38 Animal Similarity and Simple Linear Algebra\n\n**Spoken content:** The speaker returns to Allison Parrish's tutorial, which simplifies the concept by assigning two numbers to each animal: a \"cuteness\" score (0-100) and a \"size\" score (0-100). This creates a simple \"word embedding\" for animals.\n\n**On-screen content:**\nThe left side of the screen shows a table from the Jupyter Notebook titled \"Animal similarity and simple linear algebra.\" The table has three columns: \"animal,\" \"cuteness (0-100),\" and \"size (0-100).\"\nRows include:\n- kitten: 95, 15\n- hamster: 80, 8\n- tarantula: 8, 3\n- puppy: 90, 20\n- crocodile: 5, 40\n- dolphin: 60, 45\n- panda bear: 75, 40\n- lobster: 2, 15\n- capybara: 70, 30\n- elephant: 65, 90\n- mosquito: 1, 1\n- goldfish: 25, 2\n- horse: 50, 60\n- chicken: 25, 25\n![table: Animal Cuteness and Size Scores](video-frame://41@05:55)\n\n## 06:18 Animal Space Visualization\n\n**Spoken content:** The speaker explains that by plotting these two numbers (cuteness and size), we can visualize the relationships between animals. Animals that are physically close on the graph are considered similar in terms of these two properties. He mentions calculating the \"Euclidean distance\" between these points to quantify their similarity.\n\n**On-screen content:**\nThe Jupyter Notebook displays a scatter plot titled \"Animal Space.\" The x-axis is \"cuteness\" (0-100) and the y-axis is \"size\" (0-100). Each animal from the table is represented as a bubble on the plot. For example, \"kitten\" and \"puppy\" are close, while \"elephant\" is in the top right (high cuteness, high size). \"Horse\" and \"dolphin\" are also shown to be close.\n![scatter plot: Animal Space with Cuteness vs. Size](video-frame://41@06:20)\n\n## 06:48 Vectors and Relationships\n\n**Spoken content:** The speaker further elaborates on the concept of vectors, relating it to his previous tutorials on velocity vectors in particle systems. He shows how moving from one word to another in this \"animal space\" can represent a relationship. For instance, an arrow from \"chicken\" to \"kitten\" represents a relationship, and a similar arrow from \"tarantula\" to \"hamster\" suggests an analogy. He clarifies that this 2D example uses hard-coded values for demonstration, making it easy for our brains to process.\n\n**On-screen content:**\nThe scatter plot is shown again, with two arrows drawn:\n- A red arrow from \"chicken\" to \"kitten.\"\n- A blue arrow from \"tarantula\" to \"hamster.\"\nThe text below the diagram explains: \"You can understand this arrow as being the relationship between a tarantula and a hamster, in terms of their size and cuteness (i.e. tarantulas are about the same size, but hamsters are much cuter). In the same diagram, I've also transposed this same arrow (this time in red) so that its origin point is 'chicken.' The arrow ends closest to 'kitten.' What we've discovered is that the same size as a chicken but much cuter is... a kitten. To put it in terms of an analogy: Tarantulas are to hamsters as chickens are to kittens.\"\n![scatter plot: Animal Space with vector arrows showing relationships](video-frame://41@07:37)\n\n## 08:13 Higher Dimensions and Next Steps\n\n**Spoken content:** The speaker explains that while 2D visualization is helpful, real word2vec models use much higher dimensional spaces (e.g., 100 or 300 dimensions), which cannot be easily visualized directly. He mentions \"dimensionality reduction\" techniques for visualizing word clusters. He summarizes that word2vec establishes complex relationships between words in higher-dimensional space. He outlines the next steps:\n1.  Port Allison's example of colors associated with numbers (like red = 255,0,0) into JavaScript.\n2.  Look at traditionally understood word2vec models with large dictionaries and their associated high-dimensional word embeddings.\nHe concludes by saying he will do a JavaScript port of Allison's Python code in the next video.\n\n**On-screen content:**\nThe speaker is back in front of the whiteboard, which still contains the \"word2vec,\" \"word embedding,\" and vector diagrams. He gestures as he explains the concepts.\n![whiteboard: word2vec, word embedding, and vector diagrams](video-frame://41@08:14)\n\n## 10:09 Outro\n\n**Spoken content:** The speaker waves goodbye and encourages viewers to read Allison Parrish's page.\n\n**On-screen content:**\nThe speaker is inside a blue cartoon train window, waving. Upbeat music plays.\n![speaker in cartoon train window](video-frame://41@10:09)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

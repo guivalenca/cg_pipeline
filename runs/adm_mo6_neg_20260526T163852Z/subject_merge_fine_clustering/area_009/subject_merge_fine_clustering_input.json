@@ -1,0 +1,242 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_009",
+    "area": {
+      "id": "area_009",
+      "label": "Real Options Valuation",
+      "rationale": "All eleven candidates address the concept, application, and valuation of real options, including definitions, contrasts with DCF, payoff diagrams, characteristics, determinants, pricing models, and strategic levers. The material forms a cohesive neighborhood on flexibility-based investment decisions.",
+      "candidate_ids": [
+        "lr010_001",
+        "lr010_002",
+        "lr010_003",
+        "lr010_004",
+        "lr010_005",
+        "lr010_006",
+        "lr010_007",
+        "lr010_008",
+        "lr010_009",
+        "lr010_010",
+        "lr010_011"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr010_001",
+    "lr010_002",
+    "lr010_003",
+    "lr010_004",
+    "lr010_005",
+    "lr010_006",
+    "lr010_007",
+    "lr010_008",
+    "lr010_009",
+    "lr010_010",
+    "lr010_011"
+  ],
+  "candidates": [
+    {
+      "id": "lr010_001",
+      "label": "Real options definition and contrast with DCF/NPV",
+      "description": "Real options extend financial options theory to business investments, capturing the value of flexibility and learning under uncertainty that traditional DCF/NPV undervalues. They enable delayed, expanded, or abandoned decisions, turning negative expected value into positive by staging investments.",
+      "coverage_criteria": [
+        "Define real options and contrast them with static investment analysis like NPV.",
+        "Explain why traditional DCF can undervalue assets with embedded flexibility.",
+        "Identify at least two types of real options (delay, expand, abandon)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr010_002",
+      "label": "Learning and adaptive behavior in real options",
+      "description": "Real option value stems from the ability to observe outcomes (learn) and adjust actions (adaptive behavior). Staging investments transforms a negative NPV into positive by acting on new information. This shifts management focus from avoiding uncertainty to maximizing learning and flexibility.",
+      "coverage_criteria": [
+        "Restate why a two-step investment can outperform a one-step investment with the same overall probabilities.",
+        "Describe the mindset shift from static NPV planning to proactive real options thinking.",
+        "List the four strategic improvements from real options thinking (emphasize opportunities, enhance leverage, maximize rights, minimize obligations)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_003",
+      "label": "Using payoff diagrams to identify real options",
+      "description": "A real option exists when the payoff structure resembles a call or put option diagram, featuring a kinked payoff limiting downside losses while allowing upside gains. This visual criterion helps recognize embedded options in business decisions.",
+      "coverage_criteria": [
+        "Sketch a call option payoff diagram and label the strike price.",
+        "Explain how limited losses and potential unlimited gains create option value."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_004",
+      "label": "Three definitional characteristics of a real option",
+      "description": "To qualify as a real option, an asset or decision must have: (1) a clearly defined underlying asset whose value varies unpredictably, (2) contingent payoffs triggered by a specific event, and (3) a limited life.",
+      "coverage_criteria": [
+        "List the three characteristics.",
+        "For a given business scenario, determine whether these characteristics are present."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "application"
+    },
+    {
+      "id": "lr010_005",
+      "label": "Exclusivity as driver of significant option value",
+      "description": "An option has significant economic value only if the holder has exclusivity—the sole right to exercise it. Without exclusivity (e.g., anyone can buy at market price), the option value is zero.",
+      "coverage_criteria": [
+        "Explain why exclusivity is necessary for a real option to have economic value.",
+        "Contrast the landlord anecdote scenario with a proprietary technology option."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_006",
+      "label": "Six determinants of real option value",
+      "description": "The value of a real option is driven by six factors: underlying asset value, variance of that value, expected dividends, strike price, option life, and risk-free interest rate. Uncertainty (variance) uniquely increases option value because of asymmetric payoffs, contrary to NPV logic.",
+      "coverage_criteria": [
+        "List the six determinants and their real-market equivalents.",
+        "Explain why higher variance increases option value, while higher dividends reduce it.",
+        "Predict the directional effect of a change in each determinant on a call option."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_007",
+      "label": "Replication and arbitrage principles in option pricing",
+      "description": "Option pricing models rely on: (1) replication—constructing a portfolio of the underlying asset and borrowing/lending that mimics the option's payoffs; (2) arbitrage—if two assets have identical payoffs, they must have the same price.",
+      "coverage_criteria": [
+        "Describe what a replicating portfolio is.",
+        "Explain why arbitrage forces options and replicating portfolios to have equal prices."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_008",
+      "label": "Model choice: Black-Scholes vs. binomial for real options",
+      "description": "The Black-Scholes model assumes European exercise, constant variance, and no jumps, requiring only six inputs. The binomial model allows early exercise and changing variances but demands detailed price path data, often infeasible for real assets. Practitioners often prefer Black-Scholes for its parsimony.",
+      "coverage_criteria": [
+        "State the key restrictive assumptions of Black-Scholes.",
+        "Contrast the data requirements of the binomial model with its flexibility.",
+        "Articulate why practitioners might still prefer Black-Scholes despite its limitations."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "limitation"
+    },
+    {
+      "id": "lr010_009",
+      "label": "Three tests for applying real option valuation",
+      "description": "To validly apply real option valuation, three tests must be passed: (1) identify an embedded option, (2) verify exclusivity, (3) ensure the underlying asset and option are tradeable enough for option pricing models to work.",
+      "coverage_criteria": [
+        "List the three tests.",
+        "For a given case, argue whether each test is satisfied."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "application"
+    },
+    {
+      "id": "lr010_010",
+      "label": "Proactive vs. reactive flexibility in real options",
+      "description": "Reactive flexibility involves optimally exercising an existing option; proactive flexibility means managers can influence option value levers (e.g., increase uncertainty, extend duration) before exercise. Unlike financial options in deep markets, real options exist in contexts with few players, enabling proactive influence.",
+      "coverage_criteria": [
+        "Distinguish between reactive and proactive flexibility and give an example of each.",
+        "Explain why the limited-player environment in real business situations enables proactive flexibility."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr010_011",
+      "label": "Strategic lever selection via sensitivity analysis",
+      "description": "Managers can decide which real option levers to influence by performing sensitivity analysis, revealing that increasing revenues (stock price) and cutting costs (exercise price) often have the largest impact on option value.",
+      "coverage_criteria": [
+        "Interpret a sensitivity table to identify the most impactful levers.",
+        "Explain why revenue improvement may be more valuable than cost reduction in option management."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+      "lesson_title": "Decision-Making Tools V (Real Options)",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

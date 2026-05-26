@@ -1,0 +1,482 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "PESTEL Definition and Evolution",
+    "rationale": "These candidates both define PESTEL and note its evolution from PEST, covering the same foundational idea of what the framework is.",
+    "candidate_ids": [
+      "c3_pro_thinking_001",
+      "c3_pro_thinking_010"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "PESTEL Definition and Evolution",
+      "rationale": "These candidates both define PESTEL and note its evolution from PEST, covering the same foundational idea of what the framework is.",
+      "candidate_ids": [
+        "c3_pro_thinking_001",
+        "c3_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "PESTEL Factor: Political",
+      "rationale": "Single candidate defining political factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "PESTEL Factor: Economic",
+      "rationale": "Single candidate defining economic factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "PESTEL Factor: Social",
+      "rationale": "Single candidate defining social factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "PESTEL Factor: Technological",
+      "rationale": "Single candidate defining technological factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "PESTEL Factor: Environmental",
+      "rationale": "Single candidate defining environmental factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "PESTEL Factor: Legal",
+      "rationale": "Single candidate defining legal factors in PESTEL analysis.",
+      "candidate_ids": [
+        "c3_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "PESTEL Integration with Other Frameworks",
+      "rationale": "Single candidate describing how PESTEL outputs are used in other strategic frameworks.",
+      "candidate_ids": [
+        "c3_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "PESTEL in Financial Analysis",
+      "rationale": "Single candidate covering the application of PESTEL factors in financial modeling.",
+      "candidate_ids": [
+        "c3_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Delaying Intuition and Structured Judgment",
+      "rationale": "These candidates both describe the strategy of delaying intuitive judgments to collect independent attribute information systematically, avoiding premature global impressions.",
+      "candidate_ids": [
+        "c4_pro_thinking_001",
+        "c4_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Optimism Bias in Decision-Making",
+      "rationale": "Single candidate explaining the dual nature of optimism bias as both a driver of failure and the engine of capitalism.",
+      "candidate_ids": [
+        "c4_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Judgment Noise",
+      "rationale": "Single candidate defining unwanted variability in human judgment and why it is underestimated.",
+      "candidate_ids": [
+        "c4_pro_thinking_004"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c3_pro_thinking_001",
+    "c3_pro_thinking_010",
+    "c3_pro_thinking_002",
+    "c3_pro_thinking_003",
+    "c3_pro_thinking_004",
+    "c3_pro_thinking_005",
+    "c3_pro_thinking_006",
+    "c3_pro_thinking_007",
+    "c3_pro_thinking_008",
+    "c3_pro_thinking_009",
+    "c4_pro_thinking_001",
+    "c4_pro_thinking_003",
+    "c4_pro_thinking_002",
+    "c4_pro_thinking_004"
+  ],
+  "candidates": [
+    {
+      "id": "c3_pro_thinking_001",
+      "label": "PESTEL Analysis Definition",
+      "description": "PESTEL is a strategic framework that evaluates the Political, Economic, Social, Technological, Environmental, and Legal factors in a firm's business environment.",
+      "coverage_criteria": [
+        "State the six components of PESTEL analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines PESTEL as a framework for evaluating business environment factors and breaks down the acronym.",
+        "granularity_rationale": "The definition is a foundational concept that can be checked with a single recall question."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_010",
+      "label": "Evolution from PEST to PESTEL",
+      "description": "PESTEL originally was PEST, covering Political, Economic, Social, Technological factors, and later expanded to include Environmental and Legal factors.",
+      "coverage_criteria": [
+        "State which two factors were added to the original PEST framework to create PESTEL."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's definition section notes the historical extension from PEST to PESTEL.",
+        "granularity_rationale": "This is a simple historical fact about the framework's evolution."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_002",
+      "label": "Political Factors in PESTEL",
+      "description": "Political factors include government actions like taxation, fiscal policy, trade disputes, and antitrust issues that affect businesses.",
+      "coverage_criteria": [
+        "List examples of political factors considered in PESTEL."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article has a dedicated section on Political Factors, describing and exemplifying them.",
+        "granularity_rationale": "This is a specific, checkable subcategory of the framework with distinct characteristics."
+      },
+      "anchors": [
+        "Political Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_003",
+      "label": "Economic Factors in PESTEL",
+      "description": "Economic factors are financial metrics like interest rates, employment, inflation, and exchange rates that influence a firm's environment.",
+      "coverage_criteria": [
+        "Name three economic factors relevant to PESTEL analysis."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details economic factors and notes they are easily quantified and modeled.",
+        "granularity_rationale": "This factor group is distinct and can be tested with recall questions."
+      },
+      "anchors": [
+        "Economic Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_004",
+      "label": "Social Factors in PESTEL",
+      "description": "Social factors involve demographic shifts, lifestyle trends, consumer beliefs, and attitudes about working conditions that affect businesses.",
+      "coverage_criteria": [
+        "Give an example of a social factor that could impact a business."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes social factors with examples like health trends and hybrid work preferences.",
+        "granularity_rationale": "This is a defined, teachable category that can be assessed through application questions."
+      },
+      "anchors": [
+        "Social Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_005",
+      "label": "Technological Factors in PESTEL",
+      "description": "Technological factors include automation, R&D, infrastructure like 5G and IoT, and cybersecurity that can disrupt or benefit industries.",
+      "coverage_criteria": [
+        "Identify a technological factor that could threaten a traditional business."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article discusses technological factors with examples like cloud data storage and disruptive innovations (Uber, eCommerce).",
+        "granularity_rationale": "This is a discrete category of external influences that can be taught and assessed."
+      },
+      "anchors": [
+        "Technological Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_006",
+      "label": "Environmental Factors in PESTEL",
+      "description": "Environmental factors cover carbon footprint, climate change risks, extreme weather, and stewardship of natural resources.",
+      "coverage_criteria": [
+        "Explain how environmental factors can create risks for a company."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article details environmental factors and links them to ESG and CSR movements.",
+        "granularity_rationale": "This is a distinct, contemporary category of factors that students need to understand."
+      },
+      "anchors": [
+        "Environmental Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_007",
+      "label": "Legal Factors in PESTEL",
+      "description": "Legal factors consist of industry regulation, licensing, employment laws, and IP protection that can act as headwinds or tailwinds for businesses.",
+      "coverage_criteria": [
+        "Describe a scenario where legal factors create a protective moat for a company."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explains legal factors and gives examples of headwinds/tailwinds and IP theft.",
+        "granularity_rationale": "This category is specific and testable, distinct from political factors."
+      },
+      "anchors": [
+        "Legal Factors"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_008",
+      "label": "Integration of PESTEL with Other Frameworks",
+      "description": "PESTEL analysis outputs can be incorporated into other strategic frameworks like Ansoff's matrix, Porter's 5 forces, and SWOT analysis.",
+      "coverage_criteria": [
+        "Name three frameworks that can use insights from a PESTEL analysis."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states that PESTEL key points can be incorporated into Ansoff, Porter, and SWOT analyses.",
+        "granularity_rationale": "This integration concept is a useful applied idea that can be checked with recall."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?",
+        "Key points from a PESTEL analysis can be incorporated into other industry and firm-level frameworks, such as Ansoff’s matrix, Porter’s 5 forces, and SWOT analysis."
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_009",
+      "label": "Use of PESTEL in Financial Analysis",
+      "description": "In financial analysis, PESTEL factors can affect model assumptions such as revenue growth, margins, cash reserves for carbon taxes, and debt service coverage ratios.",
+      "coverage_criteria": [
+        "List two ways PESTEL factors might influence financial model assumptions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a section to how PESTEL is used in financial analysis with concrete examples.",
+        "granularity_rationale": "This applied concept connects the framework to financial modeling and can be assessed with scenario questions."
+      },
+      "anchors": [
+        "How is PESTEL Used in Financial Analysis?"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_001",
+      "label": "Delay Intuition Strategy",
+      "description": "A decision-making approach that advises delaying intuitive judgments until all relevant information has been systematically collected, in order to avoid premature and often incorrect intuitive leaps.",
+      "coverage_criteria": [
+        "Explain why delaying intuition can lead to more accurate judgments.",
+        "Provide an example where delaying intuition improved decisions (e.g., IDF interviewing system).",
+        "Identify conditions under which intuition is more reliable (extensive experience in a regular environment)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman explicitly discusses the concept of delaying intuition, using the IDF interviewing reform as a practical example, and states that this approach improves decision accuracy.",
+        "granularity_rationale": "This concept is focused on a specific, actionable strategy for decision-making, small enough to be checked with a few questions about definition, justification, and an example."
+      },
+      "anchors": [
+        "[03:06] The Role of Intuition in Decision Making",
+        "[08:08] Kahneman's Early Work in the IDF: Delaying Intuition in Personnel Selection"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_003",
+      "label": "Structured Judgment: Avoid Premature Global Impressions",
+      "description": "A decision-making principle that emphasizes collecting information on specific, independent attributes before forming an overall judgment, in order to improve accuracy and reduce bias, as demonstrated in personnel selection and hiring.",
+      "coverage_criteria": [
+        "Describe the old IDF interviewing method (global impression) and Kahneman's revised method (attribute-by-attribute data collection).",
+        "Explain why keeping sources of information independent improves decisions, using the Google hiring example.",
+        "Contrast the risks of forming a quick global impression with the benefits of structured, delayed judgment."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman recounts his IDF experience of replacing holistic interviews with a systematic attribute collection process, and connects it to modern systematic hiring at Google, highlighting the importance of independent information sources.",
+        "granularity_rationale": "This concept captures a concrete, repeatable decision-making technique that can be evaluated through examples and comparison to biased alternatives."
+      },
+      "anchors": [
+        "[08:08] Kahneman's Early Work in the IDF: Delaying Intuition in Personnel Selection",
+        "[11:14] Advice for Entrepreneurs: Systematic Hiring and Tuning Out Noise"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_002",
+      "label": "Optimism Bias: Engine of Capitalism",
+      "description": "The idea that optimism is a cognitive bias that causes individuals to overestimate their abilities and underestimate risks, leading to many failures but also driving entrepreneurial success and overall economic progress.",
+      "coverage_criteria": [
+        "Define optimism bias in the context of decision-making.",
+        "Explain how optimism can simultaneously lead to individual failure and societal benefit (the 'engine of capitalism').",
+        "Summarize Kahneman's view that great successes require 'crazily over-optimistic' risk-taking."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman directly discusses optimism as the most significant cognitive bias and a blessing, referring to it as the 'engine of capitalism' and noting that big successes stem from unreasonable risk-taking.",
+        "granularity_rationale": "This is a teachable, bounded concept about the dual nature of optimism bias, testable with questions on definition and societal-level implications."
+      },
+      "anchors": [
+        "[04:43] Optimism vs. Delusion: The Engine of Capitalism"
+      ]
+    },
+    {
+      "id": "c4_pro_thinking_004",
+      "label": "Judgment Noise",
+      "description": "The phenomenon that wherever there is human judgment, there is unwanted variability (noise) that is consistently underestimated by observers, as illustrated by insurance underwriters whose assessments varied five times more than executives expected.",
+      "coverage_criteria": [
+        "Define 'noise' in decision-making.",
+        "Provide an example where noise occurs (e.g., insurance underwriting).",
+        "Explain why people consistently underestimate judgment noise."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Kahneman explicitly describes noise in decision-making, presents the insurance underwriter study, and states that people systematically underestimate disagreement.",
+        "granularity_rationale": "This concept focuses on a specific, observable decision-making flaw (noise) with clear empirical backing, small enough to be checked with definition and example."
+      },
+      "anchors": [
+        "[11:14] Advice for Entrepreneurs: Systematic Hiring and Tuning Out Noise"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

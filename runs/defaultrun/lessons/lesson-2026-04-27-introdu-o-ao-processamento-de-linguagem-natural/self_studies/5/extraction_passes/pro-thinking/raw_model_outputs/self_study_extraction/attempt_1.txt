@@ -1,0 +1,403 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-5-001",
+      "label": "f-string formatting in Python",
+      "description": "Using f-strings (formatted string literals) to embed variables and expressions directly within string literals for output.",
+      "coverage_criteria": [
+        "Student can write a print statement that includes a variable's value inside a string using an f-string (e.g., f\"There are {count} items\").",
+        "When asked, student can read an f-string and identify which parts are literal and which are evaluated expressions."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Source explicitly explains f-strings as a 'special type of string to format' and demonstrates with code examples using variables like binary and do_not.",
+        "granularity_rationale": "This is a concise, checkable language feature; understanding it can be tested with one or two simple coding tasks."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 6 - Strings e Texto"},
+        {"kind": "page", "locator": "Page 25"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "f-string"]
+    },
+    {
+      "candidate_id": "candidate-5-002",
+      "label": ".format() string method",
+      "description": "An alternative string formatting method in Python that uses the .format() syntax to substitute values into placeholders, often used when formatting an already-created string.",
+      "coverage_criteria": [
+        "Student can convert an f-string to an equivalent .format() call.",
+        "Student can explain when .format() might be more useful than f-strings (e.g., format applied in a loop)."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions .format() syntax on line 17 of the example and states it is used 'when I want to apply a format to an already created string, like in a loop.'",
+        "granularity_rationale": "Limited to a single method of the string class; small enough to be described and demonstrated in a couple of questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 6 - Strings e Texto"},
+        {"kind": "page", "locator": "Page 25"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", ".format()"]
+    },
+    {
+      "candidate_id": "candidate-5-003",
+      "label": "Embedding variables in strings",
+      "description": "The concept of inserting variable values into strings for output, distinguishing between literal text and dynamic data.",
+      "coverage_criteria": [
+        "Student can verbally explain that strings can contain variables from the script.",
+        "Student can identify the parts of a formatted string that correspond to variables (e.g., {types_of_people})."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Source states 'strings can contain diverse variables that are in your script' and explains naming a variable and placing it inside a string.",
+        "granularity_rationale": "A fundamental idea that underpins all string formatting; its understanding can be assessed with simple identification questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 6 - Strings e Texto"},
+        {"kind": "page", "locator": "Page 25"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python"]
+    },
+    {
+      "candidate_id": "candidate-5-004",
+      "label": "Command-line arguments with sys.argv",
+      "description": "Using the sys module's argv list to receive arguments passed to a Python script from the command line.",
+      "coverage_criteria": [
+        "Student can write a script that retrieves and prints command-line arguments using sys.argv.",
+        "Student can run a Python script with extra arguments and explain which element of sys.argv corresponds to the script name."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 13 directly imports sys.argv, assigns it to variables, and prints them; it explains that argv holds the arguments and is unpacked.",
+        "granularity_rationale": "A distinct mechanism for script input; can be tested with a small coding task asking to handle two command-line numbers."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 13 - Parâmetros, Descompactação, Variáveis"},
+        {"kind": "page", "locator": "Page 43"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "sys.argv"]
+    },
+    {
+      "candidate_id": "candidate-5-005",
+      "label": "Argument unpacking",
+      "description": "Assigning elements from an iterable (like sys.argv) directly to multiple variables in a single statement, often called 'unpacking'.",
+      "coverage_criteria": [
+        "Student can unpack a list of three elements into three named variables.",
+        "Student can predict what happens if the list length does not match the number of variables."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Source line 3 does: script, first, second, third = argv and explains 'unpacking' as taking argv, unpacking, and assigning to variables in order.",
+        "granularity_rationale": "A specific syntax feature closely tied to sys.argv here; can be demonstrated and checked with a single unpacking example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 13 - Parâmetros, Descompactação, Variáveis"},
+        {"kind": "page", "locator": "Page 43"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "unpacking"]
+    },
+    {
+      "candidate_id": "candidate-5-006",
+      "label": "Opening and reading files",
+      "description": "Using Python's open() function and read() method to read the entire contents of a text file into a string.",
+      "coverage_criteria": [
+        "Student can write a script that opens a named file and prints its contents using open() and .read().",
+        "Student can explain what the open() function returns and why .read() is called on it."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 15 shows txt = open(filename) and print(txt.read()) with explanation of reading a text file.",
+        "granularity_rationale": "Two related file operations that form a common mini-task; easily tested by asking student to read and print a short file."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 15 - Lendo Arquivos"},
+        {"kind": "page", "locator": "Page 51"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "open", "read"]
+    },
+    {
+      "candidate_id": "candidate-5-007",
+      "label": "Avoiding hard‑coded filenames",
+      "description": "The practice of obtaining a filename from user input (via input() or argv) instead of writing the filename directly inside the code, to make scripts more flexible.",
+      "coverage_criteria": [
+        "Student can explain why hard‑coding a filename is undesirable.",
+        "Student can modify a script to accept a filename from the command line instead of using a fixed string."
+      ],
+      "source_roles": ["explaining", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Source warns against 'hard code' and states 'we want it to load other files later' using argv or input to ask the user.",
+        "granularity_rationale": "A focused design idea; can be checked by asking the student to refactor a simple file‑reading script."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 15 - Lendo Arquivos"},
+        {"kind": "page", "locator": "Page 51"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "hard code"]
+    },
+    {
+      "candidate_id": "candidate-5-008",
+      "label": "Defining functions with def",
+      "description": "Creating reusable blocks of code using the def keyword, which names the function, specifies parameters, and groups statements.",
+      "coverage_criteria": [
+        "Student can write a function that takes two numbers and returns their sum.",
+        "When shown a function definition, student can identify its name, parameters, and body."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 18 states 'You create a function using the word def' and shows multiple definitions (print_two, print_one, etc.).",
+        "granularity_rationale": "The fundamental syntax of function creation; can be tested by asking the student to write a simple function."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 18 - Nomes, Variáveis, Código, Funções"},
+        {"kind": "page", "locator": "Page 63"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "def"]
+    },
+    {
+      "candidate_id": "candidate-5-009",
+      "label": "Variable‑length arguments with *args",
+      "description": "Using the *args syntax in a function definition to accept an arbitrary number of positional arguments, which are received as a tuple inside the function.",
+      "coverage_criteria": [
+        "Student can write a function that uses *args to sum any number of numbers.",
+        "Student can explain why the next example (print_two_again) says *args is unnecessary."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The first function print_two uses *args to collect arguments, and the source explains 'that *args is unnecessary, we can just do this' and shows a simpler version.",
+        "granularity_rationale": "A specific language feature for handling variable arguments; small enough to be practiced with a single coding exercise."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 18 - Nomes, Variáveis, Código, Funções"},
+        {"kind": "page", "locator": "Page 63"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "*args"]
+    },
+    {
+      "candidate_id": "candidate-5-010",
+      "label": "String encoding and decoding",
+      "description": "The concept that strings in Python 3 are sequences of characters, and how they can be encoded into bytes and decoded from bytes using specified encodings (e.g., UTF-8).",
+      "coverage_criteria": [
+        "Student can describe the difference between a string and a bytes object.",
+        "Given a string and an encoding name, student can write code to encode and decode it correctly."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 23 is dedicated to 'Strings, Bytes e Codificações de Caracteres' and lists topics: how modern computers store languages, how to encode/decode Python strings to bytes, and handling errors.",
+        "granularity_rationale": "A single, foundational concept for text processing; can be checked by asking student to convert between string and bytes."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 23 - Strings, Bytes e Codificações de Caracteres"},
+        {"kind": "page", "locator": "Page 81"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "UTF-8", "bytes"]
+    },
+    {
+      "candidate_id": "candidate-5-011",
+      "label": "Conditional branching with if/elif/else",
+      "description": "Using if, elif, and else statements to execute different blocks of code based on boolean conditions, allowing the program to make decisions.",
+      "coverage_criteria": [
+        "Student can write a multi‑branch condition that checks a numeric variable and prints a different message for each range.",
+        "Given an if/elif/else structure, student can trace the flow when a specific condition is true."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 31 introduces decision making, showing if/elif/else within a text adventure game that asks for a door number and reacts accordingly.",
+        "granularity_rationale": "A core control flow construct; its understanding can be tested with a short logical branching task."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 31 - Tomando Decisões"},
+        {"kind": "page", "locator": "Page 111"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "if", "elif", "else"]
+    },
+    {
+      "candidate_id": "candidate-5-012",
+      "label": "Iteration with for loops",
+      "description": "Using a for loop to iterate over items in a sequence (like a list), executing a block of code for each item.",
+      "coverage_criteria": [
+        "Student can write a for loop that prints each element of a list.",
+        "Student can explain what the loop variable represents on each iteration."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 32 states 'we'll use a for loop in this exercise to create and print several lists' and shows iteration over fruits and change.",
+        "granularity_rationale": "A simple looping construct; can be assessed by asking student to iterate over a small list and modify each element."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 32 - Loops e Listas"},
+        {"kind": "page", "locator": "Page 115"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "for loop"]
+    },
+    {
+      "candidate_id": "candidate-5-013",
+      "label": "Lists creation and indexing",
+      "description": "Creating ordered collections of items using square brackets, and accessing individual items by their numeric index (starting at 0).",
+      "coverage_criteria": [
+        "Student can create a list of three strings and access the second element using an index.",
+        "Student can use indexing to replace an item in a list."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 32 shows list creation like hairs = ['brown', 'blond', 'red'] and explains syntax; later exercises use indexing (things[1]) to get and set items.",
+        "granularity_rationale": "The basic list data structure; easily checked by asking student to create and manipulate a short list."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 32 - Loops e Listas"},
+        {"kind": "page", "locator": "Page 115"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "list"]
+    },
+    {
+      "candidate_id": "candidate-5-014",
+      "label": "List methods and the method‑call mechanism",
+      "description": "Calling methods on objects (e.g., mystuff.append('hello')) and understanding that Python translates method calls into function calls with the object as the first argument.",
+      "coverage_criteria": [
+        "Student can use the append method to add an item to a list.",
+        "Student can explain what happens internally when a method is called on a list (the object is passed as an implicit argument)."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 38 goes into detail: 'mystuff.append('hello') is a chain of events' and explains the dot operator, looking up the method, and the implicit self argument.",
+        "granularity_rationale": "A precise explanation of a common but often misunderstood mechanism; can be checked by asking student to describe the behind‑the‑scenes steps."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCICIO 38 - Fazendo Coisas com Listas"},
+        {"kind": "page", "locator": "Page 137"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "append", "method"]
+    },
+    {
+      "candidate_id": "candidate-5-015",
+      "label": "Dictionaries as key‑value stores",
+      "description": "Understanding that a dictionary (dict) is a collection of key‑value pairs, allowing access to values using keys rather than numeric indices.",
+      "coverage_criteria": [
+        "Student can create a dictionary with at least two keys and retrieve a value by key.",
+        "Student can explain the difference between list indexing (by integer) and dictionary key access."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Exercise 39 introduces dicionário: 'a way to store data like a list, but instead of numbers you can use almost anything' and compares dict and list operations.",
+        "granularity_rationale": "The essential concept of a mapping structure; can be tested with simple put‑and‑get operations."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 39 - Dicionários, Ah, os Adoráveis Dicionários"},
+        {"kind": "page", "locator": "Page 143"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "dict"]
+    },
+    {
+      "candidate_id": "candidate-5-016",
+      "label": "Assigning and accessing dictionary items",
+      "description": "Adding new key‑value pairs to a dictionary and retrieving values using square‑bracket notation, with both string and other immutable types as keys.",
+      "coverage_criteria": [
+        "Student can add a new entry to an existing dictionary (e.g., stuff['city'] = 'SF').",
+        "Student can read a dictionary definition and predict the result of accessing a specific key."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The Sessão Python shows creating a dict with name/age/height, accessing via stuff['name'], and then adding stuff['city'] = 'SF'.",
+        "granularity_rationale": "Focused on the syntax for mutation and access; small enough to verify with a two‑line code snippet."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 39 - Dicionários, Ah, os Adoráveis Dicionários"},
+        {"kind": "page", "locator": "Page 143"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Aprenda Python 3 do Jeito Certo",
+      "source_year": "2019",
+      "name_drops": ["Python", "dict"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-5-001",
+      "to_candidate_id": "candidate-5-002",
+      "reason": "The source presents f-strings and .format() as two alternative string formatting mechanisms in Python, both capable of embedding variables.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 6 - Strings e Texto"},
+        {"kind": "page", "locator": "Page 25"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-5-004",
+      "to_candidate_id": "candidate-5-005",
+      "reason": "Command-line arguments captured via sys.argv are commonly unpacked into named variables, as demonstrated in Exercise 13 where argv is unpacked into script, first, second, third.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 13 - Parâmetros, Descompactação, Variáveis"},
+        {"kind": "page", "locator": "Page 43"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-5-004",
+      "to_candidate_id": "candidate-5-006",
+      "reason": "In Exercise 15, the filename to open is obtained from sys.argv, linking command-line arguments to file reading.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 15 - Lendo Arquivos"},
+        {"kind": "page", "locator": "Page 51"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-5-012",
+      "to_candidate_id": "candidate-5-013",
+      "reason": "For loops are introduced together with lists in Exercise 32, where lists are iterated over to print their elements.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 32 - Loops e Listas"},
+        {"kind": "page", "locator": "Page 115"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-5-013",
+      "to_candidate_id": "candidate-5-015",
+      "reason": "The source directly compares lists (indexed by numbers) and dictionaries (indexed by keys) to highlight when to use each data structure.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "EXERCÍCIO 39 - Dicionários, Ah, os Adoráveis Dicionários"},
+        {"kind": "page", "locator": "Page 143"}
+      ]
+    }
+  ]
+}

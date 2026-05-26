@@ -1,0 +1,76 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "display_code": "L02",
+    "workbook_row_number": 7,
+    "title": "Problem framing",
+    "date": "29/04/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This class combines theoretical references on decision-making frameworks and the balance between data and intuition with a practical group exercise. Students analyze the strategic dilemma of a rapidly growing Brazilian startup and must decide between international expansion, investment in new technology, or local consolidation. The dynamic challenges the groups to justify their choice, identify critical information, and reflect on when to rely on objective evidence or managerial instincts."
+  },
+  "self_study": {
+    "self_study_id": "10",
+    "lesson_id": "lesson-2026-04-29-problem-framing",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 10,
+      "week": 2,
+      "sort": 11,
+      "title": "Are You Solving the Right Problem?",
+      "description": "What does it take to build thought leadership that actually works in the market? This material explores problem framing, innovation inside real organizations, and why the best ideas start with solving a clear, meaningful problem. It also looks at how thought leadership grows beyond the book, turning strong concepts into practical tools, market relevance, and long-term business value.",
+      "url": "https://thoughtleadershipleverage.com/are-you-solving-the-right-problem-thomas-wedell-wedellsborg/",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Problem framing",
+      "class_date": "29/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0010-article-are-you-solving-the-right-problem.md",
+      "sha256": "654dd467d19b317d301734e6883126c1bdc8216d3ee28be396ddb26fb6dfab45",
+      "word_count": 859,
+      "bytes": 5817,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/10/10-are-you-solving-the-right-problem.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/10",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0010-article-are-you-solving-the-right-problem.md",
+    "sha256": "654dd467d19b317d301734e6883126c1bdc8216d3ee28be396ddb26fb6dfab45",
+    "word_count": 859,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/10/10-are-you-solving-the-right-problem.md",
+    "markdown": "---\nid: \"10\"\ntitle: \"Are You Solving the Right Problem?\"\nsource_url: \"https://thoughtleadershipleverage.com/are-you-solving-the-right-problem-thomas-wedell-wedellsborg/\"\nfetch_url: \"https://thoughtleadershipleverage.com/are-you-solving-the-right-problem-thomas-wedell-wedellsborg\"\nresolved_url: \"https://thoughtleadershipleverage.com/are-you-solving-the-right-problem-thomas-wedell-wedellsborg/\"\nfirecrawl_title: \"Are You Solving the Right Problem? | Thomas Wedell-Wedellsborg\"\ndescription: \"This episode explores problem framing, innovation inside real organizations, and why the best ideas start with solving a meaningful problem., Libsyn Podcast Player\"\nfetched_at: \"2026-05-26T16:40:43.651453Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"d07446ef6fb6c45a4fb1dcd558f82f5692aba1c9a0eac459397091019cdb7c69\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=UTF-8\"\nword_count: 741\nchar_count: 4685\ncontent_sha256: \"e4e82df41f200d04dd4cc4041e16060cc386f7f1aaf37421e82ab1754782558c\"\nimage_count: 12\nlink_count: 58\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# Are You Solving the Right Problem? \n\n## Leveraging Thought Leadership\n\nThe Leveraging Thought Leadership podcast is created by Peter Winick and Bill Sherman and produced by Thought Leadership Leverage.\n\n![Image of Episode 702 with Peter Winick and Thomas Wedell-Wedellsborg.](https://thoughtleadershipleverage.com/wp-content/uploads/2026/03/TLL-Episode702-Thomas_Wedell-Wedellsborg.jpg)  \n\n## How Great Thought Leadership Begins with the Right Question\n\n### What does it take to build thought leadership that actually works in the market? \nThis episode explores problem framing, innovation inside real organizations, and why the best ideas start with solving a clear, meaningful problem. It also looks at how thought leadership grows beyond the book, turning strong concepts into practical tools, market relevance, and long-term business value.\n\n**What makes thought leadership actually travel? Not a bigger platform. Not louder marketing. A sharper idea that solves a real problem.**\n\nIn this episode, Peter talks with [Thomas Wedell-Wedellsborg,](https://www.thomaswedell.com/) coauthor of _[Innovation as Usual: How to Help Your People Bring Great Ideas to Life](https://www.amazon.com/Innovation-Usual-People-Bring-Great/dp/1422144194/)_ and author of [_What’s Your Problem?: To Solve Your Toughest Problems, Change the Problems You Solve.](https://www.amazon.com/Whats-Your-Problem-Toughest-Problems/dp/1633697223/) Thomas’s work sits at the intersection of innovation, problem framing, and practical execution inside real organizations.\n\nThe conversation focuses on a core truth behind strong thought leadership: the best ideas win because they are useful. Thomas explains that both of his books grew from underserved problems in the market. Innovation as Usual challenged the idea that innovation belongs only to CEOs or startups. It made the case that innovation has to work for managers operating inside the constraints of large organizations.\n\nPeter and Thomas also unpack why What’s Your Problem? has such broad appeal. Its core idea is simple and powerful: most leaders are not bad at solving problems. They are bad at identifying the right problem to solve. That framing gives Thomas thought leadership that works across industries, roles, and even age groups because the problem is universal and the method is practical.\n\nThis episode is also a masterclass in how thought leadership grows after a book is published. Thomas is candid about the anticlimax of launch day and the longer work that follows. A book is not the end goal. It is the platform. The real job is pushing the idea into the world, finding the people it helps, and building traction over time.\n\nAnother standout theme is precision. Thomas argues that you do not start by chasing the audience. You start by naming the problem clearly. That is what helps the right audience find you. It is also why his ideas resonate with leaders, product managers, conference audiences, and executive education clients alike. Clear problem definition becomes clear market positioning.\n\nPeter also explores the discipline behind work that lasts. Thomas shares how testing ideas, getting blunt feedback, and refining the material made the second book stronger. For leaders building their own platforms, that is the takeaway: thought leadership becomes more powerful when it is pressure-tested, practical, and easy for others to pass along.\n\nThis is a rich conversation about building thought leadership that does more than sound smart. It solves meaningful problems. It earns relevance in the market. And it creates lasting value long after the book hits the shelf.\n\n### Three Key Takeaways:\n\n- **Great thought leadership starts with a real problem, not a broad audience.** Thomas makes the case that the breakthrough came from finding a novel angle on a useful issue. Instead of chasing visibility, he focused on problems that were important but underserved—first innovation inside large organizations, then problem framing itself.\n- **A book is not the end product. It is the platform.** One of the clearest lessons in the episode is that publishing is often anticlimactic. The real work begins after launch, when the author has to push the idea into the world, find the people it helps, and build traction over time.\n- **The strongest ideas spread because they are practical and shareable.** Thomas talks about testing his work with others and watching for the moment when readers said, “Can I share this with a buddy?” That is the signal that the idea is useful enough to travel. His work on solving the right problems has range because it is clear, practical, and easy for people to apply in very different settings.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://thoughtleadershipleverage.com/wp-content/uploads/2026/03/TLL-Episode702-Thomas_Wedell-Wedellsborg.jpg"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

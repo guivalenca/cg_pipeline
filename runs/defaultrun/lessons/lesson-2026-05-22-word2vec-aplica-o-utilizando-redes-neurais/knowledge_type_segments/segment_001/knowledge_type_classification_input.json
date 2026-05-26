@@ -1,0 +1,96 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+    "title": "Word2Vec - Aplicação utilizando Redes Neurais"
+  },
+  "segment": {
+    "segment_id": "segment_001",
+    "label": "Theoretical Foundations",
+    "concept_ids": [
+      "concept-distributional-hypothesis-dcb5a40c",
+      "concept-word-embeddings-as-dense-vector-representations-5a56bf79",
+      "concept-similarity-measures-for-word-vectors-cosine-and-euclidean-056bb532"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-distributional-hypothesis-dcb5a40c",
+      "label": "Distributional Hypothesis",
+      "teaching_description": "The distributional hypothesis states that words occurring in similar contexts tend to have similar meanings. It is the foundation for distributional semantics and word embeddings, allowing meaning to be inferred from contextual usage patterns.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Explain how the hypothesis justifies using word embeddings to represent meaning.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_candidate_ids": [
+        "lr009_001",
+        "lr006_004"
+      ]
+    },
+    {
+      "concept_id": "concept-word-embeddings-as-dense-vector-representations-5a56bf79",
+      "label": "Word Embeddings as Dense Vector Representations",
+      "teaching_description": "Words can be represented as dense, low-dimensional vectors in a continuous space, where semantically similar words have similar vectors, and vector dimensions capture latent semantic features. This contrasts with sparse representations like one-hot or bag-of-words.",
+      "coverage_criteria": [
+        "Explain what word embeddings are and how they differ from sparse representations.",
+        "Give an example of semantic relationships captured by embeddings (e.g., analogies).",
+        "Describe how vector dimensions can represent features like authority or gender."
+      ],
+      "source_candidate_ids": [
+        "lr006_012",
+        "lr010_005",
+        "lr009_002"
+      ]
+    },
+    {
+      "concept_id": "concept-similarity-measures-for-word-vectors-cosine-and-euclidean-056bb532",
+      "label": "Similarity Measures for Word Vectors: Cosine and Euclidean",
+      "teaching_description": "Canonical understanding of similarity measures for word vectors, including defining cosine similarity, explaining its preference over dot product, computing both cosine similarity and Euclidean distance, and understanding the differences and when to use each.",
+      "coverage_criteria": [
+        "Define cosine similarity and explain why it is preferred over dot product for word vectors.",
+        "Compute cosine similarity between two given vectors.",
+        "Compute Euclidean distance between two given vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and identify scenarios where each is more appropriate."
+      ],
+      "source_candidate_ids": [
+        "lr006_005",
+        "lr009_005"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_003",
+    "area": {
+      "id": "area_003",
+      "label": "Group Decision-Making Process",
+      "rationale": "Both candidates focus on explicit group decision-making procedures and strategies for effective discussion, forming a natural small neighborhood on group dynamics.",
+      "candidate_ids": [
+        "lr008_001",
+        "lr008_002"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr008_001",
+    "lr008_002"
+  ],
+  "candidates": [
+    {
+      "id": "lr008_001",
+      "label": "Explicit Decision-Making Procedure",
+      "description": "Groups should spell out the decision-making process ahead of time; following an explicit procedure leads to more effective decisions.",
+      "coverage_criteria": [
+        "Student can explain why clarifying the decision-making process in advance benefits group effectiveness.",
+        "Student can cite or summarize the research finding that explicit procedures improve decision quality."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+      "lesson_title": "Group decision-making process",
+      "depth": "definition"
+    },
+    {
+      "id": "lr008_002",
+      "label": "Strategies for Effective Group Discussion",
+      "description": "Practical techniques to improve group decision-making, including encouraging all members to participate and thoroughly discussing the advantages and disadvantages of each option before deciding.",
+      "coverage_criteria": [
+        "Student can explain why encouraging broad participation and discussing pros and cons lead to better group decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-02-group-decision-making-process",
+      "lesson_title": "Group decision-making process",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,415 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T02:58:15.128729+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+  "self_study_id": "3",
+  "source_body_path": "extraction/post-image/0003-video-bash-in-100-seconds.md",
+  "source_body_sha256": "dbea8adf78b462bb7bf66a77fefb0b4f51714268caef69405f6a57ccbb33646b",
+  "source_name": "Bash in 100 Seconds",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-3-001",
+      "label": "Bash as Command Language Interpreter",
+      "description": "Bash is a shell that interprets commands typed by the user to interact with the operating system.",
+      "coverage_criteria": [
+        "Define Bash and explain its role as a command-language interpreter.",
+        "Identify that typing a command in the terminal and pressing enter causes the shell to interpret and execute that command."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly introduces Bash as a command language interpreter for interacting with the computer from the command line.",
+        "granularity_rationale": "This is a foundational concept that can be verified by asking the student to define Bash or explain what happens when a command is entered."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:00 Bash: Command Language Interpreter"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "Bash"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-002",
+      "label": "Shell as Kernel Wrapper",
+      "description": "The shell surrounds the operating system kernel, hiding its complexity and allowing programmers to execute tasks (data access, file creation) with simple commands.",
+      "coverage_criteria": [
+        "Explain why the shell is considered a 'shell' around the kernel.",
+        "Describe how the shell simplifies access to system functionality like file management."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video describes the shell as 'surrounding the operating system kernel to hide its intricate details' and demonstrates basic commands like touch and cat.",
+        "granularity_rationale": "The concept is small enough to be tested by asking the student to contrast the shell's role with the kernel's complexity."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:05 The Shell Concept"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-003",
+      "label": "History of Unix Shells",
+      "description": "Unix shells evolved from the Thompson shell (1971) by Ken Thompson, to the Bourne shell by Stephen Bourne (1979), and finally to Bash (Bourne-Again Shell) by Brian Fox in 1989.",
+      "coverage_criteria": [
+        "Name the three major shells in chronological order and their creators.",
+        "Explain why Bash is called the Bourne-Again Shell."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video provides a timeline of shell development, showing images and dates for Thompson, Bourne, and Bash.",
+        "granularity_rationale": "This historical overview is a self-contained piece of knowledge that can be assessed with a few recall questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:17 History of Shells"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "Ken Thompson",
+        "Stephen Bourne",
+        "Brian Fox",
+        "Thompson shell",
+        "Bourne shell",
+        "Bash"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-004",
+      "label": "Bash as Default Unix Shell",
+      "description": "On most Unix-like systems such as macOS and Linux distributions, Bash is the default shell when opening a terminal, providing a prompt for command input.",
+      "coverage_criteria": [
+        "State that Bash is the default shell on many Unix systems.",
+        "Recognize the terminal prompt as the Bash shell waiting for commands."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video mentions that when you open the terminal on a Unix machine like macOS and most Linux distros, the default shell is usually Bash.",
+        "granularity_rationale": "This fact can be verified with a simple yes/no or multiple-choice question, making it an appropriately granular candidate."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:31 Bash as a Default Shell"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "macOS",
+        "Linux"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-005",
+      "label": "Checking Current Shell with `which $SHELL`",
+      "description": "The command `which $SHELL` reveals the full path of the current shell executable (e.g., `/usr/bin/bash`), indicating whether Bash is running.",
+      "coverage_criteria": [
+        "Execute `which $SHELL` in a terminal and interpret the output.",
+        "Explain that the shell is an application located in the binaries directory."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates the command `which $SHELL` and its output `/usr/bin/bash` to verify that Bash is the running shell.",
+        "granularity_rationale": "This is a single command that can be practiced and checked easily, representing a minimal checkable skill."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:45 Checking Your Shell"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "which",
+        "$SHELL"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-006",
+      "label": "Bash as a Scripting Language",
+      "description": "Bash is not only an interactive shell but also a programming language that allows writing scripts to automate command-line tasks.",
+      "coverage_criteria": [
+        "Explain that Bash scripts automate sequences of commands.",
+        "Identify that a Bash script is a file containing bash commands that can be executed."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states that Bash is also a programming language that allows us to write scripts, automating manual commands.",
+        "granularity_rationale": "This concept distinguishes Bash's dual nature and can be assessed with a single explanation question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:52 Bash as a Programming Language"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-007",
+      "label": "Bash Startup Files (.bash_profile and .bashrc)",
+      "description": "When a Bash session starts, it automatically executes configuration files (typically `.bash_profile` or `.bashrc` in the home directory) to customize the shell environment.",
+      "coverage_criteria": [
+        "Explain the purpose of startup scripts.",
+        "Identify that .bash_profile or .bashrc are used to set up aliases, environment variables, and prompt appearance."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video mentions that launching the shell runs a startup script defined in .bash_profile or .bashrc, and shows a customized prompt and git status as an example of customization.",
+        "granularity_rationale": "This single configuration concept can be verified by asking where startup settings are stored and what they do."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:00 Startup Scripts"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        ".bash_profile",
+        ".bashrc"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-008",
+      "label": "Creating a Bash Script File",
+      "description": "A Bash script is a plain text file (often with a `.sh` extension), starting with a shebang (`#!/usr/bin/bash`) that specifies the interpreter, followed by commands executed sequentially.",
+      "coverage_criteria": [
+        "Write a script file with a shebang line and at least one command.",
+        "Explain the purpose of the shebang."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates creating a script named beerme.sh, adding a shebang, and using echo, with the explanation that the first line should be the shebang followed by the path to the application.",
+        "granularity_rationale": "This captures the minimal structure of a Bash script, which is a fundamental skill that can be tested with a short coding task."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:12 Creating a Bash Script"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "shebang"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-009",
+      "label": "Declaring and Using Variables in Bash",
+      "description": "Variables in Bash are assigned with uppercase names and no spaces around `=` (e.g., `GREET=\"Hello\"`) and are referenced by prefixing the name with `$` (e.g., `echo $GREET`).",
+      "coverage_criteria": [
+        "Declare a variable in a Bash script.",
+        "Print the value of a variable using `$`."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows a variable `GREET=\"Howdy Partner\"` and its use with `echo $GREET`, explicitly stating the rule: name in all caps, followed by equal sign, then reference with dollar sign.",
+        "granularity_rationale": "Variable usage is a basic building block of scripting that can be validated with a simple exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:30 Variables in Bash"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-010",
+      "label": "Executing a Bash Script",
+      "description": "A Bash script is run by typing its path, e.g., `./script.sh`, from the command line (assuming the file has execute permissions).",
+      "coverage_criteria": [
+        "Execute a script located in the current directory using `./scriptname.sh`.",
+        "Explain that `./` refers to the current directory."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video runs the script by typing `./beerme.sh` into the shell, demonstrating the execution method.",
+        "granularity_rationale": "This is a single operational step that can be verified by asking the student to run a given script."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:38 Running a Script"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-011",
+      "label": "Using Positional Arguments ($1, $2, …)",
+      "description": "When a script is invoked with arguments, those arguments are automatically available inside the script as $1, $2, etc., representing the first, second, etc. arguments.",
+      "coverage_criteria": [
+        "Write a script that uses $1 and $2 to access passed arguments.",
+        "Explain that $0 typically contains the script name."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video demonstrates passing arguments `name age` and accessing them with `$1` and `$2` in the script.",
+        "granularity_rationale": "Positional argument handling is a specific pattern in Bash scripting that can be assessed by having the student write or modify a script that uses them."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:41 Positional Arguments"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-012",
+      "label": "User Input with `read` and Loops",
+      "description": "The `read -p` command prompts for user input; constructs like `while true; do ... done` and `case` statements enable interactive looping and decision-making.",
+      "coverage_criteria": [
+        "Write a script that repeatedly prompts the user using a while loop and read -p.",
+        "Use a case statement to branch on user responses, including options for yes/no."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows a script with `while true; do read -p ...; case $reply in [Yy]* ... esac; done` to ask for user confirmation.",
+        "granularity_rationale": "This composite skill involves a few interrelated commands, still checkable with a focused coding exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "01:51 User Input and Loops"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "read",
+        "while",
+        "case"
+      ]
+    },
+    {
+      "candidate_id": "candidate-3-013",
+      "label": "Conditional `if` Statements in Bash",
+      "description": "Bash supports `if` statements with comparison operators (e.g., `-lt`, `-gt`, `-eq`); the syntax is `if [ condition ]; then ... else ... fi`.",
+      "coverage_criteria": [
+        "Write an if statement that compares two numbers.",
+        "Explain the syntax of an if-fi block and the use of `-lt`."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows `if [ $2 -lt 21 ]; then echo \"You are too young...\" else fi` to implement conditional logic based on age.",
+        "granularity_rationale": "Conditional logic is a fundamental programming construct; this candidate focuses specifically on its Bash syntax, making it a well-scoped checkable item."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:03 Conditional Logic"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-3-014",
+      "label": "Running Commands in the Background",
+      "description": "Appending an ampersand (`&`) to a command runs it asynchronously in the background, allowing multiple long-running processes to run concurrently.",
+      "coverage_criteria": [
+        "Demonstrate running a command in the background using `&`.",
+        "Explain that the shell prompt returns immediately while the command runs."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows multiple commands like `long_process &` to illustrate background execution, stating that adding an ampersand after a command runs it in the background.",
+        "granularity_rationale": "This is a single shell feature that can be demonstrated with a short command, making it a concise checkable concept."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:14 Running in Background"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Bash in 100 Seconds",
+      "source_year": "2024",
+      "name_drops": [
+        "ampersand"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [],
+  "summary": {
+    "candidate_count": 14,
+    "source_local_connector_candidate_count": 0
+  }
+}

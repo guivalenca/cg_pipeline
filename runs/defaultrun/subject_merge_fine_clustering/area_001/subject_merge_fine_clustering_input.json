@@ -1,0 +1,270 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_001",
+    "area": {
+      "id": "area_001",
+      "label": "NLP Foundations and Definitions",
+      "rationale": "Covers introductory definitions of NLP, its everyday applications, and basic concepts that frame the field.",
+      "candidate_ids": [
+        "lr001_002",
+        "lr001_003",
+        "lr001_005",
+        "lr001_006",
+        "lr001_007",
+        "lr002_001",
+        "lr002_023",
+        "lr002_025",
+        "lr003_012",
+        "lr003_014",
+        "lr004_017",
+        "lr005_023",
+        "lr007_028"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr001_002",
+    "lr001_003",
+    "lr001_005",
+    "lr001_006",
+    "lr001_007",
+    "lr002_001",
+    "lr002_023",
+    "lr002_025",
+    "lr003_012",
+    "lr003_014",
+    "lr004_017",
+    "lr005_023",
+    "lr007_028"
+  ],
+  "candidates": [
+    {
+      "id": "lr001_002",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a branch of AI that enables machines to read, understand, and derive meaning from human languages, combining linguistics and computer science.",
+      "coverage_criteria": [
+        "Define NLP and its two foundational fields: linguistics and computer science."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_003",
+      "label": "Everyday Applications of NLP",
+      "description": "Common NLP applications include autocorrect for spelling and plagiarism checkers that scan for duplicate content.",
+      "coverage_criteria": [
+        "List and describe two everyday NLP applications, such as autocorrect and plagiarism checking."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_005",
+      "label": "Word Normalization: Stemming and Lemmatization",
+      "description": "Stemming reduces words to root forms by cutting suffixes (e.g., 'skipping' → 'skip'), while lemmatization uses dictionary-based analysis to find base forms (e.g., 'am', 'are', 'is' → 'be').",
+      "coverage_criteria": [
+        "Define stemming and lemmatization, and contrast one with the other with examples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_006",
+      "label": "Linguistic Annotation: POS Tagging and Named Entity Recognition",
+      "description": "POS tagging labels words with grammatical categories (noun, verb, etc.), while Named Entity Recognition identifies names, locations, and organizations in text.",
+      "coverage_criteria": [
+        "Explain what POS tagging and Named Entity Recognition are, giving examples of each."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr001_007",
+      "label": "Machine Learning in NLP",
+      "description": "After preprocessing, ML algorithms like Naive Bayes can be applied to tasks such as sentiment analysis, learning patterns from labeled data.",
+      "coverage_criteria": [
+        "Describe the role of machine learning in NLP, giving Naive Bayes as an example."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+      "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_001",
+      "label": "NLP Definition and Suitability Criteria",
+      "description": "Natural Language Processing (NLP) is a branch of artificial intelligence that uses machine learning to process and interpret texts and data. Three characteristics indicate when NLP is appropriate: the need to understand human communication, the requirement for the machine to respond with precision, and the ability to process and analyze large volumes of data for predictions or suggestions.",
+      "coverage_criteria": [
+        "Define NLP as presented in the lesson.",
+        "List the three characteristics that make NLP suitable for problem-solving.",
+        "Give an example of a problem that would benefit from these characteristics."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_023",
+      "label": "Aplicações de PLN (Visão Geral)",
+      "description": "Lista e descreve aplicações de PLN: informação, tradução automática, sistemas de recomendação, smart replies, reconhecimento de voz, análise de sentimento, Q&A, extração de informação, sumarização, classificação, modelagem de tópicos, OCR, NER e geração de linguagem natural.",
+      "coverage_criteria": [
+        "Citar pelo menos cinco aplicações de PLN.",
+        "Escolher uma aplicação e explicar como o PLN é usado."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_025",
+      "label": "Desafios do PLN: Segmentação, Contexto e Semântica",
+      "description": "Aborda desafios fundamentais do PLN: segmentação de texto, análise de contexto, extração de significado semântico e ambiguidade.",
+      "coverage_criteria": [
+        "Explicar o desafio da segmentação em PLN com um exemplo.",
+        "Descrever como a ambiguidade pode dificultar a interpretação de frases."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr003_012",
+      "label": "Why Text Needs to Be Converted to Numbers for Machine Learning",
+      "description": "Machine learning algorithms require numerical input (matrices). Text data must be vectorized into feature vectors so that models can learn a mapping Y=f(X).",
+      "coverage_criteria": [
+        "Explain the necessity of numerical representation for ML models.",
+        "Describe the Y=f(X) formulation and the role of vectorization."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr003_014",
+      "label": "Natural Language Challenges",
+      "description": "Natural language is inherently structured yet free-form; the same meaning can be expressed in many ways, and similar words can convey different meanings, making NLP distinct from other data types.",
+      "coverage_criteria": [
+        "Give examples of sentences where similar words convey different meanings, and explain why NLP requires special approaches compared to tabular data."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+      "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+      "depth": "definition"
+    },
+    {
+      "id": "lr004_017",
+      "label": "Introduction to Natural Language Processing (NLP)",
+      "description": "NLP is the field of making computers understand natural language, relying on statistical approximations; applications include information extraction and chatbots.",
+      "coverage_criteria": [
+        "Explain that NLP deals with understanding natural language by machines.",
+        "Mention that approaches are statistical and approximate.",
+        "Give examples of applications such as document information extraction or chatbots."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+      "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_023",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of AI focused on enabling computers to process and analyze human language, applied to tasks like text classification and sentiment analysis.",
+      "coverage_criteria": [
+        "Define NLP.",
+        "Give an example of an NLP task."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+      "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "depth": "definition"
+    },
+    {
+      "id": "lr007_028",
+      "label": "Rede Neural Artificial",
+      "description": "Uma rede neural artificial é um modelo preditivo inspirado no cérebro, composto por neurônios artificiais conectados que realizam cálculos ponderados sobre as entradas e produzem saídas através de funções de ativação.",
+      "coverage_criteria": [
+        "Definir o que é uma rede neural artificial e seus componentes principais (neurônios, conexões, função de ativação).",
+        "Descrever como um neurônio artificial calcula sua saída a partir das entradas, pesos e função de ativação."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+      "lesson_title": "Introdução a Rede Neural",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

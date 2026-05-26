@@ -1,0 +1,87 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-19-introdu-o-a-rede-neural/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+    "title": "Introdução a Rede Neural"
+  },
+  "segment": {
+    "segment_id": "segment_002",
+    "label": "História e Desenvolvimento das Redes Neurais",
+    "concept_ids": [
+      "concept-adaline-and-madaline-1122c21b",
+      "concept-minsky-papert-critique-and-the-ai-winter-028d2954",
+      "concept-hopfield-networks-and-the-revival-of-neural-network-research-4ba34b9d"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-adaline-and-madaline-1122c21b",
+      "label": "ADALINE and MADALINE",
+      "teaching_description": "Early adaptive linear neural networks (ADALINE, MADALINE) developed by Widrow and Hoff (1959) that used adaptive linear elements; MADALINE was the first neural network applied to a real-world problem (echo cancellation).",
+      "coverage_criteria": [
+        "Explain what ADALINE and MADALINE stand for.",
+        "Identify echo cancellation as the first real-world application of a neural network (MADALINE)."
+      ],
+      "source_candidate_ids": [
+        "lr007_004"
+      ]
+    },
+    {
+      "concept_id": "concept-minsky-papert-critique-and-the-ai-winter-028d2954",
+      "label": "Minsky & Papert critique and the AI winter",
+      "teaching_description": "The 1969 book 'Perceptrons' by Minsky and Papert proved the limitations of single-layer perceptrons, leading to a halt in neural network funding and research throughout the 1970s.",
+      "coverage_criteria": [
+        "Explain that Minsky and Papert demonstrated the inability of perceptrons to solve non-linearly separable problems (like XOR), causing a funding freeze.",
+        "Define the term 'AI winter' in the context of neural networks."
+      ],
+      "source_candidate_ids": [
+        "lr007_005"
+      ]
+    },
+    {
+      "concept_id": "concept-hopfield-networks-and-the-revival-of-neural-network-research-4ba34b9d",
+      "label": "Hopfield networks and the revival of neural network research",
+      "teaching_description": "John Hopfield's 1982 paper and the US-Japan Conference on Cooperative Competitive Neural Networks rekindled interest and funding in neural networks, ending the AI winter.",
+      "coverage_criteria": [
+        "State that Hopfield's 1982 approach and the US-Japan conference helped restart neural network funding.",
+        "Mention that the conference and the Japanese fifth-generation project spurred renewed investment."
+      ],
+      "source_candidate_ids": [
+        "lr007_006"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

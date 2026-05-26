@@ -1,0 +1,40 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Naive Bayes Classifier Core Concept",
+      "description": "Understanding the Naive Bayes classifier as a probabilistic method that applies Bayes' theorem with naive independence assumption to compute class posterior probabilities, without performing explicit calculations.",
+      "coverage_criteria": [
+        "State the naive independence assumption",
+        "Describe how Naive Bayes uses Bayes theorem for classification",
+        "Identify that it is an eager learning algorithm"
+      ],
+      "source_candidate_ids": ["lr005_001"],
+      "merge_rationale": "Candidate lr005_001 covers the core conceptual understanding at application depth without probability computation, which is a distinct teachable idea from performing numerical calculations."
+    },
+    {
+      "id": "sm002",
+      "label": "Naive Bayes Probability Calculation",
+      "description": "Applying Bayes' theorem with independence to compute class-conditional probabilities from term frequencies for text classification.",
+      "coverage_criteria": [
+        "State Bayes theorem and apply to classification",
+        "Explain independence assumption and its effect on factoring P(X|y)",
+        "Calculate class probability from term frequencies"
+      ],
+      "source_candidate_ids": ["lr005_025"],
+      "merge_rationale": "Candidate lr005_025 requires numerical calculation of probabilities, representing a deeper application behavior not present in lr005_001, thus merits a separate accepted concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr005_001",
+      "status": "used_in",
+      "accepted_ids": ["sm001"]
+    },
+    {
+      "candidate_id": "lr005_025",
+      "status": "used_in",
+      "accepted_ids": ["sm002"]
+    }
+  ]
+}

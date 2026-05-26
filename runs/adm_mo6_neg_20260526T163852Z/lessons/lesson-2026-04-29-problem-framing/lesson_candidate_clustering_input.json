@@ -1,0 +1,989 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-04-29-problem-framing",
+    "title": "Problem framing",
+    "description": "This class combines theoretical references on decision-making frameworks and the balance between data and intuition with a practical group exercise. Students analyze the strategic dilemma of a rapidly growing Brazilian startup and must decide between international expansion, investment in new technology, or local consolidation. The dynamic challenges the groups to justify their choice, identify critical information, and reflect on when to rely on objective evidence or managerial instincts.",
+    "date": "29/04/2026",
+    "display_code": "L02"
+  },
+  "input_candidate_ids": [
+    "c8_pro_thinking_001",
+    "c8_pro_thinking_002",
+    "c8_pro_thinking_003",
+    "c8_pro_thinking_004",
+    "c8_pro_thinking_005",
+    "c8_pro_thinking_006",
+    "c9_pro_thinking_001",
+    "c9_pro_thinking_002",
+    "c9_pro_thinking_003",
+    "c9_pro_thinking_004",
+    "c9_pro_thinking_005",
+    "c9_pro_thinking_006",
+    "c9_pro_thinking_007",
+    "c9_pro_thinking_008",
+    "c9_pro_thinking_009",
+    "c9_pro_thinking_010",
+    "c9_pro_thinking_011",
+    "c10_pro_thinking_001",
+    "c10_pro_thinking_002",
+    "c10_pro_thinking_003",
+    "c10_pro_thinking_004",
+    "c10_pro_thinking_005",
+    "c10_pro_thinking_006",
+    "c10_pro_thinking_007",
+    "c11_pro_thinking_001",
+    "c11_pro_thinking_002",
+    "c11_pro_thinking_003",
+    "c11_pro_thinking_004",
+    "c11_pro_thinking_005",
+    "c11_pro_thinking_006",
+    "c11_pro_thinking_007",
+    "c11_pro_thinking_008",
+    "c11_pro_thinking_009",
+    "c12_pro_thinking_001",
+    "c12_pro_thinking_002",
+    "c12_pro_thinking_003",
+    "c12_pro_thinking_004",
+    "c12_pro_thinking_005",
+    "c13_pro_thinking_001",
+    "c13_pro_thinking_002",
+    "c13_pro_thinking_003",
+    "c13_pro_thinking_004",
+    "c13_pro_thinking_005",
+    "c13_pro_thinking_006"
+  ],
+  "candidates": [
+    {
+      "id": "c8_pro_thinking_001",
+      "label": "The necessity of combining data and intuition in decision making",
+      "description": "Effective decision making requires integrating quantitative data analysis with intuitive judgment, especially in complex or ambiguous situations where neither is sufficient alone.",
+      "coverage_criteria": [
+        "Student can articulate why both data and intuition are needed and provide a scenario where one alone would fail."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states that better results happen when decision makers combine the best of each, and it provides multiple examples (data overload, qualitative data, conflict resolution) to illustrate why both are necessary.",
+        "granularity_rationale": "This is the central thesis of the article; it can be checked by asking the student to explain the need for both in a specific decision context, making it a teachable, standalone idea."
+      },
+      "anchors": [
+        "Data and Intuition: Good Decisions Need Both"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_002",
+      "label": "Intuition as pattern recognition",
+      "description": "Intuition is a form of unconscious intelligence that recognizes patterns from past experiences, making it valuable for decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can explain how pattern recognition contributes to intuitive judgment and give an original example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states 'At its best, intuition is a powerful form of pattern recognition—something human brains are wired to do,' grounding the claim in cognitive science.",
+        "granularity_rationale": "This isolates the underlying mechanism of intuition, a concept small enough to be assessed with a single question about pattern recognition in decision contexts."
+      },
+      "anchors": [
+        "At its best, intuition is a powerful form of pattern recognition—something human brains are wired to do."
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_003",
+      "label": "Using intuition to overcome data overload",
+      "description": "When decision makers face excessive or low-quality data, intuition can cut through the noise and enable timely decisions without being paralyzed by analysis.",
+      "coverage_criteria": [
+        "Student can describe a scenario where data overload occurred and intuition helped, referencing the article's rationale."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Use intuition to make data-driven decisions quickly' discusses how intuition helps when data is overwhelming, citing Laura Huang's research on high-stakes decisions.",
+        "granularity_rationale": "This concept focuses on a specific application of intuition under a particular condition (data overload), making it concrete and testable via scenario-based questions."
+      },
+      "anchors": [
+        "Use intuition to make data-driven decisions quickly"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_004",
+      "label": "Value of qualitative data in decision making",
+      "description": "Qualitative data, such as customer satisfaction or employee morale, though harder to quantify, can provide critical insights for decisions and should not be neglected.",
+      "coverage_criteria": [
+        "Student can give an example of how qualitative data was used effectively (e.g., Google's Project Oxygen) and explain why ignoring it can lead to narrow decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Don’t ignore data just because it’s hard to quantify' explains that even hard-to-measure data can contain valuable insights, using Google's Project Oxygen as a concrete example.",
+        "granularity_rationale": "This concept isolates the distinction between data types and their decision value, small enough to verify by asking the student to name a qualitative metric and its decision impact."
+      },
+      "anchors": [
+        "Don’t ignore data just because it’s hard to quantify"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_005",
+      "label": "Using emotional awareness to resolve data-intuition conflicts",
+      "description": "When data and intuition conflict, pausing to name and examine one's emotions can reveal underlying risks or biases and lead to more informed decisions.",
+      "coverage_criteria": [
+        "Student can list three emotion-focused questions from the article to ask during a conflict and explain their purpose."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'How to respond when data and intuition conflict' provides concrete guidance on naming feelings to create space between emotions and actions, quoting Cheryl Strauss Einhorn.",
+        "granularity_rationale": "This is a specific, actionable technique that can be practiced; its granularity allows checking via role-play or identification of emotion-based questioning."
+      },
+      "anchors": [
+        "How to respond when data and intuition conflict"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_006",
+      "label": "Expertise as a prerequisite for reliable intuition",
+      "description": "Intuition is more accurate and useful when the decision maker possesses extensive experience and expertise in the relevant domain.",
+      "coverage_criteria": [
+        "Student can explain why novices should be cautious about relying on gut feelings alone."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states 'intuition is more reliable if decision makers have extensive experience and expertise with the decision topic' in the section about blending data and gut feel.",
+        "granularity_rationale": "This concept refines the understanding of intuition by adding a boundary condition, making it a standalone criterion that can be checked with a single comprehension question."
+      },
+      "anchors": [
+        "Important to note here: When blending data and gut feel, intuition is more reliable if decision makers have extensive experience and expertise with the decision topic."
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_001",
+      "label": "Problem Framing Definition",
+      "description": "Problem framing is the process of discovering, analyzing, and defining the real strategic problem before committing to solutions.",
+      "coverage_criteria": [
+        "Student can explain what problem framing means in their own words.",
+        "Student can distinguish problem framing from problem solving."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines problem framing in the 'What Is Problem Framing in Business Strategy?' section.",
+        "granularity_rationale": "This concept is atomic enough to be checked with a short explanation question, yet not so small that it's trivial."
+      },
+      "anchors": [
+        "What Is Problem Framing in Business Strategy?"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_002",
+      "label": "Problem Framing vs Problem Solving",
+      "description": "Problem framing identifies the right question to ask, while problem solving finds the answer.",
+      "coverage_criteria": [
+        "Student can articulate the difference between framing and solving with an example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states 'Problem framing is different from problem-solving because it is about discovering the right question to ask, while problem-solving is about finding the right answer.' in the FAQs.",
+        "granularity_rationale": "This distinction is a key teachable point that can be assessed with a simple compare-and-contrast question."
+      },
+      "anchors": [
+        "FAQs About Problem Framing in Strategy",
+        "2. How is problem framing different from problem solving?"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_003",
+      "label": "Premature Convergence",
+      "description": "Premature convergence is the brain's tendency to seek closure quickly under uncertainty, leading to locking onto the first plausible explanation or solution.",
+      "coverage_criteria": [
+        "Student can define premature convergence and give an example.",
+        "Student can identify a scenario where premature convergence occurs."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes premature convergence in the neuroscience section and cites research.",
+        "granularity_rationale": "This cognitive bias is a specific mechanism that can be checked with definition and scenario questions."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_004",
+      "label": "Pattern Completion Bias",
+      "description": "Pattern completion pushes our brains to fill gaps with familiar narratives, even when the problem is new.",
+      "coverage_criteria": [
+        "Student can explain pattern completion and how it leads to jumping to solutions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article lists pattern completion as one of the three mechanisms driving premature convergence.",
+        "granularity_rationale": "This is a distinct cognitive bias that can be assessed independently."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_005",
+      "label": "Confirmation Bias",
+      "description": "Confirmation bias leads people to seek evidence that supports their initial interpretation rather than challenging it.",
+      "coverage_criteria": [
+        "Student can define confirmation bias and relate it to premature convergence."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions confirmation bias as a mechanism of premature convergence.",
+        "granularity_rationale": "It's a well-known bias but taught here in the context of problem framing, making it a relevant checkable concept."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_006",
+      "label": "Organizational Pressures to Jump to Solutions",
+      "description": "Organizational systems like business case templates, status meetings, and budgeting processes push teams toward quick solutions before problem understanding.",
+      "coverage_criteria": [
+        "Student can list at least two organizational practices that reinforce solution-jumping.",
+        "Student can explain how these practices hinder problem framing."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a section to organizational dynamics that reinforce solution-jumping.",
+        "granularity_rationale": "This concept encompasses multiple examples integrated into a single teachable point about organizational culture."
+      },
+      "anchors": [
+        "Organizational Dynamics that Reinforce Solution-Jumping"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_007",
+      "label": "Double Diamond Model for Problem Framing",
+      "description": "The Double Diamond model consists of Discover (diverge) and Define (converge) phases for identifying and framing a problem before developing solutions.",
+      "coverage_criteria": [
+        "Student can describe the two phases of the first diamond.",
+        "Student can explain why these phases are important for problem framing."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article presents the Double Diamond model as a structured approach to problem framing.",
+        "granularity_rationale": "This is a core framework that can be assessed by asking the student to recall and apply it."
+      },
+      "anchors": [
+        "A Simple Framework for Effective Problem Framing"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_008",
+      "label": "Problem Reframing Technique",
+      "description": "Problem reframing involves restating a strategic question to uncover different solutions, risks, and opportunities, as shown in examples like asking 'Which customer problems would drive sustainable growth?' instead of 'How do we grow revenue 20%?'",
+      "coverage_criteria": [
+        "Student can give an example of reframing a problem.",
+        "Student can explain how reframing led to a better outcome in one of the provided examples."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides multiple examples of problem reframing with before-and-after scenarios.",
+        "granularity_rationale": "This concept is teachable by asking the student to apply reframing to a new situation."
+      },
+      "anchors": [
+        "Problem Reframing Examples Leaders Can Use"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_009",
+      "label": "AI Amplifies Bad Framing",
+      "description": "AI tools optimize around the problem framing they are given, so poorly framed problems lead AI to efficiently solve the wrong problem, often failing to deliver business value.",
+      "coverage_criteria": [
+        "Student can explain why bad framing leads to AI project failure.",
+        "Student can describe an example from the article where AI didn't improve outcomes due to framing."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states 'AI tools are only as good as the questions they are given' and provides an example with customer service AI.",
+        "granularity_rationale": "This concept ties problem framing to modern AI challenges, making it relevant and checkable with a scenario."
+      },
+      "anchors": [
+        "How AI Amplifies Bad Framing"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_010",
+      "label": "Building a Problem Framing Culture",
+      "description": "Leaders can instill a culture of problem framing by shifting focus from 'how to fix' to 'why is this happening', establishing habits like asking reflective questions, standardizing problem statements, and adding a diagnostic phase.",
+      "coverage_criteria": [
+        "Student can list at least three habits or rituals that encourage problem framing.",
+        "Student can explain why these habits help prevent solution-jumping."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's section 'Building a Culture That Stays in the Problem Space' provides specific practices.",
+        "granularity_rationale": "This concept packages multiple actionable habits into a single teachable idea about cultural change."
+      },
+      "anchors": [
+        "Building a Culture That Stays in the Problem Space"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_011",
+      "label": "Problem Framing Enables Execution Clarity",
+      "description": "A well-framed problem clarifies ownership, metrics, and cross-functional involvement, leading to better execution with fewer mid-course corrections.",
+      "coverage_criteria": [
+        "Student can explain how clarity from problem framing impacts execution.",
+        "Student can identify what aspects of execution are clarified (ownership, metrics, teams)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'From Framing to Ownership and Execution' explains this link.",
+        "granularity_rationale": "This concept is a direct outcome of good framing, teachable with a cause-effect question."
+      },
+      "anchors": [
+        "From Framing to Ownership and Execution"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_001",
+      "label": "Primacy of problem identification over problem solving",
+      "description": "Most leaders are skilled at solving problems but often fail at identifying the right problem to solve. Effective problem-solving requires correctly framing the problem first.",
+      "coverage_criteria": [
+        "Student can explain why identifying the right problem is more critical than solving it well.",
+        "Student can provide an example where misidentifying a problem led to ineffective solutions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that 'most leaders are not bad at solving problems. They are bad at identifying the right problem to solve.' This is a core teaching point of the episode and the book 'What’s Your Problem?'",
+        "granularity_rationale": "This concept is a single, distinct principle that can be verified by asking the student to articulate the difference between problem identification and solving, and its importance."
+      },
+      "anchors": [
+        "Three Key Takeaways (first bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_002",
+      "label": "Problem-centric thought leadership",
+      "description": "Effective thought leadership originates from identifying and addressing a real, meaningful problem rather than first targeting a broad audience. The right audience will be attracted by a clearly defined problem.",
+      "coverage_criteria": [
+        "Student can contrast problem-centric vs audience-centric approaches to thought leadership.",
+        "Student can give an example of a thought leader who built their platform around a specific problem."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'Great thought leadership starts with a real problem, not a broad audience.' and describes how Tom focused on underserved problems to build his thought leadership. This is a key takeaway of the episode.",
+        "granularity_rationale": "This is a focused strategic principle that can be assessed by asking the student to explain its reasoning and provide an application."
+      },
+      "anchors": [
+        "Three Key Takeaways (first bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_003",
+      "label": "Book as a platform, not an endpoint",
+      "description": "In thought leadership, a book launch is not the final goal but the beginning of a longer process of spreading the idea, building traction, and finding the people it helps.",
+      "coverage_criteria": [
+        "Student can describe what activities should follow a book launch to build thought leadership.",
+        "Student can explain why the book itself is insufficient for lasting impact."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly says: 'A book is not the end product. It is the platform.' and discusses the anticlimax of launch and the real work that follows. It is a clear lesson from the episode.",
+        "granularity_rationale": "This is a single actionable insight about thought leadership that can be checked by asking the student to outline post-publication strategies."
+      },
+      "anchors": [
+        "Three Key Takeaways (second bullet)"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_004",
+      "label": "Shareability as a signal of idea usefulness",
+      "description": "Ideas that are practical, clear, and easy for others to pass along have greater reach. A spontaneous desire to share an idea with peers indicates it is useful and well-framed.",
+      "coverage_criteria": [
+        "Student can identify characteristics that make an idea shareable.",
+        "Student can evaluate whether a given idea would likely spread in an organization based on its practicality and clarity."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'The strongest ideas spread because they are practical and shareable.' and describes how Tom tests his work by watching for the 'Can I share this with a buddy?' reaction. This is a key insight on thought leadership durability.",
+        "granularity_rationale": "This is a specific, testable criterion for idea dissemination that can be applied to new contexts."
+      },
+      "anchors": [
+        "Three Key Takeaways (third bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_005",
+      "label": "Innovation for managers in large organizations",
+      "description": "Innovation is not exclusive to CEOs or startups; it must be adapted to work for managers within the constraints of large organizations, enabling them to bring great ideas to life.",
+      "coverage_criteria": [
+        "Student can explain why innovation in large organizations differs from startups.",
+        "Student can describe at least one practice that helps managers institutionalize innovation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces Thomas's book 'Innovation as Usual' which challenges the notion that innovation belongs only to CEOs or startups and argues it must work for managers. This is a distinct concept covered in the episode.",
+        "granularity_rationale": "This is a single concept about organizational innovation that can be queried by asking students to compare contexts."
+      },
+      "anchors": [
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_006",
+      "label": "Clear problem definition as market positioning",
+      "description": "Clearly naming the problem you solve helps the right audience find your work, effectively serving as your market positioning. It aligns what you offer with what people are actually searching for.",
+      "coverage_criteria": [
+        "Student can explain how problem articulation can attract a specific audience.",
+        "Student can give an example of a company or thought leader that used clear problem definition for positioning."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'You do not start by chasing the audience. You start by naming the problem clearly. That is what helps the right audience find you.' and 'Clear problem definition becomes clear market positioning.' This is a direct teaching point.",
+        "granularity_rationale": "This is a concise principle linking problem framing to marketing, which can be assessed by asking the student to apply it to a hypothetical scenario."
+      },
+      "anchors": [
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_007",
+      "label": "Feedback-driven refinement of thought leadership",
+      "description": "Thought leadership content becomes stronger when it is pressure-tested with blunt feedback and refined over time. Iterative improvement based on feedback leads to more practical and durable ideas.",
+      "coverage_criteria": [
+        "Student can describe a feedback loop for improving an idea.",
+        "Student can explain why external testing is critical for thought leadership quality."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes how Thomas tested ideas, got blunt feedback, and refined his material to make his second book stronger. It notes that 'thought leadership becomes more powerful when it is pressure-tested, practical, and easy for others to pass along.'",
+        "granularity_rationale": "This is a specific practice that can be checked by asking the student to design a testing process for a nascent idea."
+      },
+      "anchors": [
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_001",
+      "label": "Relevância de clientes e tecnologia no ambiente externo de startups",
+      "description": "Para gestores de startups, clientes e tecnologia são os setores mais relevantes do ambiente externo que afetam seus negócios, sendo considerados extremamente relevantes pela grande maioria dos empreendedores.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de identificar que clientes e tecnologia são os principais setores externos que impactam startups, conforme a pesquisa."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo afirma que 95% dos empreendedores consideram 'clientes' extremamente relevantes e destaca a tecnologia como setor-chave do ambiente externo (seção 5.2 e Introdução).",
+        "granularity_rationale": "Esta é uma ideia específica e verificável: o aluno deve reconhecer os dois principais setores apontados pela pesquisa."
+      },
+      "anchors": [
+        "5.2 O ambiente externo e a busca de informação",
+        "1 Introdução"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_002",
+      "label": "Motivação para busca de informação: inovação e tomada de decisão",
+      "description": "Os gestores de startups buscam informações principalmente para gerar inovações e embasar suas decisões, conforme evidenciado na pesquisa.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar que a busca de informação nas startups está voltada para inovação e suporte à decisão."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O resumo e a conclusão indicam que 'há preocupação em buscar informações para gerar inovações e embasar decisões'. A seção 5.2 também aborda essa motivação.",
+        "granularity_rationale": "É um conceito único e delimitado, passível de verificação com perguntas diretas sobre o propósito da busca informacional."
+      },
+      "anchors": [
+        "Resumo",
+        "6 Conclusões"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_003",
+      "label": "Confiabilidade de fontes internas: bases de dados próprias e sócios/empregados",
+      "description": "As fontes de informação internas, como bases de dados da própria empresa e sócios/empregados, são consideradas as mais confiáveis pelos gestores de startups, com destaque para as bases de dados internas como extremamente confiáveis.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de afirmar que, para startups, as fontes internas (bases de dados e pessoas da empresa) são percebidas como mais confiáveis do que muitas fontes externas."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo apresenta dados mostrando que 55% dos empreendedores consideram as bases de dados da própria empresa extremamente confiáveis (Tabela 2) e ressalta a relevância/confiabilidade de sócios/empregados e bases internas (Resumo, seção 5.3).",
+        "granularity_rationale": "A confiabilidade das fontes internas é um achado específico que pode ser testado com perguntas sobre quais fontes os gestores mais confiam."
+      },
+      "anchors": [
+        "5.3 Confiabilidade das fontes de informação",
+        "Resumo"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_004",
+      "label": "Relevância de fontes digitais (redes sociais) em detrimento de fontes tradicionais",
+      "description": "Novas fontes digitais de informação, especialmente redes sociais, são consideradas extremamente relevantes pelos gestores de startups, superando fontes tradicionais.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar que, no contexto das startups, as fontes digitais (ex.: redes sociais) ganham relevância em comparação com fontes tradicionais de informação."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo menciona que as redes sociais são apontadas como extremamente relevantes, à frente de outras tradicionais (seção 5.2) e destaca a relevância de novas fontes digitais (Resumo, Conclusões).",
+        "granularity_rationale": "Este é um comportamento informacional específico observado na pesquisa, passível de verificação com uma pergunta sobre a tendência de uso de fontes digitais."
+      },
+      "anchors": [
+        "5.2 O ambiente externo e a busca de informação",
+        "Resumo"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_005",
+      "label": "As três arenas do uso da informação segundo Choo",
+      "description": "De acordo com Choo (2003), em contextos organizacionais, a criação e uso da informação exercem papel estratégico em três arenas: dar sentido às mudanças do ambiente externo (sense-making), gerar novos conhecimentos por meio do aprendizado e buscar/avaliar informações para tomar decisões.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de listar e explicar brevemente as três arenas de uso da informação propostas por Choo: sense-making, criação de conhecimento e tomada de decisão."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo cita diretamente Choo (2003) na seção 1 Introdução, apresentando as três arenas como fundamentação teórica sobre o uso estratégico da informação.",
+        "granularity_rationale": "É um conceito teórico bem delimitado que pode ser verificado pedindo ao aluno que explique cada arena."
+      },
+      "anchors": [
+        "1 Introdução"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_006",
+      "label": "Definição de startup por Ries: organização sob extrema incerteza",
+      "description": "Conforme Ries (2011), uma startup é uma instituição humana projetada para criar novos produtos ou serviços sob condições de extrema incerteza.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de definir uma startup usando a definição de Ries, enfatizando a incerteza extrema e a criação de novos produtos/serviços."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O artigo apresenta essa definição na seção 1 Introdução como contextualização do termo startup.",
+        "granularity_rationale": "É uma definição concisa e importante para entender o contexto; pode ser verificada pedindo ao aluno que cite a definição."
+      },
+      "anchors": [
+        "1 Introdução"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_007",
+      "label": "Combinação de métodos quantitativos e qualitativos em pesquisa sobre informação",
+      "description": "A pesquisa utiliza uma abordagem mista, combinando questionário online (quantitativo) e entrevistas semiestruturadas (qualitativo) para estudar o uso de fontes de informação por gestores de startups, justificando que a combinação pode trazer novos insights.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de reconhecer que a metodologia do estudo mesclou métodos quantitativos e qualitativos e explicar por que essa combinação foi adotada (para enriquecer a análise)."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 4 explica claramente a combinação metodológica, baseando-se em Ritchie (2003) para justificar a abordagem.",
+        "granularity_rationale": "É um aspecto metodológico específico que pode ser verificado perguntando sobre o desenho da pesquisa."
+      },
+      "anchors": [
+        "4 Procedimentos metodológicos"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_008",
+      "label": "Importância do monitoramento do ambiente externo para competitividade",
+      "description": "Para que uma empresa se desenvolva de forma competitiva, é necessário monitorar e gerenciar informações dos ambientes interno e externo, como destacado na fundamentação teórica do artigo.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de afirmar que o monitoramento de informações externas é um fator crítico para a competitividade organizacional."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "A seção 2 discute a necessidade de monitoramento de informações dos ambientes interno e externo, referenciando a gestão da informação como vantagem competitiva (Davenport e Prusak).",
+        "granularity_rationale": "É um princípio de gestão da informação, passível de ser testado com uma pergunta sobre sua relevância."
+      },
+      "anchors": [
+        "2 Informação em ambientes organizacionais"
+      ]
+    },
+    {
+      "id": "c11_pro_thinking_009",
+      "label": "Desenvolvimento de nova tipologia de fontes digitais de informação",
+      "description": "A pesquisa criou uma tipologia atualizada de fontes digitais de informação, adaptada ao contexto de startups, preenchendo uma lacuna na Ciência da Informação.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de reconhecer que o estudo propôs uma nova classificação de fontes digitais específicas para startups."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Na seção 3 e na conclusão, o artigo menciona a necessidade de uma tipologia atualizada e que foi feito um esforço nesse sentido.",
+        "granularity_rationale": "É uma contribuição metodológica específica da pesquisa, que pode ser verificada perguntando sobre a inovação no estudo."
+      },
+      "anchors": [
+        "3 Empresas startups",
+        "6 Conclusões"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_001",
+      "label": "Description Invariance",
+      "description": "A principle of classical decision theory stating that rational agents should exhibit description invariance: their judgments, preferences, or choices should not depend on the particular way options are described, as long as the descriptions are co-extensive.",
+      "coverage_criteria": [
+        "Student can define description invariance and explain why it is a requirement for rational decision-making.",
+        "Given a scenario with two equivalent descriptions of a choice, student can identify whether description invariance holds."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The abstract explicitly defines description invariance as a tenet of classic decision theory and contrasts it with the demonstrated failure due to framing.",
+        "granularity_rationale": "This is a foundational definition that can be checked with 1-2 recall and comprehension questions."
+      },
+      "anchors": [
+        "Abstract"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_002",
+      "label": "Framing Effect",
+      "description": "The phenomenon where linguistically different descriptions of logically equivalent options lead to systematic preference reversals, violating description invariance.",
+      "coverage_criteria": [
+        "Student can define the framing effect and distinguish it from description invariance.",
+        "Student can give an example of a framing effect in a risky choice context (e.g., Asian disease problem)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The abstract states that framing research has demonstrated a failure of description invariance and that different descriptions frequently lead to preference reversals.",
+        "granularity_rationale": "This central concept can be assessed with 2-3 questions, including definitions and examples."
+      },
+      "anchors": [
+        "Abstract"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_003",
+      "label": "Preference Reversal in Framing",
+      "description": "A systematic change in choice or preference when the same decision problem is presented in different frames, such as gains versus losses.",
+      "coverage_criteria": [
+        "Student can explain how a gain frame versus a loss frame can lead to opposite choices despite identical objective outcomes.",
+        "Given a description of a risky choice with positive and negative framing, student can predict the direction of preference reversal based on prospect theory's reflection effect."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The abstract mentions that framing often leads to preference reversals, which is the core empirical finding.",
+        "granularity_rationale": "Preference reversal is a concrete outcome that can be tested with an example-based question."
+      },
+      "anchors": [
+        "Abstract"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_004",
+      "label": "Prospect Theory as Explanation for Framing Effects",
+      "description": "Prospect theory, developed by Kahneman and Tversky, explains framing effects through loss aversion and a reference-dependent value function, predicting that people are risk-averse for gains and risk-seeking for losses.",
+      "coverage_criteria": [
+        "Student can describe the key features of prospect theory (value function, loss aversion, reference point) and how they account for framing effects.",
+        "Student can apply prospect theory to predict choices in a given framing scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The keywords include 'prospect theory', and the abstract mentions theoretical accounts put forward to explain framing effects, with prospect theory being the most prominent.",
+        "granularity_rationale": "Prospect theory is a classic theory with a few key components that can be assessed in 2-3 questions."
+      },
+      "anchors": [
+        "Keywords"
+      ]
+    },
+    {
+      "id": "c12_pro_thinking_005",
+      "label": "Adaptiveness of Decision Processes in Framing",
+      "description": "The implication that framing effects are not simply a sign of irrationality but reflect adaptive mechanisms in human judgment and choice.",
+      "coverage_criteria": [
+        "Student can articulate the argument that framing effects can be seen as adaptive rather than irrational.",
+        "Student can provide a real-world example where 'irrational' framing sensitivity might be beneficial."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The abstract concludes that the existence of framing effects points to the adaptiveness of underlying processes rather than simply showing human irrationality.",
+        "granularity_rationale": "This is a higher-order insight that can be checked with an explanation question."
+      },
+      "anchors": [
+        "Abstract"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_001",
+      "label": "Aprendizagem Baseada em Projetos (PBL)",
+      "description": "Metodologia de ensino onde os alunos aprendem através de projetos reais propostos por empresas, desenvolvendo competências técnicas e visão sistêmica.",
+      "coverage_criteria": [
+        "O aluno deve conseguir explicar o que é PBL.",
+        "Identificar suas características principais, como enfrentar desafios reais de empresas.",
+        "Descrever como a PBL promove a integração entre teoria e prática."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona explicitamente 'Aprendizagem Baseada em Projetos (PBL)' e descreve sua aplicação na faculdade, com exemplos de projetos reais.",
+        "granularity_rationale": "É um conceito específico da área de educação, delimitado, que pode ser verificado com poucas perguntas sobre seus elementos centrais."
+      },
+      "anchors": [
+        "Metodologia: aprender fazendo"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_002",
+      "label": "Tomada de decisão como soft skill de liderança",
+      "description": "A habilidade de tomar decisões estratégicas é considerada uma soft skill fundamental para a formação de líderes, sendo desenvolvida através de projetos reais e currículo dedicado.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de explicar por que a tomada de decisão é uma habilidade importante para líderes.",
+        "Descrever como ela pode ser desenvolvida em contextos educacionais baseados em projetos.",
+        "Identificar iniciativas como o Centro de Desenvolvimento e Liderança que focam nessa habilidade."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto destaca a 'tomada de decisão' como parte da formação em liderança no Centro de Desenvolvimento e Liderança, explicitamente na seção sobre os pilares de carreira.",
+        "granularity_rationale": "Conceito focado em uma habilidade específica, permitindo verificação com perguntas diretas sobre seu papel na liderança."
+      },
+      "anchors": [
+        "Carreira, Liderança e Empregabilidade: três pilares, um só destino"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_003",
+      "label": "Tomada de decisão baseada em dados",
+      "description": "Abordagem de utilizar análise de dados e inteligência artificial para fundamentar decisões estratégicas nos negócios.",
+      "coverage_criteria": [
+        "O aluno deve conseguir explicar como dados podem ser usados para melhorar decisões de negócios.",
+        "Citar exemplos de cursos que ensinam essa abordagem, como Data Science for Decision Makers.",
+        "Diferenciar decisão baseada em dados de decisão puramente intuitiva."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona explicitamente o curso 'Data Science for Decision Makers' entre os executivos, indicando a relevância da decisão baseada em dados na proposta do Inteli.",
+        "granularity_rationale": "Conceito de tamanho adequado, pois foca em uma aplicação específica de tomada de decisão que pode ser verificada com exemplos."
+      },
+      "anchors": [
+        "Cursos Executivos"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_004",
+      "label": "Protagonismo do aluno na escolha da trilha de carreira",
+      "description": "Modelo educacional em que o aluno assume papel ativo na sua formação, escolhendo entre trilhas empreendedora, acadêmica ou corporativa com suporte institucional.",
+      "coverage_criteria": [
+        "O aluno deve descrever o que significa protagonismo no contexto educacional.",
+        "Listar as três trilhas oferecidas: Empreendedora, Acadêmica e Corporativa.",
+        "Explicar como o Inteli potencializa essa escolha com mentoria e apoio."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto tem uma seção dedicada intitulada 'Protagonismo: você escolhe, o Inteli potencializa', que detalha o processo de escolha e o suporte oferecido.",
+        "granularity_rationale": "Conceito claro e bem delimitado pela seção, permitindo verificação objetiva com base nas trilhas mencionadas."
+      },
+      "anchors": [
+        "Protagonismo: você escolhe, o Inteli potencializa"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_005",
+      "label": "Metodologia de aprender fazendo",
+      "description": "Princípio pedagógico que enfatiza a prática e a experiência direta como base para o aprendizado, em oposição a abordagens puramente teóricas.",
+      "coverage_criteria": [
+        "O aluno deve explicar a diferença entre aprender fazendo e métodos tradicionais.",
+        "Dar exemplos de como esse princípio é aplicado no Inteli (ex.: projetos reais).",
+        "Identificar vantagens como desenvolvimento de competências práticas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto afirma 'Metodologia: aprender fazendo' como parte central da proposta do Inteli, na seção específica sobre metodologia.",
+        "granularity_rationale": "Conceito fundamental da pedagogia moderna, que pode ser verificado com perguntas sobre suas características e exemplos."
+      },
+      "anchors": [
+        "Metodologia: aprender fazendo"
+      ]
+    },
+    {
+      "id": "c13_pro_thinking_006",
+      "label": "Integração de tecnologia, negócios e liderança no ensino",
+      "description": "Abordagem educacional que combina disciplinas de tecnologia, gestão de negócios e habilidades de liderança para formar profissionais completos.",
+      "coverage_criteria": [
+        "O aluno deve identificar como a integração dessas três áreas é implementada no currículo do Inteli.",
+        "Argumentar sobre a relevância dessa integração para a formação profissional.",
+        "Citar exemplos de cursos que aplicam essa combinação."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve que os cursos combinam teoria e prática em Computação, Negócios e Liderança, e que a metodologia desenvolve habilidades nessas três áreas.",
+        "granularity_rationale": "Conceito composto, mas com evidências claras e delimitadas, permitindo verificação com perguntas sobre cada área mencionada."
+      },
+      "anchors": [
+        "Nossos cursos: o futuro se aprende aqui!"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+    "title": "Introdução ao Processamento de Linguagem Natural"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-word-normalization-stemming-and-lemmatization-1c0748d7",
+      "label": "Word Normalization: Stemming and Lemmatization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Stemming reduces words to root forms by cutting suffixes (e.g., 'skipping' → 'skip'), while lemmatization uses dictionary-based analysis to find base forms (e.g., 'am', 'are', 'is' → 'be').",
+      "coverage_criteria": [
+        "Define stemming and lemmatization, and contrast one with the other with examples."
+      ]
+    },
+    {
+      "concept_id": "concept-linguistic-annotation-pos-tagging-and-named-entity-recognition-3c6b67ee",
+      "label": "Linguistic Annotation: POS Tagging and Named Entity Recognition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "POS tagging labels words with grammatical categories (noun, verb, etc.), while Named Entity Recognition identifies names, locations, and organizations in text.",
+      "coverage_criteria": [
+        "Explain what POS tagging and Named Entity Recognition are, giving examples of each."
+      ]
+    },
+    {
+      "concept_id": "concept-machine-learning-in-nlp-ae416ac2",
+      "label": "Machine Learning in NLP",
+      "knowledge_type": "conceptual",
+      "teaching_description": "After preprocessing, ML algorithms like Naive Bayes can be applied to tasks such as sentiment analysis, learning patterns from labeled data.",
+      "coverage_criteria": [
+        "Describe the role of machine learning in NLP, giving Naive Bayes as an example."
+      ]
+    },
+    {
+      "concept_id": "concept-text-preprocessing-segmentation-tokenization-and-stop-words-ece0fb90",
+      "label": "Text Preprocessing: Segmentation, Tokenization, and Stop Words",
+      "knowledge_type": "procedural",
+      "teaching_description": "The initial NLP steps: breaking documents into sentences (segmentation), sentences into words (tokenization), and removing common stop words to focus on meaningful content.",
+      "coverage_criteria": [
+        "Explain segmentation, tokenization, and the role of stop words in NLP preprocessing."
+      ]
+    },
+    {
+      "concept_id": "concept-string-encoding-and-decoding-in-python-80fda20e",
+      "label": "String Encoding and Decoding in Python",
+      "knowledge_type": "procedural",
+      "teaching_description": "Understanding that strings in Python 3 are sequences of Unicode characters, and how to encode strings to bytes using specified encodings (e.g., UTF-8) and decode bytes back to strings, handling potential encoding errors.",
+      "coverage_criteria": [
+        "Student can describe the difference between a string and a bytes object.",
+        "Given a string and an encoding name, student can write code to encode and decode it correctly."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-definition-05d4bc90",
+      "label": "NLP Definition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing (NLP) is a subfield of AI that focuses on enabling computers to understand, process, and derive meaning from human language, leveraging linguistics and computer science, often relying on statistical approximations.",
+      "coverage_criteria": [
+        "Define NLP as a subfield of AI that enables machines to read and understand human language.",
+        "Identify that NLP combines linguistics and computer science or relies on statistical methods.",
+        "Give an example of an NLP application (e.g., chatbots, sentiment analysis, information extraction)."
+      ]
+    },
+    {
+      "concept_id": "concept-everyday-applications-of-nlp-e0bb17fc",
+      "label": "Everyday Applications of NLP",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Recognize and list common everyday applications of NLP, such as autocorrect and plagiarism checkers.",
+      "coverage_criteria": [
+        "List and describe two everyday NLP applications, such as autocorrect and plagiarism checking."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "What is NLP and Where is it Used?",
+      "concept_ids": [
+        "concept-nlp-definition-05d4bc90",
+        "concept-everyday-applications-of-nlp-e0bb17fc"
+      ]
+    },
+    {
+      "label": "Preprocessing Text Data",
+      "concept_ids": [
+        "concept-text-preprocessing-segmentation-tokenization-and-stop-words-ece0fb90",
+        "concept-string-encoding-and-decoding-in-python-80fda20e"
+      ]
+    },
+    {
+      "label": "Word Normalization and Linguistic Annotation",
+      "concept_ids": [
+        "concept-word-normalization-stemming-and-lemmatization-1c0748d7",
+        "concept-linguistic-annotation-pos-tagging-and-named-entity-recognition-3c6b67ee"
+      ]
+    },
+    {
+      "label": "Applying Machine Learning",
+      "concept_ids": [
+        "concept-machine-learning-in-nlp-ae416ac2"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

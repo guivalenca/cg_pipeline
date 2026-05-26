@@ -1,0 +1,160 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "ac001",
+      "label": "Fundamentos do Naive Bayes",
+      "description": "Compreensão do teorema de Bayes, da suposição de independência ingênua, e como eles formam a base do classificador Naive Bayes para classificação de texto.",
+      "coverage_criteria": [
+        "Enunciar o teorema de Bayes e aplicá-lo à classificação.",
+        "Explicar a suposição de independência e sua implicação na fatoração de P(X|y).",
+        "Calcular a probabilidade de classe dado um exemplo a partir de frequências de termos."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_002",
+        "c35_pro_thinking_003",
+        "c39_pro_thinking_003"
+      ],
+      "merge_rationale": "Esses três candidatos cobrem aspectos complementares da base teórica do Naive Bayes: o teorema, a fatoração matemática e a visão geral do algoritmo."
+    },
+    {
+      "id": "ac002",
+      "label": "Aplicação do Multinomial Naive Bayes em scikit-learn",
+      "description": "Implementação prática do classificador MultinomialNB para análise de sentimento ou detecção de spam, incluindo preparação dos dados e treinamento.",
+      "coverage_criteria": [
+        "Justificar a escolha do MultinomialNB para dados de contagem de palavras.",
+        "Carregar e pré-processar um dataset de texto para classificação.",
+        "Treinar um modelo MultinomialNB e fazer predições."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_008",
+        "c39_pro_thinking_005"
+      ],
+      "merge_rationale": "Um candidato explica a adequação do algoritmo, enquanto o outro fornece um passo a passo completo de implementação; juntos formam um conceito prático coeso."
+    },
+    {
+      "id": "ac003",
+      "label": "Divisão treino-teste para avaliação de modelos",
+      "description": "Particionamento dos dados em conjuntos de treino e teste para avaliar a generalização do modelo e detectar overfitting.",
+      "coverage_criteria": [
+        "Explicar a necessidade de separar os dados.",
+        "Utilizar train_test_split do scikit-learn.",
+        "Discutir o que ocorre se não houver divisão (overfitting)."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_009",
+        "c39_pro_thinking_008"
+      ],
+      "merge_rationale": "Ambos abordam a mesma técnica de divisão treino-teste, um com foco em acurácia e outro na validação."
+    },
+    {
+      "id": "ac004",
+      "label": "Métricas de avaliação para classificação",
+      "description": "Métricas derivadas da matriz de confusão: acurácia, precisão, recall, F1-score, para avaliar o desempenho de classificadores binários.",
+      "coverage_criteria": [
+        "Definir matriz de confusão e os termos VP, FP, VN, FN.",
+        "Calcular acurácia, precisão, recall e F1-score a partir da matriz.",
+        "Interpretar o significado de cada métrica."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_006"
+      ],
+      "merge_rationale": "Este candidato cobre de forma autônoma as métricas de avaliação padrão."
+    },
+    {
+      "id": "ac005",
+      "label": "Ajuste de hiperparâmetros com GridSearchCV",
+      "description": "Busca exaustiva dos melhores hiperparâmetros usando validação cruzada para otimizar o desempenho do classificador Naive Bayes.",
+      "coverage_criteria": [
+        "Explicar o propósito do ajuste de hiperparâmetros.",
+        "Diferenciar Grid Search de Random Search.",
+        "Aplicar GridSearchCV no scikit-learn para encontrar os melhores parâmetros."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_007"
+      ],
+      "merge_rationale": "Um único candidato aborda a técnica de tuning hyperparâmetros com exemplo prático."
+    },
+    {
+      "id": "ac006",
+      "label": "Distribuição de classes desbalanceada",
+      "description": "Identificação de conjuntos de dados com desproporção entre classes e compreensão de seu impacto na classificação.",
+      "coverage_criteria": [
+        "Reconhecer um dataset desbalanceado a partir da distribuição de rótulos.",
+        "Discutir por que dados desbalanceados podem ser problemáticos.",
+        "Mencionar possíveis estratégias de mitigação."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito pertinente dado o exemplo prático com spam, que é naturalmente desbalanceado."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c35_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "ac001",
+      "explanation": "Este candidato apresenta o teorema de Bayes, que é parte fundamental do conceito geral de Naive Bayes."
+    },
+    {
+      "candidate_id": "c35_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "ac001",
+      "explanation": "Este candidato detalha a fatoração sob independência, essencial para entender o algoritmo."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "ac001",
+      "explanation": "Este candidato fornece a visão geral do algoritmo, cobrindo tanto o teorema quanto a suposição ingênua."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "ac002",
+      "explanation": "Candidato que explica a adequação do MultinomialNB para texto, complementando a implementação prática."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "ac002",
+      "explanation": "Candidato com a aplicação prática completa do MultinomialNB no dataset SMS, representando a execução do conceito."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "ac003",
+      "explanation": "Candidato focado na divisão treino-teste e avaliação de acurácia, parte do conceito de validação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "ac003",
+      "explanation": "Candidato que explica a divisão treino-teste e overfitting, complementando o conceito de validação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["ac004"],
+      "explanation": "Este candidato introduz e demonstra as métricas de avaliação essenciais para classificação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["ac005"],
+      "explanation": "Candidato que aborda o tuning de hiperparâmetros com GridSearchCV."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["ac006"],
+      "explanation": "Candidato que discute o impacto do desbalanceamento de classes."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_010",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Persistência de modelo com pickle é uma habilidade utilitária pequena, não central para a compreensão de análise de conteúdo ou Naive Bayes."
+    }
+  ]
+}

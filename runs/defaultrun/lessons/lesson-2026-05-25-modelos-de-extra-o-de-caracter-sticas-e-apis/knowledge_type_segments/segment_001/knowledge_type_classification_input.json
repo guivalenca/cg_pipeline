@@ -1,0 +1,105 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "title": "Modelos de Extração de Características e APIs"
+  },
+  "segment": {
+    "segment_id": "segment_001",
+    "label": "Traditional Feature Extraction Methods",
+    "concept_ids": [
+      "concept-feature-extraction-in-nlp-8a5b741c",
+      "concept-bag-of-words-bow-c2da3e31",
+      "concept-tf-idf-definition-and-computation-f7eaad19",
+      "concept-one-hot-encoding-implementation-and-comparison-ab8f75d9"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-feature-extraction-in-nlp-8a5b741c",
+      "label": "Feature Extraction in NLP",
+      "teaching_description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ],
+      "source_candidate_ids": [
+        "lr010_001"
+      ]
+    },
+    {
+      "concept_id": "concept-bag-of-words-bow-c2da3e31",
+      "label": "Bag of Words (BoW)",
+      "teaching_description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ],
+      "source_candidate_ids": [
+        "lr010_002"
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-definition-and-computation-f7eaad19",
+      "label": "TF-IDF Definition and Computation",
+      "teaching_description": "TF-IDF (Term Frequency-Inverse Document Frequency) is a statistical measure used to evaluate the importance of a term to a document in a corpus. It is computed as the product of term frequency (TF), normalized by document length, and inverse document frequency (IDF), which scales down terms that appear in many documents. The resulting weight highlights terms that are frequent in a specific document but rare across the corpus.",
+      "coverage_criteria": [
+        "Define TF-IDF and its components (TF and IDF), and explain its purpose in highlighting important words.",
+        "Compute TF, IDF, and TF-IDF for a given term in a small corpus.",
+        "Explain why TF-IDF improves over simple term frequency and identify when to use it in text analysis."
+      ],
+      "source_candidate_ids": [
+        "lr010_003",
+        "lr011_011"
+      ]
+    },
+    {
+      "concept_id": "concept-one-hot-encoding-implementation-and-comparison-ab8f75d9",
+      "label": "One-Hot Encoding Implementation and Comparison",
+      "teaching_description": "One-hot encoding implementation and analysis, including producing one-hot vectors, explaining the dimensionality problem, and comparing one-hot encoding to dense embeddings.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ],
+      "source_candidate_ids": [
+        "lr010_004"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

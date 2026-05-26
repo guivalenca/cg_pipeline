@@ -1,0 +1,421 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_007",
+    "area": {
+      "id": "area_007",
+      "label": "Decision Trees and Expected Value Analysis",
+      "rationale": "All candidates belong to decision tree construction, analysis, and advanced topics (EMV, folding back, sensitivity, Bayes' rule, EVSI, EVPI, utility functions, certainty equivalents, sunk costs, risk profiles). This large but tightly coupled neighborhood covers a complete decision toolset.",
+      "candidate_ids": [
+        "lr005_001",
+        "lr005_002",
+        "lr005_003",
+        "lr005_004",
+        "lr005_005",
+        "lr005_006",
+        "lr005_007",
+        "lr005_008",
+        "lr005_009",
+        "lr005_010",
+        "lr005_011",
+        "lr005_012",
+        "lr005_013",
+        "lr005_014",
+        "lr005_015",
+        "lr005_016",
+        "lr005_017",
+        "lr005_018",
+        "lr005_019",
+        "lr005_020"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr005_001",
+    "lr005_002",
+    "lr005_003",
+    "lr005_004",
+    "lr005_005",
+    "lr005_006",
+    "lr005_007",
+    "lr005_008",
+    "lr005_009",
+    "lr005_010",
+    "lr005_011",
+    "lr005_012",
+    "lr005_013",
+    "lr005_014",
+    "lr005_015",
+    "lr005_016",
+    "lr005_017",
+    "lr005_018",
+    "lr005_019",
+    "lr005_020"
+  ],
+  "candidates": [
+    {
+      "id": "lr005_001",
+      "label": "Decision Tree Definition and Purpose",
+      "description": "A decision tree is a graphical model used for decision-making under uncertainty. It visually represents decision alternatives, uncertain events, outcomes, and their probabilities to systematically analyze and choose the best course of action.",
+      "coverage_criteria": [
+        "Define a decision tree in your own words.",
+        "List the key elements depicted in a decision tree (decisions, uncertain events, outcomes).",
+        "Explain why decision trees are useful for decision analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_002",
+      "label": "Decision Tree Symbols and Conventions",
+      "description": "Decision trees use standardized symbols: squares for decision nodes, circles for chance (probability) nodes, and triangles for end (outcome) nodes. The tree is read from left to right, with branches representing alternatives, uncertain outcomes, and connecting flow.",
+      "coverage_criteria": [
+        "Identify and label decision nodes, chance nodes, and end nodes in a decision tree diagram.",
+        "Explain what each type of node represents.",
+        "Describe the left-to-right reading convention of a decision tree."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_003",
+      "label": "Constructing a Decision Tree",
+      "description": "To build a decision tree, begin with a square decision node, draw branches for each alternative, attach circles for chance events where outcomes are uncertain, draw branches for each possible outcome, and end with payoffs. The tree can be constructed from a scenario description or a payoff table.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches.",
+        "Explain the steps for constructing a decision tree."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_004",
+      "label": "Labeling Branches with Probabilities and Payoffs",
+      "description": "On a decision tree, each branch from a chance node is labeled with the probability of that outcome and the associated monetary payoff. Probabilities on branches from a single chance node must sum to 100%.",
+      "coverage_criteria": [
+        "Given outcome probabilities and payoffs, correctly place them on the branches of a sketched decision tree.",
+        "Explain why probabilities from a chance node must sum to 100%."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_005",
+      "label": "Calculating Expected Value (EMV) at Chance Nodes",
+      "description": "The expected value at a chance node is computed by multiplying each outcome's payoff by its probability and summing these products. This yields the expected monetary value (EMV) for that chance's subtree.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "math"
+    },
+    {
+      "id": "lr005_006",
+      "label": "Folding Back to Determine the Optimal Decision",
+      "description": "Folding back solves a decision tree from right to left: at each chance node, compute the EMV; at each decision node, select the alternative with the highest EMV and discard others. The EMV at the initial decision node is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "application"
+    },
+    {
+      "id": "lr005_007",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. It is appropriate when the decision maker is risk-neutral.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table and probabilities.",
+        "Explain why the EMV criterion represents a rational choice under risk neutrality."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_008",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_009",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_010",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_011",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV without information. It is the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_012",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "Multistage decisions involve alternating decisions and uncertain outcomes over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes. Decision trees are particularly useful for representing and solving such problems.",
+      "coverage_criteria": [
+        "Identify a multistage decision situation from a description.",
+        "Explain what a contingency plan is and how it differs from a single-stage decision.",
+        "Given a multistage decision tree, trace the optimal contingency plan."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_013",
+      "label": "Utility Functions and Risk Aversion",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same expected monetary value (EMV). Decisions are made by maximizing expected utility rather than EMV.",
+      "coverage_criteria": [
+        "Describe the shape of a risk-averse utility function and why it implies risk aversion.",
+        "Compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_014",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion. It is a convenient one-parameter model for incorporating risk attitudes into decision analysis.",
+      "coverage_criteria": [
+        "Write the exponential utility function and identify the risk tolerance parameter R.",
+        "Compute expected utility given probabilities and payoffs using the exponential function.",
+        "Interpret the effect of changing R on the degree of risk aversion."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_015",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent between the certain amount and the uncertain prospect. It is derived by solving for the value x such that U(x) equals the expected utility of the prospect.",
+      "coverage_criteria": [
+        "Define certainty equivalent.",
+        "Compute the certainty equivalent given an exponential utility function and expected utility.",
+        "Explain the relationship between certainty equivalent, risk premium, and risk aversion."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_016",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_017",
+      "label": "Sunk Costs in Decision Making",
+      "description": "Sunk costs are past expenditures that cannot be recovered and should not influence current decisions. In decision tree analysis, sunk costs must be excluded from the evaluation.",
+      "coverage_criteria": [
+        "Define sunk cost.",
+        "Explain why sunk costs should be ignored in decision making.",
+        "Identify sunk costs in a given scenario and justify their exclusion from a decision tree."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr005_018",
+      "label": "Importance of Reliable Inputs in Decision Tree Analysis",
+      "description": "The validity of a decision tree depends on a comprehensive list of probable outcomes and accurate estimates of probabilities and values. Poor-quality inputs lead to unreliable output, often summarized as 'garbage in, garbage out'.",
+      "coverage_criteria": [
+        "Explain why a comprehensive list of outcomes is essential.",
+        "Discuss the consequences of using unreliable probability or value estimates."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr005_019",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision along with their probabilities, often visualized as a bar chart. It helps in understanding the riskiness of different decision alternatives.",
+      "coverage_criteria": [
+        "Construct a risk profile from a payoff table or decision tree.",
+        "Interpret a risk profile bar chart to compare the riskiness of alternatives."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "application"
+    },
+    {
+      "id": "lr005_020",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

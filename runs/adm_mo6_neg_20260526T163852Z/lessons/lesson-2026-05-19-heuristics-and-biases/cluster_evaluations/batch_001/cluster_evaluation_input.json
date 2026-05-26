@@ -1,0 +1,473 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-19-heuristics-and-biases/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-19-heuristics-and-biases",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Definition of heuristics as mental shortcuts",
+    "rationale": "c29_pro_thinking_001 and c31_pro_thinking_001 both define heuristics as cognitive shortcuts or rules of thumb used for quick judgments. They cover the same foundational idea.",
+    "candidate_ids": [
+      "c29_pro_thinking_001",
+      "c31_pro_thinking_001"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Definition of heuristics as mental shortcuts",
+      "rationale": "c29_pro_thinking_001 and c31_pro_thinking_001 both define heuristics as cognitive shortcuts or rules of thumb used for quick judgments. They cover the same foundational idea.",
+      "candidate_ids": [
+        "c29_pro_thinking_001",
+        "c31_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Everyday applications and over-reliance on heuristics",
+      "rationale": "c29_pro_thinking_002 illustrates everyday heuristic use, while c29_pro_thinking_005 describes political over-reliance. Both are examples of heuristics in action, showing the concept in non-technical, daily life contexts, though they are distinct. They are grouped as they both demonstrate applied heuristic use beyond core definitions.",
+      "candidate_ids": [
+        "c29_pro_thinking_002",
+        "c29_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Availability heuristic",
+      "rationale": "c29_pro_thinking_003 is specifically about the availability heuristic and its effect on perceived violence. It is a distinct type of heuristic, kept separate.",
+      "candidate_ids": [
+        "c29_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Representativeness heuristic and base rate neglect",
+      "rationale": "c29_pro_thinking_004 describes the representativeness heuristic with a medical test example, a specific heuristic distinct from others.",
+      "candidate_ids": [
+        "c29_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Intellectual humility regarding heuristics",
+      "rationale": "c29_pro_thinking_006 focuses on the importance of humility when using heuristics, a distinct takeaway.",
+      "candidate_ids": [
+        "c29_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Professional impact of cognitive biases",
+      "rationale": "c30_pro_thinking_001 broadly covers the impact of biases in professional domains. It is a general overview candidate that may serve as an introduction but does not fit neatly with specific biases.",
+      "candidate_ids": [
+        "c30_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Confirmation bias in legal settings",
+      "rationale": "c31_pro_thinking_002 specifically addresses confirmation bias in judicial evidence evaluation.",
+      "candidate_ids": [
+        "c31_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Hindsight bias in legal contexts",
+      "rationale": "c31_pro_thinking_003 explains hindsight bias affecting foreseeability measures.",
+      "candidate_ids": [
+        "c31_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Conjunction fallacy in probability",
+      "rationale": "c31_pro_thinking_004 describes the conjunction fallacy, particularly in legal evidence interpretation.",
+      "candidate_ids": [
+        "c31_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Inadmissible evidence bias",
+      "rationale": "c31_pro_thinking_005 covers the inability to ignore inadmissible evidence, a known legal bias.",
+      "candidate_ids": [
+        "c31_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Sequential ruling bias",
+      "rationale": "c31_pro_thinking_006 describes the tendency toward conservatism in sequential rulings.",
+      "candidate_ids": [
+        "c31_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Anchoring effect on sentencing",
+      "rationale": "c31_pro_thinking_007 explains anchoring in judicial sentencing.",
+      "candidate_ids": [
+        "c31_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c29_pro_thinking_001",
+    "c31_pro_thinking_001",
+    "c29_pro_thinking_002",
+    "c29_pro_thinking_005",
+    "c29_pro_thinking_003",
+    "c29_pro_thinking_004",
+    "c29_pro_thinking_006",
+    "c30_pro_thinking_001",
+    "c31_pro_thinking_002",
+    "c31_pro_thinking_003",
+    "c31_pro_thinking_004",
+    "c31_pro_thinking_005",
+    "c31_pro_thinking_006",
+    "c31_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c29_pro_thinking_001",
+      "label": "Heuristics as Mental Shortcuts",
+      "description": "Heuristics are simple rules of thumb developed from past experiences that serve as cognitive shortcuts to make quick decisions or judgments, avoiding exhaustive deliberation.",
+      "coverage_criteria": [
+        "Student can define heuristics and give an example of when they are used."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines heuristics at 00:17-00:33, stating they are rules of thumb from past experiences that help make quick decisions.",
+        "granularity_rationale": "This is a foundational definition that can be checked with a simple recall question."
+      },
+      "anchors": [
+        "00:17 Defining Heuristics"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_001",
+      "label": "Heuristics as cognitive shortcuts",
+      "description": "Heuristics are mental shortcuts or rules of thumb that people use to make judgments and decisions without fully considering all information, often leading to systematic biases.",
+      "coverage_criteria": [
+        "Student can define heuristic and give an example of a cognitive shortcut in everyday decision-making.",
+        "Student can explain how heuristics might save mental resources but also produce errors."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces heuristics as cognitive shortcuts in the 'Heuristics and Biases' section, stating they generate judgments without full consideration and can lead to biases.",
+        "granularity_rationale": "This concept is foundational and distinct from specific biases, appropriate as a standalone teachable idea that can be checked with a few definitional and example questions."
+      },
+      "anchors": [
+        "Heuristics and Biases"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_002",
+      "label": "Everyday Applications of Heuristics",
+      "description": "Heuristics are used in daily decisions like choosing default outfits or ordering familiar food when faced with many options, emphasizing that they prioritize speed over perfection.",
+      "coverage_criteria": [
+        "Student can provide an everyday example of a heuristic and explain that it sacrifices optimality for speed."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source gives examples from 00:38-00:57 of default outfits and ordering familiar food, illustrating how heuristics simplify routine decisions.",
+        "granularity_rationale": "This is a small, concrete demonstration that can be assessed by asking the student to generate a similar example."
+      },
+      "anchors": [
+        "00:38 Everyday Heuristics"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_005",
+      "label": "Over-reliance on Heuristics in Political Views",
+      "description": "People often let political identities and heuristics substitute for detailed information, leading to uninformed viewpoints and resistance to opposing opinions.",
+      "coverage_criteria": [
+        "Student can describe how heuristics can bias political opinions and suggest a way to mitigate this."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source discusses political heuristics at 02:54-03:25, noting that heuristics can cause over-reliance on identity and disregard for details.",
+        "granularity_rationale": "This is a distinct application of heuristic biases that can be assessed by asking for examples or mitigation strategies."
+      },
+      "anchors": [
+        "02:54 Heuristics and Political Views"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_003",
+      "label": "Availability Heuristic and Perceived Violence",
+      "description": "The availability heuristic is when people estimate the frequency of an event by how easily examples come to mind, leading to biases like overestimating violence because of media exposure.",
+      "coverage_criteria": [
+        "Student can explain the availability heuristic and describe how it can distort perceptions of violence rates."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces the availability heuristic at 01:21-01:44, using the example of perceived rising violence versus actual data showing a decline.",
+        "granularity_rationale": "This concept is a key heuristic that can be tested by asking the student to identify it or apply it to another scenario."
+      },
+      "anchors": [
+        "01:21 Availability Heuristic"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_004",
+      "label": "Representativeness Heuristic and Medical Test Fallacy",
+      "description": "The representativeness heuristic is when people assume an individual case is more representative than it truly is, often ignoring base rates, as seen when physicians overestimate disease likelihood after a positive test.",
+      "coverage_criteria": [
+        "Student can define the representativeness heuristic and explain why a positive test for a rare disease does not guarantee having the disease."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source details the representativeness heuristic from 01:49-02:53 with a medical test example, showing that people ignore base rates and false positive rates.",
+        "granularity_rationale": "This is a specific heuristic that can be checked with a problem-solving question or definition."
+      },
+      "anchors": [
+        "01:49 Representativeness Heuristic"
+      ]
+    },
+    {
+      "id": "c29_pro_thinking_006",
+      "label": "Importance of Intellectual Humility with Heuristics",
+      "description": "Because heuristics can lead to errors, it is crucial to remain humble about one's views, acknowledge uncertainty, and be open to considering opinions that initially seem wrong.",
+      "coverage_criteria": [
+        "Student can explain why intellectual humility is important in the context of heuristics and biases."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source emphasizes humility and openness at 03:10-03:37, stating that recognizing flawed thinking is a bold first step.",
+        "granularity_rationale": "This is a key takeaway message that can be checked by asking the student to reflect on its significance."
+      },
+      "anchors": [
+        "02:54 Heuristics and Political Views",
+        "03:30 Conclusion"
+      ]
+    },
+    {
+      "id": "c30_pro_thinking_001",
+      "label": "Impact of Cognitive Biases on Professional Decision-Making",
+      "description": "This concept covers how cognitive biases influence decision-making in professional contexts such as management, medicine, finance, and law, and the importance of recognizing these biases to mitigate errors.",
+      "coverage_criteria": [
+        "Student can list at least two cognitive biases that affect professional decision-making.",
+        "Student can explain how a specific bias might lead to a poor decision in a given domain (e.g., overconfidence in medical diagnosis)."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source body was inaccessible due to a reCAPTCHA challenge, so the article content could not be retrieved. However, the self-study metadata (title and description) indicate that the article reviews the impact of cognitive biases on professionals' decision-making across multiple domains.",
+        "granularity_rationale": "This is a broad overview concept that sets the stage for deeper study of specific biases. It is checkable by asking the student to recall or recognize the general influence of biases in professional settings."
+      },
+      "anchors": [
+        "title: The Impact of Cognitive Biases on Professionals' Decision‑Making"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_002",
+      "label": "Confirmation bias in judicial evidence evaluation",
+      "description": "Judges may favor evidence that confirms pre-existing beliefs while dismissing contradictory information, affecting impartiality.",
+      "coverage_criteria": [
+        "Student can define confirmation bias and identify a scenario in a legal setting where it might influence a judge's decision."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source text explicitly lists confirmation bias as a cognitive bias affecting judges, with an example study on capital punishment.",
+        "granularity_rationale": "This is a specific, observable bias that can be taught independently and assessed by asking for definitions and recognition in case studies."
+      },
+      "anchors": [
+        "Cognitive Biases Affecting Judges"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_003",
+      "label": "Hindsight bias in legal foreseeability",
+      "description": "Hindsight bias leads individuals to see past events as more predictable than they were, which can unfairly skew judgments of foreseeability in court cases.",
+      "coverage_criteria": [
+        "Student can explain the hindsight bias and describe how it might affect a judge's assessment of a defendant's actions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explains hindsight bias with a malpractice example, showing how it distorts perceptions of foreseeability in legal contexts.",
+        "granularity_rationale": "This bias is distinct and can be checked with simple explanation and application to a case, fitting a granular teachable point."
+      },
+      "anchors": [
+        "Cognitive Biases Affecting Judges"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_004",
+      "label": "Conjunction fallacy in probability estimates",
+      "description": "The conjunction fallacy occurs when people judge a detailed scenario as more probable than a simpler one, even though the conjunction of events is statistically less likely. In legal settings, this can affect how evidence is interpreted.",
+      "coverage_criteria": [
+        "Student can describe the conjunction fallacy and provide an example, such as from the article, where more detail leads to higher perceived probability."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions the conjunction fallacy as a cognitive bias, with a brief explanation that more detailed descriptions can inflate perceived probabilities.",
+        "granularity_rationale": "The fallacy is a well-defined concept that can be taught and tested with a single example, making it appropriately granular."
+      },
+      "anchors": [
+        "Cognitive Biases Affecting Judges"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_005",
+      "label": "Inadmissible evidence bias in legal proceedings",
+      "description": "Both judges and jurors often struggle to disregard evidence that has been ruled inadmissible, which can lead to biased verdicts despite instructions to ignore it.",
+      "coverage_criteria": [
+        "Student can explain the challenge of disregarding inadmissible evidence and describe a real-world example from the article."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The text in 'Ruling Process Biases' section explicitly states that judges are biased by inadmissible evidence, including prior criminal records, even when instructed otherwise.",
+        "granularity_rationale": "This is a specific phenomenon in legal decision-making that can be clearly defined and assessed with behavioral examples."
+      },
+      "anchors": [
+        "Inadmissible Evidence"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_006",
+      "label": "Sequential ruling bias",
+      "description": "When judges make sequential rulings, they tend to favor the status quo and become more conservative, with decisions being more favorable after breaks.",
+      "coverage_criteria": [
+        "Student can describe the sequential ruling bias and its effect on judicial decision patterns."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes sequential ruling bias under 'Ruling Process Biases', noting that rulings become conservative and are affected by breaks.",
+        "granularity_rationale": "This is a distinct, observable bias pattern that can be taught in isolation and checked with comprehension questions."
+      },
+      "anchors": [
+        "Sequential Ruling Bias"
+      ]
+    },
+    {
+      "id": "c31_pro_thinking_007",
+      "label": "Anchoring effect on sentencing decisions",
+      "description": "The anchoring effect occurs when an initial numerical value, even if arbitrary, influences subsequent judgments, leading to biased sentencing decisions in court.",
+      "coverage_criteria": [
+        "Student can define anchoring and explain how irrelevant anchors, such as suggestions by journalists, can sway a judge's sentence."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states that judges are susceptible to anchoring effects in sentencing, with an example of journalists' suggestions influencing outcomes.",
+        "granularity_rationale": "Anchoring is a specific heuristic that can be isolated for teaching and assessed with a simple example from the legal domain."
+      },
+      "anchors": [
+        "Anchoring-and-Adjustment"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

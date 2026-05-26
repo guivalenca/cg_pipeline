@@ -1,0 +1,86 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+    "display_code": "L12",
+    "workbook_row_number": 76,
+    "title": "Sumarização de texto e Engenharia de Software",
+    "date": "03/06/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Camadas de comunicação linguística",
+      "Determinação do conteúdo em PLN",
+      "Linguagem estruturada",
+      "Modelos probabilísticos para extração de informação",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ],
+    "description": "Este encontro tem por objeto apresentar as técnicas de sumarização de texto e suas aplicações no contexto de PLN."
+  },
+  "self_study": {
+    "self_study_id": "81",
+    "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 81,
+      "week": 7,
+      "sort": 13,
+      "title": "Métricas de Software usando Biblioteca Python",
+      "description": "Este autoestudo apresenta a biblioteca Codemetrics, que pode ser usada para obter métricas de software de um repositório GitHub, como principais linguagens utilizadas, evolução do desenvolvimento ao longo do tempo, principais contribuidores, entre outros.",
+      "url": "https://github.com/elmotec/codemetrics",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Métricas de software"
+      ],
+      "parent_class": "Sumarização de texto e Engenharia de Software",
+      "class_date": "03/06/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0081-article-metricas-de-software-usando-biblioteca-python.md",
+      "sha256": "19512c1c0e6dfbfec13fa4f38773a1ae5a981d25ccf45f7457efd5db6e87b093",
+      "word_count": 438,
+      "bytes": 3486,
+      "source_markdown": "article/firecrawl/output/81/81-metricas-de-software-usando-biblioteca-python.md",
+      "artifact_dir": "article/firecrawl/output/81",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0081-article-metricas-de-software-usando-biblioteca-python.md",
+    "sha256": "19512c1c0e6dfbfec13fa4f38773a1ae5a981d25ccf45f7457efd5db6e87b093",
+    "word_count": 438,
+    "source_markdown": "article/firecrawl/output/81/81-metricas-de-software-usando-biblioteca-python.md",
+    "markdown": "---\nid: \"81\"\ntitle: \"Métricas de Software usando Biblioteca Python\"\nsource_url: \"https://github.com/elmotec/codemetrics\"\nfetch_url: \"https://github.com/elmotec/codemetrics\"\nresolved_url: \"https://github.com/elmotec/codemetrics\"\nfirecrawl_title: \"GitHub - elmotec/codemetrics: Multi language library for pandas notebook to mine git and gain insights on your code base. · GitHub\"\ndescription: \"Multi language library for pandas notebook to mine git and gain insights on your code base. - elmotec/codemetrics\"\nfetched_at: \"2026-05-12T03:59:53.001917Z\"\nprovider: \"firecrawl\"\nstrategy: \"app_ui\"\ncache_key: \"38c6511b4f19d24e74d10f34631801bef42feaf787b2a4c80caf6461ea6b21e5\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 334\nchar_count: 2483\ncontent_sha256: \"a4d287aa6e9cb9d224e5c7e61241079987aac37aa7f842235e7ae2029a4cefeb\"\nimage_count: 14\nlink_count: 86\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes:\n  - \"github_app_ui_or_wrapper_page\"\n---\n\n## codemetrics\n\nMine your SCM for insight on your software. A work of love inspired by [Adam Tornhill](https://www.adamtornhill.com/)'s books.\n\nCode metrics is a simple Python module that leverage pandas and your source control management (SCM) tool to generate insight on your code base.\n\n- [pandas](https://pandas.pydata.org/): for data munching.\n- [lizard](https://github.com/terryyin/lizard): for code complexity calculation.\n- cloc.pl (script): for line counts from [cloc](http://cloc.sourceforge.net/)\n- For now, only Subversion and git are supported.\n\n### Installation\n\nTo install codemetrics, simply use pip:\n\n```\npip install codemetrics\n```\n\n### Usage\n\nThis is a simple tool that makes it easy to retrieve information from your Source Control Management (SCM) repository and hopefully gain insight from it.\n\n```\nimport codemetrics as cm\nimport cm.git\n\nproject = cm.GitProject('path/to/project')\nloc_df = cm.get_cloc(project, cloc_program='/path/to/cloc')\nlog_df = cm.get_log(project)\nages_df = cm.get_ages(log_df)\n```\n\nTo retrieve the number of lines changed by revision with Subversion:\n\n```\nimport codemetrics as cm\nimport cm.git\n\nproject = cm.SvnProject('path/to/project')\nlog_df = cm.get_log(project).set_index(['revision', 'path'])\nlog_df.loc[:, ['added', 'removed']] = log_df.reset_index().\\\n                                         groupby('revision').\\\n                                         apply(cm.svn.get_diff_stats, chunks=False)\n```\n\nSee [module documentation](https://codemetrics.readthedocs.org/) for more advanced functions or the [example notebook](https://github.com/elmotec/codemetrics/blob/main/notebooks/pandas.ipynb) where codemetrics is applied to pandas.\n\n### License\n\nLicensed under the term of [MIT License](https://en.wikipedia.org/wiki/MIT_License). See attached file LICENSE.txt.\n\n### Credits\n\n- This package was inspired by [Adam Tornhill](https://www.adamtornhill.com/)'s books.\n- This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter).\n\n## About\n\nMulti-language library for pandas notebook to mine git and gain insights on your code base.\n\n### Topics\n\n[analysis](https://github.com/topics/analysis \"Topic: analysis\") [code](https://github.com/topics/code \"Topic: code\") [metrics](https://github.com/topics/metrics \"Topic: metrics\")\n\n### License\n\n[MIT license](https://github.com/elmotec/codemetrics#MIT-1-ov-file)\n\n### Contributing\n\n[Contributing](https://github.com/elmotec/codemetrics#contributing-ov-file)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

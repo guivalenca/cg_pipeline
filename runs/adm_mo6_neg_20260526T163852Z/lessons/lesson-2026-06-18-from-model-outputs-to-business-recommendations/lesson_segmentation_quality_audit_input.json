@@ -1,0 +1,95 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+    "title": "From Model Outputs to Business Recommendations"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+      "label": "Risk Mapping for Preliminary Risk Identification",
+      "teaching_description": "Risk mapping uses expert assessment to score probability and impact, creating a matrix that categorizes risks to guide quantitative analysis.",
+      "coverage_criteria": [
+        "Create a risk matrix given a list of risks, assign probability and impact scores, and explain how the matrix informs subsequent simulation focus."
+      ]
+    },
+    {
+      "concept_id": "concept-project-comparison-using-simulation-statistics-9446a388",
+      "label": "Project Comparison Using Simulation Statistics",
+      "teaching_description": "When comparing projects using simulation results, apply decision rules based on mean, standard deviation, coefficient of variation, and skewness to select the best project.",
+      "coverage_criteria": [
+        "Compare two projects using mean, standard deviation, and skewness; explain which project is preferable and why; compute and interpret the coefficient of variation."
+      ]
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "teaching_description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ]
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-using-tornado-charts-487ef747",
+      "label": "Sensitivity Analysis Using Tornado Charts",
+      "teaching_description": "Sensitivity analysis examines how changes in input parameters affect the output criterion (e.g., EMV). Tools like tornado charts and spider charts rank inputs (risk factors) by their impact, helping prioritize which factors to focus on in decision-making and risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs and explain quantile ranges and direction of impact.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Risk and Simulation Fundamentals",
+      "concept_ids": [
+        "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+        "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26"
+      ]
+    },
+    {
+      "label": "Simulation Output Analysis for Decisions",
+      "concept_ids": [
+        "concept-project-comparison-using-simulation-statistics-9446a388",
+        "concept-sensitivity-analysis-using-tornado-charts-487ef747"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

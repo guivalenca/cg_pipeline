@@ -1,0 +1,259 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "description": "A method that assigns probability distributions to uncertain inputs, uses random sampling to simulate thousands of outcomes, and analyzes the statistical results. The process involves defining variable ranges, sampling and iterating, aggregating results, and analyzing the full distribution of outcomes.",
+      "coverage_criteria": [
+        "Student can define Monte Carlo simulation and list its four main steps."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_001",
+        "c34_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates describe the definition and the step-by-step process of Monte Carlo simulation, forming a single teachable concept."
+    },
+    {
+      "id": "lr002",
+      "label": "Business Value and Communication of Monte Carlo Simulation",
+      "description": "Monte Carlo simulation helps CFOs replace opinion-based forecasting with data-driven odds, quantify risks, and communicate more confidently to stakeholders. Outputs like percentiles and probability ranges enable answering board questions and providing mathematical context for guidance.",
+      "coverage_criteria": [
+        "Student can explain the value of Monte Carlo for financial decision-makers and how simulation results improve stakeholder communication."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_002",
+        "c33_pro_thinking_008"
+      ],
+      "merge_rationale": "Both candidates discuss how Monte Carlo benefits and is communicated by CFOs, forming a cohesive concept on its business value and communication."
+    },
+    {
+      "id": "lr003",
+      "label": "Financial Distributions for Monte Carlo: Normal, Triangular, Uniform",
+      "description": "For Monte Carlo simulation in financial forecasting, three useful distributions are normal (mean and standard deviation), triangular (minimum, most likely, maximum) often mapping to bear/base/bull cases, and uniform (equal likelihood within a range). The triangular distribution is especially popular for three-point estimates.",
+      "coverage_criteria": [
+        "Student can distinguish between normal, triangular, and uniform distributions and explain when to use each in a Monte Carlo model."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_003",
+        "c33_pro_thinking_004"
+      ],
+      "merge_rationale": "c33_pro_thinking_003 introduces all three distributions, while c33_pro_thinking_004 provides detail on the triangular distribution; they combine to form a complete lesson-local concept on distribution types."
+    },
+    {
+      "id": "lr004",
+      "label": "Interpreting Simulation Output with Percentiles",
+      "description": "Monte Carlo simulations produce a probability distribution of outcomes; percentiles (e.g., 10th, 50th, 90th) quantify the range of possible outcomes. You can tighten forecast intervals by using the 10th to 90th percentile instead of min-max extremes. The 5th percentile is particularly useful for assessing downside risk.",
+      "coverage_criteria": [
+        "Given simulation output, student can interpret percentiles to describe the range of likely outcomes and assess risk."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_005",
+        "c34_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates focus on using percentiles to interpret simulation results, with c33 covering tightening forecast intervals and c34 covering downside risk; they merge naturally."
+    },
+    {
+      "id": "lr005",
+      "label": "Multi-Input Monte Carlo Forecasting",
+      "description": "Monte Carlo can handle complex equations with multiple uncertain inputs (e.g., regional revenues and expense categories). By modelling each input with a distribution, the simulation produces a distribution of the output (like operating income), replacing static best/worst-case math with a data-driven likely range.",
+      "coverage_criteria": [
+        "Student can explain how to incorporate multiple uncertain inputs into a Monte Carlo model and interpret the resulting output distribution."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_006"
+      ],
+      "merge_rationale": "Standalone candidate demonstrating multi-input forecasting."
+    },
+    {
+      "id": "lr006",
+      "label": "Estimating Standard Deviation from Range (Range/4 Rule)",
+      "description": "When using a normal distribution without a known standard deviation, a quick estimate is to divide the range (max - min) by 4. This rule of thumb provides an approximate standard deviation for simulation inputs.",
+      "coverage_criteria": [
+        "Student can apply the range/4 rule to estimate standard deviation from a given range."
+      ],
+      "source_candidate_ids": [
+        "c33_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone small rule of thumb useful for parameterizing normal distributions."
+    },
+    {
+      "id": "lr007",
+      "label": "The Problem with Single-Number Forecasts: Certainty Trap and Deterministic Models",
+      "description": "Deterministic models produce a single outcome based on fixed inputs, creating an illusion of certainty (the certainty trap). This hides risks and variability, leading to managing a number rather than exposure. Monte Carlo simulation addresses this by incorporating uncertainty.",
+      "coverage_criteria": [
+        "Student can explain why single-number forecasts are misleading and contrast deterministic and probabilistic approaches."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_001",
+        "c34_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the limitations of traditional deterministic models and the certainty trap, setting the stage for Monte Carlo."
+    },
+    {
+      "id": "lr008",
+      "label": "Risk vs. Uncertainty",
+      "description": "Risk involves situations where probabilities can be calculated from known outcomes (e.g., roulette), while uncertainty involves unknown probabilities requiring judgment (e.g., launching new technology). Standard models fail under uncertainty; Monte Carlo helps model those unknowns.",
+      "coverage_criteria": [
+        "Student can differentiate between risk and uncertainty and explain why Monte Carlo is useful under uncertainty."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_003"
+      ],
+      "merge_rationale": "Standalone foundational distinction."
+    },
+    {
+      "id": "lr009",
+      "label": "Comparing Risk Profiles for Decision Making",
+      "description": "Even when projects have the same expected value, Monte Carlo can reveal different risk profiles. By comparing percentiles (e.g., 5th percentile) or probability of loss, a decision-maker can choose based on risk tolerance, not just average.",
+      "coverage_criteria": [
+        "Student can compare two projects using simulation output and select the option aligned with a given risk appetite."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_006"
+      ],
+      "merge_rationale": "Standalone application concept."
+    },
+    {
+      "id": "lr010",
+      "label": "Limitations: Simulation Organises Ignorance",
+      "description": "Monte Carlo simulation does not eliminate uncertainty or predict the future; it structures our understanding of ignorance by mapping possible outcomes. It aids judgment but does not replace it.",
+      "coverage_criteria": [
+        "Student can explain that simulation is a tool for organising ignorance, not eliminating it, and discuss its limitations."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone philosophical takeaway on the limits of simulation."
+    },
+    {
+      "id": "lr011",
+      "label": "Excel Implementation of Monte Carlo Simulation",
+      "description": "To implement Monte Carlo in Excel: model uncertain inputs (e.g., Sales, Costs) with mean and standard deviation; generate random trials using =NORM.INV(RAND(), mean, std_dev) for each input; run thousands of trials efficiently with a Data Table that recalculates a linked profit formula for each iteration in a column.",
+      "coverage_criteria": [
+        "Student can set up an Excel sheet to run a Monte Carlo simulation by modelling inputs, using NORM.INV with RAND, and automating trials with a Data Table."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_001",
+        "c35_pro_thinking_002",
+        "c35_pro_thinking_003"
+      ],
+      "merge_rationale": "These three candidates form a sequential workflow for implementing a Monte Carlo simulation in Excel from modelling inputs to running multiple trials."
+    },
+    {
+      "id": "lr012",
+      "label": "Analyzing Simulation Output in Excel",
+      "description": "After running a Monte Carlo simulation in Excel, analyze the results by calculating descriptive statistics (AVERAGE, MIN, MAX) to understand central tendency and range, and use COUNTIFS to count outcomes below a threshold (e.g., profit < 0) to quantify risk as a percentage.",
+      "coverage_criteria": [
+        "Student can compute summary statistics and the probability of loss from a set of simulated profits in Excel."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_004",
+        "c35_pro_thinking_005"
+      ],
+      "merge_rationale": "Both focus on summarising and interpreting simulation output in Excel, forming a complete concept on output analysis."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c33_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "lr003",
+      "explanation": "Provides detailed focus on the triangular distribution within the broader distributions concept."
+    },
+    {
+      "candidate_id": "c33_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c33_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr008"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr009"]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr010"]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr012"]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr012"]
+    }
+  ]
+}

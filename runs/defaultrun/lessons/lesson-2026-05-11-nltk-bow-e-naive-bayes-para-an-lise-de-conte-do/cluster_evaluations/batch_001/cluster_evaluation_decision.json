@@ -1,0 +1,656 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:41:39.602521+00:00",
+  "scope_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "stage_name": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c34_pro_thinking_004",
+    "c35_pro_thinking_001",
+    "c36_pro_thinking_003",
+    "c34_pro_thinking_001",
+    "c34_pro_thinking_002",
+    "c34_pro_thinking_003",
+    "c34_pro_thinking_005",
+    "c34_pro_thinking_006",
+    "c34_pro_thinking_007",
+    "c34_pro_thinking_008",
+    "c34_pro_thinking_009",
+    "c34_pro_thinking_010",
+    "c34_pro_thinking_011",
+    "c34_pro_thinking_012",
+    "c34_pro_thinking_013",
+    "c34_pro_thinking_014",
+    "c34_pro_thinking_015",
+    "c34_pro_thinking_016",
+    "c35_pro_thinking_007",
+    "c35_pro_thinking_004",
+    "c35_pro_thinking_005",
+    "c35_pro_thinking_006",
+    "c35_pro_thinking_008",
+    "c35_pro_thinking_009",
+    "c35_pro_thinking_010",
+    "c35_pro_thinking_011",
+    "c36_pro_thinking_001",
+    "c37_pro_thinking_001",
+    "c38_pro_thinking_001",
+    "c38_pro_thinking_003",
+    "c36_pro_thinking_002",
+    "c39_pro_thinking_002"
+  ],
+  "accepted": [
+    {
+      "id": "lr001",
+      "label": "Naive Bayes Classifier Core",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the naive assumption of feature independence given the class. It computes posterior probability for each class and predicts the one with maximum probability.",
+      "coverage_criteria": [
+        "State the naive independence assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_004",
+        "c35_pro_thinking_001",
+        "c36_pro_thinking_003"
+      ],
+      "merge_rationale": "These three candidates all describe the core Naive Bayes algorithm from different sources, covering the probabilistic basis, the naive assumption, and its application to text classification."
+    },
+    {
+      "id": "lr002",
+      "label": "Probability Foundations for Naive Bayes",
+      "description": "Foundational probability concepts: basic probability, conditional probability P(A|B) = P(A∩B)/P(B), and Bayes theorem P(B|A) = P(A|B)P(B)/P(A) with posterior, likelihood, prior, and evidence.",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Write Bayes theorem and name the terms.",
+        "Compute a simple probability using the formula."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_001",
+        "c34_pro_thinking_002",
+        "c34_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates build the mathematical prerequisites for Naive Bayes: probability, conditional probability, and Bayes theorem, which are often taught together."
+    },
+    {
+      "id": "lr003",
+      "label": "Feature Independence Assumption and Multicollinearity",
+      "description": "Naive Bayes assumes features are independent given the class (the 'naive' assumption). Multicollinearity (high feature correlation) violates this independence, causing poor performance.",
+      "coverage_criteria": [
+        "Explain the naive independence assumption.",
+        "Define multicollinearity and its impact on Naive Bayes.",
+        "Describe a method to detect multicollinearity."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_005",
+        "c34_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates explain the independence assumption and the related issue of multicollinearity, forming a single concept about why the algorithm is called naive and a key limitation."
+    },
+    {
+      "id": "lr004",
+      "label": "Naive Bayes Variants: Bernoulli, Multinomial, Gaussian",
+      "description": "Three main variants: Bernoulli for binary features, Multinomial for discrete counts (especially text), and Gaussian for continuous features assuming a normal distribution.",
+      "coverage_criteria": [
+        "Match each variant to its typical data type.",
+        "Identify the appropriate variant for a given scenario.",
+        "Recognize scikit-learn class names for each variant."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_007",
+        "c34_pro_thinking_008",
+        "c34_pro_thinking_009"
+      ],
+      "merge_rationale": "These three candidates describe the distinct variants of Naive Bayes, each tailored to different feature types, and are best taught as a comparative set."
+    },
+    {
+      "id": "lr005",
+      "label": "Zero Frequency Error and Laplace Smoothing",
+      "description": "Zero frequency error occurs when a test feature value was not seen during training, causing zero posterior probability. Laplace smoothing adds a small constant (usually 1) to counts to avoid zeros.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_010",
+        "c34_pro_thinking_011"
+      ],
+      "merge_rationale": "The zero frequency error and its standard solution (Laplace smoothing) are closely linked and form a natural teachable unit."
+    },
+    {
+      "id": "lr006",
+      "label": "Practical Aspects of Naive Bayes: Applications, Advantages, and Usage",
+      "description": "Naive Bayes is used in text classification, sentiment analysis, recommendation, and real-time prediction. Advantages: fast, less training data (when independent), good with categorical/text data. Disadvantages: independence assumption, zero frequency. Best when features are fairly independent and for text tasks.",
+      "coverage_criteria": [
+        "List at least three real-world applications.",
+        "State two advantages and two disadvantages.",
+        "Describe scenarios where Naive Bayes is a good choice or should be avoided."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_012",
+        "c34_pro_thinking_013",
+        "c34_pro_thinking_014",
+        "c34_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates collectively cover when and why to use Naive Bayes, combining applications, pros/cons, and usage guidelines into one practical concept."
+    },
+    {
+      "id": "lr007",
+      "label": "Improving Naive Bayes Performance",
+      "description": "Techniques include removing correlated features, feature engineering, domain knowledge, using probabilistic features, Laplace smoothing, and the log-trick for numerical stability: argmax (log prior + Σ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Name at least three improvement strategies.",
+        "Explain why the log-trick is used.",
+        "Apply the log-trick in a posterior calculation."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_016",
+        "c35_pro_thinking_007"
+      ],
+      "merge_rationale": "Both candidates address enhancing Naive Bayes; the log-trick is a specific, important technique within the broader set of improvement strategies."
+    },
+    {
+      "id": "lr008",
+      "label": "Gaussian Naive Bayes: Prior, Likelihood, and PDF",
+      "description": "In Gaussian Naive Bayes, the prior P(y) is the class frequency. The class conditional probability P(xᵢ|y) is modeled with a Gaussian PDF: (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)), where μ and σ² are estimated per feature per class.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a dataset.",
+        "Write the Gaussian PDF formula.",
+        "Compute a PDF value given mean and variance."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_004",
+        "c35_pro_thinking_005",
+        "c35_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates detail the Gaussian-specific components: prior estimation, the rationale for the Gaussian assumption, and the exact formula, which together form the mathematical core of Gaussian Naive Bayes."
+    },
+    {
+      "id": "lr009",
+      "label": "Naive Bayes Training and Prediction Procedure",
+      "description": "Training: compute per-class means, variances, and prior probabilities. Prediction: choose the class with the highest log-posterior: log P(y) + Σ log P(xᵢ|y) using argmax.",
+      "coverage_criteria": [
+        "List the statistics computed during training.",
+        "Explain the prediction step using argmax.",
+        "Perform a simple prediction by hand for a small dataset."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_008",
+        "c35_pro_thinking_009"
+      ],
+      "merge_rationale": "Training and prediction are the two essential phases of the Naive Bayes workflow, logically linked as a single concept."
+    },
+    {
+      "id": "lr010",
+      "label": "Implementing Naive Bayes in Python",
+      "description": "The classifier is implemented as a Python class with fit() and predict() methods, using NumPy arrays, storing learned parameters as attributes. Model performance is evaluated using accuracy on a test set.",
+      "coverage_criteria": [
+        "Describe the class structure and key methods (fit, predict).",
+        "Explain how accuracy is computed and interpreted.",
+        "Identify the attributes stored after training (e.g., means, variances, priors)."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_010",
+        "c35_pro_thinking_011"
+      ],
+      "merge_rationale": "These candidates provide a complete implementation perspective: the class design and the evaluation harness, which together demonstrate how to code and test Naive Bayes."
+    },
+    {
+      "id": "lr011",
+      "label": "Sentiment Analysis: Definition and Supervised Learning",
+      "description": "Sentiment analysis classifies text as positive or negative based on sentiment-bearing words. It is a supervised classification task that requires labeled data for training.",
+      "coverage_criteria": [
+        "Define sentiment analysis.",
+        "Explain why labeled data is necessary for supervised sentiment analysis.",
+        "Give examples of positive and negative cue words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_001",
+        "c37_pro_thinking_001",
+        "c38_pro_thinking_001",
+        "c38_pro_thinking_003"
+      ],
+      "merge_rationale": "All four candidates introduce sentiment analysis as a text classification problem and stress the need for labeled data, forming the foundational definition of the task."
+    },
+    {
+      "id": "lr012",
+      "label": "Bag-of-Words Representation",
+      "description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_002",
+        "c39_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the bag-of-words model as a fundamental text representation technique, covering the conceptual assumption and the practical creation of feature vectors."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Naive Bayes Classifier Core",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the naive assumption of feature independence given the class. It computes posterior probability for each class and predicts the one with maximum probability.",
+      "coverage_criteria": [
+        "State the naive independence assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_004",
+        "c35_pro_thinking_001",
+        "c36_pro_thinking_003"
+      ],
+      "merge_rationale": "These three candidates all describe the core Naive Bayes algorithm from different sources, covering the probabilistic basis, the naive assumption, and its application to text classification."
+    },
+    {
+      "id": "lr002",
+      "label": "Probability Foundations for Naive Bayes",
+      "description": "Foundational probability concepts: basic probability, conditional probability P(A|B) = P(A∩B)/P(B), and Bayes theorem P(B|A) = P(A|B)P(B)/P(A) with posterior, likelihood, prior, and evidence.",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Write Bayes theorem and name the terms.",
+        "Compute a simple probability using the formula."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_001",
+        "c34_pro_thinking_002",
+        "c34_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates build the mathematical prerequisites for Naive Bayes: probability, conditional probability, and Bayes theorem, which are often taught together."
+    },
+    {
+      "id": "lr003",
+      "label": "Feature Independence Assumption and Multicollinearity",
+      "description": "Naive Bayes assumes features are independent given the class (the 'naive' assumption). Multicollinearity (high feature correlation) violates this independence, causing poor performance.",
+      "coverage_criteria": [
+        "Explain the naive independence assumption.",
+        "Define multicollinearity and its impact on Naive Bayes.",
+        "Describe a method to detect multicollinearity."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_005",
+        "c34_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates explain the independence assumption and the related issue of multicollinearity, forming a single concept about why the algorithm is called naive and a key limitation."
+    },
+    {
+      "id": "lr004",
+      "label": "Naive Bayes Variants: Bernoulli, Multinomial, Gaussian",
+      "description": "Three main variants: Bernoulli for binary features, Multinomial for discrete counts (especially text), and Gaussian for continuous features assuming a normal distribution.",
+      "coverage_criteria": [
+        "Match each variant to its typical data type.",
+        "Identify the appropriate variant for a given scenario.",
+        "Recognize scikit-learn class names for each variant."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_007",
+        "c34_pro_thinking_008",
+        "c34_pro_thinking_009"
+      ],
+      "merge_rationale": "These three candidates describe the distinct variants of Naive Bayes, each tailored to different feature types, and are best taught as a comparative set."
+    },
+    {
+      "id": "lr005",
+      "label": "Zero Frequency Error and Laplace Smoothing",
+      "description": "Zero frequency error occurs when a test feature value was not seen during training, causing zero posterior probability. Laplace smoothing adds a small constant (usually 1) to counts to avoid zeros.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_010",
+        "c34_pro_thinking_011"
+      ],
+      "merge_rationale": "The zero frequency error and its standard solution (Laplace smoothing) are closely linked and form a natural teachable unit."
+    },
+    {
+      "id": "lr006",
+      "label": "Practical Aspects of Naive Bayes: Applications, Advantages, and Usage",
+      "description": "Naive Bayes is used in text classification, sentiment analysis, recommendation, and real-time prediction. Advantages: fast, less training data (when independent), good with categorical/text data. Disadvantages: independence assumption, zero frequency. Best when features are fairly independent and for text tasks.",
+      "coverage_criteria": [
+        "List at least three real-world applications.",
+        "State two advantages and two disadvantages.",
+        "Describe scenarios where Naive Bayes is a good choice or should be avoided."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_012",
+        "c34_pro_thinking_013",
+        "c34_pro_thinking_014",
+        "c34_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates collectively cover when and why to use Naive Bayes, combining applications, pros/cons, and usage guidelines into one practical concept."
+    },
+    {
+      "id": "lr007",
+      "label": "Improving Naive Bayes Performance",
+      "description": "Techniques include removing correlated features, feature engineering, domain knowledge, using probabilistic features, Laplace smoothing, and the log-trick for numerical stability: argmax (log prior + Σ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Name at least three improvement strategies.",
+        "Explain why the log-trick is used.",
+        "Apply the log-trick in a posterior calculation."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_016",
+        "c35_pro_thinking_007"
+      ],
+      "merge_rationale": "Both candidates address enhancing Naive Bayes; the log-trick is a specific, important technique within the broader set of improvement strategies."
+    },
+    {
+      "id": "lr008",
+      "label": "Gaussian Naive Bayes: Prior, Likelihood, and PDF",
+      "description": "In Gaussian Naive Bayes, the prior P(y) is the class frequency. The class conditional probability P(xᵢ|y) is modeled with a Gaussian PDF: (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)), where μ and σ² are estimated per feature per class.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a dataset.",
+        "Write the Gaussian PDF formula.",
+        "Compute a PDF value given mean and variance."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_004",
+        "c35_pro_thinking_005",
+        "c35_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates detail the Gaussian-specific components: prior estimation, the rationale for the Gaussian assumption, and the exact formula, which together form the mathematical core of Gaussian Naive Bayes."
+    },
+    {
+      "id": "lr009",
+      "label": "Naive Bayes Training and Prediction Procedure",
+      "description": "Training: compute per-class means, variances, and prior probabilities. Prediction: choose the class with the highest log-posterior: log P(y) + Σ log P(xᵢ|y) using argmax.",
+      "coverage_criteria": [
+        "List the statistics computed during training.",
+        "Explain the prediction step using argmax.",
+        "Perform a simple prediction by hand for a small dataset."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_008",
+        "c35_pro_thinking_009"
+      ],
+      "merge_rationale": "Training and prediction are the two essential phases of the Naive Bayes workflow, logically linked as a single concept."
+    },
+    {
+      "id": "lr010",
+      "label": "Implementing Naive Bayes in Python",
+      "description": "The classifier is implemented as a Python class with fit() and predict() methods, using NumPy arrays, storing learned parameters as attributes. Model performance is evaluated using accuracy on a test set.",
+      "coverage_criteria": [
+        "Describe the class structure and key methods (fit, predict).",
+        "Explain how accuracy is computed and interpreted.",
+        "Identify the attributes stored after training (e.g., means, variances, priors)."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_010",
+        "c35_pro_thinking_011"
+      ],
+      "merge_rationale": "These candidates provide a complete implementation perspective: the class design and the evaluation harness, which together demonstrate how to code and test Naive Bayes."
+    },
+    {
+      "id": "lr011",
+      "label": "Sentiment Analysis: Definition and Supervised Learning",
+      "description": "Sentiment analysis classifies text as positive or negative based on sentiment-bearing words. It is a supervised classification task that requires labeled data for training.",
+      "coverage_criteria": [
+        "Define sentiment analysis.",
+        "Explain why labeled data is necessary for supervised sentiment analysis.",
+        "Give examples of positive and negative cue words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_001",
+        "c37_pro_thinking_001",
+        "c38_pro_thinking_001",
+        "c38_pro_thinking_003"
+      ],
+      "merge_rationale": "All four candidates introduce sentiment analysis as a text classification problem and stress the need for labeled data, forming the foundational definition of the task."
+    },
+    {
+      "id": "lr012",
+      "label": "Bag-of-Words Representation",
+      "description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_002",
+        "c39_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the bag-of-words model as a fundamental text representation technique, covering the conceptual assumption and the practical creation of feature vectors."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c34_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr001"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr003"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr005"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr007"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr007"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr009"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr009"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr010"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr010"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr011"
+      ]
+    },
+    {
+      "candidate_id": "c37_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr011"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr012"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "lr012"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 32,
+    "accepted_count": 12,
+    "pruned_count": 0,
+    "candidate_assignment_count": 32,
+    "review_count": 0
+  }
+}

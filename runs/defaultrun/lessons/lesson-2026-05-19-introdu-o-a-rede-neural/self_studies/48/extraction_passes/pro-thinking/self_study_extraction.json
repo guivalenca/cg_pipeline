@@ -1,0 +1,417 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:04:51.408940+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+  "self_study_id": "48",
+  "source_body_path": "extraction/post-image/0048-article-how-to-build-your-own-neural-network-from-scratch-in-python.md",
+  "source_body_sha256": "146d1f0c61d6fc581ebb3abc314c88c81fb5b3b82e598dc37d6ffb12fcdedacb",
+  "source_name": "How to build your own Neural Network from scratch in Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-48-001",
+      "label": "Neural Network Architecture",
+      "description": "A neural network is a layered structure of interconnected neurons (mathematical functions) where each neuron receives inputs, applies weights and bias, and passes the result through a sigmoid activation function to produce an output.",
+      "coverage_criteria": [
+        "Describe the flow of data through a neural network (input -> hidden -> output).",
+        "Explain the role of weights and biases in a neuron."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article introduces neural networks with a diagram and description of neurons as sigmoid functions and their connections.",
+        "granularity_rationale": "This is a foundational concept that can be checked with a couple of questions about network structure."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-002",
+      "label": "Sigmoid Activation Function",
+      "description": "The sigmoid function f(z) = 1/(1+e^{-z}) maps any real-valued number to a value between 0 and 1, used as an activation function in neural network neurons to introduce non-linearity.",
+      "coverage_criteria": [
+        "Compute the sigmoid of a given number.",
+        "Explain why non-linearity is important in neural networks."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article introduces the sigmoid function as the activation for each neuron and provides its implementation.",
+        "granularity_rationale": "This is a specific function that can be checked with a simple calculation and a brief explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": [
+        "sigmoid"
+      ]
+    },
+    {
+      "candidate_id": "candidate-48-003",
+      "label": "Forward Propagation",
+      "description": "Forward propagation computes the output of a neural network by sequentially applying linear transformations (weights and biases) and activation functions from the input layer to the output layer.",
+      "coverage_criteria": [
+        "Describe the steps of forward propagation for a simple network.",
+        "Explain why we store caches during forward propagation."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explains forward propagation as the process of generating an output from input, and provides a Python implementation.",
+        "granularity_rationale": "This core algorithmic step can be tested by asking to trace the computations in a small example."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-004",
+      "label": "Cost Function (Logistic Loss)",
+      "description": "The cost function quantifies the error of the neural network's predictions. The logistic loss (cross-entropy) is commonly used for binary classification, computing the negative average of the log-likelihood.",
+      "coverage_criteria": [
+        "Write the logistic loss formula.",
+        "Explain why minimizing the cost function improves the model."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article introduces the cost function as a measure of how far predictions are from truth, and provides a Python implementation.",
+        "granularity_rationale": "Knowing the cost function is crucial for understanding training, and it can be checked with a formula recall and explanation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-005",
+      "label": "Backpropagation",
+      "description": "Backpropagation computes gradients of the cost function with respect to each parameter by propagating the error backward from the output layer to the input layer, using the chain rule.",
+      "coverage_criteria": [
+        "Explain the purpose of backpropagation in training.",
+        "Describe how gradients flow from the output to earlier layers."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article describes backpropagation as the method to compute gradients for each weight and bias, and provides code for one layer and then full backprop.",
+        "granularity_rationale": "This is a key algorithm in neural network training, testable by asking about its role and basic mechanism."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-006",
+      "label": "Gradient Descent",
+      "description": "Gradient descent minimizes the cost function by updating each parameter by subtracting the product of the learning rate and the parameter's gradient.",
+      "coverage_criteria": [
+        "Write the parameter update rule.",
+        "Explain the role of the learning rate."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article explains that gradient descent uses gradients to update weights and biases to minimize cost, and the update_parameters function implements this.",
+        "granularity_rationale": "A fundamental optimization step that can be checked with a simple update rule question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": [
+        "Gradient Descent"
+      ]
+    },
+    {
+      "candidate_id": "candidate-48-007",
+      "label": "Neural Network Parameter Initialization",
+      "description": "Before training, weights should be initialized with small random values and biases can be initialized as zeros to break symmetry and enable effective gradient updates.",
+      "coverage_criteria": [
+        "Explain why random initialization is needed for weights.",
+        "Describe the effect of initializing weights with zeros."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The init_params function initializes weights with random values and biases with zeros, highlighting the need for symmetry breaking.",
+        "granularity_rationale": "Initialization is a critical step; the rationale can be checked with a couple of questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-008",
+      "label": "Neural Network Training Process",
+      "description": "Training a neural network involves iterating over the dataset multiple times (epochs), each time performing forward propagation, cost computation, backpropagation, and parameter updates.",
+      "coverage_criteria": [
+        "List the steps in one training iteration.",
+        "Explain what an epoch is."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The train function encapsulates the entire training loop, calling forward_prop, cost_function, backprop, and update_parameters for a number of epochs.",
+        "granularity_rationale": "This high-level process is learnable and testable with a sequence of steps."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-009",
+      "label": "Layer Dimensions in Neural Networks",
+      "description": "The layer_dims list specifies the number of neurons in each layer (input, hidden, output), and determines the shape of parameters (weights: (current layer, previous layer); biases: (current layer, 1)).",
+      "coverage_criteria": [
+        "Given layer dimensions, determine the shape of W1.",
+        "Explain why biases are vectors of shape (n_l, 1)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The article uses layer_dims to initialize parameters and loop through layers, explaining the shapes.",
+        "granularity_rationale": "Understanding parameter shapes is key for implementation and can be checked with a shape identification question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-48-010",
+      "label": "Caching in Forward Propagation",
+      "description": "To enable efficient backpropagation, forward propagation stores caches containing linear input (A_prev, W, b) and activation input (Z) for each layer.",
+      "coverage_criteria": [
+        "Explain why caching is necessary for backpropagation.",
+        "Identify which values are cached for a given layer."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The forward_prop function explicitly stores linear and activation caches, and backprop uses them to compute gradients.",
+        "granularity_rationale": "Caching is a practical detail for implementing backprop; testable with a reason and content question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to build your own Neural Network from scratch in Python",
+      "source_year": "2019",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-48-003",
+      "to_candidate_id": "candidate-48-005",
+      "reason": "Forward propagation stores caches (linear and activation) that are then used by backpropagation to compute gradients for each layer.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-004",
+      "to_candidate_id": "candidate-48-005",
+      "reason": "Backpropagation computes the gradients of the cost function with respect to the network parameters.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-005",
+      "to_candidate_id": "candidate-48-006",
+      "reason": "Gradients computed by backpropagation are used in gradient descent to update the weights and biases.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-002",
+      "to_candidate_id": "candidate-48-003",
+      "reason": "The sigmoid activation function is applied during forward propagation to compute the layer output from the linear hypothesis.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-007",
+      "to_candidate_id": "candidate-48-008",
+      "reason": "Parameter initialization is the first step before the training loop, providing the initial weights and biases.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-009",
+      "to_candidate_id": "candidate-48-007",
+      "reason": "Layer dimensions define the shapes of the weight matrices and bias vectors during initialization.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-010",
+      "to_candidate_id": "candidate-48-003",
+      "reason": "Caching is performed during forward propagation to store intermediate values for later use in backpropagation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Code"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-48-001",
+      "to_candidate_id": "candidate-48-003",
+      "reason": "Forward propagation operates by passing data through the layers defined by the neural network architecture.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Idea"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 10,
+    "source_local_connector_candidate_count": 8
+  }
+}

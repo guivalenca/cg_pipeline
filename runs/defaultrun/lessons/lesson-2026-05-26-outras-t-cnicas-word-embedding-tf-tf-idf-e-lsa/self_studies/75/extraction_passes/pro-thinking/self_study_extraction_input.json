@@ -1,0 +1,96 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+    "display_code": "L11",
+    "workbook_row_number": 70,
+    "title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+    "date": "26/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Reconhecimento de voz",
+      "Redes Neurais",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)",
+      "Vetores multidimensionais"
+    ],
+    "description": "Ao longo deste encontro, outras técnicas de Word Embedding serão apresentadas as pessoas desenvolvedoras. Assim, o objetivo desta abordagem é que elas possam comparar as técnicas que foram apresentadas e verificar que cada uma delas possui um tipo de aplicação característica para sua aplicação."
+  },
+  "self_study": {
+    "self_study_id": "75",
+    "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 75,
+      "week": 6,
+      "sort": 11,
+      "title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos",
+      "description": "Esta atividade tem como objetivo a familiarização dos alunos com a análise de sentimentos a partir de textos.",
+      "url": "https://www.kaggle.com/datasets/jp797498e/twitter-entity-sentiment-analysis",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 3.0,
+      "related_labels": [
+        "Determinação do conteúdo em PLN",
+        "Gramáticas lógicas",
+        "Pré-processamento e morfologia (Análise morfológica)",
+        "Processamento do discurso",
+        "Redes Neurais",
+        "Representação de palavras",
+        "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+        "Sintaxe da sentença (Análise sintática)",
+        "Vetores multidimensionais"
+      ],
+      "parent_class": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "class_date": "26/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed_with_warnings",
+      "path": "extraction/post-image/0075-article-atividade-estudo-de-caso-aplicacoes-de-analise-de-sentimentos.md",
+      "sha256": "b084f3da0dfc250b3c839a033eb70ae06dd73e9c764463aa55912fa16d85527c",
+      "word_count": 532,
+      "bytes": 3842,
+      "source_markdown": "article/firecrawl/output/75/75-atividade-estudo-de-caso-aplicacoes-de-analise-de-sentimentos.md",
+      "artifact_dir": "article/firecrawl/output/75",
+      "availability_warnings": [
+        "interactive_shell_requires_manual_review"
+      ],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0075-article-atividade-estudo-de-caso-aplicacoes-de-analise-de-sentimentos.md",
+    "sha256": "b084f3da0dfc250b3c839a033eb70ae06dd73e9c764463aa55912fa16d85527c",
+    "word_count": 532,
+    "source_markdown": "article/firecrawl/output/75/75-atividade-estudo-de-caso-aplicacoes-de-analise-de-sentimentos.md",
+    "markdown": "---\nid: \"75\"\ntitle: \"ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos\"\nsource_url: \"https://www.kaggle.com/datasets/jp797498e/twitter-entity-sentiment-analysis\"\nfetch_url: \"https://www.kaggle.com/datasets/jp797498e/twitter-entity-sentiment-analysis\"\nresolved_url: \"https://www.kaggle.com/datasets/jp797498e/twitter-entity-sentiment-analysis\"\nfirecrawl_title: \"Twitter Sentiment Analysis\"\ndescription: \"Entity-level sentiment analysis on multi-lingual tweets.\"\nfetched_at: \"2026-05-12T03:59:52.932930Z\"\nprovider: \"firecrawl\"\nstrategy: \"interactive_shell\"\ncache_key: \"b82bc8d09612a0c1a038005bf355e17109618dcd1bfc86040d692d9d872d7dd3\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 434\nchar_count: 2753\ncontent_sha256: \"25ea84b6bd7f17b18ef200d83e1987d93dbd55eb56f235d1708655b1db4f168a\"\nimage_count: 21\nlink_count: 25\nwarnings:\n  - \"interactive_shell_requires_manual_review\"\n  - \"interactive_shell_review\"\ngate_status: \"passed_with_warnings\"\ngate_failures: []\nroute_notes:\n  - \"interactive_dataset_shell_manual_review\"\n---\n\n# Twitter Sentiment Analysis\n\nEntity-level sentiment analysis on multi-lingual tweets.\n\n[Image: Dataset Cover](https://storage.googleapis.com/kaggle-datasets-images/1520310/2510249/62d9f449c80ece3e48827afd505f39de/dataset-cover.jpeg?t=2021-08-09-02-12-59)\n\n## About Dataset\n\n### Overview\n\nThis is an entity-level sentiment analysis dataset of Twitter. Given a message and an entity, the task is to judge the sentiment of the message about the entity. There are three classes in this dataset: Positive, Negative, and Neutral. We regard messages that are not relevant to the entity (i.e. Irrelevant) as Neutral.\n\n### Usage\n\nPlease use `twitter_training.csv` as the training set and `twitter_validation.csv` as the validation set. Top 1 classification accuracy is used as the metric.\n\n### Usability\n\ninfo 10.00\n\n### License\n\n[CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)\n\n### Expected update frequency\n\nAnnually\n\n### Tags\n\n[Classification](https://www.kaggle.com/datasets?tags=13302-Classification) [Data Analytics](https://www.kaggle.com/datasets?tags=13215-Data+Analytics) [Text](https://www.kaggle.com/datasets?tags=14104-Text) [NLP](https://www.kaggle.com/datasets?tags=13204-NLP) [Email and Messaging](https://www.kaggle.com/datasets?tags=16486-Email+and+Messaging)\n\n### twitter_training.csv (10.33 MB)\n\n#### About this file\n\nTraining data\n\n| Label | Count |\n| ----- | ----- |\n| 1.00 - 660.95 | 3,864 |\n| 660.95 - 1320.90 | 3,774 |\n| 1320.90 - 1980.85 | 3,900 |\n| 1980.85 - 2640.80 | 3,893 |\n| 2640.80 - 3300.75 | 3,858 |\n| 3300.75 - 3960.70 | 3,858 |\n| 3960.70 - 4620.65 | 3,780 |\n| 4620.65 - 5280.60 | 3,828 |\n| 5280.60 - 5940.55 | 3,786 |\n| 5940.55 - 6600.50 | 3,810 |\n| 6600.50 - 7260.45 | 3,840 |\n| 7260.45 - 7920.40 | 3,954 |\n| 7920.40 - 8580.35 | 3,918 |\n| 8580.35 - 9240.30 | 3,852 |\n| 9240.30 - 9900.25 | 3,822 |\n| 9900.25 - 10560.20 | 3,744 |\n| 10560.20 - 11220.15 | 3,840 |\n| 11220.15 - 11880.10 | 3,948 |\n| 11880.10 - 12540.05 | 1,554 |\n| 12540.05 - 13200.00 | 3,858 |\n\n## Summary\n\n| Date       | Views |\n|------------|-------|\n| Apr 12, 2026 | 187   |\n| Apr 13, 2026 | 266   |\n| Apr 14, 2026 | 209   |\n| Apr 15, 2026 | 342   |\n| Apr 16, 2026 | 224   |\n| Apr 17, 2026 | 164   |\n| Apr 18, 2026 | 179   |\n| Apr 19, 2026 | 361   |\n| Apr 20, 2026 | 270   |\n| Apr 21, 2026 | 324   |\n| Apr 22, 2026 | 244   |\n| Apr 23, 2026 | 211   |\n| Apr 24, 2026 | 213   |\n| Apr 25, 2026 | 180   |\n| Apr 26, 2026 | 218   |\n| Apr 27, 2026 | 260   |\n| Apr 28, 2026 | 256   |\n| Apr 29, 2026 | 153   |\n| Apr 30, 2026 | 150   |\n| May 1, 2026 | 164   |\n| May 2, 2026 | 126   |\n| May 3, 2026 | 168   |\n| May 4, 2026 | 230   |\n| May 5, 2026 | 243   |\n| May 6, 2026 | 195   |\n| May 7, 2026 | 173   |\n| May 8, 2026 | 163   |\n| May 9, 2026 | 127   |\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

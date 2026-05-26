@@ -1,0 +1,235 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-43-001",
+      "label": "Gensim Document",
+      "description": "In Gensim, a document is an object of text sequence type (str in Python 3). It can be any text from a short tweet to a book, and serves as the basic input unit for corpora and models.",
+      "coverage_criteria": [
+        "Define what a document is in the context of Gensim.",
+        "Identify which Python objects can serve as Gensim documents.",
+        "Given examples, determine if they would be considered documents in Gensim."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines document as the first core concept, provides examples, and explains its role as input to corpora and models.",
+        "granularity_rationale": "The concept of a document is fundamental and checkable with a few straightforward questions about text sequences."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Document"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim"]
+    },
+    {
+      "candidate_id": "candidate-43-002",
+      "label": "Gensim Corpus",
+      "description": "A corpus is a collection of documents, serving as input for unsupervised model training and as a set of documents to organize and query after training.",
+      "coverage_criteria": [
+        "Describe the two roles of a corpus in Gensim.",
+        "Identify that Gensim focuses on unsupervised models requiring no manual annotation.",
+        "Explain that corpora can be streamed to handle large datasets."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source clearly outlines the corpus concept, its roles, and emphasizes unsupervised learning and streaming.",
+        "granularity_rationale": "Checkable by asking about the roles and the streaming feature, which are central to Gensim usage."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Corpus"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim"]
+    },
+    {
+      "candidate_id": "candidate-43-003",
+      "label": "Gensim Vector (Sparse Representation)",
+      "description": "A vector is a mathematical representation of a document, often sparse (bag-of-words) where features are word counts. Sparse vectors omit zero values to save memory, and document similarity can be assessed by vector proximity.",
+      "coverage_criteria": [
+        "Explain why vectors are used in Gensim.",
+        "Distinguish between dense and sparse vectors.",
+        "Interpret a simple bag-of-words vector like [(0,2), (1,1)]."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates a section to Vectors, explaining dense vs sparse, bag-of-words, and how similarity is derived.",
+        "granularity_rationale": "This concept is essential for understanding document transformation and can be tested by having students interpret vector representations."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Vector"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim", "bag-of-words"]
+    },
+    {
+      "candidate_id": "candidate-43-004",
+      "label": "Gensim Model as Vector Transformation",
+      "description": "A model is an algorithm that learns to transform vectors from one representation to another (e.g., bag-of-words to TF-IDF) by training on a corpus. Trained models can be saved, loaded, and applied to new documents.",
+      "coverage_criteria": [
+        "Define what a model does in Gensim.",
+        "Explain the training process as learning a transformation between vector spaces.",
+        "Given an example like TF-IDF, describe what transformation occurs."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines a model as a transformation, provides the TF-IDF example, and shows saving/loading.",
+        "granularity_rationale": "This captures the essence of Gensim models and can be assessed by asking to explain the transformation concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Model"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim", "tf-idf"]
+    },
+    {
+      "candidate_id": "candidate-43-005",
+      "label": "Gensim Dictionary for Vectorization",
+      "description": "The gensim.corpora.Dictionary class maps each word in the corpus to a unique integer ID, enabling conversion of tokenized documents into bag-of-words vectors via the doc2bow method.",
+      "coverage_criteria": [
+        "Explain the purpose of a Gensim Dictionary.",
+        "Use a dictionary to convert a short text into a bag-of-words vector.",
+        "Identify that out-of-vocabulary words are ignored during vectorization."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source demonstrates creating a dictionary from processed corpus and using doc2bow, explicitly stating its role in vectorization.",
+        "granularity_rationale": "This is a specific, hands-on tool in Gensim that students can learn to use with simple code examples."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Vector"},
+        {"kind": "code_block", "locator": "dictionary = corpora.Dictionary(processed_corpus)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim.corpora.Dictionary", "doc2bow"]
+    },
+    {
+      "candidate_id": "candidate-43-006",
+      "label": "TF-IDF Model in Gensim",
+      "description": "The TF-IDF model transforms bag-of-words vectors by weighting term frequencies inversely with document frequency, reducing the weight of common words and emphasizing rare ones.",
+      "coverage_criteria": [
+        "Explain the effect of TF-IDF on word weights.",
+        "Compare tf-idf weights of frequent vs rare words in a given corpus.",
+        "Apply a pre-trained TF-IDF model to a new document string."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a concrete TF-IDF example, showing weight differences between 'system' and 'minors', and mentions it as a model.",
+        "granularity_rationale": "TF-IDF is a specific, well-defined transformation that can be taught and tested independently."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Model"},
+        {"kind": "code_block", "locator": "tfidf = models.TfidfModel(bow_corpus)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim.models.TfidfModel", "tf-idf"]
+    },
+    {
+      "candidate_id": "candidate-43-007",
+      "label": "Corpus Streaming for Large Datasets",
+      "description": "Gensim can handle very large corpora by streaming, processing one document at a time instead of loading the entire corpus into memory, which is essential for scalability.",
+      "coverage_criteria": [
+        "Explain why streaming is necessary for large corpora.",
+        "Describe how Gensim achieves streaming.",
+        "Identify that an iterator returning one document vector at a time can be used."
+      ],
+      "source_roles": ["explaining", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly warns about memory limitations and mentions Gensim's streaming capability, linking to a detailed tutorial.",
+        "granularity_rationale": "This is a practical consideration for using Gensim with real-world data, and is easily checkable with a single question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Corpus"},
+        {"kind": "markdown_text", "locator": "Important: The above example loads the entire corpus into memory..."}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim"]
+    },
+    {
+      "candidate_id": "candidate-43-008",
+      "label": "Similarity Queries with Gensim",
+      "description": "After transforming a corpus with a model (e.g., TF-IDF), Gensim can compute similarity scores between a query document and all documents in the corpus, enabling search and clustering.",
+      "coverage_criteria": [
+        "Explain how to perform a similarity query in Gensim.",
+        "Interpret similarity scores from a given output.",
+        "Sort documents by relevance using similarity scores."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source shows a complete example of indexing a TF-IDF corpus and querying similarity, including output interpretation and sorting.",
+        "granularity_rationale": "This is a key application of the pipeline and can be tested by asking students to explain the process or interpret results."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Model"},
+        {"kind": "code_block", "locator": "index = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=12)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Gensim - topic modeling for humans",
+      "source_year": "2026",
+      "name_drops": ["gensim.similarities.SparseMatrixSimilarity"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-43-001",
+      "to_candidate_id": "candidate-43-002",
+      "reason": "A Corpus is defined as a collection of Document objects, making Document the fundamental unit of a Corpus.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Corpus"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-43-005",
+      "to_candidate_id": "candidate-43-003",
+      "reason": "The Dictionary is used with doc2bow to convert tokenized documents into bag-of-words vectors, directly linking the mapping to vector creation.",
+      "source_anchors": [
+        {"kind": "code_block", "locator": "new_vec = dictionary.doc2bow(new_doc.lower().split())"},
+        {"kind": "markdown_text", "locator": "We can use the dictionary to turn tokenized documents into these 12-dimensional vectors"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-43-003",
+      "to_candidate_id": "candidate-43-004",
+      "reason": "Models operate on vectors to transform them from one representation to another; for example, TF-IDF transforms bag-of-words vectors.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Model"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-43-004",
+      "to_candidate_id": "candidate-43-006",
+      "reason": "The tutorial presents TF-IDF as a concrete example of a Model, demonstrating how it transforms vector representations.",
+      "source_anchors": [
+        {"kind": "code_block", "locator": "tfidf = models.TfidfModel(bow_corpus)"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-43-006",
+      "to_candidate_id": "candidate-43-008",
+      "reason": "Similarity queries are performed on vectors produced by the TF-IDF model, as shown in the indexing and querying example.",
+      "source_anchors": [
+        {"kind": "code_block", "locator": "index = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=12)"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-43-002",
+      "to_candidate_id": "candidate-43-005",
+      "reason": "A Dictionary is built directly from a processed corpus, mapping all tokens that appear in that corpus.",
+      "source_anchors": [
+        {"kind": "code_block", "locator": "dictionary = corpora.Dictionary(processed_corpus)"}
+      ]
+    }
+  ]
+}

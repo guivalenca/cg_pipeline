@@ -1,0 +1,509 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Boolean AND operator and implied AND",
+    "rationale": "These candidates both describe the AND operator: one defines it explicitly, the other explains that AND is sometimes implied in databases, which is a nuance of the same operator.",
+    "candidate_ids": [
+      "c66_pro_thinking_001",
+      "c66_pro_thinking_005"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Boolean AND operator and implied AND",
+      "rationale": "These candidates both describe the AND operator: one defines it explicitly, the other explains that AND is sometimes implied in databases, which is a nuance of the same operator.",
+      "candidate_ids": [
+        "c66_pro_thinking_001",
+        "c66_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Boolean OR operator",
+      "rationale": "This candidate stands alone as it describes the OR operator, which is distinct from AND and NOT.",
+      "candidate_ids": [
+        "c66_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Boolean NOT operator",
+      "rationale": "This candidate describes the NOT operator, which is distinct from AND and OR.",
+      "candidate_ids": [
+        "c66_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Phrase searching with quotes",
+      "rationale": "This candidate describes a specific technique distinct from basic Boolean operators.",
+      "candidate_ids": [
+        "c66_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Boolean search order and parentheses",
+      "rationale": "This candidate covers a specific aspect of Boolean logic operations that is distinct from the operators themselves.",
+      "candidate_ids": [
+        "c66_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Boolean operators as mathematical sets",
+      "rationale": "This candidate offers a conceptual foundation for Boolean operators, distinct from their practical application in searches.",
+      "candidate_ids": [
+        "c66_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Feature Extraction in NLP",
+      "rationale": "Both candidates describe the process of converting text to numerical features for NLP, one from source body with methods, the other from workbook metadata with implementation focus. They likely cover the same overarching idea.",
+      "candidate_ids": [
+        "c67_pro_thinking_001",
+        "m68_001"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Bag of Words (BoW)",
+      "rationale": "This is a specific feature extraction technique, distinct from others.",
+      "candidate_ids": [
+        "c67_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "TF-IDF",
+      "rationale": "This is a distinct weighting scheme, not the same as BoW or embeddings.",
+      "candidate_ids": [
+        "c67_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "One-hot Encoding",
+      "rationale": "This is a specific representation method, different from TF-IDF or embeddings.",
+      "candidate_ids": [
+        "c67_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Word Embedding",
+      "rationale": "This candidate introduces the general concept of word embeddings, which is the foundation for specific methods like Word2Vec and GloVe.",
+      "candidate_ids": [
+        "c67_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Word2Vec",
+      "rationale": "Specific embedding method, distinct from general concept and from GloVe.",
+      "candidate_ids": [
+        "c67_pro_thinking_006"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c66_pro_thinking_001",
+    "c66_pro_thinking_005",
+    "c66_pro_thinking_002",
+    "c66_pro_thinking_003",
+    "c66_pro_thinking_004",
+    "c66_pro_thinking_006",
+    "c66_pro_thinking_007",
+    "c67_pro_thinking_001",
+    "m68_001",
+    "c67_pro_thinking_002",
+    "c67_pro_thinking_003",
+    "c67_pro_thinking_004",
+    "c67_pro_thinking_005",
+    "c67_pro_thinking_006"
+  ],
+  "candidates": [
+    {
+      "id": "c66_pro_thinking_001",
+      "label": "Boolean AND operator",
+      "description": "The AND operator narrows database search results by requiring all specified terms to be present in the resulting records. It is used to combine multiple concepts, making the search more specific.",
+      "coverage_criteria": [
+        "Define the effect of AND on search result count.",
+        "Provide an example query using AND.",
+        "Explain when to use AND to focus a search."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a section titled 'Using AND' that explains the purpose, gives examples, and includes a Venn diagram. It states 'Use AND in a search to narrow your results' and provides the example 'cloning AND humans AND ethics'.",
+        "granularity_rationale": "AND is a single, well-defined operator with clear usage, making it suitable for a focused assessment item."
+      },
+      "anchors": [
+        "Using AND"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_005",
+      "label": "Implied AND in databases",
+      "description": "In many databases and search engines like Google, the AND operator is automatically inserted between search terms. Users should be aware that this may cause terms to be searched individually rather than as a phrase.",
+      "coverage_criteria": [
+        "Identify the behavior of implied AND in a search engine.",
+        "Describe a potential pitfall of implied AND.",
+        "Suggest a solution to improve search precision when implied AND causes issues."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source warns: 'In many, but not all, databases, the AND is implied. For example, Google automatically puts an AND in between your search terms.' This highlights a key nuance of Boolean search behavior that can lead to unexpected results.",
+        "granularity_rationale": "Implied AND is a specific behavioral aspect of search systems that can be assessed through explanation and example-based questions."
+      },
+      "anchors": [
+        "Using AND"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_002",
+      "label": "Boolean OR operator",
+      "description": "The OR operator broadens database search results by including records that contain any of the specified terms. It is used to connect synonyms or related concepts.",
+      "coverage_criteria": [
+        "Define the effect of OR on search result count.",
+        "Provide an example query using OR.",
+        "Explain when to use OR to broaden a search."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article includes a 'Using OR' section that describes OR as connecting similar concepts and broadening results, with the example 'cloning OR genetics OR reproduction' and a Venn diagram.",
+        "granularity_rationale": "OR is a distinct Boolean operator with a clearly opposite function to AND, allowing it to be taught and assessed as a standalone concept."
+      },
+      "anchors": [
+        "Using OR"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_003",
+      "label": "Boolean NOT operator",
+      "description": "The NOT operator narrows search results by excluding records that contain a specified term. It is used to remove unwanted concepts from a search.",
+      "coverage_criteria": [
+        "Define the effect of NOT on search results.",
+        "Provide an example query using NOT.",
+        "Explain a scenario where NOT would be useful."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source has a dedicated 'Using NOT' section that explains it excludes words and narrows the search, with the example 'cloning NOT sheep'.",
+        "granularity_rationale": "NOT is a fundamental Boolean operator that completes the trio, and its exclusionary behavior is distinct from AND and OR, justifying separate treatment."
+      },
+      "anchors": [
+        "Using NOT"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_004",
+      "label": "Phrase searching with quotes",
+      "description": "Phrase searching involves enclosing multiple words in quotes to ensure they appear together as a contiguous phrase in search results. This technique increases specificity when used with Boolean operators like AND.",
+      "coverage_criteria": [
+        "Explain how phrase searching affects search results.",
+        "Construct a query that combines phrase searching with Boolean AND.",
+        "Identify when phrase searching is appropriate to avoid irrelevant results."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Within the 'Using AND' section, the source states: 'You can search using phrases to make your results more specific. For example: \"college students\" AND \"test anxiety\".' This explicitly presents phrase searching as a complementary technique to Boolean operators.",
+        "granularity_rationale": "Phrase searching is a discrete search refinement technique that can be checked with a few practical questions about syntax and effect."
+      },
+      "anchors": [
+        "Using AND"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_006",
+      "label": "Boolean search order and parentheses grouping",
+      "description": "Databases typically evaluate AND before OR. To change the order or group ORed terms together, parentheses must be used, e.g., ethics AND (cloning OR reproductive techniques).",
+      "coverage_criteria": [
+        "Explain why search order matters in Boolean queries.",
+        "Rewrite a query using parentheses to control evaluation order.",
+        "Predict the result of a mixed Boolean query without parentheses."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Search order' section explicitly states: 'Databases usually recognize AND as the primary operator, and will connect concepts with AND together first. If you use a combination of AND and OR operators in a search, enclose the words to be \"ORed\" together in parentheses.' Examples are provided.",
+        "granularity_rationale": "Search order and parentheses usage form a self-contained lesson in Boolean logic that is testable with practical query construction exercises."
+      },
+      "anchors": [
+        "Search order"
+      ]
+    },
+    {
+      "id": "c66_pro_thinking_007",
+      "label": "Boolean operators as mathematical sets",
+      "description": "Boolean operators are based on mathematical set theory and Venn diagrams, providing a visual way to understand how search terms intersect (AND), combine (OR), or exclude (NOT).",
+      "coverage_criteria": [
+        "Map the AND operation to a Venn diagram intersection.",
+        "Explain how OR corresponds to union in set theory.",
+        "Relate the concept of sets to database search results."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The opening section states: 'Boolean operators form the basis of mathematical sets and database logic.' Venn diagrams are used throughout to illustrate AND and OR operations, grounding the abstract operators in visual set representations.",
+        "granularity_rationale": "Understanding the set-theoretic foundation of Boolean operators is a conceptual prerequisite that can be assessed by asking students to interpret and draw Venn diagrams for given queries."
+      },
+      "anchors": [
+        "What to look for"
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of converting cleaned text into numerical features that machine learning models can process, a crucial step in natural language processing.",
+      "coverage_criteria": [
+        "Explain why text needs to be transformed into numerical features for NLP modeling.",
+        "Provide examples of feature extraction methods."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's introduction and 'Feature Extraction:' section define feature extraction as the step after cleaning and normalization, necessary for modeling.",
+        "granularity_rationale": "This concept is a foundational idea that can be assessed by asking about the purpose and general approach of feature extraction."
+      },
+      "anchors": [
+        "Introduction",
+        "Feature Extraction:"
+      ]
+    },
+    {
+      "id": "m68_001",
+      "label": "Feature Extraction in NLP",
+      "description": "Process of transforming raw text into numerical features suitable for machine learning models in natural language processing.",
+      "coverage_criteria": [
+        "Can list typical feature extraction techniques for text (e.g., bag-of-words, TF-IDF).",
+        "Can explain why feature extraction is needed before applying ML to text."
+      ],
+      "source_roles": [],
+      "evidence_type": "workbook_metadata",
+      "rationale": {
+        "metadata_grounded_rationale": "The self-study title explicitly mentions 'Feature Extraction' in the context of 'Natural Language Processing', and the description repeats 'Feature Extraction' linked to 'PLN' (Portuguese for NLP). This directly states the topic.",
+        "granularity_rationale": "Feature extraction in NLP is a well-defined subfield, suitable as a checkable concept covering multiple techniques. It is not too broad (e.g., entire NLP) nor too narrow (single method)."
+      },
+      "anchors": [
+        "Self-study title: Feature Extraction in Natural Language Processing with Python",
+        "Self-study description: Feature Extraction no contexto de PLN com Python."
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_002",
+      "label": "Bag of Words (BoW)",
+      "description": "A representation of documents as a multiset of words, ignoring order but keeping multiplicity, often expressed as a document-term matrix of term frequencies.",
+      "coverage_criteria": [
+        "Describe how a document is transformed into a bag-of-words vector.",
+        "Compute term frequencies for a given set of documents.",
+        "Explain the purpose of a document-term matrix."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Bag of Words:' section explicitly describes the method, provides an example ('Tackling is the best part of football'), and shows a document-term matrix via an image.",
+        "granularity_rationale": "Bag of Words is a specific, well-known technique that can be assessed with a few questions about its mechanics and limitations."
+      },
+      "anchors": [
+        "Bag of Words:"
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_003",
+      "label": "TF-IDF",
+      "description": "Term Frequency-Inverse Document Frequency, a weighting scheme that highlights words important to a document by scaling term frequency inversely with document frequency.",
+      "coverage_criteria": [
+        "Calculate TF-IDF for a word given its term frequency and the number of documents containing it.",
+        "Explain why TF-IDF helps identify significant words.",
+        "Contrast TF-IDF with simple term frequency."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'TF-IDF:' section explains the limitation of Bag of Words and defines TF-IDF with a worked example through an included image.",
+        "granularity_rationale": "TF-IDF is a standalone concept that can be checked by asking about its formula, purpose, and when it is used."
+      },
+      "anchors": [
+        "TF-IDF:"
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_004",
+      "label": "One-hot Encoding",
+      "description": "A method of representing words as binary vectors with a single 1 at the index corresponding to the word, treating each word as an independent class.",
+      "coverage_criteria": [
+        "Create a one-hot vector for a word from a given vocabulary list.",
+        "Explain why one-hot encoding becomes impractical for large vocabularies."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'One-hot Encoding:' section describes it as assigning 1 for the present word and 0 for others, and includes an example with the sentence 'The cat sat on the mat.'",
+        "granularity_rationale": "One-hot encoding is a simple, fundamental idea that can be assessed by asking students to produce or interpret a one-hot representation."
+      },
+      "anchors": [
+        "One-hot Encoding:"
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_005",
+      "label": "Word Embedding",
+      "description": "Dense, fixed-size vector representations of words that capture semantic relationships, where similar words have similar vectors and analogies can be performed with vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings differ from sparse representations like one-hot encoding.",
+        "Describe how embeddings capture semantic similarity (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+        "Give an example of an analogy embedings can solve."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Word Embedding:' section introduces the need for dense, fixed-size vectors that show word similarity and analogies, and includes a visualization of 7-dimensional embeddings mapped to 2D.",
+        "granularity_rationale": "Word embedding is a core concept in modern NLP; it can be checked by asking about its properties and how it differs from earlier representations."
+      },
+      "anchors": [
+        "Word Embedding:"
+      ]
+    },
+    {
+      "id": "c67_pro_thinking_006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from a corpus, using either Continuous Bag of Words (CBOW) or skip-gram architectures to capture contextual meaning.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram in Word2Vec.",
+        "Explain how Word2Vec generates dense vector representations.",
+        "Describe a use case for pre-trained Word2Vec embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Word2Vec:' section defines it as a two-layer net, explains the CBOW and skip-gram variants, and includes a diagram comparing them.",
+        "granularity_rationale": "Word2Vec is a specific, widely-used technique that can be assessed with questions about its architecture and training approaches."
+      },
+      "anchors": [
+        "Word2Vec:"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

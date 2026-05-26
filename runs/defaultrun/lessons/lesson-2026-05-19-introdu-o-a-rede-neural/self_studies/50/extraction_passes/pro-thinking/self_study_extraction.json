@@ -1,0 +1,518 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:03:51.783483+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+  "self_study_id": "50",
+  "source_body_path": "extraction/post-image/0050-video-live-de-python-35-redes-neurais-usando-a-biblioteca-padrao-com-felipe-correa.md",
+  "source_body_sha256": "f4b562d01b04f26cd9479e8f027e8a14a8a8020ed3b23c85e8e062ba4d793f82",
+  "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-50-001",
+      "label": "Perceptron Simples",
+      "description": "Modelo matemático de rede neural com uma única camada, proposto por Frank Rosenblatt em 1958, que classifica padrões usando entradas, pesos, bias e função de ativação degrau.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de desenhar o diagrama do perceptron simples indicando entradas, pesos, bias, somador e função de ativação.",
+        "O aluno deve explicar a relação matemática entre as entradas e a saída em um perceptron simples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A fonte dedica toda a seção 'Perceptron Simples' para explicar o conceito, diagrama, modelo matemático e algoritmo de treinamento, demonstrando que é um ensino central.",
+        "granularity_rationale": "O conceito é suficientemente focado para ser verificável com perguntas sobre a estrutura e a função do perceptron, sem se confundir com detalhes do treinamento ou dados."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "04:04 O que são Redes Neurais?"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": [
+        "Frank Rosenblatt"
+      ]
+    },
+    {
+      "candidate_id": "candidate-50-002",
+      "label": "Linearmente Separável",
+      "description": "Propriedade de um problema onde é possível traçar uma linha (ou hiperplano) que separa perfeitamente as classes; o perceptron simples só resolve problemas desse tipo.",
+      "coverage_criteria": [
+        "O aluno deve identificar se um conjunto de pontos 2D é linearmente separável visualizando o gráfico.",
+        "O aluno deve prever se um perceptron simples será capaz de classificar corretamente um dado dataset linearmente não-separável."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo menciona explicitamente que o perceptron 'só resolve problemas linearmente separáveis' (05:14) e demonstra o impacto usando um dataset não-linear, tornando a ideia central para a compreensão das limitações.",
+        "granularity_rationale": "A noção é bem delimitada e pode ser avaliada com exercícios de classificação de distribuições 2D simples."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "52:57 Conclusão e experimentação com não-linearmente separável"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-003",
+      "label": "Algoritmo de Treinamento do Perceptron",
+      "description": "Processo iterativo que ajusta os pesos do perceptron com base no erro entre a saída predita e a desejada, usando a regra: w = w + taxa_aprendiz * (d - y) * x.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de escrever o pseudocódigo do treinamento do perceptron (cálculo de u, ativação, comparação e atualização de pesos).",
+        "O aluno deve explicar o papel da correção do erro na convergência da rede."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A maior parte do vídeo é dedicada à implementação passo a passo do algoritmo de treinamento (código e explicação das funções `perceptron_fit`, `ajuste`, `sinal`), evidenciando que é um conceito essencial.",
+        "granularity_rationale": "O escopo cobre apenas o loop principal de treino e a regra de atualização, formando uma unidade de conhecimento verificável com perguntas de implementação."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "29:45 Definindo a função perceptron_fit"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "32:11 Definindo a função ajuste"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-004",
+      "label": "Taxa de Aprendizado",
+      "description": "Hiperparâmetro que controla a magnitude da correção dos pesos a cada iteração; valores pequenos tornam o treinamento mais lento, valores grandes podem destabilizar.",
+      "coverage_criteria": [
+        "O aluno deve prever o efeito de aumentar ou diminuir a taxa de aprendizado no número de épocas necessárias para convergir.",
+        "O aluno deve identificar um valor inadequado (ex: 0 ou negativo) como causa de não-convergência."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo mostra ao vivo a alteração da taxa de aprendizado (de 0.01 para 0.001) e discute o impacto direto no número de épocas (28 para 112), fornecendo evidência clara da sua importância.",
+        "granularity_rationale": "O conceito é compacto e observável através de experimentos simples com o código fornecido."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "51:50 Perceptron summary and impact of learning rate"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "40:05 Addressing a bug in w_fit and taxa_aprendiz"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-005",
+      "label": "Época",
+      "description": "Uma época representa uma passagem completa sobre todos os exemplos de treinamento; o número de épocas é usado como critério de parada no treinamento.",
+      "coverage_criteria": [
+        "O aluno deve distinguir iteração (sobre um exemplo) de época (sobre todo o dataset).",
+        "O aluno deve explicar por que limitar o número de épocas evita loops infinitos."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O código implementa um contador de épocas (`epoca += 1`) e o vídeo explica que a época serve como limite de convergência quando a rede não encontra separação perfeita (25:16-26:00).",
+        "granularity_rationale": "A primeira abordagem de época é simples, mas suficiente para entender o funcionamento básico do loop de treino e pode ser verificada com perguntas de interpretação de código."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "25:00 Época e iteração"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "34:40 Epoch tracking and loop termination"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-006",
+      "label": "Função de Ativação Degrau",
+      "description": "Função que transforma o somatório ponderado em uma saída binária: retorna 1 se u >= 0 e -1 caso contrário, usada para classificação binária.",
+      "coverage_criteria": [
+        "O aluno deve implementar a função sinal(u) e prever sua saída para diferentes valores de u.",
+        "O aluno deve explicar por que a função degrau é adequada para perceptrons simples, mas limitada para problemas não-lineares."
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A função é explicitamente definida no código (`def sinal(u): return 1 if u >= 0 else -1`) e explicada como a etapa final do perceptron para decidir a classe (07:04-07:19).",
+        "granularity_rationale": "Trata-se de um componente bem isolado do modelo, podendo ser ensinado e testado separadamente."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "30:35 Criando a função sinal"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-007",
+      "label": "Divisão Treino/Teste",
+      "description": "Técnica de separar o dataset em dois conjuntos, um para treinar o modelo (ex: 80%) e outro para avaliar o desempenho (ex: 20%), evitando overfitting aparente.",
+      "coverage_criteria": [
+        "O aluno deve escrever código para dividir um dataset CSV em treino e teste usando índices ou funções prontas.",
+        "O aluno deve justificar por que usar o mesmo conjunto para treino e teste é inválido."
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo implementa uma função `treino_teste_split` e explica a necessidade de separar dados para testar a generalização do modelo (14:31-15:41).",
+        "granularity_rationale": "A divisão é uma prática fundamental e pode ser avaliada com questões de codificação ou de interpretação de resultados."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "14:31 Dataset splitting function"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "20:52 Dataset splitting function"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": [
+        "scikit-learn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-50-008",
+      "label": "Implementação from Scratch vs scikit-learn",
+      "description": "Comparação entre implementar o perceptron manualmente (cerca de 50 linhas de Python) e utilizar a biblioteca scikit-learn (15 linhas), ilustrando a simplificação provida por frameworks.",
+      "coverage_criteria": [
+        "O aluno deve ser capaz de listar as funções do scikit-learn necessárias para substituir a implementação manual (Perceptron, train_test_split, accuracy_score).",
+        "O aluno deve apontar as diferenças de complexidade e desempenho entre as duas abordagens."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A segunda metade do vídeo dedica-se a reescrever o mesmo problema usando scikit-learn, destacando o contraste de esforço e a facilidade provida pela biblioteca (1:00:06 em diante).",
+        "granularity_rationale": "A comparação é um tópico prático e motivador, que pode ser verificado pedindo ao aluno para reproduzir ambas as versões."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1:00:06 TensorFlow vs. scikit-learn"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "1:04:23 Calculating and printing accuracy"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": [
+        "scikit-learn",
+        "TensorFlow"
+      ]
+    },
+    {
+      "candidate_id": "candidate-50-009",
+      "label": "Acurácia",
+      "description": "Métrica de avaliação que calcula a proporção de predições corretas sobre o total de exemplos, retornando um valor entre 0 e 1 (ou 0% a 100%).",
+      "coverage_criteria": [
+        "O aluno deve calcular a acurácia a partir de um vetor de predições e um vetor de classes reais.",
+        "O aluno deve interpretar uma acurácia de 1.0 como indício de separação perfeita (para datasets lineares)."
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo implementa uma função `acuracia` e discute o resultado de 100% para o dataset linear, além de mostrar como ela é usada no scikit-learn (43:37-44:10, 1:07:09).",
+        "granularity_rationale": "A métrica é simples e essencial para qualquer tarefa de classificação, sendo diretamente verificável com exercícios de programação."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "42:07 Implementando uma função de acurácia"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "1:04:23 Calculating and printing accuracy"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-010",
+      "label": "Bias (Viés)",
+      "description": "Termo constante adicionado à combinação linear das entradas, representado pelo peso w0 associado a uma entrada fixa de -1, que permite deslocar a fronteira de decisão.",
+      "coverage_criteria": [
+        "O aluno deve identificar o papel do bias em permitir que a reta de separação não passe pela origem.",
+        "O aluno deve explicar como o bias é tratado no código (entrada -1 com peso w0) no cálculo do somatório."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo descreve o bias como um 'limiar de ativação' e mostra sua implementação no código (`w[0] * -1`) (06:01-06:27, 29:35-29:41).",
+        "granularity_rationale": "O bias é um componente matemático bem definido que pode ser verificado isoladamente no contexto do modelo linear."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "29:45 Definindo a função perceptron_fit"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-50-011",
+      "label": "Dataset para Redes Neurais",
+      "description": "Conjunto de dados estruturados com atributos (features) e classes alvo; para o perceptron é necessário que os dados sejam numéricos e idealmente linearmente separáveis.",
+      "coverage_criteria": [
+        "O aluno deve examinar um arquivo CSV e identificar as colunas de atributos e a coluna alvo.",
+        "O aluno deve sugerir transformações de dados categóricos para numéricos para uso em redes neurais."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O vídeo carrega um dataset CSV, explica sua estrutura (atributos vs alvo) e discute como buscar datasets no Kaggle/UCI e a necessidade de conversão de dados (09:44-10:00, 19:50-20:50, 57:47-59:30).",
+        "granularity_rationale": "O tópico pode ser avaliado pedindo ao aluno para preparar um pequeno dataset para treinamento do perceptron."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "10:35 Dataset overview and preparation"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "59:30 Perceptron for classification"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": [
+        "Kaggle",
+        "UCI"
+      ]
+    },
+    {
+      "candidate_id": "candidate-50-012",
+      "label": "Perceptron Multicamadas",
+      "description": "Extensão do perceptron simples com uma ou mais camadas ocultas, capaz de resolver problemas não-linearmente separáveis, com maior complexidade computacional.",
+      "coverage_criteria": [
+        "O aluno deve diferenciar, no diagrama, um perceptron simples de um perceptron multicamadas pela presença de camadas ocultas.",
+        "O aluno deve justificar por que um perceptron multicamadas é necessário para datasets como o 'data1.csv' que não é linearmente separável."
+      ],
+      "source_roles": [
+        "referencing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O apresentador menciona o perceptron multicamadas como alternativa para problemas não-lineares e exibe seu diagrama, contrastando com o perceptron simples (57:00-57:40).",
+        "granularity_rationale": "Embora não implementado, o conceito é introduzido de forma suficiente para que o aluno entenda a limitação do modelo estudado e conheça a próxima evolução na área."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "52:57 Conclusão e experimentação"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "56:15 Multilayer perceptron"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-50-001",
+      "to_candidate_id": "candidate-50-003",
+      "reason": "O vídeo implementa o algoritmo de treinamento como a forma de fazer o perceptron simples aprender, conectando a teoria do modelo ao processo prático de ajuste dos pesos.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "29:45 Definindo a função perceptron_fit"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-003",
+      "to_candidate_id": "candidate-50-004",
+      "reason": "O algoritmo de treinamento faz uso explícito da taxa de aprendizado na fórmula de atualização dos pesos.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "32:11 Definindo a função ajuste"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-003",
+      "to_candidate_id": "candidate-50-005",
+      "reason": "O loop de treinamento itera por múltiplas épocas, controlando a parada com base em erro ou número máximo de épocas.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "34:40 Epoch tracking and loop termination"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-001",
+      "to_candidate_id": "candidate-50-002",
+      "reason": "A fonte explica que o perceptron simples resolve apenas problemas linearmente separáveis, sendo esta a sua principal limitação.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-006",
+      "to_candidate_id": "candidate-50-001",
+      "reason": "A função de ativação degrau é a componente que transforma o potencial de ativação na saída final do perceptron simples.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "30:35 Criando a função sinal"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-007",
+      "to_candidate_id": "candidate-50-003",
+      "reason": "Os dados de treino obtidos pela divisão treino/teste alimentam o algoritmo de treinamento do perceptron.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "22:26 Rodando o código e corrigindo indentação"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-008",
+      "to_candidate_id": "candidate-50-001",
+      "reason": "A implementação com scikit-learn é mostrada como uma alternativa mais enxuta para obter o mesmo modelo perceptron, contrastando com a implementação manual.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1:08:05 Ficou muito mais simples"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-009",
+      "to_candidate_id": "candidate-50-003",
+      "reason": "A acurácia é calculada após o treinamento para avaliar o quão bem o algoritmo de treinamento ajustou o modelo aos dados de teste.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "42:07 Implementando uma função de acurácia"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-010",
+      "to_candidate_id": "candidate-50-001",
+      "reason": "O bias é um parâmetro fundamental do modelo perceptron, representado no código como um peso extra com entrada fixa.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "05:00 Perceptron Simples"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-50-012",
+      "to_candidate_id": "candidate-50-001",
+      "reason": "O perceptron multicamadas é apresentado como a evolução do perceptron simples para tratar problemas não-lineares, estabelecendo uma relação de generalização.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "56:15 Multilayer perceptron"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 12,
+    "source_local_connector_candidate_count": 10
+  }
+}

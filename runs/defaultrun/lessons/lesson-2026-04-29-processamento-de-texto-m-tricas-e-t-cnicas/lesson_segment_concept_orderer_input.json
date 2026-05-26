@@ -1,0 +1,429 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+    "title": "Processamento de texto, métricas e técnicas"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-nlp-definition-and-suitability-criteria-49e98171",
+      "label": "NLP Definition and Suitability Criteria",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing (NLP) is a branch of artificial intelligence that uses machine learning to process and interpret texts and data. Three characteristics indicate when NLP is appropriate: the need to understand human communication, the requirement for the machine to respond with precision, and the ability to process and analyze large volumes of data for predictions or suggestions.",
+      "coverage_criteria": [
+        "Define NLP as presented in the lesson.",
+        "List the three characteristics that make NLP suitable for problem-solving.",
+        "Give an example of a problem that would benefit from these characteristics."
+      ]
+    },
+    {
+      "concept_id": "concept-express-es-regulares-defini-o-e-metacaracteres-b-sicos-4c054ea2",
+      "label": "Expressões Regulares: Definição e Metacaracteres Básicos",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Introduz expressões regulares como método para busca de padrões em textos e apresenta o conceito de metacaracteres, que são símbolos com significados especiais.",
+      "coverage_criteria": [
+        "Definir o que é uma expressão regular.",
+        "Citar pelo menos três metacaracteres e explicar brevemente sua função."
+      ]
+    },
+    {
+      "concept_id": "concept-metacaracteres-representantes-ponto-lista-e-lista-negada-08443fc1",
+      "label": "Metacaracteres Representantes: Ponto, Lista e Lista Negada",
+      "knowledge_type": "procedural",
+      "teaching_description": "Descreve os metacaracteres representantes: ponto (.) que representa qualquer caractere, lista ([...]) que busca um dos caracteres listados e lista negada ([^...]) que busca caracteres que não estão na lista.",
+      "coverage_criteria": [
+        "Explicar o que o ponto, a lista e a lista negada representam em uma regex.",
+        "Dado um texto, escrever uma regex que utilize lista para buscar palavras com um conjunto específico de caracteres."
+      ]
+    },
+    {
+      "concept_id": "concept-metacaracteres-quantificadores-26cba4d5",
+      "label": "Metacaracteres Quantificadores",
+      "knowledge_type": "procedural",
+      "teaching_description": "Apresenta os quantificadores: asterisco (*) para zero ou mais, opcional (?) para zero ou uma, mais (+) para uma ou mais e chaves ({x,y}) para um número específico de repetições, com exemplos usando classes de caracteres.",
+      "coverage_criteria": [
+        "Diferenciar o uso de *, + e ? com exemplos.",
+        "Escrever uma regex utilizando {x,y} para limitar repetições."
+      ]
+    },
+    {
+      "concept_id": "concept-ncoras-circunflexo-e-cifr-o-bd8fe2d3",
+      "label": "Âncoras: Circunflexo e Cifrão",
+      "knowledge_type": "procedural",
+      "teaching_description": "Explica que o circunflexo (^) ancora a busca no início da linha/string e o cifrão ($) no final, destacando que ^ dentro de colchetes tem função de negação.",
+      "coverage_criteria": [
+        "Explicar a função das âncoras ^ e $.",
+        "Escrever uma regex que encontre uma palavra no início de uma linha e outra no final."
+      ]
+    },
+    {
+      "concept_id": "concept-alterna-o-e-agrupamento-d27712d5",
+      "label": "Alternação e Agrupamento",
+      "knowledge_type": "procedural",
+      "teaching_description": "Mostra o uso do pipe (|) para alternância (OU) e dos parênteses ( ) para agrupar partes da regex, permitindo construir padrões com múltiplas opções.",
+      "coverage_criteria": [
+        "Utilizar | e () para criar uma regex que capture uma entre várias palavras.",
+        "Diferenciar (rato|Roma) de [rato|Roma]."
+      ]
+    },
+    {
+      "concept_id": "concept-escapando-metacaracteres-9c813e9b",
+      "label": "Escapando Metacaracteres",
+      "knowledge_type": "procedural",
+      "teaching_description": "Ensina que a contrabarra (\\) é usada para tratar metacaracteres como literais, por exemplo, \\. para um ponto literal ou \\( para parênteses literal.",
+      "coverage_criteria": [
+        "Identificar em uma regex quais caracteres estão escapados e por quê.",
+        "Escrever uma regex que encontre um parêntese literal em um texto."
+      ]
+    },
+    {
+      "concept_id": "concept-classes-de-caracteres-por-atalho-d956aa18",
+      "label": "Classes de Caracteres por Atalho",
+      "knowledge_type": "procedural",
+      "teaching_description": "Apresenta os atalhos \\d (dígito), \\w (alfanumérico), \\s (espaçamento) e suas negações \\D, \\W, \\S, que simplificam a construção de padrões comuns.",
+      "coverage_criteria": [
+        "Substituir [0-9] por \\d em uma regex.",
+        "Explicar a diferença entre \\w e \\W."
+      ]
+    },
+    {
+      "concept_id": "concept-m-todos-b-sicos-do-m-dulo-re-do-python-5055e4ea",
+      "label": "Métodos Básicos do Módulo re do Python",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Explora os métodos principais do módulo re do Python: match(), search(), findall() para busca de padrões, e split(), sub(), group() para manipulação de strings.",
+      "coverage_criteria": [
+        "Usar re.search para encontrar a primeira ocorrência de um padrão.",
+        "Aplicar re.sub para substituir um padrão em um texto.",
+        "Extrair subgrupos de um match com group()."
+      ]
+    },
+    {
+      "concept_id": "concept-aplica-es-pr-ticas-de-regex-d006a9df",
+      "label": "Aplicações Práticas de Regex",
+      "knowledge_type": "procedural",
+      "teaching_description": "Ilustra casos reais de uso de expressões regulares: extração de e-mails, números de telefone, divisão de frases, detecção de acrônimos e validação de formatos como datas e IPs.",
+      "coverage_criteria": [
+        "Explicar como uma regex pode validar um formato de data.",
+        "Modificar uma regex de extração de e-mail para incluir um domínio específico.",
+        "Escrever código Python que usa split para separar frases."
+      ]
+    },
+    {
+      "concept_id": "concept-regex-em-javascript-26b00828",
+      "label": "Regex em JavaScript",
+      "knowledge_type": "procedural",
+      "teaching_description": "Mostra como expressões regulares são criadas em JavaScript usando barras como delimitadores, com exemplo de negação de números.",
+      "coverage_criteria": [
+        "Escrever uma regex simples em JavaScript.",
+        "Explicar a diferença entre usar barras e aspas."
+      ]
+    },
+    {
+      "concept_id": "concept-similaridade-l-xica-2140d722",
+      "label": "Similaridade Léxica",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Define similaridade léxica como a medida de sobreposição de palavras ou caracteres entre dois fragmentos de texto, sem considerar significado, e discute os níveis de granularidade (caractere, palavra, frase).",
+      "coverage_criteria": [
+        "Explicar o que é similaridade léxica e dar um exemplo.",
+        "Diferenciar similaridade em nível de caractere e de palavra."
+      ]
+    },
+    {
+      "concept_id": "concept-dist-ncia-de-edi-o-m-nima-e-levenshtein-a74ba55b",
+      "label": "Distância de Edição Mínima e Levenshtein",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Apresenta a distância de edição mínima como o número mínimo de operações (inserção, deleção, substituição) para transformar uma string em outra, e a variante Levenshtein onde a substituição custa 2.",
+      "coverage_criteria": [
+        "Calcular a distância de edição mínima entre duas strings.",
+        "Computar a distância de Levenshtein e explicar a diferença de custo."
+      ]
+    },
+    {
+      "concept_id": "concept-similaridade-de-jaccard-cb0fea9d",
+      "label": "Similaridade de Jaccard",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Mede a similaridade entre dois conjuntos calculando a interseção dividida pela união, resultando em um valor entre 0 e 1, com exemplos em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de Jaccard para dois conjuntos de palavras.",
+        "Interpretar o resultado próximo de 1 ou de 0."
+      ]
+    },
+    {
+      "concept_id": "concept-similaridade-de-cosseno-7000e424",
+      "label": "Similaridade de Cosseno",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Calcula a similaridade entre dois vetores de frequência de palavras usando o cosseno do ângulo entre eles, com implementação em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de cosseno entre dois textos usando frequências de palavras.",
+        "Explicar por que o valor varia entre -1 e 1."
+      ]
+    },
+    {
+      "concept_id": "concept-classifica-o-de-algoritmos-de-similaridade-de-strings-4cf898e5",
+      "label": "Classificação de Algoritmos de Similaridade de Strings",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Categoriza os algoritmos de similaridade em baseados em caracteres (ex.: Levenshtein) e baseados em termos (ex.: cosseno, Jaccard), indicando quando cada um é mais adequado.",
+      "coverage_criteria": [
+        "Listar exemplos de algoritmos baseados em caracteres e baseados em termos.",
+        "Explicar em que situação um é preferível ao outro."
+      ]
+    },
+    {
+      "concept_id": "concept-aplica-es-de-similaridade-textual-5e2d7dad",
+      "label": "Aplicações de Similaridade Textual",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Lista e exemplifica aplicações reais de medidas de similaridade: sistemas de busca, recomendação, correção ortográfica, autocomplete, sumarização e detecção de duplicatas.",
+      "coverage_criteria": [
+        "Citar ao menos três aplicações de similaridade textual.",
+        "Explicar como a similaridade ajuda em uma dessas aplicações."
+      ]
+    },
+    {
+      "concept_id": "concept-similaridade-sem-ntica-e-diferencia-o-da-l-xica-7499e65a",
+      "label": "Similaridade Semântica e Diferenciação da Léxica",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Define similaridade semântica como a que considera o significado das palavras em contexto, contrastando com a léxica, e fornece exemplos como 'carro' e 'automóvel'.",
+      "coverage_criteria": [
+        "Diferenciar similaridade semântica de léxica com exemplos.",
+        "Explicar por que a semântica é mais difícil de computar."
+      ]
+    },
+    {
+      "concept_id": "concept-abordagens-para-similaridade-sem-ntica-baseadas-em-conhecimento-e-corpus-bc405c19",
+      "label": "Abordagens para Similaridade Semântica: Baseadas em Conhecimento e Corpus",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Descreve as duas principais abordagens para calcular similaridade semântica: baseada em corpus (grandes bases de texto) e baseada em conhecimento (redes semânticas como WordNet).",
+      "coverage_criteria": [
+        "Distinguir as abordagens baseada em conhecimento e baseada em corpus.",
+        "Dar um exemplo de recurso usado em cada abordagem."
+      ]
+    },
+    {
+      "concept_id": "concept-wordnet-e-rela-es-sem-nticas-1024302e",
+      "label": "WordNet e Relações Semânticas",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Apresenta a WordNet como um banco de dados lexical que organiza palavras em synsets e inclui relações semânticas como sinonímia, antonímia, meronímia, holonímia, hiponímia, hiperonímia, homonímia e polissemia.",
+      "coverage_criteria": [
+        "Explicar o que é um synset na WordNet.",
+        "Definir e exemplificar pelo menos três relações semânticas (ex.: hiponímia, meronímia)."
+      ]
+    },
+    {
+      "concept_id": "concept-path-similarity-e-lowest-common-subsumer-lcs-2387a7ba",
+      "label": "Path Similarity e Lowest Common Subsumer (LCS)",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Explica a similaridade de caminho (Path Similarity) como 1/(distância + 1) em uma taxonomia, e o LCS como o ancestral comum mais específico, ambos usando a WordNet.",
+      "coverage_criteria": [
+        "Calcular a Path Similarity entre dois conceitos em uma hierarquia.",
+        "Identificar o LCS de dois conceitos em uma taxonomia."
+      ]
+    },
+    {
+      "concept_id": "concept-acesso-wordnet-com-nltk-ingl-s-e-portugu-s-41bef2c2",
+      "label": "Acesso à WordNet com NLTK (Inglês e Português)",
+      "knowledge_type": "procedural",
+      "teaching_description": "Demonstra como acessar a WordNet em Python usando a biblioteca NLTK, incluindo suporte para português via Open Multilingual Wordnet (lang='por'), embora as definições estejam em inglês.",
+      "coverage_criteria": [
+        "Escrever um script Python que recupera synsets de uma palavra inglesa no NLTK.",
+        "Recuperar synsets de uma palavra em português e discutir limitações."
+      ]
+    },
+    {
+      "concept_id": "concept-n-grams-para-predi-o-de-texto-78fe532a",
+      "label": "N-grams para Predição de Texto",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Define n-grams como sequências contíguas de n itens de um texto, usados em modelos de linguagem para prever a próxima palavra baseando-se em probabilidades.",
+      "coverage_criteria": [
+        "Definir unigrama, bigrama e trigrama com exemplos.",
+        "Calcular a probabilidade de uma palavra dado o contexto do n-grama."
+      ]
+    },
+    {
+      "concept_id": "concept-desafios-do-pln-ortografia-neologismos-e-figuras-de-linguagem-bbe4bd70",
+      "label": "Desafios do PLN: Ortografia, Neologismos e Figuras de Linguagem",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Cobre desafios relacionados a erros ortográficos, neologismos, figuras de linguagem e abreviações, que exigem tratamento especial em sistemas de PLN.",
+      "coverage_criteria": [
+        "Explicar como erros ortográficos afetam o PLN.",
+        "Dar exemplos de neologismos e figuras de linguagem que são desafiadores."
+      ]
+    },
+    {
+      "concept_id": "concept-desafios-do-pln-correfer-ncia-nega-o-e-recursos-limitados-971fdc49",
+      "label": "Desafios do PLN: Correferência, Negação e Recursos Limitados",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Discute desafios de correferência, negação e especulação, e a limitação de recursos para língua portuguesa, incluindo a WordNet.Br.",
+      "coverage_criteria": [
+        "Explicar o que é correferência e dar um exemplo.",
+        "Descrever o desafio de identificar negação em textos médicos.",
+        "Citar um recurso de PLN para português."
+      ]
+    },
+    {
+      "concept_id": "concept-ferramentas-google-cloud-nlp-c7aec6a3",
+      "label": "Ferramentas Google Cloud NLP",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Apresenta as ferramentas do Google Cloud para PLN: API Natural Language, AutoML Natural Language, Dialogflow e Document AI, explicando suas funções e diferenças.",
+      "coverage_criteria": [
+        "Descrever o propósito da API Natural Language e do AutoML Natural Language.",
+        "Explicar a diferença entre Dialogflow e Document AI."
+      ]
+    },
+    {
+      "concept_id": "concept-scikit-learn-vis-o-geral-e-algoritmos-de-classifica-o-regress-o-e-clustering-efa636fb",
+      "label": "scikit-learn: Visão Geral e Algoritmos de Classificação, Regressão e Clustering",
+      "knowledge_type": "procedural",
+      "teaching_description": "Apresenta a biblioteca scikit-learn para machine learning em Python, incluindo classificação, regressão, clustering, seleção de modelos e pré-processamento.",
+      "coverage_criteria": [
+        "Identificar scikit-learn como biblioteca de ML.",
+        "Listar tarefas de ML suportadas (classificação, regressão, clustering).",
+        "Citar exemplos de algoritmos em cada categoria."
+      ]
+    },
+    {
+      "concept_id": "concept-broad-nlp-applications-with-explanation-31a67a2e",
+      "label": "Broad NLP Applications with Explanation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "List a wide range of NLP applications and explain how NLP is used in at least one, demonstrating deeper understanding beyond mere recall.",
+      "coverage_criteria": [
+        "Citar pelo menos cinco aplicações de PLN.",
+        "Escolher uma aplicação e explicar como o PLN é usado."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-challenges-5a52c6bf",
+      "label": "NLP Challenges",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing faces fundamental difficulties including text segmentation, ambiguity, context interpretation, semantic extraction, and the inherent variability of natural language where similar words can have different meanings and identical meanings can be expressed differently, making it distinct from processing structured data.",
+      "coverage_criteria": [
+        "Explain the challenge of text segmentation with an example.",
+        "Describe how ambiguity can make interpretation difficult with an example.",
+        "Give an example where similar words convey different meanings and explain why NLP needs special approaches compared to tabular data."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introdução ao Processamento de Linguagem Natural",
+      "concept_ids": [
+        "concept-nlp-definition-and-suitability-criteria-49e98171",
+        "concept-nlp-challenges-5a52c6bf"
+      ]
+    },
+    {
+      "label": "Expressões Regulares: Fundamentos",
+      "concept_ids": [
+        "concept-express-es-regulares-defini-o-e-metacaracteres-b-sicos-4c054ea2",
+        "concept-metacaracteres-representantes-ponto-lista-e-lista-negada-08443fc1",
+        "concept-metacaracteres-quantificadores-26cba4d5",
+        "concept-ncoras-circunflexo-e-cifr-o-bd8fe2d3"
+      ]
+    },
+    {
+      "label": "Expressões Regulares: Construções Avançadas",
+      "concept_ids": [
+        "concept-alterna-o-e-agrupamento-d27712d5",
+        "concept-escapando-metacaracteres-9c813e9b",
+        "concept-classes-de-caracteres-por-atalho-d956aa18"
+      ]
+    },
+    {
+      "label": "Expressões Regulares na Prática",
+      "concept_ids": [
+        "concept-m-todos-b-sicos-do-m-dulo-re-do-python-5055e4ea",
+        "concept-aplica-es-pr-ticas-de-regex-d006a9df",
+        "concept-regex-em-javascript-26b00828"
+      ]
+    },
+    {
+      "label": "Similaridade Léxica: Conceitos Básicos",
+      "concept_ids": [
+        "concept-similaridade-l-xica-2140d722",
+        "concept-dist-ncia-de-edi-o-m-nima-e-levenshtein-a74ba55b"
+      ]
+    },
+    {
+      "label": "Medidas de Similaridade Léxica",
+      "concept_ids": [
+        "concept-similaridade-de-jaccard-cb0fea9d",
+        "concept-similaridade-de-cosseno-7000e424"
+      ]
+    },
+    {
+      "label": "Classificação e Aplicações da Similaridade Textual",
+      "concept_ids": [
+        "concept-classifica-o-de-algoritmos-de-similaridade-de-strings-4cf898e5",
+        "concept-aplica-es-de-similaridade-textual-5e2d7dad"
+      ]
+    },
+    {
+      "label": "Similaridade Semântica: Conceitos e Abordagens",
+      "concept_ids": [
+        "concept-similaridade-sem-ntica-e-diferencia-o-da-l-xica-7499e65a",
+        "concept-abordagens-para-similaridade-sem-ntica-baseadas-em-conhecimento-e-corpus-bc405c19"
+      ]
+    },
+    {
+      "label": "WordNet e Similaridade Semântica com NLTK",
+      "concept_ids": [
+        "concept-wordnet-e-rela-es-sem-nticas-1024302e",
+        "concept-path-similarity-e-lowest-common-subsumer-lcs-2387a7ba",
+        "concept-acesso-wordnet-com-nltk-ingl-s-e-portugu-s-41bef2c2"
+      ]
+    },
+    {
+      "label": "N-grams para Predição de Texto",
+      "concept_ids": [
+        "concept-n-grams-para-predi-o-de-texto-78fe532a"
+      ]
+    },
+    {
+      "label": "Desafios Específicos do PLN",
+      "concept_ids": [
+        "concept-desafios-do-pln-ortografia-neologismos-e-figuras-de-linguagem-bbe4bd70",
+        "concept-desafios-do-pln-correfer-ncia-nega-o-e-recursos-limitados-971fdc49"
+      ]
+    },
+    {
+      "label": "Aplicações Amplas de PLN",
+      "concept_ids": [
+        "concept-broad-nlp-applications-with-explanation-31a67a2e"
+      ]
+    },
+    {
+      "label": "Ferramentas e Bibliotecas de PLN",
+      "concept_ids": [
+        "concept-ferramentas-google-cloud-nlp-c7aec6a3",
+        "concept-scikit-learn-vis-o-geral-e-algoritmos-de-classifica-o-regress-o-e-clustering-efa636fb"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

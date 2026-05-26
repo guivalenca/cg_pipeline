@@ -1,0 +1,503 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.840
+ word embeddings are mathematical representations of text but of course that is easier said than
+
+00:00:05.840 --> 00:00:11.440
+ done so in this video let's learn what word embeddings are how they are created and how
+
+00:00:11.440 --> 00:00:16.960
+ you can start using them so the first question to arise of course is why do we need text embeddings
+
+00:00:16.960 --> 00:00:23.520
+ at all well the problem is when you're working with nlp models you are working with text and
+
+00:00:23.520 --> 00:00:28.240
+ text is not good for machine learning models they cannot deal with text they don't know what to do
+
+00:00:28.240 --> 00:00:34.480
+ with it but what they know what to do with is numbers so that's why you have to represent your
+
+00:00:34.480 --> 00:00:40.320
+ text in a numbers format there are a bunch of ways how you can represent your text data and it's not
+
+00:00:40.320 --> 00:00:47.360
+ only embeddings you can try using a one hat encoded approach you can try using a count based approach
+
+00:00:47.360 --> 00:00:52.880
+ or of course you can try using embeddings but before we get into embeddings let's learn what
+
+00:00:52.880 --> 00:00:58.640
+ what one hat encoding is and also count based approaches are you might have heard of one hat
+
+00:00:58.640 --> 00:01:05.360
+ encoding in other contexts too but in this context in text representation what it does is create one
+
+00:01:05.360 --> 00:01:11.920
+ really long vector that is as long as the number of words that you have in your vocabulary and to
+
+00:01:11.920 --> 00:01:18.080
+ represent each word what you do is you feel this vector with zeros except for the cell that corresponds
+
+00:01:18.080 --> 00:01:23.920
+ to the word that you're trying to represent as you can see this creates a very sparse vector and
+
+00:01:23.920 --> 00:01:29.600
+ it is not the most efficient to use of space so let's see how else we can achieve text representation
+
+00:01:29.600 --> 00:01:35.360
+ count based representation techniques generally try to squeeze a whole sentence into just one vector
+
+00:01:35.360 --> 00:01:40.880
+ there are a bunch of different approaches under the umbrella of count based representation techniques
+
+00:01:40.880 --> 00:01:46.480
+ some of them are for example bag of words in bag of words what you do is you do not think about the
+
+00:01:46.480 --> 00:01:52.240
+ order of the words in a sentence you just look at how many times each word occurs and you create a
+
+00:01:52.240 --> 00:01:57.840
+ vector to represent this then you have the engram approach that is quite similar to the bag of words
+
+00:01:57.840 --> 00:02:04.160
+ approach but this time you do not just take one word but you make groups of n words and count their
+
+00:02:04.160 --> 00:02:09.360
+ occurrence in a sentence and then you have the tf-idf approach where you keep track of
+
+00:02:09.360 --> 00:02:16.240
+ how many times a word occurs in a document or also called sentence and how many times this word occurs
+
+00:02:16.240 --> 00:02:21.920
+ in other documents or sentences throughout the training data and this way it is aiming to
+
+00:02:21.920 --> 00:02:29.200
+ differentiate the words that are just commonly used like d of and and the words that are specifically
+
+00:02:29.200 --> 00:02:33.840
+ important for a certain sentence or document these approaches even though they've been really helpful
+
+00:02:33.840 --> 00:02:39.440
+ in the nlp area for years have some serious shortcomings so for example they do not take
+
+00:02:39.440 --> 00:02:45.360
+ any context into account furthermore they cannot deal with words that they did not see in the training
+
+00:02:45.360 --> 00:02:52.800
+ examples and lastly the embeddings that they produce are very sparse so they are not the most efficient
+
+00:02:52.800 --> 00:02:58.800
+ use of space now let's talk about embeddings the goal of making word embeddings is to represent the word
+
+00:02:58.800 --> 00:03:05.520
+ in a dense vector while making sure that similar words are close to each other in the embedding space
+
+00:03:05.520 --> 00:03:10.320
+ okay let's break that down what does a dense vector mean having a dense vector means that
+
+00:03:10.320 --> 00:03:16.720
+ the vector representing the word does not mostly consist of zeros and typically the embedding of the word
+
+00:03:16.720 --> 00:03:22.240
+ has fewer dimensions than the number of words that you have in your vocabulary okay and what does it
+
+00:03:22.240 --> 00:03:29.040
+ mean for words to be similar so similar words are words that are used in similar or same context most of
+
+00:03:29.040 --> 00:03:36.400
+ a time you would see them being used around same words so for example for words tea and coffee you can
+
+00:03:36.400 --> 00:03:42.400
+ think of them as similar words because you would always see them being used around the other words such as
+
+00:03:42.400 --> 00:03:50.080
+ breakfast drink or enjoy whereas the word p which is a legume and tea are not really similar words
+
+00:03:50.080 --> 00:03:56.000
+ even though they are spelled really similarly because they are used in vastly different contexts
+
+00:03:56.000 --> 00:04:00.800
+ so once we have the embeddings of these words we would expect the vectors of the words
+
+00:04:00.800 --> 00:04:07.680
+ tea and coffee to be much closer to each other than tea and p and lastly what is embedding space
+
+00:04:08.160 --> 00:04:14.400
+ embedding space is where your embedded data lives so let's say you have 10 different data points and
+
+00:04:14.400 --> 00:04:19.520
+ their mathematical embedding one-dimensional embedding correspond to these numbers if you
+
+00:04:19.520 --> 00:04:24.400
+ represent them in the embedding space this is what you would have and the distance between these two
+
+00:04:24.400 --> 00:04:30.240
+ points would give you the similarity between these two data points instead if you embed your data to
+
+00:04:30.240 --> 00:04:35.920
+ two values you can represent them in a two-dimensional space and now they will look like vectors with the
+
+00:04:35.920 --> 00:04:41.760
+ direction only after the third dimension we will have some issues visualizing the vectors but they
+
+00:04:41.760 --> 00:04:48.160
+ follow a similar logic so if we embed a word into a vector of length 32 this means we are turning it
+
+00:04:48.160 --> 00:04:54.560
+ into a vector in a 32-dimensional space we cannot visualize it anymore of course but we can still
+
+00:04:54.560 --> 00:05:00.080
+ calculate the distance of two different vectors or embeddings to each other like we did with the one
+
+00:05:00.080 --> 00:05:06.160
+ one-dimensional example by using things like cosine similarity here is what we would want the embedding
+
+00:05:06.160 --> 00:05:12.000
+ space to look like if we trained a successful word embedding since we cannot visualize 32-dimensional
+
+00:05:12.000 --> 00:05:18.080
+ space let's use this representative 2d space in this embedding space we want similar words to be
+
+00:05:18.080 --> 00:05:27.040
+ closer to each other for example king queen sovereign kingdom or another group could be cat dog pet bird animal
+
+00:05:27.040 --> 00:05:33.120
+ for some cases it is even possible to make sure that the relative distances between words represent
+
+00:05:33.120 --> 00:05:40.160
+ contextual information in a very commonly used example if this is how a man and woman are positioned
+
+00:05:40.160 --> 00:05:46.400
+ related to each other this is how king and queen would be related so by subtracting the vector for
+
+00:05:46.400 --> 00:05:54.000
+ man from the vector for king and by adding woman vector to it you get the vector for queen okay so this has been
+
+00:05:54.000 --> 00:06:02.160
+ a lot of the vector for the text that you can see in the text that you can see in the text that you can see in the text
+
+00:06:02.160 --> 00:06:05.840
+ there are a bunch of different approaches to how to make this happen so let's look into that
+
+00:06:05.840 --> 00:06:11.120
+ now one thing you can do is to have a custom embedding layer in your model so what you need
+
+00:06:11.120 --> 00:06:15.680
+ to do is let's say this is the core of your model where the actual learning happens
+
+00:06:15.680 --> 00:06:21.760
+ before you feed the text to your model you can have an embedding layer and just initialize it with random
+
+00:06:21.760 --> 00:06:27.760
+ weights and parameters and let it train and let it learn during the training of your actual model
+
+00:06:27.760 --> 00:06:33.280
+ of how to represent the words in the best way the advantage when you do it this way is that you will
+
+00:06:33.280 --> 00:06:38.800
+ have an embedding that is very specific to your use case and it will be specialized to your data sets
+
+00:06:38.800 --> 00:06:44.720
+ but the problem is to have a very successful and well performing embedding layer you would need to
+
+00:06:44.720 --> 00:06:50.000
+ train it with a lot of data and it will probably take a long time the transformer architecture for
+
+00:06:50.000 --> 00:06:55.600
+ example does exactly this so before the core of the model before the encoder and the decoder
+
+00:06:55.600 --> 00:07:02.080
+ it has an embedding layer to take text and turn it into numbers if you would like to learn more about
+
+00:07:02.080 --> 00:07:07.920
+ the transformer architecture and how that model works you can go and check out our video on transformers
+
+00:07:07.920 --> 00:07:14.880
+ another approach is word2vec word2vec works by getting the one hot encoded versions of the words
+
+00:07:14.880 --> 00:07:20.560
+ and creates embeddings of these words by using the context of the sentence too there are two different
+
+00:07:20.560 --> 00:07:26.320
+ approaches to word2vec one of them is called continuous bag of words and the other one is called skip gram
+
+00:07:26.320 --> 00:07:32.400
+ so here's how it works given a corpus of text so a lot of sentences what we do is we divide these
+
+00:07:32.400 --> 00:07:39.200
+ sentences into groups of n words so for the sake of this example let's say three so in this sentence
+
+00:07:39.200 --> 00:07:47.040
+ we take three words with see both or continuous bag of words we take the two words surrounding the middle
+
+00:07:47.040 --> 00:07:52.720
+ word and we feed it to a neural network and we try to guess the word that should be in the middle
+
+00:07:52.720 --> 00:07:57.920
+ whereas for skip gram we do the exact opposite we take the middle word and we try to guess the
+
+00:07:57.920 --> 00:08:03.200
+ words that should be surrounding this word we keep training this model by sliding this window to the
+
+00:08:03.200 --> 00:08:09.520
+ right every time in this model the neural network only has one layer so only one hidden layer and the
+
+00:08:09.520 --> 00:08:15.760
+ number of neurons in this hidden layer is the size of the embedding once the network has good performance
+
+00:08:15.760 --> 00:08:21.840
+ we can extract the embeddings of words from this network for SIBO these are the output weights and for
+
+00:08:21.840 --> 00:08:28.480
+ skip gram these are the incoming weights corresponding to a word next we have glove glove stands for global
+
+00:08:28.480 --> 00:08:34.160
+ vectors and it is an extension of the approach that we've just seen word to vec it is an extension of
+
+00:08:34.160 --> 00:08:40.400
+ word to vec because it not only looks at the local dependencies of words but it also looks at the global
+
+00:08:40.400 --> 00:08:47.120
+ context of the whole sentence it does that by taking into consideration the co-occurrence metrics of the sentence
+
+00:08:47.120 --> 00:08:52.480
+ the training principle of glove is a little bit too complicated to get into in this video but all you
+
+00:08:52.480 --> 00:08:59.120
+ need to know is that the training objective of glove is to learn word vectors such that their dot products
+
+00:08:59.120 --> 00:09:05.840
+ equals to the logarithm of the word's probability of co-occurrence next we have fast text fast text
+
+00:09:05.840 --> 00:09:11.760
+ again is an extension on the word to vec algorithm but this time in a bit of a different way so instead of
+
+00:09:11.760 --> 00:09:17.760
+ taking a skip gram model and training it on whole words what it does is to separate these words into
+
+00:09:17.760 --> 00:09:24.160
+ subwords of length n and train the model on top of these subwords thanks to the subwords approach
+
+00:09:24.160 --> 00:09:30.080
+ it works really well with rare words or words that were not seen in the training data and this is
+
+00:09:30.080 --> 00:09:36.160
+ honestly a huge advantage of fast text over the previous ones we saw another advantage of using subwords
+
+00:09:36.160 --> 00:09:42.640
+ is that it does really well with morphologically rich languages like german or turkish and lastly we
+
+00:09:42.640 --> 00:09:49.440
+ have elmo elmo is one of the latest innovations in the area of word embeddings with elmo the embedding
+
+00:09:49.440 --> 00:09:56.000
+ of the word depends on its context so in a way the embedding of the word is created dynamically
+
+00:09:56.000 --> 00:10:03.200
+ in the paper they mentioned this by saying our representations differ from traditional word embeddings
+
+00:10:03.200 --> 00:10:10.080
+ in that each token is assigned a representation that is a function of the entire input sentence elmo
+
+00:10:10.080 --> 00:10:16.240
+ representations of words are derived from a bi-directional lstm model that is trained on a
+
+00:10:16.240 --> 00:10:22.080
+ language model task of predicting the next and the previous words in a sentence by training on a
+
+00:10:22.080 --> 00:10:27.840
+ language modeling task elmo takes the context of the sentences into account while it's creating the
+
+00:10:27.840 --> 00:10:34.160
+ embeddings and this way it is able to distinguish homonyms of words for example so the embedding of
+
+00:10:34.160 --> 00:10:41.440
+ the word fair would be different in these two sentences he was known to be fair the fair was so much fun
+
+00:10:41.440 --> 00:10:47.360
+ and because elmo's first layer deals with characters instead of whole words it is really good at dealing
+
+00:10:47.360 --> 00:10:54.000
+ with misspelled words or typos but all in all elmo needs its own video to explain to you fully
+
+00:10:54.000 --> 00:10:59.200
+ what it does and how it trains if you want to see that video leave a comment and let us know
+
+00:10:59.200 --> 00:11:04.240
+ okay so we've seen some cool ways of how word embeddings are made but how can you use them
+
+00:11:04.240 --> 00:11:10.880
+ in your project so there are mainly two different ways you can either make a word embedding yourself
+
+00:11:10.880 --> 00:11:16.640
+ from scratch or you can use pre-trained word embeddings it is not that hard to make your own
+
+00:11:16.640 --> 00:11:22.720
+ word embedding because for all of these algorithms and models that we talked about there is a library
+
+00:11:22.720 --> 00:11:28.240
+ that offers you a pre-made model that you just need to push data through but the problem is like
+
+00:11:28.240 --> 00:11:33.920
+ we also mentioned in making an embedding layer by yourself is that you need to have a lot of training
+
+00:11:33.920 --> 00:11:39.600
+ data and it will probably take a very long time to achieve a good performance but at the end you
+
+00:11:39.600 --> 00:11:45.360
+ will have a word embedding that is specific to your use case and it will be very relevant to all of the
+
+00:11:45.360 --> 00:11:50.240
+ words that you have in your data set another way is to use a pre-trained word embedding and there are
+
+00:11:50.240 --> 00:11:55.920
+ libraries that offer pre-trained word embeddings and even the research groups that come up with the new
+
+00:11:55.920 --> 00:12:03.040
+ ways of embedding words most of the time release their word embedding model to the public use these word
+
+00:12:03.040 --> 00:12:08.800
+ embeddings of course will not be specific to your use case but at the end of the day they will save you
+
+00:12:08.800 --> 00:12:14.320
+ a lot of time and effort there are two ways how you can use those pre-trained word embeddings depending
+
+00:12:14.320 --> 00:12:19.440
+ on the embedding that you're using you can either use them statically so not update them during your
+
+00:12:19.440 --> 00:12:25.200
+ training just kind of plug and play or you can also make them part of your training process and kind
+
+00:12:25.200 --> 00:12:31.200
+ of fine-tune them as you're training your model before we wrap up i want to show you how to import
+
+00:12:31.200 --> 00:12:36.560
+ pre-trained word embeddings from the gensome library because i think it's quite cool to see how they work and
+
+00:12:36.560 --> 00:12:40.880
+ you can also kind of poke around a little bit um so the first thing that you need to do of course
+
+00:12:40.880 --> 00:12:46.400
+ is to install the library you can find more detailed instructions on how to do that on their website of course
+
+00:12:46.400 --> 00:12:52.640
+ after we import the library the first thing i want to look at is different types of word embeddings
+
+00:12:52.640 --> 00:12:58.080
+ pre-trained word embeddings they have and you can see immediately they have fast text glove and word2vec
+
+00:12:58.080 --> 00:13:03.840
+ and even for glove and word2vec they have word embeddings pre-trained word embeddings that are
+
+00:13:03.840 --> 00:13:08.800
+ trained on different types of data you can read more about what kind of data they use etc
+
+00:13:08.800 --> 00:13:13.520
+ there but you can see they have twitter data wikipedia data and google news for example so
+
+00:13:13.520 --> 00:13:17.840
+ it's kind of cool you can try and see which one works better for your specific project
+
+00:13:19.360 --> 00:13:27.360
+ and then i install or load these different types of word embeddings to my project and i would like to
+
+00:13:27.360 --> 00:13:33.200
+ show you kind of the details of them how to kind of poke around so the first thing that i want to see is
+
+00:13:33.200 --> 00:13:42.560
+ what word2vec thinks is the closest thing to thee and it thinks it is well i wrote it with lower letters
+
+00:13:42.560 --> 00:13:48.080
+ thinks it's t with the capital letter t's and some other things that i do not fully recognize
+
+00:13:48.080 --> 00:13:55.120
+ but if i try the same thing with glove for example it says coffee milk wine cream which is actually
+
+00:13:55.120 --> 00:14:01.760
+ quite accurate it's quite good it thinks that the closest things to tea are coffee milk wine cream ice
+
+00:14:01.760 --> 00:14:06.640
+ juice etc these are all beverages or they have something to do with tea so that's quite good
+
+00:14:06.640 --> 00:14:14.320
+ if we try the same thing with fast text it again says tea coffee teas cuppa tea bags which is again
+
+00:14:14.320 --> 00:14:22.480
+ quite acceptable you can also see the distance between two different terms so for example if i like the
+
+00:14:22.480 --> 00:14:27.760
+ example i gave in the video if you look at the distance between tea and coffee it comes down to for
+
+00:14:27.760 --> 00:14:37.600
+ word2vec 0.43 whereas the distance between t and p is 0.7 so that's quite good as we said what we want is
+
+00:14:37.600 --> 00:14:43.040
+ that the similar words are closer together and the words that are not that similar are farther apart even
+
+00:14:43.040 --> 00:14:50.240
+ if they're spelled very similarly another thing you can do another example that people use all over the place
+
+00:14:50.240 --> 00:14:58.160
+ is when you take the word king and then you subtract man from it and then you add woman to it you want to
+
+00:14:58.160 --> 00:15:04.800
+ arrive at a point to a vector that says queen right so here's what we can set that up we can we say
+
+00:15:04.800 --> 00:15:11.040
+ basically positive is king and woman and negative is men so basically subtract man from king and add woman to it
+
+00:15:11.600 --> 00:15:18.560
+ and we arrive at queen the the closest thing is queen which is amazing um and i wanted to i mean
+
+00:15:18.560 --> 00:15:22.960
+ this is an example that is tried a lot but i wanted to try something that i came up with
+
+00:15:22.960 --> 00:15:30.080
+ so i wanted to see if from the word restaurant i subtract dinner and i add cocktail to it
+
+00:15:30.080 --> 00:15:36.160
+ i want to arrive at a place where you would drink a cocktail so maybe a bar or something like that
+
+00:15:36.160 --> 00:15:45.360
+ so let's say let's see what word to vec comes up with eatery bartender bartenders it is close enough
+
+00:15:45.360 --> 00:15:50.240
+ but of course you are not predetermining these relationships when you're making the word
+
+00:15:50.240 --> 00:15:58.560
+ embeddings your word embedding model extracts these relationships from the text itself so you know of
+
+00:15:58.560 --> 00:16:04.800
+ course you cannot always expect it to work perfectly but i want to try it with glove and see if it's better or
+
+00:16:04.800 --> 00:16:13.440
+ worse glove things it's parasol espresso brewery again not exactly what i was looking for but maybe
+
+00:16:13.440 --> 00:16:20.800
+ with fast text okay this is a little bit better it says bar restaurant restaurant bar cocktail making
+
+00:16:20.800 --> 00:16:28.560
+ wine bar nightclub okay it seems to be doing better and as far as i read also fast text does better in
+
+00:16:28.560 --> 00:16:36.560
+ terms of these analogy making uh tasks uh compared to glove and word to vec but it is still i think quite
+
+00:16:36.560 --> 00:16:41.520
+ cool to explore word embeddings like this so this is not how word embeddings are normally used of course
+
+00:16:41.520 --> 00:16:46.960
+ we were just kind of poking around and trying to explore they're normally used in combination with a
+
+00:16:46.960 --> 00:16:52.480
+ bigger model a core model where you're trying to do some sort of nlp task so if you're interested in
+
+00:16:52.480 --> 00:16:58.880
+ that if you would like us to make a video on for example training a sentiment analysis model using a
+
+00:16:58.880 --> 00:17:03.360
+ pre-trained word embedding let us know in the comment section but for now thanks for watching
+
+00:17:03.360 --> 00:17:16.640
+ i hope this video was helpful for you and i will see you in the next video
+

@@ -1,0 +1,314 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_decision",
+  "schema_version": "lesson_reconciliation_quality_repair_decision.v0",
+  "generated_at": "2026-05-19T17:46:08.807632+00:00",
+  "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+  "stage_name": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "repair_reason": "review_fallback",
+  "target_candidate_ids": [
+    "c61_pro_thinking_002",
+    "c62_pro_thinking_010",
+    "c61_pro_thinking_003",
+    "c61_pro_thinking_004",
+    "c61_pro_thinking_006",
+    "c61_pro_thinking_007",
+    "c61_pro_thinking_008",
+    "c62_pro_thinking_009",
+    "c61_pro_thinking_011",
+    "c61_pro_thinking_010",
+    "c62_pro_thinking_001",
+    "c62_pro_thinking_002",
+    "c62_pro_thinking_003",
+    "c62_pro_thinking_004",
+    "c62_pro_thinking_006",
+    "c62_pro_thinking_007",
+    "c62_pro_thinking_008",
+    "c62_pro_thinking_005",
+    "c62_pro_thinking_011",
+    "c63_pro_thinking_003",
+    "c63_pro_thinking_010"
+  ],
+  "new_accepted_concepts": [
+    {
+      "id": "repair001",
+      "label": "Nearest Neighbor Retrieval using Word Vectors",
+      "description": "Finding the most similar words or items in a vector space by computing distances (e.g., cosine similarity) to all candidates and selecting the closest ones. This underlies functions like closest() for color vectors and similar_by_word() for word embeddings.",
+      "coverage_criteria": [
+        "Describe the process of scanning all vectors to find the closest one.",
+        "Explain why naive nearest neighbor search is inefficient for large spaces.",
+        "Use similar_by_word() to retrieve semantically similar words from a trained Word2Vec model."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_002",
+        "c62_pro_thinking_010"
+      ],
+      "merge_rationale": "Both candidates cover retrieving the most similar items in a vector space: c61_pro_thinking_002 demonstrates the generic algorithm with color vectors, while c62_pro_thinking_010 shows the specific Word2Vec method to find similar words."
+    },
+    {
+      "id": "repair002",
+      "label": "Count-based Word Vector Construction and Dimensionality Reduction",
+      "description": "Word vectors can be built by counting word co-occurrences in contexts from a corpus. This yields high-dimensional vectors that often contain redundant information; dimensionality reduction techniques like SVD compress them into a smaller, more manageable number of dimensions (e.g., 100-300).",
+      "coverage_criteria": [
+        "Construct a simple co-occurrence matrix from a small corpus.",
+        "Explain why raw co-occurrence vectors can be too high-dimensional.",
+        "Name dimensionality reduction as a solution and state typical reduced dimensions."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_006",
+        "c61_pro_thinking_007"
+      ],
+      "merge_rationale": "These candidates represent sequential steps in a traditional pipeline: building distributional vectors from counts (c61_pro_thinking_006) and then reducing their dimensionality for practical use (c61_pro_thinking_007)."
+    },
+    {
+      "id": "repair003",
+      "label": "Using Pre-trained Word Embeddings",
+      "description": "Several publicly available pre-trained word vectors, such as GloVe (300-dimensional) and Google's word2vec model, can be easily loaded via libraries like spaCy or gensim.downloader. These provide ready-to-use semantic spaces without training from scratch.",
+      "coverage_criteria": [
+        "State that GloVe vectors are 300-dimensional and available in spaCy.",
+        "Write code to load a pre-trained model using gensim.downloader.load() (e.g., 'word2vec-google-news-300').",
+        "Explain the benefit of using pre-trained embeddings for NLP tasks."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_008",
+        "c62_pro_thinking_009"
+      ],
+      "merge_rationale": "Both candidates describe accessing pre-trained word vectors: c61_pro_thinking_008 introduces GloVe via spaCy, while c62_pro_thinking_009 shows how to load pre-trained models with gensim.downloader. Together they provide practical routes to obtain pre-trained embeddings."
+    },
+    {
+      "id": "repair004",
+      "label": "Sentence Similarity through Averaged Word Vectors",
+      "description": "A sentence can be represented as the average of its word vectors. Cosine similarity between these sentence vectors can then be used to find semantically similar sentences, enabling applications like sentence retrieval.",
+      "coverage_criteria": [
+        "Compute the average word vector for a given sentence.",
+        "Explain how sentence vectors allow comparison of longer texts.",
+        "Describe using cosine similarity to measure sentence similarity."
+      ],
+      "source_candidate_ids": [
+        "c61_pro_thinking_011"
+      ],
+      "merge_rationale": "This candidate alone defines a technique to extend word-level vectors to sentence-level similarity, providing a clear lesson-local concept."
+    },
+    {
+      "id": "repair005",
+      "label": "Gensim Library and Text Preprocessing",
+      "description": "Gensim is an open-source NLP library providing tools for text preprocessing and analysis. Key preprocessing steps include tokenizing text with simple_preprocess() or tokenize(), and building a vocabulary with gensim.corpora.Dictionary(), which maps tokens to integer IDs for model training.",
+      "coverage_criteria": [
+        "Explain that Gensim is a Python library for NLP with origins in topic modeling.",
+        "Use simple_preprocess() to tokenize text and filter by length.",
+        "Create a Dictionary from tokenized documents and explain its role."
+      ],
+      "source_candidate_ids": [
+        "c62_pro_thinking_001",
+        "c62_pro_thinking_002",
+        "c62_pro_thinking_003",
+        "c62_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates form a cohesive workflow: introducing the Gensim library (c62_pro_thinking_001) and then providing essential preprocessing functions—simple_preprocess (c62_pro_thinking_002), tokenize (c62_pro_thinking_003), and building a vocabulary Dictionary (c62_pro_thinking_004)—which together prepare text for Word2Vec training."
+    },
+    {
+      "id": "repair006",
+      "label": "Training Word2Vec Models with Gensim",
+      "description": "Gensim's Word2Vec class trains word embeddings on preprocessed sentences. Key parameters (e.g., min_count, size, sg, window, hs, negative) control the training, and the resulting model can be saved and loaded for later use.",
+      "coverage_criteria": [
+        "Instantiate a Word2Vec model with a list of tokenized sentences and basic parameters.",
+        "List at least four training parameters and explain their effects.",
+        "Save and load a trained Word2Vec model using gensim.save() and gensim.load()."
+      ],
+      "source_candidate_ids": [
+        "c62_pro_thinking_006",
+        "c62_pro_thinking_007",
+        "c62_pro_thinking_008"
+      ],
+      "merge_rationale": "These candidates cover the complete Gensim training pipeline: instantiating and training the model (c62_pro_thinking_006), understanding configuration parameters (c62_pro_thinking_007), and persisting the trained model (c62_pro_thinking_008)."
+    }
+  ],
+  "existing_concept_candidate_additions": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-003",
+      "candidate_ids": [
+        "c61_pro_thinking_003",
+        "c61_pro_thinking_004",
+        "c61_pro_thinking_010"
+      ],
+      "explanation": "These candidates detail vector arithmetic operations and their application to analogies and pre-trained embeddings, directly supporting the Vector Arithmetic for Semantic Analogies concept."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-002",
+      "candidate_ids": [
+        "c62_pro_thinking_005"
+      ],
+      "explanation": "This candidate explains the distinction between dense and sparse vectors, enriching the Word Vectors as Numerical Representations concept with an important representational property."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-006",
+      "candidate_ids": [
+        "c63_pro_thinking_003",
+        "c63_pro_thinking_010"
+      ],
+      "explanation": "These candidates provide the conceptual motivation behind generating training data: learning embeddings as a side effect of a surrogate task and the self-supervised nature of the process, fitting naturally into the Training Data Generation concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c61_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair001"
+      ],
+      "explanation": "Describes nearest neighbor search in vector space, a core retrieval technique."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair001"
+      ],
+      "explanation": "Demonstrates similar_by_word(), a practical implementation of nearest neighbor retrieval for word vectors."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-003",
+      "explanation": "Provides the basic vector arithmetic operations (add, subtract, average) that enable analogy solving."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-003",
+      "explanation": "Shows how vector differences solve analogies, a direct application of vector arithmetic to semantic relationships."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair002"
+      ],
+      "explanation": "Teaches how to construct word vectors from co-occurrence counts, the first step in the traditional pipeline."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair002"
+      ],
+      "explanation": "Explains the need for dimensionality reduction on count-based vectors, a necessary follow-up to make them practical."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair003"
+      ],
+      "explanation": "Introduces GloVe pre-trained vectors, a concrete resource for obtaining ready-made embeddings."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair003"
+      ],
+      "explanation": "Covers the gensim.downloader approach for loading pre-trained models, a complementary method to using GloVe."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair004"
+      ],
+      "explanation": "Defines the sentence similarity technique using averaged word vectors, extending word-level embeddings to sentence-level tasks."
+    },
+    {
+      "candidate_id": "c61_pro_thinking_010",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-003",
+      "explanation": "Demonstrates performing vector arithmetic on pre-trained embeddings to reveal semantic relationships, consistent with the arithmetic concept."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair005"
+      ],
+      "explanation": "Introduces the Gensim library, setting the stage for its preprocessing utilities."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair005"
+      ],
+      "explanation": "Explains the simple_preprocess() function, a key tokenization tool in Gensim."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair005"
+      ],
+      "explanation": "Covers the lower-level tokenize() function, used internally by simple_preprocess."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair005"
+      ],
+      "explanation": "Describes building a vocabulary with Dictionary, an essential preprocessing step before model training."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair006"
+      ],
+      "explanation": "Shows the core API call to train a Word2Vec model in Gensim."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair006"
+      ],
+      "explanation": "Details the training parameters, crucial for understanding model configuration."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "repair006"
+      ],
+      "explanation": "Demonstrates saving and loading models, a practical necessity for reusability."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-002",
+      "explanation": "Distinguishes dense vs. sparse vectors, enhancing the foundational understanding of word vector representations."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_011",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Knowledge of the Brown Corpus is incidental; not essential for achieving the lesson's objective of applying Word2Vec with neural networks."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-006",
+      "explanation": "Introduces the concept of learning embeddings via a fake problem, which directly motivates the training data generation process."
+    },
+    {
+      "candidate_id": "c63_pro_thinking_010",
+      "status": "merged_into",
+      "merged_into": "reconciled-candidate-lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais-006",
+      "explanation": "Explains the self-supervised nature of Word2Vec, reinforcing how training data is derived from raw text without external labels."
+    }
+  ],
+  "summary": {
+    "target_candidate_count": 21,
+    "new_accepted_concept_count": 6,
+    "existing_concept_addition_count": 3,
+    "candidate_assignment_count": 21
+  }
+}

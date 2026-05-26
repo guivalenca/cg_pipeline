@@ -1,0 +1,296 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.660
+ Welcome to another video of the Machine Learning from Scratch course presented by Assembly AI.
+
+00:00:04.660 --> 00:00:09.580
+ In this series, we implement popular machine learning algorithms using only built-in Python
+
+00:00:09.580 --> 00:00:15.280
+ functions and NumPy. In this lesson, we learn about naive Bayez. As always, we start with a
+
+00:00:15.280 --> 00:00:20.760
+ short theory section and then we jump to the code. So let's get started. So naive Bayez is a
+
+00:00:20.760 --> 00:00:27.260
+ probabilistic classifier based on applying Bayez theorem with strong, also called naive
+
+00:00:27.260 --> 00:00:34.220
+ independence assumptions between the features. So let's learn about the Bayez theorem first.
+
+00:00:34.220 --> 00:00:40.960
+ It says that the probability of an event A given another event B can be calculated as the probability
+
+00:00:40.960 --> 00:00:49.220
+ of B given A times the probability of A divided by the probability of B. So if we transfer this to our
+
+00:00:49.220 --> 00:00:56.460
+ case with class labels and features, then we can say that the probability of Y given X is the
+
+00:00:56.460 --> 00:01:03.740
+ probability of X given Y times the probability of Y divided by the probability of X. And in this
+
+00:01:03.740 --> 00:01:11.120
+ case, Y are the class labels that we want to predict and X is the feature vector. So then we do the
+
+00:01:11.120 --> 00:01:17.020
+ assumption that the features are mutually independent. For example, if we want to predict if
+
+00:01:17.020 --> 00:01:23.980
+ someone takes the bus or walks, and we have two features if it's raining or not, and the distance to
+
+00:01:23.980 --> 00:01:30.300
+ the destination. So then we make the assumption that these two features are independent. And in reality,
+
+00:01:30.300 --> 00:01:35.660
+ often this is not the case. But this assumption still works really well for this classifier. That's
+
+00:01:35.660 --> 00:01:42.220
+ also why we say this is a naive assumption. So if you make this assumption, we can split this part here,
+
+00:01:42.220 --> 00:01:49.500
+ p of x given y into the different components and say this is the product. So p of x1 given y times p of
+
+00:01:49.500 --> 00:01:57.260
+ x2 given y and so on. And these are all the single feature vector components. And these probabilities here
+
+00:01:57.260 --> 00:02:05.100
+ are easier to set up. So now we want to select the class label y. So we want to select the class with the
+
+00:02:05.100 --> 00:02:13.420
+ highest posterior probability. So this p of y given x is also called the posterior. And this is the formula
+
+00:02:13.420 --> 00:02:21.100
+ we've just seen. So now we want to select y as the arc max of the posterior. And then we can simplify
+
+00:02:21.100 --> 00:02:29.420
+ this a little bit. So we can first get rid of p of x because this depends not on y at all. So just throw
+
+00:02:29.420 --> 00:02:37.420
+ this away. And then we also apply a little trick. So all these probabilities here are values between zero
+
+00:02:37.420 --> 00:02:44.620
+ and one. And if we multiply this, then the number can become very small and we can run into inaccuracies.
+
+00:02:44.620 --> 00:02:52.860
+ So for this, we apply a little trick. Instead of the product, we do a sum. And then we apply the logarithm.
+
+00:02:52.860 --> 00:02:59.180
+ So if you apply the logarithm, we can change the product with a sum. And then this is the final
+
+00:02:59.180 --> 00:03:07.660
+ formula to get y. And now we need to know how we can calculate p of y and also this p of x given y.
+
+00:03:07.660 --> 00:03:16.860
+ So these are called the prior and class conditional. So first p of y is called the prior probability.
+
+00:03:16.860 --> 00:03:22.620
+ And we can simply calculate this as the frequency of each class. So we count how often this class
+
+00:03:22.620 --> 00:03:31.500
+ label occurs. And then the p of x i given y is known as the class conditional probability. And for this,
+
+00:03:31.500 --> 00:03:38.780
+ we model this with a Gaussian distribution. So here, this is the formula, where we have the mean and the
+
+00:03:38.780 --> 00:03:45.420
+ standard deviation or then squared, this is the variance. So here we can see a plot of different
+
+00:03:45.420 --> 00:03:51.740
+ Gaussian distributions for different means and standard deviations. So yeah, this is often a good choice to
+
+00:03:51.740 --> 00:03:57.500
+ model probabilities. And yeah, this is all that we need to code this up. So let's summarize the different
+
+00:03:57.500 --> 00:04:04.700
+ steps. In the training step, we calculate the mean, the variance and the prior so the frequency for each
+
+00:04:04.700 --> 00:04:11.180
+ class with our training set. And then in the prediction step, we calculate the posterior for each
+
+00:04:11.180 --> 00:04:17.100
+ class with the formula that we've just seen. And here we also plug in the Gaussian formula for these
+
+00:04:17.100 --> 00:04:22.540
+ probabilities. And then we simply choose the class with the highest posterior probability. And that's it.
+
+00:04:22.540 --> 00:04:29.980
+ So let's jump to the code. So first, let's import NumPy, of course, and then we want to create a class
+
+00:04:29.980 --> 00:04:36.940
+ that we call Naive Bayes. And here we don't need an init function because we don't have any parameters to
+
+00:04:36.940 --> 00:04:45.100
+ configure this. So instead, we want a fit method, which gets the training samples and the training labels.
+
+00:04:45.100 --> 00:04:56.460
+ And then we also want a predict method with self and the test samples. So let's start with fit. So here we
+
+00:04:56.460 --> 00:05:06.140
+ want to get the number of samples and the number of features first. And we have this assumption that x and
+
+00:05:06.140 --> 00:05:13.100
+ y are already NumPy and d array. So this is already in the correct format. And then we can extract this
+
+00:05:13.100 --> 00:05:22.940
+ by saying x dot shape with a small s x dot shape. Then let's get the number of unique classes and we store
+
+00:05:22.940 --> 00:05:33.740
+ this in self dot underscore classes equals NumPy unique with y. And then we get the number of different
+
+00:05:33.740 --> 00:05:43.100
+ classes by saying the length of self dot underscore classes. And now the first thing we want to do is we
+
+00:05:43.100 --> 00:05:55.180
+ want to calculate the mean the variance and the prior for each class. So for this, let's initialize these with
+
+00:05:55.180 --> 00:06:07.340
+ zeros first. So we say self dot underscore mean equals NumPy dot zeros. And now as a shape, we want to have
+
+00:06:07.980 --> 00:06:19.580
+ n classes times n features. And then as data type, we can also say this is a NumPy float 64. So this is
+
+00:06:19.580 --> 00:06:27.580
+ the default, but just to make this more clear that we work with floats here. And then let's copy this one
+
+00:06:27.580 --> 00:06:39.260
+ time. So we also do the same for the variance. So we say self dot var equals this. And then also for the
+
+00:06:39.260 --> 00:06:49.340
+ priors. So we say self dot priors, but here we only want n classes. So for each class, we want to have a
+
+00:06:49.340 --> 00:06:59.900
+ n class. And now we want n class. And now we want to calculate n class c in a numerate self dot underscore
+
+00:06:59.900 --> 00:07:13.020
+ classes, then we only want to get the samples of this class. So x c equals x where y equals equals c. And then we want
+
+00:07:13.020 --> 00:07:21.660
+ to calculate the mean variance and prior and assign this. So we say self dot underscore mean and then of the
+
+00:07:21.660 --> 00:07:29.900
+ current index. So for this class, and then for all the columns. So for all features, we can say this is simply
+
+00:07:29.900 --> 00:07:42.860
+ x c dot mean along axis equals zero. And then we do the same for the variance. So we also
+
+00:07:42.860 --> 00:07:51.740
+ say self dot var and here we can apply x dot var. So these are built in NumPy functions. And then for the
+
+00:07:51.740 --> 00:08:07.980
+ priors, we say self dot underscore priors and of this index and this is x c dot shape zero. So this is the
+
+00:08:07.980 --> 00:08:18.380
+ number of the number of the how many samples we have divided by the as float the number of
+
+00:08:18.380 --> 00:08:26.620
+ total samples. And now these are the priors. So now this is all that we have to do in the fit method. So
+
+00:08:26.620 --> 00:08:34.460
+ let's go on with predict. So here, let's say y prediction equals and then we use list comprehension
+
+00:08:34.460 --> 00:08:43.340
+ and use a helper function underscore predict where we only put in one small feature component x for
+
+00:08:43.340 --> 00:08:53.180
+ small x in large x. And then we want to return this as NumPy array. So let's say NumPy array of y predict.
+
+00:08:53.180 --> 00:09:01.740
+ And then we create this underscore predict which gets self and only a small x. So only one component.
+
+00:09:01.740 --> 00:09:11.020
+ And here we want to calculate the posterior. So let's initialize this with an empty list. And then let's
+
+00:09:11.020 --> 00:09:25.100
+ say let's write a comment. So we want to calculate the posterior probability for each class. So we say for
+
+00:09:25.100 --> 00:09:36.700
+ index and c in enumerate self dot underscore classes. So the same enumeration that we do here. And then
+
+00:09:37.260 --> 00:09:46.780
+ let's calculate this. So we say first the prior. And let's go back to the formula. So here we have this.
+
+00:09:46.780 --> 00:09:56.380
+ So we have the logarithm of the prior plus the logs of all the class conditionals. So for this, we say
+
+00:09:56.380 --> 00:10:05.820
+ NumPy log. And then we can simply access this. So we already calculated the priors. And then of this
+
+00:10:05.820 --> 00:10:18.620
+ current class index. And then for the posterior, we say this is NumPy sum over NumPy log.
+
+00:10:18.620 --> 00:10:25.660
+ And then here we want to apply the Gaussian distribution. So for this, we create a helper function
+
+00:10:25.660 --> 00:10:34.940
+ that we call self dot underscore PDF for probability density function. And then this should get the index and
+
+00:10:34.940 --> 00:10:44.700
+ the x. And then we have the posterior. So now we want to add this to the prior. So we say posterior equals
+
+00:10:44.700 --> 00:10:55.820
+ posterior plus prior and then we append this to the list. So we say posteriors dot append the current
+
+00:10:55.820 --> 00:11:08.620
+ highest posterior. And then in the end, we want to return the class with the highest posterior. So here we
+
+00:11:08.620 --> 00:11:21.820
+ say return and then self dot underscore classes off. And now here we want to say NumPy argmax of the
+
+00:11:21.820 --> 00:11:31.580
+ Posteriors. And this is all that we need for predict. So now we only need the probability density function.
+
+00:11:31.580 --> 00:11:44.460
+ So let's say self a define underscore PDF. This gets self. Then it gets the class index and x. And here,
+
+00:11:44.460 --> 00:11:52.780
+ let's have a brief look at the formula again. So this here is the formula with the means and the variances.
+
+00:11:52.780 --> 00:12:02.700
+ And let's split this into denominator and numerator. So let's first get the mean. So we say mean equals
+
+00:12:02.700 --> 00:12:12.700
+ self.self dot underscore mean of this class index and the same for the variance. So we say var equals
+
+00:12:12.700 --> 00:12:24.620
+ self dot underscore var of this class index. And then we say the new mer radar equals and now we apply this.
+
+00:12:24.620 --> 00:12:39.260
+ So we say numpy. This is the exponential function of minus and then we say x minus the mean to the power of
+
+00:12:39.260 --> 00:12:54.460
+ two divided by two times the variance. So let's put this into parentheses as well. And also this part. So
+
+00:12:54.460 --> 00:13:10.780
+ the minus and then this and then for the the nominator equals so this is numpy square root over and here we have
+
+00:13:10.780 --> 00:13:24.300
+ two times numpy dot pi times the variance. So then we want to return the numerator
+
+00:13:24.300 --> 00:13:31.100
+ the denominator divided by the denominator. And this is all that we need. So now we are done and now we can
+
+00:13:31.100 --> 00:13:36.540
+ test this. So I already prepared some code for testing and let's go over this very quickly. You can also
+
+00:13:36.540 --> 00:13:43.500
+ find the whole code on GitHub. So we import data sets and train test split from sklearn. Then let's have
+
+00:13:43.500 --> 00:13:51.660
+ a helper function to calculate the accuracy. Then we call data sets make classification and create a toy data set with
+
+00:13:51.660 --> 00:14:00.860
+ 1000 samples and 10 features and two classes. Then we split this into training and testing. Then we create our
+
+00:14:00.860 --> 00:14:09.180
+ naive bias classifier and call fit with the training samples and then we call predict with the test samples.
+
+00:14:09.180 --> 00:14:18.060
+ And then we calculate the accuracy by comparing Y test and the predictions. And now let's run this and we
+
+00:14:18.060 --> 00:14:24.940
+ see the accuracy is 96.5%. So it works pretty well. So yeah, this is all. I hope you enjoyed this and
+
+00:14:24.940 --> 00:14:33.820
+ then I hope to see you in the next lesson.
+

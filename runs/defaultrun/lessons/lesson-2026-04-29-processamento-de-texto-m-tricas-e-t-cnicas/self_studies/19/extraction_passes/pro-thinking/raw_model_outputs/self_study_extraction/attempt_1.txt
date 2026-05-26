@@ -1,0 +1,254 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-19-001",
+      "label": "Similaridade Léxica",
+      "description": "Similaridade léxica mede o grau de similaridade entre duas strings com base na sequência de caracteres, resultando em um valor entre 0 e 1.",
+      "coverage_criteria": [
+        "O estudante explica que a similaridade léxica compara a estrutura letra por letra, sem considerar significado."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto define explicitamente similaridade léxica e a contrasta com a semântica na seção 1.",
+        "granularity_rationale": "Conceito atômico necessário para compreender a diferença fundamental entre os tipos de similaridade."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Diferenciação entre similaridade léxica e similaridade semântica"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-19-002",
+      "label": "Similaridade Semântica",
+      "description": "Similaridade semântica considera o significado das palavras em determinado contexto, permitindo trocas que mantenham o sentido.",
+      "coverage_criteria": [
+        "O estudante diferencia similaridade semântica da léxica com exemplos como 'carro' e 'automóvel'."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto define e exemplifica similaridade semântica em contraste com a léxica.",
+        "granularity_rationale": "Conceito central do capítulo, permite avaliar compreensão básica."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Diferenciação entre similaridade léxica e similaridade semântica"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-19-003",
+      "label": "Aplicações de Medidas de Similaridade",
+      "description": "Medidas de similaridade são usadas em clusterização de documentos, tradução automática, classificação de texto, sumarização e detecção de duplicatas.",
+      "coverage_criteria": [
+        "O estudante cita ao menos três aplicações reais de similaridade textual."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto lista aplicações na introdução e exemplifica com sistema de cadastro e Google Tradutor.",
+        "granularity_rationale": "Contextualiza a relevância prática das medidas, sem detalhar implementações."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Introdução"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-19-004",
+      "label": "Similaridade Baseada em Conhecimento vs. Corpus",
+      "description": "A similaridade semântica pode ser calculada por algoritmos baseados em corpus (grandes bases de texto) ou baseados em conhecimento (redes semânticas como WordNet).",
+      "coverage_criteria": [
+        "O estudante distingue as duas abordagens, identificando que a baseada em conhecimento usa ontologias como a WordNet."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto cita Gomaa e Fahmy (2013) explicando as duas categorias de cálculo.",
+        "granularity_rationale": "Conceito que organiza os métodos de similaridade e prepara para estudo da WordNet."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["WordNet"]
+    },
+    {
+      "candidate_id": "candidate-19-005",
+      "label": "WordNet",
+      "description": "WordNet é um grande banco de dados léxicos do inglês que organiza palavras em synsets (conjuntos de sinônimos) com relações semânticas, funcionando como uma ontologia.",
+      "coverage_criteria": [
+        "O estudante explica que a WordNet agrupa sinônimos e inclui relações hierárquicas como hiperonímia e hiponímia."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto dedica várias páginas a descrever a WordNet, sua estrutura e seu uso.",
+        "granularity_rationale": "Conceito fundamental para entender medidas de similaridade baseadas em conhecimento."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["WordNet", "Princeton University"]
+    },
+    {
+      "candidate_id": "candidate-19-006",
+      "label": "Path Similarity (Similaridade de Caminho)",
+      "description": "Medida de similaridade semântica que calcula o inverso da distância mais curta entre dois conceitos em uma taxonomia: Path Similarity = 1/(distância + 1).",
+      "coverage_criteria": [
+        "Dada uma hierarquia de conceitos, o estudante calcula a similaridade de caminho entre dois termos, como 'cavalo' e 'animal'."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto explica o Path Similarity com exemplo numérico usando a fórmula.",
+        "granularity_rationale": "Método específico e concreto que o estudante pode aplicar imediatamente."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["Path Similarity"]
+    },
+    {
+      "candidate_id": "candidate-19-007",
+      "label": "Lowest Common Subsumer (LCS)",
+      "description": "Medida de similaridade que identifica o ancestral comum mais específico de dois conceitos; quanto mais próximo o ancestral, maior a similaridade.",
+      "coverage_criteria": [
+        "O estudante identifica o LCS em uma pequena taxonomia e explica como a distância ao LCS influencia a similaridade."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto descreve o LCS com exemplos de 'papagaio' e 'canário' tendo ancestral 'ave'.",
+        "granularity_rationale": "Complemento ao Path Similarity, mostra outra medida baseada em ontologia."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["Lowest Common Subsumer"]
+    },
+    {
+      "candidate_id": "candidate-19-008",
+      "label": "Relações Semânticas em Ontologias",
+      "description": "Tipos de relações entre palavras em ontologias: sinonímia, antonímia, meronímia, holonímia, hiponímia, hiperonímia, homonímia e polissemia.",
+      "coverage_criteria": [
+        "O estudante define e exemplifica cada tipo de relação (ex.: meronímia é 'parte de', como 'pneu' é parte de 'carro')."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto lista e explica cada relação, sendo base para compreender a estrutura da WordNet.",
+        "granularity_rationale": "Conjunto de definições necessárias para navegar ontologias; cada relação é pequena, mas agrupadas formam um conceito coeso."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Relações semânticas em uma ontologia"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-19-009",
+      "label": "Acesso à WordNet com NLTK",
+      "description": "A biblioteca NLTK em Python permite acessar a WordNet para obter synsets, definições e sinônimos de palavras.",
+      "coverage_criteria": [
+        "O estudante escreve um script Python que importa a WordNet do NLTK e recupera synsets e definições de uma palavra em inglês."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 3 fornece exemplos de código e explica o uso do NLTK com WordNet.",
+        "granularity_rationale": "Habilidade prática que concretiza o uso das medidas de similaridade."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Acesso à WordNet utilizando o NLTK"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["NLTK", "WordNet", "Python"]
+    },
+    {
+      "candidate_id": "candidate-19-010",
+      "label": "WordNet em Português com NLTK (OpenWN-PT)",
+      "description": "O NLTK suporta a Open Multilingual Wordnet, permitindo consultar a WordNet em português usando o parâmetro lang='por', como a OpenWN-PT.",
+      "coverage_criteria": [
+        "O estudante recupera synsets de palavras em português (ex.: 'gato') utilizando NLTK e descreve as limitações (definições em inglês)."
+      ],
+      "source_roles": ["demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto mostra exemplos com lang='por' e discute a Open Multilingual Wordnet.",
+        "granularity_rationale": "Extensão natural do uso do NLTK para o contexto lusófono, importante para o curso."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Exemplos em português na WordNet"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["Open Multilingual Wordnet", "OpenWN-PT", "NLTK"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-19-001",
+      "to_candidate_id": "candidate-19-002",
+      "reason": "O texto diferencia explicitamente similaridade léxica e semântica, apresentando-as como dois tipos principais de similaridade textual.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Diferenciação entre similaridade léxica e similaridade semântica"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-19-004",
+      "to_candidate_id": "candidate-19-005",
+      "reason": "A similaridade baseada em conhecimento frequentemente utiliza a WordNet como recurso ontológico, conforme indicado no texto.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-19-005",
+      "to_candidate_id": "candidate-19-008",
+      "reason": "As relações semânticas são a base da organização hierárquica e conectividade dentro da WordNet.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Relações semânticas em uma ontologia"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-19-005",
+      "to_candidate_id": "candidate-19-009",
+      "reason": "O NLTK fornece uma interface prática para acessar e explorar a WordNet em Python.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Acesso à WordNet utilizando o NLTK"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-19-006",
+      "to_candidate_id": "candidate-19-007",
+      "reason": "Ambos são métodos de similaridade semântica que operam sobre taxonomias; o Path Similarity mede distância e o LCS identifica ancestrais comuns.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Similaridade semântica e ontologias de conhecimento"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-19-009",
+      "to_candidate_id": "candidate-19-010",
+      "reason": "A capacidade de consultar a WordNet em português expande o uso do NLTK para o contexto lusófono, conforme demonstrado no texto.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Exemplos em português na WordNet"}
+      ]
+    }
+  ]
+}

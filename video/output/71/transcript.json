@@ -1,0 +1,847 @@
+{
+  "schema_version": "1.0",
+  "transcript_source": "local_whisper_vtt",
+  "caption_language": "",
+  "duration_seconds": 1037.0,
+  "transcript_sha256": "80e56eb1bd6f178f0dba2cd10c2bafc0c2f7bf4f5d98ef96a576defce67a852c",
+  "segments": [
+    {
+      "start_seconds": 0.0,
+      "duration_seconds": 5.84,
+      "text": "word embeddings are mathematical representations of text but of course that is easier said than"
+    },
+    {
+      "start_seconds": 5.84,
+      "duration_seconds": 5.6,
+      "text": "done so in this video let's learn what word embeddings are how they are created and how"
+    },
+    {
+      "start_seconds": 11.44,
+      "duration_seconds": 5.520000000000001,
+      "text": "you can start using them so the first question to arise of course is why do we need text embeddings"
+    },
+    {
+      "start_seconds": 16.96,
+      "duration_seconds": 6.559999999999999,
+      "text": "at all well the problem is when you're working with nlp models you are working with text and"
+    },
+    {
+      "start_seconds": 23.52,
+      "duration_seconds": 4.719999999999999,
+      "text": "text is not good for machine learning models they cannot deal with text they don't know what to do"
+    },
+    {
+      "start_seconds": 28.24,
+      "duration_seconds": 6.239999999999998,
+      "text": "with it but what they know what to do with is numbers so that's why you have to represent your"
+    },
+    {
+      "start_seconds": 34.48,
+      "duration_seconds": 5.840000000000003,
+      "text": "text in a numbers format there are a bunch of ways how you can represent your text data and it's not"
+    },
+    {
+      "start_seconds": 40.32,
+      "duration_seconds": 7.039999999999999,
+      "text": "only embeddings you can try using a one hat encoded approach you can try using a count based approach"
+    },
+    {
+      "start_seconds": 47.36,
+      "duration_seconds": 5.520000000000003,
+      "text": "or of course you can try using embeddings but before we get into embeddings let's learn what"
+    },
+    {
+      "start_seconds": 52.88,
+      "duration_seconds": 5.759999999999998,
+      "text": "what one hat encoding is and also count based approaches are you might have heard of one hat"
+    },
+    {
+      "start_seconds": 58.64,
+      "duration_seconds": 6.719999999999999,
+      "text": "encoding in other contexts too but in this context in text representation what it does is create one"
+    },
+    {
+      "start_seconds": 65.36,
+      "duration_seconds": 6.560000000000002,
+      "text": "really long vector that is as long as the number of words that you have in your vocabulary and to"
+    },
+    {
+      "start_seconds": 71.92,
+      "duration_seconds": 6.159999999999997,
+      "text": "represent each word what you do is you feel this vector with zeros except for the cell that corresponds"
+    },
+    {
+      "start_seconds": 78.08,
+      "duration_seconds": 5.840000000000003,
+      "text": "to the word that you're trying to represent as you can see this creates a very sparse vector and"
+    },
+    {
+      "start_seconds": 83.92,
+      "duration_seconds": 5.679999999999993,
+      "text": "it is not the most efficient to use of space so let's see how else we can achieve text representation"
+    },
+    {
+      "start_seconds": 89.6,
+      "duration_seconds": 5.760000000000005,
+      "text": "count based representation techniques generally try to squeeze a whole sentence into just one vector"
+    },
+    {
+      "start_seconds": 95.36,
+      "duration_seconds": 5.519999999999996,
+      "text": "there are a bunch of different approaches under the umbrella of count based representation techniques"
+    },
+    {
+      "start_seconds": 100.88,
+      "duration_seconds": 5.599999999999994,
+      "text": "some of them are for example bag of words in bag of words what you do is you do not think about the"
+    },
+    {
+      "start_seconds": 106.47999999999999,
+      "duration_seconds": 5.760000000000019,
+      "text": "order of the words in a sentence you just look at how many times each word occurs and you create a"
+    },
+    {
+      "start_seconds": 112.24000000000001,
+      "duration_seconds": 5.599999999999994,
+      "text": "vector to represent this then you have the engram approach that is quite similar to the bag of words"
+    },
+    {
+      "start_seconds": 117.84,
+      "duration_seconds": 6.319999999999993,
+      "text": "approach but this time you do not just take one word but you make groups of n words and count their"
+    },
+    {
+      "start_seconds": 124.16,
+      "duration_seconds": 5.200000000000017,
+      "text": "occurrence in a sentence and then you have the tf-idf approach where you keep track of"
+    },
+    {
+      "start_seconds": 129.36,
+      "duration_seconds": 6.8799999999999955,
+      "text": "how many times a word occurs in a document or also called sentence and how many times this word occurs"
+    },
+    {
+      "start_seconds": 136.24,
+      "duration_seconds": 5.680000000000007,
+      "text": "in other documents or sentences throughout the training data and this way it is aiming to"
+    },
+    {
+      "start_seconds": 141.92000000000002,
+      "duration_seconds": 7.279999999999973,
+      "text": "differentiate the words that are just commonly used like d of and and the words that are specifically"
+    },
+    {
+      "start_seconds": 149.2,
+      "duration_seconds": 4.640000000000015,
+      "text": "important for a certain sentence or document these approaches even though they've been really helpful"
+    },
+    {
+      "start_seconds": 153.84,
+      "duration_seconds": 5.599999999999994,
+      "text": "in the nlp area for years have some serious shortcomings so for example they do not take"
+    },
+    {
+      "start_seconds": 159.44,
+      "duration_seconds": 5.920000000000016,
+      "text": "any context into account furthermore they cannot deal with words that they did not see in the training"
+    },
+    {
+      "start_seconds": 165.36,
+      "duration_seconds": 7.439999999999998,
+      "text": "examples and lastly the embeddings that they produce are very sparse so they are not the most efficient"
+    },
+    {
+      "start_seconds": 172.8,
+      "duration_seconds": 6.0,
+      "text": "use of space now let's talk about embeddings the goal of making word embeddings is to represent the word"
+    },
+    {
+      "start_seconds": 178.8,
+      "duration_seconds": 6.719999999999999,
+      "text": "in a dense vector while making sure that similar words are close to each other in the embedding space"
+    },
+    {
+      "start_seconds": 185.52,
+      "duration_seconds": 4.799999999999983,
+      "text": "okay let's break that down what does a dense vector mean having a dense vector means that"
+    },
+    {
+      "start_seconds": 190.32,
+      "duration_seconds": 6.400000000000006,
+      "text": "the vector representing the word does not mostly consist of zeros and typically the embedding of the word"
+    },
+    {
+      "start_seconds": 196.72,
+      "duration_seconds": 5.52000000000001,
+      "text": "has fewer dimensions than the number of words that you have in your vocabulary okay and what does it"
+    },
+    {
+      "start_seconds": 202.24,
+      "duration_seconds": 6.799999999999983,
+      "text": "mean for words to be similar so similar words are words that are used in similar or same context most of"
+    },
+    {
+      "start_seconds": 209.04,
+      "duration_seconds": 7.360000000000014,
+      "text": "a time you would see them being used around same words so for example for words tea and coffee you can"
+    },
+    {
+      "start_seconds": 216.4,
+      "duration_seconds": 6.0,
+      "text": "think of them as similar words because you would always see them being used around the other words such as"
+    },
+    {
+      "start_seconds": 222.4,
+      "duration_seconds": 7.679999999999978,
+      "text": "breakfast drink or enjoy whereas the word p which is a legume and tea are not really similar words"
+    },
+    {
+      "start_seconds": 230.07999999999998,
+      "duration_seconds": 5.920000000000016,
+      "text": "even though they are spelled really similarly because they are used in vastly different contexts"
+    },
+    {
+      "start_seconds": 236.0,
+      "duration_seconds": 4.800000000000011,
+      "text": "so once we have the embeddings of these words we would expect the vectors of the words"
+    },
+    {
+      "start_seconds": 240.8,
+      "duration_seconds": 6.8799999999999955,
+      "text": "tea and coffee to be much closer to each other than tea and p and lastly what is embedding space"
+    },
+    {
+      "start_seconds": 248.16,
+      "duration_seconds": 6.240000000000009,
+      "text": "embedding space is where your embedded data lives so let's say you have 10 different data points and"
+    },
+    {
+      "start_seconds": 254.4,
+      "duration_seconds": 5.119999999999976,
+      "text": "their mathematical embedding one-dimensional embedding correspond to these numbers if you"
+    },
+    {
+      "start_seconds": 259.52,
+      "duration_seconds": 4.8799999999999955,
+      "text": "represent them in the embedding space this is what you would have and the distance between these two"
+    },
+    {
+      "start_seconds": 264.4,
+      "duration_seconds": 5.840000000000032,
+      "text": "points would give you the similarity between these two data points instead if you embed your data to"
+    },
+    {
+      "start_seconds": 270.24,
+      "duration_seconds": 5.680000000000007,
+      "text": "two values you can represent them in a two-dimensional space and now they will look like vectors with the"
+    },
+    {
+      "start_seconds": 275.92,
+      "duration_seconds": 5.839999999999975,
+      "text": "direction only after the third dimension we will have some issues visualizing the vectors but they"
+    },
+    {
+      "start_seconds": 281.76,
+      "duration_seconds": 6.399999999999977,
+      "text": "follow a similar logic so if we embed a word into a vector of length 32 this means we are turning it"
+    },
+    {
+      "start_seconds": 288.15999999999997,
+      "duration_seconds": 6.400000000000034,
+      "text": "into a vector in a 32-dimensional space we cannot visualize it anymore of course but we can still"
+    },
+    {
+      "start_seconds": 294.56,
+      "duration_seconds": 5.519999999999982,
+      "text": "calculate the distance of two different vectors or embeddings to each other like we did with the one"
+    },
+    {
+      "start_seconds": 300.08,
+      "duration_seconds": 6.080000000000041,
+      "text": "one-dimensional example by using things like cosine similarity here is what we would want the embedding"
+    },
+    {
+      "start_seconds": 306.16,
+      "duration_seconds": 5.839999999999975,
+      "text": "space to look like if we trained a successful word embedding since we cannot visualize 32-dimensional"
+    },
+    {
+      "start_seconds": 312.0,
+      "duration_seconds": 6.079999999999984,
+      "text": "space let's use this representative 2d space in this embedding space we want similar words to be"
+    },
+    {
+      "start_seconds": 318.08,
+      "duration_seconds": 8.960000000000036,
+      "text": "closer to each other for example king queen sovereign kingdom or another group could be cat dog pet bird animal"
+    },
+    {
+      "start_seconds": 327.04,
+      "duration_seconds": 6.079999999999984,
+      "text": "for some cases it is even possible to make sure that the relative distances between words represent"
+    },
+    {
+      "start_seconds": 333.12,
+      "duration_seconds": 7.039999999999964,
+      "text": "contextual information in a very commonly used example if this is how a man and woman are positioned"
+    },
+    {
+      "start_seconds": 340.15999999999997,
+      "duration_seconds": 6.240000000000009,
+      "text": "related to each other this is how king and queen would be related so by subtracting the vector for"
+    },
+    {
+      "start_seconds": 346.4,
+      "duration_seconds": 7.600000000000023,
+      "text": "man from the vector for king and by adding woman vector to it you get the vector for queen okay so this has been"
+    },
+    {
+      "start_seconds": 354.0,
+      "duration_seconds": 8.160000000000025,
+      "text": "a lot of the vector for the text that you can see in the text that you can see in the text that you can see in the text"
+    },
+    {
+      "start_seconds": 362.16,
+      "duration_seconds": 3.67999999999995,
+      "text": "there are a bunch of different approaches to how to make this happen so let's look into that"
+    },
+    {
+      "start_seconds": 365.84,
+      "duration_seconds": 5.28000000000003,
+      "text": "now one thing you can do is to have a custom embedding layer in your model so what you need"
+    },
+    {
+      "start_seconds": 371.12,
+      "duration_seconds": 4.560000000000002,
+      "text": "to do is let's say this is the core of your model where the actual learning happens"
+    },
+    {
+      "start_seconds": 375.68,
+      "duration_seconds": 6.079999999999984,
+      "text": "before you feed the text to your model you can have an embedding layer and just initialize it with random"
+    },
+    {
+      "start_seconds": 381.76,
+      "duration_seconds": 6.0,
+      "text": "weights and parameters and let it train and let it learn during the training of your actual model"
+    },
+    {
+      "start_seconds": 387.76,
+      "duration_seconds": 5.519999999999982,
+      "text": "of how to represent the words in the best way the advantage when you do it this way is that you will"
+    },
+    {
+      "start_seconds": 393.28,
+      "duration_seconds": 5.520000000000039,
+      "text": "have an embedding that is very specific to your use case and it will be specialized to your data sets"
+    },
+    {
+      "start_seconds": 398.8,
+      "duration_seconds": 5.920000000000016,
+      "text": "but the problem is to have a very successful and well performing embedding layer you would need to"
+    },
+    {
+      "start_seconds": 404.72,
+      "duration_seconds": 5.279999999999973,
+      "text": "train it with a lot of data and it will probably take a long time the transformer architecture for"
+    },
+    {
+      "start_seconds": 410.0,
+      "duration_seconds": 5.600000000000023,
+      "text": "example does exactly this so before the core of the model before the encoder and the decoder"
+    },
+    {
+      "start_seconds": 415.6,
+      "duration_seconds": 6.479999999999961,
+      "text": "it has an embedding layer to take text and turn it into numbers if you would like to learn more about"
+    },
+    {
+      "start_seconds": 422.08,
+      "duration_seconds": 5.840000000000032,
+      "text": "the transformer architecture and how that model works you can go and check out our video on transformers"
+    },
+    {
+      "start_seconds": 427.92,
+      "duration_seconds": 6.9599999999999795,
+      "text": "another approach is word2vec word2vec works by getting the one hot encoded versions of the words"
+    },
+    {
+      "start_seconds": 434.88,
+      "duration_seconds": 5.680000000000007,
+      "text": "and creates embeddings of these words by using the context of the sentence too there are two different"
+    },
+    {
+      "start_seconds": 440.56,
+      "duration_seconds": 5.759999999999991,
+      "text": "approaches to word2vec one of them is called continuous bag of words and the other one is called skip gram"
+    },
+    {
+      "start_seconds": 446.32,
+      "duration_seconds": 6.079999999999984,
+      "text": "so here's how it works given a corpus of text so a lot of sentences what we do is we divide these"
+    },
+    {
+      "start_seconds": 452.4,
+      "duration_seconds": 6.800000000000011,
+      "text": "sentences into groups of n words so for the sake of this example let's say three so in this sentence"
+    },
+    {
+      "start_seconds": 459.2,
+      "duration_seconds": 7.840000000000032,
+      "text": "we take three words with see both or continuous bag of words we take the two words surrounding the middle"
+    },
+    {
+      "start_seconds": 467.04,
+      "duration_seconds": 5.680000000000007,
+      "text": "word and we feed it to a neural network and we try to guess the word that should be in the middle"
+    },
+    {
+      "start_seconds": 472.72,
+      "duration_seconds": 5.199999999999989,
+      "text": "whereas for skip gram we do the exact opposite we take the middle word and we try to guess the"
+    },
+    {
+      "start_seconds": 477.92,
+      "duration_seconds": 5.279999999999973,
+      "text": "words that should be surrounding this word we keep training this model by sliding this window to the"
+    },
+    {
+      "start_seconds": 483.2,
+      "duration_seconds": 6.319999999999993,
+      "text": "right every time in this model the neural network only has one layer so only one hidden layer and the"
+    },
+    {
+      "start_seconds": 489.52,
+      "duration_seconds": 6.240000000000009,
+      "text": "number of neurons in this hidden layer is the size of the embedding once the network has good performance"
+    },
+    {
+      "start_seconds": 495.76,
+      "duration_seconds": 6.079999999999984,
+      "text": "we can extract the embeddings of words from this network for SIBO these are the output weights and for"
+    },
+    {
+      "start_seconds": 501.84,
+      "duration_seconds": 6.640000000000043,
+      "text": "skip gram these are the incoming weights corresponding to a word next we have glove glove stands for global"
+    },
+    {
+      "start_seconds": 508.48,
+      "duration_seconds": 5.67999999999995,
+      "text": "vectors and it is an extension of the approach that we've just seen word to vec it is an extension of"
+    },
+    {
+      "start_seconds": 514.16,
+      "duration_seconds": 6.240000000000009,
+      "text": "word to vec because it not only looks at the local dependencies of words but it also looks at the global"
+    },
+    {
+      "start_seconds": 520.4,
+      "duration_seconds": 6.720000000000027,
+      "text": "context of the whole sentence it does that by taking into consideration the co-occurrence metrics of the sentence"
+    },
+    {
+      "start_seconds": 527.12,
+      "duration_seconds": 5.360000000000014,
+      "text": "the training principle of glove is a little bit too complicated to get into in this video but all you"
+    },
+    {
+      "start_seconds": 532.48,
+      "duration_seconds": 6.639999999999986,
+      "text": "need to know is that the training objective of glove is to learn word vectors such that their dot products"
+    },
+    {
+      "start_seconds": 539.12,
+      "duration_seconds": 6.720000000000027,
+      "text": "equals to the logarithm of the word's probability of co-occurrence next we have fast text fast text"
+    },
+    {
+      "start_seconds": 545.84,
+      "duration_seconds": 5.919999999999959,
+      "text": "again is an extension on the word to vec algorithm but this time in a bit of a different way so instead of"
+    },
+    {
+      "start_seconds": 551.76,
+      "duration_seconds": 6.0,
+      "text": "taking a skip gram model and training it on whole words what it does is to separate these words into"
+    },
+    {
+      "start_seconds": 557.76,
+      "duration_seconds": 6.399999999999977,
+      "text": "subwords of length n and train the model on top of these subwords thanks to the subwords approach"
+    },
+    {
+      "start_seconds": 564.16,
+      "duration_seconds": 5.920000000000073,
+      "text": "it works really well with rare words or words that were not seen in the training data and this is"
+    },
+    {
+      "start_seconds": 570.08,
+      "duration_seconds": 6.079999999999927,
+      "text": "honestly a huge advantage of fast text over the previous ones we saw another advantage of using subwords"
+    },
+    {
+      "start_seconds": 576.16,
+      "duration_seconds": 6.480000000000018,
+      "text": "is that it does really well with morphologically rich languages like german or turkish and lastly we"
+    },
+    {
+      "start_seconds": 582.64,
+      "duration_seconds": 6.800000000000068,
+      "text": "have elmo elmo is one of the latest innovations in the area of word embeddings with elmo the embedding"
+    },
+    {
+      "start_seconds": 589.44,
+      "duration_seconds": 6.559999999999945,
+      "text": "of the word depends on its context so in a way the embedding of the word is created dynamically"
+    },
+    {
+      "start_seconds": 596.0,
+      "duration_seconds": 7.2000000000000455,
+      "text": "in the paper they mentioned this by saying our representations differ from traditional word embeddings"
+    },
+    {
+      "start_seconds": 603.2,
+      "duration_seconds": 6.8799999999999955,
+      "text": "in that each token is assigned a representation that is a function of the entire input sentence elmo"
+    },
+    {
+      "start_seconds": 610.08,
+      "duration_seconds": 6.159999999999968,
+      "text": "representations of words are derived from a bi-directional lstm model that is trained on a"
+    },
+    {
+      "start_seconds": 616.24,
+      "duration_seconds": 5.840000000000032,
+      "text": "language model task of predicting the next and the previous words in a sentence by training on a"
+    },
+    {
+      "start_seconds": 622.08,
+      "duration_seconds": 5.759999999999991,
+      "text": "language modeling task elmo takes the context of the sentences into account while it's creating the"
+    },
+    {
+      "start_seconds": 627.84,
+      "duration_seconds": 6.319999999999936,
+      "text": "embeddings and this way it is able to distinguish homonyms of words for example so the embedding of"
+    },
+    {
+      "start_seconds": 634.16,
+      "duration_seconds": 7.280000000000086,
+      "text": "the word fair would be different in these two sentences he was known to be fair the fair was so much fun"
+    },
+    {
+      "start_seconds": 641.44,
+      "duration_seconds": 5.919999999999959,
+      "text": "and because elmo's first layer deals with characters instead of whole words it is really good at dealing"
+    },
+    {
+      "start_seconds": 647.36,
+      "duration_seconds": 6.639999999999986,
+      "text": "with misspelled words or typos but all in all elmo needs its own video to explain to you fully"
+    },
+    {
+      "start_seconds": 654.0,
+      "duration_seconds": 5.2000000000000455,
+      "text": "what it does and how it trains if you want to see that video leave a comment and let us know"
+    },
+    {
+      "start_seconds": 659.2,
+      "duration_seconds": 5.039999999999964,
+      "text": "okay so we've seen some cool ways of how word embeddings are made but how can you use them"
+    },
+    {
+      "start_seconds": 664.24,
+      "duration_seconds": 6.639999999999986,
+      "text": "in your project so there are mainly two different ways you can either make a word embedding yourself"
+    },
+    {
+      "start_seconds": 670.88,
+      "duration_seconds": 5.759999999999991,
+      "text": "from scratch or you can use pre-trained word embeddings it is not that hard to make your own"
+    },
+    {
+      "start_seconds": 676.64,
+      "duration_seconds": 6.080000000000041,
+      "text": "word embedding because for all of these algorithms and models that we talked about there is a library"
+    },
+    {
+      "start_seconds": 682.72,
+      "duration_seconds": 5.519999999999982,
+      "text": "that offers you a pre-made model that you just need to push data through but the problem is like"
+    },
+    {
+      "start_seconds": 688.24,
+      "duration_seconds": 5.67999999999995,
+      "text": "we also mentioned in making an embedding layer by yourself is that you need to have a lot of training"
+    },
+    {
+      "start_seconds": 693.92,
+      "duration_seconds": 5.680000000000064,
+      "text": "data and it will probably take a very long time to achieve a good performance but at the end you"
+    },
+    {
+      "start_seconds": 699.6,
+      "duration_seconds": 5.759999999999991,
+      "text": "will have a word embedding that is specific to your use case and it will be very relevant to all of the"
+    },
+    {
+      "start_seconds": 705.36,
+      "duration_seconds": 4.8799999999999955,
+      "text": "words that you have in your data set another way is to use a pre-trained word embedding and there are"
+    },
+    {
+      "start_seconds": 710.24,
+      "duration_seconds": 5.67999999999995,
+      "text": "libraries that offer pre-trained word embeddings and even the research groups that come up with the new"
+    },
+    {
+      "start_seconds": 715.92,
+      "duration_seconds": 7.1200000000000045,
+      "text": "ways of embedding words most of the time release their word embedding model to the public use these word"
+    },
+    {
+      "start_seconds": 723.04,
+      "duration_seconds": 5.759999999999991,
+      "text": "embeddings of course will not be specific to your use case but at the end of the day they will save you"
+    },
+    {
+      "start_seconds": 728.8,
+      "duration_seconds": 5.5200000000000955,
+      "text": "a lot of time and effort there are two ways how you can use those pre-trained word embeddings depending"
+    },
+    {
+      "start_seconds": 734.32,
+      "duration_seconds": 5.1200000000000045,
+      "text": "on the embedding that you're using you can either use them statically so not update them during your"
+    },
+    {
+      "start_seconds": 739.44,
+      "duration_seconds": 5.759999999999991,
+      "text": "training just kind of plug and play or you can also make them part of your training process and kind"
+    },
+    {
+      "start_seconds": 745.2,
+      "duration_seconds": 6.0,
+      "text": "of fine-tune them as you're training your model before we wrap up i want to show you how to import"
+    },
+    {
+      "start_seconds": 751.2,
+      "duration_seconds": 5.3599999999999,
+      "text": "pre-trained word embeddings from the gensome library because i think it's quite cool to see how they work and"
+    },
+    {
+      "start_seconds": 756.56,
+      "duration_seconds": 4.32000000000005,
+      "text": "you can also kind of poke around a little bit um so the first thing that you need to do of course"
+    },
+    {
+      "start_seconds": 760.88,
+      "duration_seconds": 5.519999999999982,
+      "text": "is to install the library you can find more detailed instructions on how to do that on their website of course"
+    },
+    {
+      "start_seconds": 766.4,
+      "duration_seconds": 6.240000000000009,
+      "text": "after we import the library the first thing i want to look at is different types of word embeddings"
+    },
+    {
+      "start_seconds": 772.64,
+      "duration_seconds": 5.440000000000055,
+      "text": "pre-trained word embeddings they have and you can see immediately they have fast text glove and word2vec"
+    },
+    {
+      "start_seconds": 778.08,
+      "duration_seconds": 5.759999999999991,
+      "text": "and even for glove and word2vec they have word embeddings pre-trained word embeddings that are"
+    },
+    {
+      "start_seconds": 783.84,
+      "duration_seconds": 4.959999999999923,
+      "text": "trained on different types of data you can read more about what kind of data they use etc"
+    },
+    {
+      "start_seconds": 788.8,
+      "duration_seconds": 4.720000000000027,
+      "text": "there but you can see they have twitter data wikipedia data and google news for example so"
+    },
+    {
+      "start_seconds": 793.52,
+      "duration_seconds": 4.32000000000005,
+      "text": "it's kind of cool you can try and see which one works better for your specific project"
+    },
+    {
+      "start_seconds": 799.36,
+      "duration_seconds": 8.0,
+      "text": "and then i install or load these different types of word embeddings to my project and i would like to"
+    },
+    {
+      "start_seconds": 807.36,
+      "duration_seconds": 5.840000000000032,
+      "text": "show you kind of the details of them how to kind of poke around so the first thing that i want to see is"
+    },
+    {
+      "start_seconds": 813.2,
+      "duration_seconds": 9.3599999999999,
+      "text": "what word2vec thinks is the closest thing to thee and it thinks it is well i wrote it with lower letters"
+    },
+    {
+      "start_seconds": 822.56,
+      "duration_seconds": 5.5200000000000955,
+      "text": "thinks it's t with the capital letter t's and some other things that i do not fully recognize"
+    },
+    {
+      "start_seconds": 828.08,
+      "duration_seconds": 7.039999999999964,
+      "text": "but if i try the same thing with glove for example it says coffee milk wine cream which is actually"
+    },
+    {
+      "start_seconds": 835.12,
+      "duration_seconds": 6.639999999999986,
+      "text": "quite accurate it's quite good it thinks that the closest things to tea are coffee milk wine cream ice"
+    },
+    {
+      "start_seconds": 841.76,
+      "duration_seconds": 4.8799999999999955,
+      "text": "juice etc these are all beverages or they have something to do with tea so that's quite good"
+    },
+    {
+      "start_seconds": 846.64,
+      "duration_seconds": 7.680000000000064,
+      "text": "if we try the same thing with fast text it again says tea coffee teas cuppa tea bags which is again"
+    },
+    {
+      "start_seconds": 854.32,
+      "duration_seconds": 8.159999999999968,
+      "text": "quite acceptable you can also see the distance between two different terms so for example if i like the"
+    },
+    {
+      "start_seconds": 862.48,
+      "duration_seconds": 5.279999999999973,
+      "text": "example i gave in the video if you look at the distance between tea and coffee it comes down to for"
+    },
+    {
+      "start_seconds": 867.76,
+      "duration_seconds": 9.840000000000032,
+      "text": "word2vec 0.43 whereas the distance between t and p is 0.7 so that's quite good as we said what we want is"
+    },
+    {
+      "start_seconds": 877.6,
+      "duration_seconds": 5.439999999999941,
+      "text": "that the similar words are closer together and the words that are not that similar are farther apart even"
+    },
+    {
+      "start_seconds": 883.04,
+      "duration_seconds": 7.2000000000000455,
+      "text": "if they're spelled very similarly another thing you can do another example that people use all over the place"
+    },
+    {
+      "start_seconds": 890.24,
+      "duration_seconds": 7.919999999999959,
+      "text": "is when you take the word king and then you subtract man from it and then you add woman to it you want to"
+    },
+    {
+      "start_seconds": 898.16,
+      "duration_seconds": 6.639999999999986,
+      "text": "arrive at a point to a vector that says queen right so here's what we can set that up we can we say"
+    },
+    {
+      "start_seconds": 904.8,
+      "duration_seconds": 6.240000000000009,
+      "text": "basically positive is king and woman and negative is men so basically subtract man from king and add woman to it"
+    },
+    {
+      "start_seconds": 911.6,
+      "duration_seconds": 6.959999999999923,
+      "text": "and we arrive at queen the the closest thing is queen which is amazing um and i wanted to i mean"
+    },
+    {
+      "start_seconds": 918.56,
+      "duration_seconds": 4.400000000000091,
+      "text": "this is an example that is tried a lot but i wanted to try something that i came up with"
+    },
+    {
+      "start_seconds": 922.96,
+      "duration_seconds": 7.1200000000000045,
+      "text": "so i wanted to see if from the word restaurant i subtract dinner and i add cocktail to it"
+    },
+    {
+      "start_seconds": 930.08,
+      "duration_seconds": 6.079999999999927,
+      "text": "i want to arrive at a place where you would drink a cocktail so maybe a bar or something like that"
+    },
+    {
+      "start_seconds": 936.16,
+      "duration_seconds": 9.200000000000045,
+      "text": "so let's say let's see what word to vec comes up with eatery bartender bartenders it is close enough"
+    },
+    {
+      "start_seconds": 945.36,
+      "duration_seconds": 4.8799999999999955,
+      "text": "but of course you are not predetermining these relationships when you're making the word"
+    },
+    {
+      "start_seconds": 950.24,
+      "duration_seconds": 8.319999999999936,
+      "text": "embeddings your word embedding model extracts these relationships from the text itself so you know of"
+    },
+    {
+      "start_seconds": 958.56,
+      "duration_seconds": 6.240000000000009,
+      "text": "course you cannot always expect it to work perfectly but i want to try it with glove and see if it's better or"
+    },
+    {
+      "start_seconds": 964.8,
+      "duration_seconds": 8.6400000000001,
+      "text": "worse glove things it's parasol espresso brewery again not exactly what i was looking for but maybe"
+    },
+    {
+      "start_seconds": 973.44,
+      "duration_seconds": 7.3599999999999,
+      "text": "with fast text okay this is a little bit better it says bar restaurant restaurant bar cocktail making"
+    },
+    {
+      "start_seconds": 980.8,
+      "duration_seconds": 7.759999999999991,
+      "text": "wine bar nightclub okay it seems to be doing better and as far as i read also fast text does better in"
+    },
+    {
+      "start_seconds": 988.56,
+      "duration_seconds": 8.0,
+      "text": "terms of these analogy making uh tasks uh compared to glove and word to vec but it is still i think quite"
+    },
+    {
+      "start_seconds": 996.56,
+      "duration_seconds": 4.960000000000036,
+      "text": "cool to explore word embeddings like this so this is not how word embeddings are normally used of course"
+    },
+    {
+      "start_seconds": 1001.52,
+      "duration_seconds": 5.440000000000055,
+      "text": "we were just kind of poking around and trying to explore they're normally used in combination with a"
+    },
+    {
+      "start_seconds": 1006.96,
+      "duration_seconds": 5.519999999999982,
+      "text": "bigger model a core model where you're trying to do some sort of nlp task so if you're interested in"
+    },
+    {
+      "start_seconds": 1012.48,
+      "duration_seconds": 6.399999999999977,
+      "text": "that if you would like us to make a video on for example training a sentiment analysis model using a"
+    },
+    {
+      "start_seconds": 1018.88,
+      "duration_seconds": 4.480000000000018,
+      "text": "pre-trained word embedding let us know in the comment section but for now thanks for watching"
+    },
+    {
+      "start_seconds": 1023.36,
+      "duration_seconds": 13.280000000000086,
+      "text": "i hope this video was helpful for you and i will see you in the next video"
+    }
+  ],
+  "text": "word embeddings are mathematical representations of text but of course that is easier said than\ndone so in this video let's learn what word embeddings are how they are created and how\nyou can start using them so the first question to arise of course is why do we need text embeddings\nat all well the problem is when you're working with nlp models you are working with text and\ntext is not good for machine learning models they cannot deal with text they don't know what to do\nwith it but what they know what to do with is numbers so that's why you have to represent your\ntext in a numbers format there are a bunch of ways how you can represent your text data and it's not\nonly embeddings you can try using a one hat encoded approach you can try using a count based approach\nor of course you can try using embeddings but before we get into embeddings let's learn what\nwhat one hat encoding is and also count based approaches are you might have heard of one hat\nencoding in other contexts too but in this context in text representation what it does is create one\nreally long vector that is as long as the number of words that you have in your vocabulary and to\nrepresent each word what you do is you feel this vector with zeros except for the cell that corresponds\nto the word that you're trying to represent as you can see this creates a very sparse vector and\nit is not the most efficient to use of space so let's see how else we can achieve text representation\ncount based representation techniques generally try to squeeze a whole sentence into just one vector\nthere are a bunch of different approaches under the umbrella of count based representation techniques\nsome of them are for example bag of words in bag of words what you do is you do not think about the\norder of the words in a sentence you just look at how many times each word occurs and you create a\nvector to represent this then you have the engram approach that is quite similar to the bag of words\napproach but this time you do not just take one word but you make groups of n words and count their\noccurrence in a sentence and then you have the tf-idf approach where you keep track of\nhow many times a word occurs in a document or also called sentence and how many times this word occurs\nin other documents or sentences throughout the training data and this way it is aiming to\ndifferentiate the words that are just commonly used like d of and and the words that are specifically\nimportant for a certain sentence or document these approaches even though they've been really helpful\nin the nlp area for years have some serious shortcomings so for example they do not take\nany context into account furthermore they cannot deal with words that they did not see in the training\nexamples and lastly the embeddings that they produce are very sparse so they are not the most efficient\nuse of space now let's talk about embeddings the goal of making word embeddings is to represent the word\nin a dense vector while making sure that similar words are close to each other in the embedding space\nokay let's break that down what does a dense vector mean having a dense vector means that\nthe vector representing the word does not mostly consist of zeros and typically the embedding of the word\nhas fewer dimensions than the number of words that you have in your vocabulary okay and what does it\nmean for words to be similar so similar words are words that are used in similar or same context most of\na time you would see them being used around same words so for example for words tea and coffee you can\nthink of them as similar words because you would always see them being used around the other words such as\nbreakfast drink or enjoy whereas the word p which is a legume and tea are not really similar words\neven though they are spelled really similarly because they are used in vastly different contexts\nso once we have the embeddings of these words we would expect the vectors of the words\ntea and coffee to be much closer to each other than tea and p and lastly what is embedding space\nembedding space is where your embedded data lives so let's say you have 10 different data points and\ntheir mathematical embedding one-dimensional embedding correspond to these numbers if you\nrepresent them in the embedding space this is what you would have and the distance between these two\npoints would give you the similarity between these two data points instead if you embed your data to\ntwo values you can represent them in a two-dimensional space and now they will look like vectors with the\ndirection only after the third dimension we will have some issues visualizing the vectors but they\nfollow a similar logic so if we embed a word into a vector of length 32 this means we are turning it\ninto a vector in a 32-dimensional space we cannot visualize it anymore of course but we can still\ncalculate the distance of two different vectors or embeddings to each other like we did with the one\none-dimensional example by using things like cosine similarity here is what we would want the embedding\nspace to look like if we trained a successful word embedding since we cannot visualize 32-dimensional\nspace let's use this representative 2d space in this embedding space we want similar words to be\ncloser to each other for example king queen sovereign kingdom or another group could be cat dog pet bird animal\nfor some cases it is even possible to make sure that the relative distances between words represent\ncontextual information in a very commonly used example if this is how a man and woman are positioned\nrelated to each other this is how king and queen would be related so by subtracting the vector for\nman from the vector for king and by adding woman vector to it you get the vector for queen okay so this has been\na lot of the vector for the text that you can see in the text that you can see in the text that you can see in the text\nthere are a bunch of different approaches to how to make this happen so let's look into that\nnow one thing you can do is to have a custom embedding layer in your model so what you need\nto do is let's say this is the core of your model where the actual learning happens\nbefore you feed the text to your model you can have an embedding layer and just initialize it with random\nweights and parameters and let it train and let it learn during the training of your actual model\nof how to represent the words in the best way the advantage when you do it this way is that you will\nhave an embedding that is very specific to your use case and it will be specialized to your data sets\nbut the problem is to have a very successful and well performing embedding layer you would need to\ntrain it with a lot of data and it will probably take a long time the transformer architecture for\nexample does exactly this so before the core of the model before the encoder and the decoder\nit has an embedding layer to take text and turn it into numbers if you would like to learn more about\nthe transformer architecture and how that model works you can go and check out our video on transformers\nanother approach is word2vec word2vec works by getting the one hot encoded versions of the words\nand creates embeddings of these words by using the context of the sentence too there are two different\napproaches to word2vec one of them is called continuous bag of words and the other one is called skip gram\nso here's how it works given a corpus of text so a lot of sentences what we do is we divide these\nsentences into groups of n words so for the sake of this example let's say three so in this sentence\nwe take three words with see both or continuous bag of words we take the two words surrounding the middle\nword and we feed it to a neural network and we try to guess the word that should be in the middle\nwhereas for skip gram we do the exact opposite we take the middle word and we try to guess the\nwords that should be surrounding this word we keep training this model by sliding this window to the\nright every time in this model the neural network only has one layer so only one hidden layer and the\nnumber of neurons in this hidden layer is the size of the embedding once the network has good performance\nwe can extract the embeddings of words from this network for SIBO these are the output weights and for\nskip gram these are the incoming weights corresponding to a word next we have glove glove stands for global\nvectors and it is an extension of the approach that we've just seen word to vec it is an extension of\nword to vec because it not only looks at the local dependencies of words but it also looks at the global\ncontext of the whole sentence it does that by taking into consideration the co-occurrence metrics of the sentence\nthe training principle of glove is a little bit too complicated to get into in this video but all you\nneed to know is that the training objective of glove is to learn word vectors such that their dot products\nequals to the logarithm of the word's probability of co-occurrence next we have fast text fast text\nagain is an extension on the word to vec algorithm but this time in a bit of a different way so instead of\ntaking a skip gram model and training it on whole words what it does is to separate these words into\nsubwords of length n and train the model on top of these subwords thanks to the subwords approach\nit works really well with rare words or words that were not seen in the training data and this is\nhonestly a huge advantage of fast text over the previous ones we saw another advantage of using subwords\nis that it does really well with morphologically rich languages like german or turkish and lastly we\nhave elmo elmo is one of the latest innovations in the area of word embeddings with elmo the embedding\nof the word depends on its context so in a way the embedding of the word is created dynamically\nin the paper they mentioned this by saying our representations differ from traditional word embeddings\nin that each token is assigned a representation that is a function of the entire input sentence elmo\nrepresentations of words are derived from a bi-directional lstm model that is trained on a\nlanguage model task of predicting the next and the previous words in a sentence by training on a\nlanguage modeling task elmo takes the context of the sentences into account while it's creating the\nembeddings and this way it is able to distinguish homonyms of words for example so the embedding of\nthe word fair would be different in these two sentences he was known to be fair the fair was so much fun\nand because elmo's first layer deals with characters instead of whole words it is really good at dealing\nwith misspelled words or typos but all in all elmo needs its own video to explain to you fully\nwhat it does and how it trains if you want to see that video leave a comment and let us know\nokay so we've seen some cool ways of how word embeddings are made but how can you use them\nin your project so there are mainly two different ways you can either make a word embedding yourself\nfrom scratch or you can use pre-trained word embeddings it is not that hard to make your own\nword embedding because for all of these algorithms and models that we talked about there is a library\nthat offers you a pre-made model that you just need to push data through but the problem is like\nwe also mentioned in making an embedding layer by yourself is that you need to have a lot of training\ndata and it will probably take a very long time to achieve a good performance but at the end you\nwill have a word embedding that is specific to your use case and it will be very relevant to all of the\nwords that you have in your data set another way is to use a pre-trained word embedding and there are\nlibraries that offer pre-trained word embeddings and even the research groups that come up with the new\nways of embedding words most of the time release their word embedding model to the public use these word\nembeddings of course will not be specific to your use case but at the end of the day they will save you\na lot of time and effort there are two ways how you can use those pre-trained word embeddings depending\non the embedding that you're using you can either use them statically so not update them during your\ntraining just kind of plug and play or you can also make them part of your training process and kind\nof fine-tune them as you're training your model before we wrap up i want to show you how to import\npre-trained word embeddings from the gensome library because i think it's quite cool to see how they work and\nyou can also kind of poke around a little bit um so the first thing that you need to do of course\nis to install the library you can find more detailed instructions on how to do that on their website of course\nafter we import the library the first thing i want to look at is different types of word embeddings\npre-trained word embeddings they have and you can see immediately they have fast text glove and word2vec\nand even for glove and word2vec they have word embeddings pre-trained word embeddings that are\ntrained on different types of data you can read more about what kind of data they use etc\nthere but you can see they have twitter data wikipedia data and google news for example so\nit's kind of cool you can try and see which one works better for your specific project\nand then i install or load these different types of word embeddings to my project and i would like to\nshow you kind of the details of them how to kind of poke around so the first thing that i want to see is\nwhat word2vec thinks is the closest thing to thee and it thinks it is well i wrote it with lower letters\nthinks it's t with the capital letter t's and some other things that i do not fully recognize\nbut if i try the same thing with glove for example it says coffee milk wine cream which is actually\nquite accurate it's quite good it thinks that the closest things to tea are coffee milk wine cream ice\njuice etc these are all beverages or they have something to do with tea so that's quite good\nif we try the same thing with fast text it again says tea coffee teas cuppa tea bags which is again\nquite acceptable you can also see the distance between two different terms so for example if i like the\nexample i gave in the video if you look at the distance between tea and coffee it comes down to for\nword2vec 0.43 whereas the distance between t and p is 0.7 so that's quite good as we said what we want is\nthat the similar words are closer together and the words that are not that similar are farther apart even\nif they're spelled very similarly another thing you can do another example that people use all over the place\nis when you take the word king and then you subtract man from it and then you add woman to it you want to\narrive at a point to a vector that says queen right so here's what we can set that up we can we say\nbasically positive is king and woman and negative is men so basically subtract man from king and add woman to it\nand we arrive at queen the the closest thing is queen which is amazing um and i wanted to i mean\nthis is an example that is tried a lot but i wanted to try something that i came up with\nso i wanted to see if from the word restaurant i subtract dinner and i add cocktail to it\ni want to arrive at a place where you would drink a cocktail so maybe a bar or something like that\nso let's say let's see what word to vec comes up with eatery bartender bartenders it is close enough\nbut of course you are not predetermining these relationships when you're making the word\nembeddings your word embedding model extracts these relationships from the text itself so you know of\ncourse you cannot always expect it to work perfectly but i want to try it with glove and see if it's better or\nworse glove things it's parasol espresso brewery again not exactly what i was looking for but maybe\nwith fast text okay this is a little bit better it says bar restaurant restaurant bar cocktail making\nwine bar nightclub okay it seems to be doing better and as far as i read also fast text does better in\nterms of these analogy making uh tasks uh compared to glove and word to vec but it is still i think quite\ncool to explore word embeddings like this so this is not how word embeddings are normally used of course\nwe were just kind of poking around and trying to explore they're normally used in combination with a\nbigger model a core model where you're trying to do some sort of nlp task so if you're interested in\nthat if you would like us to make a video on for example training a sentiment analysis model using a\npre-trained word embedding let us know in the comment section but for now thanks for watching\ni hope this video was helpful for you and i will see you in the next video\n",
+  "cache_key": "f2374c837c22b32019530ef6b5f20027a1536ed9394d49fb277f8ee079508f5a",
+  "cache_status": "network"
+}

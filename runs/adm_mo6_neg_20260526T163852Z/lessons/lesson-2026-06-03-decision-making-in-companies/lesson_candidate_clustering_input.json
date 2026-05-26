@@ -1,0 +1,603 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-06-03-decision-making-in-companies",
+    "title": "Decision Making in Companies",
+    "description": "Decision Making in Companies",
+    "date": "03/06/2026",
+    "display_code": "L09"
+  },
+  "input_candidate_ids": [
+    "c42_pro_thinking_001",
+    "c42_pro_thinking_002",
+    "c42_pro_thinking_003",
+    "c42_pro_thinking_004",
+    "c42_pro_thinking_005",
+    "c42_pro_thinking_006",
+    "c42_pro_thinking_007",
+    "c42_pro_thinking_008",
+    "c42_pro_thinking_009",
+    "c43_pro_thinking_001",
+    "c43_pro_thinking_002",
+    "c43_pro_thinking_003",
+    "c43_pro_thinking_004",
+    "c43_pro_thinking_005",
+    "c44_pro_thinking_001",
+    "c44_pro_thinking_002",
+    "c44_pro_thinking_003",
+    "c44_pro_thinking_004",
+    "c44_pro_thinking_005",
+    "c44_pro_thinking_006",
+    "c44_pro_thinking_007",
+    "c44_pro_thinking_008",
+    "c44_pro_thinking_009",
+    "c44_pro_thinking_010",
+    "c44_pro_thinking_011"
+  ],
+  "candidates": [
+    {
+      "id": "c42_pro_thinking_001",
+      "label": "Three types of organizational decisions",
+      "description": "Organizations face big-bet, cross-cutting, and delegated decisions, each requiring different approaches for success.",
+      "coverage_criteria": [
+        "Define big-bet, cross-cutting, and delegated decisions and give examples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly segments decisions into these three types and emphasizes that success factors differ across them.",
+        "granularity_rationale": "A single concept covering the classification is small enough to be checked with one to three focused questions."
+      },
+      "anchors": [
+        "The state of play of organizational decision making"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_002",
+      "label": "Widespread ineffectiveness of decision-making time",
+      "description": "A majority of respondents spend over 30% of their time on decisions, but 61% say most of that time is used ineffectively.",
+      "coverage_criteria": [
+        "State the survey finding about time spent on decisions and the perceived ineffectiveness.",
+        "Explain why this ineffectiveness is costly for organizations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article reports survey data showing high time investment and high ineffectiveness, including a cost thought experiment.",
+        "granularity_rationale": "Narrowly focused on a single survey insight; easily checkable with recall and explanation questions."
+      },
+      "anchors": [
+        "The state of play of organizational decision making",
+        "The potential costs of ineffective decision making: A thought experiment"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_003",
+      "label": "Speed and quality are not trade-offs",
+      "description": "Faster organizational decisions tend to be higher in quality; companies do not need to sacrifice quality for speed.",
+      "coverage_criteria": [
+        "Explain the relationship between decision speed and quality found in the survey.",
+        "Distinguish this finding from the common assumption that speed reduces quality."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states that faster decisions tend to be higher quality and that the two are highly interrelated.",
+        "granularity_rationale": "A single, counter-intuitive insight from the data; small enough for focused checking."
+      },
+      "anchors": [
+        "Decision speed and quality"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_004",
+      "label": "Foundational practice: decide at the right level",
+      "description": "Winning organizations delegate decisions to the appropriate level, often with fewer reporting layers, which increases speed and quality.",
+      "coverage_criteria": [
+        "Describe what it means to make decisions at the right level.",
+        "Connect this practice to flatter organizational structures."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article identifies making decisions at the right level as the first foundational practice, with a strong odds ratio for winning organizations.",
+        "granularity_rationale": "A single actionable practice; checkable with description and rationale."
+      },
+      "anchors": [
+        "1. Make decisions at the right level."
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_005",
+      "label": "Foundational practice: focus on enterprise-level value",
+      "description": "Winning organizations align decisions with corporate strategy and allocate resources to high-value projects.",
+      "coverage_criteria": [
+        "Explain how enterprise value focus relates to decision success.",
+        "Give examples of aligning decisions with strategy."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article lists focusing on enterprise-level value as the second foundational practice, with a 2.9 times higher likelihood of winning.",
+        "granularity_rationale": "A distinct, teachable practice; granular enough for quick assessment."
+      },
+      "anchors": [
+        "2. Focus relentlessly on enterprise-level value."
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_006",
+      "label": "Foundational practice: get commitment from stakeholders",
+      "description": "Winning organizations build commitment to executing decisions by involving accountable stakeholders and ensuring a robust process.",
+      "coverage_criteria": [
+        "Describe how stakeholder commitment is achieved without requiring unanimity or slowing decisions.",
+        "Explain why commitment matters for execution."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article identifies getting commitment as the third foundational practice, with a 6.8 times higher likelihood of winning.",
+        "granularity_rationale": "A clear, checkable concept about execution commitment."
+      },
+      "anchors": [
+        "3. Get commitment from the relevant stakeholders."
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_007",
+      "label": "Big-bet best practice: quality of debate",
+      "description": "For big-bet decisions, winning organizations ensure high-quality debate by exploring alternatives, seeking disconfirming information, and using a devil’s advocate.",
+      "coverage_criteria": [
+        "List the three elements of high-quality debate for big bets.",
+        "Explain why rapid consensus without debate is not successful."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states that the quality of discussion and debate is the most significant predictor for big-bet decisions, with a 2.3 times multiplier.",
+        "granularity_rationale": "Decision-type-specific practice; small enough for a few focused questions."
+      },
+      "anchors": [
+        "For big bets, the most significant predictor of successful decision making is the quality of discussions and debate."
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_008",
+      "label": "Cross-cutting best practice: meeting process and coordination",
+      "description": "For cross-cutting decisions, winning organizations emphasize effective coordination among stakeholders and focus meeting time on the most critical issues.",
+      "coverage_criteria": [
+        "Identify the key success factors for cross-cutting decisions.",
+        "Explain why clearly defined roles alone are insufficient."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article highlights that effective coordination and focus on critical issues are what differentiate winners, with a 4.5 times multiplier.",
+        "granularity_rationale": "A distinct practice for a specific decision type; appropriate granularity."
+      },
+      "anchors": [
+        "For cross-cutting decisions, the winning organizations focus on process and how to run decision meetings as effectively as possible."
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_009",
+      "label": "Delegated decisions best practice: empowerment",
+      "description": "For delegated decisions, winning organizations empower employees through coaching and providing space for safe failure, fostering ownership and a bias for action.",
+      "coverage_criteria": [
+        "List the key ingredients for empowering delegated decision making.",
+        "Distinguish empowerment from simply establishing clear roles or escalation guidelines."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article identifies empowerment—ownership, accountability, safe failure, and bias for action—as key, with a 3.9 times multiplier.",
+        "granularity_rationale": "A specific, checkable concept for a decision type."
+      },
+      "anchors": [
+        "And with delegated decisions, the winning organizations empower their employees to make decisions through coaching and providing space for people to fail safely."
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_001",
+      "label": "The Tyranny of Metrics",
+      "description": "A pitfall where quantitative targets and KPIs distort behavior, leading to unintended negative consequences that undermine the original goals (also called 'Tyranny of Metrics').",
+      "coverage_criteria": [
+        "Explain the concept of 'tyranny of metrics' with an example.",
+        "Identify a situation where a metric might cause goal displacement.",
+        "Propose a safeguard to prevent metric-induced behavior distortion."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces this pitfall with a hospital readmission example and explains how metrics can displace performance, citing Kapoor (2018).",
+        "granularity_rationale": "This concept is specific enough to be checked with a few scenarios or explanations; it represents a distinct data-driven decision pitfall."
+      },
+      "anchors": [
+        "### The Tyranny of Metrics"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_002",
+      "label": "Misinterpreting Correlations as Causation",
+      "description": "The error of assuming that a statistical correlation between two variables implies a cause-and-effect relationship, without considering confounding factors.",
+      "coverage_criteria": [
+        "Define the difference between correlation and causation.",
+        "Provide an example where a correlation is mistakenly interpreted as causation.",
+        "Explain why rigorous causal analysis is important in data-driven decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explains this pitfall with a tech company example where demographic traits were wrongly inferred as causing productivity differences, and cites Gillespie & Patrick (2018).",
+        "granularity_rationale": "This concept is a fundamental statistical error often taught in analytics; it can be assessed with definitions and case applications."
+      },
+      "anchors": [
+        "### Misinterpreting Correlations as Causation"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_003",
+      "label": "Overgeneralizing from Limited Data Sets",
+      "description": "The risk of drawing broad conclusions from internal data sets that may not represent the full picture, leading to poor decisions when the data is extrapolated beyond its actual scope.",
+      "coverage_criteria": [
+        "Explain why a company's internal data may not reflect the entire market.",
+        "Identify a scenario where overgeneralizing from a limited data set led to a mistake.",
+        "Describe how to supplement internal data with external perspectives."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article discusses this trap with a retail chain example and emphasizes that big data is still a sample, citing Davenport (2014) and Lee et al. (2019).",
+        "granularity_rationale": "This concept is a distinct analytic pitfall that can be evaluated through explanation and application to new cases."
+      },
+      "anchors": [
+        "### Overgeneralizing from Limited Data Sets"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_004",
+      "label": "Filter Bubbles and Confirmation Bias in Data Teams",
+      "description": "The tendency for data teams to only seek information that confirms their existing beliefs, creating an echo chamber that overlooks contradictory insights and black swan events.",
+      "coverage_criteria": [
+        "Define 'filter bubble' and 'confirmation bias' in the context of analytics.",
+        "Provide an example where a filter bubble led to flawed strategic planning.",
+        "Suggest a technique to counteract confirmation bias in data analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly discusses this as a related trap to overgeneralizing, with an e-commerce strategic planning example, citing Pariser (2011).",
+        "granularity_rationale": "This concept is a cognitive bias in data interpretation; it can be assessed by asking students to identify and counteract it."
+      },
+      "anchors": [
+        "### Filter Bubbles and Confirmation Bias"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_005",
+      "label": "Losing the Human Element in Data-Driven Decisions",
+      "description": "The pitfall of overemphasizing quantitative data to the point where important human factors—such as skills, relationships, and cultural fit—are overlooked, as seen in AI-driven candidate screening.",
+      "coverage_criteria": [
+        "Explain why data alone may fail to capture important human aspects of organizations.",
+        "Provide an example where an algorithm overlooked a qualified candidate due to a lack of demographic match.",
+        "Propose a method to blend quantitative data with qualitative human judgment."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article discusses this with a software startup example where an AI screening tool missed top talent, citing Pfeffer & Sutton (2006) and D'Aveni (2015).",
+        "granularity_rationale": "This concept highlights the limitations of purely data-driven approaches in human-centric contexts; it can be assessed with examples and mitigations."
+      },
+      "anchors": [
+        "### Losing the Human Element"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_001",
+      "label": "Definition and Properties of Intuition in Strategic Decision-Making",
+      "description": "Intuition is rapid, automatic, unconscious, and affectively charged, synthesizing experience and information to provide a holistic 'gut feeling' that guides decisions.",
+      "coverage_criteria": [
+        "The student can define intuition as described in the article, distinguishing it from rational analysis, instinct, insight, and guessing.",
+        "The student can list the key properties: rapid, automatic, unconscious, affectively charged (gut feeling), holistic, based on experience/long-term memory."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 2.1 explicitly defines intuition with these properties, citing multiple sources.",
+        "granularity_rationale": "This is a foundational concept that can be assessed via definition and differentiation questions; it's small enough for a few focused checks."
+      },
+      "anchors": [
+        "2.1. Intuition: Definition and properties"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_002",
+      "label": "CEO Core Self-Evaluations as a Trigger for Intuition Use",
+      "description": "Executives with high core self-evaluations (self-esteem, self-efficacy, internal locus of control) are more confident relying on intuition. Hyper CSE can lead to unbridled intuition and risky decisions.",
+      "coverage_criteria": [
+        "The student can explain how core self-evaluations influence reliance on intuition.",
+        "The student can describe the concept of hyper core self-evaluations and its risks (hubris, unbridled intuition)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.1 discusses core self-evaluations as a key micro-level trigger, citing quotes and Hiller & Hambrick (2005).",
+        "granularity_rationale": "This is a specific, checkable concept: one can ask about the relationship between self-evaluations and intuition use, and the danger of hyper CSE."
+      },
+      "anchors": [
+        "4.1. Intuition triggers",
+        "Table 3. Coding Framework – Intuition Triggers and Enhancers."
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_003",
+      "label": "Cognitive Style and Cognitive Diversity in Intuitive Decision-Making",
+      "description": "The CEO's cognitive style (preference for intuition vs. analysis) shapes the team's decision process. Cognitive diversity in the TMT can check dominant intuition, promoting integration of perspectives.",
+      "coverage_criteria": [
+        "The student can explain how cognitive style influences the use of intuition in SDM.",
+        "The student can describe how cognitive diversity can serve as a check on excessive reliance on one person's intuition."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.1 highlights cognitive style and cognitive diversity as triggers, with illustrative quotes from informants.",
+        "granularity_rationale": "This distinct concept can be tested by asking students to relate cognitive style/diversity to intuition use and decision quality."
+      },
+      "anchors": [
+        "4.1. Intuition triggers",
+        "Table 3. Coding Framework – Intuition Triggers and Enhancers."
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_004",
+      "label": "Expertise as a Driver and Moderator of Intuition's Reliability",
+      "description": "Expertise, built through extensive experience and deliberate practice, enables accurate intuitive pattern recognition. Both novices and experts may rely on intuition, but experts have more reliable gut feelings due to complex mental models.",
+      "coverage_criteria": [
+        "The student can explain why expertise enhances intuition reliability (pattern recognition, mental models).",
+        "The student can articulate the journey from novice to expert reliance on intuition (naïve intuition → analytical → expert intuition).",
+        "The student can state that expertise derives from experience, deliberate practice, and feedback."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.1 describes expertise as a trigger, and section 4.4 identifies it as an enhancer. A CEO quote illustrates the novice-expert pattern.",
+        "granularity_rationale": "This concept is a key moderator of intuition effectiveness and can be assessed with specific questions about how expertise develops and why it matters."
+      },
+      "anchors": [
+        "4.1. Intuition triggers",
+        "4.4. Intuitive hits",
+        "Table 3. Coding Framework – Intuition Triggers and Enhancers."
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_005",
+      "label": "Decision Framing and Familiarity as Intuition Triggers",
+      "description": "Decisions framed as threats may trigger intuitive or analytical responses depending on firm size; smaller firms rely more on intuition when facing life-or-death threats. Decision familiarity increases reliance on intuition because past experiences provide a basis for gut feel.",
+      "coverage_criteria": [
+        "The student can explain how decision framing (threat vs. opportunity) influences intuition use differently in small vs. large firms.",
+        "The student can describe why familiarity with a decision type promotes intuitive decision-making."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.1 discusses decision-level triggers, noting dissensus on threat framing and the moderating role of firm size, as well as familiarity leading to intuition.",
+        "granularity_rationale": "This concept is precise and checkable, focusing on two decision characteristics with clear contrasts."
+      },
+      "anchors": [
+        "4.1. Intuition triggers",
+        "Table 3. Coding Framework – Intuition Triggers and Enhancers."
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_006",
+      "label": "Firm-Level Factors Influencing Intuition Use",
+      "description": "Smaller firms allow more intuitive decision-making due to agility and less bureaucracy. Larger firms with heavy governance stifle intuition. Financial performance and slack resources affect reliance: poor performance may force intuitive decisions, while slack can either foster analytics or promote intuition (dissensus).",
+      "coverage_criteria": [
+        "The student can explain how firm size affects the ability to act on intuition (small firms: faster, intuitive; large firms: stifled by governance).",
+        "The student can discuss how financial performance and slack resources influence the balance between intuition and analysis (with evidence of dissensus)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.1 discusses firm-level triggers, including quotes on size and performance. Firm size also moderates threat perception.",
+        "granularity_rationale": "This concept groups two firm-level factors that are distinct and can be tested with comparative questions."
+      },
+      "anchors": [
+        "4.1. Intuition triggers",
+        "4.2. Moderators of intuition triggers"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_007",
+      "label": "Team Power Structure and Psychological Safety as Moderators of Intuition",
+      "description": "Centralized power (dominant CEO) enables one person's intuition to drive decisions, but may lead to unbridled intuition. Psychological safety encourages sharing and challenging intuitions, fostering effective team intuitive processes.",
+      "coverage_criteria": [
+        "The student can explain how power centralization vs. decentralization influences whose intuition prevails and the risk of unbridled intuition.",
+        "The student can define psychological safety and explain its role in facilitating the sharing and interrogation of intuitive judgments within TMTs."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.2 discusses power centralization and psychological safety as moderators regulating intuition triggers, with illustrative quotes.",
+        "granularity_rationale": "These are two related team-level moderators that can be checked with short essay or multiple-choice questions."
+      },
+      "anchors": [
+        "4.2. Moderators of intuition triggers",
+        "4.4. Intuitive hits"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_008",
+      "label": "Contextual Enhancers of Intuition Effectiveness",
+      "description": "Intuition is more effective under time pressure, high uncertainty, in M&A decisions (soft issues), and in dynamic or services industries where information is incomplete or change is rapid.",
+      "coverage_criteria": [
+        "The student can list at least three contextual factors that enhance the effectiveness of intuition according to the article.",
+        "The student can explain why time pressure and uncertainty make intuition more valuable.",
+        "The student can give an example of why M&A decisions benefit from intuition (e.g., assessing culture, leadership)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.4 details enhancers: time pressure, uncertainty, M&A, dynamism, services. Quotes illustrate each.",
+        "granularity_rationale": "This is a focused set of factors that can be assessed collectively as the conditions under which intuition shines."
+      },
+      "anchors": [
+        "4.4. Intuitive hits",
+        "Table 3. Coding Framework – Intuition Triggers and Enhancers."
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_009",
+      "label": "Causes of Intuitive Misses in Strategic Decisions",
+      "description": "Intuition fails when there is excessive reliance without rational checking, dominant actor power centralization, lack of integration of diverse intuitions, or when applied to unfamiliar domains (e.g., new market entry without prior experience).",
+      "coverage_criteria": [
+        "The student can identify at least two reasons why intuitive misses occur, as per the article.",
+        "The student can describe the danger of unbridled intuition in a centralized power structure.",
+        "The student can explain why intuition is less reliable in new market entry decisions."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.5 outlines intuitive misses, with specific examples of excessive reliance, splintering, and new market entry.",
+        "granularity_rationale": "This is a cautionary concept that can be tested by asking what circumstances undermine intuition."
+      },
+      "anchors": [
+        "4.5. Intuitive misses"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_010",
+      "label": "Practical Implications for Improving Intuitive Decision-Making",
+      "description": "Organizations should develop intuitive awareness in business education, encourage executives to embrace intuition but be mindful of its boundaries, and foster expertise through deliberate practice, retention, and feedback to improve reliability.",
+      "coverage_criteria": [
+        "The student can summarize the three key practical implications: develop intuitive awareness, embrace intuition, and develop expertise.",
+        "The student can give an example of a technique to develop intuitive awareness (e.g., somatic awareness, visual imagery).",
+        "The student can explain why job mobility hampers the development of expert intuition."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 5.5 explicitly lists implications for practice, covering management education, embracing intuition, and expertise development.",
+        "granularity_rationale": "This is a concise set of actionable takeaways that can be assessed with recall and application questions."
+      },
+      "anchors": [
+        "5.5. Implications for practice"
+      ]
+    },
+    {
+      "id": "c44_pro_thinking_011",
+      "label": "Rational Decision-Making: Success and Failure Conditions",
+      "description": "Rational processes excel in stable or hostile environments and when firms have resources for deep analysis. However, rationality can fail in dynamic environments, information overload, or when predicting human behavior, where intuition is needed.",
+      "coverage_criteria": [
+        "The student can state when rational decision-making tends to be more effective (stable, hostile, resource-rich contexts).",
+        "The student can identify situations where excessive reliance on rationality leads to missed opportunities (dynamic environments, services, human behavior)."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.6 discusses rational hits and misses, providing examples of when rationality works and when it becomes overwhelmed.",
+        "granularity_rationale": "This contrasts intuition and rationality, providing a balanced view; it's a small enough concept for a few questions."
+      },
+      "anchors": [
+        "4.6. Rational hits and misses"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

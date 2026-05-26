@@ -1,0 +1,460 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-34-001",
+      "label": "Probability",
+      "description": "The chance of an event to occur, with sum of all probabilities equal to 1.",
+      "coverage_criteria": [
+        "Define probability and give an example (e.g., coin toss)."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces probability in the section 'What is Probability?' as a foundational concept for Naive Bayes.",
+        "granularity_rationale": "This is a single, checkable definition suitable for one straightforward question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Probability?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-002",
+      "label": "Conditional Probability",
+      "description": "The probability of an event given that another event has occurred, defined by P(A|B)=P(A∩B)/P(B).",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Explain what P(A|B) means in words."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source covers conditional probability in the section 'What is Conditional Probability?' with its formula, directly leading to Bayes rule.",
+        "granularity_rationale": "It is a fundamental concept that can be tested with one or two questions about the formula and interpretation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Conditional Probability?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-003",
+      "label": "Bayes Theorem (Bayes Rule)",
+      "description": "Bayes theorem relates conditional probabilities: P(B|A) = P(A|B) * P(B) / P(A). It allows updating probabilities based on new evidence.",
+      "coverage_criteria": [
+        "Write the Bayes theorem formula.",
+        "Name the terms (posterior, likelihood, prior, evidence).",
+        "Compute a simple probability using the formula."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents Bayes rule in the 'Bayes Rule' section with an image and explains each term, forming the core of the Naive Bayes algorithm.",
+        "granularity_rationale": "It is a single formula with well-defined components; two or three questions can verify understanding."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Bayes Rule"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["Thomas Bayes"]
+    },
+    {
+      "candidate_id": "candidate-34-004",
+      "label": "Naive Bayes Classifier",
+      "description": "A probabilistic machine learning algorithm that applies Bayes theorem with the 'naive' assumption that features are independent given the class. It computes the posterior probability for each class and predicts the one with the maximum.",
+      "coverage_criteria": [
+        "State the naive assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines and explains the Naive Bayes algorithm in the section 'What is Naive Bayes Algorithm?' and 'How Naive Bayes Works?' with a golf example.",
+        "granularity_rationale": "This is the central concept, broken down into its two key parts (Bayes theorem + independence) which can be covered in a few focused questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"},
+        {"kind": "markdown_heading", "locator": "How Naive Bayes Works?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-005",
+      "label": "Feature Independence Assumption (Why 'Naive')",
+      "description": "Naive Bayes assumes all features are independent of each other given the class label. This unrealistic assumption is why it is called 'naive', but it often still works well in practice.",
+      "coverage_criteria": [
+        "Explain the independence assumption of Naive Bayes.",
+        "State why the algorithm is called 'naive'.",
+        "Give an example where features may not be independent."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly discusses why the algorithm is called naive in the section 'Why is it Naive?', connecting it to multicollinearity.",
+        "granularity_rationale": "This is a single assumption that can be checked with one or two direct questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Why is it Naive?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-006",
+      "label": "Multicollinearity",
+      "description": "Multicollinearity refers to high correlation among independent features. Naive Bayes performs poorly when multicollinearity is present because it violates the independence assumption.",
+      "coverage_criteria": [
+        "Define multicollinearity.",
+        "Explain how it affects Naive Bayes.",
+        "Describe a method to detect multicollinearity (e.g., Pearson correlation)."
+      ],
+      "source_roles": ["introducing", "explaining", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source covers multicollinearity in its own section ('What is Multicollinearity?'), linking it to the naive assumption and why Naive Bayes may underperform.",
+        "granularity_rationale": "It is a specific concept that can be tested with definition, impact, and detection questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Multicollinearity?"},
+        {"kind": "markdown_heading", "locator": "How to Check Multicollinearity?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-007",
+      "label": "Bernoulli Naive Bayes",
+      "description": "A variant of Naive Bayes used when features are binary/bool or the target variable is binary. It assumes Bernoulli distributed features.",
+      "coverage_criteria": [
+        "State when Bernoulli Naive Bayes should be used.",
+        "Give an example application (e.g., sentiment analysis with positive/negative).",
+        "Recognize a code snippet using 'BernoulliNB'."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source introduces Bernoulli Naive Bayes in the 'Types of Naive Bayes' section with a use case (binary target) and a code example using scikit-learn.",
+        "granularity_rationale": "This is one of three concrete algorithm variants; it is small enough for a couple of recall and application questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1. Bernoulli Naive Bayes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["scikit-learn", "BernoulliNB"]
+    },
+    {
+      "candidate_id": "candidate-34-008",
+      "label": "Multinomial Naive Bayes",
+      "description": "A Naive Bayes variant suitable for discrete features, especially text classification where features represent word counts or frequencies.",
+      "coverage_criteria": [
+        "Identify the typical use case for Multinomial Naive Bayes.",
+        "Explain why it is suitable for text classification.",
+        "Interpret a scikit-learn code snippet with 'MultinomialNB'."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source describes Multinomial Naive Bayes as the go‑to for text classification, with a code example and explanation.",
+        "granularity_rationale": "It is a distinct algorithm variant that can be checked with a couple of targeted questions about its purpose and application."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2. Multinomial Naive Bayes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["scikit-learn", "MultinomialNB"]
+    },
+    {
+      "candidate_id": "candidate-34-009",
+      "label": "Gaussian Naive Bayes",
+      "description": "A Naive Bayes variant for continuous features that assumes a Gaussian (normal) distribution of the data per class.",
+      "coverage_criteria": [
+        "State when Gaussian Naive Bayes is used.",
+        "Explain the distribution assumption.",
+        "Identify a code snippet using 'GaussianNB'."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source covers Gaussian Naive Bayes in the 'Types of Naive Bayes' section, noting it is for continuous predictor variables and provides code.",
+        "granularity_rationale": "It is one of three variants and can be tested with questions about its assumptions and usage."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3. Gaussian Naive Bayes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["scikit-learn", "GaussianNB"]
+    },
+    {
+      "candidate_id": "candidate-34-010",
+      "label": "Zero Frequency Error",
+      "description": "A problem where Naive Bayes assigns zero probability to a category that appears in the test data but was not seen during training, making the entire posterior probability zero.",
+      "coverage_criteria": [
+        "Define the zero frequency error in Naive Bayes.",
+        "Explain why it occurs.",
+        "Name a common technique to fix it."
+      ],
+      "source_roles": ["introducing", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source discusses the zero frequency error as a key disadvantage in the 'Disadvantages' subsection under 'Advantages and Disadvantages of Naive Bayes'.",
+        "granularity_rationale": "This is a single, well-defined pitfall that can be assessed with one or two questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-011",
+      "label": "Laplace Smoothing",
+      "description": "A technique to handle zero frequency errors by adding a small constant (usually 1) to every count, preventing zero probabilities.",
+      "coverage_criteria": [
+        "Describe how Laplace smoothing solves the zero frequency error.",
+        "Explain the effect of the smoothing parameter α."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions Laplace smoothing as the remedy for zero frequency error in the 'Disadvantages' and 'How to Improve Naive Bayes?' sections.",
+        "granularity_rationale": "It is a specific technique tightly coupled to a specific problem, making it a natural small concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"},
+        {"kind": "markdown_heading", "locator": "How to Improve Naive Bayes?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["Laplace"]
+    },
+    {
+      "candidate_id": "candidate-34-012",
+      "label": "Applications of Naive Bayes",
+      "description": "Naive Bayes is widely used for text classification, sentiment analysis, recommendation systems, and real‑time predictions due to its speed and performance on text data.",
+      "coverage_criteria": [
+        "List at least three real‑world applications of Naive Bayes.",
+        "Explain why it is suitable for text classification."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source enumerates applications in the 'Applications of Naive Bayes' section with examples and images.",
+        "granularity_rationale": "The concept groups several applications under one teachable idea that can be evaluated with a short list question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Applications of Naive Bayes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-013",
+      "label": "Advantages of Naive Bayes",
+      "description": "Key advantages include faster training and prediction, requirement of less training data (when features are independent), and strong performance on categorical/text data.",
+      "coverage_criteria": [
+        "List at least two advantages of Naive Bayes.",
+        "Explain why Naive Bayes is considered fast."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents advantages in the 'Advantages' subsection with clear points (faster, less data, performance).",
+        "granularity_rationale": "This is a condensed list that can be tested by asking for specific benefits."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-014",
+      "label": "Disadvantages of Naive Bayes",
+      "description": "Disadvantages include the unrealistic assumption of feature independence and the zero frequency error when an unseen category appears in test data.",
+      "coverage_criteria": [
+        "Explain the main drawback related to feature independence.",
+        "Describe the zero frequency problem."
+      ],
+      "source_roles": ["introducing", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source lists disadvantages in the 'Disadvantages' subsection, explicitly naming independent features and zero frequency.",
+        "granularity_rationale": "Two well‑defined drawbacks that can be checked with a couple of questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Disadvantages"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-015",
+      "label": "When to Use Naive Bayes",
+      "description": "Naive Bayes is suitable when features are relatively independent, for text classification problems, and when fast prediction is required.",
+      "coverage_criteria": [
+        "State at least two scenarios where Naive Bayes is a good choice.",
+        "Identify situations when Naive Bayes should be avoided."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source gives clear guidance in the 'When to Use Naive Bayes?' section, including when to avoid it.",
+        "granularity_rationale": "It is a concise decision rule that can be verified with a short question."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "When to Use Naive Bayes?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-34-016",
+      "label": "How to Improve Naive Bayes",
+      "description": "Techniques to boost Naive Bayes performance: remove correlated features, engineer features, apply domain knowledge, use probabilistic features, Laplace smoothing, and feature transformations like Box‑Cox/Yeo‑Johnson.",
+      "coverage_criteria": [
+        "Name at least three strategies to improve Naive Bayes.",
+        "Explain how feature transformation helps."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a bulleted list of improvement methods in the 'How to Improve Naive Bayes?' section.",
+        "granularity_rationale": "The section groups several practical tips; a single concept with a checklist question is appropriate."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "How to Improve Naive Bayes?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Naive Bayes Algorithms: A Complete Guide for Beginners",
+      "source_year": "2024",
+      "name_drops": ["Box-Cox", "Yeo-Johnson"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-34-001",
+      "to_candidate_id": "candidate-34-002",
+      "reason": "The article builds from probability to conditional probability as a natural progression before introducing Bayes theorem.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Probability?"},
+        {"kind": "markdown_heading", "locator": "What is Conditional Probability?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-002",
+      "to_candidate_id": "candidate-34-003",
+      "reason": "Conditional probability is the foundation for Bayes rule, which the source presents immediately after with the formula derivation.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Conditional Probability?"},
+        {"kind": "markdown_heading", "locator": "Bayes Rule"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-003",
+      "to_candidate_id": "candidate-34-004",
+      "reason": "Naive Bayes extends Bayes theorem by adding the naive independence assumption; the source explicitly connects them.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Bayes Rule"},
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-004",
+      "to_candidate_id": "candidate-34-005",
+      "reason": "The source explains the naive assumption right after presenting the algorithm, directly linking the name 'Naive' to the independence hypothesis.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"},
+        {"kind": "markdown_heading", "locator": "Why is it Naive?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-005",
+      "to_candidate_id": "candidate-34-006",
+      "reason": "Multicollinearity violates the independence assumption, and the source discusses this as a key reason Naive Bayes may fail.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Why is it Naive?"},
+        {"kind": "markdown_heading", "locator": "What is Multicollinearity?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-004",
+      "to_candidate_id": "candidate-34-010",
+      "reason": "The algorithm's main drawback, zero frequency error, stems directly from its probabilistic computation; the source highlights it in the Disadvantages.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"},
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-010",
+      "to_candidate_id": "candidate-34-011",
+      "reason": "Laplace smoothing is presented as the direct solution to the zero frequency error.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"},
+        {"kind": "markdown_heading", "locator": "How to Improve Naive Bayes?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-004",
+      "to_candidate_id": "candidate-34-012",
+      "reason": "The source transitions from the algorithm's mechanics to its real‑world applications, showing its practical value.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"},
+        {"kind": "markdown_heading", "locator": "Applications of Naive Bayes"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-004",
+      "to_candidate_id": "candidate-34-013",
+      "reason": "The article pairs the algorithm explanation with a discussion of its strengths, inviting the reader to evaluate its suitability.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "What is Naive Bayes Algorithm?"},
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-013",
+      "to_candidate_id": "candidate-34-014",
+      "reason": "Advantages and disadvantages are presented side‑by‑side, providing a balanced view of the algorithm.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages"},
+        {"kind": "markdown_heading", "locator": "Disadvantages"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-014",
+      "to_candidate_id": "candidate-34-015",
+      "reason": "The disadvantages inform the decision of when to avoid Naive Bayes, making the connection between pitfalls and appropriate use cases explicit.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Advantages and Disadvantages of Naive Bayes"},
+        {"kind": "markdown_heading", "locator": "When to Use Naive Bayes?"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-34-015",
+      "to_candidate_id": "candidate-34-016",
+      "reason": "Even in borderline scenarios, improvement techniques can be applied; the source guides the reader from knowing when to use to how to make it work better.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "When to Use Naive Bayes?"},
+        {"kind": "markdown_heading", "locator": "How to Improve Naive Bayes?"}
+      ]
+    }
+  ]
+}

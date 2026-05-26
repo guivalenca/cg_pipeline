@@ -1,0 +1,87 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+    "title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-cognitive-biases-that-distort-risk-decisions-8220c543",
+      "label": "Cognitive Biases that Distort Risk Decisions",
+      "teaching_description": "Decision makers often rely on cognitive simplifications that lead to biases such as prior hypothesis, adjustment/anchoring, escalating commitment, and insensitivity to predictability, which can cause errors in risk assessment.",
+      "coverage_criteria": [
+        "Name three cognitive biases mentioned in the source and describe how each can affect a risk decision.",
+        "Explain why awareness of cognitive biases is important for directors overseeing risk."
+      ]
+    },
+    {
+      "concept_id": "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+      "label": "Risk as both a threat and an opportunity",
+      "teaching_description": "When defending a decision under uncertainty, it is effective to acknowledge that risk includes both negative dangers and positive opportunities. Recognizing the dual nature of risk helps communicate that embracing risk can lead to upside, which is essential for credible recommendations.",
+      "coverage_criteria": [
+        "Explain why risk is both a threat and an opportunity, using an example.",
+        "Describe how acknowledging the dual nature of risk can enhance the credibility of a decision defense."
+      ]
+    },
+    {
+      "concept_id": "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf",
+      "label": "Scenario planning for stress-testing assumptions and preparing responses",
+      "teaching_description": "Scenario planning simulates plausible risk events to help leaders stress-test strategic assumptions and practice responses. This technique is directly applicable to preparing for stakeholder questions when defending a decision under uncertainty, embodying the 'Prepare to Be Wrong' principle.",
+      "coverage_criteria": [
+        "Explain what scenario planning is and how it helps stress-test assumptions.",
+        "Describe how scenario planning can be used to anticipate and prepare for stakeholder pushback."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Recognizing Cognitive Biases in Risk Decisions",
+      "concept_ids": [
+        "concept-cognitive-biases-that-distort-risk-decisions-8220c543"
+      ]
+    },
+    {
+      "label": "Framing Risk and Preparing for Pushback",
+      "concept_ids": [
+        "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+        "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

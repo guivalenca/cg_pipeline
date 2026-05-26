@@ -1,0 +1,91 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_decision",
+  "schema_version": "subject_merge_fine_clustering_decision.v0",
+  "generated_at": "2026-05-20T00:56:15.328559+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr001_004",
+    "lr003_007",
+    "lr004_004",
+    "lr004_006",
+    "lr005_017",
+    "lr005_018",
+    "lr005_021",
+    "lr005_022",
+    "lr006_010"
+  ],
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Text Normalization/Cleaning",
+      "rationale": "Both candidates describe the same essential preprocessing steps—lowercasing, removing punctuation and special characters and often stop words—to clean and normalize raw text before further processing. They share the same teachable idea of basic text cleaning for NLP.",
+      "candidate_ids": [
+        "lr005_018",
+        "lr006_010"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Text Preprocessing: Segmentation, Tokenization, and Stop Words",
+      "rationale": "Broader candidate that includes sentence segmentation in addition to tokenization and stop words, so kept separate from narrower tokenization-only candidates.",
+      "candidate_ids": [
+        "lr001_004"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Text Preprocessing: Tokenization and Stopword Removal",
+      "rationale": "Combines tokenization with stopword removal in a single package; no other candidate covers exactly this combination at the same level.",
+      "candidate_ids": [
+        "lr003_007"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Tokenization with NLTK",
+      "rationale": "Focuses specifically on NLTK tokenization and its advantages with contractions; tool-specific behavior not matched by general tokenization candidates.",
+      "candidate_ids": [
+        "lr004_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "rationale": "Unique candidate about encoding detection and decoding for Portuguese text files; no other candidate covers text encoding.",
+      "candidate_ids": [
+        "lr004_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Stop Words Removal",
+      "rationale": "Focused only on identifying and removing stop words using pre-defined lists; distinct from candidates that bundle stop words with tokenization.",
+      "candidate_ids": [
+        "lr005_017"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Word-level Tokenization",
+      "rationale": "General word tokenization without tool-specific details; kept separate from NLTK-specific tokenization.",
+      "candidate_ids": [
+        "lr005_021"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "rationale": "Distinct concept of building a frequency-filtered vocabulary and strategies for unknown words; no other candidate covers vocabulary construction.",
+      "candidate_ids": [
+        "lr005_022"
+      ]
+    }
+  ],
+  "normalization_warnings": [],
+  "summary": {
+    "input_candidate_count": 9,
+    "cluster_count": 8
+  }
+}

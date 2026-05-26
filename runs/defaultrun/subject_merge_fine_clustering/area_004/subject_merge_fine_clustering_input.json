@@ -1,0 +1,145 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_004",
+    "area": {
+      "id": "area_004",
+      "label": "Lexical Similarity Measures",
+      "rationale": "Deals with string-based similarity: edit distance, Levenshtein, Jaccard, cosine, and applications.",
+      "candidate_ids": [
+        "lr002_011",
+        "lr002_012",
+        "lr002_013",
+        "lr002_014",
+        "lr002_016",
+        "lr002_017"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr002_011",
+    "lr002_012",
+    "lr002_013",
+    "lr002_014",
+    "lr002_016",
+    "lr002_017"
+  ],
+  "candidates": [
+    {
+      "id": "lr002_011",
+      "label": "Similaridade Léxica",
+      "description": "Define similaridade léxica como a medida de sobreposição de palavras ou caracteres entre dois fragmentos de texto, sem considerar significado, e discute os níveis de granularidade (caractere, palavra, frase).",
+      "coverage_criteria": [
+        "Explicar o que é similaridade léxica e dar um exemplo.",
+        "Diferenciar similaridade em nível de caractere e de palavra."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_012",
+      "label": "Distância de Edição Mínima e Levenshtein",
+      "description": "Apresenta a distância de edição mínima como o número mínimo de operações (inserção, deleção, substituição) para transformar uma string em outra, e a variante Levenshtein onde a substituição custa 2.",
+      "coverage_criteria": [
+        "Calcular a distância de edição mínima entre duas strings.",
+        "Computar a distância de Levenshtein e explicar a diferença de custo."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_013",
+      "label": "Similaridade de Jaccard",
+      "description": "Mede a similaridade entre dois conjuntos calculando a interseção dividida pela união, resultando em um valor entre 0 e 1, com exemplos em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de Jaccard para dois conjuntos de palavras.",
+        "Interpretar o resultado próximo de 1 ou de 0."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_014",
+      "label": "Similaridade de Cosseno",
+      "description": "Calcula a similaridade entre dois vetores de frequência de palavras usando o cosseno do ângulo entre eles, com implementação em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de cosseno entre dois textos usando frequências de palavras.",
+        "Explicar por que o valor varia entre -1 e 1."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_016",
+      "label": "Classificação de Algoritmos de Similaridade de Strings",
+      "description": "Categoriza os algoritmos de similaridade em baseados em caracteres (ex.: Levenshtein) e baseados em termos (ex.: cosseno, Jaccard), indicando quando cada um é mais adequado.",
+      "coverage_criteria": [
+        "Listar exemplos de algoritmos baseados em caracteres e baseados em termos.",
+        "Explicar em que situação um é preferível ao outro."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_017",
+      "label": "Aplicações de Similaridade Textual",
+      "description": "Lista e exemplifica aplicações reais de medidas de similaridade: sistemas de busca, recomendação, correção ortográfica, autocomplete, sumarização e detecção de duplicatas.",
+      "coverage_criteria": [
+        "Citar ao menos três aplicações de similaridade textual.",
+        "Explicar como a similaridade ajuda em uma dessas aplicações."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+      "lesson_title": "Processamento de texto, métricas e técnicas",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

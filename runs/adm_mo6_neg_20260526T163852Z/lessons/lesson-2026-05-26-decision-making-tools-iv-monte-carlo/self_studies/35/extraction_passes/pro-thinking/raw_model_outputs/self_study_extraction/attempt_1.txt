@@ -1,0 +1,173 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-35-001",
+      "label": "Modelling Uncertain Inputs with Normal Distributions",
+      "description": "To set up a Monte Carlo simulation, represent uncertain variables like Sales, Variable Costs, and Fixed Costs by their mean and standard deviation, assuming a normal distribution.",
+      "coverage_criteria": [
+        "Student can explain why mean and standard deviation are chosen for uncertain inputs.",
+        "Student can set up a simple income statement with Mean and Std Dev columns for each line item."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video begins by explaining that to do Monte Carlo simulation, 'we need to know the mean and we need to know the standard deviation of some numbers' and sets up a spreadsheet with Mean and Std Dev columns for Sales, Variable Costs, and Fixed Costs.",
+        "granularity_rationale": "This concept is a foundational prerequisite; the student can be asked to identify the required parameters for a simulation model and explain why they are needed."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[00:00] Introduction to Monte Carlo Simulation in Excel"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": ["Excel", "normal distribution", "mean", "standard deviation"]
+    },
+    {
+      "candidate_id": "candidate-35-002",
+      "label": "Generating Random Samples with NORM.INV and RAND()",
+      "description": "Use the Excel function NORM.INV(RAND(), mean, std_dev) to produce a random value from a normal distribution for each uncertain input, creating one simulated trial.",
+      "coverage_criteria": [
+        "Student can write the formula =NORM.INV(RAND(), mean, std_dev).",
+        "Student explains how RAND() randomizes the probability and NORM.INV returns the corresponding value from the specified distribution."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At [00:24], the speaker explicitly shows entering the formula =NORM.INV(RAND(),C2,D2) and explains that RAND() randomizes the probability, while NORM.INV uses the mean and standard deviation to generate a random value.",
+        "granularity_rationale": "It is a single, checkable skill; the student can replicate the formula and explain how the two functions combine to generate a random normal value."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[00:24] Estimating Sales with NORM.INV and RAND()"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": ["NORM.INV", "RAND()"]
+    },
+    {
+      "candidate_id": "candidate-35-003",
+      "label": "Using Excel Data Table for Multiple Simulation Trials",
+      "description": "Employ Excel's Data Table (What-If Analysis) with a blank column input cell to automatically recalculate a linked profit formula for 10,000 iterations, effectively running many Monte Carlo trials.",
+      "coverage_criteria": [
+        "Student can set up a column of trial numbers and link the profit cell to the current trial.",
+        "Student can invoke Data Table with a blank cell as column input to force recalculation across all rows."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker demonstrates filling a series of 10,000 numbers, linking the profit cell, and using Data Table with a blank column input cell to force recalculation over many iterations, stating 'it'll take just a second to refresh'.",
+        "granularity_rationale": "This is a crucial trick to automate many trials without macros; the student can be asked to set up a Data Table for simulation and explain why a blank input cell is used."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[02:15] Setting Up 10,000 Simulations"},
+        {"kind": "markdown_heading", "locator": "[03:06] Running the Monte Carlo Simulation with Data Table"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": ["Data Table", "What-If Analysis"]
+    },
+    {
+      "candidate_id": "candidate-35-004",
+      "label": "Summarizing Simulation Output with Descriptive Statistics",
+      "description": "After running the simulation, calculate key statistics like average (AVERAGE), minimum (MIN), and maximum (MAX) of the simulated outcomes to understand central tendency and range.",
+      "coverage_criteria": [
+        "Student can use AVERAGE, MIN, MAX on the simulated profit column.",
+        "Student can interpret the results (e.g., mean profit of $109,789, worst-case loss of $173,152)."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "After simulation, the speaker selects the profit column, names the range 'profit', and uses AVERAGE, MIN, MAX to compute the mean, worst case, and best case, directly recounting the numbers.",
+        "granularity_rationale": "These are standard descriptive statistics; testing whether the student can correctly apply them to simulation output ensures they can summarize results meaningfully."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[04:04] Analyzing Simulation Results: Mean, Min, Max"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": ["AVERAGE", "MIN", "MAX"]
+    },
+    {
+      "candidate_id": "candidate-35-005",
+      "label": "Calculating Risk of Loss with COUNTIFS",
+      "description": "Determine the probability of a negative outcome by counting the number of simulations where profit < 0 using COUNTIFS, and dividing by the total number of trials to get a risk percentage.",
+      "coverage_criteria": [
+        "Student can write the formula =COUNTIFS(profit, \"<0\").",
+        "Student can convert the count to a percentage of total simulations and interpret it (e.g., '7% risk of loss')."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker uses COUNTIFS to count the number of negative profits and divides by 10,000 to get the percentage of loss, stating '749 times out of the 10,000... about 7% of the time we would lose money'.",
+        "granularity_rationale": "This is a tangible risk metric directly from the simulation; the student should be able to construct the COUNTIFS formula and interpret the resulting probability."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[05:44] Calculating Risk of Loss and Impact of Changes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": ["COUNTIFS"]
+    },
+    {
+      "candidate_id": "candidate-35-006",
+      "label": "Sensitivity Analysis by Changing Input Parameters",
+      "description": "After building the simulation, change an input mean (e.g., Fixed Costs) to observe the impact on risk of loss, demonstrating how Monte Carlo simulation supports decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can adjust a parameter (e.g., increase Fixed Costs) and predict how the risk of loss would change.",
+        "Student can interpret the new risk percentage in context of a business decision (e.g., '21% risk now, so maybe we should reduce fixed costs')."
+      ],
+      "source_roles": ["demonstrating", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker changes Fixed Costs from 150,000 to 200,000 and notes the risk of loss jumps from 7% to 21%, explaining 'we're worried about the risk of loss'.",
+        "granularity_rationale": "Sensitivity analysis is a key decision-making step; the student can be asked to perform a similar parameter change and articulate its impact on risk."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[05:44] Calculating Risk of Loss and Impact of Changes"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Monte Carlo Simulation Made Super Easy!",
+      "source_year": "2026",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-35-001",
+      "to_candidate_id": "candidate-35-002",
+      "reason": "The mean and standard deviation values defined in the model serve as the distribution parameters for the NORM.INV function used to generate random sales, variable costs, and fixed costs.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[00:24] Estimating Sales with NORM.INV and RAND()"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-002",
+      "to_candidate_id": "candidate-35-003",
+      "reason": "The volatile profit formula generated by NORM.INV (candidate-35-002) is linked to the Data Table range, and the Data Table recalculates that formula 10,000 times to produce the simulation trials.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:06] Running the Monte Carlo Simulation with Data Table"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-003",
+      "to_candidate_id": "candidate-35-004",
+      "reason": "The 10,000 simulated profit values produced by the Data Table are then analyzed using descriptive statistics (AVERAGE, MIN, MAX) to summarize the distribution.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[04:04] Analyzing Simulation Results: Mean, Min, Max"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-004",
+      "to_candidate_id": "candidate-35-005",
+      "reason": "The summary statistics provide overall range and average, while the COUNTIFS function uses the same simulated profit data to specifically compute the probability of loss.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[05:44] Calculating Risk of Loss and Impact of Changes"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-005",
+      "to_candidate_id": "candidate-35-006",
+      "reason": "The risk of loss percentage changes immediately when input parameters like Fixed Costs are adjusted, enabling direct sensitivity analysis.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[05:44] Calculating Risk of Loss and Impact of Changes"}
+      ]
+    }
+  ]
+}

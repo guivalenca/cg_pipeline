@@ -1,0 +1,75 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-06-11-excel-data-modeling-and-analysis-for-business/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+    "title": "Excel Data Modeling and Analysis for Business"
+  },
+  "segment": {
+    "segment_id": "segment_001",
+    "label": "Excel Data Model and Relationships",
+    "concept_ids": [
+      "concept-excel-data-model-basics-843f9a17",
+      "concept-creating-relationships-in-the-excel-data-model-06c71c2c"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-excel-data-model-basics-843f9a17",
+      "label": "Excel Data Model basics",
+      "teaching_description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ],
+      "source_candidate_ids": [
+        "lr011_001"
+      ]
+    },
+    {
+      "concept_id": "concept-creating-relationships-in-the-excel-data-model-06c71c2c",
+      "label": "Creating relationships in the Excel Data Model",
+      "teaching_description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ],
+      "source_candidate_ids": [
+        "lr011_002"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

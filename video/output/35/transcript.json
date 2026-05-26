@@ -1,0 +1,502 @@
+{
+  "schema_version": "1.0",
+  "transcript_source": "local_whisper_vtt",
+  "caption_language": "",
+  "duration_seconds": 877.0,
+  "transcript_sha256": "b231678885223f1a2d7ff7f73d07e1dab5178cc6ec76e9508331d2388474922f",
+  "segments": [
+    {
+      "start_seconds": 0.0,
+      "duration_seconds": 4.66,
+      "text": "Welcome to another video of the Machine Learning from Scratch course presented by Assembly AI."
+    },
+    {
+      "start_seconds": 4.66,
+      "duration_seconds": 4.92,
+      "text": "In this series, we implement popular machine learning algorithms using only built-in Python"
+    },
+    {
+      "start_seconds": 9.58,
+      "duration_seconds": 5.699999999999999,
+      "text": "functions and NumPy. In this lesson, we learn about naive Bayez. As always, we start with a"
+    },
+    {
+      "start_seconds": 15.28,
+      "duration_seconds": 5.480000000000002,
+      "text": "short theory section and then we jump to the code. So let's get started. So naive Bayez is a"
+    },
+    {
+      "start_seconds": 20.76,
+      "duration_seconds": 6.5,
+      "text": "probabilistic classifier based on applying Bayez theorem with strong, also called naive"
+    },
+    {
+      "start_seconds": 27.26,
+      "duration_seconds": 6.959999999999997,
+      "text": "independence assumptions between the features. So let's learn about the Bayez theorem first."
+    },
+    {
+      "start_seconds": 34.22,
+      "duration_seconds": 6.740000000000002,
+      "text": "It says that the probability of an event A given another event B can be calculated as the probability"
+    },
+    {
+      "start_seconds": 40.96,
+      "duration_seconds": 8.259999999999998,
+      "text": "of B given A times the probability of A divided by the probability of B. So if we transfer this to our"
+    },
+    {
+      "start_seconds": 49.22,
+      "duration_seconds": 7.240000000000002,
+      "text": "case with class labels and features, then we can say that the probability of Y given X is the"
+    },
+    {
+      "start_seconds": 56.46,
+      "duration_seconds": 7.280000000000001,
+      "text": "probability of X given Y times the probability of Y divided by the probability of X. And in this"
+    },
+    {
+      "start_seconds": 63.74,
+      "duration_seconds": 7.380000000000003,
+      "text": "case, Y are the class labels that we want to predict and X is the feature vector. So then we do the"
+    },
+    {
+      "start_seconds": 71.12,
+      "duration_seconds": 5.8999999999999915,
+      "text": "assumption that the features are mutually independent. For example, if we want to predict if"
+    },
+    {
+      "start_seconds": 77.02,
+      "duration_seconds": 6.960000000000008,
+      "text": "someone takes the bus or walks, and we have two features if it's raining or not, and the distance to"
+    },
+    {
+      "start_seconds": 83.98,
+      "duration_seconds": 6.319999999999993,
+      "text": "the destination. So then we make the assumption that these two features are independent. And in reality,"
+    },
+    {
+      "start_seconds": 90.3,
+      "duration_seconds": 5.359999999999999,
+      "text": "often this is not the case. But this assumption still works really well for this classifier. That's"
+    },
+    {
+      "start_seconds": 95.66,
+      "duration_seconds": 6.560000000000002,
+      "text": "also why we say this is a naive assumption. So if you make this assumption, we can split this part here,"
+    },
+    {
+      "start_seconds": 102.22,
+      "duration_seconds": 7.280000000000001,
+      "text": "p of x given y into the different components and say this is the product. So p of x1 given y times p of"
+    },
+    {
+      "start_seconds": 109.5,
+      "duration_seconds": 7.759999999999991,
+      "text": "x2 given y and so on. And these are all the single feature vector components. And these probabilities here"
+    },
+    {
+      "start_seconds": 117.25999999999999,
+      "duration_seconds": 7.840000000000003,
+      "text": "are easier to set up. So now we want to select the class label y. So we want to select the class with the"
+    },
+    {
+      "start_seconds": 125.1,
+      "duration_seconds": 8.319999999999993,
+      "text": "highest posterior probability. So this p of y given x is also called the posterior. And this is the formula"
+    },
+    {
+      "start_seconds": 133.42,
+      "duration_seconds": 7.680000000000007,
+      "text": "we've just seen. So now we want to select y as the arc max of the posterior. And then we can simplify"
+    },
+    {
+      "start_seconds": 141.1,
+      "duration_seconds": 8.320000000000022,
+      "text": "this a little bit. So we can first get rid of p of x because this depends not on y at all. So just throw"
+    },
+    {
+      "start_seconds": 149.42000000000002,
+      "duration_seconds": 8.0,
+      "text": "this away. And then we also apply a little trick. So all these probabilities here are values between zero"
+    },
+    {
+      "start_seconds": 157.42000000000002,
+      "duration_seconds": 7.199999999999989,
+      "text": "and one. And if we multiply this, then the number can become very small and we can run into inaccuracies."
+    },
+    {
+      "start_seconds": 164.62,
+      "duration_seconds": 8.240000000000009,
+      "text": "So for this, we apply a little trick. Instead of the product, we do a sum. And then we apply the logarithm."
+    },
+    {
+      "start_seconds": 172.86,
+      "duration_seconds": 6.319999999999993,
+      "text": "So if you apply the logarithm, we can change the product with a sum. And then this is the final"
+    },
+    {
+      "start_seconds": 179.18,
+      "duration_seconds": 8.47999999999999,
+      "text": "formula to get y. And now we need to know how we can calculate p of y and also this p of x given y."
+    },
+    {
+      "start_seconds": 187.66,
+      "duration_seconds": 9.200000000000017,
+      "text": "So these are called the prior and class conditional. So first p of y is called the prior probability."
+    },
+    {
+      "start_seconds": 196.86,
+      "duration_seconds": 5.759999999999991,
+      "text": "And we can simply calculate this as the frequency of each class. So we count how often this class"
+    },
+    {
+      "start_seconds": 202.62,
+      "duration_seconds": 8.879999999999995,
+      "text": "label occurs. And then the p of x i given y is known as the class conditional probability. And for this,"
+    },
+    {
+      "start_seconds": 211.5,
+      "duration_seconds": 7.280000000000001,
+      "text": "we model this with a Gaussian distribution. So here, this is the formula, where we have the mean and the"
+    },
+    {
+      "start_seconds": 218.78,
+      "duration_seconds": 6.640000000000015,
+      "text": "standard deviation or then squared, this is the variance. So here we can see a plot of different"
+    },
+    {
+      "start_seconds": 225.42000000000002,
+      "duration_seconds": 6.319999999999993,
+      "text": "Gaussian distributions for different means and standard deviations. So yeah, this is often a good choice to"
+    },
+    {
+      "start_seconds": 231.74,
+      "duration_seconds": 5.759999999999991,
+      "text": "model probabilities. And yeah, this is all that we need to code this up. So let's summarize the different"
+    },
+    {
+      "start_seconds": 237.5,
+      "duration_seconds": 7.199999999999989,
+      "text": "steps. In the training step, we calculate the mean, the variance and the prior so the frequency for each"
+    },
+    {
+      "start_seconds": 244.7,
+      "duration_seconds": 6.480000000000018,
+      "text": "class with our training set. And then in the prediction step, we calculate the posterior for each"
+    },
+    {
+      "start_seconds": 251.18,
+      "duration_seconds": 5.920000000000016,
+      "text": "class with the formula that we've just seen. And here we also plug in the Gaussian formula for these"
+    },
+    {
+      "start_seconds": 257.1,
+      "duration_seconds": 5.439999999999998,
+      "text": "probabilities. And then we simply choose the class with the highest posterior probability. And that's it."
+    },
+    {
+      "start_seconds": 262.54,
+      "duration_seconds": 7.439999999999998,
+      "text": "So let's jump to the code. So first, let's import NumPy, of course, and then we want to create a class"
+    },
+    {
+      "start_seconds": 269.98,
+      "duration_seconds": 6.9599999999999795,
+      "text": "that we call Naive Bayes. And here we don't need an init function because we don't have any parameters to"
+    },
+    {
+      "start_seconds": 276.94,
+      "duration_seconds": 8.160000000000025,
+      "text": "configure this. So instead, we want a fit method, which gets the training samples and the training labels."
+    },
+    {
+      "start_seconds": 285.1,
+      "duration_seconds": 11.359999999999957,
+      "text": "And then we also want a predict method with self and the test samples. So let's start with fit. So here we"
+    },
+    {
+      "start_seconds": 296.46,
+      "duration_seconds": 9.680000000000007,
+      "text": "want to get the number of samples and the number of features first. And we have this assumption that x and"
+    },
+    {
+      "start_seconds": 306.14,
+      "duration_seconds": 6.960000000000036,
+      "text": "y are already NumPy and d array. So this is already in the correct format. And then we can extract this"
+    },
+    {
+      "start_seconds": 313.1,
+      "duration_seconds": 9.839999999999975,
+      "text": "by saying x dot shape with a small s x dot shape. Then let's get the number of unique classes and we store"
+    },
+    {
+      "start_seconds": 322.94,
+      "duration_seconds": 10.800000000000011,
+      "text": "this in self dot underscore classes equals NumPy unique with y. And then we get the number of different"
+    },
+    {
+      "start_seconds": 333.74,
+      "duration_seconds": 9.360000000000014,
+      "text": "classes by saying the length of self dot underscore classes. And now the first thing we want to do is we"
+    },
+    {
+      "start_seconds": 343.1,
+      "duration_seconds": 12.079999999999984,
+      "text": "want to calculate the mean the variance and the prior for each class. So for this, let's initialize these with"
+    },
+    {
+      "start_seconds": 355.18,
+      "duration_seconds": 12.159999999999968,
+      "text": "zeros first. So we say self dot underscore mean equals NumPy dot zeros. And now as a shape, we want to have"
+    },
+    {
+      "start_seconds": 367.98,
+      "duration_seconds": 11.599999999999966,
+      "text": "n classes times n features. And then as data type, we can also say this is a NumPy float 64. So this is"
+    },
+    {
+      "start_seconds": 379.58,
+      "duration_seconds": 8.0,
+      "text": "the default, but just to make this more clear that we work with floats here. And then let's copy this one"
+    },
+    {
+      "start_seconds": 387.58,
+      "duration_seconds": 11.680000000000007,
+      "text": "time. So we also do the same for the variance. So we say self dot var equals this. And then also for the"
+    },
+    {
+      "start_seconds": 399.26,
+      "duration_seconds": 10.080000000000041,
+      "text": "priors. So we say self dot priors, but here we only want n classes. So for each class, we want to have a"
+    },
+    {
+      "start_seconds": 409.34000000000003,
+      "duration_seconds": 10.559999999999945,
+      "text": "n class. And now we want n class. And now we want to calculate n class c in a numerate self dot underscore"
+    },
+    {
+      "start_seconds": 419.9,
+      "duration_seconds": 13.120000000000005,
+      "text": "classes, then we only want to get the samples of this class. So x c equals x where y equals equals c. And then we want"
+    },
+    {
+      "start_seconds": 433.02,
+      "duration_seconds": 8.640000000000043,
+      "text": "to calculate the mean variance and prior and assign this. So we say self dot underscore mean and then of the"
+    },
+    {
+      "start_seconds": 441.66,
+      "duration_seconds": 8.239999999999952,
+      "text": "current index. So for this class, and then for all the columns. So for all features, we can say this is simply"
+    },
+    {
+      "start_seconds": 449.9,
+      "duration_seconds": 12.960000000000036,
+      "text": "x c dot mean along axis equals zero. And then we do the same for the variance. So we also"
+    },
+    {
+      "start_seconds": 462.86,
+      "duration_seconds": 8.879999999999995,
+      "text": "say self dot var and here we can apply x dot var. So these are built in NumPy functions. And then for the"
+    },
+    {
+      "start_seconds": 471.74,
+      "duration_seconds": 16.24000000000001,
+      "text": "priors, we say self dot underscore priors and of this index and this is x c dot shape zero. So this is the"
+    },
+    {
+      "start_seconds": 487.98,
+      "duration_seconds": 10.399999999999977,
+      "text": "number of the number of the how many samples we have divided by the as float the number of"
+    },
+    {
+      "start_seconds": 498.38,
+      "duration_seconds": 8.240000000000009,
+      "text": "total samples. And now these are the priors. So now this is all that we have to do in the fit method. So"
+    },
+    {
+      "start_seconds": 506.62,
+      "duration_seconds": 7.840000000000032,
+      "text": "let's go on with predict. So here, let's say y prediction equals and then we use list comprehension"
+    },
+    {
+      "start_seconds": 514.46,
+      "duration_seconds": 8.879999999999995,
+      "text": "and use a helper function underscore predict where we only put in one small feature component x for"
+    },
+    {
+      "start_seconds": 523.34,
+      "duration_seconds": 9.839999999999918,
+      "text": "small x in large x. And then we want to return this as NumPy array. So let's say NumPy array of y predict."
+    },
+    {
+      "start_seconds": 533.18,
+      "duration_seconds": 8.56000000000006,
+      "text": "And then we create this underscore predict which gets self and only a small x. So only one component."
+    },
+    {
+      "start_seconds": 541.74,
+      "duration_seconds": 9.279999999999973,
+      "text": "And here we want to calculate the posterior. So let's initialize this with an empty list. And then let's"
+    },
+    {
+      "start_seconds": 551.02,
+      "duration_seconds": 14.080000000000041,
+      "text": "say let's write a comment. So we want to calculate the posterior probability for each class. So we say for"
+    },
+    {
+      "start_seconds": 565.1,
+      "duration_seconds": 11.600000000000023,
+      "text": "index and c in enumerate self dot underscore classes. So the same enumeration that we do here. And then"
+    },
+    {
+      "start_seconds": 577.26,
+      "duration_seconds": 9.519999999999982,
+      "text": "let's calculate this. So we say first the prior. And let's go back to the formula. So here we have this."
+    },
+    {
+      "start_seconds": 586.78,
+      "duration_seconds": 9.600000000000023,
+      "text": "So we have the logarithm of the prior plus the logs of all the class conditionals. So for this, we say"
+    },
+    {
+      "start_seconds": 596.38,
+      "duration_seconds": 9.440000000000055,
+      "text": "NumPy log. And then we can simply access this. So we already calculated the priors. And then of this"
+    },
+    {
+      "start_seconds": 605.82,
+      "duration_seconds": 12.799999999999955,
+      "text": "current class index. And then for the posterior, we say this is NumPy sum over NumPy log."
+    },
+    {
+      "start_seconds": 618.62,
+      "duration_seconds": 7.039999999999964,
+      "text": "And then here we want to apply the Gaussian distribution. So for this, we create a helper function"
+    },
+    {
+      "start_seconds": 625.66,
+      "duration_seconds": 9.280000000000086,
+      "text": "that we call self dot underscore PDF for probability density function. And then this should get the index and"
+    },
+    {
+      "start_seconds": 634.94,
+      "duration_seconds": 9.759999999999991,
+      "text": "the x. And then we have the posterior. So now we want to add this to the prior. So we say posterior equals"
+    },
+    {
+      "start_seconds": 644.7,
+      "duration_seconds": 11.120000000000005,
+      "text": "posterior plus prior and then we append this to the list. So we say posteriors dot append the current"
+    },
+    {
+      "start_seconds": 655.82,
+      "duration_seconds": 12.799999999999955,
+      "text": "highest posterior. And then in the end, we want to return the class with the highest posterior. So here we"
+    },
+    {
+      "start_seconds": 668.62,
+      "duration_seconds": 13.200000000000045,
+      "text": "say return and then self dot underscore classes off. And now here we want to say NumPy argmax of the"
+    },
+    {
+      "start_seconds": 681.82,
+      "duration_seconds": 9.759999999999991,
+      "text": "Posteriors. And this is all that we need for predict. So now we only need the probability density function."
+    },
+    {
+      "start_seconds": 691.58,
+      "duration_seconds": 12.879999999999995,
+      "text": "So let's say self a define underscore PDF. This gets self. Then it gets the class index and x. And here,"
+    },
+    {
+      "start_seconds": 704.46,
+      "duration_seconds": 8.319999999999936,
+      "text": "let's have a brief look at the formula again. So this here is the formula with the means and the variances."
+    },
+    {
+      "start_seconds": 712.78,
+      "duration_seconds": 9.920000000000073,
+      "text": "And let's split this into denominator and numerator. So let's first get the mean. So we say mean equals"
+    },
+    {
+      "start_seconds": 722.7,
+      "duration_seconds": 10.0,
+      "text": "self.self dot underscore mean of this class index and the same for the variance. So we say var equals"
+    },
+    {
+      "start_seconds": 732.7,
+      "duration_seconds": 11.919999999999959,
+      "text": "self dot underscore var of this class index. And then we say the new mer radar equals and now we apply this."
+    },
+    {
+      "start_seconds": 744.62,
+      "duration_seconds": 14.639999999999986,
+      "text": "So we say numpy. This is the exponential function of minus and then we say x minus the mean to the power of"
+    },
+    {
+      "start_seconds": 759.26,
+      "duration_seconds": 15.200000000000045,
+      "text": "two divided by two times the variance. So let's put this into parentheses as well. And also this part. So"
+    },
+    {
+      "start_seconds": 774.46,
+      "duration_seconds": 16.319999999999936,
+      "text": "the minus and then this and then for the the nominator equals so this is numpy square root over and here we have"
+    },
+    {
+      "start_seconds": 790.78,
+      "duration_seconds": 13.519999999999982,
+      "text": "two times numpy dot pi times the variance. So then we want to return the numerator"
+    },
+    {
+      "start_seconds": 804.3,
+      "duration_seconds": 6.800000000000068,
+      "text": "the denominator divided by the denominator. And this is all that we need. So now we are done and now we can"
+    },
+    {
+      "start_seconds": 811.1,
+      "duration_seconds": 5.439999999999941,
+      "text": "test this. So I already prepared some code for testing and let's go over this very quickly. You can also"
+    },
+    {
+      "start_seconds": 816.54,
+      "duration_seconds": 6.960000000000036,
+      "text": "find the whole code on GitHub. So we import data sets and train test split from sklearn. Then let's have"
+    },
+    {
+      "start_seconds": 823.5,
+      "duration_seconds": 8.159999999999968,
+      "text": "a helper function to calculate the accuracy. Then we call data sets make classification and create a toy data set with"
+    },
+    {
+      "start_seconds": 831.66,
+      "duration_seconds": 9.200000000000045,
+      "text": "1000 samples and 10 features and two classes. Then we split this into training and testing. Then we create our"
+    },
+    {
+      "start_seconds": 840.86,
+      "duration_seconds": 8.319999999999936,
+      "text": "naive bias classifier and call fit with the training samples and then we call predict with the test samples."
+    },
+    {
+      "start_seconds": 849.18,
+      "duration_seconds": 8.879999999999995,
+      "text": "And then we calculate the accuracy by comparing Y test and the predictions. And now let's run this and we"
+    },
+    {
+      "start_seconds": 858.06,
+      "duration_seconds": 6.880000000000109,
+      "text": "see the accuracy is 96.5%. So it works pretty well. So yeah, this is all. I hope you enjoyed this and"
+    },
+    {
+      "start_seconds": 864.94,
+      "duration_seconds": 8.879999999999995,
+      "text": "then I hope to see you in the next lesson."
+    }
+  ],
+  "text": "Welcome to another video of the Machine Learning from Scratch course presented by Assembly AI.\nIn this series, we implement popular machine learning algorithms using only built-in Python\nfunctions and NumPy. In this lesson, we learn about naive Bayez. As always, we start with a\nshort theory section and then we jump to the code. So let's get started. So naive Bayez is a\nprobabilistic classifier based on applying Bayez theorem with strong, also called naive\nindependence assumptions between the features. So let's learn about the Bayez theorem first.\nIt says that the probability of an event A given another event B can be calculated as the probability\nof B given A times the probability of A divided by the probability of B. So if we transfer this to our\ncase with class labels and features, then we can say that the probability of Y given X is the\nprobability of X given Y times the probability of Y divided by the probability of X. And in this\ncase, Y are the class labels that we want to predict and X is the feature vector. So then we do the\nassumption that the features are mutually independent. For example, if we want to predict if\nsomeone takes the bus or walks, and we have two features if it's raining or not, and the distance to\nthe destination. So then we make the assumption that these two features are independent. And in reality,\noften this is not the case. But this assumption still works really well for this classifier. That's\nalso why we say this is a naive assumption. So if you make this assumption, we can split this part here,\np of x given y into the different components and say this is the product. So p of x1 given y times p of\nx2 given y and so on. And these are all the single feature vector components. And these probabilities here\nare easier to set up. So now we want to select the class label y. So we want to select the class with the\nhighest posterior probability. So this p of y given x is also called the posterior. And this is the formula\nwe've just seen. So now we want to select y as the arc max of the posterior. And then we can simplify\nthis a little bit. So we can first get rid of p of x because this depends not on y at all. So just throw\nthis away. And then we also apply a little trick. So all these probabilities here are values between zero\nand one. And if we multiply this, then the number can become very small and we can run into inaccuracies.\nSo for this, we apply a little trick. Instead of the product, we do a sum. And then we apply the logarithm.\nSo if you apply the logarithm, we can change the product with a sum. And then this is the final\nformula to get y. And now we need to know how we can calculate p of y and also this p of x given y.\nSo these are called the prior and class conditional. So first p of y is called the prior probability.\nAnd we can simply calculate this as the frequency of each class. So we count how often this class\nlabel occurs. And then the p of x i given y is known as the class conditional probability. And for this,\nwe model this with a Gaussian distribution. So here, this is the formula, where we have the mean and the\nstandard deviation or then squared, this is the variance. So here we can see a plot of different\nGaussian distributions for different means and standard deviations. So yeah, this is often a good choice to\nmodel probabilities. And yeah, this is all that we need to code this up. So let's summarize the different\nsteps. In the training step, we calculate the mean, the variance and the prior so the frequency for each\nclass with our training set. And then in the prediction step, we calculate the posterior for each\nclass with the formula that we've just seen. And here we also plug in the Gaussian formula for these\nprobabilities. And then we simply choose the class with the highest posterior probability. And that's it.\nSo let's jump to the code. So first, let's import NumPy, of course, and then we want to create a class\nthat we call Naive Bayes. And here we don't need an init function because we don't have any parameters to\nconfigure this. So instead, we want a fit method, which gets the training samples and the training labels.\nAnd then we also want a predict method with self and the test samples. So let's start with fit. So here we\nwant to get the number of samples and the number of features first. And we have this assumption that x and\ny are already NumPy and d array. So this is already in the correct format. And then we can extract this\nby saying x dot shape with a small s x dot shape. Then let's get the number of unique classes and we store\nthis in self dot underscore classes equals NumPy unique with y. And then we get the number of different\nclasses by saying the length of self dot underscore classes. And now the first thing we want to do is we\nwant to calculate the mean the variance and the prior for each class. So for this, let's initialize these with\nzeros first. So we say self dot underscore mean equals NumPy dot zeros. And now as a shape, we want to have\nn classes times n features. And then as data type, we can also say this is a NumPy float 64. So this is\nthe default, but just to make this more clear that we work with floats here. And then let's copy this one\ntime. So we also do the same for the variance. So we say self dot var equals this. And then also for the\npriors. So we say self dot priors, but here we only want n classes. So for each class, we want to have a\nn class. And now we want n class. And now we want to calculate n class c in a numerate self dot underscore\nclasses, then we only want to get the samples of this class. So x c equals x where y equals equals c. And then we want\nto calculate the mean variance and prior and assign this. So we say self dot underscore mean and then of the\ncurrent index. So for this class, and then for all the columns. So for all features, we can say this is simply\nx c dot mean along axis equals zero. And then we do the same for the variance. So we also\nsay self dot var and here we can apply x dot var. So these are built in NumPy functions. And then for the\npriors, we say self dot underscore priors and of this index and this is x c dot shape zero. So this is the\nnumber of the number of the how many samples we have divided by the as float the number of\ntotal samples. And now these are the priors. So now this is all that we have to do in the fit method. So\nlet's go on with predict. So here, let's say y prediction equals and then we use list comprehension\nand use a helper function underscore predict where we only put in one small feature component x for\nsmall x in large x. And then we want to return this as NumPy array. So let's say NumPy array of y predict.\nAnd then we create this underscore predict which gets self and only a small x. So only one component.\nAnd here we want to calculate the posterior. So let's initialize this with an empty list. And then let's\nsay let's write a comment. So we want to calculate the posterior probability for each class. So we say for\nindex and c in enumerate self dot underscore classes. So the same enumeration that we do here. And then\nlet's calculate this. So we say first the prior. And let's go back to the formula. So here we have this.\nSo we have the logarithm of the prior plus the logs of all the class conditionals. So for this, we say\nNumPy log. And then we can simply access this. So we already calculated the priors. And then of this\ncurrent class index. And then for the posterior, we say this is NumPy sum over NumPy log.\nAnd then here we want to apply the Gaussian distribution. So for this, we create a helper function\nthat we call self dot underscore PDF for probability density function. And then this should get the index and\nthe x. And then we have the posterior. So now we want to add this to the prior. So we say posterior equals\nposterior plus prior and then we append this to the list. So we say posteriors dot append the current\nhighest posterior. And then in the end, we want to return the class with the highest posterior. So here we\nsay return and then self dot underscore classes off. And now here we want to say NumPy argmax of the\nPosteriors. And this is all that we need for predict. So now we only need the probability density function.\nSo let's say self a define underscore PDF. This gets self. Then it gets the class index and x. And here,\nlet's have a brief look at the formula again. So this here is the formula with the means and the variances.\nAnd let's split this into denominator and numerator. So let's first get the mean. So we say mean equals\nself.self dot underscore mean of this class index and the same for the variance. So we say var equals\nself dot underscore var of this class index. And then we say the new mer radar equals and now we apply this.\nSo we say numpy. This is the exponential function of minus and then we say x minus the mean to the power of\ntwo divided by two times the variance. So let's put this into parentheses as well. And also this part. So\nthe minus and then this and then for the the nominator equals so this is numpy square root over and here we have\ntwo times numpy dot pi times the variance. So then we want to return the numerator\nthe denominator divided by the denominator. And this is all that we need. So now we are done and now we can\ntest this. So I already prepared some code for testing and let's go over this very quickly. You can also\nfind the whole code on GitHub. So we import data sets and train test split from sklearn. Then let's have\na helper function to calculate the accuracy. Then we call data sets make classification and create a toy data set with\n1000 samples and 10 features and two classes. Then we split this into training and testing. Then we create our\nnaive bias classifier and call fit with the training samples and then we call predict with the test samples.\nAnd then we calculate the accuracy by comparing Y test and the predictions. And now let's run this and we\nsee the accuracy is 96.5%. So it works pretty well. So yeah, this is all. I hope you enjoyed this and\nthen I hope to see you in the next lesson.\n",
+  "cache_key": "239f87634b61a6a4f25ed5f0a156c7d06a75e7af6ac1ef9e377a6bf9146ff16d",
+  "cache_status": "network"
+}

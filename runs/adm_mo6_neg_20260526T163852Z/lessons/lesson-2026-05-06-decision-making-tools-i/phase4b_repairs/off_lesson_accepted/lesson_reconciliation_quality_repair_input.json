@@ -1,0 +1,334 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+  "lesson": {
+    "id": "lesson-2026-05-06-decision-making-tools-i",
+    "title": "Decision-Making Tools I",
+    "description": "In this instruction students will be presented with tools for decision-making, such as priority matrix, maximax, maximin, minimum regret.",
+    "date": "06/05/2026",
+    "display_code": "L03"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-26T17:52:11.313663+00:00",
+    "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+    "lesson": {
+      "id": "lesson-2026-05-06-decision-making-tools-i",
+      "title": "Decision-Making Tools I",
+      "description": "In this instruction students will be presented with tools for decision-making, such as priority matrix, maximax, maximin, minimum regret.",
+      "date": "06/05/2026",
+      "display_code": "L03"
+    },
+    "scores": {
+      "concept_validity": 1,
+      "granularity": 3,
+      "evidence_preservation": 3,
+      "assignment_quality": 3,
+      "pruning_review_quality": 3,
+      "coverage_criteria": 3,
+      "lesson_coherence": 1,
+      "net_phase4_benefit": 1
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "off_lesson_accepted"
+    ],
+    "metrics": {
+      "input_candidate_count": 23,
+      "reconciled_candidate_count": 7,
+      "pruned_candidate_count": 8,
+      "review_count": 0,
+      "deterministic_review_count": 0,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 3,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 0,
+      "off_lesson_accepted_count": 2,
+      "accepted_candidate_assignment_count": 15,
+      "source_body_candidate_count": 23,
+      "assignment_count": 23,
+      "accepted_ratio": 0.3043,
+      "pruned_ratio": 0.3478,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0,
+      "review_ratio": 0.0
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "off_lesson_accepted",
+        "candidate_ids": [
+          "c18_pro_thinking_001",
+          "c16_pro_thinking_001"
+        ],
+        "explanation": "Accepted setup, repository, administration, download, or career material needs targeted lesson-local recheck."
+      }
+    ]
+  },
+  "repair_reason": "off_lesson_accepted",
+  "target_candidate_ids": [
+    "c18_pro_thinking_001",
+    "c16_pro_thinking_001"
+  ],
+  "target_candidates": [
+    {
+      "id": "c18_pro_thinking_001",
+      "label": "Decision Making Under Uncertainty",
+      "description": "A decision environment where the decision maker cannot determine the probabilities of future states of nature, making outcomes unpredictable.",
+      "coverage_criteria": [
+        "Explain when a decision is under uncertainty versus risk or certainty.",
+        "Identify situations where probabilities of states of nature are unknown."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines uncertainty as the impossibility to assess likelihood of future events, stating it has more than one state of nature but the decision maker cannot determine probabilities, and explicitly lists it as a decision environment.",
+        "granularity_rationale": "This is a fundamental classification that sets the context for applying specific criteria, small enough to check understanding with a definition and example."
+      },
+      "anchors": [
+        "Uncertainty",
+        "Decision Environments"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_001",
+      "label": "Cost-based Decision Making Without Probabilities",
+      "description": "When payoffs are costs, decision making under uncertainty involves choosing an alternative to minimize cost, using approaches like optimistic, conservative, or minimax regret.",
+      "coverage_criteria": [
+        "Student can explain that for cost payoffs, the goal is to minimize, and can name at least two decision criteria used without probabilities."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video opens by stating it will discuss decision making without probabilities where cost is involved and lists the three approaches.",
+        "granularity_rationale": "This concept encapsulates the overall framework before diving into each method, making it a checkable unit."
+      },
+      "anchors": [
+        "0:00 Decision Making Without Probabilities (Cost Example)"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-001",
+      "label": "Payoff Table Structure",
+      "description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes.",
+      "coverage_criteria": [
+        "Given a description, construct a payoff table.",
+        "Identify alternatives and states in a payoff table."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_001",
+        "c18_pro_thinking_007"
+      ],
+      "merge_rationale": "Both candidates describe the same fundamental structure; merging provides a comprehensive definition."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-002",
+      "label": "Maximax (Optimistic) Criterion",
+      "description": "An optimistic approach: select the alternative with the best possible outcome. For profits, maximize the maximum; for costs, minimize the minimum.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion.",
+        "Explain the optimistic philosophy."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_002",
+        "c16_pro_thinking_002",
+        "c18_pro_thinking_002"
+      ],
+      "merge_rationale": "All three teach the same optimistic selection principle applied to different contexts."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-003",
+      "label": "Maximin (Conservative) Criterion",
+      "description": "A conservative approach: select the alternative with the best worst-case outcome. For profits, maximize the minimum; for costs, minimize the maximum.",
+      "coverage_criteria": [
+        "Apply maximin to a payoff table.",
+        "Explain the conservative assumption."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_003",
+        "c16_pro_thinking_003",
+        "c18_pro_thinking_003"
+      ],
+      "merge_rationale": "All three teach the same conservative principle applied to different contexts."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-004",
+      "label": "Minimax Regret Criterion",
+      "description": "A decision criterion that minimizes the maximum regret. Regret is the difference between the best possible payoff and the actual payoff for each state. The alternative with the smallest maximum regret is chosen.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Apply the minimax regret criterion."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_004",
+        "c16_pro_thinking_004",
+        "c18_pro_thinking_004"
+      ],
+      "merge_rationale": "All three candidates teach the same multi-step procedure, with minor context variations."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-005",
+      "label": "Decision Making Under Uncertainty",
+      "description": "A decision environment where the probabilities of future states of nature are unknown. Decision criteria such as maximax, maximin, and minimax regret are used to choose alternatives.",
+      "coverage_criteria": [
+        "Explain when a decision is under uncertainty.",
+        "Name at least two criteria applicable under uncertainty."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_001",
+        "c16_pro_thinking_001"
+      ],
+      "merge_rationale": "c18 defines the environment; c16 introduces the application to costs."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-006",
+      "label": "Laplace Criterion",
+      "description": "A decision criterion that assumes all states of nature are equally likely and selects the alternative with the highest average payoff.",
+      "coverage_criteria": [
+        "Apply the Laplace criterion to a payoff table.",
+        "Explain the equal likelihood assumption."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_005"
+      ],
+      "merge_rationale": "A distinct criterion."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-05-06-decision-making-tools-i-007",
+      "label": "Hurwicz Criterion",
+      "description": "A decision criterion that balances optimism and pessimism using a coefficient of optimism (α). It computes a weighted average of the best and worst payoffs for each alternative.",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and α.",
+        "Explain how α reflects optimism."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_006"
+      ],
+      "merge_rationale": "A distinct criterion."
+    }
+  ],
+  "current_pruned_candidates": [
+    {
+      "candidate_id": "c17_pro_thinking_001",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "This candidate covers a theoretical treatment of minimax regret beyond the scope of an introductory decision-making tools lesson."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_002",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Provides an advanced regret formula with discounting, not needed for basic decision tools."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_003",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Bernoulli equivalent rules are an advanced bandit technique, off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_004",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Worst case prior is a theoretical concept linking to Bayesian optimality, beyond introductory level."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_005",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Single-round memory rule for bandits is too specific and advanced for this lesson."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_006",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Two-round memory rule (Robbins' rule) is a bandit-specific algorithm, not a basic decision tool."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_007",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "The equivalence theorem is a theoretical result not required for an introductory lesson."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_008",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Continuous payoff model (S-model) is an extension for bandits, beyond the scope of basic decision criteria."
+    }
+  ],
+  "current_review_candidates": [],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

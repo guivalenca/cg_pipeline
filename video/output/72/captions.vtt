@@ -1,0 +1,203 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:15.880
+ Hello guys, in this video we will talk about TF-IDF and how it should be calculated with
+
+00:00:15.880 --> 00:00:22.800
+ a very simple example. So, let's start. A very popular representation for text is
+
+00:00:22.800 --> 00:00:29.600
+ a product of term frequency and inverse document frequency, commonly referred to as TF-IDF.
+
+00:00:30.000 --> 00:00:39.240
+ The TF-IDF value of a term T in a given document D is like this. Note that a TF-IDF value is
+
+00:00:39.240 --> 00:00:46.720
+ specific to a single document D, where IDF depends on the entire corpus. Systems employing the
+
+00:00:46.720 --> 00:00:52.840
+ back of words representation typically go through steps of stemming and stop words elimination
+
+00:00:52.840 --> 00:00:59.320
+ before doing term counts. Term counts within the document from the TF values
+
+00:00:59.320 --> 00:01:06.440
+ for each term and the document counts across the corpus from the IDF values. Each document
+
+00:01:06.440 --> 00:01:12.920
+ thus becomes a feature vector and the corpus is set of these feature vectors. This can be
+
+00:01:12.920 --> 00:01:18.560
+ used in a data mining algorithm for classification, clustering or retrieval.
+
+00:01:18.560 --> 00:01:25.880
+ That was a quick introduction to TF-IDF and now let's go to a simple task. Let's have a situation.
+
+00:01:25.880 --> 00:01:34.520
+ We have some sentences. The first one is: A quick brown fox jumps over the lazy dog. What a fox!
+
+00:01:34.520 --> 00:01:42.120
+ The second one: A quick brown fox jumps over the lazy fox. What a fox!
+
+00:01:42.120 --> 00:01:53.160
+ Please keep in mind that all the sentences in our corpus are defined as small d. So we have D1 and D2.
+
+00:01:53.160 --> 00:02:04.040
+ Based on this rule, our corpus is defined as the big D. Now we have some data. This data led us to shape a main question.
+
+00:02:04.040 --> 00:02:18.200
+ And the question is like this: How word fox is relevant to corpus-D documents? Remember we have documents D1 and D2.
+
+00:02:18.200 --> 00:02:26.360
+ Let's go to the solution part. Let's start in here with some definitions. What is DFIDF?
+
+00:02:26.360 --> 00:02:35.000
+ In the first part of this calculation we need to clarify that DF is the frequency of any term in a given
+
+00:02:35.000 --> 00:02:43.880
+ document. We need to calculate DF for document number one and document number two by a given
+
+00:02:43.880 --> 00:02:55.160
+ argument, a word fox. So let's calculate. For document number one we have 12 words in total. In this context,
+
+00:02:55.160 --> 00:03:03.640
+ we have a word fox occurred two times. Knowing this information we can calculate DF like this.
+
+00:03:03.640 --> 00:03:17.240
+ 2 divided by 12 equals 0.17. In the same way we calculate DF for document number two. In this case,
+
+00:03:17.240 --> 00:03:24.760
+ we have fox occurred three times in this document. So the calculation will be as follow.
+
+00:03:25.160 --> 00:03:38.280
+ 3 divided by 12 equal to 0.25. Keeping in mind that D1 and D2 has the same number of total words.
+
+00:03:38.280 --> 00:03:46.040
+ The first part of calculation is done. Now we have to move to the second part. We need to calculate
+
+00:03:46.680 --> 00:03:55.960
+ IDF. IDF. IDF is constant per corpus and account for the ratio of documents that include data specific term.
+
+00:03:55.960 --> 00:04:04.920
+ We need to calculate IDF for full corpus that we have. For this we are using a logarithm.
+
+00:04:04.920 --> 00:04:16.520
+ In this equation, at the upper side, we need to look at how many documents at our corpus a given word fox is accurate.
+
+00:04:17.480 --> 00:04:25.160
+ Now we see that award fox is accurate in document number one and in document number two.
+
+00:04:25.160 --> 00:04:32.360
+ So, at the upper side of our equation, we need to input a value of two.
+
+00:04:32.360 --> 00:04:41.160
+ On the lower side of this equation, we have to input a value of total documents that our corpus consists of.
+
+00:04:41.160 --> 00:04:49.560
+ And that means we have to input value of two because we have two documents in total in our corpus.
+
+00:04:50.280 --> 00:04:57.960
+ That resulting into logarithm 2 divided by two and it is equal to zero.
+
+00:04:57.960 --> 00:05:06.840
+ Now we have enough information to calculate TF IDF for all documents in our corpus D.
+
+00:05:07.560 --> 00:05:17.800
+ We have document number one and document number two. So, we will calculate TF IDF separately for each document in our corpus.
+
+00:05:18.440 --> 00:05:30.680
+ For the first document, TF IDF equal to 0.17 from the first part of our calculation multiplied by 0.
+
+00:05:30.680 --> 00:05:32.920
+ It is from second part of our calculation.
+
+00:05:32.920 --> 00:05:35.640
+ And it is equal to zero.
+
+00:05:35.640 --> 00:05:43.320
+ For the second document, we calculate TF IDF in the same rules that we applied for the first document.
+
+00:05:43.320 --> 00:05:48.760
+ Let's do like this. 0.25 from the first part of our calculation.
+
+00:05:48.760 --> 00:05:54.840
+ And multiplied by 0 from the second part of our calculations.
+
+00:05:54.840 --> 00:05:57.320
+ And it is equal to zero.
+
+00:05:57.320 --> 00:06:04.040
+ Now we have calculated TF IDF for all documents in our corpus.
+
+00:06:04.040 --> 00:06:09.000
+ And for document number one, TF IDF equal to zero.
+
+00:06:09.000 --> 00:06:16.280
+ For the second document in our corpus, we have calculated TF IDF and it is equal to zero again.
+
+00:06:16.280 --> 00:06:22.040
+ Now we have calculated TF IDF for all the documents in our corpus.
+
+00:06:22.040 --> 00:06:26.760
+ And that means that now we can answer to the main question in this task.
+
+00:06:26.760 --> 00:06:31.320
+ How a word fox is relevant to corpus D documents?
+
+00:06:32.120 --> 00:06:41.880
+ And the answer is: Using TF IDF that we have calculated just before, the word fox is equally relevant
+
+00:06:41.880 --> 00:06:49.480
+ for both documents D1 and document D2 because we have the same values of TF IDF.
+
+00:06:49.480 --> 00:06:50.920
+ It's zero.
+
+00:06:50.920 --> 00:06:57.880
+ This calculation can be applied in any amount of documents that you have in your corpus.
+
+00:06:58.920 --> 00:07:03.880
+ And one more time again, what is TF and IDF?
+
+00:07:03.880 --> 00:07:10.440
+ TF is a simple choice to use the raw count of a term in a document.
+
+00:07:10.440 --> 00:07:17.960
+ And the IDF, inverse document frequency, is a measurement of how much information the word
+
+00:07:17.960 --> 00:07:20.200
+ provides in our corpus.
+
+00:07:20.200 --> 00:07:25.000
+ By saying corpus, I mean across all the documents that we are having.
+
+00:07:26.040 --> 00:07:32.280
+ So by summarizing this video, TF IDF is a statistical measurement that evaluates how
+
+00:07:32.280 --> 00:07:36.120
+ relevant a word is to a document in a collection of documents.
+
+00:07:36.120 --> 00:07:42.520
+ This is done by multiplying two metrics: how many times a word appears in a document,
+
+00:07:42.520 --> 00:07:47.000
+ and the inverse document frequency of the words across the set of documents.
+
+00:07:48.120 --> 00:07:55.640
+ It has many uses, most importantly in automated text analysis, and is very useful for scoring words
+
+00:07:55.640 --> 00:07:58.600
+ in machine learning algorithms for NLP.
+
+00:07:58.600 --> 00:08:03.880
+ TF IDF was invented for document search and information retrieval.
+
+00:08:03.880 --> 00:08:09.240
+ I hope that this video was useful for you, and I wish you never stop learning.
+
+00:08:09.240 --> 00:08:15.640
+ If you like this one, please subscribe me and you will get more similar useful videos in future.
+
+00:08:15.640 --> 00:08:19.160
+ So, see you there.
+

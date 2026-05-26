@@ -1,0 +1,28 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Sparse Bag-of-Words Vectors via Dictionary and doc2bow",
+      "description": "Documents in Gensim are represented as sparse bag-of-words vectors, where each feature is a word count with zeros omitted. The Dictionary class maps words to integer IDs, and doc2bow converts tokenized documents into these vectors.",
+      "coverage_criteria": [
+        "Explain what a Gensim sparse bag-of-words vector is.",
+        "Create a Dictionary from tokenized documents and use doc2bow to produce a sparse BOW vector."
+      ],
+      "source_candidate_ids": ["lr006_014", "lr006_016"],
+      "merge_rationale": "These two candidates describe the same subject concept: representing documents as sparse BOW vectors in Gensim. lr006_014 defines the vector format, and lr006_016 provides the mechanism to create it. They form one teachable idea about document vectorization."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr006_016",
+      "status": "used_in",
+      "accepted_ids": ["sm001"]
+    },
+    {
+      "candidate_id": "lr006_014",
+      "status": "merged_into",
+      "merged_into": "sm001",
+      "explanation": "lr006_014 defines the sparse vector concept that is realized by the Dictionary and doc2bow method in lr006_016, making it part of the same vectorization process."
+    }
+  ]
+}

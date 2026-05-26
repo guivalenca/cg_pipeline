@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "strategy": "video_gemini_two_pass",
+  "settings": {
+    "profile": "triage",
+    "model": "gemini-2.5-flash",
+    "fps": 0.1,
+    "media_resolution": "low",
+    "temperature": 0.2,
+    "max_output_tokens": 4096,
+    "prompt_version": "video_gemini_pass2_v1",
+    "chunk_longer_than_seconds": 3600,
+    "chunk_seconds": 1800,
+    "chunk_overlap_seconds": 5,
+    "max_transcript_chars_per_chunk": 60000,
+    "min_words": 150,
+    "timestamp_span_tolerance_seconds": 180,
+    "timestamp_span_min_ratio": 0.65,
+    "title_similarity_min": 0.45
+  },
+  "pass1_cache_key": "14c997c901e7ca1b37430e20ede24957e1da6c0f36eb35a9aaff4668dbd21bc4",
+  "pass1_transcript_sha256": "0be0a6c401275dd6f1eedfc14ee0702310a2180e9efe02afe6d2a1cf988e1219",
+  "chunks": [
+    {
+      "schema_version": "1.0",
+      "provider": "gemini_multimodal",
+      "strategy": "video_gemini_two_pass",
+      "source_url": "https://www.youtube.com/watch?v=hB51kkus-Rc",
+      "audio_transcript_sha256": "0be0a6c401275dd6f1eedfc14ee0702310a2180e9efe02afe6d2a1cf988e1219",
+      "model": "gemini-2.5-flash",
+      "fps": 0.1,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 4096,
+      "prompt_version": "video_gemini_pass2_v1",
+      "prompt_sha256": "ab9f99a78ad2694b5b5f994238c963a48f943af2cc4fd9b37b983a289854c49e",
+      "chunk": {
+        "index": 1,
+        "start_seconds": null,
+        "end_seconds": null
+      },
+      "media_reference": {
+        "mode": "external_uri",
+        "file_uri": "https://www.youtube.com/watch?v=hB51kkus-Rc",
+        "mime_type": "video/mp4",
+        "video_metadata": {
+          "fps": 0.1
+        }
+      },
+      "prompt": "You are the video acquisition layer for The Companion curriculum pipeline.\n\nTask: convert the provided video into cleaned markdown that downstream concept extraction can process without branching by source type.\n\nSource metadata:\n- XLSX row id: 74\n- XLSX row title: Introduction to Latent Semantic Analysis\n- Source URL or file: https://www.youtube.com/watch?v=hB51kkus-Rc\n- Probed source title: Introduction to Latent Semantic Analysis (1/5)\n- Probed duration seconds: 204.0\n- Chunk window: Full video\n- Gemini model: gemini-2.5-flash\n- Video sampling fps: 0.1\n- Media resolution: low\n- Prompt version: video_gemini_pass2_v1\n\nPass 1 audio transcript for temporal grounding:\n```text\n[00:00] JOSHUA COOK: Hi, my name is Joshua Cook,\n[00:06] and I'm a curriculum developer with Databricks.\n[00:08] Today, we're going to be talking about latent semantic analysis.\n[00:11] There is a link to the notebook I'll\n[00:13] be using in the video description\n[00:14] if you would like to follow along.\n[00:16] Before we begin, let's define some basic vocabulary.\n[00:19] Natural language processing refers\n[00:21] to a family of techniques that are\n[00:22] used to derive meaning from text data.\n[00:25] A document refers to some collection of words\n[00:28] and represents the rows or instances of our data set.\n[00:31] A body is a collection of documents\n[00:34] and represents the entire data set.\n[00:36] A dictionary is the set of all words\n[00:38] that occur in at least one document in the data set.\n[00:42] A topic is a collection of words that co-occur.\n[00:45] In this lesson, we're going to be talking about latent semantic\n[00:48] analysis.\n[00:48] So the word latent means hidden, and in this context\n[00:52] refers to features that cannot be directly measured.\n[00:55] What we're going to be measuring or what has already\n[00:57] been measured are the words that are in our data set.\n[00:59] What we're interested in is latent features, hidden features,\n[01:03] that represent something essential in the data set.\n[01:06] Latent semantic analysis is a natural language processing\n[01:09] technique, as well as an unsupervised learning\n[01:11] technique, this as opposed to supervised learning.\n[01:13] So in supervised learning, we would have a target or a label.\n[01:16] With latent semantic analysis, we don't have this.\n[01:19] We're looking at something that's latent or inherent\n[01:21] to the data itself.\n[01:23] The aim of latent semantic analysis is to create representations\n[01:27] of the text data in terms of these topics or latent features.\n[01:32] A side benefit of this is that we're\n[01:33] going to be able to reduce the dimensionality\n[01:36] of the original text-based data set.\n[01:38] As you can see in this diagram, latent semantic analysis\n[01:41] consists of two steps.\n[01:43] The first step is to generate a document term matrix,\n[01:46] and the second step is to perform a singular value decomposition\n[01:50] on that document term matrix.\n[01:52] The basic idea of a document term matrix\n[01:54] is that text documents can be represented\n[01:57] as points in Euclidean space.\n[01:59] You might know these as vectors.\n[02:02] Here is an example of a document term matrix.\n[02:04] As you can see, each row in this matrix\n[02:06] represents one of our documents.\n[02:08] In this case, one of four simple sentence fragments.\n[02:11] And then each column represents a word from the dictionary.\n[02:15] That is, a word that shows up in at least one\n[02:17] of the four documents.\n[02:20] If you look at the first row, the quick brown fox,\n[02:23] you can see that the word brown has the value 1,\n[02:26] the word fox has the value 1, the word quick has the value 1,\n[02:29] and the word the has the value 1.\n[02:31] And everywhere else is zeros.\n[02:33] So here we see these four documents as vectors.\n[02:36] As you can see, the quick brown fox is 1, 0, 1, 0, 1, 0, 1, 0.\n[02:42] The second step in a latent semantic analysis\n[02:44] is to do a singular value decomposition on the document term matrix.\n[02:48] The singular value decomposition is similar to a principal component\n[02:52] analysis, if you're familiar with this statistical technique.\n[02:55] It's going to reduce the dimensionality of the original data set\n[02:59] by encoding it using these latent features.\n[03:02] With latent semantic analysis, these latent features\n[03:04] represent topics in the original text data.\n[03:08] In the next few videos, we're going\n[03:09] to be looking at building a latent semantic analysis\n[03:12] using the open source Python library scikit-learn.\n[03:16] First, we'll look at a trivial implementation\n[03:18] using these four sentence fragments that we just looked at.\n```\n\nReturn only the markdown body. Do not include YAML frontmatter.\n\nRequired markdown structure:\n\n## [MM:SS] Concise moment heading\n\n**Spoken content:** faithful summary or transcript-aligned excerpt of what is being said at this timestamp.\n\n**On-screen content:** slide text, code, equations, diagrams, tables, terminal output, whiteboard content, or visible UI state at this timestamp.\n\nVisual reference rule:\n- When a slide, diagram, chart, equation, code block, table, whiteboard, or UI state is useful for downstream extraction, emit an inline image placeholder using this exact form:\n  ![descriptive alt text](video-frame://74@MM:SS)\n- Use H:MM:SS in the URI timestamp when needed.\n- The alt text must briefly name the visual type and key labels, for example: ![diagram: tokenization pipeline with normalization, vectorization, classifier](video-frame://74@12:34)\n- Do not emit JSON for diagrams. The downstream Qwen-VL phase will convert frame placeholders to structured JSON later.\n\nBehavior rules:\n- Use the Pass 1 transcript as the timing anchor, but focus model capacity on visual reasoning.\n- Preserve code blocks with fenced markdown.\n- Preserve equations in readable markdown/LaTeX form.\n- Do not invent content outside the video or outside the chunk window.\n- Do not describe blank or repeated frames unless the visual content changes.\n- Prefer timestamp sections that span the whole chunk/video, not a dense frame-by-frame log.\n- If speech and visuals disagree, say so explicitly inside the relevant timestamp section.\n"
+    }
+  ],
+  "credential_fields_redacted": true
+}

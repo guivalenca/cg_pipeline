@@ -1,0 +1,446 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+  "lesson": {
+    "id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "title": "Decision-making process and fundamentals of decision-making approaches.",
+    "description": "This lesson provides an overview of how people make decisions, exploring the factors that influence good or bad choices and the main cognitive biases. It also discusses practical strategies for making decisions more quickly and efficiently. Finally, it delves into the understanding of outcome bias, showing the risks of evaluating decisions solely based on their outcomes.",
+    "date": "23/04/2026",
+    "display_code": "L01"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-26T17:51:33.847708+00:00",
+    "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "lesson": {
+      "id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+      "title": "Decision-making process and fundamentals of decision-making approaches.",
+      "description": "This lesson provides an overview of how people make decisions, exploring the factors that influence good or bad choices and the main cognitive biases. It also discusses practical strategies for making decisions more quickly and efficiently. Finally, it delves into the understanding of outcome bias, showing the risks of evaluating decisions solely based on their outcomes.",
+      "date": "23/04/2026",
+      "display_code": "L01"
+    },
+    "scores": {
+      "concept_validity": 1,
+      "granularity": 3,
+      "evidence_preservation": 3,
+      "assignment_quality": 3,
+      "pruning_review_quality": 3,
+      "coverage_criteria": 3,
+      "lesson_coherence": 1,
+      "net_phase4_benefit": 1
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "off_lesson_accepted"
+    ],
+    "metrics": {
+      "input_candidate_count": 27,
+      "reconciled_candidate_count": 16,
+      "pruned_candidate_count": 8,
+      "review_count": 0,
+      "deterministic_review_count": 0,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 2,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 1,
+      "off_lesson_accepted_count": 2,
+      "accepted_candidate_assignment_count": 19,
+      "source_body_candidate_count": 25,
+      "assignment_count": 27,
+      "accepted_ratio": 0.5926,
+      "pruned_ratio": 0.2963,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0625,
+      "review_ratio": 0.0
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "off_lesson_accepted",
+        "candidate_ids": [
+          "c3_pro_thinking_001",
+          "c3_pro_thinking_010"
+        ],
+        "explanation": "Accepted setup, repository, administration, download, or career material needs targeted lesson-local recheck."
+      }
+    ]
+  },
+  "repair_reason": "off_lesson_accepted",
+  "target_candidate_ids": [
+    "c3_pro_thinking_001",
+    "c3_pro_thinking_010"
+  ],
+  "target_candidates": [
+    {
+      "id": "c3_pro_thinking_001",
+      "label": "PESTEL Analysis Definition",
+      "description": "PESTEL is a strategic framework that evaluates the Political, Economic, Social, Technological, Environmental, and Legal factors in a firm's business environment.",
+      "coverage_criteria": [
+        "State the six components of PESTEL analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines PESTEL as a framework for evaluating business environment factors and breaks down the acronym.",
+        "granularity_rationale": "The definition is a foundational concept that can be checked with a single recall question."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    },
+    {
+      "id": "c3_pro_thinking_010",
+      "label": "Evolution from PEST to PESTEL",
+      "description": "PESTEL originally was PEST, covering Political, Economic, Social, Technological factors, and later expanded to include Environmental and Legal factors.",
+      "coverage_criteria": [
+        "State which two factors were added to the original PEST framework to create PESTEL."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's definition section notes the historical extension from PEST to PESTEL.",
+        "granularity_rationale": "This is a simple historical fact about the framework's evolution."
+      },
+      "anchors": [
+        "What is a PESTEL Analysis?"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-001",
+      "label": "PESTEL Analysis: Definition and Evolution",
+      "description": "PESTEL is a strategic framework that evaluates Political, Economic, Social, Technological, Environmental, and Legal factors in a firm's business environment. Originally known as PEST, it later expanded to include Environmental and Legal factors.",
+      "coverage_criteria": [
+        "State the six components of PESTEL and explain how the framework evolved from PEST."
+      ],
+      "source_candidate_ids": [
+        "c3_pro_thinking_001",
+        "c3_pro_thinking_010"
+      ],
+      "merge_rationale": "These candidates cover the same foundational concept: the definition and historical development of PESTEL."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-002",
+      "label": "Integration of PESTEL with Other Frameworks",
+      "description": "Insights from a PESTEL analysis can be incorporated into strategic frameworks such as Ansoff's matrix, Porter's 5 forces, and SWOT analysis to support comprehensive decision-making.",
+      "coverage_criteria": [
+        "Name at least two strategic frameworks that can utilize PESTEL outputs."
+      ],
+      "source_candidate_ids": [
+        "c3_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate explaining how PESTEL integrates with other decision-making tools."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-003",
+      "label": "Use of PESTEL in Financial Analysis",
+      "description": "In financial analysis, PESTEL factors influence model assumptions such as revenue growth, profit margins, cash reserves for carbon taxes, and debt service coverage ratios, aiding in risk assessment and forecasting.",
+      "coverage_criteria": [
+        "Give an example of how a PESTEL factor might affect a financial model assumption."
+      ],
+      "source_candidate_ids": [
+        "c3_pro_thinking_009"
+      ],
+      "merge_rationale": "Single candidate describing an applied use of PESTEL in financial decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-004",
+      "label": "Delaying Intuition and Structured Judgment",
+      "description": "A decision-making approach that involves delaying intuitive judgments and instead collecting information on specific, independent attributes systematically before forming an overall evaluation. This method reduces bias and improves accuracy, as demonstrated in personnel selection contexts like the IDF and Google hiring.",
+      "coverage_criteria": [
+        "Explain why delaying intuition leads to better decisions.",
+        "Describe Kahneman's structured interviewing method and how it differs from holistic judgment.",
+        "Identify conditions under which intuition is reliable."
+      ],
+      "source_candidate_ids": [
+        "c4_pro_thinking_001",
+        "c4_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates from the same source describe the same core strategy: systematically gathering attribute information before judgment. They complement each other with rationale and application examples."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-005",
+      "label": "Optimism Bias in Decision-Making",
+      "description": "Optimism bias is the cognitive tendency to overestimate one's abilities and underestimate risks, leading to a high rate of failure among entrepreneurs but also fueling innovation and economic growth, as excessive risk-taking drives capitalism.",
+      "coverage_criteria": [
+        "Define optimism bias in decision-making.",
+        "Explain how optimism can be both detrimental and beneficial.",
+        "Summarize Kahneman's perspective on the necessity of excessive optimism for large successes."
+      ],
+      "source_candidate_ids": [
+        "c4_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate on the dual nature of optimism bias."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-006",
+      "label": "Judgment Noise",
+      "description": "Noise in human judgment refers to unwanted variability in decisions that should be similar. This variability is consistently underestimated by observers, as demonstrated by studies showing insurance underwriters' assessments varying more than expected.",
+      "coverage_criteria": [
+        "Define judgment noise.",
+        "Provide an example of judgment noise.",
+        "Explain why people underestimate noise."
+      ],
+      "source_candidate_ids": [
+        "c4_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate explaining the concept of noise in decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-007",
+      "label": "Consider Many Different Viewpoints in Decision-Making",
+      "description": "Great decisions are shaped by consideration of many different viewpoints, without seeking consensus but not acting unilaterally; it requires discernment on whose opinion to seek and when to force a solution.",
+      "coverage_criteria": [
+        "Explain why considering many different viewpoints shapes great decisions.",
+        "Describe how to balance seeking input versus making a unilateral decision."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_001"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-008",
+      "label": "Make Decisions Close to the Action",
+      "description": "Great decisions are made as close as possible to the action, involving those who do the work rather than only those in power, which requires trust and putting ego aside.",
+      "coverage_criteria": [
+        "Describe why involving front-line workers improves decision quality.",
+        "Identify situations where it is better to seek advice from those at the operational level."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_002"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-009",
+      "label": "Address Root Cause in Decision-Making",
+      "description": "Great decisions address the root cause of problems, not just symptoms, by engaging people who understand where issues originated and developing plans to fix the underlying cause.",
+      "coverage_criteria": [
+        "Differentiate between symptoms and root causes in a decision context.",
+        "Explain why focusing on root causes leads to more effective decisions."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_003"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-010",
+      "label": "Assign Clear Accountability in Decisions",
+      "description": "Great decisions are made by a clearly accountable person who stands behind their decisions, even if they later turn out to be mistakes.",
+      "coverage_criteria": [
+        "Explain the importance of clear accountability in decision-making.",
+        "Describe how accountability fosters ownership and integrity in the decision process."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_004"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-011",
+      "label": "Balance Short-Term and Long-Term Value in Decisions",
+      "description": "Great decisions consider the holistic impacts of a problem and balance long-term and short-term value, sometimes requiring sacrifice of immediate efficiency for long-term competence.",
+      "coverage_criteria": [
+        "Discuss how to evaluate trade-offs between short-term gains and long-term value in decision-making.",
+        "Provide examples where short-term sacrifices lead to long-term benefits."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_005"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-012",
+      "label": "Communicate Decisions Effectively to Stakeholders",
+      "description": "Great decisions are communicated well to stakeholders, involving honesty and integrity even when facing difficult audiences or consequences.",
+      "coverage_criteria": [
+        "Outline key principles for effectively communicating decisions to stakeholders.",
+        "Explain the importance of transparency and integrity in decision communication."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_006"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-013",
+      "label": "Make Timely Decisions",
+      "description": "Great decisions are timely; they avoid procrastination, fear of mistakes, or blame-shifting by charting the best course forward with available information and acting promptly.",
+      "coverage_criteria": [
+        "Explain the importance of timeliness in decision-making.",
+        "Identify common barriers to timely decisions such as perfectionism or fear of disapproval."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-014",
+      "label": "Balance Gut Instinct with Team Considerations",
+      "description": "While trusting one's gut can be valuable, great decisions also require considering whether that instinct is the best course for everyone involved.",
+      "coverage_criteria": [
+        "Discuss the role of intuition in decision-making.",
+        "Describe when it is appropriate to rely on gut instinct versus when broader team or organizational considerations should prevail."
+      ],
+      "source_candidate_ids": [
+        "c5_pro_thinking_008"
+      ],
+      "merge_rationale": "Standalone principle from the source article on great decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-015",
+      "label": "Linear Thinking and Exponential Change",
+      "description": "The cognitive limitation that humans think linearly, making it difficult to properly assess exponential technological growth, which can lead to flawed decisions about technology adoption.",
+      "coverage_criteria": [
+        "Explain why humans are ill-suited to grasp exponential change.",
+        "Identify possible social consequences of rapid technological development.",
+        "Compare ex-ante and ex-post views on technological adoption."
+      ],
+      "source_candidate_ids": [
+        "c4_pro_thinking_007"
+      ],
+      "merge_rationale": "Standalone candidate on a cognitive bias impacting decision-making."
+    },
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches-016",
+      "label": "Outcome Bias and Evaluating Decision Quality",
+      "description": "Outcome bias is the tendency to evaluate the quality of a decision based solely on its outcomes. To evaluate decisions effectively, one must consider the decision process and not just outcomes.",
+      "coverage_criteria": [
+        "Define outcome bias and give an example.",
+        "Explain why evaluating decisions by outcomes alone can be misleading.",
+        "Describe how a process-based evaluation differs from an outcome-based evaluation."
+      ],
+      "source_candidate_ids": [
+        "m6_001",
+        "m6_002"
+      ],
+      "merge_rationale": "These two metadata candidates are closely related: one defines outcome bias, the other discusses the broader need to evaluate decisions beyond outcomes. Together they form a cohesive concept on avoiding outcome-based judgment."
+    }
+  ],
+  "current_pruned_candidates": [
+    {
+      "candidate_id": "c3_pro_thinking_002",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of political factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c3_pro_thinking_003",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of economic factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c3_pro_thinking_004",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of social factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c3_pro_thinking_005",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of technological factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c3_pro_thinking_006",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of environmental factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c3_pro_thinking_007",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Detailed description of legal factors is not essential for a lesson on decision-making fundamentals; the overall PESTEL framework suffices."
+    },
+    {
+      "candidate_id": "c4_pro_thinking_005",
+      "pruning_reason": "unrelated",
+      "explanation": "This candidate discusses AI replacing white-collar professionals, not a decision-making process or fundamental approach. It is off-topic for a lesson on decision-making."
+    },
+    {
+      "candidate_id": "c4_pro_thinking_006",
+      "pruning_reason": "incidental",
+      "explanation": "Adversarial collaboration is a method for resolving scientific controversies, not a core decision-making fundamental or widely applicable approach for this lesson."
+    }
+  ],
+  "current_review_candidates": [],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

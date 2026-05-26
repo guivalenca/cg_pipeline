@@ -1,0 +1,2086 @@
+WEBVTT
+Kind: captions
+Language: pt
+
+00:00:00.240 --> 00:00:04.080
+oi bem vindo ao novo video então
+
+00:00:02.879 --> 00:00:06.640
+hoje vamos passar por isso
+
+00:00:04.080 --> 00:00:08.639
+papel, é na verdade uma pré-impressão que é
+
+00:00:06.640 --> 00:00:10.160
+intitulado como resumo de texto automático
+
+00:00:08.639 --> 00:00:13.759
+de secreto 19 médico
+
+00:00:10.160 --> 00:00:16.720
+artigos de pesquisa usando nascimento no gpd2
+
+00:00:13.759 --> 00:00:17.920
+é um artigo muito recente em junho de 2020
+
+00:00:16.720 --> 00:00:20.880
+de pesquisadores em
+
+00:00:17.920 --> 00:00:22.240
+rockfellow universidade ok então vamos ver
+
+00:00:20.880 --> 00:00:24.400
+o papel
+
+00:00:22.240 --> 00:00:26.640
+o desafio de dados de pesquisa aberta do código 19 tem
+
+00:00:24.400 --> 00:00:28.000
+lançou um corpus de artigos acadêmicos
+
+00:00:26.640 --> 00:00:30.160
+e está pedindo aprendizado de máquina
+
+00:00:28.000 --> 00:00:32.000
+abordagens para ajudar a preencher a lacuna
+
+00:00:30.160 --> 00:00:33.520
+entre os pesquisadores e o rápido
+
+00:00:32.000 --> 00:00:35.200
+publicações em crescimento
+
+00:00:33.520 --> 00:00:37.600
+aqui nós aproveitamos o recente
+
+00:00:35.200 --> 00:00:40.559
+avanços em modelos nlp pré-treinados
+
+00:00:37.600 --> 00:00:41.280
+bird e gpt2 ao ar livre para resolver isso
+
+00:00:40.559 --> 00:00:43.120
+desafio
+
+00:00:41.280 --> 00:00:44.399
+realizando um resumo técnico em
+
+00:00:43.120 --> 00:00:46.640
+este conjunto de dados
+
+00:00:44.399 --> 00:00:48.480
+ok, então eles recebem um conjunto de pesquisas
+
+00:00:46.640 --> 00:00:49.760
+artigos que estão relacionados ao tópico de
+
+00:00:48.480 --> 00:00:52.160
+código 19
+
+00:00:49.760 --> 00:00:54.160
+como parte de algum desafio para que os autores
+
+00:00:52.160 --> 00:00:54.559
+basicamente usaremos o bert no gpt
+
+00:00:54.160 --> 00:00:56.079
+2
+
+00:00:54.559 --> 00:00:58.399
+para realizar a sumarização daquelas
+
+00:00:56.079 --> 00:01:00.320
+artigos de pesquisa ok
+
+00:00:58.399 --> 00:01:01.760
+avaliamos os resultados usando a pontuação raiz
+
+00:01:00.320 --> 00:01:04.000
+e inspeções visuais
+
+00:01:01.760 --> 00:01:06.080
+então ruge é uma matriz frequentemente usada
+
+00:01:04.000 --> 00:01:07.840
+nos cenários de sumarização para
+
+00:01:06.080 --> 00:01:10.400
+avaliando quão bom é um resumo
+
+00:01:07.840 --> 00:01:12.640
+modelo é baseado em n-gram
+
+00:01:10.400 --> 00:01:14.159
+sobreposição entre as palavras sobre o que você
+
+00:01:12.640 --> 00:01:17.040
+produzido como parte do resumo
+
+00:01:14.159 --> 00:01:18.640
+e qual foi o resumo fundamentado ok
+
+00:01:17.040 --> 00:01:19.360
+e eles também usam alguma inspeção visual
+
+00:01:18.640 --> 00:01:21.360
+Eles só
+
+00:01:19.360 --> 00:01:23.840
+dê uma olhada em como os resumos são bons
+
+00:01:21.360 --> 00:01:25.119
+são um modelo que fornece abstrações e
+
+00:01:23.840 --> 00:01:26.720
+informação compreensiva
+
+00:01:25.119 --> 00:01:28.479
+com base em palavras-chave extraídas de
+
+00:01:26.720 --> 00:01:30.400
+artigos originais
+
+00:01:28.479 --> 00:01:31.759
+um trabalho pode ajudar a comunidade médica por
+
+00:01:30.400 --> 00:01:33.680
+fornecendo sucesso e resumos de
+
+00:01:31.759 --> 00:01:36.400
+artigos para os quais o resumo é
+
+00:01:33.680 --> 00:01:37.439
+ainda não disponível ok e daí
+
+00:01:36.400 --> 00:01:39.280
+eles estão dizendo que estão fazendo
+
+00:01:37.439 --> 00:01:41.280
+resumo abstrativo
+
+00:01:39.280 --> 00:01:43.119
+com base nas palavras-chave extraídas
+
+00:01:41.280 --> 00:01:45.759
+dos documentos originais
+
+00:01:43.119 --> 00:01:46.320
+Resumindo, eles estão usando burton gpt2
+
+00:01:45.759 --> 00:01:48.240
+modelo
+
+00:01:46.320 --> 00:01:49.920
+para fazer o resumo que é de
+
+00:01:48.240 --> 00:01:51.920
+tempo abstrativo
+
+00:01:49.920 --> 00:01:53.439
+com base nas palavras-chave que extraem
+
+00:01:51.920 --> 00:01:56.880
+do documento de entrada
+
+00:01:53.439 --> 00:01:59.280
+ok, vamos continuar ok, então o código
+
+00:01:56.880 --> 00:02:02.799
+19 desafio de conjunto de dados de pesquisa aberto
+
+00:01:59.280 --> 00:02:05.520
+teve cerca de 59.000 artigos acadêmicos
+
+00:02:02.799 --> 00:02:06.399
+que incluiu 47.000 textos completos sobre
+
+00:02:05.520 --> 00:02:08.319
+encoberto 19
+
+00:02:06.399 --> 00:02:10.399
+e doenças relacionadas, então eles falam
+
+00:02:08.319 --> 00:02:11.920
+sobre resumo de texto em geral
+
+00:02:10.399 --> 00:02:13.440
+o resumo automático de texto é um
+
+00:02:11.920 --> 00:02:15.280
+área ativa de pesquisa com foco em
+
+00:02:13.440 --> 00:02:16.959
+condensar grandes pedaços de texto em
+
+00:02:15.280 --> 00:02:17.920
+texto menor mantendo o relevante
+
+00:02:16.959 --> 00:02:20.480
+em formação
+
+00:02:17.920 --> 00:02:23.040
+ok então é uma área de pesquisa que fala
+
+00:02:20.480 --> 00:02:25.280
+sobre condensar um grande pedaço de texto
+
+00:02:23.040 --> 00:02:27.520
+em algumas frases ou em algumas centenas
+
+00:02:25.280 --> 00:02:29.599
+palavras, mantendo o relevante
+
+00:02:27.520 --> 00:02:31.280
+informações do artigo original
+
+00:02:29.599 --> 00:02:32.959
+então geralmente há duas abordagens para
+
+00:02:31.280 --> 00:02:34.000
+primeiro é chamado de extrativo
+
+00:02:32.959 --> 00:02:36.000
+resumo
+
+00:02:34.000 --> 00:02:38.160
+que visa extrair e
+
+00:02:36.000 --> 00:02:41.200
+concatenando as extensões importantes
+
+00:02:38.160 --> 00:02:43.440
+do texto fonte, então isso inclui
+
+00:02:41.200 --> 00:02:45.680
+dando pontuação importante para cada texto
+
+00:02:43.440 --> 00:02:47.599
+segmentos que geralmente são frases
+
+00:02:45.680 --> 00:02:49.680
+do documento original e então
+
+00:02:47.599 --> 00:02:50.400
+concatenando essas frases lado a lado
+
+00:02:49.680 --> 00:02:52.560
+lado
+
+00:02:50.400 --> 00:02:53.840
+para n número de sentenças que se torna
+
+00:02:52.560 --> 00:02:56.080
+seu resumo final
+
+00:02:53.840 --> 00:02:57.440
+falando sobre abstrativo o segundo
+
+00:02:56.080 --> 00:02:59.120
+abordagem enfoque na geração de novos
+
+00:02:57.440 --> 00:02:59.760
+resumos que parafraseiam a fonte
+
+00:02:59.120 --> 00:03:01.680
+texto
+
+00:02:59.760 --> 00:03:04.159
+então, a abordagem abstrativa principalmente
+
+00:03:01.680 --> 00:03:06.959
+concentra-se em reescrever todo o conceito
+
+00:03:04.159 --> 00:03:08.879
+ou o documento em um formato muito curto
+
+00:03:06.959 --> 00:03:11.120
+esse tipo de paráfrase
+
+00:03:08.879 --> 00:03:13.360
+o documento original enquanto ainda
+
+00:03:11.120 --> 00:03:15.120
+retendo os conceitos essenciais
+
+00:03:13.360 --> 00:03:17.280
+ao contrário do extrativo que fala sobre
+
+00:03:15.120 --> 00:03:19.599
+extraindo frases importantes
+
+00:03:17.280 --> 00:03:21.599
+ok as abordagens extrativas mostram alta
+
+00:03:19.599 --> 00:03:22.879
+correção gramatical e a exatidão
+
+00:03:21.599 --> 00:03:25.040
+de acordo com a pesquisa, o que tem sido
+
+00:03:22.879 --> 00:03:26.799
+acontecendo ao contrário
+
+00:03:25.040 --> 00:03:28.560
+abordagem abstrativa é mais desafiadora
+
+00:03:26.799 --> 00:03:29.440
+devido ao fato de que o modelo deve ser capaz
+
+00:03:28.560 --> 00:03:31.360
+representar
+
+00:03:29.440 --> 00:03:33.680
+informação semântica da fonte
+
+00:03:31.360 --> 00:03:35.599
+texto e, em seguida, usar essas informações para
+
+00:03:33.680 --> 00:03:37.599
+gerar as paráfrases
+
+00:03:35.599 --> 00:03:39.680
+no entanto, o modelo pode ganhar a capacidade de
+
+00:03:37.599 --> 00:03:42.319
+faça uso criativo de palavras e habilidade
+
+00:03:39.680 --> 00:03:44.239
+para fazer inferência a partir do texto fonte
+
+00:03:42.319 --> 00:03:46.080
+ok então o que eles estão dizendo é o
+
+00:03:44.239 --> 00:03:47.760
+a sumarização do extrator em geral é
+
+00:03:46.080 --> 00:03:49.200
+gramaticalmente correto
+
+00:03:47.760 --> 00:03:51.599
+porque você está essencialmente extraindo
+
+00:03:49.200 --> 00:03:53.200
+as sentenças do documento original
+
+00:03:51.599 --> 00:03:54.879
+que se presume ser gramaticalmente
+
+00:03:53.200 --> 00:03:56.560
+correto em primeiro lugar
+
+00:03:54.879 --> 00:03:58.640
+enquanto falar sobre abstração é
+
+00:03:56.560 --> 00:04:00.000
+muito mais difícil porque reescrever
+
+00:03:58.640 --> 00:04:02.159
+tudo como os humanos fariam
+
+00:04:00.000 --> 00:04:03.840
+modelo de sumarização deve ser totalmente
+
+00:04:02.159 --> 00:04:05.280
+entender o documento original no
+
+00:04:03.840 --> 00:04:06.879
+primeiro lugar
+
+00:04:05.280 --> 00:04:08.879
+e usar criativamente as palavras e
+
+00:04:06.879 --> 00:04:10.080
+estique-os para fazer um resumo
+
+00:04:08.879 --> 00:04:14.480
+fora disso
+
+00:04:10.080 --> 00:04:16.959
+ok vamos seguir em frente
+
+00:04:14.480 --> 00:04:18.400
+ok, então os autores também falam sobre um
+
+00:04:16.959 --> 00:04:19.519
+desafio adicional que eles enfrentam em
+
+00:04:18.400 --> 00:04:22.400
+esta tarefa
+
+00:04:19.519 --> 00:04:24.240
+que é sobre poucos recursos, então eles dizem
+
+00:04:22.400 --> 00:04:26.880
+ao contrário do resumo mais geral
+
+00:04:24.240 --> 00:04:29.360
+como cnn conjunto de dados de correio diário que tem
+
+00:04:26.880 --> 00:04:31.199
+tantos pares de resumo de documentos a capa
+
+00:04:29.360 --> 00:04:34.080
+19 literatura relacionada
+
+00:04:31.199 --> 00:04:35.680
+contém aproximadamente 35.000.000 de texto completo
+
+00:04:34.080 --> 00:04:37.440
+pares abstratos
+
+00:04:35.680 --> 00:04:39.040
+não só isso é científico
+
+00:04:37.440 --> 00:04:40.720
+terminologias que são encontradas no
+
+00:04:39.040 --> 00:04:42.479
+literatura revisada por pares
+
+00:04:40.720 --> 00:04:44.240
+não são usados ​​no texto principal
+
+00:04:42.479 --> 00:04:46.320
+onde o pré-treinamento foi realizado
+
+00:04:44.240 --> 00:04:47.680
+para esses modelos altamente construídos, como
+
+00:04:46.320 --> 00:04:50.080
+burt e gpt
+
+00:04:47.680 --> 00:04:51.919
+então apenas para dar uma ideia, mas e gpt todos
+
+00:04:50.080 --> 00:04:53.919
+esses modelos maiores são geralmente treinados
+
+00:04:51.919 --> 00:04:55.280
+em corpora muito grande, como comum
+
+00:04:53.919 --> 00:04:56.800
+rastrear conjunto de dados
+
+00:04:55.280 --> 00:04:58.639
+então é altamente possível que sejam
+
+00:04:56.800 --> 00:05:01.199
+perdendo terminologias
+
+00:04:58.639 --> 00:05:02.400
+que são muito específicos para certos domínios
+
+00:05:01.199 --> 00:05:03.280
+então quais são os autores
+
+00:05:02.400 --> 00:05:05.280
+apontando
+
+00:05:03.280 --> 00:05:07.280
+e assim, por causa disso, o baixo recurso
+
+00:05:05.280 --> 00:05:08.479
+pode representar um impedimento considerável para
+
+00:05:07.280 --> 00:05:11.680
+o ajuste fino
+
+00:05:08.479 --> 00:05:14.080
+ok vamos agora ler sobre a abordagem
+
+00:05:11.680 --> 00:05:16.080
+o projeto está subdividido em duas partes
+
+00:05:14.080 --> 00:05:17.919
+a parte extrativa não supervisionada que é
+
+00:05:16.080 --> 00:05:19.280
+usado como base de desempenho e o
+
+00:05:17.919 --> 00:05:21.039
+parte abstrativa
+
+00:05:19.280 --> 00:05:22.960
+ok então o primeiro passo é fazer
+
+00:05:21.039 --> 00:05:24.720
+sumarização extrativa não supervisionada
+
+00:05:22.960 --> 00:05:26.160
+que funcionará como uma linha de base
+
+00:05:24.720 --> 00:05:28.000
+contra o qual eles estarão comparando
+
+00:05:26.160 --> 00:05:29.919
+seu novo método abstrativo
+
+00:05:28.000 --> 00:05:31.840
+o resumo do extrator não supervisionado
+
+00:05:29.919 --> 00:05:33.840
+leva um modelo de parto pré-treinado para
+
+00:05:31.840 --> 00:05:35.919
+realizar uma incorporação de frase
+
+00:05:33.840 --> 00:05:38.240
+em que cada sentença individual é
+
+00:05:35.919 --> 00:05:39.520
+transformado em uma dimensão 768 de altura
+
+00:05:38.240 --> 00:05:41.520
+representação
+
+00:05:39.520 --> 00:05:42.960
+subsequentemente, agrupamento de meteoros k
+
+00:05:41.520 --> 00:05:44.720
+a análise é realizada em alto
+
+00:05:42.960 --> 00:05:46.639
+representação dimensional
+
+00:05:44.720 --> 00:05:48.479
+e os centros do cluster são extraídos como
+
+00:05:46.639 --> 00:05:51.759
+o resumo extraído
+
+00:05:48.479 --> 00:05:53.199
+ok então vamos entender isso para que eles
+
+00:05:51.759 --> 00:05:55.280
+usar pássaros pré-treinados
+
+00:05:53.199 --> 00:05:56.400
+para executar a frase incorporando que
+
+00:05:55.280 --> 00:05:59.199
+tipo de transformações
+
+00:05:56.400 --> 00:06:00.639
+cada frase em uma dimensão de 768
+
+00:05:59.199 --> 00:06:02.240
+representação
+
+00:06:00.639 --> 00:06:04.000
+então, digamos que você tenha um parágrafo que
+
+00:06:02.240 --> 00:06:06.560
+tem 10 sentenças
+
+00:06:04.000 --> 00:06:08.080
+você passa cada uma das sentenças i para o
+
+00:06:06.560 --> 00:06:10.479
+modelo de palavra pré-treinado
+
+00:06:08.080 --> 00:06:12.720
+e vai gerar sua dimensão 768
+
+00:06:10.479 --> 00:06:14.720
+representação para aquela frase
+
+00:06:12.720 --> 00:06:16.479
+então, uma vez que você tenha tal representação
+
+00:06:14.720 --> 00:06:17.520
+isso significa que você está representando cada
+
+00:06:16.479 --> 00:06:21.120
+sentença
+
+00:06:17.520 --> 00:06:23.039
+em algum hiperespaço de 768 dimensões
+
+00:06:21.120 --> 00:06:25.440
+com um único ponto e assim que tiver
+
+00:06:23.039 --> 00:06:27.759
+feito representando todas as sentenças
+
+00:06:25.440 --> 00:06:29.280
+em um formato semelhante, você aplica o clustering
+
+00:06:27.759 --> 00:06:31.280
+algoritmo e especificamente eles são
+
+00:06:29.280 --> 00:06:32.880
+usando k clustering de mídia
+
+00:06:31.280 --> 00:06:35.840
+neste espaço de alta dimensão que é
+
+00:06:32.880 --> 00:06:38.000
+de 768 e quaisquer centros que você conseguir
+
+00:06:35.840 --> 00:06:39.039
+pós-agrupamento são extraídos
+
+00:06:38.000 --> 00:06:40.400
+resumos
+
+00:06:39.039 --> 00:06:42.800
+então vamos dizer se este foi um dos
+
+00:06:40.400 --> 00:06:45.039
+centros este foi um dos centros
+
+00:06:42.800 --> 00:06:46.720
+e essas eram as periferias próximas, então
+
+00:06:45.039 --> 00:06:47.600
+você receberá duas frases resumidas
+
+00:06:46.720 --> 00:06:49.919
+um é este
+
+00:06:47.600 --> 00:06:51.680
+outro é este certo, então este é o
+
+00:06:49.919 --> 00:06:53.280
+linha de base que eles tratam
+
+00:06:51.680 --> 00:06:55.599
+então, antes de vermos o que é
+
+00:06:53.280 --> 00:06:57.759
+parte abstrativa que gostaria de discutir
+
+00:06:55.599 --> 00:06:59.599
+o que é k clustering de mídia
+
+00:06:57.759 --> 00:07:01.840
+e como é diferente do típico
+
+00:06:59.599 --> 00:07:03.520
+k-significa
+
+00:07:01.840 --> 00:07:05.199
+então vamos começar entendendo o de kme
+
+00:07:03.520 --> 00:07:07.599
+algoritmo primeiro
+
+00:07:05.199 --> 00:07:08.960
+então, digamos que você tenha n pontos de dados que
+
+00:07:07.599 --> 00:07:10.400
+estão em duas dimensões
+
+00:07:08.960 --> 00:07:12.800
+pode ser em qualquer dimensão, exceto para
+
+00:07:10.400 --> 00:07:15.759
+simplicidade, considere apenas duas dimensões
+
+00:07:12.800 --> 00:07:16.000
+chamamos isso de x um e este é x dois e
+
+00:07:15.759 --> 00:07:18.319
+deixar
+
+00:07:16.000 --> 00:07:19.120
+esses pontos de cor azul são aqueles que acabam
+
+00:07:18.319 --> 00:07:21.440
+pontos
+
+00:07:19.120 --> 00:07:23.599
+sobre o qual estamos falando, então em k significa
+
+00:07:21.440 --> 00:07:25.280
+isso é o que já foi dado a você
+
+00:07:23.599 --> 00:07:27.039
+e às vezes você também sabe o valor de
+
+00:07:25.280 --> 00:07:28.240
+k isso pode ser baseado no domínio
+
+00:07:27.039 --> 00:07:30.240
+conhecimento ou você pode aplicar qualquer
+
+00:07:28.240 --> 00:07:32.000
+algoritmo para obter o valor de k
+
+00:07:30.240 --> 00:07:34.400
+para este exemplo, vamos considerar que k é
+
+00:07:32.000 --> 00:07:35.360
+igual a 2, então o primeiro passo em k significa
+
+00:07:34.400 --> 00:07:37.840
+é inicializar
+
+00:07:35.360 --> 00:07:39.120
+todos esses dois clusters, então vamos dizer isso
+
+00:07:37.840 --> 00:07:41.039
+é um do cluster
+
+00:07:39.120 --> 00:07:42.800
+que eu atribuí e este é um dos
+
+00:07:41.039 --> 00:07:44.400
+centro de cluster que eu atribuo
+
+00:07:42.800 --> 00:07:46.560
+então você pode atribuir esses clusters
+
+00:07:44.400 --> 00:07:48.000
+aleatoriamente ou também há técnicas
+
+00:07:46.560 --> 00:07:49.520
+que falam sobre como fazer um bom
+
+00:07:48.000 --> 00:07:50.639
+inicialização
+
+00:07:49.520 --> 00:07:52.479
+você pode procurar por esse algoritmo
+
+00:07:50.639 --> 00:07:53.440
+separadamente é chamado de mais do jogo
+
+00:07:52.479 --> 00:07:55.199
+mais
+
+00:07:53.440 --> 00:07:57.520
+então, uma vez que você tem esta inicialização
+
+00:07:55.199 --> 00:07:59.440
+feito o próximo passo é
+
+00:07:57.520 --> 00:08:01.199
+atribuir cada um dos pontos de dados ao seu
+
+00:07:59.440 --> 00:08:03.280
+respectivos clusters
+
+00:08:01.199 --> 00:08:04.400
+para cada ponto de dados para cada ponto azul
+
+00:08:03.280 --> 00:08:06.160
+você calcula o seu
+
+00:08:04.400 --> 00:08:07.520
+distância euclidiana ou qualquer tipo de
+
+00:08:06.160 --> 00:08:09.840
+medida de distância
+
+00:08:07.520 --> 00:08:12.000
+de cada um desses centros, então vamos dizer
+
+00:08:09.840 --> 00:08:14.720
+para este ponto você calcula a distância d1
+
+00:08:12.000 --> 00:08:16.800
+do centro e d2 do centro
+
+00:08:14.720 --> 00:08:19.199
+e como d1 é menor que d2
+
+00:08:16.800 --> 00:08:20.319
+a atribuição inicial do ponto azul
+
+00:08:19.199 --> 00:08:22.479
+vai para
+
+00:08:20.319 --> 00:08:24.000
+este centro de cluster, então com este método
+
+00:08:22.479 --> 00:08:25.039
+você itera através de toda a cor azul
+
+00:08:24.000 --> 00:08:28.240
+pontos
+
+00:08:25.039 --> 00:08:28.240
+então vamos conseguir algo assim
+
+00:08:33.120 --> 00:08:37.360
+então esses círculos não são os reais
+
+00:08:34.959 --> 00:08:38.880
+clusters, mas as atribuições iniciais
+
+00:08:37.360 --> 00:08:41.360
+então eu apenas marquei apenas para mostrar o
+
+00:08:38.880 --> 00:08:43.279
+periferia e qual é o centro do cluster
+
+00:08:41.360 --> 00:08:45.760
+que cada ponto é atribuído a
+
+00:08:43.279 --> 00:08:48.160
+então, uma vez que esta etapa esteja concluída, a próxima etapa
+
+00:08:45.760 --> 00:08:50.000
+é calcular a distância quadrada
+
+00:08:48.160 --> 00:08:52.000
+de cada ponto de dados que é
+
+00:08:50.000 --> 00:08:55.040
+pertencente a esse cluster
+
+00:08:52.000 --> 00:08:58.000
+ao centro, digamos que seja d1 d2
+
+00:08:55.040 --> 00:08:59.760
+p3 e d4, então teremos soma do quadrado
+
+00:08:58.000 --> 00:09:03.760
+erro como d1
+
+00:08:59.760 --> 00:09:05.200
+mais d2 mais d3 mais d4
+
+00:09:03.760 --> 00:09:07.360
+você pega a média daquilo que é
+
+00:09:05.200 --> 00:09:10.160
+dividido por 4 você obterá algum
+
+00:09:07.360 --> 00:09:10.959
+valor coordenado e esse é o seu mais novo
+
+00:09:10.160 --> 00:09:12.880
+Centro
+
+00:09:10.959 --> 00:09:15.040
+então é assim que você traduz o
+
+00:09:12.880 --> 00:09:17.680
+inicialmente atribuído centro de cluster
+
+00:09:15.040 --> 00:09:19.200
+para sua nova atualização e da mesma forma
+
+00:09:17.680 --> 00:09:20.959
+acontece para este ponto
+
+00:09:19.200 --> 00:09:22.800
+e salta deste ponto essencialmente
+
+00:09:20.959 --> 00:09:23.760
+vai e se senta em algum lugar dentro de uma área mais densa
+
+00:09:22.800 --> 00:09:26.000
+região
+
+00:09:23.760 --> 00:09:27.600
+então é assim que você faz uma atualização do k-means
+
+00:09:26.000 --> 00:09:28.399
+e, finalmente, quando você lê a parada
+
+00:09:27.600 --> 00:09:30.000
+doença
+
+00:09:28.399 --> 00:09:31.600
+que poderia ser um do cluster
+
+00:09:30.000 --> 00:09:34.640
+centros mudaram seus
+
+00:09:31.600 --> 00:09:36.240
+posição por pelo menos distância lambda
+
+00:09:34.640 --> 00:09:38.800
+você para este processo e você tem o seu
+
+00:09:36.240 --> 00:09:39.519
+k clusters, então é assim que k-means é
+
+00:09:38.800 --> 00:09:42.160
+feito
+
+00:09:39.519 --> 00:09:43.360
+então, não falando sobre k-meteoro, então neste
+
+00:09:42.160 --> 00:09:45.519
+você deve ter notado
+
+00:09:43.360 --> 00:09:47.279
+os meios dos centros de cluster são
+
+00:09:45.519 --> 00:09:48.880
+essencialmente os pontos virtuais
+
+00:09:47.279 --> 00:09:50.640
+que essencialmente não são algo que
+
+00:09:48.880 --> 00:09:53.519
+é baseado em seu conjunto de dados
+
+00:09:50.640 --> 00:09:54.480
+em k meteorito os centros do cluster são
+
+00:09:53.519 --> 00:09:56.080
+pontos reais
+
+00:09:54.480 --> 00:09:58.959
+que foram dados a você como parte de seu
+
+00:09:56.080 --> 00:09:59.519
+entrada em k meteoro também você começa
+
+00:09:58.959 --> 00:10:01.680
+com
+
+00:09:59.519 --> 00:10:03.440
+um plano de duas dimensões com todo o azul
+
+00:10:01.680 --> 00:10:04.959
+pontos já dados a você
+
+00:10:03.440 --> 00:10:06.880
+então você começa atribuindo k pontos
+
+00:10:04.959 --> 00:10:09.360
+aleatoriamente como clusters
+
+00:10:06.880 --> 00:10:11.440
+mas, neste caso, como mencionei o
+
+00:10:09.360 --> 00:10:13.440
+clusters são os pontos de dados reais
+
+00:10:11.440 --> 00:10:14.880
+então, digamos que você selecione este como um dos
+
+00:10:13.440 --> 00:10:17.600
+os clusters
+
+00:10:14.880 --> 00:10:19.519
+e isso como um dos clusters, deixe-me
+
+00:10:17.600 --> 00:10:21.120
+refazer esta figura novamente
+
+00:10:19.519 --> 00:10:22.880
+então sim, este é o estado atual em que estamos
+
+00:10:21.120 --> 00:10:24.160
+feito com a etapa de inicialização
+
+00:10:22.880 --> 00:10:26.880
+então a próxima etapa é semelhante a
+
+00:10:24.160 --> 00:10:28.399
+k-médias atribuímos cada ponto de dados
+
+00:10:26.880 --> 00:10:30.320
+para o seu cluster
+
+00:10:28.399 --> 00:10:31.440
+com base em sua proximidade com o cluster
+
+00:10:30.320 --> 00:10:33.440
+Centro
+
+00:10:31.440 --> 00:10:35.360
+então, como podemos ver, este ponto está perto de
+
+00:10:33.440 --> 00:10:37.680
+isso comparado com aquele centro
+
+00:10:35.360 --> 00:10:39.440
+então isso pertence novamente a esta região e
+
+00:10:37.680 --> 00:10:41.120
+semelhante é para outros dois pontos
+
+00:10:39.440 --> 00:10:43.040
+semelhante deste lado se você considerar
+
+00:10:41.120 --> 00:10:44.880
+este ponto como um ponto de observação
+
+00:10:43.040 --> 00:10:46.320
+esta distância é muito menor comparada
+
+00:10:44.880 --> 00:10:48.880
+a esta distância
+
+00:10:46.320 --> 00:10:49.680
+então ele pertence novamente a este cluster
+
+00:10:48.880 --> 00:10:52.399
+região
+
+00:10:49.680 --> 00:10:54.160
+então, uma vez que esta segunda etapa também esteja concluída
+
+00:10:52.399 --> 00:10:54.800
+a próxima etapa é atualizar o cluster
+
+00:10:54.160 --> 00:10:56.640
+Centro
+
+00:10:54.800 --> 00:10:58.720
+então, de joelhos, tratava-se de tomar o
+
+00:10:56.640 --> 00:10:59.279
+distância quadrada e, em seguida, considerando o
+
+00:10:58.720 --> 00:11:01.600
+média
+
+00:10:59.279 --> 00:11:03.839
+como um novo ponto de cluster, neste caso
+
+00:11:01.600 --> 00:11:05.760
+você observa a soma dos erros quadrados
+
+00:11:03.839 --> 00:11:07.200
+então o que você quer dizer com isso, digamos
+
+00:11:05.760 --> 00:11:09.040
+a soma do quadrado do erro sob este
+
+00:11:07.200 --> 00:11:09.600
+configuração quando você tem isso como o
+
+00:11:09.040 --> 00:11:12.720
+Centro
+
+00:11:09.600 --> 00:11:14.079
+é s1 e para isso é s2
+
+00:11:12.720 --> 00:11:15.760
+então, na próxima etapa, você tentará
+
+00:11:14.079 --> 00:11:16.800
+atualizar o centro do cluster para outro
+
+00:11:15.760 --> 00:11:18.320
+apontar
+
+00:11:16.800 --> 00:11:20.399
+então, digamos que você atribua isso como o
+
+00:11:18.320 --> 00:11:21.279
+cluster e este se torna o seu ponto azul
+
+00:11:20.399 --> 00:11:22.959
+novamente
+
+00:11:21.279 --> 00:11:25.279
+agora qual é a soma do quadrado do erro
+
+00:11:22.959 --> 00:11:29.040
+dentro deste conjunto, digamos que vem como
+
+00:11:25.279 --> 00:11:31.839
+s2 então agora se s2 for menor que s1
+
+00:11:29.040 --> 00:11:34.320
+o que significa que foi uma boa atualização, então se
+
+00:11:31.839 --> 00:11:35.839
+você pensa com cuidado, intuitivamente diz
+
+00:11:34.320 --> 00:11:37.600
+o centro do cluster para o qual você tem
+
+00:11:35.839 --> 00:11:40.000
+atualizado é mais centrado
+
+00:11:37.600 --> 00:11:40.959
+e é mais central para aquela região ou
+
+00:11:40.000 --> 00:11:44.079
+poderia ser visto como
+
+00:11:40.959 --> 00:11:45.279
+mais no meio, então essa é a ideia
+
+00:11:44.079 --> 00:11:47.680
+da mesma forma você estará fazendo por isso
+
+00:11:45.279 --> 00:11:49.920
+superfície também, você atualiza o cluster
+
+00:11:47.680 --> 00:11:52.959
+centro deste ponto para digamos
+
+00:11:49.920 --> 00:11:55.680
+este ponto e este novamente fica azul
+
+00:11:52.959 --> 00:11:56.000
+agora você calcula novamente o s ao quadrado
+
+00:11:55.680 --> 00:11:59.440
+erro
+
+00:11:56.000 --> 00:12:01.920
+digamos que você obtenha s3 agora se s2 fosse
+
+00:11:59.440 --> 00:12:03.040
+menor que s3, o que significa que não é um bom
+
+00:12:01.920 --> 00:12:05.200
+passo de atualização
+
+00:12:03.040 --> 00:12:06.800
+então você não fará isso, então você só fará
+
+00:12:05.200 --> 00:12:08.720
+uma atualização do cluster center
+
+00:12:06.800 --> 00:12:11.279
+se a nova soma do erro quadrático for menor
+
+00:12:08.720 --> 00:12:13.440
+do que a soma atual do erro quadrático
+
+00:12:11.279 --> 00:12:15.519
+então essa é a ideia então esta é a totalidade
+
+00:12:13.440 --> 00:12:18.480
+procedimento para o que chamamos de
+
+00:12:15.519 --> 00:12:19.760
+k clustering de mídia, também vincularei um
+
+00:12:18.480 --> 00:12:20.800
+vídeo sobre k meteorito no
+
+00:12:19.760 --> 00:12:23.040
+Descrição
+
+00:12:20.800 --> 00:12:24.079
+se você quiser, pode verificar isso então
+
+00:12:23.040 --> 00:12:25.760
+vamos voltar e falar sobre o
+
+00:12:24.079 --> 00:12:27.440
+etapa abstrativa
+
+00:12:25.760 --> 00:12:29.200
+o resumo abstrativo é treinado
+
+00:12:27.440 --> 00:12:30.160
+para gerar um resumo do conjunto de
+
+00:12:29.200 --> 00:12:31.760
+palavras-chave
+
+00:12:30.160 --> 00:12:33.040
+as palavras-chave são extraídas da fonte
+
+00:12:31.760 --> 00:12:35.279
+fura usando token existente
+
+00:12:33.040 --> 00:12:36.959
+ferramentas de classificação, como parte nlta
+
+00:12:35.279 --> 00:12:39.600
+de pacotes de discurso
+
+00:12:36.959 --> 00:12:41.360
+ou afinar pássaro ok então o que eles são
+
+00:12:39.600 --> 00:12:43.360
+dizendo que é para geração abstrativa o
+
+00:12:41.360 --> 00:12:45.200
+o primeiro passo é extrair as palavras-chave
+
+00:12:43.360 --> 00:12:46.720
+e para isso eles usam token existente
+
+00:12:45.200 --> 00:12:49.279
+ferramentas de classificação
+
+00:12:46.720 --> 00:12:50.399
+como um ltk, então um ltk tem uma pos
+
+00:12:49.279 --> 00:12:52.959
+etiqueta de sublinhado
+
+00:12:50.399 --> 00:12:54.399
+método para que você possa usar isso ou você pode
+
+00:12:52.959 --> 00:12:56.320
+até mesmo use palavras em sintonia fina
+
+00:12:54.399 --> 00:12:59.120
+para fazer a marcação de classe gramatical
+
+00:12:56.320 --> 00:13:00.639
+ok, então verbos e substantivos são essencialmente
+
+00:12:59.120 --> 00:13:02.959
+algumas coisas que eles procuram
+
+00:13:00.639 --> 00:13:03.839
+então, se uma palavra for marcada como substantivo
+
+00:13:02.959 --> 00:13:06.560
+ou uma palavra
+
+00:13:03.839 --> 00:13:07.680
+eles extraem isso como uma palavra-chave potencial
+
+00:13:06.560 --> 00:13:09.200
+seguindo a extração
+
+00:13:07.680 --> 00:13:11.120
+as palavras-chave estão emparelhadas com o humano
+
+00:13:09.200 --> 00:13:12.880
+resumos de ouro gerados
+
+00:13:11.120 --> 00:13:15.600
+estes pares de resumo de palavras-chave são processados
+
+00:13:12.880 --> 00:13:17.120
+e alimentado para o modelo gpt2 conforme ilustrado
+
+00:13:15.600 --> 00:13:18.959
+ok, então vamos dizer que você recebeu um
+
+00:13:17.120 --> 00:13:21.279
+documento que você extraiu
+
+00:13:18.959 --> 00:13:22.720
+n palavras-chave daquelas que são
+
+00:13:21.279 --> 00:13:24.160
+verbos ou substantivos
+
+00:13:22.720 --> 00:13:26.800
+com base na tag anterior que você tem
+
+00:13:24.160 --> 00:13:29.279
+já feito quando você tiver n palavras-chave
+
+00:13:26.800 --> 00:13:31.680
+você os concatena um por um que você tem
+
+00:13:29.279 --> 00:13:33.600
+uma grande sequência de todas as palavras-chave
+
+00:13:31.680 --> 00:13:34.800
+você emparelha-o com o resumo original
+
+00:13:33.600 --> 00:13:37.600
+vamos chamá-lo de
+
+00:13:34.800 --> 00:13:38.399
+e esta se torna sua única amostra de entrada
+
+00:13:37.600 --> 00:13:40.000
+e aqui um
+
+00:13:38.399 --> 00:13:42.320
+nada mais é do que o crescimento do solo do
+
+00:13:40.000 --> 00:13:44.079
+resumo ouro do documento a partir do qual
+
+00:13:42.320 --> 00:13:45.440
+as palavras-chave foram extraídas
+
+00:13:44.079 --> 00:13:46.880
+então eles falam novamente sobre comparar o
+
+00:13:45.440 --> 00:13:47.920
+resulta novamente o ouro que alguém está usando
+
+00:13:46.880 --> 00:13:50.639
+escopo do grupo
+
+00:13:47.920 --> 00:13:51.760
+seguindo em frente, falando sobre treinamento
+
+00:13:50.639 --> 00:13:53.360
+estratégia do abstrato de
+
+00:13:51.760 --> 00:13:55.839
+sumarização gpt
+
+00:13:53.360 --> 00:13:57.279
+o modelo gp2 foi treinado em duas tarefas
+
+00:13:55.839 --> 00:13:59.600
+a tarefa de modelagem de linguagem
+
+00:13:57.279 --> 00:14:02.079
+e a tarefa de previsão de múltipla escolha
+
+00:13:59.600 --> 00:14:04.000
+para a tarefa lm, o modelo cria a próxima palavra
+
+00:14:02.079 --> 00:14:05.360
+token dados os tokens anteriores e o
+
+00:14:04.000 --> 00:14:07.040
+contexto
+
+00:14:05.360 --> 00:14:09.199
+então sim, é normalmente assim que a linguagem
+
+00:14:07.040 --> 00:14:11.040
+modelo funciona em qualquer ponto do tempo
+
+00:14:09.199 --> 00:14:12.880
+tenta ler a próxima palavra
+
+00:14:11.040 --> 00:14:15.440
+dada a palavra atual e a anterior
+
+00:14:12.880 --> 00:14:17.360
+palavras e para testes de múltipla escolha
+
+00:14:15.440 --> 00:14:19.040
+dado um conjunto de palavras-chave que o modelo escolhe
+
+00:14:17.360 --> 00:14:20.399
+o resumo ouro atual do resumo
+
+00:14:19.040 --> 00:14:23.360
+escolhas
+
+00:14:20.399 --> 00:14:24.480
+ok, parece uma perda de classificação
+
+00:14:23.360 --> 00:14:25.920
+e cada uma das tarefas tem sua
+
+00:14:24.480 --> 00:14:27.680
+perdas associadas
+
+00:14:25.920 --> 00:14:29.519
+o que significa que você tem duas cabeças, uma é uma
+
+00:14:27.680 --> 00:14:31.279
+modelagem de linguagem aqui que dá a você uma
+
+00:14:29.519 --> 00:14:33.120
+perda, digamos lm
+
+00:14:31.279 --> 00:14:34.800
+e então você tem outra cabeça que é um
+
+00:14:33.120 --> 00:14:37.440
+cabeça de classificação
+
+00:14:34.800 --> 00:14:39.360
+semelhante a cls mais camada linear em word
+
+00:14:37.440 --> 00:14:41.440
+então aqui eles também têm alguns
+
+00:14:39.360 --> 00:14:43.120
+token que captura todo o contexto
+
+00:14:41.440 --> 00:14:45.120
+e há uma classificação
+
+00:14:43.120 --> 00:14:46.959
+se era um resumo de ouro ou não
+
+00:14:45.120 --> 00:14:47.360
+que também terá alguma perda, vamos chamar
+
+00:14:46.959 --> 00:14:50.079
+isto
+
+00:14:47.360 --> 00:14:50.399
+mc então a perda total agora é uma função
+
+00:14:50.079 --> 00:14:53.440
+de
+
+00:14:50.399 --> 00:14:54.240
+lm mais mc com alguns pesos vamos
+
+00:14:53.440 --> 00:14:58.320
+chame-o
+
+00:14:54.240 --> 00:15:01.360
+w um lm mais w2
+
+00:14:58.320 --> 00:15:02.720
+mc a classe lm fornece um estado oculto
+
+00:15:01.360 --> 00:15:03.279
+da palavra embutida na saída
+
+00:15:02.720 --> 00:15:04.959
+camada
+
+00:15:03.279 --> 00:15:06.639
+a perda de entropia cruzada é aplicada no
+
+00:15:04.959 --> 00:15:08.000
+alvo correspondente ao resumo de ouro
+
+00:15:06.639 --> 00:15:10.399
+para obter uma perda de filme
+
+00:15:08.000 --> 00:15:12.079
+ok, então isso está claro para o treinamento de nós
+
+00:15:10.399 --> 00:15:13.440
+rotular o início e o fim do texto com
+
+00:15:12.079 --> 00:15:14.800
+tokens especiais
+
+00:15:13.440 --> 00:15:16.560
+para permitir que o modelo reconheça
+
+00:15:14.800 --> 00:15:18.399
+tarefas de resumo um token especial
+
+00:15:16.560 --> 00:15:19.279
+resume palavras-chave separadas usadas no
+
+00:15:18.399 --> 00:15:21.120
+resumo de código
+
+00:15:19.279 --> 00:15:23.120
+as entradas são todas preenchidas com preenchimento
+
+00:15:21.120 --> 00:15:24.959
+token de um zero dois quatro tokens
+
+00:15:23.120 --> 00:15:26.480
+e qualquer entrada maior que um zero dois
+
+00:15:24.959 --> 00:15:28.959
+quatro está truncado
+
+00:15:26.480 --> 00:15:30.720
+ok, você tem um conjunto de palavras-chave que você
+
+00:15:28.959 --> 00:15:32.399
+concatenar como string
+
+00:15:30.720 --> 00:15:34.000
+você coloca algum token inicial, digamos
+
+00:15:32.399 --> 00:15:35.839
+começo do texto
+
+00:15:34.000 --> 00:15:37.759
+então você tem a palavra-chave resumir
+
+00:15:35.839 --> 00:15:40.480
+vamos chamá-lo de su por agora
+
+00:15:37.759 --> 00:15:41.680
+postar que você terá uma série de
+
+00:15:40.480 --> 00:15:43.519
+abstrato
+
+00:15:41.680 --> 00:15:44.800
+e então você terá algum fim de
+
+00:15:43.519 --> 00:15:48.240
+texto vamos chamá-lo
+
+00:15:44.800 --> 00:15:49.600
+e então esta é a string completa que vai
+
+00:15:48.240 --> 00:15:51.279
+para gpt 2
+
+00:15:49.600 --> 00:15:53.040
+e este é o token especial para resumir
+
+00:15:51.279 --> 00:15:54.639
+que eles estão falando, então isso é
+
+00:15:53.040 --> 00:15:56.000
+semelhante a se você pode pensar em codificador
+
+00:15:54.639 --> 00:15:57.600
+arquiteturas de decodificador
+
+00:15:56.000 --> 00:15:59.279
+você pensa que postar o
+
+00:15:57.600 --> 00:16:01.040
+a etapa do codificador está completa
+
+00:15:59.279 --> 00:16:03.040
+e o decodificador geralmente usa esse pensamento
+
+00:16:01.040 --> 00:16:05.440
+botão junto com alguma atenção
+
+00:16:03.040 --> 00:16:06.240
+no lado do codificador para produzir palavras de
+
+00:16:05.440 --> 00:16:08.399
+seu fim
+
+00:16:06.240 --> 00:16:10.480
+considerando que, da mesma forma, neste caso, o
+
+00:16:08.399 --> 00:16:12.880
+token resumido pode ser visto
+
+00:16:10.480 --> 00:16:14.320
+como capturar o vetor de contexto onde
+
+00:16:12.880 --> 00:16:15.920
+o contexto nada mais é do que
+
+00:16:14.320 --> 00:16:17.839
+todas as palavras-chave fornecidas antes
+
+00:16:15.920 --> 00:16:20.000
+tudo bem
+
+00:16:17.839 --> 00:16:22.000
+para a tarefa mc, o estado oculto do
+
+00:16:20.000 --> 00:16:23.279
+o último token do final do texto é passado
+
+00:16:22.000 --> 00:16:24.560
+a camada linear para obter uma aula
+
+00:16:23.279 --> 00:16:27.199
+pontuação de probabilidade
+
+00:16:24.560 --> 00:16:28.079
+essa é uma tarefa de classificação, tudo bem,
+
+00:16:27.199 --> 00:16:30.160
+eu estava dizendo
+
+00:16:28.079 --> 00:16:32.639
+no pássaro, você usa o token cls para o mesmo
+
+00:16:30.160 --> 00:16:34.240
+coisa aqui eles estão usando o token de mão
+
+00:16:32.639 --> 00:16:36.639
+e passando por uma camada linear
+
+00:16:34.240 --> 00:16:38.399
+e fazendo uma classificação de zero um
+
+00:16:36.639 --> 00:16:39.839
+para criar o conjunto de dados de treinamento que
+
+00:16:38.399 --> 00:16:41.360
+selecionar aleatoriamente três resumos
+
+00:16:39.839 --> 00:16:44.399
+não relacionado às palavras-chave
+
+00:16:41.360 --> 00:16:45.199
+assim chamados destruidores, a partir de agora aqui
+
+00:16:44.399 --> 00:16:47.040
+nós conversamos sobre
+
+00:16:45.199 --> 00:16:48.639
+gerando uma amostra positiva para que eles
+
+00:16:47.040 --> 00:16:51.040
+também falamos sobre como geramos um
+
+00:16:48.639 --> 00:16:52.000
+amostra negativa tão similarmente você tem n
+
+00:16:51.040 --> 00:16:53.759
+palavras-chave
+
+00:16:52.000 --> 00:16:56.240
+que você concatena e torna maior
+
+00:16:53.759 --> 00:16:57.920
+corda e você emparelha com um distrator
+
+00:16:56.240 --> 00:17:00.399
+então destruidor é o que descritor é
+
+00:16:57.920 --> 00:17:01.040
+nada além de um resumo de outro
+
+00:17:00.399 --> 00:17:03.440
+documento
+
+00:17:01.040 --> 00:17:04.640
+que não está relacionado a essas palavras-chave,
+
+00:17:03.440 --> 00:17:05.919
+é assim que eles criam três
+
+00:17:04.640 --> 00:17:08.480
+distrações
+
+00:17:05.919 --> 00:17:09.600
+e um token positivo, então este é um
+
+00:17:08.480 --> 00:17:13.760
+lote de quatro
+
+00:17:09.600 --> 00:17:13.760
+que se torna uma amostra ok
+
+00:17:13.839 --> 00:17:17.120
+os rótulos de treinamento de modelagem de linguagem
+
+00:17:15.679 --> 00:17:18.000
+são o token do resumo que são
+
+00:17:17.120 --> 00:17:20.720
+deslocado para a direita por
+
+00:17:18.000 --> 00:17:22.319
+um token é porque gpd2 é automático
+
+00:17:20.720 --> 00:17:24.319
+regressivo por natureza
+
+00:17:22.319 --> 00:17:25.360
+e a saída do token nf é gerada
+
+00:17:24.319 --> 00:17:28.079
+de todos os anteriores
+
+00:17:25.360 --> 00:17:29.039
+n menos um tokens à sua esquerda, sim, então
+
+00:17:28.079 --> 00:17:30.640
+isso é bem claro
+
+00:17:29.039 --> 00:17:32.240
+teremos que fazer uma mudança certa para
+
+00:17:30.640 --> 00:17:34.000
+o lado da etiqueta porque
+
+00:17:32.240 --> 00:17:35.440
+em qualquer ponto, o modelo tem que ver o que
+
+00:17:34.000 --> 00:17:37.679
+tem que vir a seguir
+
+00:17:35.440 --> 00:17:40.000
+e a perda é a soma ponderada de dois para
+
+00:17:37.679 --> 00:17:42.480
+uma perda por perda de lm para perda de MC
+
+00:17:40.000 --> 00:17:43.679
+ok, então aqui falamos sobre uma ponderada
+
+00:17:42.480 --> 00:17:47.120
+esquema
+
+00:17:43.679 --> 00:17:48.720
+então neste w um 2 enquanto w2 é
+
+00:17:47.120 --> 00:17:50.960
+1. então, esses são os pesos para os quais
+
+00:17:48.720 --> 00:17:53.200
+eles treinam o modelo
+
+00:17:50.960 --> 00:17:54.480
+ok agora falando sobre a intuição de
+
+00:17:53.200 --> 00:17:56.000
+a estratégia de treinamento
+
+00:17:54.480 --> 00:17:58.000
+isso é conseguido usando uma massa
+
+00:17:56.000 --> 00:17:59.679
+mecanismo de auto-retenção para bloquear o
+
+00:17:58.000 --> 00:18:00.000
+informações de tokens à direita de
+
+00:17:59.679 --> 00:18:03.200
+atual
+
+00:18:00.000 --> 00:18:05.120
+posição de ser calculada
+
+00:18:03.200 --> 00:18:07.440
+ok então é assim que tipicamente um gpt
+
+00:18:05.120 --> 00:18:08.080
+funciona, tem um conceito de massa própria
+
+00:18:07.440 --> 00:18:09.919
+atenção
+
+00:18:08.080 --> 00:18:11.840
+o que significa em qualquer ponto do tempo
+
+00:18:09.919 --> 00:18:14.080
+vai apenas atingir o pico à sua esquerda
+
+00:18:11.840 --> 00:18:15.679
+e não à sua direita, ao contrário do pássaro que
+
+00:18:14.080 --> 00:18:17.200
+tem a vantagem de ver o futuro como
+
+00:18:15.679 --> 00:18:19.200
+bem como o passado
+
+00:18:17.200 --> 00:18:20.720
+o token especial resume para significar
+
+00:18:19.200 --> 00:18:22.400
+o contexto em que o subsequente
+
+00:18:20.720 --> 00:18:24.559
+tokens devem ser do resumo do
+
+00:18:22.400 --> 00:18:26.080
+informações antes do token especial
+
+00:18:24.559 --> 00:18:27.679
+sim, isso é exatamente a mesma coisa
+
+00:18:26.080 --> 00:18:29.360
+que dei um exemplo com a ajuda de
+
+00:18:27.679 --> 00:18:31.600
+arquitetura de decodificação do codificador
+
+00:18:29.360 --> 00:18:34.000
+sobre aquele espectro de contexto que
+
+00:18:31.600 --> 00:18:35.679
+modelo gpt2 é aprender esta sugestão de contexto
+
+00:18:34.000 --> 00:18:38.000
+do ajuste fino
+
+00:18:35.679 --> 00:18:39.440
+justo o suficiente, o treinamento multi-leis é
+
+00:18:38.000 --> 00:18:41.360
+usado na esperança de que será capaz de
+
+00:18:39.440 --> 00:18:43.039
+induzir o modelo a mapear
+
+00:18:41.360 --> 00:18:44.960
+o contexto semântico local no
+
+00:18:43.039 --> 00:18:47.039
+palavras-chave para o resumo ouro
+
+00:18:44.960 --> 00:18:49.039
+ok então a outra perda que é de
+
+00:18:47.039 --> 00:18:51.280
+perda de classificação múltipla
+
+00:18:49.039 --> 00:18:52.640
+é meio que capturar se a coisa que
+
+00:18:51.280 --> 00:18:55.679
+você gerou
+
+00:18:52.640 --> 00:18:56.080
+é coerente e vai junto com o que quer que seja
+
+00:18:55.679 --> 00:18:58.480
+entrada
+
+00:18:56.080 --> 00:19:00.240
+de palavras-chave que você forneceu para mim
+
+00:18:58.480 --> 00:19:02.880
+as leis podem ser vistas como capturando este
+
+00:19:00.240 --> 00:19:03.280
+aspecto enquanto a modelagem de linguagem
+
+00:19:02.880 --> 00:19:05.919
+leis
+
+00:19:03.280 --> 00:19:07.120
+é principalmente capturar e aprender o
+
+00:19:05.919 --> 00:19:09.840
+estrutura da linguagem
+
+00:19:07.120 --> 00:19:11.760
+e suas dependências ao mesmo tempo
+
+00:19:09.840 --> 00:19:13.679
+o modelo retém o contexto global
+
+00:19:11.760 --> 00:19:15.760
+informação das palavras-chave
+
+00:19:13.679 --> 00:19:17.520
+para que no final do texto o modelo
+
+00:19:15.760 --> 00:19:18.960
+é capaz de distinguir resumos frios
+
+00:19:17.520 --> 00:19:22.080
+do destruidor
+
+00:19:18.960 --> 00:19:24.080
+ok, então este é o diagrama completo para que eles
+
+00:19:22.080 --> 00:19:25.440
+mostraram quatro amostras porque uma era
+
+00:19:24.080 --> 00:19:26.559
+a verdade real e três eram os
+
+00:19:25.440 --> 00:19:28.000
+distrações
+
+00:19:26.559 --> 00:19:29.679
+você preparou cada amostra com o
+
+00:19:28.000 --> 00:19:32.160
+começo da frase
+
+00:19:29.679 --> 00:19:34.000
+então você tem n palavras-chave, então você tem
+
+00:19:32.160 --> 00:19:35.520
+este token especial de resumo
+
+00:19:34.000 --> 00:19:38.480
+que é suposto capturar o
+
+00:19:35.520 --> 00:19:40.080
+contexto anterior, seja o que for que tenha visto
+
+00:19:38.480 --> 00:19:41.600
+e então você tem o resumo original
+
+00:19:40.080 --> 00:19:43.039
+e os distratores
+
+00:19:41.600 --> 00:19:44.799
+e então você vai com o fim do texto
+
+00:19:43.039 --> 00:19:46.240
+token e então você preenche até um zero dois
+
+00:19:44.799 --> 00:19:48.960
+pontos de fotos estão concluídos
+
+00:19:46.240 --> 00:19:50.640
+então isso passa pelo gpt e no final
+
+00:19:48.960 --> 00:19:52.400
+você tem duas cabeças, uma é a língua
+
+00:19:50.640 --> 00:19:52.960
+cabeça de modelagem um é a escolha múltipla
+
+00:19:52.400 --> 00:19:54.559
+cabeça
+
+00:19:52.960 --> 00:19:56.240
+então a cabeça de modelagem de linguagem é
+
+00:19:54.559 --> 00:19:58.400
+suposto produzir perda
+
+00:19:56.240 --> 00:19:59.679
+por quão bem o modelo foi capaz de
+
+00:19:58.400 --> 00:20:01.760
+gerar o resumo
+
+00:19:59.679 --> 00:20:03.520
+Considerando que a perda de múltipla escolha é
+
+00:20:01.760 --> 00:20:05.520
+novamente uma perda de entropia cruzada
+
+00:20:03.520 --> 00:20:06.880
+e irá capturar se tudo o que você tem
+
+00:20:05.520 --> 00:20:09.200
+gerado até agora
+
+00:20:06.880 --> 00:20:10.799
+dada a entrada, o que você tinha pode ser visto
+
+00:20:09.200 --> 00:20:12.720
+como um verdadeiro abstrato ou não
+
+00:20:10.799 --> 00:20:15.200
+então sim essa é a ideia vamos mudar
+
+00:20:12.720 --> 00:20:17.120
+para a frente ok agora eles têm experimentos
+
+00:20:15.200 --> 00:20:19.200
+resultados, então acho que já terminamos
+
+00:20:17.120 --> 00:20:20.720
+com o papel, então eu gostaria de falar sobre um
+
+00:20:19.200 --> 00:20:22.400
+um pouco mais sobre a intuição por trás
+
+00:20:20.720 --> 00:20:25.120
+leis de múltipla escolha
+
+00:20:22.400 --> 00:20:27.039
+então, se o modelo produz um neste ponto
+
+00:20:25.120 --> 00:20:29.440
+e o rótulo original era zero
+
+00:20:27.039 --> 00:20:30.960
+você estará incorrendo em uma perda dessa perda
+
+00:20:29.440 --> 00:20:32.080
+será usado para ajustar os pesos de
+
+00:20:30.960 --> 00:20:34.559
+aquela camada linear
+
+00:20:32.080 --> 00:20:36.400
+bem como os pesos dentro do gp2
+
+00:20:34.559 --> 00:20:38.640
+porque os pesos que você ajusta
+
+00:20:36.400 --> 00:20:40.400
+dentro do gp2 resultará na obtenção de um
+
+00:20:38.640 --> 00:20:41.919
+melhor representação de incorporação para o
+
+00:20:40.400 --> 00:20:43.760
+token de fim de sequência
+
+00:20:41.919 --> 00:20:45.200
+então aqui por melhor representação quero dizer
+
+00:20:43.760 --> 00:20:47.200
+deve estar alinhado com
+
+00:20:45.200 --> 00:20:48.960
+qual é o rótulo real se fosse um
+
+00:20:47.200 --> 00:20:50.799
+zero, o modelo deve obter um
+
+00:20:48.960 --> 00:20:51.840
+embedding vector que está distraído
+
+00:20:50.799 --> 00:20:53.919
+distribuição
+
+00:20:51.840 --> 00:20:55.919
+o que significa a palavra que deve gerar
+
+00:20:53.919 --> 00:20:57.600
+no nível de modelagem de linguagem também
+
+00:20:55.919 --> 00:20:59.600
+deve ser produzido a partir do destruidor
+
+00:20:57.600 --> 00:21:01.360
+distribuição, então se as palavras são produzidas
+
+00:20:59.600 --> 00:21:02.799
+da distribuição relevante
+
+00:21:01.360 --> 00:21:04.400
+sob a condição destes eram os
+
+00:21:02.799 --> 00:21:06.159
+palavras-chave após a entrada
+
+00:21:04.400 --> 00:21:09.039
+o token de fim de sequência terá um bom
+
+00:21:06.159 --> 00:21:11.360
+embedding vector e se for esse o caso
+
+00:21:09.039 --> 00:21:12.159
+a perda de múltipla escolha será baixa
+
+00:21:11.360 --> 00:21:16.720
+Certo
+
+00:21:12.159 --> 00:21:18.880
+então isso é
+
+00:21:16.720 --> 00:21:21.039
+então foi realmente uma leitura interessante
+
+00:21:18.880 --> 00:21:22.880
+apenas uma sugestão que eu poderia ter
+
+00:21:21.039 --> 00:21:24.799
+em vez de usar as palavras-chave como o
+
+00:21:22.880 --> 00:21:25.760
+entrada e geração de resumo abstrativo
+
+00:21:24.799 --> 00:21:28.000
+fora disso
+
+00:21:25.760 --> 00:21:30.400
+se eles pudessem tentar o que acontece se eles
+
+00:21:28.000 --> 00:21:32.480
+use as frases adequadas que podem vir
+
+00:21:30.400 --> 00:21:34.880
+fora como parte do resumo extrativo
+
+00:21:32.480 --> 00:21:36.320
+em seguida, use-os como entrada para gerar
+
+00:21:34.880 --> 00:21:37.440
+o resumo abstrativo
+
+00:21:36.320 --> 00:21:40.080
+estou dizendo isso porque li
+
+00:21:37.440 --> 00:21:42.799
+alguns jornais sobre este domínio
+
+00:21:40.080 --> 00:21:44.240
+no entanto, foi uma boa leitura, então se
+
+00:21:42.799 --> 00:21:46.080
+você gosta desse conteúdo
+
+00:21:44.240 --> 00:21:47.600
+certifique-se de apertar o botão like faça
+
+00:21:46.080 --> 00:21:48.640
+inscreva-se no canal e compartilhe-o
+
+00:21:47.600 --> 00:21:53.200
+com seus amigos
+
+00:21:48.640 --> 00:21:53.200
+nos encontraremos no próximo vídeo tchau
+

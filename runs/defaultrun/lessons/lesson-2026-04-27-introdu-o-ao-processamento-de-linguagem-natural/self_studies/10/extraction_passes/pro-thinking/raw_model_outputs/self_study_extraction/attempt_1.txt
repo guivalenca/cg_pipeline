@@ -1,0 +1,135 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-10-001",
+      "label": "Word Break Problem Definition",
+      "description": "The problem of determining if a given string can be segmented into a sequence of valid dictionary words, separated by spaces.",
+      "coverage_criteria": [
+        "Given a string and a dictionary, can articulate the problem, provide examples (like 'ilike' segmented as 'i like'), and identify whether segmentation is possible."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly defines the problem in the opening section with multiple input-output examples.",
+        "granularity_rationale": "This concept is atomic enough to be checked with a problem statement and a few examples."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "Word Break"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Word Break - GeeksforGeeks",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-10-002",
+      "label": "Recursive Solution for Word Break",
+      "description": "A naive recursive approach that tries every possible prefix, checks dictionary membership, and recurses on the suffix, leading to exponential time complexity O(2^n).",
+      "coverage_criteria": [
+        "Can explain the recursive algorithm in plain language and pseudocode.",
+        "Can implement a recursive solution and analyze its worst-case time complexity."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates a marked section '[Naive Approach] Using Recursion' with explanation and a complete C++ implementation.",
+        "granularity_rationale": "This is a specific algorithm implementation; its size allows verification through code writing and complexity analysis."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Naive Approach] Using Recursion - O(2^n) Time and O(n) Space"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Word Break - GeeksforGeeks",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-10-003",
+      "label": "Top-Down Dynamic Programming (Memoization) for Word Break",
+      "description": "A DP solution that uses recursion with memoization to store results of already-solved substrings, achieving O(n^2) time by avoiding repeated work.",
+      "coverage_criteria": [
+        "Can explain how memoization avoids recomputing overlapping subproblems.",
+        "Can describe the recursive + memoization approach without code, or implement a memoized version."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source describes the idea of using dynamic programming in the recursive solution and mentions storing words in a set for efficient lookup.",
+        "granularity_rationale": "This concept isolates the transformation from recursion to memoized DP, checkable via explanation and comparison to the naive method."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Word Break - GeeksforGeeks",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-10-004",
+      "label": "Bottom-Up Dynamic Programming for Word Break",
+      "description": "A DP solution that iteratively fills a boolean array dp[i] indicating whether the prefix of length i can be segmented, using dictionary word matching, with complexity O(n*m*k).",
+      "coverage_criteria": [
+        "Can explain the bottom-up DP approach using a dp array and state transition.",
+        "Can implement the bottom-up solution and trace through examples."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a clear explanation and a full C++ implementation of the bottom-up approach with complexity analysis.",
+        "granularity_rationale": "This is a complete DP algorithm; checking coverage requires coding and tracing."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 2] Using Bottom Up DP - O(n*m*k) time and O(n) space"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Word Break - GeeksforGeeks",
+      "source_year": "2025",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-10-005",
+      "label": "Overlapping Subproblems in Word Break",
+      "description": "The recursive solution recomputes solutions for the same suffixes many times, making the problem exhibit overlapping subproblems, which is why DP is beneficial.",
+      "coverage_criteria": [
+        "Can identify repeated subproblems in the recursion tree of Word Break.",
+        "Can explain how DP exploits overlapping subproblems to improve efficiency."
+      ],
+      "source_roles": ["referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source mentions 'avoid recomputing the same subproblems' as the motivation for top-down DP.",
+        "granularity_rationale": "This is a fundamental DP property that can be checked by asking students to find repeated subproblems in a small example."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Word Break - GeeksforGeeks",
+      "source_year": "2025",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-10-002",
+      "to_candidate_id": "candidate-10-003",
+      "reason": "Top-down DP is presented as a direct optimization of the naive recursion by adding memoization to avoid recomputing subproblems.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-10-003",
+      "to_candidate_id": "candidate-10-004",
+      "reason": "The source presents both top-down and bottom-up as expected DP solutions for the same problem, contrasting their implementations.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"},
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 2] Using Bottom Up DP - O(n*m*k) time and O(n) space"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-10-005",
+      "to_candidate_id": "candidate-10-003",
+      "reason": "The presence of overlapping subproblems motivates the use of DP, and top-down DP directly addresses this by caching results.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[Expected Approach - 1] Using Top-Down DP - O(n^2) Time and O(n+m) Space"}
+      ]
+    }
+  ]
+}

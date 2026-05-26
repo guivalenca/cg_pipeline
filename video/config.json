@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "default_profile": "triage",
+  "profiles": {
+    "triage": {
+      "model": "gemini-2.5-flash",
+      "fps": 0.33,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 8192
+    },
+    "dense": {
+      "model": "gemini-2.5-pro",
+      "fps": 1.0,
+      "media_resolution": "medium",
+      "temperature": 0.2,
+      "max_output_tokens": 16384
+    }
+  },
+  "prompt_version": "video_gemini_pass2_v1",
+  "concurrency": 3,
+  "gemini_workers": 2,
+  "stt_workers": 2,
+  "chunk_longer_than_seconds": 3600,
+  "chunk_seconds": 1800,
+  "chunk_overlap_seconds": 5,
+  "max_transcript_chars_per_chunk": 60000,
+  "min_words": 150,
+  "timestamp_span_tolerance_seconds": 180,
+  "timestamp_span_min_ratio": 0.65,
+  "title_similarity_min": 0.45,
+  "upload_poll_seconds": 2,
+  "upload_timeout_seconds": 600
+}

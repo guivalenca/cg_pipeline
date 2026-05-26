@@ -1,0 +1,655 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Word2Vec embeddings for analogies",
+    "rationale": "These candidates all describe how Word2Vec generates dense vectors that support analogical reasoning via arithmetic, covering the same core idea from different angles (e.g., king-man+woman, apple+purple=plum).",
+    "candidate_ids": [
+      "c41_pro_thinking_001",
+      "c41_pro_thinking_003",
+      "c42_pro_thinking_006"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Word2Vec embeddings for analogies",
+      "rationale": "These candidates all describe how Word2Vec generates dense vectors that support analogical reasoning via arithmetic, covering the same core idea from different angles (e.g., king-man+woman, apple+purple=plum).",
+      "candidate_ids": [
+        "c41_pro_thinking_001",
+        "c41_pro_thinking_003",
+        "c42_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Toy 2D embeddings to illustrate similarity",
+      "rationale": "Both candidates use a simplified 2D embedding with hand-crafted features (cuteness and size) to demonstrate semantic similarity and vector relationships, serving as an introductory example.",
+      "candidate_ids": [
+        "c41_pro_thinking_002",
+        "c41_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Distributed hypothesis and cosine similarity",
+      "rationale": "These candidates explain the theoretical underpinnings of word embeddings: the distributional hypothesis and the use of cosine similarity as a measure of semantic proximity.",
+      "candidate_ids": [
+        "c42_pro_thinking_002",
+        "c42_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Word2Vec architectures and training",
+      "rationale": "These candidates detail the CBOW and Skip-gram architectures, the training objective (softmax over word-context pairs), and the negative sampling technique for efficiency.",
+      "candidate_ids": [
+        "c42_pro_thinking_004",
+        "c42_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Comparison of Word2Vec with other embedding methods",
+      "rationale": "These candidates compare Word2Vec with GloVe, fastText, and BERT, highlighting differences in context scope, subword information, and bidirectionality.",
+      "candidate_ids": [
+        "c42_pro_thinking_007",
+        "c42_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Preprocessing for embeddings",
+      "rationale": "This candidate covers text preprocessing steps needed before training word embeddings, including lowercasing, punctuation removal, and tokenization.",
+      "candidate_ids": [
+        "c42_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Limitations of TF-IDF compared to word embeddings",
+      "rationale": "This candidate explains TF-IDF's sparse, high-dimensional vectors and its inability to capture complex semantics, motivating the need for dense embeddings.",
+      "candidate_ids": [
+        "c42_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Word embeddings definition and motivation",
+      "rationale": "This candidate defines word embeddings as dense vectors that replace sparse representations like bag-of-words, summarizing their semantic advantages.",
+      "candidate_ids": [
+        "c42_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Gensim core concepts: document, corpus, vector, model",
+      "rationale": "These candidates introduce the foundational building blocks of Gensim: what a document and corpus are, how vectors represent documents, and the model as a transformation.",
+      "candidate_ids": [
+        "c43_pro_thinking_001",
+        "c43_pro_thinking_002",
+        "c43_pro_thinking_003",
+        "c43_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Gensim dictionary and vectorization",
+      "rationale": "This candidate explains how the Gensim Dictionary assigns IDs to words and how doc2bow produces bag-of-words vectors, a key step in the pipeline.",
+      "candidate_ids": [
+        "c43_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "TF-IDF transformation with Gensim",
+      "rationale": "This candidate describes applying the TF-IDF model in Gensim to reweight term frequencies, emphasizing the downweighting of common words.",
+      "candidate_ids": [
+        "c43_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Streaming and scalability in Gensim",
+      "rationale": "This candidate explains how Gensim handles large datasets by streaming documents one by one, avoiding memory overload.",
+      "candidate_ids": [
+        "c43_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c41_pro_thinking_001",
+    "c41_pro_thinking_003",
+    "c42_pro_thinking_006",
+    "c41_pro_thinking_002",
+    "c41_pro_thinking_004",
+    "c42_pro_thinking_002",
+    "c42_pro_thinking_003",
+    "c42_pro_thinking_004",
+    "c42_pro_thinking_005",
+    "c42_pro_thinking_007",
+    "c42_pro_thinking_010",
+    "c42_pro_thinking_008",
+    "c42_pro_thinking_009",
+    "c42_pro_thinking_001",
+    "c43_pro_thinking_001",
+    "c43_pro_thinking_002",
+    "c43_pro_thinking_003",
+    "c43_pro_thinking_004",
+    "c43_pro_thinking_005",
+    "c43_pro_thinking_006",
+    "c43_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c41_pro_thinking_001",
+      "label": "Word2Vec produces word embeddings for analogical reasoning",
+      "description": "Word2Vec is a machine learning process that maps words to dense numerical vectors called word embeddings, enabling mathematical operations such as vector addition and subtraction to perform analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain what word2vec is and how word embeddings enable analogies like 'king - man + woman = queen'."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker explicitly defines word2vec as a process that produces word embeddings, describes mapping 'apple' to a vector, and poses the analogy 'apple' + 'purple' = 'plum' to illustrate vector arithmetic.",
+        "granularity_rationale": "This concept covers the core definition and a single illustrative example, allowing assessment with 1-2 focused questions."
+      },
+      "anchors": [
+        "00:00 Introduction to Word2Vec",
+        "02:10 What is Word Embedding?"
+      ]
+    },
+    {
+      "id": "c41_pro_thinking_003",
+      "label": "Vector relationships model analogies in word embedding space",
+      "description": "In a word embedding space, the vector difference between two words can represent a relationship; applying that same difference to a third word leads to an analogous word (e.g., 'tarantula' to 'hamster' is similar to 'chicken' to 'kitten' in terms of size and cuteness).",
+      "coverage_criteria": [
+        "Given a 2D animal embedding with arrows, explain the analogy 'tarantula is to hamster as chicken is to kitten'.",
+        "Demonstrate how vector addition can produce an analogy: if 'apple' + 'purple' ≈ 'plum', what operation would find 'plum'?"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source directly illustrates vector analogies by drawing arrows between animal points and explaining the resulting analogy.",
+        "granularity_rationale": "This focuses on the specific mechanism of using vector relationships to derive analogies, testable by having students interpret or extend a given analogy."
+      },
+      "anchors": [
+        "06:48 Vectors and Relationships"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_006",
+      "label": "Analogias com Vetores do Word2Vec",
+      "description": "Os vetores word2vec codificam relações semânticas que permitem operações aritméticas como 'rei' - 'homem' + 'mulher' ≈ 'rainha', demonstrando a capacidade de capturar analogias.",
+      "coverage_criteria": [
+        "Fornecer um exemplo de aritmética vetorial para analogias e explicar o que demonstra sobre as word embeddings."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O capítulo dá o exemplo clássico rei/rainha e explica a intuição geométrica.",
+        "granularity_rationale": "Propriedade famosa do word2vec que ilustra seu poder, podendo ser testada pedindo ao estudante para descrever o exemplo ou um novo."
+      },
+      "anchors": [
+        "2 Algoritmos para word embeddings"
+      ]
+    },
+    {
+      "id": "c41_pro_thinking_002",
+      "label": "Simple 2D word embeddings with hand-coded features illustrate word similarity",
+      "description": "Word embeddings can be constructed in two dimensions using manually assigned scores (e.g., cuteness and size for animals) so that similar words are close in the vector space, demonstrating the principle of semantic similarity through spatial proximity.",
+      "coverage_criteria": [
+        "Given a 2D plot of animals with cuteness and size scores, identify which animals are most similar based on spatial proximity.",
+        "Explain why euclidean distance can measure similarity in a 2D word embedding."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents a table of animals with cuteness and size scores and a scatter plot, explicitly calling this a simple word embedding to visualize similarity.",
+        "granularity_rationale": "This isolates the idea of using hand-crafted features to create a toy embedding, assessable by asking students to interpret a 2D plot."
+      },
+      "anchors": [
+        "05:38 Animal Similarity and Simple Linear Algebra",
+        "06:18 Animal Space Visualization"
+      ]
+    },
+    {
+      "id": "c41_pro_thinking_004",
+      "label": "Real-world word embeddings use high dimensions and reduced visualization",
+      "description": "Practical word2vec models use hundreds of dimensions (e.g., 100 to 300) to capture complex semantic relationships, making direct visualization impossible; dimensionality reduction techniques are necessary to project them into 2D for visualizing word clusters.",
+      "coverage_criteria": [
+        "State why real word2vec embeddings are high-dimensional and cannot be directly visualized.",
+        "Name a technique used to visualize high-dimensional word embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker explains that real word2vec uses 100 or 300 dimensions and mentions dimensionality reduction to visualize word clusters.",
+        "granularity_rationale": "This concept addresses the scalability of embeddings and the need for dimensionality reduction, easily checked by asking students to explain the visualization challenge."
+      },
+      "anchors": [
+        "08:13 Higher Dimensions and Next Steps"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_002",
+      "label": "Hipótese Distributiva",
+      "description": "Hipótese de que sinônimos aparecem frequentemente nos mesmos contextos, e a diferença entre palavras pode ser medida pelas diferenças nos ambientes onde ocorrem, fundamentando a representação vetorial semântica.",
+      "coverage_criteria": [
+        "Enunciar a hipótese distributiva e explicar seu papel na criação de vetores semânticos."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto menciona explicitamente a 'hipótese distributiva' como base para as word embeddings.",
+        "granularity_rationale": "Conceito fundamental que o estudante deve conseguir articular."
+      },
+      "anchors": [
+        "1 Word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_003",
+      "label": "Similaridade por Cosseno entre Vetores de Palavras",
+      "description": "Medida de similaridade que utiliza o cosseno do ângulo entre dois vetores para quantificar a proximidade semântica, evitando viés de magnitude.",
+      "coverage_criteria": [
+        "Definir similaridade de cosseno e explicar por que é preferida ao produto escalar para comparar vetores de palavras."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto apresenta a similaridade de cosseno como substituta do produto escalar para evitar dominância de palavras frequentes.",
+        "granularity_rationale": "Ferramenta matemática específica frequentemente usada em PLN, testável com uma explicação curta."
+      },
+      "anchors": [
+        "1 Word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_004",
+      "label": "Arquiteturas do Word2Vec: CBOW e Skip-Gram",
+      "description": "Word2Vec implementa duas arquiteturas: CBOW (Continuous Bag-of-Words) que prevê uma palavra a partir do contexto, e Skip-Gram que prevê o contexto a partir de uma palavra.",
+      "coverage_criteria": [
+        "Diferenciar CBOW de Skip-Gram e descrever a entrada e saída de cada um."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O capítulo dedica uma seção para explicar CBOW e Skip-Gram com figuras e pseudocódigo.",
+        "granularity_rationale": "Distinção algorítmica central que o estudante deve saber comparar e contrastar."
+      },
+      "anchors": [
+        "3 Implementação de word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_005",
+      "label": "Objetivo de Treinamento do Word2Vec e Amostragem Negativa",
+      "description": "O treinamento do Word2Vec maximiza a probabilidade de pares palavra-contexto observados usando uma função softmax, e reduz custo computacional com amostragem negativa, que gera rótulos falsos para pares não observados.",
+      "coverage_criteria": [
+        "Explicar o objetivo de treinamento (maximização da probabilidade palavra-contexto) e o propósito da amostragem negativa."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve o objetivo de log-verossimilhança e a amostragem negativa como técnica de treinamento eficiente.",
+        "granularity_rationale": "Compreender o procedimento de treinamento é chave para como o word2vec aprende, e pode ser verificado pedindo um resumo da função de perda e da amostragem negativa."
+      },
+      "anchors": [
+        "3 Implementação de word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_007",
+      "label": "Comparação entre Word2Vec, GloVe e fastText",
+      "description": "Enquanto Word2Vec foca em contexto local, GloVe utiliza coocorrência global, e fastText usa subpalavras (character n-grams) para melhor generalização, especialmente para palavras desconhecidas.",
+      "coverage_criteria": [
+        "Comparar word2vec com GloVe e fastText em termos de contexto local vs. global e tratamento de palavras desconhecidas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto contrasta explicitamente esses algoritmos na seção '2 Algoritmos para word embeddings'.",
+        "granularity_rationale": "Conhecimento comparativo essencial para entender a evolução e os trade-offs dos métodos de embedding, podendo ser avaliado por uma comparação sucinta."
+      },
+      "anchors": [
+        "2 Algoritmos para word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_010",
+      "label": "BERT: Representação Bidirecional com Transformers",
+      "description": "BERT é um modelo de word embedding bidirecional baseado em transformers que considera contexto anterior e posterior, permitindo representações mais ricas e refinadas para palavras.",
+      "coverage_criteria": [
+        "Descrever a principal característica de bidirecionalidade do BERT e sua diferença em relação a modelos unidirecionais."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto apresenta o BERT como um modelo de ponta com contexto bidirecional e pré-treinamento.",
+        "granularity_rationale": "Avanço significativo mencionado no capítulo; o estudante deve conseguir identificar sua inovação principal."
+      },
+      "anchors": [
+        "2 Algoritmos para word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_008",
+      "label": "Pré-processamento para Word Embeddings",
+      "description": "Etapas comuns de pré-processamento incluem conversão para minúsculas, remoção de pontuações, stop words e tokenização, para uniformizar o texto antes da vetorização.",
+      "coverage_criteria": [
+        "Listar etapas típicas de pré-processamento para word embeddings e explicar seu propósito."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto fornece um pseudocódigo de pré-processamento e discute a necessidade de remover ruídos.",
+        "granularity_rationale": "Passo prático que os estudantes devem conhecer ao implementar word embeddings, testável solicitando a descrição do processo."
+      },
+      "anchors": [
+        "3 Implementação de word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_009",
+      "label": "TF-IDF e Suas Limitações",
+      "description": "TF-IDF pondera a frequência do termo pela inversa da frequência nos documentos, mas gera vetores esparsos de alta dimensionalidade incapazes de capturar semântica complexa.",
+      "coverage_criteria": [
+        "Definir TF-IDF e explicar por que é menos eficaz que word embeddings para capturar similaridade semântica."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O texto descreve o TF-IDF e suas desvantagens como representação vetorial, contrastando com embeddings densos.",
+        "granularity_rationale": "Conceito que esclarece por que as word embeddings foram necessárias, verificável com uma definição e contraste curtos."
+      },
+      "anchors": [
+        "1 Word embeddings"
+      ]
+    },
+    {
+      "id": "c42_pro_thinking_001",
+      "label": "Word Embeddings (Incorporação de Palavras)",
+      "description": "Representação de palavras como vetores densos em um espaço vetorial que capturam significado semântico, contrastando com representações esparsas como bag-of-words.",
+      "coverage_criteria": [
+        "Explicar o que são word embeddings e como se diferem de representações vetoriais esparsas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "O capítulo define explicitamente word embeddings como uma abordagem de aprendizado de representação que mapeia palavras para vetores densos, melhorando modelos esparsos como BoW.",
+        "granularity_rationale": "Conceito central do capítulo que pode ser avaliado pedindo ao estudante para definir o termo e explicar a motivação."
+      },
+      "anchors": [
+        "1 Word embeddings"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_001",
+      "label": "Gensim Document",
+      "description": "In Gensim, a document is an object of text sequence type (str in Python 3). It can be any text from a short tweet to a book, and serves as the basic input unit for corpora and models.",
+      "coverage_criteria": [
+        "Define what a document is in the context of Gensim.",
+        "Identify which Python objects can serve as Gensim documents.",
+        "Given examples, determine if they would be considered documents in Gensim."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines document as the first core concept, provides examples, and explains its role as input to corpora and models.",
+        "granularity_rationale": "The concept of a document is fundamental and checkable with a few straightforward questions about text sequences."
+      },
+      "anchors": [
+        "Document"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_002",
+      "label": "Gensim Corpus",
+      "description": "A corpus is a collection of documents, serving as input for unsupervised model training and as a set of documents to organize and query after training.",
+      "coverage_criteria": [
+        "Describe the two roles of a corpus in Gensim.",
+        "Identify that Gensim focuses on unsupervised models requiring no manual annotation.",
+        "Explain that corpora can be streamed to handle large datasets."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source clearly outlines the corpus concept, its roles, and emphasizes unsupervised learning and streaming.",
+        "granularity_rationale": "Checkable by asking about the roles and the streaming feature, which are central to Gensim usage."
+      },
+      "anchors": [
+        "Corpus"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_003",
+      "label": "Gensim Vector (Sparse Representation)",
+      "description": "A vector is a mathematical representation of a document, often sparse (bag-of-words) where features are word counts. Sparse vectors omit zero values to save memory, and document similarity can be assessed by vector proximity.",
+      "coverage_criteria": [
+        "Explain why vectors are used in Gensim.",
+        "Distinguish between dense and sparse vectors.",
+        "Interpret a simple bag-of-words vector like [(0,2), (1,1)]."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source dedicates a section to Vectors, explaining dense vs sparse, bag-of-words, and how similarity is derived.",
+        "granularity_rationale": "This concept is essential for understanding document transformation and can be tested by having students interpret vector representations."
+      },
+      "anchors": [
+        "Vector"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_004",
+      "label": "Gensim Model as Vector Transformation",
+      "description": "A model is an algorithm that learns to transform vectors from one representation to another (e.g., bag-of-words to TF-IDF) by training on a corpus. Trained models can be saved, loaded, and applied to new documents.",
+      "coverage_criteria": [
+        "Define what a model does in Gensim.",
+        "Explain the training process as learning a transformation between vector spaces.",
+        "Given an example like TF-IDF, describe what transformation occurs."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines a model as a transformation, provides the TF-IDF example, and shows saving/loading.",
+        "granularity_rationale": "This captures the essence of Gensim models and can be assessed by asking to explain the transformation concept."
+      },
+      "anchors": [
+        "Model"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_005",
+      "label": "Gensim Dictionary for Vectorization",
+      "description": "The gensim.corpora.Dictionary class maps each word in the corpus to a unique integer ID, enabling conversion of tokenized documents into bag-of-words vectors via the doc2bow method.",
+      "coverage_criteria": [
+        "Explain the purpose of a Gensim Dictionary.",
+        "Use a dictionary to convert a short text into a bag-of-words vector.",
+        "Identify that out-of-vocabulary words are ignored during vectorization."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates creating a dictionary from processed corpus and using doc2bow, explicitly stating its role in vectorization.",
+        "granularity_rationale": "This is a specific, hands-on tool in Gensim that students can learn to use with simple code examples."
+      },
+      "anchors": [
+        "Vector",
+        "dictionary = corpora.Dictionary(processed_corpus)"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_006",
+      "label": "TF-IDF Model in Gensim",
+      "description": "The TF-IDF model transforms bag-of-words vectors by weighting term frequencies inversely with document frequency, reducing the weight of common words and emphasizing rare ones.",
+      "coverage_criteria": [
+        "Explain the effect of TF-IDF on word weights.",
+        "Compare tf-idf weights of frequent vs rare words in a given corpus.",
+        "Apply a pre-trained TF-IDF model to a new document string."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a concrete TF-IDF example, showing weight differences between 'system' and 'minors', and mentions it as a model.",
+        "granularity_rationale": "TF-IDF is a specific, well-defined transformation that can be taught and tested independently."
+      },
+      "anchors": [
+        "Model",
+        "tfidf = models.TfidfModel(bow_corpus)"
+      ]
+    },
+    {
+      "id": "c43_pro_thinking_007",
+      "label": "Corpus Streaming for Large Datasets",
+      "description": "Gensim can handle very large corpora by streaming, processing one document at a time instead of loading the entire corpus into memory, which is essential for scalability.",
+      "coverage_criteria": [
+        "Explain why streaming is necessary for large corpora.",
+        "Describe how Gensim achieves streaming.",
+        "Identify that an iterator returning one document vector at a time can be used."
+      ],
+      "source_roles": [
+        "explaining",
+        "referencing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly warns about memory limitations and mentions Gensim's streaming capability, linking to a detailed tutorial.",
+        "granularity_rationale": "This is a practical consideration for using Gensim with real-world data, and is easily checkable with a single question."
+      },
+      "anchors": [
+        "Corpus",
+        "Important: The above example loads the entire corpus into memory..."
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

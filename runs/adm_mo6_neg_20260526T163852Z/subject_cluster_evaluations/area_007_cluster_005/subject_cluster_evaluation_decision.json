@@ -1,0 +1,92 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-26T19:15:38.106688+00:00",
+  "scope_id": "adm-mod6-NEG",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr005_010",
+    "lr005_011"
+  ],
+  "accepted": [
+    {
+      "id": "sm001",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "The difference between the expected monetary value with free sample information and without that information, representing the maximum a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": [
+        "lr005_010"
+      ],
+      "merge_rationale": "Standalone concept: EVSI measures value of sample information and is distinct from EVPI in math and application."
+    },
+    {
+      "id": "sm002",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "The difference between the expected monetary value with free perfect information and without information, serving as the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": [
+        "lr005_011"
+      ],
+      "merge_rationale": "Standalone concept: EVPI measures value of perfect information and is distinct from EVSI in math and reference point."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sm001",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "The difference between the expected monetary value with free sample information and without that information, representing the maximum a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": [
+        "lr005_010"
+      ],
+      "merge_rationale": "Standalone concept: EVSI measures value of sample information and is distinct from EVPI in math and application."
+    },
+    {
+      "id": "sm002",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "The difference between the expected monetary value with free perfect information and without information, serving as the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": [
+        "lr005_011"
+      ],
+      "merge_rationale": "Standalone concept: EVPI measures value of perfect information and is distinct from EVSI in math and reference point."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr005_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm001"
+      ]
+    },
+    {
+      "candidate_id": "lr005_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "sm002"
+      ]
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 2,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

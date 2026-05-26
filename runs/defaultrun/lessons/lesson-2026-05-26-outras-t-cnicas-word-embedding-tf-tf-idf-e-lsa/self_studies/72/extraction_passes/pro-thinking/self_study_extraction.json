@@ -1,0 +1,308 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:23:51.499516+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+  "self_study_id": "72",
+  "source_body_path": "extraction/post-image/0072-video-calculate-tf-idf-in-nlp-simple-example.md",
+  "source_body_sha256": "71eac74f6279d541e68bb278dc57b55fbc11f2612767b6d3b8b6a3dda370a985",
+  "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-72-001",
+      "label": "TF-IDF as a measure of word relevance",
+      "description": "TF-IDF is a statistical measurement that evaluates how relevant a word is to a document in a collection of documents, commonly used in text analysis and NLP.",
+      "coverage_criteria": [
+        "Explain what TF-IDF measures in a document corpus.",
+        "Describe the two components that make up TF-IDF."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces TF-IDF as a popular text representation, defines it as the product of TF and IDF, and summarizes its purpose and applications.",
+        "granularity_rationale": "This concept encapsulates the core idea of TF-IDF and is checkable with basic recall questions, while allowing deeper understanding to be assessed by elaborating on its components."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:20 Introduction to TF-IDF"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "07:26 TF-IDF Summary and Uses"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-002",
+      "label": "Term Frequency (TF) calculation",
+      "description": "Term Frequency is the frequency of a term in a specific document, often computed as the raw count divided by total words in that document.",
+      "coverage_criteria": [
+        "Given a document and a term, compute the term frequency.",
+        "State that TF is specific to a single document."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly defines TF and walks through a worked example calculating TF('fox', d1)=2/12 and TF('fox', d2)=3/12.",
+        "granularity_rationale": "TF is a fundamental building block of TF-IDF and is small enough to be verified with a simple arithmetic exercise."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "02:19 Solution: Calculating Term Frequency (TF)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "06:51 TF and IDF Recap"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "TF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-003",
+      "label": "Inverse Document Frequency (IDF) calculation",
+      "description": "IDF is a corpus-level constant that measures how informative a term is, based on the log ratio of total documents to documents containing the term.",
+      "coverage_criteria": [
+        "Given a corpus and a term, compute the IDF.",
+        "Explain why IDF equals zero when a term appears in every document."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video defines IDF and provides the formula log(N/df), then calculates IDF('fox', D)=log(2/2)=0, illustrating that a term in all documents gets zero IDF.",
+        "granularity_rationale": "IDF is a key concept that can be checked by asking the student to compute it for a simple corpus or interpret the result."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "03:42 Solution: Calculating Inverse Document Frequency (IDF)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "06:51 TF and IDF Recap"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-004",
+      "label": "TF-IDF computation as product of TF and IDF",
+      "description": "The TF-IDF value for a term in a document is the product of its term frequency in that document and its inverse document frequency across the corpus.",
+      "coverage_criteria": [
+        "Given TF(t,d) and IDF(t), calculate TFIDF(t,d).",
+        "Explain why a word with IDF=0 yields a TF-IDF of zero."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video performs a step-by-step multiplication of TF and IDF values for the word 'fox' in two documents, showing TFIDF(d1)=0.17*0=0 and TFIDF(d2)=0.25*0=0.",
+        "granularity_rationale": "This is the operative core of TF-IDF and can be assessed by a single computation question, making it an appropriately sized candidate."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "04:58 Solution: Calculating TF-IDF for each document"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "TF-IDF"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-005",
+      "label": "Preprocessing for Bag-of-Words and TF-IDF",
+      "description": "Before computing TF and IDF in a bag-of-words model, text typically undergoes stemming and stop-word elimination to reduce noise and dimensionality.",
+      "coverage_criteria": [
+        "List two common preprocessing steps used before TF-IDF calculation.",
+        "Explain why stemming and stop-word removal are beneficial."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video mentions that systems using bag-of-words representation go through stemming and stop-word elimination before term counting, as shown in the diagram.",
+        "granularity_rationale": "This is a supporting concept that can be checked with a short recall question, appropriate for a single candidate."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:45 Preprocessing and Feature Vectors"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "Bag-of-Words",
+        "stemming",
+        "stopwords"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-006",
+      "label": "Document feature vectors from TF-IDF",
+      "description": "After TF-IDF computation, each document becomes a feature vector, and the corpus is a set of such vectors, which can be used in data mining algorithms like classification, clustering, or retrieval.",
+      "coverage_criteria": [
+        "Describe how a document is represented as a feature vector using TF-IDF.",
+        "Name at least two data mining tasks that can use such feature vectors."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly states that each document becomes a feature vector and the corpus is a set of these feature vectors, which can be used in classification, clustering, or retrieval.",
+        "granularity_rationale": "This concept bridges TF-IDF calculation to practical applications, and it can be verified by asking the student to explain the transformation or list tasks."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:45 Preprocessing and Feature Vectors"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "feature vector",
+        "data mining"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-007",
+      "label": "Applications of TF-IDF",
+      "description": "TF-IDF is widely used in automated text analysis, scoring words for machine learning algorithms in NLP, document search, and information retrieval.",
+      "coverage_criteria": [
+        "List at least three applications of TF-IDF.",
+        "Explain why TF-IDF is suitable for document search."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video summarizes that TF-IDF has many uses, most importantly in automated text analysis, and is very useful for scoring words in ML algorithms for NLP, and was invented for document search and information retrieval.",
+        "granularity_rationale": "This provides a high-level perspective on the value of TF-IDF and can be checked with recall of the applications mentioned in the source."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "07:26 TF-IDF Summary and Uses"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "NLP",
+        "machine learning",
+        "document search",
+        "information retrieval"
+      ]
+    },
+    {
+      "candidate_id": "candidate-72-008",
+      "label": "IDF zero and discriminative power",
+      "description": "If a term appears in every document of the corpus, its IDF equals zero, resulting in a TF-IDF of zero and indicating the term is not discriminative.",
+      "coverage_criteria": [
+        "Explain why a word that occurs in all documents gets a TF-IDF score of zero.",
+        "Interpret the meaning of a zero TF-IDF score for a term."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The example calculates IDF('fox') = log(2/2) = 0, leading to TF-IDF = 0, and concludes that 'fox' is equally (equivalently zero) relevant to both documents, illustrating that such a term lacks discriminative power.",
+        "granularity_rationale": "This insight reveals the intuitive justification for IDF and can be assessed with a single interpretation question."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "03:42 Solution: Calculating Inverse Document Frequency (IDF)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "04:58 Solution: Calculating TF-IDF for each document"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Calculate TF-IDF in NLP (Simple Example)",
+      "source_year": "2026",
+      "name_drops": [
+        "IDF"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-72-002",
+      "to_candidate_id": "candidate-72-004",
+      "reason": "The source explicitly computes TF-IDF by multiplying TF and IDF: TFIDF(t,d) = TF(t,d) * IDF(t).",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "04:58 Solution: Calculating TF-IDF for each document"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-72-003",
+      "to_candidate_id": "candidate-72-004",
+      "reason": "The source explicitly shows that IDF is the second factor in the TF-IDF multiplication.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "04:58 Solution: Calculating TF-IDF for each document"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-72-005",
+      "to_candidate_id": "candidate-72-006",
+      "reason": "The source describes that after stemming and stop-word elimination, term counts lead to TF and IDF, which in turn yield feature vectors.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "00:45 Preprocessing and Feature Vectors"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 8,
+    "source_local_connector_candidate_count": 3
+  }
+}

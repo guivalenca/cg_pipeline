@@ -1,0 +1,101 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "title": "Modelos de Extração de Características e APIs"
+  },
+  "segment": {
+    "segment_id": "segment_004",
+    "label": "Building APIs with Flask to Serve NLP Models",
+    "concept_ids": [
+      "concept-creating-a-basic-flask-api-endpoint-48b7822c",
+      "concept-handling-dynamic-url-parameters-and-url-generation-in-flask-1b8feb5d",
+      "concept-defining-api-endpoints-with-http-methods-in-flask-af2a1158",
+      "concept-building-a-python-web-api-to-serve-nlp-models-2822e2fb"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-creating-a-basic-flask-api-endpoint-48b7822c",
+      "label": "Creating a Basic Flask API Endpoint",
+      "teaching_description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ],
+      "source_candidate_ids": [
+        "lr010_011"
+      ]
+    },
+    {
+      "concept_id": "concept-handling-dynamic-url-parameters-and-url-generation-in-flask-1b8feb5d",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "teaching_description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ],
+      "source_candidate_ids": [
+        "lr010_012"
+      ]
+    },
+    {
+      "concept_id": "concept-defining-api-endpoints-with-http-methods-in-flask-af2a1158",
+      "label": "Defining API endpoints with HTTP methods in Flask",
+      "teaching_description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ],
+      "source_candidate_ids": [
+        "lr010_013"
+      ]
+    },
+    {
+      "concept_id": "concept-building-a-python-web-api-to-serve-nlp-models-2822e2fb",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "teaching_description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_candidate_ids": [
+        "lr010_010"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Loading and exploring NLTK's Portuguese text corpora",
+      "description": "How to import and access NLTK's built-in Portuguese corpora, including the examples module, Machado de Assis works, and the MacMorpho tagged corpus, to retrieve text, words, and tagged words.",
+      "coverage_criteria": [
+        "Imports a Portuguese corpus like nltk.corpus.machado.",
+        "Lists file IDs and retrieves raw text or words for a file.",
+        "For MacMorpho, accesses tagged_words and distinguishes between words and tagged tokens."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_001", "c28_pro_thinking_011", "c28_pro_thinking_013"],
+      "merge_rationale": "These candidates all demonstrate the same pattern of importing a specific NLTK corpus and querying its contents, differing mainly in the corpus name and whether tags are present. They collectively teach how to access Portuguese language resources."
+    },
+    {
+      "id": "lr002",
+      "label": "Working with the Floresta treebank",
+      "description": "How to access the Floresta Portuguese treebank, simplify its complex part-of-speech tags, and retrieve parsed syntactic trees.",
+      "coverage_criteria": [
+        "Imports nltk.corpus.floresta and lists words or tagged words.",
+        "Writes a function to simplify tags (e.g., 'H+n' to 'n').",
+        "Accesses parsed_sents() and can explain that they represent syntactic structure."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_014", "c28_pro_thinking_015"],
+      "merge_rationale": "Both candidates focus on the same treebank, teaching complementary aspects: tag manipulation and parsed sentence access."
+    },
+    {
+      "id": "lr003",
+      "label": "Searching text with NLTK's built-in and regex methods",
+      "description": "Using NLTK's concordance, similar, collocations, and findall with regex to locate words and analyze their contexts.",
+      "coverage_criteria": [
+        "Uses concordance() to display a word in context.",
+        "Uses similar() to find words with similar distribution.",
+        "Uses collocations() to extract frequent multi-word expressions.",
+        "Applies findall() with a regex pattern to search text."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_002", "c28_pro_thinking_003", "c28_pro_thinking_004", "c28_pro_thinking_005"],
+      "merge_rationale": "These candidates cover different search tools in NLTK that together form a coherent set of methods for exploring text content, from simple concordances to regex pattern matching."
+    },
+    {
+      "id": "lr004",
+      "label": "Tokenization with NLTK",
+      "description": "Understanding tokenization as converting text into a list of words and punctuation, and using nltk.word_tokenize for better handling of contractions than simple regex splitting.",
+      "coverage_criteria": [
+        "Recognizes that NLTK represents tokenized text as a list of string tokens.",
+        "Uses nltk.word_tokenize to split a sentence with contractions and explains why it is advantageous."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_007", "c29_pro_thinking_001"],
+      "merge_rationale": "These two candidates cover the concept of tokenization from both a representational perspective and a specific function that improves tokenization quality."
+    },
+    {
+      "id": "lr005",
+      "label": "Analyzing tokenized text with NLTK and Python",
+      "description": "Performing basic text analysis operations on tokenized lists, including extracting unique vocabulary, filtering/transforming tokens with list comprehensions, computing frequency distributions, and finding n-grams containing a target word.",
+      "coverage_criteria": [
+        "Uses set() and sorted() to obtain the unique vocabulary of a tokenized text.",
+        "Writes a list comprehension to filter tokens by length or case.",
+        "Creates a FreqDist and retrieves the most frequent words.",
+        "Generates n-grams and filters those containing a specific word, displaying the most frequent."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_008", "c28_pro_thinking_009", "c28_pro_thinking_010", "c28_pro_thinking_012"],
+      "merge_rationale": "These candidates represent a sequence of progressively advanced manipulations on token lists, all essential for exploratory text analysis."
+    },
+    {
+      "id": "lr006",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "description": "Awareness that many Portuguese text resources use ISO 8859-1 encoding and how to decode such text in Python when reading files.",
+      "coverage_criteria": [
+        "Explains why specifying encoding is necessary when opening Portuguese text files.",
+        "Decodes bytes using 'ISO 8859-1' encoding in Python."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_016"],
+      "merge_rationale": "This candidate is a standalone practical detail about text encoding that is specific to Portuguese character sets."
+    },
+    {
+      "id": "lr007",
+      "label": "Implementing a custom concordance tool",
+      "description": "Writing a Python function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Defines a function that takes a word and context width, iterates over tokenized sentences, and prints formatted concordance lines."
+      ],
+      "source_candidate_ids": ["c28_pro_thinking_017"],
+      "merge_rationale": "This candidate is a self-contained programming task that deepens understanding of text indexing and formatting."
+    },
+    {
+      "id": "lr008",
+      "label": "Stemming with Porter Stemmer in NLTK",
+      "description": "Using the Porter Stemmer algorithm to reduce words to their stems through rule-based suffix stripping.",
+      "coverage_criteria": [
+        "Applies PorterStemmer to a list of words and observes the stemmed outputs.",
+        "Explains that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ],
+      "source_candidate_ids": ["c29_pro_thinking_002"],
+      "merge_rationale": "This candidate covers a specific stemming algorithm, which is a fundamental text normalization technique."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c28_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_017",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c29_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr008"]
+    },
+    {
+      "candidate_id": "c28_pro_thinking_006",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Random text generation with generate() is a minor, non-essential feature that does not significantly contribute to the core text manipulation skills taught in this lesson."
+    }
+  ]
+}

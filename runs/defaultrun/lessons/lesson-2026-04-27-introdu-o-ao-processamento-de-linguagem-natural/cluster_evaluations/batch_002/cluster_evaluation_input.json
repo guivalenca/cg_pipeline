@@ -1,0 +1,904 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Python Functions: Definition and Variable Arguments",
+    "rationale": "These define functions using def and handle variable-length arguments with *args, two aspects of function creation.",
+    "candidate_ids": [
+      "c5_pro_thinking_008",
+      "c5_pro_thinking_009"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Python Functions: Definition and Variable Arguments",
+      "rationale": "These define functions using def and handle variable-length arguments with *args, two aspects of function creation.",
+      "candidate_ids": [
+        "c5_pro_thinking_008",
+        "c5_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Text Encoding and Decoding in Python",
+      "rationale": "This single candidate covers string encoding/decoding, a distinct concept from other formatting or file topics.",
+      "candidate_ids": [
+        "c5_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Python Control Flow: Conditionals and Loops",
+      "rationale": "These include if/elif/else for decision making and for loops for iteration, fundamental control flow constructs.",
+      "candidate_ids": [
+        "c5_pro_thinking_011",
+        "c5_pro_thinking_012"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "Python Data Structures: Lists and Methods",
+      "rationale": "These cover list creation/indexing and list methods with the method-call mechanism, both concerning list operations.",
+      "candidate_ids": [
+        "c5_pro_thinking_013",
+        "c5_pro_thinking_014"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Python Dictionaries: Basics and Operations",
+      "rationale": "These explain dictionaries as key-value stores and the syntax for accessing/assigning items, all about dictionary usage.",
+      "candidate_ids": [
+        "c5_pro_thinking_015",
+        "c5_pro_thinking_016"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "Binary Coded Decimal (BCD) Encoding",
+      "rationale": "These define BCD, present its truth table, and describe packed/unpacked formats, all core to BCD representation.",
+      "candidate_ids": [
+        "c6_pro_thinking_001",
+        "c6_pro_thinking_002",
+        "c6_pro_thinking_003",
+        "c6_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "BCD Arithmetic Operations",
+      "rationale": "These cover addition, subtraction, multiplication, and division in BCD, grouping all arithmetic aspects.",
+      "candidate_ids": [
+        "c6_pro_thinking_005",
+        "c6_pro_thinking_006",
+        "c6_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "BCD Advantages, Limitations, and Applications",
+      "rationale": "These discuss limitations and applications, complementary non-arithmetic facets of BCD.",
+      "candidate_ids": [
+        "c6_pro_thinking_008",
+        "c6_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Compiler vs Interpreter Core Differences",
+      "rationale": "These define compilers and interpreters, their error handling, speed, optimization, and use environments, all comparing the two translation methods.",
+      "candidate_ids": [
+        "c7_pro_thinking_001",
+        "c7_pro_thinking_002",
+        "c7_pro_thinking_003",
+        "c7_pro_thinking_004",
+        "c7_pro_thinking_005",
+        "c7_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "Python Built-in Data Structures Overview",
+      "rationale": "These introduce Python's list, string, set, and dictionary types, providing a foundational set of built-in containers.",
+      "candidate_ids": [
+        "c8_pro_thinking_001",
+        "c8_pro_thinking_004",
+        "c8_pro_thinking_005",
+        "c8_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_023",
+      "label": "Python List Operations: Searching and Sorting",
+      "rationale": "These cover searching algorithms and sorting methods specifically for lists, two essential list operations.",
+      "candidate_ids": [
+        "c8_pro_thinking_002",
+        "c8_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_024",
+      "label": "Recursion and Dynamic Programming Concepts",
+      "rationale": "These introduce recursion and dynamic programming, both algorithmic problem-solving techniques with overlapping subproblem focus.",
+      "candidate_ids": [
+        "c8_pro_thinking_007",
+        "c8_pro_thinking_014"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c5_pro_thinking_008",
+    "c5_pro_thinking_009",
+    "c5_pro_thinking_010",
+    "c5_pro_thinking_011",
+    "c5_pro_thinking_012",
+    "c5_pro_thinking_013",
+    "c5_pro_thinking_014",
+    "c5_pro_thinking_015",
+    "c5_pro_thinking_016",
+    "c6_pro_thinking_001",
+    "c6_pro_thinking_002",
+    "c6_pro_thinking_003",
+    "c6_pro_thinking_004",
+    "c6_pro_thinking_005",
+    "c6_pro_thinking_006",
+    "c6_pro_thinking_007",
+    "c6_pro_thinking_008",
+    "c6_pro_thinking_009",
+    "c7_pro_thinking_001",
+    "c7_pro_thinking_002",
+    "c7_pro_thinking_003",
+    "c7_pro_thinking_004",
+    "c7_pro_thinking_005",
+    "c7_pro_thinking_006",
+    "c8_pro_thinking_001",
+    "c8_pro_thinking_004",
+    "c8_pro_thinking_005",
+    "c8_pro_thinking_006",
+    "c8_pro_thinking_002",
+    "c8_pro_thinking_003",
+    "c8_pro_thinking_007",
+    "c8_pro_thinking_014"
+  ],
+  "candidates": [
+    {
+      "id": "c5_pro_thinking_008",
+      "label": "Defining functions with def",
+      "description": "Creating reusable blocks of code using the def keyword, which names the function, specifies parameters, and groups statements.",
+      "coverage_criteria": [
+        "Student can write a function that takes two numbers and returns their sum.",
+        "When shown a function definition, student can identify its name, parameters, and body."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 18 states 'You create a function using the word def' and shows multiple definitions (print_two, print_one, etc.).",
+        "granularity_rationale": "The fundamental syntax of function creation; can be tested by asking the student to write a simple function."
+      },
+      "anchors": [
+        "EXERCÍCIO 18 - Nomes, Variáveis, Código, Funções",
+        "Page 63"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_009",
+      "label": "Variable‑length arguments with *args",
+      "description": "Using the *args syntax in a function definition to accept an arbitrary number of positional arguments, which are received as a tuple inside the function.",
+      "coverage_criteria": [
+        "Student can write a function that uses *args to sum any number of numbers.",
+        "Student can explain why the next example (print_two_again) says *args is unnecessary."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The first function print_two uses *args to collect arguments, and the source explains 'that *args is unnecessary, we can just do this' and shows a simpler version.",
+        "granularity_rationale": "A specific language feature for handling variable arguments; small enough to be practiced with a single coding exercise."
+      },
+      "anchors": [
+        "EXERCÍCIO 18 - Nomes, Variáveis, Código, Funções",
+        "Page 63"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_010",
+      "label": "String encoding and decoding",
+      "description": "The concept that strings in Python 3 are sequences of characters, and how they can be encoded into bytes and decoded from bytes using specified encodings (e.g., UTF-8).",
+      "coverage_criteria": [
+        "Student can describe the difference between a string and a bytes object.",
+        "Given a string and an encoding name, student can write code to encode and decode it correctly."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 23 is dedicated to 'Strings, Bytes e Codificações de Caracteres' and lists topics: how modern computers store languages, how to encode/decode Python strings to bytes, and handling errors.",
+        "granularity_rationale": "A single, foundational concept for text processing; can be checked by asking student to convert between string and bytes."
+      },
+      "anchors": [
+        "EXERCÍCIO 23 - Strings, Bytes e Codificações de Caracteres",
+        "Page 81"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_011",
+      "label": "Conditional branching with if/elif/else",
+      "description": "Using if, elif, and else statements to execute different blocks of code based on boolean conditions, allowing the program to make decisions.",
+      "coverage_criteria": [
+        "Student can write a multi‑branch condition that checks a numeric variable and prints a different message for each range.",
+        "Given an if/elif/else structure, student can trace the flow when a specific condition is true."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 31 introduces decision making, showing if/elif/else within a text adventure game that asks for a door number and reacts accordingly.",
+        "granularity_rationale": "A core control flow construct; its understanding can be tested with a short logical branching task."
+      },
+      "anchors": [
+        "EXERCÍCIO 31 - Tomando Decisões",
+        "Page 111"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_012",
+      "label": "Iteration with for loops",
+      "description": "Using a for loop to iterate over items in a sequence (like a list), executing a block of code for each item.",
+      "coverage_criteria": [
+        "Student can write a for loop that prints each element of a list.",
+        "Student can explain what the loop variable represents on each iteration."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 32 states 'we'll use a for loop in this exercise to create and print several lists' and shows iteration over fruits and change.",
+        "granularity_rationale": "A simple looping construct; can be assessed by asking student to iterate over a small list and modify each element."
+      },
+      "anchors": [
+        "EXERCÍCIO 32 - Loops e Listas",
+        "Page 115"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_013",
+      "label": "Lists creation and indexing",
+      "description": "Creating ordered collections of items using square brackets, and accessing individual items by their numeric index (starting at 0).",
+      "coverage_criteria": [
+        "Student can create a list of three strings and access the second element using an index.",
+        "Student can use indexing to replace an item in a list."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 32 shows list creation like hairs = ['brown', 'blond', 'red'] and explains syntax; later exercises use indexing (things[1]) to get and set items.",
+        "granularity_rationale": "The basic list data structure; easily checked by asking student to create and manipulate a short list."
+      },
+      "anchors": [
+        "EXERCÍCIO 32 - Loops e Listas",
+        "Page 115"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_014",
+      "label": "List methods and the method‑call mechanism",
+      "description": "Calling methods on objects (e.g., mystuff.append('hello')) and understanding that Python translates method calls into function calls with the object as the first argument.",
+      "coverage_criteria": [
+        "Student can use the append method to add an item to a list.",
+        "Student can explain what happens internally when a method is called on a list (the object is passed as an implicit argument)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 38 goes into detail: 'mystuff.append('hello') is a chain of events' and explains the dot operator, looking up the method, and the implicit self argument.",
+        "granularity_rationale": "A precise explanation of a common but often misunderstood mechanism; can be checked by asking student to describe the behind‑the‑scenes steps."
+      },
+      "anchors": [
+        "EXERCICIO 38 - Fazendo Coisas com Listas",
+        "Page 137"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_015",
+      "label": "Dictionaries as key‑value stores",
+      "description": "Understanding that a dictionary (dict) is a collection of key‑value pairs, allowing access to values using keys rather than numeric indices.",
+      "coverage_criteria": [
+        "Student can create a dictionary with at least two keys and retrieve a value by key.",
+        "Student can explain the difference between list indexing (by integer) and dictionary key access."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Exercise 39 introduces dicionário: 'a way to store data like a list, but instead of numbers you can use almost anything' and compares dict and list operations.",
+        "granularity_rationale": "The essential concept of a mapping structure; can be tested with simple put‑and‑get operations."
+      },
+      "anchors": [
+        "EXERCÍCIO 39 - Dicionários, Ah, os Adoráveis Dicionários",
+        "Page 143"
+      ]
+    },
+    {
+      "id": "c5_pro_thinking_016",
+      "label": "Assigning and accessing dictionary items",
+      "description": "Adding new key‑value pairs to a dictionary and retrieving values using square‑bracket notation, with both string and other immutable types as keys.",
+      "coverage_criteria": [
+        "Student can add a new entry to an existing dictionary (e.g., stuff['city'] = 'SF').",
+        "Student can read a dictionary definition and predict the result of accessing a specific key."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The Sessão Python shows creating a dict with name/age/height, accessing via stuff['name'], and then adding stuff['city'] = 'SF'.",
+        "granularity_rationale": "Focused on the syntax for mutation and access; small enough to verify with a two‑line code snippet."
+      },
+      "anchors": [
+        "EXERCÍCIO 39 - Dicionários, Ah, os Adoráveis Dicionários",
+        "Page 143"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_001",
+      "label": "BCD Definition",
+      "description": "Binary Coded Decimal (BCD) is a binary encoding system where each decimal digit (0-9) is represented by a fixed number of binary bits, typically four, storing each digit separately as its binary equivalent.",
+      "coverage_criteria": [
+        "Student can define BCD.",
+        "Student can convert a decimal number to its BCD representation, e.g., 57 to 0101 0111."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's opening paragraph and the 'Working of Binary Coded Decimal' section explicitly define BCD and give examples.",
+        "granularity_rationale": "This single concept covers the fundamental idea of BCD encoding and can be assessed with one or two questions about definition and conversion."
+      },
+      "anchors": [
+        "# BCD or Binary Coded Decimal"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_002",
+      "label": "BCD Truth Table",
+      "description": "The standard mapping from decimal digits 0 to 9 to their equivalent 4-bit binary representations, as listed in the BCD truth table.",
+      "coverage_criteria": [
+        "Student can list the 4-bit binary code for each decimal digit 0-9.",
+        "Student can match a decimal digit with its BCD code."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides a full truth table under the heading 'Truth Table for Binary Coded Decimal' showing each decimal digit and its BCD code.",
+        "granularity_rationale": "This is a concrete, factual lookup table that the student can memorize and recall, easily testable with a few matching exercises."
+      },
+      "anchors": [
+        "## Truth Table for Binary Coded Decimal"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_003",
+      "label": "Packed BCD",
+      "description": "Packed BCD is a storage-efficient BCD format where two decimal digits are packed into a single byte, each occupying 4 bits (a nibble).",
+      "coverage_criteria": [
+        "Student can define packed BCD.",
+        "Student can represent a two-digit decimal number in packed BCD form, e.g., 93 as 1001 0011."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section '### 1. Packed BCD' explains the concept and provides an illustrative example with the number 93.",
+        "granularity_rationale": "This is a specific representation technique that can be taught and tested with a couple of conversion problems."
+      },
+      "anchors": [
+        "### 1. Packed BCD"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_004",
+      "label": "Unpacked BCD",
+      "description": "Unpacked BCD stores each decimal digit in a separate byte, where the lower 4 bits hold the BCD digit and the upper 4 bits are unused or zero.",
+      "coverage_criteria": [
+        "Student can define unpacked BCD.",
+        "Student can represent a decimal number in unpacked BCD, e.g., 93 as 00001001 00000011."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section '### 2. Unpacked BCD' describes unpacked BCD and gives an example using 93.",
+        "granularity_rationale": "This is a distinct BCD format, simple enough to be verified with one conversion exercise."
+      },
+      "anchors": [
+        "### 2. Unpacked BCD"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_005",
+      "label": "BCD Addition",
+      "description": "BCD addition involves adding each digit pair and, if the sum exceeds 9 (1001), adding a correction factor of 6 (0110) to obtain the valid BCD result.",
+      "coverage_criteria": [
+        "Student can explain the BCD addition correction rule.",
+        "Student can perform BCD addition on given decimal numbers, correctly applying the correction when needed."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's '### 1. BCD Addition' details the addition process with an example (45 + 37) and demonstrates the correction factor.",
+        "granularity_rationale": "This concept focuses on a single arithmetic operation with a specific rule, making it testable with a few step-by-step problems."
+      },
+      "anchors": [
+        "### 1. BCD Addition"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_006",
+      "label": "BCD Subtraction",
+      "description": "BCD subtraction adjusts for borrows when the subtrahend digit is larger than the minuend digit, sometimes requiring a correction factor of 6.",
+      "coverage_criteria": [
+        "Student can describe the borrow adjustment in BCD subtraction.",
+        "Student can subtract two BCD numbers correctly, applying corrections when necessary."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section '### 2. BCD Subtraction' explains subtraction with an example (47 - 23) and mentions the correction factor when needed.",
+        "granularity_rationale": "This is a single arithmetic operation that can be taught and tested separately from addition."
+      },
+      "anchors": [
+        "### 2. BCD Subtraction"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_007",
+      "label": "BCD Multiplication and Division",
+      "description": "BCD multiplication and division are performed by converting the BCD numbers to binary, carrying out the arithmetic operation in binary, then converting the result back to BCD.",
+      "coverage_criteria": [
+        "Student can explain the method for multiplying or dividing BCD numbers.",
+        "Student can multiply or divide two BCD numbers using the binary conversion method and produce a correct BCD result."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The sections '### 3. BCD Multiplication' and '### 4. BCD Division' provide examples for both operations, illustrating the conversion approach.",
+        "granularity_rationale": "These two operations share the same underlying method, so combining them creates a teachable concept on BCD arithmetic via binary conversion."
+      },
+      "anchors": [
+        "### 3. BCD Multiplication",
+        "### 4. BCD Division"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_008",
+      "label": "BCD Limitations",
+      "description": "BCD has several limitations: inefficient memory use, complex arithmetic, slower processing, limited range, and hardware overhead.",
+      "coverage_criteria": [
+        "Student can list at least three limitations of BCD.",
+        "Student can explain why BCD is less efficient than pure binary for memory or speed."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The '## Limitations of BCD' section enumerates five specific drawbacks.",
+        "granularity_rationale": "This is a concise list of disadvantages that can be checked with recall and brief explanation questions."
+      },
+      "anchors": [
+        "## Limitations of BCD"
+      ]
+    },
+    {
+      "id": "c6_pro_thinking_009",
+      "label": "BCD Applications",
+      "description": "BCD is used in digital displays, embedded systems, data conversion, decimal arithmetic, and control systems.",
+      "coverage_criteria": [
+        "Student can name common applications of BCD.",
+        "Student can explain why BCD is suitable for digital displays or embedded systems."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The '## Applications of BCD' section lists five application areas with brief explanations.",
+        "granularity_rationale": "These application points form a compact set of use cases that can be assessed with a listing or matching exercise."
+      },
+      "anchors": [
+        "## Applications of BCD"
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_001",
+      "label": "Compiler: Whole-Program Translator",
+      "description": "A compiler translates an entire high-level language program into machine code before execution, producing an executable file.",
+      "coverage_criteria": [
+        "Student can explain that a compiler converts the whole program at once and saves machine code."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines a compiler and describes its translation process in the 'What is a Compiler?' section.",
+        "granularity_rationale": "The concept is a single, self-contained teachable idea that can be assessed with a few focused questions."
+      },
+      "anchors": [
+        "What is a Compiler?"
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_002",
+      "label": "Interpreter: Line-by-Line Executor",
+      "description": "An interpreter translates and executes a high-level language program line by line, without producing a separate machine code file.",
+      "coverage_criteria": [
+        "Student can explain that an interpreter works one statement at a time and does not save machine code."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces the interpreter concept in the 'What is an Interpreter?' section, contrasting it with compilers.",
+        "granularity_rationale": "This is a distinct, checkable concept that complements the compiler definition and is essential for understanding the difference."
+      },
+      "anchors": [
+        "What is an Interpreter?"
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_003",
+      "label": "Error Handling: Bulk vs Line-by-Line",
+      "description": "Compilers display all errors after compiling the entire program, while interpreters show errors for each line as it is executed.",
+      "coverage_criteria": [
+        "Student can contrast how compilers and interpreters report errors and the implications for debugging."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source's comparison table explicitly states error display differences: 'Errors are displayed in Compiler after Compiling together' vs 'Errors are displayed in every single line.'",
+        "granularity_rationale": "The error handling distinction is a practical concept that can be verified with simple questions."
+      },
+      "anchors": [
+        "Difference Between Compiler and Interpreter",
+        "Errors are displayed..."
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_004",
+      "label": "Speed: Compiled Faster, Interpreted Slower",
+      "description": "Compiled code runs faster because the translation occurs beforehand, while interpreted code runs slower due to line-by-line translation overhead.",
+      "coverage_criteria": [
+        "Student can explain why compiled programs execute faster than interpreted ones."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source repeatedly states that 'Compiled codes run faster than Interpreter' and 'Interpreted codes run slower than Compiler', providing rationale.",
+        "granularity_rationale": "This is a critical distinction that can be tested by asking for performance comparisons and reasons."
+      },
+      "anchors": [
+        "Difference Between Compiler and Interpreter",
+        "Compiled codes run faster..."
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_005",
+      "label": "Optimization: Compiler Advantage",
+      "description": "Compilers can optimize code because they analyze the entire program upfront, whereas interpreters have limited optimization due to line-by-line processing.",
+      "coverage_criteria": [
+        "Student can explain how compilers achieve better optimization and why interpreters lag."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states in the table: 'The compiler can see code upfront which helps in running the code faster because of performing Optimization' vs 'Interpreters work by line... Optimization is slower'.",
+        "granularity_rationale": "This concept is specific enough to verify via a direct question about optimization capabilities."
+      },
+      "anchors": [
+        "Difference Between Compiler and Interpreter",
+        "Optimization..."
+      ]
+    },
+    {
+      "id": "c7_pro_thinking_006",
+      "label": "Use Environments: Production vs Development",
+      "description": "Compilers are typically used in production environments for their performance, while interpreters are favored in development for easier debugging and flexibility.",
+      "coverage_criteria": [
+        "Student can match compiler and interpreter to appropriate use cases and explain why."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source mentions 'The use of Compilers mostly happens in Production Environment' and 'The use of Interpreters is mostly in Programming and Development Environments' in the comparison table.",
+        "granularity_rationale": "This is a practical concept that can be tested by asking which type is used where and why."
+      },
+      "anchors": [
+        "Difference Between Compiler and Interpreter",
+        "Production Environment..."
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_001",
+      "label": "Python List Data Structure",
+      "description": "A list is a built-in dynamic array that stores ordered references to elements of different data types.",
+      "coverage_criteria": [
+        "Explain that a Python list is an ordered, mutable collection that stores references rather than values.",
+        "Create a list and access its elements."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces list as the first data structure with a clear definition, code example, and visual diagram.",
+        "granularity_rationale": "This is a single, foundational data structure ideal for a focused check."
+      },
+      "anchors": [
+        "1. List"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_004",
+      "label": "Python String Data Type",
+      "description": "A string is an immutable sequence of characters enclosed in quotes, supporting operations like slicing and concatenation.",
+      "coverage_criteria": [
+        "Define a string and explain immutability.",
+        "Perform string slicing and concatenation."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source includes a section titled 'String' with a definition and a simple code example.",
+        "granularity_rationale": "Focuses solely on the string type, a fundamental concept for text processing."
+      },
+      "anchors": [
+        "4. String"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_005",
+      "label": "Python Set Data Structure",
+      "description": "A set is an unordered, mutable collection of unique elements that automatically removes duplicates.",
+      "coverage_criteria": [
+        "Create a set and demonstrate duplicate removal.",
+        "Explain the unordered nature of sets."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source defines sets and shows code that creates a set with duplicates, highlighting uniqueness.",
+        "granularity_rationale": "Covers a distinct container type with a clear unique property."
+      },
+      "anchors": [
+        "5. Set"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_006",
+      "label": "Python Dictionary Data Structure",
+      "description": "A dictionary is a mutable collection of key-value pairs, where keys are unique and immutable. In Python 3.7+, dictionaries maintain insertion order.",
+      "coverage_criteria": [
+        "Create a dictionary with different key types.",
+        "Access values by key and explain key immutability."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes dictionaries as key-value stores, provides a code example, and notes ordering behavior.",
+        "granularity_rationale": "Covers the core mapping type, essential for many Python applications."
+      },
+      "anchors": [
+        "6. Dictionary"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_002",
+      "label": "Python List Element Searching",
+      "description": "Searching algorithms locate elements in a data structure. Python lists support linear search via `in` and `count`, and binary search via the `bisect` module.",
+      "coverage_criteria": [
+        "Implement linear search using `in` operator.",
+        "Explain when binary search is applicable and use `bisect_left`."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides a dedicated section with code demonstrating linear and binary search on a list.",
+        "granularity_rationale": "Focuses on one operation (searching) on a single structure, allowing a hands-on check."
+      },
+      "anchors": [
+        "2. Searching Algorithms"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_003",
+      "label": "Python List Sorting",
+      "description": "Sorting algorithms arrange elements in order. Python lists support in-place sorting with `.sort()` and creating a new sorted list with `sorted()`.",
+      "coverage_criteria": [
+        "Sort a list in place using `.sort()`.",
+        "Use `sorted()` to return a new sorted list, including descending order."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents sorting with explicit code snippets and outputs.",
+        "granularity_rationale": "Covers the two main sorting approaches in Python, suitable for a quick exercise."
+      },
+      "anchors": [
+        "3. Sorting Algorithms"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_007",
+      "label": "Recursion in Python",
+      "description": "Recursion is a technique where a function calls itself to solve smaller subproblems, typically requiring a base case.",
+      "coverage_criteria": [
+        "Write a recursive function with a base case.",
+        "Trace the execution of a simple recursive call like factorial."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces recursion with a factorial example and explains breaking down problems.",
+        "granularity_rationale": "Isolates the recursion concept with a classic example for targeted assessment."
+      },
+      "anchors": [
+        "7. Recursion"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_014",
+      "label": "Dynamic Programming",
+      "description": "Dynamic Programming (DP) solves problems by breaking them into overlapping subproblems and storing solutions to avoid recomputation. Illustrative example: Fibonacci.",
+      "coverage_criteria": [
+        "Explain the difference between recursive and DP approaches.",
+        "Implement a bottom-up DP solution for Fibonacci."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces DP, contrasts with naive recursion, and includes illustrative images.",
+        "granularity_rationale": "Covers a key algorithmic paradigm with a canonical example, enabling a conceptual check."
+      },
+      "anchors": [
+        "14. Dynamic Programming"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

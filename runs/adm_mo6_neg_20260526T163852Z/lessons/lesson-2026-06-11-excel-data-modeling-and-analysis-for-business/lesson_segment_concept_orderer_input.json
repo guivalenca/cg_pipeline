@@ -1,0 +1,65 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+    "title": "Excel Data Modeling and Analysis for Business"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-excel-data-model-basics-843f9a17",
+      "label": "Excel Data Model basics",
+      "teaching_description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ]
+    },
+    {
+      "concept_id": "concept-creating-relationships-in-the-excel-data-model-06c71c2c",
+      "label": "Creating relationships in the Excel Data Model",
+      "teaching_description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Excel Data Model and Relationships",
+      "concept_ids": [
+        "concept-excel-data-model-basics-843f9a17",
+        "concept-creating-relationships-in-the-excel-data-model-06c71c2c"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

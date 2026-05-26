@@ -1,0 +1,137 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+    "title": "Decision-Making Tools II"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-decision-environments-fb53d6ad",
+      "label": "Decision Environments",
+      "teaching_description": "Four types of decision contexts: certainty (known outcomes), uncertainty (no probability information), risk (known probabilities), and conflict (adversarial decisions).",
+      "coverage_criteria": [
+        "Student can list the four environments",
+        "Student can distinguish them based on knowledge of states and probabilities"
+      ]
+    },
+    {
+      "concept_id": "concept-payoff-table-8ec69664",
+      "label": "Payoff Table",
+      "teaching_description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes, used as input to decision criteria.",
+      "coverage_criteria": [
+        "Given a description, construct a payoff table and identify alternatives and states.",
+        "Interpret payoffs from a table."
+      ]
+    },
+    {
+      "concept_id": "concept-maximax-optimistic-criterion-92a5e247",
+      "label": "Maximax (Optimistic) Criterion",
+      "teaching_description": "An optimistic decision rule where one selects the alternative with the maximum possible payoff (best outcome). For profits, maximize the maximum; for costs, minimize the minimum. This concept covers identifying the maximax choice from a payoff table and explaining its optimistic nature.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion to select the alternative with the best possible outcome.",
+        "Explain the optimistic philosophy behind the maximax rule."
+      ]
+    },
+    {
+      "concept_id": "concept-maximin-criterion-f0376021",
+      "label": "Maximin Criterion",
+      "teaching_description": "Choose the alternative with the best worst-case payoff (maximize the minimum for profits, minimize the maximum for costs). This conservative approach guarantees a minimum outcome.",
+      "coverage_criteria": [
+        "Apply the maximin criterion to a payoff table to select the alternative with the best worst-case outcome.",
+        "Explain the conservative/pessimistic philosophy behind the maximin rule."
+      ]
+    },
+    {
+      "concept_id": "concept-minimax-regret-criterion-9023049f",
+      "label": "Minimax Regret Criterion",
+      "teaching_description": "A decision criterion that minimizes the maximum regret by constructing a regret table and selecting the alternative with the smallest maximum regret.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Apply the minimax regret criterion to choose an alternative."
+      ]
+    },
+    {
+      "concept_id": "concept-laplace-criterion-1cefa1f7",
+      "label": "Laplace Criterion",
+      "teaching_description": "Decision rule that assumes all states of nature are equally likely, computing the average payoff for each alternative and selecting the highest average.",
+      "coverage_criteria": [
+        "Explain the equal likelihood assumption",
+        "Calculate average payoffs from a payoff table",
+        "Determine the optimal alternative using this criterion"
+      ]
+    },
+    {
+      "concept_id": "concept-hurwicz-criterion-a9ee1edb",
+      "label": "Hurwicz Criterion",
+      "teaching_description": "A decision-making criterion that balances optimism and pessimism by computing a weighted average of the best and worst payoffs using a coefficient of optimism (α).",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and α.",
+        "Interpret α as degree of optimism.",
+        "Select the alternative with the highest weighted average."
+      ]
+    },
+    {
+      "concept_id": "concept-expected-monetary-value-emv-criterion-bee4de23",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "teaching_description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. Given known probabilities for states of nature, compute the expected monetary value for each alternative and choose the highest. This rule is appropriate for risk-neutral decision makers.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table given probabilities.",
+        "Explain why the EMV criterion is optimal under risk neutrality.",
+        "Determine the optimal decision under risk using EMV."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Foundations of Decision Analysis",
+      "concept_ids": [
+        "concept-decision-environments-fb53d6ad",
+        "concept-payoff-table-8ec69664"
+      ]
+    },
+    {
+      "label": "Criteria for Decisions under Uncertainty",
+      "concept_ids": [
+        "concept-maximax-optimistic-criterion-92a5e247",
+        "concept-maximin-criterion-f0376021",
+        "concept-minimax-regret-criterion-9023049f",
+        "concept-laplace-criterion-1cefa1f7",
+        "concept-hurwicz-criterion-a9ee1edb"
+      ]
+    },
+    {
+      "label": "Decision Making under Risk: Expected Monetary Value",
+      "concept_ids": [
+        "concept-expected-monetary-value-emv-criterion-bee4de23"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

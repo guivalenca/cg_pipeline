@@ -1,0 +1,276 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_005",
+    "area": {
+      "id": "area_005",
+      "label": "Problem Framing",
+      "rationale": "All thirteen candidates address different aspects of problem framing: definition, biases, organizational pressures, models (Double Diamond), reframing techniques, AI implications, cultural strategies, execution benefits, thought leadership, and behavioral effects (description invariance, framing effects, prospect theory, adaptiveness). They form a comprehensive neighborhood on how problems are defined and perceived.",
+      "candidate_ids": [
+        "lr002_001",
+        "lr002_002",
+        "lr002_003",
+        "lr002_004",
+        "lr002_005",
+        "lr002_006",
+        "lr002_007",
+        "lr002_008",
+        "lr002_009",
+        "lr002_010",
+        "lr002_011",
+        "lr002_012",
+        "lr002_013"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr002_001",
+    "lr002_002",
+    "lr002_003",
+    "lr002_004",
+    "lr002_005",
+    "lr002_006",
+    "lr002_007",
+    "lr002_008",
+    "lr002_009",
+    "lr002_010",
+    "lr002_011",
+    "lr002_012",
+    "lr002_013"
+  ],
+  "candidates": [
+    {
+      "id": "lr002_001",
+      "label": "Problem Framing Definition and Importance",
+      "description": "Problem framing is the process of discovering and defining the real problem before seeking solutions. It is distinct from problem solving, and identifying the right problem is more critical than solving it well.",
+      "coverage_criteria": [
+        "Student can define problem framing.",
+        "Student can differentiate problem framing from problem solving.",
+        "Student can articulate why problem identification takes precedence over problem solving."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_002",
+      "label": "Cognitive Biases that Lead to Premature Convergence",
+      "description": "Premature convergence is the tendency to jump to solutions quickly, driven by pattern completion and confirmation bias. These cognitive mechanisms cause people to settle on the first plausible answer without fully understanding the problem.",
+      "coverage_criteria": [
+        "Student can define premature convergence.",
+        "Student can explain how pattern completion and confirmation bias contribute to premature convergence.",
+        "Student can identify an example of each bias in a problem-framing scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_003",
+      "label": "Organizational Pressures that Reinforce Solution-Jumping",
+      "description": "Organizational systems such as business case templates, status meetings, and budgeting processes can inadvertently push teams toward quick solutions before adequate problem framing, reinforcing premature convergence at an institutional level.",
+      "coverage_criteria": [
+        "Student can list at least two organizational practices that hinder problem framing.",
+        "Student can explain how these practices create pressure to jump to solutions."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_004",
+      "label": "Double Diamond Model for Problem Framing",
+      "description": "The Double Diamond model is a framework for problem framing consisting of two phases: Discover (divergent thinking to explore the problem space) and Define (convergent thinking to crystallize the problem).",
+      "coverage_criteria": [
+        "Student can describe the Discover and Define phases.",
+        "Student can explain why divergent and convergent thinking are both necessary for effective problem framing."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_005",
+      "label": "Problem Reframing Technique",
+      "description": "Problem reframing is the deliberate restating of a strategic question to expose new perspectives, risks, and opportunities. For example, shifting from 'How do we grow revenue?' to 'Which customer problems would drive sustainable growth?' can uncover more valuable solutions.",
+      "coverage_criteria": [
+        "Student can reframe a given business problem into a more effective framing question.",
+        "Student can explain how reframing led to better outcomes in a provided example."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_006",
+      "label": "Impact of Poor Framing on AI Effectiveness",
+      "description": "AI systems optimize for the problem they are given. When problem framing is poor, AI efficiently solves the wrong problem, often leading to wasted resources and missed business value.",
+      "coverage_criteria": [
+        "Student can explain why bad framing leads to AI project failure.",
+        "Student can give an example of a scenario where better framing would improve AI outcomes."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_007",
+      "label": "Strategies for Building a Problem Framing Culture",
+      "description": "Leaders can embed problem framing into organizational culture by shifting focus from 'how to fix' to 'why this happens', and by establishing habits such as asking reflective questions, standardizing problem statements, and adding diagnostic phases before solutioning.",
+      "coverage_criteria": [
+        "Student can list at least three cultural practices that encourage problem framing.",
+        "Student can explain how these practices counteract solution-jumping."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr002_008",
+      "label": "Benefits of Problem Framing for Execution Clarity",
+      "description": "A well-framed problem clarifies ownership, metrics, and cross-functional involvement, leading to more efficient execution with fewer mid-course corrections.",
+      "coverage_criteria": [
+        "Student can describe how clarity from problem framing improves execution.",
+        "Student can identify which aspects of execution become clearer with good framing (ownership, metrics, teams)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_009",
+      "label": "Applying Problem Framing to Thought Leadership",
+      "description": "In thought leadership, starting with a clearly defined problem rather than a broad audience attracts the right followers. Clear problem definition serves as market positioning, aligning your message with what people are searching for.",
+      "coverage_criteria": [
+        "Student can contrast problem-centric vs. audience-centric thought leadership.",
+        "Student can explain how problem articulation can attract a specific audience."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_010",
+      "label": "Description Invariance",
+      "description": "A normative principle of classical decision theory stating that rational agents' choices should not depend on the particular way options are described, as long as the descriptions are logically equivalent.",
+      "coverage_criteria": [
+        "Define description invariance and explain why it is important for rational decision-making.",
+        "Identify a scenario where description invariance is violated."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_011",
+      "label": "Framing Effects and Preference Reversals",
+      "description": "Framing effects occur when different but logically equivalent descriptions of a decision problem lead to systematic preference reversals, violating description invariance. For example, people tend to be risk-averse when options are framed as gains and risk-seeking when framed as losses.",
+      "coverage_criteria": [
+        "Define framing effect and give an example (e.g., Asian disease problem).",
+        "Explain how framing leads to preference reversals in decisions under risk."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    },
+    {
+      "id": "lr002_012",
+      "label": "Prospect Theory as Explanation for Framing Effects",
+      "description": "Prospect theory explains framing effects via a reference-dependent value function, loss aversion, and the principle that people are risk-averse for gains and risk-seeking for losses.",
+      "coverage_criteria": [
+        "Describe the key components of prospect theory (value function, loss aversion, reference point).",
+        "Apply prospect theory to predict choices in a given framing scenario."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "application"
+    },
+    {
+      "id": "lr002_013",
+      "label": "Adaptiveness of Decision Processes in Framing",
+      "description": "Framing effects are not purely irrational; they reflect adaptive mechanisms in human judgment and choice, which may serve important functions in real-world decision-making.",
+      "coverage_criteria": [
+        "Explain why framing effects can be considered adaptive.",
+        "Provide an example where sensitivity to framing might be beneficial."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-04-29-problem-framing",
+      "lesson_title": "Problem framing",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

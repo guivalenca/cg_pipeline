@@ -1,0 +1,203 @@
+{
+  "artifact_type": "lesson_segment_planner_input",
+  "schema_version": "lesson_segment_planner_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/segment_planner.md",
+  "prompt": "# Lesson Segment Planner\n\n## Mission\n\nGroup the provided Concepts for exactly one Lesson into ordered teaching-flow\nSegments. A Lesson Segment is a small teaching chunk for the Companion, not a\nsource section, dependency edge, review unit, or runtime adaptation.\n\n## Inputs\n\nUse only the provided `lesson` and `concepts`.\n\n- The Lesson contains only `lesson_id` and `title`.\n- Each Concept contains `concept_id`, `label`, `knowledge_type`,\n  `teaching_description`, and `coverage_criteria`.\n\nDo not infer from other Lessons. Do not use dates, global Lesson order, source\npositions, workbook labels, or web research.\n\n## Workflow\n\n1. Read the Lesson title to understand the local teaching frame.\n2. Read each Concept description and Coverage Criteria to understand expected\n   scope.\n3. Create Segments that each cover one natural mini-arc of teaching.\n4. Target one to four Concepts per Segment.\n5. Use five or more Concepts only when they are tightly coupled and cannot be\n   taught naturally as smaller chunks.\n6. Order Segments in the natural teaching flow for this Lesson.\n7. Put every Concept ID in exactly one Segment.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\nDo not create Segment IDs. Do not create `instructional_role`; the pipeline adds\n`teach` deterministically.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Short teaching label\",\n      \"concept_ids\": [\"concept_id_1\", \"concept_id_2\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_planner",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+    "title": "Representação de palavras e \"Bag of Words\" (BoW)"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-why-text-needs-to-be-converted-to-numbers-for-machine-learning-cfff864f",
+      "label": "Why Text Needs to Be Converted to Numbers for Machine Learning",
+      "knowledge_type": "procedural",
+      "teaching_description": "Machine learning algorithms require numerical input (matrices). Text data must be vectorized into feature vectors so that models can learn a mapping Y=f(X).",
+      "coverage_criteria": [
+        "Explain the necessity of numerical representation for ML models.",
+        "Describe the Y=f(X) formulation and the role of vectorization."
+      ]
+    },
+    {
+      "concept_id": "concept-text-preprocessing-tokenization-and-stopword-removal-66a702b8",
+      "label": "Text Preprocessing: Tokenization and Stopword Removal",
+      "knowledge_type": "procedural",
+      "teaching_description": "Tokenization splits text into individual words (tokens). Stopwords are common low-information words that are often removed to reduce noise and vocabulary size. NLTK provides built-in stopword lists.",
+      "coverage_criteria": [
+        "Define tokenization and stopword removal.",
+        "Write code to remove stopwords using NLTK."
+      ]
+    },
+    {
+      "concept_id": "concept-bow-vectorization-process-4fcaf683",
+      "label": "BOW Vectorization Process",
+      "knowledge_type": "applied",
+      "teaching_description": "The BOW vectorization process consists of determining the vocabulary (collecting unique words) and then counting the occurrences of each vocabulary word in each document to produce a count vector.",
+      "coverage_criteria": [
+        "List the steps for BOW vectorization (vocabulary construction and counting).",
+        "Apply counting to convert a small document into a BOW vector."
+      ]
+    },
+    {
+      "concept_id": "concept-loss-of-word-order-and-context-in-bow-27c08ec5",
+      "label": "Loss of Word Order and Context in BOW",
+      "knowledge_type": "conceptual",
+      "teaching_description": "BOW discards the order of words, meaning it cannot capture syntax or semantics that depend on word sequence. This loss of contextual information is a fundamental limitation of the model.",
+      "coverage_criteria": [
+        "State that BOW does not preserve word order.",
+        "Provide an example of how meaning can be lost due to ignoring word order."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-bow-with-keras-tokenizer-a553b844",
+      "label": "Implementing BOW with Keras Tokenizer",
+      "knowledge_type": "procedural",
+      "teaching_description": "In Python, the Keras Tokenizer class can be used to implement BOW. After fitting on texts to build the vocabulary, texts_to_matrix with mode='count' generates count vectors.",
+      "coverage_criteria": [
+        "Write Python code to use Keras Tokenizer for BOW vectorization.",
+        "Explain the roles of fit_on_texts and texts_to_matrix."
+      ]
+    },
+    {
+      "concept_id": "concept-applications-and-strengths-of-bow-98af97d8",
+      "label": "Applications and Strengths of BOW",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Despite its simplicity, BOW is effective for tasks like text classification and profanity detection. Its strengths are simplicity and low computational cost.",
+      "coverage_criteria": [
+        "Name two NLP applications where BOW is useful.",
+        "Explain why BOW's simplicity can be advantageous."
+      ]
+    },
+    {
+      "concept_id": "concept-sparse-vectors-problem-2cf99fb5",
+      "label": "Sparse Vectors Problem",
+      "knowledge_type": "conceptual",
+      "teaching_description": "When the vocabulary is large, BOW vectors become mostly zeros (sparse), leading to high memory usage and computational inefficiency.",
+      "coverage_criteria": [
+        "Define a sparse vector in the context of BOW.",
+        "Explain why sparsity is a challenge for machine learning."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-bow-from-scratch-in-python-8ee30c89",
+      "label": "Implementing BOW from Scratch in Python",
+      "knowledge_type": "procedural",
+      "teaching_description": "BOW can be implemented manually by writing functions to tokenize, remove stopwords, build a vocabulary, and generate count vectors using basic Python and NumPy.",
+      "coverage_criteria": [
+        "Describe the key components of a from-scratch BOW implementation.",
+        "Write a simple function to generate a BOW vector from text."
+      ]
+    },
+    {
+      "concept_id": "concept-n-gram-extension-to-bag-of-words-2d431c27",
+      "label": "N-gram Extension to Bag-of-Words",
+      "knowledge_type": "conceptual",
+      "teaching_description": "BOW can be extended to n-grams (e.g., bigrams) where tokens are sequences of n consecutive words, partially capturing word order.",
+      "coverage_criteria": [
+        "Define an n-gram and give an example of bigrams.",
+        "Explain how n-grams address the loss-of-order limitation."
+      ]
+    },
+    {
+      "concept_id": "concept-binary-bag-of-words-encoding-c7db1bb9",
+      "label": "Binary Bag-of-Words Encoding",
+      "knowledge_type": "conceptual",
+      "teaching_description": "In binary BOW, a sentence is represented by a binary vector where each dimension indicates the presence (1) or absence (0) of a vocabulary word, rather than its count.",
+      "coverage_criteria": [
+        "Differentiate between count-based and binary BOW.",
+        "Given a vocabulary and a sentence, produce a binary BOW vector."
+      ]
+    },
+    {
+      "concept_id": "concept-hashvectorizer-hashing-based-vectorization-ac463291",
+      "label": "HashVectorizer: Hashing-based Vectorization",
+      "knowledge_type": "procedural",
+      "teaching_description": "Scikit-learn's HashVectorizer applies a hash function to map terms to numerical indices, saving memory but making it impossible to recover original feature names, unlike CountVectorizer.",
+      "coverage_criteria": [
+        "Explain one advantage and one disadvantage of using HashVectorizer compared to CountVectorizer."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-challenges-5a52c6bf",
+      "label": "NLP Challenges",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing faces fundamental difficulties including text segmentation, ambiguity, context interpretation, semantic extraction, and the inherent variability of natural language where similar words can have different meanings and identical meanings can be expressed differently, making it distinct from processing structured data.",
+      "coverage_criteria": [
+        "Explain the challenge of text segmentation with an example.",
+        "Describe how ambiguity can make interpretation difficult with an example.",
+        "Give an example where similar words convey different meanings and explain why NLP needs special approaches compared to tabular data."
+      ]
+    },
+    {
+      "concept_id": "concept-bag-of-words-model-definition-and-vocabulary-construction-4787f49a",
+      "label": "Bag-of-Words Model Definition and Vocabulary Construction",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The bag-of-words (BOW) model represents documents as fixed-length vectors of word counts, using a vocabulary built from unique words across the corpus. Word order and grammar are disregarded, and documents are represented as vectors with each dimension corresponding to a vocabulary word.",
+      "coverage_criteria": [
+        "Define the BOW model and explain how it converts text into word count vectors, disregarding word order and grammar.",
+        "Define vocabulary in BOW, explain how it determines vector dimensions, and how out-of-vocabulary words are handled."
+      ]
+    },
+    {
+      "concept_id": "concept-bag-of-words-with-scikit-learn-s-countvectorizer-3be24f58",
+      "label": "Bag of Words with scikit-learn's CountVectorizer",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using CountVectorizer from scikit-learn to convert text documents into a term-document matrix of token counts. Students configure parameters such as max_features, n-gram range, and preprocessing options, then apply fit_transform to generate the matrix and interpret the output.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with parameters like max_features and fit_transform a list of texts to obtain a sparse matrix.",
+        "Explain how parameters (e.g., max_features) control vocabulary size and interpret the resulting term-document matrix."
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-concept-and-tfidfvectorizer-weighting-1d2619da",
+      "label": "TF-IDF concept and TfidfVectorizer weighting",
+      "knowledge_type": "procedural",
+      "teaching_description": "Understanding how TF-IDF assigns weights based on term frequency and inverse document frequency, making discriminative terms more important than count-based Bag of Words.",
+      "coverage_criteria": [
+        "Define TF-IDF and explain how it differs from simple count-based vectorization."
+      ]
+    },
+    {
+      "concept_id": "concept-multi-label-encoding-with-binary-vectors-3f115c19",
+      "label": "Multi-label Encoding with Binary Vectors",
+      "knowledge_type": "procedural",
+      "teaching_description": "In multi-label classification, labels are encoded as binary vectors where each index corresponds to a label, allowing a single example to have multiple 1s, unlike one-hot encoding for multi-class.",
+      "coverage_criteria": [
+        "Encode a set of labels for a given text using a binary vector, and contrast with one-hot encoding for multi-class."
+      ]
+    },
+    {
+      "concept_id": "concept-sigmoid-activation-for-multi-label-classification-a0078f95",
+      "label": "Sigmoid Activation for Multi-label Classification",
+      "knowledge_type": "procedural",
+      "teaching_description": "For multi-label text classification with a bag-of-words model, the output layer should use sigmoid activation with binary cross-entropy loss, as it allows independent binary predictions per label, while softmax is for multi-class.",
+      "coverage_criteria": [
+        "Explain why sigmoid activation is preferred over softmax for multi-label classification, and select the appropriate loss function."
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

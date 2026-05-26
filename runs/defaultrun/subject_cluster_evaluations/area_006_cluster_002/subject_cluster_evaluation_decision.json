@@ -1,0 +1,67 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-20T01:04:24.575359+00:00",
+  "scope_id": "si-mod6-COM",
+  "stage_name": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "lr003_010",
+    "lr005_024"
+  ],
+  "accepted": [
+    {
+      "id": "sc001",
+      "label": "Bag of Words with scikit-learn's CountVectorizer",
+      "description": "Using CountVectorizer from scikit-learn to convert text documents into a term-document matrix of token counts. Students configure parameters such as max_features, n-gram range, and preprocessing options, then apply fit_transform to generate the matrix and interpret the output.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with parameters like max_features and fit_transform a list of texts to obtain a sparse matrix.",
+        "Explain how parameters (e.g., max_features) control vocabulary size and interpret the resulting term-document matrix."
+      ],
+      "source_candidate_ids": [
+        "lr003_010",
+        "lr005_024"
+      ],
+      "merge_rationale": "Both candidates teach the identical concept of implementing Bag of Words using scikit-learn's CountVectorizer at the implementation level. They cover instantiation, fit_transform, and parameter tuning (including max_features). Despite minor wording differences and lesson contexts, they represent the same teachable idea and can be assessed with the same questions."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "sc001",
+      "label": "Bag of Words with scikit-learn's CountVectorizer",
+      "description": "Using CountVectorizer from scikit-learn to convert text documents into a term-document matrix of token counts. Students configure parameters such as max_features, n-gram range, and preprocessing options, then apply fit_transform to generate the matrix and interpret the output.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with parameters like max_features and fit_transform a list of texts to obtain a sparse matrix.",
+        "Explain how parameters (e.g., max_features) control vocabulary size and interpret the resulting term-document matrix."
+      ],
+      "source_candidate_ids": [
+        "lr003_010",
+        "lr005_024"
+      ],
+      "merge_rationale": "Both candidates teach the identical concept of implementing Bag of Words using scikit-learn's CountVectorizer at the implementation level. They cover instantiation, fit_transform, and parameter tuning (including max_features). Despite minor wording differences and lesson contexts, they represent the same teachable idea and can be assessed with the same questions."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "lr003_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "sc001"
+      ]
+    },
+    {
+      "candidate_id": "lr005_024",
+      "status": "merged_into",
+      "merged_into": "sc001",
+      "explanation": "lr005_024 covers the same core concept of using CountVectorizer for BOW, with specific attention to max_features. It is fully represented by the accepted concept, which generalizes parameter usage and the fit_transform process."
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 2,
+    "accepted_count": 1,
+    "pruned_count": 0,
+    "candidate_assignment_count": 2,
+    "review_count": 0
+  }
+}

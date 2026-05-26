@@ -1,0 +1,99 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_018",
+    "area": {
+      "id": "area_018",
+      "label": "Latent Semantic Analysis",
+      "rationale": "LSA definition, document-term matrix, SVD, and NLP vocabulary for topic modeling.",
+      "candidate_ids": [
+        "lr011_015",
+        "lr011_016",
+        "lr011_017",
+        "lr011_018"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr011_015",
+    "lr011_016",
+    "lr011_017",
+    "lr011_018"
+  ],
+  "candidates": [
+    {
+      "id": "lr011_015",
+      "label": "NLP Vocabulary: Document, Body, Dictionary, Topic",
+      "description": "In NLP, a document is a single data instance (e.g., a paragraph, tweet). The body (or corpus) is the collection of all documents. The dictionary is the set of all unique words occurring in at least one document. A topic is a collection of co-occurring words that represent a theme.",
+      "coverage_criteria": [
+        "Define the terms document, body (corpus), dictionary, and topic in NLP."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_016",
+      "label": "Latent Semantic Analysis (LSA) Definition",
+      "description": "LSA is an unsupervised NLP technique that discovers latent topics in a corpus by applying dimensionality reduction (via SVD) to the document-term matrix, yielding lower-dimensional encodings of documents as combinations of topics.",
+      "coverage_criteria": [
+        "Explain what LSA is and its purpose in text analysis."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "math"
+    },
+    {
+      "id": "lr011_017",
+      "label": "Document-Term Matrix in LSA",
+      "description": "A document-term matrix is a representation where rows correspond to documents, columns to dictionary words, and cells indicate word presence or frequency. It serves as the input to SVD in LSA.",
+      "coverage_criteria": [
+        "Describe the structure of a document-term matrix."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "math"
+    },
+    {
+      "id": "lr011_018",
+      "label": "Singular Value Decomposition (SVD) in LSA",
+      "description": "In LSA, Singular Value Decomposition is applied to the document-term matrix to reduce its dimensionality and extract latent topics, analogous to PCA. This transforms the high-dimensional word space into a lower-dimensional topic space.",
+      "coverage_criteria": [
+        "State the role of SVD in LSA and its analogy to PCA."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "math"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "artifact_type": "subject_cluster_evaluation_input",
+  "schema_version": "subject_cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "subject_candidate_clusters_artifact": "subject_merge_candidate_clusters.json",
+  "prompt_path": "subject_merge/cluster_evaluation.md",
+  "prompt": "# Subject Merge Cluster Evaluation\n\n## Quick Start\n\nDecide whether one tight candidate cluster represents one subject concept or multiple standalone subject concepts. Use only the provided candidate cards.\n\n## Identity Standard\n\nSame concept means the same teachable idea at the same level, testable with the same question.\n\nDifferent concept means one candidate adds materially different student behavior: implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower action.\n\nMerge same-level duplicates even when wording, lesson title, or language differs. Keep deepenings separate even when they reuse the same topic name.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"sm001\",\n      \"label\": \"Specific subject-level teachable idea\",\n      \"description\": \"Canonical understanding represented by this concept.\",\n      \"coverage_criteria\": [\"Observable check across merged lesson candidates.\"],\n      \"source_candidate_ids\": [\"candidate-id\"],\n      \"merge_rationale\": \"Why these candidates are the same subject concept or must stand alone.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"sm001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"sm001\",\n      \"explanation\": \"Why it is represented by sm001.\"\n    }\n  ]\n}\n```\n\nAllowed statuses are exactly `used_in` and `merged_into`. A standalone concept uses `used_in` pointing to its own accepted concept.\n\n## Never\n\n- Never use `review`.\n- Never use `pruned`.\n- Never create dependency edges.\n- Never emit final graph concept IDs.\n- Never split one lesson-local candidate into smaller atoms.\n- Never use web search or external knowledge.\n\n## Self-Check\n\n- Every input candidate ID appears exactly once in `candidate_assignments`.\n- Every `used_in` or `merged_into` reference points to an accepted concept that lists that candidate in `source_candidate_ids`.\n- Same-level duplicates were merged despite wording or language differences.\n- Different levels or behaviors remained separate.\n",
+  "task": "subject_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "scope_id": "adm-mod6-NEG",
+  "cluster": {
+    "id": "area_006__cluster_002",
+    "label": "Maximax Criterion",
+    "rationale": "Both describe the optimistic maximax decision rule: select the alternative with the best possible outcome. Different depths (application vs definition) but the core concept and student actions are identical.",
+    "candidate_ids": [
+      "lr003_002",
+      "lr004_005"
+    ],
+    "area_id": "area_006"
+  },
+  "clusters": [
+    {
+      "id": "area_006__cluster_002",
+      "label": "Maximax Criterion",
+      "rationale": "Both describe the optimistic maximax decision rule: select the alternative with the best possible outcome. Different depths (application vs definition) but the core concept and student actions are identical.",
+      "candidate_ids": [
+        "lr003_002",
+        "lr004_005"
+      ],
+      "area_id": "area_006"
+    }
+  ],
+  "input_candidate_ids": [
+    "lr003_002",
+    "lr004_005"
+  ],
+  "candidates": [
+    {
+      "id": "lr003_002",
+      "label": "Maximax (Optimistic) Criterion",
+      "description": "An optimistic approach: select the alternative with the best possible outcome. For profits, maximize the maximum; for costs, minimize the minimum.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion.",
+        "Explain the optimistic philosophy."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+      "lesson_title": "Decision-Making Tools I",
+      "depth": "application"
+    },
+    {
+      "id": "lr004_005",
+      "label": "Maximax Criterion (Optimistic)",
+      "description": "Optimistic rule: choose the alternative with the maximum possible payoff (best of the best).",
+      "coverage_criteria": [
+        "Student can identify the maximax choice from a payoff table",
+        "Student can explain its optimistic nature"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+      "lesson_title": "Decision-Making Tools II",
+      "depth": "definition"
+    }
+  ],
+  "output_contract": {
+    "candidate_assignment_rule": "Return accepted subject concepts plus exactly one assignment for every input candidate. Allowed statuses are only used_in and merged_into. Never use review or pruned. When uncertain, create a standalone accepted concept.",
+    "accepted_concepts": [
+      {
+        "id": "stage-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "stage-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "stage-local-id",
+        "explanation": "Why it is represented by that accepted concept."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+    "display_code": "L01",
+    "workbook_row_number": 2,
+    "title": "Introdução ao Processamento de Linguagem Natural",
+    "date": "27/04/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Introdução ao Processamento de Linguagem Natural",
+      "Manipulação de texto",
+      "Processamento de texto, métricas e técnicas",
+      "Processamento do discurso",
+      "Programação funcional",
+      "Programação lógica",
+      "Programação orientada a objetos"
+    ],
+    "description": "O objetivo deste encontro é apresentar ao estudante os conceitos essenciais para o Processamento de Linguagem Natural. Quais são os conceitos principais e em quais áreas ele pode ser aplicado. Com o término da instrução, os estudantes deverão ser capazes de apresentar esses conceitos e iniciar o processo de familiarização das tecnologias empregadas."
+  },
+  "self_study": {
+    "self_study_id": "9",
+    "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 9,
+      "week": 2,
+      "sort": 8,
+      "title": "Paradigmas de Programação em Python",
+      "description": "Este autoestudo apresenta alguns paradigmas de programação que podem ser usados com a linguagem Python, como a Orientação a Objetos.",
+      "url": "https://www.geeksforgeeks.org/programming-paradigms-in-python/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Principais paradigmas de programação"
+      ],
+      "parent_class": "Introdução ao Processamento de Linguagem Natural",
+      "class_date": "27/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0009-article-paradigmas-de-programacao-em-python.md",
+      "sha256": "eab91cc71ace6732ff863fd5d3b137bd359739ad5fb47339fa56372ed3e51861",
+      "word_count": 910,
+      "bytes": 6755,
+      "source_markdown": "article/firecrawl/output/9/9-paradigmas-de-programacao-em-python.md",
+      "artifact_dir": "article/firecrawl/output/9",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0009-article-paradigmas-de-programacao-em-python.md",
+    "sha256": "eab91cc71ace6732ff863fd5d3b137bd359739ad5fb47339fa56372ed3e51861",
+    "word_count": 910,
+    "source_markdown": "article/firecrawl/output/9/9-paradigmas-de-programacao-em-python.md",
+    "markdown": "---\nid: \"9\"\ntitle: \"Paradigmas de Programação em Python\"\nsource_url: \"https://www.geeksforgeeks.org/programming-paradigms-in-python/\"\nfetch_url: \"https://www.geeksforgeeks.org/programming-paradigms-in-python\"\nresolved_url: \"https://www.geeksforgeeks.org/python/programming-paradigms-in-python/\"\nfirecrawl_title: \"Programming Paradigms in Python - GeeksforGeeks\"\ndescription: \"Your All-in-One Learning Portal: GeeksforGeeks is a comprehensive educational platform that empowers learners across domains-spanning computer science and programming, school education, upskilling, commerce, software tools, competitive exams, and more., Your All-in-One Learning Portal. It contains well written, well thought and well explained computer science and programming articles, quizzes and practice/competitive programming/company interview Questions.\"\nfetched_at: \"2026-05-12T03:59:51.170980Z\"\nprovider: \"firecrawl\"\nstrategy: \"app_ui\"\ncache_key: \"8d21341409ebdc9e69bca966d68c1e6272c4fe3569770e7abfdda47a0a627309\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 723\nchar_count: 5014\ncontent_sha256: \"aca9214ee741cce54a0512aa8f87607984c44f34efe664efc85d1922f0888fc8\"\nimage_count: 3\nlink_count: 59\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes:\n  - \"template_heavy_preserve_code_blocks\"\n---\n\n# Programming Paradigms in Python\n\nLast Updated : 12 Jul, 2025\n\nParadigm can also be termed as a method to solve some problems or do some tasks. A programming paradigm is an approach to solve the problem using some programming language or also we can say it is a method to solve a problem using tools and techniques that are available to us following some approach. There are lots of programming languages that are known but all of them need to follow some strategy when they are implemented and this methodology/strategy is paradigms. Apart from varieties of programming languages, there are lots of paradigms to fulfill each and every demand.\n\nImage summary: The diagram divides programming paradigms into two main groups: Imperative Programming Paradigm and Declarative Programming Paradigm. Under imperative, it shows Procedural programming paradigm, Object Oriented Programming, and Parallel Processing Approach; under declarative, it shows Logic Programming Paradigm, Functional Programming, and Database Processing Approach. [Original image: programmin-paradigms](https://media.geeksforgeeks.org/wp-content/uploads/20200311232159/programmin-paradigms.png)\n\n**Python supports three types of Programming paradigms**\n\n- Object Oriented programming paradigms\n- Procedure Oriented programming paradigms\n- Functional programming paradigms\n\n## Object Oriented programming paradigms\n\nIn the object-oriented programming paradigm, objects are the key element of paradigms. Objects can simply be defined as the instance of a class that contains both data members and the method functions. Moreover, the object-oriented style relates data members and methods functions that support [encapsulation](https://www.geeksforgeeks.org/python/encapsulation-in-python/) and with the help of the concept of an [inheritance](https://www.geeksforgeeks.org/python/inheritance-in-python/), the code can be easily reusable but the major disadvantage of object-oriented programming paradigm is that if the code is not written properly then the program becomes a monster.\n\n**Advantages**\n\n- Relation with Real world entities\n- Code reusability\n- Abstraction or data hiding\n\n**Disadvantages**\n\n- Data protection\n- Not suitable for all types of problems\n- Slow Speed\n\n**Example:**\n\n```python\n# class Emp has been defined here\nclass Emp:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    def info(self):\n        print(\"Hello, % s. You are % s old.\" % (self.name, self.age))\n\n# Objects of class Emp has been made here\nEmps = [Emp(\"John\", 43), \\\n    Emp(\"Hilbert\", 16), \\\n    Emp(\"Alice\", 30)]\n\n# Objects of class Emp has been used here\nfor emp in Emps:\n    emp.info()\n```\n\n**Output:**\n```\nHello, John. You are 43 old.\nHello, Hilbert. You are 16 old.\nHello, Alice. You are 30 old.\n```\n**Note:** For more information, refer to [Object Oriented Programming in Python](https://www.geeksforgeeks.org/python/python-oops-concepts/)\n\n## Procedural programming paradigms\n\nIn Procedure Oriented programming paradigms, series of computational steps are divided modules which means that the code is grouped in functions and the code is serially executed step by step so basically, it combines the serial code to instruct a computer with each step to perform a certain task. This paradigm helps in the modularity of code and modularization is usually done by the functional implementation. This programming paradigm helps in an easy organization related items without difficulty and so each file acts as a container.\n\n**Advantages**\n\n- General-purpose programming\n- Code reusability\n- Portable source code\n\n**Disadvantages**\n\n- Data protection\n- Not suitable for real-world objects\n- Harder to write\n\n**Example:**\n\n```python\n# Procedural way of finding sum of a list\nmylist = [10, 20, 30, 40]\n\n# modularization is done by functional approach\ndef sum_the_list(mylist):\n    res = 0\n    for val in mylist:\n        res += val\n    return res\n\nprint(sum_the_list(mylist))\n```\n\n**Output:**\n```\n100\n```\n\n## Functional programming paradigms\n\nFunctional programming paradigms is a paradigm in which everything is bind in pure mathematical functions style. It is known as declarative paradigms because it uses declarations over statements. It uses the mathematical function and treats every statement as functional expression as an expression is executed to produce a value. Lambda functions or Recursion are basic approaches used for its implementation. The paradigms mainly focus on \"what to solve\" rather than \"how to solve\". The ability to treat functions as values and pass them as an argument makes the code more readable and understandable.\n\n**Advantages**\n\n- Simple to understand\n- Making debugging and testing easier\n- Enhances the comprehension and readability of the code\n\n**Disadvantages**\n\n- Low performance\n- Writing programs is a daunting task\n- Low readability of the code\n\n**Example:**\n\n```python\n# Functional way of finding sum of a list\nimport functools\n\nmylist = [11, 22, 33, 44]\n\n# Recursive Functional approach\ndef sum_the_list(mylist):\n\n    if len(mylist) == 1:\n        return mylist[0]\n    else:\n        return mylist[0] + sum_the_list(mylist[1:])\n\n# lambda function is used\nprint(functools.reduce(lambda x, y: x + y, mylist))\n```\n\n**Output:**\n```\n110\n```\n**Note:** For more information, refer to [Functional Programming in Python](https://www.geeksforgeeks.org/python/functional-programming-in-python/)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

@@ -1,0 +1,408 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:04:18.655427+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+  "self_study_id": "16",
+  "source_body_path": "extraction/post-image/0016-book-expressoes-regulares.md",
+  "source_body_sha256": "cbe749e9720d90182b3defe1a75132515e7eae89cb9d1dab01f68801c52df30d",
+  "source_name": "Expressões Regulares",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-16-001",
+      "label": "Definição e papel das expressões regulares no PLN",
+      "description": "Expressões regulares são métodos poderosos e flexíveis para detectar padrões de caracteres em textos, funcionando como notações algébricas que representam padrões de busca. Elas são essenciais no PLN para lidar com variações linguísticas, como conjugações verbais.",
+      "coverage_criteria": [
+        "Explicar o que são expressões regulares e por que são úteis no PLN",
+        "Dar um exemplo de busca que seria difícil sem regex"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto introduz o conceito na seção 1 e utiliza o exemplo do verbo 'escrever' para demonstrar a necessidade de padrões flexíveis.",
+        "granularity_rationale": "Conceito fundamental que estabelece a motivação e definição, suficiente para uma verificação inicial de compreensão."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Expressões regulares no processamento de linguagem natural (PLN)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "BIRD; KLEIN; LOPER 2009",
+        "JURAFSKY; MARTIN 2014"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-002",
+      "label": "Metacaracteres representantes: ponto, lista e lista negada",
+      "description": "Metacaracteres representantes atuam como outros caracteres: o ponto (.) representa qualquer caractere exceto \\n; a lista ([...]) busca um dos caracteres listados; a lista negada ([^...]) busca caracteres que NÃO estão na lista.",
+      "coverage_criteria": [
+        "Dado um conjunto de palavras e um padrão com metacaractere representante, indicar quais palavras casam",
+        "Escrever uma regex usando lista para buscar palavras que começam com vogais maiúsculas ou minúsculas",
+        "Diferenciar lista de lista negada com exemplos"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 1 e os exemplos nas páginas 73-74 explicam cada metacaractere representante e mostram correspondências com as palavras 'Bola cola sola mola'.",
+        "granularity_rationale": "Cada tipo de metacaractere é suficientemente distinto para ser um conceito separado, e seu uso correto é verificável com exercícios simples."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Metacaracteres representantes"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "JARGAS 2016",
+        "MARIANO; MINARDI 2016"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-003",
+      "label": "Metacaracteres quantificadores: asterisco, opcional, mais e chaves",
+      "description": "Quantificadores definem repetições do elemento anterior: * (zero ou mais), ? (zero ou uma), + (uma ou mais), {x,y} (de x a y vezes).",
+      "coverage_criteria": [
+        "Explicar a diferença entre * e +",
+        "Usar {x,y} para limitar repetições em uma regex",
+        "Corrigir uma regex que usa ? para tornar um caractere opcional"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 2 e os exemplos com 'Bola cola sola mola ola sol' demonstram cada quantificador.",
+        "granularity_rationale": "Os quatro quantificadores formam um grupo lógico e são fundamentais para a construção de padrões flexíveis, mas cada um pode ser avaliado separadamente."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Metacaracteres quantificadores"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "JARGAS 2016",
+        "MARIANO; MINARDI 2016"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-004",
+      "label": "Metacaracteres âncoras: circunflexo e cifrão",
+      "description": "Âncoras delimitam a posição na linha/string: ^ busca no início, $ busca no fim. Cuidado: ^ fora de colchetes é âncora; dentro, é negação.",
+      "coverage_criteria": [
+        "Escrever uma regex que encontre a primeira palavra de uma frase que comece com letra maiúscula",
+        "Explicar por que ^ em [^a-z] não é uma âncora",
+        "Usar $ para extrair a última palavra de uma linha"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 3 e o exemplo 'rato roeu a roupa do rei de Roma' nas páginas 76-77 mostram o uso de ^ e $.",
+        "granularity_rationale": "As âncoras são conceitos simples e independentes que podem ser verificados com exercícios pontuais."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Metacaracteres âncoras"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "JARGAS 2016"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-005",
+      "label": "Outros metacaracteres: alternância, agrupamento, escape e atalhos de classes",
+      "description": "Inclui | (ou), () (agrupamento), \\\\ (escape) para literalizar metacaracteres ou criar atalhos como \\\\d (dígito), \\\\w (alfanumérico), \\\\s (espaçamento) e suas negações \\\\D, \\\\W, \\\\S.",
+      "coverage_criteria": [
+        "Usar | e () para buscar uma de várias palavras",
+        "Diferenciar (rato|Roma) de [rato|Roma]",
+        "Usar \\\\. para buscar um ponto literal",
+        "Substituir [0-9] por \\\\d em uma regex"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 4 e 5 e os exemplos nas páginas 77-79 cobrem esses metacaracteres e atalhos.",
+        "granularity_rationale": "Embora diversos, esses metacaracteres especiais formam um grupo de 'outros' que complementa os anteriores; cada sub-recurso é verificável separadamente."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Outros metacaracteres"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "JARGAS 2016",
+        "JURAFSKY; MARTIN 2014"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-006",
+      "label": "Métodos básicos do módulo re em Python: match, search, findall",
+      "description": "Python oferece o módulo re com: match() busca padrão apenas no início da string; search() busca primeira ocorrência em qualquer lugar; findall() retorna todas as ocorrências não sobrepostas como lista. Retornam None se não encontrado.",
+      "coverage_criteria": [
+        "Usar re.search para encontrar a primeira palavra que começa com 'R' em um texto",
+        "Explicar a diferença entre match e search com exemplos",
+        "Utilizar findall para contar quantas vezes um padrão aparece"
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 6 e as Figuras 1 e 2 (páginas 79-81) introduzem e exemplificam esses métodos, mostrando código Python.",
+        "granularity_rationale": "Cada método tem comportamento distinto; a tríade cobre as consultas básicas, sendo adequado para verificação com pequenos trechos de código."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Implementação em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Python re module",
+        "Python Software Foundation 2020"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-007",
+      "label": "Métodos adicionais do módulo re: split, sub, group",
+      "description": "split() divide string por padrão e retorna lista; sub() substitui ocorrências do padrão por novo valor; group() extrai subgrupos de um match.",
+      "coverage_criteria": [
+        "Usar re.split para dividir um texto em palavras, excluindo pontuação",
+        "Aplicar re.sub para substituir todas as ocorrências de uma palavra em um texto",
+        "Extrair partes de um número de telefone usando grupos"
+      ],
+      "source_roles": [
+        "introducing",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O Quadro 6 lista split e sub, e os exemplos de aplicação (split para frases na página 84, sub para remover parênteses na página 86) demonstram seu uso.",
+        "granularity_rationale": "Cada método oferece uma operação diferente de manipulação de texto, e podem ser verificados individualmente com tarefas práticas."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Implementação em Python"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Python re module"
+      ]
+    },
+    {
+      "candidate_id": "candidate-16-008",
+      "label": "Extração de endereços de e-mail com regex",
+      "description": "Padrão [a-z0-9]+@[a-z\\\\.]+ identifica e-mails: parte local alfanumérica, @, domínio com letras e pontos. Uso de quantificador + e lista de caracteres.",
+      "coverage_criteria": [
+        "Explicar cada parte da regex [a-z0-9]+@[a-z\\\\.]+",
+        "Modificar a regex para permitir endereços com sublinhado",
+        "Testar a regex em um texto com múltiplos e-mails e verificar extração correta"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A Figura 3 e a análise detalhada nas páginas 81-82 apresentam o padrão e explicam seu funcionamento.",
+        "granularity_rationale": "Este é um exemplo de aplicação prática que combina metacaracteres já ensinados; a verificação pode ser feita pedindo ao aluno que construa ou explique a regex."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Identificação de endereços de e-mails"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-16-009",
+      "label": "Extração de números de telefone com regex",
+      "description": "Padrão [0-9]+-[0-9]+ para detectar números de telefone com formato contendo hífen. Adaptável para outros separadores.",
+      "coverage_criteria": [
+        "Explicar o papel dos símbolos + e - na regex",
+        "Modificar a regex para aceitar números no formato (XX) XXXXX-XXXX",
+        "Aplicar a regex em uma lista de textos para extrair telefones"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A Figura 4 e a explicação nas páginas 82-83 mostram o padrão e sua decomposição.",
+        "granularity_rationale": "Outro caso de aplicação direta, envolvendo metacaracteres quantificadores e literais, adequado para prática de construção de padrões."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Identificação de números de telefone"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-16-010",
+      "label": "Divisão de texto em frases usando re.split com \\.\\s",
+      "description": "Para dividir um texto em frases, usa-se re.split com padrão \\\\.\\\\s, que busca ponto seguido de espaço, evitando quebras em números decimais como '3.2.1.21'.",
+      "coverage_criteria": [
+        "Explicar por que o padrão \\\\.\\\\s é melhor que apenas \\\\. para separar frases",
+        "Dar um exemplo de como adaptar o padrão para incluir outros finais de frase como '!' e '?'",
+        "Escrever código Python que conte o número de frases em um texto usando split"
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A Figura 5 e o texto na página 84 explicam o uso do split com o padrão \\\\.\\\\s e a importância do espaço para evitar falsos positivos.",
+        "granularity_rationale": "Este conceito mostra um cuidado importante em PLN com regex, e pode ser verificado com uma tarefa de segmentação de frases."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Análise de textos"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-16-011",
+      "label": "Detecção de acrônimos e associações termo-significado com regex",
+      "description": "Padrão \\\\S* \\\\(.[^\\\\)]*\\\\) identifica pares 'Termo (significado)', usando \\\\S* para o termo, espaço, parênteses literal, .* exceto fecha parênteses, e fecha parênteses literal. Implementação usa match, search, sub para construir dicionário.",
+      "coverage_criteria": [
+        "Explicar o significado de cada parte da regex \\\\S* \\\\(.[^\\\\)]*\\\\)",
+        "Modificar o padrão para capturar siglas seguidas por dois pontos e definição",
+        "Implementar em Python um script que extrai todas as abreviaturas e suas definições de um texto"
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A Figura 6 e as explicações nas páginas 84-86 detalham a construção do padrão e o código Python para extrair pares.",
+        "granularity_rationale": "Esta aplicação avançada combina vários metacaracteres e métodos; a verificação pode cobrir tanto a compreensão da regex quanto a implementação."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Detectar acrônimos e correspondências"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-16-002",
+      "to_candidate_id": "candidate-16-008",
+      "reason": "O padrão de e-mail utiliza lista [a-z0-9] (metacaractere representante).",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Identificação de endereços de e-mails"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-16-003",
+      "to_candidate_id": "candidate-16-008",
+      "reason": "O quantificador + é usado em [a-z0-9]+ e [a-z\\\\.]+ no padrão de e-mail.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Identificação de endereços de e-mails"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-16-003",
+      "to_candidate_id": "candidate-16-009",
+      "reason": "O padrão de telefone emprega o quantificador + em [0-9]+.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Identificação de números de telefone"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-16-005",
+      "to_candidate_id": "candidate-16-010",
+      "reason": "O padrão \\\\.\\\\s para divisão de frases utiliza escape (\\\\.) e o atalho \\\\s para espaçamento.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Análise de textos"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-16-005",
+      "to_candidate_id": "candidate-16-011",
+      "reason": "A detecção de acrônimos faz uso de \\\\S* (atalho de negação de espaçamento) e escape para parênteses literais.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Detectar acrônimos e correspondências"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 11,
+    "source_local_connector_candidate_count": 5
+  }
+}

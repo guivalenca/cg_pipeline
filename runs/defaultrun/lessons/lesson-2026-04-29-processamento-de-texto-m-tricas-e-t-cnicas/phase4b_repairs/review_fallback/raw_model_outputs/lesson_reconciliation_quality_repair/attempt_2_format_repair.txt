@@ -1,0 +1,867 @@
+{
+  "new_accepted_concepts": [
+    {
+      "id": "repair001",
+      "label": "Expressões Regulares: Definição e Metacaracteres Básicos",
+      "description": "Introduz expressões regulares como método para busca de padrões em textos e apresenta o conceito de metacaracteres, que são símbolos com significados especiais.",
+      "coverage_criteria": [
+        "Definir o que é uma expressão regular.",
+        "Citar pelo menos três metacaracteres e explicar brevemente sua função."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_001",
+        "c17_pro_thinking_001",
+        "c17_pro_thinking_002"
+      ],
+      "merge_rationale": "Estes candidatos cobrem a definição e o papel das expressões regulares no PLN e introduzem os metacaracteres, fornecendo a base conceitual necessária."
+    },
+    {
+      "id": "repair002",
+      "label": "Metacaracteres Representantes: Ponto, Lista e Lista Negada",
+      "description": "Descreve os metacaracteres representantes: ponto (.) que representa qualquer caractere, lista ([...]) que busca um dos caracteres listados e lista negada ([^...]) que busca caracteres que não estão na lista.",
+      "coverage_criteria": [
+        "Explicar o que o ponto, a lista e a lista negada representam em uma regex.",
+        "Dado um texto, escrever uma regex que utilize lista para buscar palavras com um conjunto específico de caracteres."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_002"
+      ],
+      "merge_rationale": "Candidato único que cobre esses metacaracteres representantes de forma completa."
+    },
+    {
+      "id": "repair003",
+      "label": "Metacaracteres Quantificadores",
+      "description": "Apresenta os quantificadores: asterisco (*) para zero ou mais, opcional (?) para zero ou uma, mais (+) para uma ou mais e chaves ({x,y}) para um número específico de repetições, com exemplos usando classes de caracteres.",
+      "coverage_criteria": [
+        "Diferenciar o uso de *, + e ? com exemplos.",
+        "Escrever uma regex utilizando {x,y} para limitar repetições."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_003",
+        "c17_pro_thinking_004"
+      ],
+      "merge_rationale": "Ambos os candidatos tratam de quantificadores; o primeiro apresenta os quatro tipos e o segundo demonstra o uso do {2} com classes de caracteres, reforçando o conceito."
+    },
+    {
+      "id": "repair004",
+      "label": "Âncoras: Circunflexo e Cifrão",
+      "description": "Explica que o circunflexo (^) ancora a busca no início da linha/string e o cifrão ($) no final, destacando que ^ dentro de colchetes tem função de negação.",
+      "coverage_criteria": [
+        "Explicar a função das âncoras ^ e $.",
+        "Escrever uma regex que encontre uma palavra no início de uma linha e outra no final."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_004",
+        "c17_pro_thinking_003"
+      ],
+      "merge_rationale": "Ambos descrevem o uso de ^ e $ como âncoras, com exemplos complementares."
+    },
+    {
+      "id": "repair005",
+      "label": "Alternação e Agrupamento",
+      "description": "Mostra o uso do pipe (|) para alternância (OU) e dos parênteses ( ) para agrupar partes da regex, permitindo construir padrões com múltiplas opções.",
+      "coverage_criteria": [
+        "Utilizar | e () para criar uma regex que capture uma entre várias palavras.",
+        "Diferenciar (rato|Roma) de [rato|Roma]."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005",
+        "c17_pro_thinking_005"
+      ],
+      "merge_rationale": "O primeiro candidato inclui alternância e agrupamento entre vários metacaracteres, e o segundo foca especificamente nesses dois recursos, justificando a união."
+    },
+    {
+      "id": "repair006",
+      "label": "Escapando Metacaracteres",
+      "description": "Ensina que a contrabarra (\\) é usada para tratar metacaracteres como literais, por exemplo, \\. para um ponto literal ou \\( para parênteses literal.",
+      "coverage_criteria": [
+        "Identificar em uma regex quais caracteres estão escapados e por quê.",
+        "Escrever uma regex que encontre um parêntese literal em um texto."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005",
+        "c17_pro_thinking_006"
+      ],
+      "merge_rationale": "Ambos abordam o conceito de escape, com o primeiro como parte de uma introdução mais ampla e o segundo com demonstração detalhada."
+    },
+    {
+      "id": "repair007",
+      "label": "Classes de Caracteres por Atalho",
+      "description": "Apresenta os atalhos \\d (dígito), \\w (alfanumérico), \\s (espaçamento) e suas negações \\D, \\W, \\S, que simplificam a construção de padrões comuns.",
+      "coverage_criteria": [
+        "Substituir [0-9] por \\d em uma regex.",
+        "Explicar a diferença entre \\w e \\W."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_005"
+      ],
+      "merge_rationale": "Este candidato aborda especificamente os atalhos de classes de caracteres, permitindo um conceito isolado."
+    },
+    {
+      "id": "repair008",
+      "label": "Métodos Básicos do Módulo re do Python",
+      "description": "Explora os métodos principais do módulo re do Python: match(), search(), findall() para busca de padrões, e split(), sub(), group() para manipulação de strings.",
+      "coverage_criteria": [
+        "Usar re.search para encontrar a primeira ocorrência de um padrão.",
+        "Aplicar re.sub para substituir um padrão em um texto.",
+        "Extrair subgrupos de um match com group()."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_006",
+        "c16_pro_thinking_007"
+      ],
+      "merge_rationale": "Ambos cobrem os métodos do módulo re, um com foco em busca direta e o outro em divisão, substituição e extração, formando um conjunto completo."
+    },
+    {
+      "id": "repair009",
+      "label": "Aplicações Práticas de Regex",
+      "description": "Ilustra casos reais de uso de expressões regulares: extração de e-mails, números de telefone, divisão de frases, detecção de acrônimos e validação de formatos como datas e IPs.",
+      "coverage_criteria": [
+        "Explicar como uma regex pode validar um formato de data.",
+        "Modificar uma regex de extração de e-mail para incluir um domínio específico.",
+        "Escrever código Python que usa split para separar frases."
+      ],
+      "source_candidate_ids": [
+        "c16_pro_thinking_008",
+        "c16_pro_thinking_009",
+        "c16_pro_thinking_010",
+        "c16_pro_thinking_011",
+        "c17_pro_thinking_008"
+      ],
+      "merge_rationale": "Todos demonstram tarefas comuns de processamento de texto que são resolvidas com regex, fornecendo uma visão prática unificada."
+    },
+    {
+      "id": "repair010",
+      "label": "Similaridade Léxica",
+      "description": "Define similaridade léxica como a medida de sobreposição de palavras ou caracteres entre dois fragmentos de texto, sem considerar significado, e discute os níveis de granularidade (caractere, palavra, frase).",
+      "coverage_criteria": [
+        "Explicar o que é similaridade léxica e dar um exemplo.",
+        "Diferenciar similaridade em nível de caractere e de palavra."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_001",
+        "c19_pro_thinking_001",
+        "c18_pro_thinking_008"
+      ],
+      "merge_rationale": "Os três candidatos abordam o tópico sob diferentes perspectivas, consolidando a definição e as variações de granularidade."
+    },
+    {
+      "id": "repair011",
+      "label": "Distância de Edição Mínima e Levenshtein",
+      "description": "Apresenta a distância de edição mínima como o número mínimo de operações (inserção, deleção, substituição) para transformar uma string em outra, e a variante Levenshtein onde a substituição custa 2.",
+      "coverage_criteria": [
+        "Calcular a distância de edição mínima entre duas strings.",
+        "Computar a distância de Levenshtein e explicar a diferença de custo."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_002",
+        "c18_pro_thinking_003"
+      ],
+      "merge_rationale": "Ambos tratam de algoritmos de distância de edição, sendo o segundo uma variação direta, justificando o agrupamento."
+    },
+    {
+      "id": "repair012",
+      "label": "Similaridade de Jaccard",
+      "description": "Mede a similaridade entre dois conjuntos calculando a interseção dividida pela união, resultando em um valor entre 0 e 1, com exemplos em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de Jaccard para dois conjuntos de palavras.",
+        "Interpretar o resultado próximo de 1 ou de 0."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_005"
+      ],
+      "merge_rationale": "Candidato único que explica detalhadamente o cálculo e aplicação da similaridade de Jaccard."
+    },
+    {
+      "id": "repair013",
+      "label": "Similaridade de Cosseno",
+      "description": "Calcula a similaridade entre dois vetores de frequência de palavras usando o cosseno do ângulo entre eles, com implementação em Python.",
+      "coverage_criteria": [
+        "Calcular a similaridade de cosseno entre dois textos usando frequências de palavras.",
+        "Explicar por que o valor varia entre -1 e 1."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_006"
+      ],
+      "merge_rationale": "Candidato único que descreve a métrica de cosseno de forma detalhada, permitindo a criação de um conceito específico."
+    },
+    {
+      "id": "repair014",
+      "label": "N-grams para Predição de Texto",
+      "description": "Define n-grams como sequências contíguas de n itens de um texto, usados em modelos de linguagem para prever a próxima palavra baseando-se em probabilidades.",
+      "coverage_criteria": [
+        "Definir unigrama, bigrama e trigrama com exemplos.",
+        "Calcular a probabilidade de uma palavra dado o contexto do n-grama."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_004"
+      ],
+      "merge_rationale": "Candidato único que explica n-grams e sua aplicação em predição, formando um conceito independente."
+    },
+    {
+      "id": "repair015",
+      "label": "Classificação de Algoritmos de Similaridade de Strings",
+      "description": "Categoriza os algoritmos de similaridade em baseados em caracteres (ex.: Levenshtein) e baseados em termos (ex.: cosseno, Jaccard), indicando quando cada um é mais adequado.",
+      "coverage_criteria": [
+        "Listar exemplos de algoritmos baseados em caracteres e baseados em termos.",
+        "Explicar em que situação um é preferível ao outro."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_007"
+      ],
+      "merge_rationale": "Candidato único que fornece uma visão geral das categorias de algoritmos."
+    },
+    {
+      "id": "repair016",
+      "label": "Aplicações de Similaridade Textual",
+      "description": "Lista e exemplifica aplicações reais de medidas de similaridade: sistemas de busca, recomendação, correção ortográfica, autocomplete, sumarização e detecção de duplicatas.",
+      "coverage_criteria": [
+        "Citar ao menos três aplicações de similaridade textual.",
+        "Explicar como a similaridade ajuda em uma dessas aplicações."
+      ],
+      "source_candidate_ids": [
+        "c18_pro_thinking_009",
+        "c19_pro_thinking_003"
+      ],
+      "merge_rationale": "Ambos os candidatos listam aplicações práticas, com o segundo incluindo também clusterização e tradução automática, consolidando a relevância do tema."
+    },
+    {
+      "id": "repair017",
+      "label": "Similaridade Semântica e Diferenciação da Léxica",
+      "description": "Define similaridade semântica como a que considera o significado das palavras em contexto, contrastando com a léxica, e fornece exemplos como 'carro' e 'automóvel'.",
+      "coverage_criteria": [
+        "Diferenciar similaridade semântica de léxica com exemplos.",
+        "Explicar por que a semântica é mais difícil de computar."
+      ],
+      "source_candidate_ids": [
+        "c19_pro_thinking_002"
+      ],
+      "merge_rationale": "Candidato único que estabelece a distinção fundamental entre os dois tipos de similaridade."
+    },
+    {
+      "id": "repair018",
+      "label": "Abordagens para Similaridade Semântica: Baseadas em Conhecimento e Corpus",
+      "description": "Descreve as duas principais abordagens para calcular similaridade semântica: baseada em corpus (grandes bases de texto) e baseada em conhecimento (redes semânticas como WordNet).",
+      "coverage_criteria": [
+        "Distinguir as abordagens baseada em conhecimento e baseada em corpus.",
+        "Dar um exemplo de recurso usado em cada abordagem."
+      ],
+      "source_candidate_ids": [
+        "c19_pro_thinking_004"
+      ],
+      "merge_rationale": "Candidato único que organiza os métodos de similaridade semântica."
+    },
+    {
+      "id": "repair019",
+      "label": "WordNet e Relações Semânticas",
+      "description": "Apresenta a WordNet como um banco de dados lexical que organiza palavras em synsets e inclui relações semânticas como sinonímia, antonímia, meronímia, holonímia, hiponímia, hiperonímia, homonímia e polissemia.",
+      "coverage_criteria": [
+        "Explicar o que é um synset na WordNet.",
+        "Definir e exemplificar pelo menos três relações semânticas (ex.: hiponímia, meronímia)."
+      ],
+      "source_candidate_ids": [
+        "c19_pro_thinking_005",
+        "c19_pro_thinking_008"
+      ],
+      "merge_rationale": "Ambos lidam com a WordNet e suas relações, sendo o primeiro focado na estrutura e o segundo nos tipos de relação, formando um conceito coeso."
+    },
+    {
+      "id": "repair020",
+      "label": "Path Similarity e Lowest Common Subsumer (LCS)",
+      "description": "Explica a similaridade de caminho (Path Similarity) como 1/(distância + 1) em uma taxonomia, e o LCS como o ancestral comum mais específico, ambos usando a WordNet.",
+      "coverage_criteria": [
+        "Calcular a Path Similarity entre dois conceitos em uma hierarquia.",
+        "Identificar o LCS de dois conceitos em uma taxonomia."
+      ],
+      "source_candidate_ids": [
+        "c19_pro_thinking_006",
+        "c19_pro_thinking_007"
+      ],
+      "merge_rationale": "Ambos os candidatos apresentam medidas de similaridade baseadas em ontologia, complementares entre si."
+    },
+    {
+      "id": "repair021",
+      "label": "Acesso à WordNet com NLTK (Inglês e Português)",
+      "description": "Demonstra como acessar a WordNet em Python usando a biblioteca NLTK, incluindo suporte para português via Open Multilingual Wordnet (lang='por'), embora as definições estejam em inglês.",
+      "coverage_criteria": [
+        "Escrever um script Python que recupera synsets de uma palavra inglesa no NLTK.",
+        "Recuperar synsets de uma palavra em português e discutir limitações."
+      ],
+      "source_candidate_ids": [
+        "c19_pro_thinking_009",
+        "c19_pro_thinking_010"
+      ],
+      "merge_rationale": "Ambos tratam do uso do NLTK para acessar a WordNet, um em inglês e outro em português, formando um conceito prático unificado."
+    },
+    {
+      "id": "repair022",
+      "label": "Aplicações de PLN (Visão Geral)",
+      "description": "Lista e descreve aplicações de PLN: informação, tradução automática, sistemas de recomendação, smart replies, reconhecimento de voz, análise de sentimento, Q&A, extração de informação, sumarização, classificação, modelagem de tópicos, OCR, NER e geração de linguagem natural.",
+      "coverage_criteria": [
+        "Citar pelo menos cinco aplicações de PLN.",
+        "Escolher uma aplicação e explicar como o PLN é usado."
+      ],
+      "source_candidate_ids": [
+        "c14_pro_thinking_002",
+        "c15_pro_thinking_012",
+        "c15_pro_thinking_013",
+        "c15_pro_thinking_014",
+        "c15_pro_thinking_015",
+        "c15_pro_thinking_016",
+        "c15_pro_thinking_017",
+        "c15_pro_thinking_018",
+        "c15_pro_thinking_019",
+        "c15_pro_thinking_020",
+        "c15_pro_thinking_021",
+        "c15_pro_thinking_022",
+        "c15_pro_thinking_023",
+        "c15_pro_thinking_024",
+        "c15_pro_thinking_025"
+      ],
+      "merge_rationale": "Todos estes candidatos listam aplicações específicas de PLN, fornecendo uma visão panorâmica do campo, adequada como conceito único de visão geral, evitando fragmentação excessiva."
+    },
+    {
+      "id": "repair023",
+      "label": "Ferramentas Google Cloud NLP",
+      "description": "Apresenta as ferramentas do Google Cloud para PLN: API Natural Language, AutoML Natural Language, Dialogflow e Document AI, explicando suas funções e diferenças.",
+      "coverage_criteria": [
+        "Descrever o propósito da API Natural Language e do AutoML Natural Language.",
+        "Explicar a diferença entre Dialogflow e Document AI."
+      ],
+      "source_candidate_ids": [
+        "c14_pro_thinking_003",
+        "c14_pro_thinking_004",
+        "c14_pro_thinking_005",
+        "c14_pro_thinking_006"
+      ],
+      "merge_rationale": "Os quatro candidatos descrevem ferramentas do Google Cloud para PLN, formando um conjunto coerente sobre as opções disponíveis na plataforma."
+    },
+    {
+      "id": "repair024",
+      "label": "Desafios do PLN: Segmentação, Contexto e Semântica",
+      "description": "Aborda desafios fundamentais do PLN: segmentação de texto, análise de contexto, extração de significado semântico e ambiguidade.",
+      "coverage_criteria": [
+        "Explicar o desafio da segmentação em PLN com um exemplo.",
+        "Descrever como a ambiguidade pode dificultar a interpretação de frases."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_002",
+        "c15_pro_thinking_003",
+        "c15_pro_thinking_004",
+        "c15_pro_thinking_005"
+      ],
+      "merge_rationale": "Estes candidatos tratam de desafios iniciais e conceituais do PLN, sendo natural agrupá-los como um bloco de dificuldades fundamentais."
+    },
+    {
+      "id": "repair025",
+      "label": "Desafios do PLN: Ortografia, Neologismos e Figuras de Linguagem",
+      "description": "Cobre desafios relacionados a erros ortográficos, neologismos, figuras de linguagem e abreviações, que exigem tratamento especial em sistemas de PLN.",
+      "coverage_criteria": [
+        "Explicar como erros ortográficos afetam o PLN.",
+        "Dar exemplos de neologismos e figuras de linguagem que são desafiadores."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_006",
+        "c15_pro_thinking_007",
+        "c15_pro_thinking_008"
+      ],
+      "merge_rationale": "Estes três candidatos focam em desafios ligados à variação linguística e expressões não literais, formando um agrupamento lógico."
+    },
+    {
+      "id": "repair026",
+      "label": "Desafios do PLN: Correferência, Negação e Recursos Limitados",
+      "description": "Discute desafios de correferência, negação e especulação, e a limitação de recursos para língua portuguesa, incluindo a WordNet.Br.",
+      "coverage_criteria": [
+        "Explicar o que é correferência e dar um exemplo.",
+        "Descrever o desafio de identificar negação em textos médicos.",
+        "Citar um recurso de PLN para português."
+      ],
+      "source_candidate_ids": [
+        "c15_pro_thinking_009",
+        "c15_pro_thinking_010",
+        "c15_pro_thinking_011"
+      ],
+      "merge_rationale": "Estes candidatos abordam desafios mais avançados e específicos, incluindo a questão do português, justificando a união."
+    },
+    {
+      "id": "repair027",
+      "label": "Regex em JavaScript",
+      "description": "Mostra como expressões regulares são criadas em JavaScript usando barras como delimitadores, com exemplo de negação de números.",
+      "coverage_criteria": [
+        "Escrever uma regex simples em JavaScript.",
+        "Explicar a diferença entre usar barras e aspas."
+      ],
+      "source_candidate_ids": [
+        "c17_pro_thinking_007"
+      ],
+      "merge_rationale": "Candidato único que aborda a implementação de regex em JavaScript."
+    },
+    {
+      "id": "repair028",
+      "label": "scikit-learn: Visão Geral e Algoritmos de Classificação, Regressão e Clustering",
+      "description": "Apresenta a biblioteca scikit-learn para machine learning em Python, incluindo classificação, regressão, clustering, seleção de modelos e pré-processamento.",
+      "coverage_criteria": [
+        "Identificar scikit-learn como biblioteca de ML.",
+        "Listar tarefas de ML suportadas (classificação, regressão, clustering).",
+        "Citar exemplos de algoritmos em cada categoria."
+      ],
+      "source_candidate_ids": [
+        "c20_pro_thinking_001",
+        "c20_pro_thinking_002",
+        "c20_pro_thinking_003",
+        "c20_pro_thinking_004",
+        "c20_pro_thinking_005",
+        "c20_pro_thinking_006",
+        "c20_pro_thinking_007"
+      ],
+      "merge_rationale": "Todos os candidatos da fonte 20 descrevem aspectos do scikit-learn, formando uma visão geral unificada da biblioteca e suas capacidades."
+    }
+  ],
+  "existing_concept_candidate_additions": [],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c14_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Parte da visão geral das aplicações de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN, incluída na visão geral."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_017",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_018",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_019",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_020",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_021",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_022",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_023",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_024",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_025",
+      "status": "used_in",
+      "accepted_ids": ["repair022"],
+      "explanation": "Aplicação específica de PLN."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair023"],
+      "explanation": "Ferramenta Google Cloud NLP."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair023"],
+      "explanation": "Ferramenta Google Cloud NLP."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair023"],
+      "explanation": "Ferramenta Google Cloud NLP."
+    },
+    {
+      "candidate_id": "c14_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair023"],
+      "explanation": "Ferramenta Google Cloud NLP."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair024"],
+      "explanation": "Desafio de segmentação, parte dos desafios fundamentais."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair024"],
+      "explanation": "Desafio de análise de contexto."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair024"],
+      "explanation": "Desafio de extração de significado semântico."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair024"],
+      "explanation": "Desafio de ambiguidade."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair025"],
+      "explanation": "Desafio de erros ortográficos."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair025"],
+      "explanation": "Desafio de neologismos."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["repair025"],
+      "explanation": "Desafio de figuras de linguagem e abreviações."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["repair026"],
+      "explanation": "Desafio de correferência."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["repair026"],
+      "explanation": "Desafio de negação e especulação."
+    },
+    {
+      "candidate_id": "c15_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": ["repair026"],
+      "explanation": "Recursos limitados para português."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["repair001"],
+      "explanation": "Definição de expressões regulares."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["repair001"],
+      "explanation": "Definição de regex."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair001"],
+      "explanation": "Introdução a metacaracteres."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair002"],
+      "explanation": "Metacaracteres representantes."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair003"],
+      "explanation": "Metacaracteres quantificadores."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair003"],
+      "explanation": "Quantificadores com classe de caracteres."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair004"],
+      "explanation": "Âncoras ^ e $."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair004"],
+      "explanation": "Âncoras ^ e $."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair005", "repair006", "repair007"],
+      "explanation": "Este candidato contém alternância, agrupamento, escape e atalhos de classes; foi atribuído a três conceitos para cobrir todos os subconteúdos."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair005"],
+      "explanation": "Agrupamento e alternância."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair006"],
+      "explanation": "Escapando metacaracteres."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair008"],
+      "explanation": "Métodos match, search, findall."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair008"],
+      "explanation": "Métodos split, sub, group."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["repair009"],
+      "explanation": "Extração de e-mails."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["repair009"],
+      "explanation": "Extração de telefones."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["repair009"],
+      "explanation": "Divisão de texto em frases."
+    },
+    {
+      "candidate_id": "c16_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": ["repair009"],
+      "explanation": "Detecção de acrônimos."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["repair009"],
+      "explanation": "Validação de formatos comuns."
+    },
+    {
+      "candidate_id": "c17_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair027"],
+      "explanation": "Uso de regex em JavaScript."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["repair010"],
+      "explanation": "Definição de similaridade léxica."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["repair010"],
+      "explanation": "Similaridade léxica."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["repair010"],
+      "explanation": "Granularidade da similaridade léxica."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair011"],
+      "explanation": "Minimum edit distance."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair011"],
+      "explanation": "Levenshtein distance."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair012"],
+      "explanation": "Jaccard similarity."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair013"],
+      "explanation": "Cosine similarity."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair014"],
+      "explanation": "N-grams."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair015"],
+      "explanation": "Classificação de algoritmos."
+    },
+    {
+      "candidate_id": "c18_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["repair016"],
+      "explanation": "Aplicações de similaridade."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair016"],
+      "explanation": "Aplicações de medidas de similaridade."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair017"],
+      "explanation": "Similaridade semântica."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair018"],
+      "explanation": "Abordagens baseadas em conhecimento e corpus."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair019"],
+      "explanation": "WordNet."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["repair019"],
+      "explanation": "Relações semânticas."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair020"],
+      "explanation": "Path similarity."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair020"],
+      "explanation": "Lowest Common Subsumer."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["repair021"],
+      "explanation": "Acesso à WordNet com NLTK (inglês)."
+    },
+    {
+      "candidate_id": "c19_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["repair021"],
+      "explanation": "WordNet em português com NLTK."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Visão geral do scikit-learn."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Algoritmos de classificação."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Seleção de modelos."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Pré-processamento."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Redução de dimensionalidade."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Algoritmos de clustering."
+    },
+    {
+      "candidate_id": "c20_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["repair028"],
+      "explanation": "Algoritmos de regressão."
+    }
+  ]
+}

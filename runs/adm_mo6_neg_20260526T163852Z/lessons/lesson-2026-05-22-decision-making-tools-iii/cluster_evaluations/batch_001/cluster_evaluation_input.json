@@ -1,0 +1,663 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Decision Tree Purpose and Definition",
+    "rationale": "These candidates introduce or define what a decision tree is and its purpose, with similar phrasing and scope.",
+    "candidate_ids": [
+      "c24_pro_thinking_001",
+      "c25_pro_thinking_001",
+      "c27_pro_thinking_001"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Decision Tree Purpose and Definition",
+      "rationale": "These candidates introduce or define what a decision tree is and its purpose, with similar phrasing and scope.",
+      "candidate_ids": [
+        "c24_pro_thinking_001",
+        "c25_pro_thinking_001",
+        "c27_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Decision Tree Symbols (Nodes and Branches)",
+      "rationale": "These candidates describe the graphical symbols: decision nodes (squares), chance/uncertainty nodes (circles), and branches. They cover the same structural elements.",
+      "candidate_ids": [
+        "c24_pro_thinking_002",
+        "c27_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Tree Construction Steps",
+      "rationale": "These candidates provide step-by-step instructions for drawing a decision tree from a scenario or payoff table, covering node placement and branching.",
+      "candidate_ids": [
+        "c24_pro_thinking_003",
+        "c25_pro_thinking_002",
+        "c27_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Assigning Payoffs and Probabilities",
+      "rationale": "These candidates describe how to place monetary values and probabilities on branches, and the rule that probabilities sum to 100%.",
+      "candidate_ids": [
+        "c25_pro_thinking_004",
+        "c27_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Expected Value Calculation at Chance/Uncertainty Nodes",
+      "rationale": "These candidates all explain the formula for computing expected value (sum of payoff × probability) at chance nodes.",
+      "candidate_ids": [
+        "c24_pro_thinking_004",
+        "c25_pro_thinking_005",
+        "c27_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Folding Back and Optimal Decision Selection by EMV",
+      "rationale": "These candidates cover the process of rolling back from right to left, computing EMV, and choosing the highest EMV alternative.",
+      "candidate_ids": [
+        "c24_pro_thinking_005",
+        "c25_pro_thinking_006",
+        "c26_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "rationale": "These candidates explicitly define EMV as a decision criterion, its calculation, and interpretation.",
+      "candidate_ids": [
+        "c26_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Decision Tree Structure and Conventions (Advanced)",
+      "rationale": "This candidate provides a comprehensive description of decision tree elements and conventions, including end nodes (triangles) and reading left to right. It is more detailed than basic symbols but may overlap with construction clusters.",
+      "candidate_ids": [
+        "c26_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Sensitivity Analysis",
+      "rationale": "This candidate covers sensitivity analysis tools (tornado and spider charts) and their interpretation, which is a distinct meta-analytical topic.",
+      "candidate_ids": [
+        "c26_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "rationale": "This candidate is exclusively about Bayes' rule and its application in decision trees, a well-defined statistical method.",
+      "candidate_ids": [
+        "c26_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Value of Sample Information (EVSI)",
+      "rationale": "This candidate defines and computes EVSI as the difference between EMV with and without sample information.",
+      "candidate_ids": [
+        "c26_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Value of Perfect Information (EVPI)",
+      "rationale": "This candidate defines and computes EVPI as the upper bound on value of any information.",
+      "candidate_ids": [
+        "c26_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c24_pro_thinking_001",
+    "c25_pro_thinking_001",
+    "c27_pro_thinking_001",
+    "c24_pro_thinking_002",
+    "c27_pro_thinking_002",
+    "c24_pro_thinking_003",
+    "c25_pro_thinking_002",
+    "c27_pro_thinking_003",
+    "c25_pro_thinking_004",
+    "c27_pro_thinking_004",
+    "c24_pro_thinking_004",
+    "c25_pro_thinking_005",
+    "c27_pro_thinking_005",
+    "c24_pro_thinking_005",
+    "c25_pro_thinking_006",
+    "c26_pro_thinking_003",
+    "c26_pro_thinking_001",
+    "c26_pro_thinking_002",
+    "c26_pro_thinking_004",
+    "c26_pro_thinking_005",
+    "c26_pro_thinking_006",
+    "c26_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c24_pro_thinking_001",
+      "label": "Purpose of Decision Trees",
+      "description": "Decision trees are graphical models for decision-making under uncertainty, used to visualize alternatives, outcomes, and probabilities.",
+      "coverage_criteria": [
+        "Explain the purpose of a decision tree in decision analysis."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video opens with 'Welcome to this Decision Analysis tutorial for constructing decision trees' and states objectives, explicitly positioning the topic.",
+        "granularity_rationale": "This concept covers the overall goal of the tool, suitable as a foundational idea."
+      },
+      "anchors": [
+        "00:00 Introduction to Decision Trees"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_001",
+      "label": "Decision Tree Definition",
+      "description": "A decision tree is a diagrammatic tool that presents the decision problem, alternative courses of action, states of nature, and likely outcomes as branches and sub-branches of a horizontal tree for systematic analysis.",
+      "coverage_criteria": [
+        "Define a decision tree in one's own words.",
+        "List the key elements depicted in a decision tree (decision alternatives, states of nature, outcomes)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines decision tree at 00:57 as a tool for diagrammatic presentation of sequential and multidimensional decision problems, with branches representing alternatives and outcomes.",
+        "granularity_rationale": "This is a foundational definition that can be checked with a few recall and comprehension questions, making it a compact teachable idea."
+      },
+      "anchors": [
+        "00:57 What is a Decision Tree?"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_001",
+      "label": "Decision Tree Definition",
+      "description": "A decision tree is a graphic tool that maps choices, probabilities, and outcomes to calculate an expected value, helping to structure decision-making under uncertainty.",
+      "coverage_criteria": [
+        "The student can explain what a decision tree is and its purpose in decision-making."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines a decision tree in the introduction as a graphic representation with probability analysis to calculate expected value.",
+        "granularity_rationale": "This concept is atomic and can be assessed by asking the student to recall the definition."
+      },
+      "anchors": [
+        "Making decisions, the Decision Tree analysis method"
+      ]
+    },
+    {
+      "id": "c24_pro_thinking_002",
+      "label": "Decision and Chance Nodes",
+      "description": "Decision trees consist of square decision nodes where alternatives branch out, and circular chance nodes where uncertain outcomes branch out.",
+      "coverage_criteria": [
+        "Identify and distinguish between decision nodes and chance nodes in a decision tree."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 00:28, the video explicitly defines the two types of nodes with visual illustration.",
+        "granularity_rationale": "This is a core structural element of decision trees, small enough to be tested directly."
+      },
+      "anchors": [
+        "00:28 Decision Tree Nodes"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_002",
+      "label": "Decision Tree Symbols",
+      "description": "Squares represent decision points, circles represent uncertain outcomes, and lines represent choices or outcomes.",
+      "coverage_criteria": [
+        "Given a decision tree diagram, the student can identify and label decision and uncertainty nodes, and explain what each symbol represents."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "In the section 'Drawing a Decision Tree', the article explicitly describes squares as decisions and circles as uncertain outcomes.",
+        "granularity_rationale": "It is a small, checkable fact that can be tested by showing a diagram."
+      },
+      "anchors": [
+        "Drawing a Decision Tree"
+      ]
+    },
+    {
+      "id": "c24_pro_thinking_003",
+      "label": "Tree Construction from Payoff Table",
+      "description": "To construct a decision tree, start with a decision node, add branches for each alternative, attach chance nodes with outcome branches, and place payoffs at the ends.",
+      "coverage_criteria": [
+        "Given a payoff table, draw the corresponding decision tree with correct nodes, branches, and payoffs."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 00:57, the video walks through drawing each element step-by-step, using the payoff table as reference.",
+        "granularity_rationale": "This is a procedural skill that can be assessed by having students create a tree from data."
+      },
+      "anchors": [
+        "00:57 Constructing the Decision Tree"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_002",
+      "label": "Decision Tree Structure (Nodes and Branches)",
+      "description": "A decision tree consists of nodes (decision nodes and chance nodes) connected by branches that represent alternatives and subsequent states of nature, with probabilities and payoffs attached.",
+      "coverage_criteria": [
+        "Identify a decision node and a chance node in a given decision tree.",
+        "Explain what each branch from a node represents."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 03:40, the video demonstrates drawing the tree with branches for decision alternatives (d1, d2, d3) and further branches for states of nature, explicitly labeling probabilities and payoffs.",
+        "granularity_rationale": "This concept breaks down the structural components of a tree, which is a distinct and checkable skill separate from computing values."
+      },
+      "anchors": [
+        "03:40 Drawing the Decision Tree"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_003",
+      "label": "Constructing a Decision Tree",
+      "description": "To build a decision tree, start with a decision square, draw lines for options, add subsequent decisions or uncertainties using squares and circles, and expand until all outcomes are covered.",
+      "coverage_criteria": [
+        "Given a simple decision scenario, the student can sketch a decision tree with correct symbols and branching."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Drawing a Decision Tree' section provides step-by-step instructions for constructing a tree.",
+        "granularity_rationale": "This is a procedural concept that can be evaluated by having the student draw a tree for a given problem."
+      },
+      "anchors": [
+        "Drawing a Decision Tree"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_004",
+      "label": "Assigning Probabilities and Payoffs to Branches",
+      "description": "In a decision tree, each branch from a chance node is labeled with the probability of that state of nature and the corresponding payoff or outcome value.",
+      "coverage_criteria": [
+        "Given a payoff table, correctly place probabilities and payoffs on the branches of a sketched decision tree.",
+        "Explain the meaning of the numbers on the branches."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 04:19-05:38, the instructor shows how to assign the 0.25, 0.3, 0.45 probabilities and corresponding payoff values to each branch originating from decision alternatives.",
+        "granularity_rationale": "This is a procedural step in constructing a tree, isolated enough to be checked by asking a learner to map a simple table to a tree."
+      },
+      "anchors": [
+        "03:40 Drawing the Decision Tree"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_004",
+      "label": "Assigning Values and Probabilities",
+      "description": "In evaluating a decision tree, assign monetary values or scores to each outcome, and estimate probabilities for each uncertain outcome, ensuring they sum to 100%.",
+      "coverage_criteria": [
+        "The student can correctly assign probabilities to branches of an uncertainty node and explain that they must sum to 100%."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Evaluating your Decision Tree' instructs to assign cash values to outcomes and estimate probabilities that must sum to 100%.",
+        "granularity_rationale": "This is a specific rule that can be tested with a simple numerical check."
+      },
+      "anchors": [
+        "Evaluating your Decision Tree"
+      ]
+    },
+    {
+      "id": "c24_pro_thinking_004",
+      "label": "Computing Expected Values at Chance Nodes",
+      "description": "Expected value is calculated as the sum of payoffs multiplied by their respective probabilities, placed on the chance node.",
+      "coverage_criteria": [
+        "Calculate the expected value for a chance node given payoffs and probabilities."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 02:06, the speaker computes expected value for Stocks as .4*70 + .6*-13 = 20.2, demonstrating the formula.",
+        "granularity_rationale": "This is a single arithmetic operation testable within one question."
+      },
+      "anchors": [
+        "01:51 Solving the Decision Tree"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_005",
+      "label": "Expected Monetary Value (EMV) Calculation from Decision Tree",
+      "description": "For each decision alternative, calculate the Expected Monetary Value by multiplying each outcome's payoff by its probability and summing the products.",
+      "coverage_criteria": [
+        "Given a decision tree with probabilities and payoffs, compute the EMV for a specified alternative.",
+        "Show the formula and steps for EMV calculation."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 05:58 to 06:39, the video explicitly computes EMV for d1, d2, d3 using the formula (p1*v1 + p2*v2 + p3*v3), and shows the arithmetic.",
+        "granularity_rationale": "This is a concrete calculation skill that can be assessed with a numeric problem, representing a manageable chunk of the overall process."
+      },
+      "anchors": [
+        "06:39 Expected Monetary Value (EMV) Calculation and Conclusion"
+      ]
+    },
+    {
+      "id": "c27_pro_thinking_005",
+      "label": "Calculating Expected Value",
+      "description": "For an uncertainty node, multiply each outcome's value by its probability and sum the products to get the node's total expected value.",
+      "coverage_criteria": [
+        "Given outcome values and probabilities, the student can compute the expected value of an uncertainty node."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "In 'Calculating the Value of Uncertain Outcome Nodes', the article describes multiplying value by probability and summing for the total.",
+        "granularity_rationale": "This is a single arithmetic operation that can be checked with a quick calculation exercise."
+      },
+      "anchors": [
+        "Calculating the Value of Uncertain Outcome Nodes"
+      ]
+    },
+    {
+      "id": "c24_pro_thinking_005",
+      "label": "Folding Back and Decision Selection",
+      "description": "Folding back means calculating expected values from right to left and choosing the alternative with the highest expected value.",
+      "coverage_criteria": [
+        "Given a decision tree with expected values, identify the optimal decision."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 01:54, 'solving the decision tree is also known as folding back' and then shows comparison of values to choose Stocks.",
+        "granularity_rationale": "This captures the decision-making step that can be checked by asking which alternative is best."
+      },
+      "anchors": [
+        "02:46 Making the Decision"
+      ]
+    },
+    {
+      "id": "c25_pro_thinking_006",
+      "label": "Optimal Decision: Choose Highest EMV",
+      "description": "The best course of action in decision tree analysis is the alternative with the highest Expected Monetary Value.",
+      "coverage_criteria": [
+        "After computing EMVs, select the alternative with the maximum EMV as the optimal decision.",
+        "Justify the choice of the highest EMV as the rational decision rule under risk."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At 06:46-07:04, the video concludes that decision alternative d3 is recommended because it has the highest expected value (285).",
+        "granularity_rationale": "This is a simple decision rule that can be checked by asking a student to pick the best alternative from a set of EMVs."
+      },
+      "anchors": [
+        "06:39 Expected Monetary Value (EMV) Calculation and Conclusion"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_003",
+      "label": "Folding Back Procedure for Solving Decision Trees",
+      "description": "Folding back solves a decision tree from right to left: at probability nodes, compute EMV; at decision nodes, choose the maximum EMV. The EMV at the root is the optimal EMV.",
+      "coverage_criteria": [
+        "Student can apply folding back to a small decision tree to find the optimal decision and its EMV.",
+        "Student can explain the algorithmic steps."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly describes the folding back procedure with an example in Figure 10.2, showing EMV calculations at probability and decision nodes.",
+        "granularity_rationale": "This is a precise computational method that can be checked with a simple tree requiring two or three nodes."
+      },
+      "anchors": [
+        "10.2 Elements of a Decision Analysis > Folding Back Procedure"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_001",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of possible monetary outcomes.",
+      "coverage_criteria": [
+        "Student can compute EMV from a payoff table and probabilities.",
+        "Student can explain that EMV represents a long-run average and is appropriate when the decision maker is risk-neutral."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly defines EMV, illustrates its calculation with the SciTools bidding example, and discusses its interpretation.",
+        "granularity_rationale": "This is a core computational concept that can be assessed with a short numerical problem and a conceptual question."
+      },
+      "anchors": [
+        "10.2 Elements of a Decision Analysis > Expected Monetary Value (EMV)"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_002",
+      "label": "Decision Tree Structure and Conventions",
+      "description": "A decision tree is a graphical tool with decision nodes (squares), probability nodes (circles), and end nodes (triangles), read left to right. It models decisions, uncertain events, and payoffs.",
+      "coverage_criteria": [
+        "Student can interpret a given decision tree and identify node types.",
+        "Student can construct a simple decision tree for a single-stage problem."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source presents decision trees as a central tool in 10.2, enumerates conventions, and builds a tree for the SciTools example using PrecisionTree.",
+        "granularity_rationale": "Decision tree conventions are specific rules that can be tested by asking students to label a tree or draw one from a description."
+      },
+      "anchors": [
+        "10.2 Elements of a Decision Analysis > Decision Trees"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_004",
+      "label": "Sensitivity Analysis of Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters affect the optimal EMV and decision choice. Tools include tornado charts and spider charts, which rank inputs by impact.",
+      "coverage_criteria": [
+        "Student can interpret a tornado chart to identify the most influential inputs.",
+        "Student can explain why sensitivity analysis is important in decision analysis."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source devotes a subsection to sensitivity analysis using PrecisionTree, producing tornado and spider charts for the SciTools example, and illustrates two-way sensitivity.",
+        "granularity_rationale": "Sensitivity analysis is a meta-analytical step that can be assessed by asking students to interpret given charts, a focused task."
+      },
+      "anchors": [
+        "10.2 Elements of a Decision Analysis > Sensitivity Analysis"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_005",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities P(B_i|A) = [P(A|B_i)P(B_i)] / Σ[P(A|B_j)P(B_j)], updating prior beliefs with new information.",
+      "coverage_criteria": [
+        "Student can calculate posterior probabilities given priors and likelihoods.",
+        "Student can explain how Bayes' rule is used in a decision tree to incorporate test results."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 10.5 is dedicated to Bayes' rule, with a step-by-step spreadsheet illustration using the drug-testing example, and it is applied in a multistage decision tree.",
+        "granularity_rationale": "Bayes' rule is a fundamental formula that can be tested with a straightforward numerical problem, and its role in decision analysis can be checked conceptually."
+      },
+      "anchors": [
+        "10.5 BAYES’ RULE"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_006",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Student can define EVSI and compute it from a decision tree.",
+        "Student can interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source introduces EVSI in the Acme marketing example (Section 10.4), stating the formula and computing it as $3.807 million for the test market.",
+        "granularity_rationale": "EVSI is a specific derived metric that can be assessed with a short calculation and interpretation question."
+      },
+      "anchors": [
+        "10.4 Multistage Decision Problems > Expected Value of Sample Information"
+      ]
+    },
+    {
+      "id": "c26_pro_thinking_007",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV with no information. It sets an upper bound on the value of any sample information.",
+      "coverage_criteria": [
+        "Student can define EVPI and compute it.",
+        "Student can explain why EVPI is an upper limit for EVSI."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 10.4 explicitly defines EVPI, computes it with a simple tree in the Acme example ($7.65 million), and discusses its role as an upper bound.",
+        "granularity_rationale": "EVPI is a standalone concept that can be tested with a single-scenario tree and a brief explanation."
+      },
+      "anchors": [
+        "10.4 Multistage Decision Problems > Expected Value of Perfect Information"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

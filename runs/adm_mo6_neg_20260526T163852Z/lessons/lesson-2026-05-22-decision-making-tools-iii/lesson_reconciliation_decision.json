@@ -1,0 +1,825 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-26T17:51:33.830964+00:00",
+  "scope_id": "lesson-2026-05-22-decision-making-tools-iii",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c24_pro_thinking_001",
+    "c24_pro_thinking_002",
+    "c24_pro_thinking_003",
+    "c24_pro_thinking_004",
+    "c24_pro_thinking_005",
+    "c24_pro_thinking_006",
+    "c25_pro_thinking_001",
+    "c25_pro_thinking_002",
+    "c25_pro_thinking_003",
+    "c25_pro_thinking_004",
+    "c25_pro_thinking_005",
+    "c25_pro_thinking_006",
+    "c26_pro_thinking_001",
+    "c26_pro_thinking_002",
+    "c26_pro_thinking_003",
+    "c26_pro_thinking_004",
+    "c26_pro_thinking_005",
+    "c26_pro_thinking_006",
+    "c26_pro_thinking_007",
+    "c26_pro_thinking_008",
+    "c26_pro_thinking_009",
+    "c26_pro_thinking_010",
+    "c26_pro_thinking_011",
+    "c26_pro_thinking_012",
+    "c27_pro_thinking_001",
+    "c27_pro_thinking_002",
+    "c27_pro_thinking_003",
+    "c27_pro_thinking_004",
+    "c27_pro_thinking_005",
+    "c27_pro_thinking_006",
+    "c27_pro_thinking_007",
+    "c27_pro_thinking_008"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Decision Tree Definition and Purpose",
+      "description": "A decision tree is a graphical model used for decision-making under uncertainty. It visually represents decision alternatives, uncertain events, outcomes, and their probabilities to systematically analyze and choose the best course of action.",
+      "coverage_criteria": [
+        "Define a decision tree in your own words.",
+        "List the key elements depicted in a decision tree (decisions, uncertain events, outcomes).",
+        "Explain why decision trees are useful for decision analysis."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_001",
+        "c25_pro_thinking_001",
+        "c27_pro_thinking_001"
+      ],
+      "merge_rationale": "These candidates all provide similar definitions and purposes of decision trees, describing them as graphical tools for structuring and evaluating decisions under uncertainty."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Decision Tree Symbols and Conventions",
+      "description": "Decision trees use standardized symbols: squares for decision nodes, circles for chance (probability) nodes, and triangles for end (outcome) nodes. The tree is read from left to right, with branches representing alternatives, uncertain outcomes, and connecting flow.",
+      "coverage_criteria": [
+        "Identify and label decision nodes, chance nodes, and end nodes in a decision tree diagram.",
+        "Explain what each type of node represents.",
+        "Describe the left-to-right reading convention of a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_002",
+        "c27_pro_thinking_002",
+        "c26_pro_thinking_002"
+      ],
+      "merge_rationale": "These candidates describe the graphical symbols used in decision trees, including node types and reading direction, forming a coherent set of conventions."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Constructing a Decision Tree",
+      "description": "To build a decision tree, begin with a square decision node, draw branches for each alternative, attach circles for chance events where outcomes are uncertain, draw branches for each possible outcome, and end with payoffs. The tree can be constructed from a scenario description or a payoff table.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches.",
+        "Explain the steps for constructing a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_003",
+        "c25_pro_thinking_002",
+        "c27_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates provide step-by-step instructions for drawing a decision tree, covering the sequence from initial decision node to final outcomes, with slight variations in emphasis (payoff table vs. general scenario)."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Labeling Branches with Probabilities and Payoffs",
+      "description": "On a decision tree, each branch from a chance node is labeled with the probability of that outcome and the associated monetary payoff. Probabilities on branches from a single chance node must sum to 100%.",
+      "coverage_criteria": [
+        "Given outcome probabilities and payoffs, correctly place them on the branches of a sketched decision tree.",
+        "Explain why probabilities from a chance node must sum to 100%."
+      ],
+      "source_candidate_ids": [
+        "c25_pro_thinking_004",
+        "c27_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates explain the procedure of attaching numerical values and probabilities to branches, including the summing rule, representing the same labeling step."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Calculating Expected Value (EMV) at Chance Nodes",
+      "description": "The expected value at a chance node is computed by multiplying each outcome's payoff by its probability and summing these products. This yields the expected monetary value (EMV) for that chance's subtree.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_004",
+        "c25_pro_thinking_005",
+        "c27_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates all describe the arithmetic for computing expected value at uncertainty nodes: sum of (probability × payoff), which is a core calculation in decision tree analysis."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Folding Back to Determine the Optimal Decision",
+      "description": "Folding back solves a decision tree from right to left: at each chance node, compute the EMV; at each decision node, select the alternative with the highest EMV and discard others. The EMV at the initial decision node is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_005",
+        "c25_pro_thinking_006",
+        "c26_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates describe the process of rolling back the tree, computing EMVs, and choosing the maximum EMV at decision nodes, covering the complete evaluation procedure."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. It is appropriate when the decision maker is risk-neutral.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table and probabilities.",
+        "Explain why the EMV criterion represents a rational choice under risk neutrality."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_001"
+      ],
+      "merge_rationale": "This candidate provides a focused definition and interpretation of EMV as a decision criterion, distinct from the calculation step."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_004"
+      ],
+      "merge_rationale": "This candidate covers sensitivity analysis as a meta-analytical step, with specific tools, forming a distinct teachable concept."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_005"
+      ],
+      "merge_rationale": "This candidate solely introduces Bayes' rule for probability updating in decision analysis, a well-defined statistical method."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate defines and computes EVSI, a specific information value concept, requiring its own focused concept."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV without information. It is the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate defines and computes EVPI, establishing an upper bound for information value, a distinct lesson concept."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "Multistage decisions involve alternating decisions and uncertain outcomes over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes. Decision trees are particularly useful for representing and solving such problems.",
+      "coverage_criteria": [
+        "Identify a multistage decision situation from a description.",
+        "Explain what a contingency plan is and how it differs from a single-stage decision.",
+        "Given a multistage decision tree, trace the optimal contingency plan."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_011",
+        "c25_pro_thinking_003"
+      ],
+      "merge_rationale": "Both content items describe multistage decision problems and the suitability of decision trees for them; the video candidate emphasizes the tool's usefulness while the text candidate defines the structure and contingency plans, forming a single teachable concept."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Utility Functions and Risk Aversion",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same expected monetary value (EMV). Decisions are made by maximizing expected utility rather than EMV.",
+      "coverage_criteria": [
+        "Describe the shape of a risk-averse utility function and why it implies risk aversion.",
+        "Compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_008"
+      ],
+      "merge_rationale": "This candidate represents a distinct, self-contained teachable concept on the foundations of utility theory."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion. It is a convenient one-parameter model for incorporating risk attitudes into decision analysis.",
+      "coverage_criteria": [
+        "Write the exponential utility function and identify the risk tolerance parameter R.",
+        "Compute expected utility given probabilities and payoffs using the exponential function.",
+        "Interpret the effect of changing R on the degree of risk aversion."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate represents a specific mathematical implementation of utility theory that can be assessed with computational questions."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent between the certain amount and the uncertain prospect. It is derived by solving for the value x such that U(x) equals the expected utility of the prospect.",
+      "coverage_criteria": [
+        "Define certainty equivalent.",
+        "Compute the certainty equivalent given an exponential utility function and expected utility.",
+        "Explain the relationship between certainty equivalent, risk premium, and risk aversion."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_010"
+      ],
+      "merge_rationale": "This candidate introduces a practical summary metric that quantifies risk-adjusted value, forming a distinct lesson-local concept."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate explains a specific procedural step in decision tree evaluation that can be tested with simple arithmetic."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Sunk Costs in Decision Making",
+      "description": "Sunk costs are past expenditures that cannot be recovered and should not influence current decisions. In decision tree analysis, sunk costs must be excluded from the evaluation.",
+      "coverage_criteria": [
+        "Define sunk cost.",
+        "Explain why sunk costs should be ignored in decision making.",
+        "Identify sunk costs in a given scenario and justify their exclusion from a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate teaches a standalone principle of rational decision making that is critical for correct decision tree construction."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Importance of Reliable Inputs in Decision Tree Analysis",
+      "description": "The validity of a decision tree depends on a comprehensive list of probable outcomes and accurate estimates of probabilities and values. Poor-quality inputs lead to unreliable output, often summarized as 'garbage in, garbage out'.",
+      "coverage_criteria": [
+        "Explain why a comprehensive list of outcomes is essential.",
+        "Discuss the consequences of using unreliable probability or value estimates."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_008"
+      ],
+      "merge_rationale": "This candidate provides an important caveat about the practical use of decision trees that students need to understand for responsible application."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision along with their probabilities, often visualized as a bar chart. It helps in understanding the riskiness of different decision alternatives.",
+      "coverage_criteria": [
+        "Construct a risk profile from a payoff table or decision tree.",
+        "Interpret a risk profile bar chart to compare the riskiness of alternatives."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_012"
+      ],
+      "merge_rationale": "This candidate describes a simple descriptive tool used in decision analysis to communicate risk, forming a teachable concept with straightforward application."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate covers a specific modeling rule in decision tree construction that is distinct and easily assessed."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Decision Tree Definition and Purpose",
+      "description": "A decision tree is a graphical model used for decision-making under uncertainty. It visually represents decision alternatives, uncertain events, outcomes, and their probabilities to systematically analyze and choose the best course of action.",
+      "coverage_criteria": [
+        "Define a decision tree in your own words.",
+        "List the key elements depicted in a decision tree (decisions, uncertain events, outcomes).",
+        "Explain why decision trees are useful for decision analysis."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_001",
+        "c25_pro_thinking_001",
+        "c27_pro_thinking_001"
+      ],
+      "merge_rationale": "These candidates all provide similar definitions and purposes of decision trees, describing them as graphical tools for structuring and evaluating decisions under uncertainty."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Decision Tree Symbols and Conventions",
+      "description": "Decision trees use standardized symbols: squares for decision nodes, circles for chance (probability) nodes, and triangles for end (outcome) nodes. The tree is read from left to right, with branches representing alternatives, uncertain outcomes, and connecting flow.",
+      "coverage_criteria": [
+        "Identify and label decision nodes, chance nodes, and end nodes in a decision tree diagram.",
+        "Explain what each type of node represents.",
+        "Describe the left-to-right reading convention of a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_002",
+        "c27_pro_thinking_002",
+        "c26_pro_thinking_002"
+      ],
+      "merge_rationale": "These candidates describe the graphical symbols used in decision trees, including node types and reading direction, forming a coherent set of conventions."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Constructing a Decision Tree",
+      "description": "To build a decision tree, begin with a square decision node, draw branches for each alternative, attach circles for chance events where outcomes are uncertain, draw branches for each possible outcome, and end with payoffs. The tree can be constructed from a scenario description or a payoff table.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches.",
+        "Explain the steps for constructing a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_003",
+        "c25_pro_thinking_002",
+        "c27_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates provide step-by-step instructions for drawing a decision tree, covering the sequence from initial decision node to final outcomes, with slight variations in emphasis (payoff table vs. general scenario)."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Labeling Branches with Probabilities and Payoffs",
+      "description": "On a decision tree, each branch from a chance node is labeled with the probability of that outcome and the associated monetary payoff. Probabilities on branches from a single chance node must sum to 100%.",
+      "coverage_criteria": [
+        "Given outcome probabilities and payoffs, correctly place them on the branches of a sketched decision tree.",
+        "Explain why probabilities from a chance node must sum to 100%."
+      ],
+      "source_candidate_ids": [
+        "c25_pro_thinking_004",
+        "c27_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates explain the procedure of attaching numerical values and probabilities to branches, including the summing rule, representing the same labeling step."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Calculating Expected Value (EMV) at Chance Nodes",
+      "description": "The expected value at a chance node is computed by multiplying each outcome's payoff by its probability and summing these products. This yields the expected monetary value (EMV) for that chance's subtree.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_004",
+        "c25_pro_thinking_005",
+        "c27_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates all describe the arithmetic for computing expected value at uncertainty nodes: sum of (probability × payoff), which is a core calculation in decision tree analysis."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Folding Back to Determine the Optimal Decision",
+      "description": "Folding back solves a decision tree from right to left: at each chance node, compute the EMV; at each decision node, select the alternative with the highest EMV and discard others. The EMV at the initial decision node is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_005",
+        "c25_pro_thinking_006",
+        "c26_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates describe the process of rolling back the tree, computing EMVs, and choosing the maximum EMV at decision nodes, covering the complete evaluation procedure."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. It is appropriate when the decision maker is risk-neutral.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table and probabilities.",
+        "Explain why the EMV criterion represents a rational choice under risk neutrality."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_001"
+      ],
+      "merge_rationale": "This candidate provides a focused definition and interpretation of EMV as a decision criterion, distinct from the calculation step."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_004"
+      ],
+      "merge_rationale": "This candidate covers sensitivity analysis as a meta-analytical step, with specific tools, forming a distinct teachable concept."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_005"
+      ],
+      "merge_rationale": "This candidate solely introduces Bayes' rule for probability updating in decision analysis, a well-defined statistical method."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "EVSI is the difference between the EMV with free sample information and the EMV without that information. It represents the maximum amount a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate defines and computes EVSI, a specific information value concept, requiring its own focused concept."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "EVPI is the difference between the EMV with free perfect information and the EMV without information. It is the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate defines and computes EVPI, establishing an upper bound for information value, a distinct lesson concept."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "Multistage decisions involve alternating decisions and uncertain outcomes over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes. Decision trees are particularly useful for representing and solving such problems.",
+      "coverage_criteria": [
+        "Identify a multistage decision situation from a description.",
+        "Explain what a contingency plan is and how it differs from a single-stage decision.",
+        "Given a multistage decision tree, trace the optimal contingency plan."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_011",
+        "c25_pro_thinking_003"
+      ],
+      "merge_rationale": "Both content items describe multistage decision problems and the suitability of decision trees for them; the video candidate emphasizes the tool's usefulness while the text candidate defines the structure and contingency plans, forming a single teachable concept."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Utility Functions and Risk Aversion",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same expected monetary value (EMV). Decisions are made by maximizing expected utility rather than EMV.",
+      "coverage_criteria": [
+        "Describe the shape of a risk-averse utility function and why it implies risk aversion.",
+        "Compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_008"
+      ],
+      "merge_rationale": "This candidate represents a distinct, self-contained teachable concept on the foundations of utility theory."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion. It is a convenient one-parameter model for incorporating risk attitudes into decision analysis.",
+      "coverage_criteria": [
+        "Write the exponential utility function and identify the risk tolerance parameter R.",
+        "Compute expected utility given probabilities and payoffs using the exponential function.",
+        "Interpret the effect of changing R on the degree of risk aversion."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_009"
+      ],
+      "merge_rationale": "This candidate represents a specific mathematical implementation of utility theory that can be assessed with computational questions."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent between the certain amount and the uncertain prospect. It is derived by solving for the value x such that U(x) equals the expected utility of the prospect.",
+      "coverage_criteria": [
+        "Define certainty equivalent.",
+        "Compute the certainty equivalent given an exponential utility function and expected utility.",
+        "Explain the relationship between certainty equivalent, risk premium, and risk aversion."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_010"
+      ],
+      "merge_rationale": "This candidate introduces a practical summary metric that quantifies risk-adjusted value, forming a distinct lesson-local concept."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate explains a specific procedural step in decision tree evaluation that can be tested with simple arithmetic."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Sunk Costs in Decision Making",
+      "description": "Sunk costs are past expenditures that cannot be recovered and should not influence current decisions. In decision tree analysis, sunk costs must be excluded from the evaluation.",
+      "coverage_criteria": [
+        "Define sunk cost.",
+        "Explain why sunk costs should be ignored in decision making.",
+        "Identify sunk costs in a given scenario and justify their exclusion from a decision tree."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_007"
+      ],
+      "merge_rationale": "This candidate teaches a standalone principle of rational decision making that is critical for correct decision tree construction."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Importance of Reliable Inputs in Decision Tree Analysis",
+      "description": "The validity of a decision tree depends on a comprehensive list of probable outcomes and accurate estimates of probabilities and values. Poor-quality inputs lead to unreliable output, often summarized as 'garbage in, garbage out'.",
+      "coverage_criteria": [
+        "Explain why a comprehensive list of outcomes is essential.",
+        "Discuss the consequences of using unreliable probability or value estimates."
+      ],
+      "source_candidate_ids": [
+        "c27_pro_thinking_008"
+      ],
+      "merge_rationale": "This candidate provides an important caveat about the practical use of decision trees that students need to understand for responsible application."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision along with their probabilities, often visualized as a bar chart. It helps in understanding the riskiness of different decision alternatives.",
+      "coverage_criteria": [
+        "Construct a risk profile from a payoff table or decision tree.",
+        "Interpret a risk profile bar chart to compare the riskiness of alternatives."
+      ],
+      "source_candidate_ids": [
+        "c26_pro_thinking_012"
+      ],
+      "merge_rationale": "This candidate describes a simple descriptive tool used in decision analysis to communicate risk, forming a teachable concept with straightforward application."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ],
+      "source_candidate_ids": [
+        "c24_pro_thinking_006"
+      ],
+      "merge_rationale": "This candidate covers a specific modeling rule in decision tree construction that is distinct and easily assessed."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c24_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr001",
+      "explanation": "Near-duplicate definition of decision tree purpose; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr001",
+      "explanation": "Near-duplicate definition of decision tree; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_001",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr001",
+      "explanation": "Near-duplicate definition of decision tree; represented by the Decision Tree Definition and Purpose concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr002",
+      "explanation": "Describes decision and chance node symbols; merged into Decision Tree Symbols and Conventions."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr002",
+      "explanation": "Describes basic symbols; merged into the concept that includes all node types."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr003",
+      "explanation": "Describes constructing a decision tree from a payoff table; merged into the general construction concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr003",
+      "explanation": "Describes drawing a decision tree structure; merged into the construction concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr003",
+      "explanation": "Provides general steps for constructing a decision tree; merged into the construction concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr004",
+      "explanation": "Describes assigning probabilities and payoffs to branches; merged into the labeling concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr004",
+      "explanation": "Describes assigning values and probabilities and the summing rule; merged into the labeling concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr005",
+      "explanation": "Demonstrates expected value calculation at chance nodes; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr005",
+      "explanation": "Shows EMV calculation from a decision tree; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c27_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr005",
+      "explanation": "Describes calculating expected value at uncertainty nodes; merged into the EV calculation concept."
+    },
+    {
+      "candidate_id": "c24_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr006",
+      "explanation": "Describes folding back and decision selection; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c25_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr006",
+      "explanation": "States the rule of choosing highest EMV; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr006",
+      "explanation": "Detailed folding back procedure; merged into the folding back concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ],
+      "explanation": "Defines the EMV criterion and its calculation; directly supports the EMV Criterion concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "batch_001__lr002",
+      "explanation": "Comprehensive description of node types and conventions; merged into Decision Tree Symbols and Conventions."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ],
+      "explanation": "Introduces sensitivity analysis tools and purpose; directly supports the Sensitivity Analysis concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr009"
+      ],
+      "explanation": "Presents Bayes' rule for probability updating; directly supports the Bayes' Rule concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr010"
+      ],
+      "explanation": "Defines and computes EVSI; directly supports the EVSI concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ],
+      "explanation": "Defines and computes EVPI; directly supports the EVPI concept."
+    },
+    {
+      "candidate_id": "c26_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c26_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c26_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c26_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c26_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c27_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c27_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c27_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c24_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c25_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr001",
+      "explanation": "This candidate emphasizes the utility of decision trees for multistage decisions, which is fully covered by the accepted concept lr001; it does not introduce a separate teachable idea."
+    }
+  ],
+  "pruned": [],
+  "summary": {
+    "input_candidate_count": 32,
+    "accepted_count": 20,
+    "pruned_count": 0,
+    "candidate_assignment_count": 32,
+    "review_count": 0
+  }
+}

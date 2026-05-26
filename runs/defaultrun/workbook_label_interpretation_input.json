@@ -1,0 +1,2871 @@
+{
+  "artifact_type": "workbook_label_interpretation_input",
+  "schema_version": "workbook_label_interpretation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/workbook_label_interpretation.md",
+  "prompt": "You are classifying workbook labels for the Concept Graph Creation v0 pipeline.\n\nUse the provided source ledger context and classify only the labels listed in\n`labels_to_classify`. Relevant workbook context for each label is provided in\n`label_contexts`. Reuse any labels provided in `existing_interpretations`\nwithout changing their pattern, confidence, or rationale.\n\nAllowed patterns:\n\n- `prerequisite_hint`: a foundation concept that may be needed before the\n  active NLP lesson synthesis.\n- `lesson_cluster`: a direct NLP or lesson-theme cluster that should be active\n  in v0 synthesis.\n- `application_adjacent_signal`: useful application or software-engineering\n  context that should remain audit-only.\n- `ignored_ambiguous`: too broad, administrative, or ambiguous for active v0\n  synthesis.\n\nReturn one valid JSON object with a `classifications` array. Include exactly one\nrow for every label in `labels_to_classify`.\n\nEach row must have:\n\n- `label`: exactly the input label.\n- `pattern`: one of the allowed patterns above.\n- `confidence`: short confidence label.\n- `rationale`: one concise reason grounded in the provided workbook context.\n\nThe pipeline code will assemble the final `workbook_label_interpretation.v0`\nartifact from your classifications, including context rows, summaries, active\noutputs, audit-only rows, and ignored labels.\n",
+  "existing_interpretations": {},
+  "label_contexts": {
+    "Introdução ao Processamento de Linguagem Natural": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "12",
+        "self_study_title": "Natural Language Processing In 5 Minutes | What Is NLP And How Does It Work? | Simplilearn"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "14",
+        "self_study_title": "Processamento de linguagem natural (PLN) | Decodificando a Nuvem"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "15",
+        "self_study_title": "A base do processamento de textos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "16",
+        "self_study_title": "Expressões Regulares"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "17",
+        "self_study_title": "RegExp (Expressões Regulares) // Dicionário do Programador"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "18",
+        "self_study_title": "Similaridade Léxica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "20",
+        "self_study_title": "ATIVIDADE: Pipeline Dinâmico para Classificadores Clássicos"
+      }
+    ],
+    "Manipulação de texto": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "15",
+        "self_study_title": "A base do processamento de textos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "18",
+        "self_study_title": "Similaridade Léxica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "28",
+        "self_study_title": "Exemplos de Uso do NLTK"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "29",
+        "self_study_title": "(Vídeo) NLTK Tutorial in Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "30",
+        "self_study_title": "Curso de spaCy"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "31",
+        "self_study_title": "(Vídeo) spaCy: Introdução a Processamento de Linguagem Natural"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "39",
+        "self_study_title": "Classificação de textos - Utilizando Python para construir e treinar modelos de machine learning"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "63",
+        "self_study_title": "What is Word2Vec? A Simple Explanation"
+      }
+    ],
+    "Processamento de texto, métricas e técnicas": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "15",
+        "self_study_title": "A base do processamento de textos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "16",
+        "self_study_title": "Expressões Regulares"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "17",
+        "self_study_title": "RegExp (Expressões Regulares) // Dicionário do Programador"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "18",
+        "self_study_title": "Similaridade Léxica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "20",
+        "self_study_title": "ATIVIDADE: Pipeline Dinâmico para Classificadores Clássicos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "39",
+        "self_study_title": "Classificação de textos - Utilizando Python para construir e treinar modelos de machine learning"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "63",
+        "self_study_title": "What is Word2Vec? A Simple Explanation"
+      }
+    ],
+    "Processamento do discurso": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Programação funcional": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      }
+    ],
+    "Programação lógica": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "5",
+        "self_study_title": "Revisão dos conceitos de Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "45",
+        "self_study_title": "Breve história das redes neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "46",
+        "self_study_title": "A mostly complete chart of Neural Networks"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "47",
+        "self_study_title": "Deep Learning cheatsheet"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "49",
+        "self_study_title": "(Livro) Redes Neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "50",
+        "self_study_title": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      }
+    ],
+    "Programação orientada a objetos": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      }
+    ],
+    "Camadas de comunicação linguística": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Determinação do conteúdo em PLN": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "12",
+        "self_study_title": "Natural Language Processing In 5 Minutes | What Is NLP And How Does It Work? | Simplilearn"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "14",
+        "self_study_title": "Processamento de linguagem natural (PLN) | Decodificando a Nuvem"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "15",
+        "self_study_title": "A base do processamento de textos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "18",
+        "self_study_title": "Similaridade Léxica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Gramáticas lógicas": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Linguagem estruturada": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Linguagem não estruturada": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      }
+    ],
+    "Modelos probabilísticos para extração de informação": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "39",
+        "self_study_title": "Classificação de textos - Utilizando Python para construir e treinar modelos de machine learning"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      }
+    ],
+    "Ontologias": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      }
+    ],
+    "Pré-processamento e morfologia (Análise morfológica)": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "22",
+        "self_study_title": "A Simple Explanation of the Bag-of-Words Model"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "23",
+        "self_study_title": "An introduction to Bag of Words and how to code it in Python for NLP"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "24",
+        "self_study_title": "Representação vetorial de textos - bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "25",
+        "self_study_title": "Getting started with Natural Language Processing: Bag of words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": "26",
+        "self_study_title": "ATIVIDADE: Bag of Words"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Representação de palavras": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "16",
+        "self_study_title": "Expressões Regulares"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "28",
+        "self_study_title": "Exemplos de Uso do NLTK"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "29",
+        "self_study_title": "(Vídeo) NLTK Tutorial in Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "30",
+        "self_study_title": "Curso de spaCy"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "31",
+        "self_study_title": "(Vídeo) spaCy: Introdução a Processamento de Linguagem Natural"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      }
+    ],
+    "Sintaxe da sentença (Análise sintática)": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+        "lesson_title": "Representação de palavras e \"Bag of Words\" (BoW)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "18",
+        "self_study_title": "Similaridade Léxica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Análise de sentimentos": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "34",
+        "self_study_title": "Naive Bayes Algorithms: A Complete Guide for Beginners"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "35",
+        "self_study_title": "How to implement Naive Bayes from scratch with Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "36",
+        "self_study_title": "A Hitchhikers Guide to Sentiment Analysis using Naive Bayes Classifier"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "38",
+        "self_study_title": "Como Fazer Análise de Sentimentos com Dados Textuais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "64",
+        "self_study_title": "Processando a Linguagem"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "78",
+        "self_study_title": "Text Summarization of COVID-19 Medical Articles using BERT and GPT-2 (Research Paper Walkthrough)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Reconhecimento de voz": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      }
+    ],
+    "Semântica da sentença e conhecimento do ambiente (Análise semântica)": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+        "lesson_title": "Processamento de texto, métricas e técnicas",
+        "self_study_id": "19",
+        "self_study_title": "Similaridade Semântica"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Redes Neurais": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+        "lesson_title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+        "self_study_id": "39",
+        "self_study_title": "Classificação de textos - Utilizando Python para construir e treinar modelos de machine learning"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "45",
+        "self_study_title": "Breve história das redes neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "46",
+        "self_study_title": "A mostly complete chart of Neural Networks"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "47",
+        "self_study_title": "Deep Learning cheatsheet"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "49",
+        "self_study_title": "(Livro) Redes Neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "50",
+        "self_study_title": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "53",
+        "self_study_title": "Getting Started with Keras"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "54",
+        "self_study_title": "Building our first neural network in keras"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "55",
+        "self_study_title": "Keras Cheat Sheet: Neural Networks in Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "56",
+        "self_study_title": "What Is Keras: The Best Introductory Guide To Keras"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "57",
+        "self_study_title": "Tensorflow"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "63",
+        "self_study_title": "What is Word2Vec? A Simple Explanation"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "72",
+        "self_study_title": "Calculate TF-IDF in NLP (Simple Example)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      }
+    ],
+    "Vetores multidimensionais": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "41",
+        "self_study_title": "What is word2vec? - Programming with Text"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "42",
+        "self_study_title": "(Livro) Word2Vec"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+        "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+        "self_study_id": "43",
+        "self_study_title": "Gensim - topic modeling for humans"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "45",
+        "self_study_title": "Breve história das redes neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "46",
+        "self_study_title": "A mostly complete chart of Neural Networks"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "47",
+        "self_study_title": "Deep Learning cheatsheet"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "49",
+        "self_study_title": "(Livro) Redes Neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "50",
+        "self_study_title": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "53",
+        "self_study_title": "Getting Started with Keras"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "54",
+        "self_study_title": "Building our first neural network in keras"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "57",
+        "self_study_title": "Tensorflow"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "61",
+        "self_study_title": "Understanding word vectors"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+        "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+        "self_study_id": "62",
+        "self_study_title": "Representação vetorial de textos - utilizando word embeddings em Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "71",
+        "self_study_title": "A Complete Overview of Word Embeddings"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "73",
+        "self_study_title": "Representação vetorial de texto TF-IDF"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "74",
+        "self_study_title": "Introduction to Latent Semantic Analysis"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+        "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+        "self_study_id": "75",
+        "self_study_title": "ATIVIDADE: Estudo de caso - Aplicações de Análise de Sentimentos"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "77",
+        "self_study_title": "Introdução à sumarização de textos"
+      }
+    ],
+    "Paradigmas e modelos de desenvolvimento de sistemas de informação": [
+      {
+        "context_type": "lesson",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": null,
+        "self_study_title": null
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "45",
+        "self_study_title": "Breve história das redes neurais"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "46",
+        "self_study_title": "A mostly complete chart of Neural Networks"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "50",
+        "self_study_title": "Live de Python #35 - Redes neurais usando a biblioteca padrão (com Felipe Corrêa)"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+        "lesson_title": "Introdução a Rede Neural",
+        "self_study_id": "51",
+        "self_study_title": "ATIVIDADE: Implementação de uma rede neural com Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "57",
+        "self_study_title": "Tensorflow"
+      }
+    ],
+    "Gestão da configuração": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "3",
+        "self_study_title": "Bash in 100 Seconds"
+      }
+    ],
+    "Conceitos de produto, processo de desenvolvimento de software e modelos": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "4",
+        "self_study_title": "MELHOR FORMA DE APRENDER PYTHON (Google Colab Notebook)"
+      }
+    ],
+    "Estruturas de controle e de repetição": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "4",
+        "self_study_title": "MELHOR FORMA DE APRENDER PYTHON (Google Colab Notebook)"
+      }
+    ],
+    "Lógica algorítmica": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "4",
+        "self_study_title": "MELHOR FORMA DE APRENDER PYTHON (Google Colab Notebook)"
+      }
+    ],
+    "Análise de sistemas de software": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "5",
+        "self_study_title": "Revisão dos conceitos de Python"
+      },
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Estruturas de dados": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "5",
+        "self_study_title": "Revisão dos conceitos de Python"
+      }
+    ],
+    "Sistemas de numeração de base": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "5",
+        "self_study_title": "Revisão dos conceitos de Python"
+      }
+    ],
+    "Conversões entre bases": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "6",
+        "self_study_title": "Conversão entre Bases"
+      }
+    ],
+    "Montadores, interpretadores e compiladores": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "7",
+        "self_study_title": "Diferença entre Compilador e Interpretador"
+      }
+    ],
+    "Hash": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "8",
+        "self_study_title": "Estruturas de Dados em Python"
+      }
+    ],
+    "TAD - Árvore": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "8",
+        "self_study_title": "Estruturas de Dados em Python"
+      }
+    ],
+    "TAD - Fila": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "8",
+        "self_study_title": "Estruturas de Dados em Python"
+      }
+    ],
+    "TAD - Lista": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "8",
+        "self_study_title": "Estruturas de Dados em Python"
+      }
+    ],
+    "TAD - Pilha": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "8",
+        "self_study_title": "Estruturas de Dados em Python"
+      }
+    ],
+    "Principais paradigmas de programação": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "9",
+        "self_study_title": "Paradigmas de Programação em Python"
+      }
+    ],
+    "Programação dinâmica": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "10",
+        "self_study_title": "Programação Dinâmica em Python"
+      }
+    ],
+    "Projeto de algoritmos": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "10",
+        "self_study_title": "Programação Dinâmica em Python"
+      }
+    ],
+    "Recursão e indução": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "10",
+        "self_study_title": "Programação Dinâmica em Python"
+      }
+    ],
+    "Aritmética binária": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-04-27-introdu-o-ao-processamento-de-linguagem-natural",
+        "lesson_title": "Introdução ao Processamento de Linguagem Natural",
+        "self_study_id": "11",
+        "self_study_title": "Como incrementar um caractere em Python"
+      }
+    ],
+    "Patentes, licenciamento e open source": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+        "lesson_title": "Biblioteca de manipulação de texto: NLTK e Spacy",
+        "self_study_id": "32",
+        "self_study_title": "Licenças de um Repositório GitHub"
+      }
+    ],
+    "CPU e processamento": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "58",
+        "self_study_title": "Setup do Tensorflow com CPU ou GPU"
+      }
+    ],
+    "Fundamentos de arquitetura de computadores": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "58",
+        "self_study_title": "Setup do Tensorflow com CPU ou GPU"
+      }
+    ],
+    "Memórias": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+        "lesson_title": "Rede Neural com Keras (Tensorflow)",
+        "self_study_id": "59",
+        "self_study_title": "Gerenciamento de Memória no Tensorflow"
+      }
+    ],
+    "UML - Unified Modeling Language": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "79",
+        "self_study_title": "Deployment Diagram UML"
+      }
+    ],
+    "Elicitação de requisitos": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "80",
+        "self_study_title": "Norma ISO25010"
+      }
+    ],
+    "Engenharia de requisitos": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "80",
+        "self_study_title": "Norma ISO25010"
+      }
+    ],
+    "Qualidade de Software": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "80",
+        "self_study_title": "Norma ISO25010"
+      }
+    ],
+    "Requisitos funcionais e não funcionais": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "80",
+        "self_study_title": "Norma ISO25010"
+      }
+    ],
+    "Métricas de software": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "81",
+        "self_study_title": "Métricas de Software usando Biblioteca Python"
+      }
+    ],
+    "Abordagens de testes de software": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Casos de teste": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Ferramentas de teste": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Planejamento de testes": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Projeto e arquitetura de sistemas": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ],
+    "Rastreabilidade de requisitos": [
+      {
+        "context_type": "self_study",
+        "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+        "lesson_title": "Sumarização de texto e Engenharia de Software",
+        "self_study_id": "82",
+        "self_study_title": "ATIVIDADE: Estudo das ferramentas em nuvens comerciais que fornecem soluções de PLN"
+      }
+    ]
+  },
+  "labels_to_classify": [
+    {
+      "label": "Abordagens de testes de software"
+    },
+    {
+      "label": "Análise de sentimentos"
+    },
+    {
+      "label": "Análise de sistemas de software"
+    },
+    {
+      "label": "Aritmética binária"
+    },
+    {
+      "label": "CPU e processamento"
+    },
+    {
+      "label": "Camadas de comunicação linguística"
+    },
+    {
+      "label": "Casos de teste"
+    },
+    {
+      "label": "Conceitos de produto, processo de desenvolvimento de software e modelos"
+    },
+    {
+      "label": "Conversões entre bases"
+    },
+    {
+      "label": "Determinação do conteúdo em PLN"
+    },
+    {
+      "label": "Elicitação de requisitos"
+    },
+    {
+      "label": "Engenharia de requisitos"
+    },
+    {
+      "label": "Estruturas de controle e de repetição"
+    },
+    {
+      "label": "Estruturas de dados"
+    },
+    {
+      "label": "Ferramentas de teste"
+    },
+    {
+      "label": "Fundamentos de arquitetura de computadores"
+    },
+    {
+      "label": "Gestão da configuração"
+    },
+    {
+      "label": "Gramáticas lógicas"
+    },
+    {
+      "label": "Hash"
+    },
+    {
+      "label": "Introdução ao Processamento de Linguagem Natural"
+    },
+    {
+      "label": "Linguagem estruturada"
+    },
+    {
+      "label": "Linguagem não estruturada"
+    },
+    {
+      "label": "Lógica algorítmica"
+    },
+    {
+      "label": "Manipulação de texto"
+    },
+    {
+      "label": "Memórias"
+    },
+    {
+      "label": "Modelos probabilísticos para extração de informação"
+    },
+    {
+      "label": "Montadores, interpretadores e compiladores"
+    },
+    {
+      "label": "Métricas de software"
+    },
+    {
+      "label": "Ontologias"
+    },
+    {
+      "label": "Paradigmas e modelos de desenvolvimento de sistemas de informação"
+    },
+    {
+      "label": "Patentes, licenciamento e open source"
+    },
+    {
+      "label": "Planejamento de testes"
+    },
+    {
+      "label": "Principais paradigmas de programação"
+    },
+    {
+      "label": "Processamento de texto, métricas e técnicas"
+    },
+    {
+      "label": "Processamento do discurso"
+    },
+    {
+      "label": "Programação dinâmica"
+    },
+    {
+      "label": "Programação funcional"
+    },
+    {
+      "label": "Programação lógica"
+    },
+    {
+      "label": "Programação orientada a objetos"
+    },
+    {
+      "label": "Projeto de algoritmos"
+    },
+    {
+      "label": "Projeto e arquitetura de sistemas"
+    },
+    {
+      "label": "Pré-processamento e morfologia (Análise morfológica)"
+    },
+    {
+      "label": "Qualidade de Software"
+    },
+    {
+      "label": "Rastreabilidade de requisitos"
+    },
+    {
+      "label": "Reconhecimento de voz"
+    },
+    {
+      "label": "Recursão e indução"
+    },
+    {
+      "label": "Redes Neurais"
+    },
+    {
+      "label": "Representação de palavras"
+    },
+    {
+      "label": "Requisitos funcionais e não funcionais"
+    },
+    {
+      "label": "Semântica da sentença e conhecimento do ambiente (Análise semântica)"
+    },
+    {
+      "label": "Sintaxe da sentença (Análise sintática)"
+    },
+    {
+      "label": "Sistemas de numeração de base"
+    },
+    {
+      "label": "TAD - Fila"
+    },
+    {
+      "label": "TAD - Lista"
+    },
+    {
+      "label": "TAD - Pilha"
+    },
+    {
+      "label": "TAD - Árvore"
+    },
+    {
+      "label": "UML - Unified Modeling Language"
+    },
+    {
+      "label": "Vetores multidimensionais"
+    }
+  ]
+}

@@ -1,0 +1,433 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:00:30.307636+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "self_study_id": "39",
+  "source_body_path": "extraction/post-image/0039-book-classificacao-de-textos-utilizando-python-para-construir-e-treinar-modelos-de-machine-lear.md",
+  "source_body_sha256": "a257b92e8a6f1cf8bf98ee726a12675f04d81a31ff470d3876cb97c54f8ffa4b",
+  "source_name": "Classificação de textos - Utilizando Python para construir e treinar modelos de machine learning",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-39-001",
+      "label": "Data Preprocessing for Text Classification",
+      "description": "The process of preparing raw text data for machine learning classifiers, including lowercasing, removing special characters and punctuation, handling emails/URLs/numbers, tokenization, stop word removal, and stemming.",
+      "coverage_criteria": [
+        "Explain why text preprocessing is necessary before classification.",
+        "List common preprocessing steps and their purposes.",
+        "Implement preprocessing using Python's string methods, regex, and NLTK."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly walks through obtaining data, exploring it, and then a detailed preprocessing pipeline with code examples.",
+        "granularity_rationale": "This is a distinct phase in the text classification workflow, teachable as a set of atomic steps."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "1 Obtenção e preparação dos dados"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Preparação dos dados"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Exploração dos dados"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "NLTK",
+        "Python",
+        "PorterStemmer",
+        "regex"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-002",
+      "label": "Bag of Words (BoW) Feature Representation",
+      "description": "Representing text as a vector of word frequencies (or presence) using the most frequent words as features. This transforms unstructured text into numerical feature vectors for classifier input.",
+      "coverage_criteria": [
+        "Describe how the Bag of Words model represents documents.",
+        "Explain how to select the vocabulary size (e.g., top N words).",
+        "Create BoW feature vectors from tokenized text using a predefined vocabulary."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly creates a list of the 1500 most frequent words and uses them as features, checking if each word appears in a given message.",
+        "granularity_rationale": "This is a specific and fundamental text representation technique."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Construção do modelo de predição"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "NLTK",
+        "FreqDist",
+        "scikit-learn",
+        "numpy"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-003",
+      "label": "Naive Bayes Classification Algorithm",
+      "description": "A probabilistic supervised learning algorithm based on Bayes' theorem with the 'naive' assumption of feature independence. It calculates class probabilities given a document and assigns the class with highest probability.",
+      "coverage_criteria": [
+        "State Bayes' theorem and how it is applied to text classification.",
+        "Explain the naive assumption and why it is used.",
+        "Compute class probabilities for a simple example given word counts."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The chapter has a dedicated section 'Análise do classificador Naïve Bayes' explaining the theorem, the naive assumption, and an example calculation.",
+        "granularity_rationale": "This is the core algorithm concept, distinct from its implementation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Análise do classificador Naïve Bayes"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Bayes' theorem",
+        "Naive Bayes"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-004",
+      "label": "Laplace Smoothing for Naive Bayes",
+      "description": "Technique to handle zero frequency problem in Naive Bayes by adding a small constant (usually 1) to all feature counts to avoid zero probabilities.",
+      "coverage_criteria": [
+        "Explain why zero probabilities are problematic in Naive Bayes.",
+        "Apply Laplace smoothing to word counts in a text classification example.",
+        "Describe the formula: (count + 1) / (total words + vocabulary size)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly addresses the zero-frequency problem and introduces Laplace smoothing as a solution with a detailed example.",
+        "granularity_rationale": "This is a specific technique within Naive Bayes, crucial for its practical use."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Análise do classificador Naïve Bayes"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Laplace smoothing",
+        "Additive smoothing"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-005",
+      "label": "Practical SMS Spam Detection with Multinomial Naive Bayes",
+      "description": "Applying the Multinomial Naive Bayes classifier using Python's scikit-learn on the SMS Spam Collection dataset to classify messages as spam or ham, including training/testing split and prediction.",
+      "coverage_criteria": [
+        "Load the SMS Spam Collection dataset and preprocess it.",
+        "Split data into training and test sets.",
+        "Train a MultinomialNB classifier and predict on test data."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The entire practical study section walks through loading the SMS dataset, preprocessing, vectorizing, training the model, and evaluating.",
+        "granularity_rationale": "This is a complete applied example that ties together preprocessing and classification."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Aplicação do classificador em um estudo prático"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "scikit-learn",
+        "MultinomialNB",
+        "SMS Spam Collection",
+        "UC Irvine Machine Learning Repository"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-006",
+      "label": "Model Evaluation Metrics for Text Classification",
+      "description": "Metrics to assess classifier performance: accuracy, precision, recall, F1-score, and the confusion matrix for binary classification.",
+      "coverage_criteria": [
+        "Define a confusion matrix and the terms TP, FP, TN, FN.",
+        "Calculate accuracy, precision, recall, and F1-score from a confusion matrix.",
+        "Interpret what each metric indicates about model performance."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source has a dedicated subsection 'Avaliação do modelo de predição' explaining these metrics and showing code to generate them.",
+        "granularity_rationale": "These are standard evaluation measures, essential to assess any classifier."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Avaliação do modelo de predição"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "precision",
+        "recall",
+        "F1-score",
+        "accuracy",
+        "confusion matrix"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-007",
+      "label": "Hyperparameter Tuning with GridSearchCV",
+      "description": "Searching for optimal model parameters using exhaustive grid search with cross-validation to improve classifier performance.",
+      "coverage_criteria": [
+        "Explain the purpose of hyperparameter tuning.",
+        "Describe the difference between Grid Search and Random Search.",
+        "Use GridSearchCV in scikit-learn to find the best parameters for a Naive Bayes model."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly discusses the need for tuning hyperparameters and provides a code example using GridSearchCV.",
+        "granularity_rationale": "This is a key practical skill to improve models beyond default settings."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Ajuste dos hiperparâmetros"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "GridSearchCV",
+        "cross-validation",
+        "scikit-learn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-008",
+      "label": "Train-Test Split for Model Validation",
+      "description": "Splitting the dataset into training and testing sets to evaluate model generalization and detect overfitting.",
+      "coverage_criteria": [
+        "Explain why splitting data is necessary.",
+        "Use train_test_split from scikit-learn to split a dataset.",
+        "Discuss the consequences of not splitting data (overfitting)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source discusses dividing the data for training and testing, explaining overfitting, and using train_test_split.",
+        "granularity_rationale": "This is a fundamental step in any supervised learning pipeline."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Treinamento do modelo de predição"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "train_test_split",
+        "scikit-learn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-39-009",
+      "label": "Imbalanced Class Distribution in Text Data",
+      "description": "Recognizing when one class has many more examples than another (e.g., ham vs. spam) and its potential impact on model performance.",
+      "coverage_criteria": [
+        "Identify an imbalanced dataset from class distribution output.",
+        "Discuss why imbalanced data can be problematic for classification.",
+        "Mention potential mitigation strategies."
+      ],
+      "source_roles": [
+        "referencing",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source prints the distribution of classes (4825 ham, 747 spam) and implicitly highlights the imbalance.",
+        "granularity_rationale": "A softer but important concept for practical classification work."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Exploração dos dados"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-39-001",
+      "to_candidate_id": "candidate-39-002",
+      "reason": "Preprocessing is necessary to normalize text before creating word frequency vectors for Bag of Words.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Preparação dos dados"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Construção do modelo de predição"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-002",
+      "to_candidate_id": "candidate-39-003",
+      "reason": "The Bag of Words feature vectors serve as the input features for training the Naive Bayes classifier.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Construção do modelo de predição"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Análise do classificador Naïve Bayes"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-003",
+      "to_candidate_id": "candidate-39-005",
+      "reason": "The theoretical Naive Bayes is practically applied in the SMS spam detection study using the MultinomialNB implementation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Análise do classificador Naïve Bayes"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Aplicação do classificador em um estudo prático"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-003",
+      "to_candidate_id": "candidate-39-004",
+      "reason": "Laplace smoothing is a technique used within Naive Bayes to handle zero probabilities, as demonstrated in the source.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2 Análise do classificador Naïve Bayes"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-008",
+      "to_candidate_id": "candidate-39-005",
+      "reason": "The dataset is split into training and test sets in the practical study to validate the model.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Treinamento do modelo de predição"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Aplicação do classificador em um estudo prático"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-005",
+      "to_candidate_id": "candidate-39-006",
+      "reason": "After prediction, the model's performance is evaluated using metrics like accuracy, precision, recall, F1-score, and confusion matrix.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Avaliação do modelo de predição"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-005",
+      "to_candidate_id": "candidate-39-007",
+      "reason": "After initial training, hyperparameter tuning is performed to improve the model's performance on the SMS spam dataset.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Ajuste dos hiperparâmetros"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-39-001",
+      "to_candidate_id": "candidate-39-005",
+      "reason": "The preprocessing pipeline developed earlier is directly applied to the SMS dataset before training.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Preparação dos dados"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "3 Aplicação do classificador em um estudo prático"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 9,
+    "source_local_connector_candidate_count": 8
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+    "title": "Vetores multidimensionais: Word2Vec e Gensim"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-limita-es-do-tf-idf-e3bf72b4",
+      "label": "Limitações do TF-IDF",
+      "knowledge_type": "conceptual",
+      "teaching_description": "O TF-IDF pondera frequência de termos pela inversa da frequência nos documentos, mas produz vetores esparsos de alta dimensionalidade que não capturam semântica complexa.",
+      "coverage_criteria": [
+        "Defina TF-IDF e explique por que é menos eficaz que word embeddings para similaridade semântica."
+      ]
+    },
+    {
+      "concept_id": "concept-incorpora-o-2d-simplificada-para-visualizar-similaridade-f2f57ba2",
+      "label": "Incorporação 2D Simplificada para Visualizar Similaridade",
+      "knowledge_type": "conceptual",
+      "teaching_description": "É possível construir word embeddings bidimensionais atribuindo manualmente pontuações (ex.: fofura e tamanho) para animais, de modo que palavras similares fiquem próximas no espaço vetorial, ilustrando o princípio da similaridade semântica por proximidade espacial.",
+      "coverage_criteria": [
+        "Dado um plot 2D de animais com escores de atributos, identifique os mais similares.",
+        "Explique como a distância euclidiana mede similaridade em um embedding 2D."
+      ]
+    },
+    {
+      "concept_id": "concept-alta-dimensionalidade-dos-embeddings-reais-e-redu-o-de-dimensionalidade-855f742b",
+      "label": "Alta Dimensionalidade dos Embeddings Reais e Redução de Dimensionalidade",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Modelos word2vec reais usam centenas de dimensões (100-300) para capturar relações semânticas complexas, impossibilitando visualização direta; técnicas como t-SNE ou PCA são necessárias para projetar em 2D.",
+      "coverage_criteria": [
+        "Explique por que embeddings reais são de alta dimensionalidade.",
+        "Cite uma técnica para visualizar embeddings de alta dimensionalidade."
+      ]
+    },
+    {
+      "concept_id": "concept-treinamento-do-word2vec-e-amostragem-negativa-51ad335f",
+      "label": "Treinamento do Word2Vec e Amostragem Negativa",
+      "knowledge_type": "procedural",
+      "teaching_description": "O treinamento do Word2Vec maximiza a probabilidade de pares palavra-contexto usando uma função softmax; para reduzir custo, a amostragem negativa gera exemplos negativos, otimizando o cálculo.",
+      "coverage_criteria": [
+        "Explique o objetivo de treinamento do Word2Vec.",
+        "Qual o propósito da amostragem negativa?"
+      ]
+    },
+    {
+      "concept_id": "concept-compara-o-entre-word2vec-glove-e-fasttext-e78cf5a2",
+      "label": "Comparação entre Word2Vec, GloVe e fastText",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Word2Vec foca em contexto local, GloVe utiliza estatísticas globais de co-ocorrência, e fastText usa subword n-grams para representar palavras desconhecidas, oferecendo diferentes trade-offs.",
+      "coverage_criteria": [
+        "Compare Word2Vec, GloVe e fastText em termos de contexto e tratamento de palavras desconhecidas."
+      ]
+    },
+    {
+      "concept_id": "concept-documento-corpus-e-streaming-no-gensim-fc70f34b",
+      "label": "Documento, Corpus e Streaming no Gensim",
+      "knowledge_type": "conceptual",
+      "teaching_description": "No Gensim, um documento é uma sequência de texto (str), um corpus é uma coleção de documentos para treinamento não supervisionado, e o streaming permite processar grandes corpora sem carregar tudo em memória.",
+      "coverage_criteria": [
+        "Defina documento e corpus no Gensim.",
+        "Explique como o Gensim lida com grandes conjuntos de dados usando streaming."
+      ]
+    },
+    {
+      "concept_id": "concept-modelos-no-gensim-como-transforma-es-834a7c7e",
+      "label": "Modelos no Gensim como Transformações",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Um modelo no Gensim aprende uma transformação entre espaços vetoriais (ex.: BOW para TF-IDF) a partir de um corpus de treinamento e pode ser aplicado a novos documentos.",
+      "coverage_criteria": [
+        "Defina o papel de um modelo no Gensim.",
+        "Dê um exemplo de transformação que um modelo pode realizar."
+      ]
+    },
+    {
+      "concept_id": "concept-modelo-tf-idf-no-gensim-e5e01b3d",
+      "label": "Modelo TF-IDF no Gensim",
+      "knowledge_type": "conceptual",
+      "teaching_description": "O modelo TF-IDF transforma vetores bag-of-words ponderando as frequências dos termos pela inversa da frequência nos documentos, dando menos peso a palavras comuns e mais a palavras raras.",
+      "coverage_criteria": [
+        "Explique o efeito do TF-IDF sobre os pesos das palavras.",
+        "Compare os pesos de palavras frequentes e raras após aplicar TF-IDF."
+      ]
+    },
+    {
+      "concept_id": "concept-similarity-queries-with-gensim-3f38bcce",
+      "label": "Similarity Queries with Gensim",
+      "knowledge_type": "procedural",
+      "teaching_description": "After transforming a corpus with a model (e.g., TF-IDF), Gensim can compute similarity scores between a query document and all documents in the corpus, enabling search and clustering.",
+      "coverage_criteria": [
+        "Explain how to perform a similarity query in Gensim.",
+        "Interpret similarity scores from a given output.",
+        "Sort documents by relevance using similarity scores."
+      ]
+    },
+    {
+      "concept_id": "concept-text-preprocessing-and-normalization-8124a469",
+      "label": "Text Preprocessing and Normalization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The essential steps of cleaning and standardizing raw text for NLP, including lowercasing, removing punctuation, special characters, HTML tags, stop words, and tokenization, to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "List the common text preprocessing steps and explain the purpose of each.",
+        "Apply preprocessing to a given raw text sample, including lowercasing, removing punctuation and stop words, and tokenization."
+      ]
+    },
+    {
+      "concept_id": "concept-distributional-hypothesis-dcb5a40c",
+      "label": "Distributional Hypothesis",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The distributional hypothesis states that words occurring in similar contexts tend to have similar meanings. It is the foundation for distributional semantics and word embeddings, allowing meaning to be inferred from contextual usage patterns.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Explain how the hypothesis justifies using word embeddings to represent meaning.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ]
+    },
+    {
+      "concept_id": "concept-word-embeddings-as-dense-vector-representations-5a56bf79",
+      "label": "Word Embeddings as Dense Vector Representations",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Words can be represented as dense, low-dimensional vectors in a continuous space, where semantically similar words have similar vectors, and vector dimensions capture latent semantic features. This contrasts with sparse representations like one-hot or bag-of-words.",
+      "coverage_criteria": [
+        "Explain what word embeddings are and how they differ from sparse representations.",
+        "Give an example of semantic relationships captured by embeddings (e.g., analogies).",
+        "Describe how vector dimensions can represent features like authority or gender."
+      ]
+    },
+    {
+      "concept_id": "concept-similarity-measures-for-word-vectors-cosine-and-euclidean-056bb532",
+      "label": "Similarity Measures for Word Vectors: Cosine and Euclidean",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Canonical understanding of similarity measures for word vectors, including defining cosine similarity, explaining its preference over dot product, computing both cosine similarity and Euclidean distance, and understanding the differences and when to use each.",
+      "coverage_criteria": [
+        "Define cosine similarity and explain why it is preferred over dot product for word vectors.",
+        "Compute cosine similarity between two given vectors.",
+        "Compute Euclidean distance between two given vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and identify scenarios where each is more appropriate."
+      ]
+    },
+    {
+      "concept_id": "concept-word2vec-architectures-cbow-and-skip-gram-01d693d9",
+      "label": "Word2Vec Architectures: CBOW and Skip-gram",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Understanding the two primary Word2Vec architectures: Continuous Bag-of-Words (CBOW) predicts a target word from context words, while Skip-gram predicts context words from a target word. Both produce dense word embeddings from unlabeled text.",
+      "coverage_criteria": [
+        "Differentiate CBOW and Skip-gram, stating what each predicts and describing the input/output of each architecture.",
+        "Explain how Word2vec creates dense word vectors from unlabeled text."
+      ]
+    },
+    {
+      "concept_id": "concept-understanding-word2vec-analogies-164f4165",
+      "label": "Understanding Word2Vec Analogies",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Understanding that word2vec embeddings encode semantic relationships, enabling analogy solving through vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word2vec vectors can be used to solve analogies.",
+        "Provide an example of analogy using vector operations."
+      ]
+    },
+    {
+      "concept_id": "concept-contextualized-word-embeddings-005d4dc4",
+      "label": "Contextualized Word Embeddings",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Word embeddings that are dynamic and context-dependent, produced by models such as BERT or ELMo, which use bidirectional architectures to capture word meaning in sentence context.",
+      "coverage_criteria": [
+        "Explain the difference between static and contextual word embeddings.",
+        "Describe how a model like BERT or ELMo generates different embeddings for the same word in different sentences."
+      ]
+    },
+    {
+      "concept_id": "concept-sparse-bag-of-words-vectors-via-dictionary-and-doc2bow-d4edac8f",
+      "label": "Sparse Bag-of-Words Vectors via Dictionary and doc2bow",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Documents in Gensim are represented as sparse bag-of-words vectors, where each feature is a word count with zeros omitted. The Dictionary class maps words to integer IDs, and doc2bow converts tokenized documents into these vectors.",
+      "coverage_criteria": [
+        "Explain what a Gensim sparse bag-of-words vector is.",
+        "Create a Dictionary from tokenized documents and use doc2bow to produce a sparse BOW vector."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Motivação e Fundamentos dos Word Embeddings",
+      "concept_ids": [
+        "concept-limita-es-do-tf-idf-e3bf72b4",
+        "concept-distributional-hypothesis-dcb5a40c",
+        "concept-word-embeddings-as-dense-vector-representations-5a56bf79"
+      ]
+    },
+    {
+      "label": "Visualização e Medidas de Similaridade",
+      "concept_ids": [
+        "concept-incorpora-o-2d-simplificada-para-visualizar-similaridade-f2f57ba2",
+        "concept-alta-dimensionalidade-dos-embeddings-reais-e-redu-o-de-dimensionalidade-855f742b",
+        "concept-similarity-measures-for-word-vectors-cosine-and-euclidean-056bb532"
+      ]
+    },
+    {
+      "label": "Arquiteturas e Treinamento do Word2Vec",
+      "concept_ids": [
+        "concept-word2vec-architectures-cbow-and-skip-gram-01d693d9",
+        "concept-treinamento-do-word2vec-e-amostragem-negativa-51ad335f",
+        "concept-understanding-word2vec-analogies-164f4165"
+      ]
+    },
+    {
+      "label": "Além do Word2Vec: GloVe, fastText e Embeddings Contextuais",
+      "concept_ids": [
+        "concept-compara-o-entre-word2vec-glove-e-fasttext-e78cf5a2",
+        "concept-contextualized-word-embeddings-005d4dc4"
+      ]
+    },
+    {
+      "label": "Preparação de Dados no Gensim",
+      "concept_ids": [
+        "concept-text-preprocessing-and-normalization-8124a469",
+        "concept-documento-corpus-e-streaming-no-gensim-fc70f34b",
+        "concept-sparse-bag-of-words-vectors-via-dictionary-and-doc2bow-d4edac8f"
+      ]
+    },
+    {
+      "label": "Transformações e Consultas de Similaridade no Gensim",
+      "concept_ids": [
+        "concept-modelos-no-gensim-como-transforma-es-834a7c7e",
+        "concept-modelo-tf-idf-no-gensim-e5e01b3d",
+        "concept-similarity-queries-with-gensim-3f38bcce"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

@@ -1,0 +1,663 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Payoff Table Structure",
+    "rationale": "These candidates all describe the payoff table as a fundamental structure in decision making, with rows for alternatives, columns for states of nature, and payoffs in cells. They represent the same teachable concept of understanding and constructing payoff tables regardless of the specific example context.",
+    "candidate_ids": [
+      "c15_pro_thinking_001",
+      "c18_pro_thinking_007"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Payoff Table Structure",
+      "rationale": "These candidates all describe the payoff table as a fundamental structure in decision making, with rows for alternatives, columns for states of nature, and payoffs in cells. They represent the same teachable concept of understanding and constructing payoff tables regardless of the specific example context.",
+      "candidate_ids": [
+        "c15_pro_thinking_001",
+        "c18_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Maximax (Optimistic) Decision Criterion",
+      "rationale": "These candidates describe the same optimistic decision rule: choosing the alternative with the maximum of the maximum payoffs. The approach is identical, just applied to different example contexts (profit vs. cost). The underlying concept of selecting the best of the best outcomes is the same.",
+      "candidate_ids": [
+        "c15_pro_thinking_002",
+        "c16_pro_thinking_002",
+        "c18_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Maximin (Conservative/Pessimistic) Decision Criterion",
+      "rationale": "These candidates describe the same conservative decision rule: choosing the alternative with the maximum of the minimum payoffs. The concept is identical across the profit and cost examples, focusing on guaranteeing the best worst-case outcome.",
+      "candidate_ids": [
+        "c15_pro_thinking_003",
+        "c16_pro_thinking_003",
+        "c18_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Minimax Regret Decision Criterion",
+      "rationale": "These candidates all describe the minimax regret criterion, which involves constructing a regret table and selecting the alternative with the smallest maximum regret. The core procedure is the same, regardless of whether payoffs are profits or costs.",
+      "candidate_ids": [
+        "c15_pro_thinking_004",
+        "c16_pro_thinking_004",
+        "c18_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Decision Making Under Uncertainty",
+      "rationale": "These candidates introduce the broader context of decision making without probabilities, emphasizing uncertainty. c18_pro_thinking_001 defines uncertainty, while c16_pro_thinking_001 frames the cost-based example. Both are about understanding the environment where decision criteria are applied without known probabilities.",
+      "candidate_ids": [
+        "c18_pro_thinking_001",
+        "c16_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Laplace Criterion",
+      "rationale": "This candidate uniquely describes the Laplace criterion, which assumes equal probabilities for states of nature and selects the alternative with the highest average payoff. It is distinct from the other decision criteria because it uses averaging, not maximax or minimax.",
+      "candidate_ids": [
+        "c18_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Hurwicz Criterion",
+      "rationale": "This candidate uniquely describes the Hurwicz criterion, which uses a coefficient of optimism to balance best and worst payoffs. It is a distinct decision rule not covered by the others.",
+      "candidate_ids": [
+        "c18_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Advanced Regret Theory Concepts",
+      "rationale": "These candidates from c17_pro_thinking cover advanced aspects of minimax regret, including formal regret definition, Bernoulli equivalent rules, worst case prior, and memory rules for bandit problems. They are related to a deeper theoretical treatment of minimax regret but are not the same as the basic application of the criterion. Grouping them together because they all extend the core regret concept to bandit problems and theoretical proofs, which is likely beyond the scope of a basic lesson on decision-making tools. They may be pruned later if not central.",
+      "candidate_ids": [
+        "c17_pro_thinking_001",
+        "c17_pro_thinking_002",
+        "c17_pro_thinking_003",
+        "c17_pro_thinking_004",
+        "c17_pro_thinking_005",
+        "c17_pro_thinking_006",
+        "c17_pro_thinking_007",
+        "c17_pro_thinking_008"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c15_pro_thinking_001",
+    "c18_pro_thinking_007",
+    "c15_pro_thinking_002",
+    "c16_pro_thinking_002",
+    "c18_pro_thinking_002",
+    "c15_pro_thinking_003",
+    "c16_pro_thinking_003",
+    "c18_pro_thinking_003",
+    "c15_pro_thinking_004",
+    "c16_pro_thinking_004",
+    "c18_pro_thinking_004",
+    "c18_pro_thinking_001",
+    "c16_pro_thinking_001",
+    "c18_pro_thinking_005",
+    "c18_pro_thinking_006",
+    "c17_pro_thinking_001",
+    "c17_pro_thinking_002",
+    "c17_pro_thinking_003",
+    "c17_pro_thinking_004",
+    "c17_pro_thinking_005",
+    "c17_pro_thinking_006",
+    "c17_pro_thinking_007",
+    "c17_pro_thinking_008"
+  ],
+  "candidates": [
+    {
+      "id": "c15_pro_thinking_001",
+      "label": "Payoff Table",
+      "description": "A decision table structure with decision alternatives (rows), states of nature (columns), and payoffs (cell values) representing outcomes like profit or cost.",
+      "coverage_criteria": [
+        "Identify decision alternatives, states of nature, and payoffs in a given payoff table."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Explicitly introduced at [00:20] and used throughout the video as the foundation for all three decision criteria.",
+        "granularity_rationale": "Fits a single teachable concept: understanding the structure of a payoff table, distinct from applying decision rules."
+      },
+      "anchors": [
+        "## [00:20] Payoff Table"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_007",
+      "label": "Payoff Table",
+      "description": "A table that organizes decision alternatives against states of nature, showing the resulting payoffs for each combination.",
+      "coverage_criteria": [
+        "Construct a payoff table from a textual description of a decision problem.",
+        "Interpret the entries in a payoff table."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines a payoff table as a tool to organize and illustrate results for different decisions under various states of nature, and uses it throughout the case study (e.g., Table 1).",
+        "granularity_rationale": "A foundational structure for decision analysis that can be checked by having students create one from a scenario."
+      },
+      "anchors": [
+        "COMPONENTS AND CRITERIA USED IN DECISION MAKING",
+        "CASE STUDY"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_002",
+      "label": "Maximax (Optimistic) Decision Criterion",
+      "description": "Select the decision alternative with the maximum of the maximum payoffs, representing an optimistic outlook.",
+      "coverage_criteria": [
+        "Given a payoff table, compute the maximum payoff for each alternative and choose the alternative with the highest such maximum."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Defined and demonstrated in the video from [01:18] to [01:50], applied to a financial investment example.",
+        "granularity_rationale": "A single decision rule that can be tested with a step‑by‑step exercise."
+      },
+      "anchors": [
+        "## [01:18] Maximax Approach (Optimistic)"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_002",
+      "label": "Optimistic (Maximax) Approach for Cost Minimization",
+      "description": "Choose the alternative that has the minimum cost among the best-case costs for each alternative.",
+      "coverage_criteria": [
+        "Student can, given a cost payoff table, identify the best (minimum) payoff for each alternative and select the overall minimum as the optimistic decision."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 0:43, the video shows how to pick the best payoff per alternative (-5, -9, -5) and chooses -9 from d2 as the optimistic decision.",
+        "granularity_rationale": "This is a specific decision rule that can be tested with a simple table."
+      },
+      "anchors": [
+        "0:43 Optimistic (Maximax) Approach"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_002",
+      "label": "Maximax Criterion",
+      "description": "An optimistic decision criterion where the decision maker chooses the alternative with the maximum of the maximum possible payoffs.",
+      "coverage_criteria": [
+        "Calculate the maximax choice given a payoff table.",
+        "Explain the optimistic assumption behind maximax."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines maximax as selecting the maximum of the maximum results, assumes the decision maker is optimistic, and demonstrates its application with a numerical case study in Table 2.",
+        "granularity_rationale": "A single, well-defined decision rule that can be taught and assessed through a calculation exercise."
+      },
+      "anchors": [
+        "Maximax Criterion"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_003",
+      "label": "Maximin (Conservative/Pessimistic) Decision Criterion",
+      "description": "Select the decision alternative with the maximum of the minimum payoffs, representing a conservative or pessimistic outlook.",
+      "coverage_criteria": [
+        "Given a payoff table, identify the worst payoff for each alternative and choose the alternative with the best of those worst outcomes."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Defined and illustrated in the video from [01:51] to [02:31], using the same investment example.",
+        "granularity_rationale": "A single decision rule that can be checked with one short exercise."
+      },
+      "anchors": [
+        "## [01:51] Maximin Approach (Conservative/Pessimistic)"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_003",
+      "label": "Conservative (Maximin) Approach for Cost Minimization",
+      "description": "Choose the alternative that has the minimum cost among the worst-case costs for each alternative.",
+      "coverage_criteria": [
+        "Student can, given a cost payoff table, identify the worst (maximum) payoff for each alternative and select the one with the smallest worst value as the conservative decision."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 1:16, the video demonstrates taking the worst payoff per alternative (14, 15, 18) and picking the minimum of those (14) for d1.",
+        "granularity_rationale": "This is a distinct decision rule, checkable with a small exercise."
+      },
+      "anchors": [
+        "1:16 Conservative (Maximin) Approach"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_003",
+      "label": "Maximin Criterion",
+      "description": "A pessimistic decision criterion where the decision maker chooses the alternative that maximizes the minimum possible payoff, ensuring a guaranteed minimum outcome.",
+      "coverage_criteria": [
+        "Compute the maximin choice from a payoff table.",
+        "Describe the pessimistic assumption underlying maximin."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article contrasts maximin with maximax, defines it as selecting the maximum of the minimum results, and shows its application in Table 3, emphasizing the guaranteed minimum philosophy.",
+        "granularity_rationale": "A distinct decision rule with clear steps, checkable via a simple computation problem."
+      },
+      "anchors": [
+        "Maximin Criterion"
+      ]
+    },
+    {
+      "id": "c15_pro_thinking_004",
+      "label": "Minimax Regret Decision Criterion",
+      "description": "Select the decision alternative that minimizes the maximum regret (opportunity loss), where regret is the difference between the best payoff in each state and the actual payoff received.",
+      "coverage_criteria": [
+        "Given a payoff table, construct the regret table, find the maximum regret for each alternative, and choose the alternative with the smallest maximum regret."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Introduced and step‑by‑step demonstrated from [02:32] to [04:41] with a full regret table.",
+        "granularity_rationale": "Involves multiple steps (calculate regret, then apply minimax) that form a distinct, testable procedure."
+      },
+      "anchors": [
+        "## [02:32] Minimax Regret Approach"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_004",
+      "label": "Minimax Regret Approach for Cost Minimization",
+      "description": "Select the alternative with the smallest maximum regret, where regret is the difference between the actual cost and the minimum possible cost in each state of nature.",
+      "coverage_criteria": [
+        "Student can compute regret for each cell in a cost table (actual minus best), build a regret table, find maximum regret per alternative, and pick the alternative with the smallest maximum regret."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From 1:52, the video explains regret calculation for costs (e.g., 12-5=7), builds a regret table, and finds max regrets (23,16,23) choosing d2 with min 16.",
+        "granularity_rationale": "This is a multi-step method that can be taught as one unit of decision analysis."
+      },
+      "anchors": [
+        "1:52 Minimax Regret Approach"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_004",
+      "label": "Minimax Regret Criterion",
+      "description": "A decision criterion that minimizes the maximum regret, where regret is the difference between the best possible payoff and the actual payoff for a given state of nature.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Determine the minimax regret choice and explain its rationale."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines regret, illustrates regret calculation in Table 4, and applies the minimax criterion to select the alternative with the smallest maximum regret in Table 6.",
+        "granularity_rationale": "A multi-step decision rule involving regret computation, suitable for a focused lesson activity."
+      },
+      "anchors": [
+        "Minimax Regret Criterion",
+        "Table 4. REGRET CALCULATION",
+        "Table 6. REGRET TABLE"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_001",
+      "label": "Decision Making Under Uncertainty",
+      "description": "A decision environment where the decision maker cannot determine the probabilities of future states of nature, making outcomes unpredictable.",
+      "coverage_criteria": [
+        "Explain when a decision is under uncertainty versus risk or certainty.",
+        "Identify situations where probabilities of states of nature are unknown."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines uncertainty as the impossibility to assess likelihood of future events, stating it has more than one state of nature but the decision maker cannot determine probabilities, and explicitly lists it as a decision environment.",
+        "granularity_rationale": "This is a fundamental classification that sets the context for applying specific criteria, small enough to check understanding with a definition and example."
+      },
+      "anchors": [
+        "Uncertainty",
+        "Decision Environments"
+      ]
+    },
+    {
+      "id": "c16_pro_thinking_001",
+      "label": "Cost-based Decision Making Without Probabilities",
+      "description": "When payoffs are costs, decision making under uncertainty involves choosing an alternative to minimize cost, using approaches like optimistic, conservative, or minimax regret.",
+      "coverage_criteria": [
+        "Student can explain that for cost payoffs, the goal is to minimize, and can name at least two decision criteria used without probabilities."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video opens by stating it will discuss decision making without probabilities where cost is involved and lists the three approaches.",
+        "granularity_rationale": "This concept encapsulates the overall framework before diving into each method, making it a checkable unit."
+      },
+      "anchors": [
+        "0:00 Decision Making Without Probabilities (Cost Example)"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_005",
+      "label": "Laplace Criterion",
+      "description": "A decision criterion that assumes all states of nature are equally likely and selects the alternative with the highest average payoff.",
+      "coverage_criteria": [
+        "Apply the Laplace criterion to a payoff table by computing equal-weighted averages.",
+        "Explain the assumption of equal probabilities for unknown states."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces the Laplace criterion as multiplying each payoff by an equal weight, assuming equal likelihood of states of nature, in the section discussing decision making without probabilities.",
+        "granularity_rationale": "A straightforward rule based on averaging, easy to teach and verify with a numerical example."
+      },
+      "anchors": [
+        "LaPlace Criterion"
+      ]
+    },
+    {
+      "id": "c18_pro_thinking_006",
+      "label": "Hurwicz Criterion",
+      "description": "A decision criterion that balances optimism and pessimism by applying a coefficient of optimism (α) to the best payoff and (1-α) to the worst payoff for each alternative.",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and a coefficient of optimism.",
+        "Explain how the coefficient reflects the decision maker's degree of optimism."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article defines Hurwicz as a compromise between maximax and maximin, and demonstrates its calculation with α=0.4 in Table 8, showing the weighted combination of best and worst outcomes.",
+        "granularity_rationale": "A parameterized criterion that requires understanding of both max and min payoffs, suitable for a targeted exercise."
+      },
+      "anchors": [
+        "Hurwicz Criterion",
+        "Table 8. HURWICZ CRITERION"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_001",
+      "label": "Minimax Regret Decision Criterion",
+      "description": "A decision rule selects actions to minimize the maximum regret over all possible payoff distributions, where regret is the difference between the best achievable payoff and the payoff obtained.",
+      "coverage_criteria": [
+        "Student can explain what minimax regret means.",
+        "Student can identify a decision scenario where such a criterion would apply."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The paper defines minimax regret as minimizing the maximum regret over all decision problems and centers its investigation on this criterion.",
+        "granularity_rationale": "This concept is a foundational decision-making criterion that can be assessed with a single definition and a simple example."
+      },
+      "anchors": [
+        "Introduction",
+        "2 Decision Problems, Rules and Selection"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_002",
+      "label": "Regret Definition and Calculation",
+      "description": "Regret is the discounted sum of differences between the maximum expected payoff and the actual expected payoff per round, measuring loss due to ignorance of the optimal action.",
+      "coverage_criteria": [
+        "Student can state the formula for regret.",
+        "Student can compute regret for a simple decision problem with given payoffs and a specified rule."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The paper explicitly defines regret in Section 2 as the discounted value of opportunity loss and uses it throughout the analysis.",
+        "granularity_rationale": "The definition is precise and can be checked by asking the student to write the regret formula and apply it."
+      },
+      "anchors": [
+        "2 Decision Problems, Rules and Selection"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_003",
+      "label": "Bernoulli Equivalent Decision Rule",
+      "description": "A rule that can be applied to any payoff environment by behaving as if in a Bernoulli environment where success probabilities equal expected payoffs, using randomization based on observed payoffs.",
+      "coverage_criteria": [
+        "Student can explain how a Bernoulli equivalent rule transforms continuous payoffs into binary outcomes.",
+        "Student can give an example of applying such a rule."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The paper introduces Bernoulli equivalent rules in Section 3.2 and proves they are essential for extending minimax regret results to continuous payoffs.",
+        "granularity_rationale": "This concept is a specific technique that can be tested by having the student describe the transformation procedure."
+      },
+      "anchors": [
+        "3.2 Linearity and Bernoulli Equivalence"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_004",
+      "label": "Worst Case Prior in Decision Making",
+      "description": "The prior distribution over decision problems that maximizes the expected regret of a Bayesian optimal rule. Minimax regret rules are Bayesian optimal under such a prior.",
+      "coverage_criteria": [
+        "Student can define 'worst case prior'.",
+        "Student can explain its role in characterizing minimax regret behavior."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The paper defines worst case prior in Section 3.3 and proves that minimax regret is attained iff the rule is Bayesian optimal under a worst case prior.",
+        "granularity_rationale": "The concept is discrete and can be checked by asking the student to recall the definition and its connection to minimax regret."
+      },
+      "anchors": [
+        "3.3 The Result"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_005",
+      "label": "Single Round Memory Rule for Two-Armed Bandit",
+      "description": "A rule with only one round of memory that attains minimax regret when the discount factor δ ≤ √2 − 1 ≈ 0.41. It chooses each action equally initially, then repeats the previous action with probability equal to the payoff received.",
+      "coverage_criteria": [
+        "Student can describe the rule's behavior.",
+        "Student can state the discount factor range where it is optimal."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.2.1 explicitly derives this rule and proves it attains minimax regret for δ ≤ 0.41.",
+        "granularity_rationale": "The rule is simple and can be tested by asking the student to implement it for a given sequence of payoffs."
+      },
+      "anchors": [
+        "4.2.1 Single round memory"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_006",
+      "label": "Two-Round Memory Rule (Robbins' Rule)",
+      "description": "A rule with two rounds of memory that attains minimax regret for δ ≤ (√5 − 1)/2 ≈ 0.62. For binary payoffs, it prescribes staying after a success and switching only after two consecutive failures; for continuous payoffs, a linear extension is used.",
+      "coverage_criteria": [
+        "Student can explain the rule's behavior for binary payoffs.",
+        "Student can identify the discount factor bound where it is optimal."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section 4.2.2 presents the two-round memory rule and proves its optimality for δ ≤ 0.62.",
+        "granularity_rationale": "The rule's description in terms of a stochastic automaton is checkable with a few state transitions."
+      },
+      "anchors": [
+        "4.2.2 Two round memory"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_007",
+      "label": "Minimax Regret and Bayesian Optimality Equivalence",
+      "description": "Any rule that attains minimax regret is Bayesian optimal under a worst case prior, establishing a formal connection between distribution-free and Bayesian decision theories.",
+      "coverage_criteria": [
+        "Student can state the theorem linking minimax regret to Bayesian optimality.",
+        "Student can sketch the proof idea (minimax theorem / zero-sum game)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Proposition 1 in Section 3.3 states this equivalence, and the paper discusses it extensively.",
+        "granularity_rationale": "This is a key theoretical link that can be tested by asking the student to explain the relationship."
+      },
+      "anchors": [
+        "3.3 The Result"
+      ]
+    },
+    {
+      "id": "c17_pro_thinking_008",
+      "label": "Continuous Payoff Model (S-Model) in Bandit Problems",
+      "description": "The extension of two-armed bandit problems from binary payoffs (Bernoulli model) to continuous payoffs in [0,1] (S-model), handled via Bernoulli equivalent rules that maintain linearity.",
+      "coverage_criteria": [
+        "Student can differentiate between the Bernoulli model and the S-model.",
+        "Student can explain why Bernoulli equivalent rules are needed for the S-model."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The paper introduces the S-model (payoffs in [0,1]) in Section 2 and demonstrates how Bernoulli equivalent rules extend results from binary payoffs.",
+        "granularity_rationale": "The distinction is clear and can be tested by asking the student to provide examples of each model."
+      },
+      "anchors": [
+        "2 Decision Problems, Rules and Selection"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

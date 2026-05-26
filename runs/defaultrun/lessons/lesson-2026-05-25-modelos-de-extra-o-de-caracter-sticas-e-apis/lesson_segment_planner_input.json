@@ -1,0 +1,173 @@
+{
+  "artifact_type": "lesson_segment_planner_input",
+  "schema_version": "lesson_segment_planner_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/segment_planner.md",
+  "prompt": "# Lesson Segment Planner\n\n## Mission\n\nGroup the provided Concepts for exactly one Lesson into ordered teaching-flow\nSegments. A Lesson Segment is a small teaching chunk for the Companion, not a\nsource section, dependency edge, review unit, or runtime adaptation.\n\n## Inputs\n\nUse only the provided `lesson` and `concepts`.\n\n- The Lesson contains only `lesson_id` and `title`.\n- Each Concept contains `concept_id`, `label`, `knowledge_type`,\n  `teaching_description`, and `coverage_criteria`.\n\nDo not infer from other Lessons. Do not use dates, global Lesson order, source\npositions, workbook labels, or web research.\n\n## Workflow\n\n1. Read the Lesson title to understand the local teaching frame.\n2. Read each Concept description and Coverage Criteria to understand expected\n   scope.\n3. Create Segments that each cover one natural mini-arc of teaching.\n4. Target one to four Concepts per Segment.\n5. Use five or more Concepts only when they are tightly coupled and cannot be\n   taught naturally as smaller chunks.\n6. Order Segments in the natural teaching flow for this Lesson.\n7. Put every Concept ID in exactly one Segment.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\nDo not create Segment IDs. Do not create `instructional_role`; the pipeline adds\n`teach` deterministically.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Short teaching label\",\n      \"concept_ids\": [\"concept_id_1\", \"concept_id_2\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_planner",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "title": "Modelos de Extração de Características e APIs"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-bag-of-words-bow-c2da3e31",
+      "label": "Bag of Words (BoW)",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A text representation that counts word occurrences in a document, ignoring order but preserving multiplicity, often forming a document-term matrix.",
+      "coverage_criteria": [
+        "Create a BoW vector for a given document.",
+        "Explain the main limitation of BoW (ignoring word order).",
+        "Describe the document-term matrix structure."
+      ]
+    },
+    {
+      "concept_id": "concept-word2vec-ad716d7e",
+      "label": "Word2Vec",
+      "knowledge_type": "procedural",
+      "teaching_description": "A shallow neural network model that learns word embeddings from large corpora using either the Continuous Bag of Words (CBOW) or skip-gram architecture.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram training objectives.",
+        "Explain how Word2Vec produces dense vectors for words.",
+        "Describe a practical use of pre-trained Word2Vec embeddings."
+      ]
+    },
+    {
+      "concept_id": "concept-comparing-word-embedding-and-feature-extraction-approaches-for-nlp-1b793f25",
+      "label": "Comparing Word Embedding and Feature Extraction Approaches for NLP",
+      "knowledge_type": "procedural",
+      "teaching_description": "Analyzing the differences between NLP systems built using pre-trained word embeddings (e.g., Word2Vec, GloVe) versus traditional feature extraction methods, including trade-offs in dimensionality, semantic capture, and model complexity.",
+      "coverage_criteria": [
+        "Can identify differences in input representation between embedding-based and feature extraction-based NLP models.",
+        "Can discuss trade-offs (e.g., dimensionality, semantic capture) between the two approaches."
+      ]
+    },
+    {
+      "concept_id": "concept-feature-extraction-in-nlp-8a5b741c",
+      "label": "Feature Extraction in NLP",
+      "knowledge_type": "applied",
+      "teaching_description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-feature-extraction-in-python-for-nlp-d1e7a747",
+      "label": "Implementing Feature Extraction in Python for NLP",
+      "knowledge_type": "procedural",
+      "teaching_description": "Practical implementation of NLP feature extraction pipelines using Python libraries such as scikit-learn, NLTK, and spaCy, including loading text data and applying methods like CountVectorizer.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction."
+      ]
+    },
+    {
+      "concept_id": "concept-building-a-python-web-api-to-serve-nlp-models-2822e2fb",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "knowledge_type": "procedural",
+      "teaching_description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ]
+    },
+    {
+      "concept_id": "concept-creating-a-basic-flask-api-endpoint-48b7822c",
+      "label": "Creating a Basic Flask API Endpoint",
+      "knowledge_type": "procedural",
+      "teaching_description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ]
+    },
+    {
+      "concept_id": "concept-handling-dynamic-url-parameters-and-url-generation-in-flask-1b8feb5d",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ]
+    },
+    {
+      "concept_id": "concept-defining-api-endpoints-with-http-methods-in-flask-af2a1158",
+      "label": "Defining API endpoints with HTTP methods in Flask",
+      "knowledge_type": "procedural",
+      "teaching_description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ]
+    },
+    {
+      "concept_id": "concept-tf-idf-definition-and-computation-f7eaad19",
+      "label": "TF-IDF Definition and Computation",
+      "knowledge_type": "procedural",
+      "teaching_description": "TF-IDF (Term Frequency-Inverse Document Frequency) is a statistical measure used to evaluate the importance of a term to a document in a corpus. It is computed as the product of term frequency (TF), normalized by document length, and inverse document frequency (IDF), which scales down terms that appear in many documents. The resulting weight highlights terms that are frequent in a specific document but rare across the corpus.",
+      "coverage_criteria": [
+        "Define TF-IDF and its components (TF and IDF), and explain its purpose in highlighting important words.",
+        "Compute TF, IDF, and TF-IDF for a given term in a small corpus.",
+        "Explain why TF-IDF improves over simple term frequency and identify when to use it in text analysis."
+      ]
+    },
+    {
+      "concept_id": "concept-one-hot-encoding-implementation-and-comparison-ab8f75d9",
+      "label": "One-Hot Encoding Implementation and Comparison",
+      "knowledge_type": "procedural",
+      "teaching_description": "One-hot encoding implementation and analysis, including producing one-hot vectors, explaining the dimensionality problem, and comparing one-hot encoding to dense embeddings.",
+      "coverage_criteria": [
+        "Produce a one-hot vector for a word from a given vocabulary.",
+        "Explain the dimensionality problem with one-hot encoding for large vocabularies.",
+        "Compare one-hot encoding to dense embeddings."
+      ]
+    },
+    {
+      "concept_id": "concept-word-embeddings-as-dense-vector-representations-5a56bf79",
+      "label": "Word Embeddings as Dense Vector Representations",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Words can be represented as dense, low-dimensional vectors in a continuous space, where semantically similar words have similar vectors, and vector dimensions capture latent semantic features. This contrasts with sparse representations like one-hot or bag-of-words.",
+      "coverage_criteria": [
+        "Explain what word embeddings are and how they differ from sparse representations.",
+        "Give an example of semantic relationships captured by embeddings (e.g., analogies).",
+        "Describe how vector dimensions can represent features like authority or gender."
+      ]
+    },
+    {
+      "concept_id": "concept-glove-global-vectors-for-word-representation-implementation-8508c0b3",
+      "label": "GloVe: Global Vectors for Word Representation (Implementation)",
+      "knowledge_type": "procedural",
+      "teaching_description": "Understanding how GloVe uses a co-occurrence matrix to generate word embeddings and contrasting with Word2Vec's local window approach, with an implementation focus.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

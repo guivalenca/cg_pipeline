@@ -1,0 +1,87 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-04-29-processamento-de-texto-m-tricas-e-t-cnicas",
+    "title": "Processamento de texto, métricas e técnicas"
+  },
+  "segment": {
+    "segment_id": "segment_003",
+    "label": "Expressões Regulares: Construções Avançadas",
+    "concept_ids": [
+      "concept-alterna-o-e-agrupamento-d27712d5",
+      "concept-escapando-metacaracteres-9c813e9b",
+      "concept-classes-de-caracteres-por-atalho-d956aa18"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-alterna-o-e-agrupamento-d27712d5",
+      "label": "Alternação e Agrupamento",
+      "teaching_description": "Mostra o uso do pipe (|) para alternância (OU) e dos parênteses ( ) para agrupar partes da regex, permitindo construir padrões com múltiplas opções.",
+      "coverage_criteria": [
+        "Utilizar | e () para criar uma regex que capture uma entre várias palavras.",
+        "Diferenciar (rato|Roma) de [rato|Roma]."
+      ],
+      "source_candidate_ids": [
+        "lr002_006"
+      ]
+    },
+    {
+      "concept_id": "concept-escapando-metacaracteres-9c813e9b",
+      "label": "Escapando Metacaracteres",
+      "teaching_description": "Ensina que a contrabarra (\\) é usada para tratar metacaracteres como literais, por exemplo, \\. para um ponto literal ou \\( para parênteses literal.",
+      "coverage_criteria": [
+        "Identificar em uma regex quais caracteres estão escapados e por quê.",
+        "Escrever uma regex que encontre um parêntese literal em um texto."
+      ],
+      "source_candidate_ids": [
+        "lr002_007"
+      ]
+    },
+    {
+      "concept_id": "concept-classes-de-caracteres-por-atalho-d956aa18",
+      "label": "Classes de Caracteres por Atalho",
+      "teaching_description": "Apresenta os atalhos \\d (dígito), \\w (alfanumérico), \\s (espaçamento) e suas negações \\D, \\W, \\S, que simplificam a construção de padrões comuns.",
+      "coverage_criteria": [
+        "Substituir [0-9] por \\d em uma regex.",
+        "Explicar a diferença entre \\w e \\W."
+      ],
+      "source_candidate_ids": [
+        "lr002_008"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

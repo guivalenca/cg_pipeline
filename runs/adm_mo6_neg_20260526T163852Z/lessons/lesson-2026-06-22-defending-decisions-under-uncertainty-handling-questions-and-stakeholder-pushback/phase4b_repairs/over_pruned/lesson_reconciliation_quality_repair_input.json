@@ -1,0 +1,697 @@
+{
+  "artifact_type": "lesson_reconciliation_quality_repair_input",
+  "schema_version": "lesson_reconciliation_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "lessons/lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback/semantic_reduce_candidate_registry.json",
+  "lesson_reconciliation_artifact": "lesson_reconciliation.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_reconciliation_quality_repair",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+  "lesson": {
+    "id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+    "title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback",
+    "description": "This session prepares students for the final delivery banca, where they will defend their simulator and business recommendations to the partner and to the evaluation panel. The class focuses on the specific challenge of defending a decision that was made under uncertainty, where the analyst must simultaneously acknowledge the limits of the model and preserve the credibility of the recommendation. Students will study the four villains of decision-making (narrow framing, confirmation bias, short-term emotion, overconfidence) from Chip and Dan Heath's WRAP framework, with particular attention to \"Attain Distance Before Deciding\" and \"Prepare to Be Wrong\", both directly applicable to how one responds to stakeholder questions. The class also addresses the dynamics of advice-giving and advice-receiving, how to handle pushback from more powerful stakeholders, and how to reposition a recommendation without abandoning its core logic.",
+    "date": "22/06/2026",
+    "display_code": "L13"
+  },
+  "quality_audit": {
+    "artifact_type": "lesson_reconciliation_quality_audit",
+    "schema_version": "lesson_reconciliation_quality_audit.v0",
+    "generated_at": "2026-05-26T18:01:05.329566+00:00",
+    "lesson_id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+    "lesson": {
+      "id": "lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback",
+      "title": "Defending Decisions Under Uncertainty: handling questions and stakeholder pushback",
+      "description": "This session prepares students for the final delivery banca, where they will defend their simulator and business recommendations to the partner and to the evaluation panel. The class focuses on the specific challenge of defending a decision that was made under uncertainty, where the analyst must simultaneously acknowledge the limits of the model and preserve the credibility of the recommendation. Students will study the four villains of decision-making (narrow framing, confirmation bias, short-term emotion, overconfidence) from Chip and Dan Heath's WRAP framework, with particular attention to \"Attain Distance Before Deciding\" and \"Prepare to Be Wrong\", both directly applicable to how one responds to stakeholder questions. The class also addresses the dynamics of advice-giving and advice-receiving, how to handle pushback from more powerful stakeholders, and how to reposition a recommendation without abandoning its core logic.",
+      "date": "22/06/2026",
+      "display_code": "L13"
+    },
+    "scores": {
+      "concept_validity": 2,
+      "granularity": 3,
+      "evidence_preservation": 3,
+      "assignment_quality": 3,
+      "pruning_review_quality": 3,
+      "coverage_criteria": 3,
+      "lesson_coherence": 1,
+      "net_phase4_benefit": 1
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "over_pruned"
+    ],
+    "metrics": {
+      "input_candidate_count": 20,
+      "reconciled_candidate_count": 1,
+      "pruned_candidate_count": 19,
+      "review_count": 0,
+      "deterministic_review_count": 0,
+      "near_duplicate_pruned_count": 0,
+      "merged_assignment_count": 0,
+      "largest_reconciled_source_count": 1,
+      "duplicate_accepted_label_group_count": 0,
+      "metadata_only_accepted_count": 0,
+      "off_lesson_accepted_count": 0,
+      "accepted_candidate_assignment_count": 1,
+      "source_body_candidate_count": 20,
+      "assignment_count": 20,
+      "accepted_ratio": 0.05,
+      "pruned_ratio": 0.95,
+      "merged_ratio": 0.0,
+      "metadata_only_accepted_ratio": 0.0,
+      "review_ratio": 0.0
+    },
+    "repair_plan": [
+      {
+        "repair_reason": "over_pruned",
+        "candidate_ids": [
+          "c55_pro_thinking_001",
+          "c55_pro_thinking_002",
+          "c55_pro_thinking_003",
+          "c55_pro_thinking_006",
+          "c55_pro_thinking_004",
+          "c55_pro_thinking_005",
+          "c55_pro_thinking_007",
+          "c55_pro_thinking_008",
+          "c55_pro_thinking_009",
+          "c55_pro_thinking_010",
+          "c55_pro_thinking_011",
+          "c55_pro_thinking_012",
+          "c55_pro_thinking_013",
+          "c55_pro_thinking_015",
+          "c56_pro_thinking_001",
+          "c56_pro_thinking_002",
+          "c56_pro_thinking_003",
+          "c56_pro_thinking_004",
+          "c56_pro_thinking_005"
+        ],
+        "explanation": "The accepted/pruned balance suggests useful lesson-local concepts may have been discarded and need targeted re-evaluation."
+      }
+    ]
+  },
+  "repair_reason": "over_pruned",
+  "target_candidate_ids": [
+    "c55_pro_thinking_001",
+    "c55_pro_thinking_002",
+    "c55_pro_thinking_003",
+    "c55_pro_thinking_006",
+    "c55_pro_thinking_004",
+    "c55_pro_thinking_005",
+    "c55_pro_thinking_007",
+    "c55_pro_thinking_008",
+    "c55_pro_thinking_009",
+    "c55_pro_thinking_010",
+    "c55_pro_thinking_011",
+    "c55_pro_thinking_012",
+    "c55_pro_thinking_013",
+    "c55_pro_thinking_015",
+    "c56_pro_thinking_001",
+    "c56_pro_thinking_002",
+    "c56_pro_thinking_003",
+    "c56_pro_thinking_004",
+    "c56_pro_thinking_005"
+  ],
+  "target_candidates": [
+    {
+      "id": "c55_pro_thinking_001",
+      "label": "Risk as Danger and Opportunity",
+      "description": "Risk combines both negative (danger) and positive (opportunity) outcomes; the Chinese symbol for crisis illustrates this duality, emphasizing that one cannot have opportunity without risk.",
+      "coverage_criteria": [
+        "Explain why risk is both a threat and an opportunity, using an example.",
+        "Describe how the Chinese symbol for crisis represents the dual nature of risk."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section II 'What is Risk?' explicitly discusses the Chinese symbol for crisis and states that risk includes both danger and opportunity, providing a foundational definition.",
+        "granularity_rationale": "This is a concise, self-contained concept that can be checked with one or two questions about the dual nature of risk."
+      },
+      "anchors": [
+        "What is Risk?"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_002",
+      "label": "Risk Profile: Explicit Inventory of Organizational Risks",
+      "description": "A risk profile is an explicit list of all risks an organization faces, categorized into groups (e.g., operational, financial, strategic, hazard). It ensures common understanding and is a starting point for risk treatment.",
+      "coverage_criteria": [
+        "Define a risk profile and give an example of risk categories.",
+        "Explain why it is important for decision makers to have a common risk profile."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'What is a Risk Profile?' introduces the concept, provides an example from an airline, and explains its importance for common understanding and decision making.",
+        "granularity_rationale": "The concept of a risk profile is a distinct, teachable idea that can be assessed by asking students to define it and apply it to a simple scenario."
+      },
+      "anchors": [
+        "What is a Risk Profile?"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_003",
+      "label": "Risk Governance: Board's Role in Risk Oversight",
+      "description": "Risk governance encompasses the ways directors authorize, optimize, and monitor risk taking, including establishing risk appetite, policies, and ensuring proper risk management infrastructure.",
+      "coverage_criteria": [
+        "Define risk governance and list three key responsibilities of the board regarding risk.",
+        "Differentiate between risk governance and risk management."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section III defines risk governance explicitly, outlines board responsibilities per OECD principles, and discusses risk appetite/tolerance/policy.",
+        "granularity_rationale": "This concept is of moderate size, suitable for checking understanding of board oversight distinct from management execution."
+      },
+      "anchors": [
+        "Risk Governance"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_006",
+      "label": "Enterprise Risk Management (ERM) Holistic Approach",
+      "description": "ERM takes a coordinated, enterprise-wide view of risk, recognizing natural hedges across business units and aiming to maximize firm value, as opposed to managing risks in silos.",
+      "coverage_criteria": [
+        "Explain the difference between a silo risk management approach and ERM, using an example like a natural hedge.",
+        "List two widely disseminated ERM frameworks."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section III introduces ERM, contrasts it with silo approaches, and gives an example of a natural hedge in a conglomerate. Section V further details ERM.",
+        "granularity_rationale": "This is a key concept in modern risk management; it can be checked with a comparison question."
+      },
+      "anchors": [
+        "Enterprise Risk Management"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_004",
+      "label": "Risk-Adjusted Discount Rate Method",
+      "description": "Valuing risky assets by discounting expected cash flows at a rate that includes a risk-free component and a risk premium, often estimated using the Capital Asset Pricing Model (CAPM).",
+      "coverage_criteria": [
+        "Explain how to calculate a risk-adjusted discount rate using risk-free rate, beta, and equity risk premium.",
+        "Describe the inputs needed to estimate the cost of equity according to CAPM."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section IV details the risk-adjusted discount rate approach, including the formula, steps, and inputs (risk-free rate, beta, equity risk premium, default spreads), and provides a worked example.",
+        "granularity_rationale": "Breaking out the valuation method as a separate concept allows focused assessment on the mechanics of discount rate adjustment."
+      },
+      "anchors": [
+        "Risk-Adjusted Discount Rate"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_005",
+      "label": "Certainty Equivalent Method",
+      "description": "Alternative to risk-adjusted discount rates: adjust expected cash flows to their certainty equivalents (using a risk-adjustment factor) and discount them at the risk-free rate to obtain risk-adjusted value.",
+      "coverage_criteria": [
+        "Describe the certainty equivalent approach and contrast it with the risk-adjusted discount rate method.",
+        "Compute a certainty equivalent cash flow given an expected cash flow, risk-adjusted discount rate, and risk-free rate."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section IV contrasts the certainty equivalent approach with the discount rate approach, provides formulas and a numerical illustration (Rio theme park).",
+        "granularity_rationale": "This is a distinct method for risk adjustment, which can be checked with a simple calculation problem."
+      },
+      "anchors": [
+        "Certainty Equivalents"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_007",
+      "label": "Risk Treatment: Avoid, Transfer, Reduce, Retain",
+      "description": "After risks are identified and assessed, a company must decide on a treatment strategy: avoid the risk, transfer it (e.g., insurance, derivatives), reduce it through diversification, or retain it with adequate capital.",
+      "coverage_criteria": [
+        "List the four risk treatment options and give an example of each.",
+        "Explain the purpose of risk retention and why it requires sufficient capital."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section V explicitly outlines the four risk treatment strategies in Step 3, with explanations and tools for each.",
+        "granularity_rationale": "This is a core framework that can be checked by asking students to apply it to a hypothetical risk."
+      },
+      "anchors": [
+        "STEP 3: Risk Treatment: Principal Strategies and Methods"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_008",
+      "label": "Probability-Impact (P-I) Matrix for Qualitative Risk Assessment",
+      "description": "A P-I matrix classifies risks based on their probability of occurrence and impact severity, producing ratings from low to extreme, helping prioritize risks for treatment.",
+      "coverage_criteria": [
+        "Construct a simple P-I matrix with qualitative scales for probability and impact.",
+        "Assign a risk to a matrix cell and interpret the resulting risk rating (e.g., extreme, high, moderate, low)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section V describes the P-I matrix as a qualitative risk estimation method, including a table and legend, and notes its simplicity as a screening tool.",
+        "granularity_rationale": "The P-I matrix is a specific, teachable tool that can be practiced with a small set of risks."
+      },
+      "anchors": [
+        "Purely Qualitative Estimates"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_009",
+      "label": "Probabilistic Approaches: Sensitivity, Scenario, Decision Trees, Simulation",
+      "description": "These tools make uncertainty explicit: sensitivity analysis tests key inputs, scenario analysis examines plausible futures, decision trees handle sequential risks, and Monte Carlo simulation uses probability distributions for full risk assessment.",
+      "coverage_criteria": [
+        "Differentiate between sensitivity analysis, scenario analysis, decision trees, and simulation.",
+        "Choose the appropriate probabilistic tool for a given decision context (e.g., sequential drug approval process)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VI introduces each probabilistic approach with examples (Boeing case for scenario, drug development for decision tree).",
+        "granularity_rationale": "This concept groups a family of tools at a level where students can compare and select them based on context."
+      },
+      "anchors": [
+        "Probabilistic Approaches"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_010",
+      "label": "Value at Risk (VaR): Definition and Limitations",
+      "description": "VaR measures the potential loss over a defined period at a given confidence level. It is widely used in finance but has limitations: it relies on historical data, may miss black swan events, and can be estimated with error.",
+      "coverage_criteria": [
+        "Define Value at Risk (VaR) and its three components (loss amount, time period, confidence interval).",
+        "Identify two key limitations of VaR as a risk measure."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VI defines VaR, describes its use in financial services, and explicitly discusses its limitations, including the black swan problem and estimation error.",
+        "granularity_rationale": "VaR is a concrete metric with clear boundaries, allowing focused questions on its definition and shortcomings."
+      },
+      "anchors": [
+        "Value at Risk (VAR)"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_011",
+      "label": "Risk Management's Impact on Business Value Drivers",
+      "description": "Risk management can increase firm value by affecting four levers: cash flows from existing assets, expected growth rate, length of competitive advantage period, and cost of capital. Actions that do not influence these are value-neutral.",
+      "coverage_criteria": [
+        "List the four value drivers that risk management can influence.",
+        "Give an example of how a risk-hedging action could affect one of these drivers."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VII explicitly connects risk management actions to the four inputs of a discounted cash flow valuation, emphasizing that only actions altering these inputs create value.",
+        "granularity_rationale": "This is a high-level framework that can be checked by asking students to map a risk action to a value driver."
+      },
+      "anchors": [
+        "How Risk Management Affects Value"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_012",
+      "label": "Criteria for Hedging Decisions: Cost-Benefit and Comparative Advantage",
+      "description": "A firm should hedge a risk only if the benefits (tax, reduced distress costs, better investment) exceed the explicit and implicit costs, and if the firm can do it more cheaply than investors themselves.",
+      "coverage_criteria": [
+        "List two benefits and two costs of hedging.",
+        "Explain why a firm might decide not to hedge a risk even if benefits exceed costs (investor diversification argument)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VII discusses the costs of hedging (explicit and implicit) and the conditions under which hedging adds value, including the comparison with investor hedging.",
+        "granularity_rationale": "This is a specific decision rule that can be illuminated with a cost-benefit analysis question."
+      },
+      "anchors": [
+        "The Costs of Hedging"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_013",
+      "label": "Strategic Risk Taking: Using Competitive Advantages to Exploit Risk",
+      "description": "Firms can take advantage of risk by leveraging speed, experience, flexibility, or resource advantages (e.g., superior capital access, debt capacity) to exploit opportunities during crises.",
+      "coverage_criteria": [
+        "Identify three types of competitive advantages that can help a firm take strategic risks.",
+        "Give an example from the text of a company that used a resource advantage to exploit risk."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VIII explains how firms can exploit risk upside by using these advantages, with an example of Tata's capital access during the 2008 crisis.",
+        "granularity_rationale": "This concept focuses on the 'upside' of risk and can be tested with an application to a case study."
+      },
+      "anchors": [
+        "Taking Advantage of Taking Risks"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_015",
+      "label": "Real Options: Preserving Flexibility in Investments",
+      "description": "Real options give firms the ability to expand or abandon projects as uncertainty resolves, providing strategic flexibility to capitalize on upside or limit downside beyond traditional DCF analysis.",
+      "coverage_criteria": [
+        "Define a real option and distinguish it from a financial option in the context of investment decisions.",
+        "Explain how real options affect the risk-adjusted value of an investment."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Section VIII discusses preserving the enterprise's options and explicitly mentions real options as a way to expand or abandon investments.",
+        "granularity_rationale": "This is a well-defined concept in corporate finance that can be checked with a simple example."
+      },
+      "anchors": [
+        "Preserving the Enterprise’s Options"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_001",
+      "label": "Strategic Intelligence as a Dynamic ERM Approach",
+      "description": "Strategic intelligence uses predictive tools like AI, data analytics, and risk dashboards to proactively sense emerging risks and opportunities, enabling a more integrated and dynamic enterprise risk management (ERM) process.",
+      "coverage_criteria": [
+        "Student can define strategic intelligence and contrast it with traditional, static ERM approaches.",
+        "Student can name at least two tools (AI, analytics, dashboards) used in strategic intelligence.",
+        "Student can explain how strategic intelligence helps organizations shift from reactive to proactive risk identification."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article’s 'Strategic Intelligence and Calculated Risks' section directly introduces strategic intelligence as a solution to the limitations of traditional ERM, describing its tools and benefits for earlier risk sensing.",
+        "granularity_rationale": "This concept isolates the core definition and purpose of strategic intelligence without delving into its sub-components, making it checkable with a few focused questions."
+      },
+      "anchors": [
+        "Strategic intelligence and calculated risks"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_002",
+      "label": "Scenario Planning for Stress-Testing Assumptions",
+      "description": "Scenario planning simulates plausible risk events to help leaders stress-test strategic assumptions and practice responses, improving decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can explain what scenario planning is and why it is used in ERM.",
+        "Student can describe how scenario planning strengthens decisions during stress or uncertainty.",
+        "Student can provide an example, such as the high‑performance racing illustration, where simulations test strategies."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly presents scenario planning as a strategic intelligence tool within the 'Strategic Intelligence and Calculated Risks' section and reinforces it with the racing example in 'A Leading Example of ERM.'",
+        "granularity_rationale": "This concept captures one distinct tool of strategic intelligence, allowing a companion to verify understanding without overlapping with broader frameworks like calculated risks."
+      },
+      "anchors": [
+        "Strategic intelligence and calculated risks",
+        "A leading example of ERM"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_003",
+      "label": "Calculated Risks Informed by Strategic Intelligence",
+      "description": "Calculated risks are strategic and operational actions taken to create value; strategic intelligence provides data and insights to evaluate these risks and balance risk with reward.",
+      "coverage_criteria": [
+        "Student can define 'calculated risks' in the context of business strategy.",
+        "Student can explain how strategic intelligence helps an organization identify and evaluate calculated risks.",
+        "Student can give an example of a calculated risk informed by strategic intelligence."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article’s paragraph beginning 'At its core, business is about taking calculated risks' explicitly links calculated risks with strategic intelligence, stating that strategic intelligence can inform not only risk management but also value‑creating risk‑taking.",
+        "granularity_rationale": "This concept separates the outcome‑oriented idea of calculated risk‑taking from the tools and processes of strategic intelligence, making it a focused and checkable teaching point."
+      },
+      "anchors": [
+        "Strategic intelligence and calculated risks"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_004",
+      "label": "Audit Committee’s Role in Promoting Strategic Intelligence in ERM",
+      "description": "The audit committee is responsible for overseeing ERM, holding management accountable for adopting strategic intelligence, and fostering a risk‑aware culture across the enterprise.",
+      "coverage_criteria": [
+        "Student can describe at least three specific actions an audit committee can take to promote strategic intelligence in ERM.",
+        "Student can explain why the audit committee’s engagement is critical for driving a risk‑aware culture.",
+        "Student can relate the audit committee’s oversight to the broader goal of protecting enterprise value."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'ERM Oversight' section directly describes the audit committee’s role in encouraging a dynamic ERM approach and lists concrete actions such as promoting discussion, approving risk appetite, and monitoring processes.",
+        "granularity_rationale": "This concept narrows the broader ERM topic to the specific governance role of the audit committee, providing clear, observable criteria that a student can articulate."
+      },
+      "anchors": [
+        "ERM oversight"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_005",
+      "label": "Integrating ESG Risks into ERM via Strategic Intelligence",
+      "description": "Strategic intelligence helps companies integrate environmental, social, and governance (ESG) risks into ERM by identifying emerging ESG threats and opportunities and applying a materiality lens to prioritize them.",
+      "coverage_criteria": [
+        "Student can explain how strategic intelligence supports ESG integration into ERM.",
+        "Student can define materiality in the ESG context and describe how it helps prioritize risks.",
+        "Student can give an example, such as climate-related risks driving regulatory or reputational concerns."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'ESG: A Case for Strategic Intelligence' explicitly argues that a dynamic ERM powered by strategic intelligence is essential for integrating ESG into business processes and uses climate examples to demonstrate the point.",
+        "granularity_rationale": "This concept focuses on the application of strategic intelligence to a specific domain (ESG), ensuring it remains small enough to be checked with targeted questions about ESG integration and materiality."
+      },
+      "anchors": [
+        "ESG: A case for strategic intelligence to help identify emerging risks"
+      ]
+    }
+  ],
+  "current_reconciled_candidates": [
+    {
+      "reconciled_candidate_id": "reconciled-candidate-lesson-2026-06-22-defending-decisions-under-uncertainty-handling-questions-and-stakeholder-pushback-001",
+      "label": "Cognitive Biases that Distort Risk Decisions",
+      "description": "Decision makers often rely on cognitive simplifications that lead to biases such as prior hypothesis, adjustment/anchoring, escalating commitment, and insensitivity to predictability, which can cause errors in risk assessment.",
+      "coverage_criteria": [
+        "Name three cognitive biases mentioned in the source and describe how each can affect a risk decision.",
+        "Explain why awareness of cognitive biases is important for directors overseeing risk."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_014"
+      ],
+      "merge_rationale": "Standalone concept; directly supports the lesson's focus on decision-making biases."
+    }
+  ],
+  "current_pruned_candidates": [
+    {
+      "candidate_id": "c55_pro_thinking_001",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "While it introduces the dual nature of risk, it does not directly teach how to defend decisions under uncertainty or handle stakeholder pushback; its value is marginal for this lesson."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_002",
+      "pruning_reason": "unrelated",
+      "explanation": "Risk profile creation is an organizational risk management tool, not relevant to defending individual decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_003",
+      "pruning_reason": "unrelated",
+      "explanation": "Risk governance focuses on board oversight, not on personal decision defense."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_006",
+      "pruning_reason": "unrelated",
+      "explanation": "ERM is a corporate-wide risk approach, off-topic for defending specific decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_004",
+      "pruning_reason": "unrelated",
+      "explanation": "Risk-adjusted discount rate is a finance valuation technique, unrelated to decision defense."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_005",
+      "pruning_reason": "unrelated",
+      "explanation": "Certainty equivalent method is a finance concept, not applicable to defending decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_007",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Risk treatment strategies address organizational risk responses, not the interpersonal defense of decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_008",
+      "pruning_reason": "unrelated",
+      "explanation": "P-I matrix is a qualitative risk assessment tool, not relevant to defending decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_009",
+      "pruning_reason": "unrelated",
+      "explanation": "Probabilistic approaches are risk analysis methods, not about decision communication."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_010",
+      "pruning_reason": "unrelated",
+      "explanation": "VaR is a financial risk metric, off-topic for this lesson."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_011",
+      "pruning_reason": "unrelated",
+      "explanation": "Impact on business value drivers is a corporate finance concept, not about defending decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_012",
+      "pruning_reason": "unrelated",
+      "explanation": "Hedging decision criteria are about corporate finance, not about interpersonal defense."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_013",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Strategic risk taking discusses leveraging competitive advantages, but does not teach how to communicate or defend those decisions."
+    },
+    {
+      "candidate_id": "c55_pro_thinking_015",
+      "pruning_reason": "unrelated",
+      "explanation": "Real options is an investment valuation concept, not about decision defense."
+    },
+    {
+      "candidate_id": "c56_pro_thinking_001",
+      "pruning_reason": "unrelated",
+      "explanation": "Strategic intelligence as a dynamic ERM approach is about risk management systems, not about personal decision defense."
+    },
+    {
+      "candidate_id": "c56_pro_thinking_002",
+      "pruning_reason": "unrelated",
+      "explanation": "Scenario planning is a risk assessment tool, not directly about the communication skills needed to defend decisions."
+    },
+    {
+      "candidate_id": "c56_pro_thinking_003",
+      "pruning_reason": "low_teaching_value",
+      "explanation": "Calculated risks informed by strategic intelligence is about decision-making, but does not address the defense of those decisions under scrutiny."
+    },
+    {
+      "candidate_id": "c56_pro_thinking_004",
+      "pruning_reason": "unrelated",
+      "explanation": "Audit committee's role is governance, not relevant to defending individual decisions."
+    },
+    {
+      "candidate_id": "c56_pro_thinking_005",
+      "pruning_reason": "unrelated",
+      "explanation": "ESG integration is a sustainability topic, unrelated to defending decisions."
+    }
+  ],
+  "current_review_candidates": [],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "new_accepted_concepts": [
+      {
+        "id": "repair-local-id",
+        "label": "Specific lesson-local teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "merge_rationale": "Why these target candidates form a concept."
+      }
+    ],
+    "existing_concept_candidate_additions": [
+      {
+        "reconciled_candidate_id": "existing-final-reconciled-candidate-id",
+        "candidate_ids": [
+          "target-compact-candidate-id"
+        ],
+        "explanation": "Why the target candidate is represented by this existing concept."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "repair-local-id"
+        ],
+        "explanation": "Why this candidate is accepted."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "existing-final-reconciled-candidate-id",
+        "explanation": "Why this candidate is represented by an existing concept."
+      },
+      {
+        "candidate_id": "target-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "forbidden_statuses": [
+      "review"
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

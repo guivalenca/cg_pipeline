@@ -1,0 +1,1445 @@
+{
+  "artifact_type": "semantic_reduce_decision",
+  "schema_version": "semantic_reduce_decision.v0",
+  "generated_at": "2026-05-19T15:59:08.362432+00:00",
+  "scope_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "stage_name": "lesson_reconciliation",
+  "model_route": "Pro Thinking",
+  "input_candidate_ids": [
+    "c34_pro_thinking_001",
+    "c34_pro_thinking_002",
+    "c34_pro_thinking_003",
+    "c34_pro_thinking_004",
+    "c34_pro_thinking_005",
+    "c34_pro_thinking_006",
+    "c34_pro_thinking_007",
+    "c34_pro_thinking_008",
+    "c34_pro_thinking_009",
+    "c34_pro_thinking_010",
+    "c34_pro_thinking_011",
+    "c34_pro_thinking_012",
+    "c34_pro_thinking_013",
+    "c34_pro_thinking_014",
+    "c34_pro_thinking_015",
+    "c34_pro_thinking_016",
+    "c35_pro_thinking_001",
+    "c35_pro_thinking_002",
+    "c35_pro_thinking_003",
+    "c35_pro_thinking_004",
+    "c35_pro_thinking_005",
+    "c35_pro_thinking_006",
+    "c35_pro_thinking_007",
+    "c35_pro_thinking_008",
+    "c35_pro_thinking_009",
+    "c35_pro_thinking_010",
+    "c35_pro_thinking_011",
+    "c36_pro_thinking_001",
+    "c36_pro_thinking_002",
+    "c36_pro_thinking_003",
+    "c36_pro_thinking_004",
+    "c36_pro_thinking_005",
+    "c36_pro_thinking_006",
+    "c36_pro_thinking_007",
+    "c36_pro_thinking_008",
+    "c36_pro_thinking_009",
+    "c36_pro_thinking_010",
+    "c36_pro_thinking_011",
+    "c37_pro_thinking_001",
+    "c37_pro_thinking_002",
+    "c37_pro_thinking_003",
+    "c37_pro_thinking_004",
+    "c37_pro_thinking_005",
+    "c37_pro_thinking_006",
+    "c37_pro_thinking_007",
+    "c37_pro_thinking_008",
+    "c37_pro_thinking_009",
+    "c38_pro_thinking_001",
+    "c38_pro_thinking_002",
+    "c38_pro_thinking_003",
+    "c38_pro_thinking_004",
+    "c38_pro_thinking_005",
+    "c38_pro_thinking_006",
+    "c38_pro_thinking_007",
+    "c38_pro_thinking_008",
+    "c38_pro_thinking_009",
+    "c38_pro_thinking_010",
+    "c39_pro_thinking_001",
+    "c39_pro_thinking_002",
+    "c39_pro_thinking_003",
+    "c39_pro_thinking_004",
+    "c39_pro_thinking_005",
+    "c39_pro_thinking_006",
+    "c39_pro_thinking_007",
+    "c39_pro_thinking_008",
+    "c39_pro_thinking_009"
+  ],
+  "accepted": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Naive Bayes Classifier Core",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the naive assumption of feature independence given the class. It computes posterior probability for each class and predicts the one with maximum probability.",
+      "coverage_criteria": [
+        "State the naive independence assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_004",
+        "c35_pro_thinking_001",
+        "c36_pro_thinking_003"
+      ],
+      "merge_rationale": "These three candidates all describe the core Naive Bayes algorithm from different sources, covering the probabilistic basis, the naive assumption, and its application to text classification."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Probability Foundations for Naive Bayes",
+      "description": "Foundational probability concepts: basic probability, conditional probability P(A|B) = P(A∩B)/P(B), and Bayes theorem P(B|A) = P(A|B)P(B)/P(A) with posterior, likelihood, prior, and evidence.",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Write Bayes theorem and name the terms.",
+        "Compute a simple probability using the formula."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_001",
+        "c34_pro_thinking_002",
+        "c34_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates build the mathematical prerequisites for Naive Bayes: probability, conditional probability, and Bayes theorem, which are often taught together."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Feature Independence Assumption and Multicollinearity",
+      "description": "Naive Bayes assumes features are independent given the class (the 'naive' assumption). Multicollinearity (high feature correlation) violates this independence, causing poor performance.",
+      "coverage_criteria": [
+        "Explain the naive independence assumption.",
+        "Define multicollinearity and its impact on Naive Bayes.",
+        "Describe a method to detect multicollinearity."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_005",
+        "c34_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates explain the independence assumption and the related issue of multicollinearity, forming a single concept about why the algorithm is called naive and a key limitation."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Naive Bayes Variants: Bernoulli, Multinomial, Gaussian",
+      "description": "Three main variants: Bernoulli for binary features, Multinomial for discrete counts (especially text), and Gaussian for continuous features assuming a normal distribution.",
+      "coverage_criteria": [
+        "Match each variant to its typical data type.",
+        "Identify the appropriate variant for a given scenario.",
+        "Recognize scikit-learn class names for each variant."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_007",
+        "c34_pro_thinking_008",
+        "c34_pro_thinking_009"
+      ],
+      "merge_rationale": "These three candidates describe the distinct variants of Naive Bayes, each tailored to different feature types, and are best taught as a comparative set."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Zero Frequency Error and Laplace Smoothing",
+      "description": "Zero frequency error occurs when a test feature value was not seen during training, causing zero posterior probability. Laplace smoothing adds a small constant (usually 1) to counts to avoid zeros.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_010",
+        "c34_pro_thinking_011"
+      ],
+      "merge_rationale": "The zero frequency error and its standard solution (Laplace smoothing) are closely linked and form a natural teachable unit."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Practical Aspects of Naive Bayes: Applications, Advantages, and Usage",
+      "description": "Naive Bayes is used in text classification, sentiment analysis, recommendation, and real-time prediction. Advantages: fast, less training data (when independent), good with categorical/text data. Disadvantages: independence assumption, zero frequency. Best when features are fairly independent and for text tasks.",
+      "coverage_criteria": [
+        "List at least three real-world applications.",
+        "State two advantages and two disadvantages.",
+        "Describe scenarios where Naive Bayes is a good choice or should be avoided."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_012",
+        "c34_pro_thinking_013",
+        "c34_pro_thinking_014",
+        "c34_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates collectively cover when and why to use Naive Bayes, combining applications, pros/cons, and usage guidelines into one practical concept."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Improving Naive Bayes Performance",
+      "description": "Techniques include removing correlated features, feature engineering, domain knowledge, using probabilistic features, Laplace smoothing, and the log-trick for numerical stability: argmax (log prior + Σ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Name at least three improvement strategies.",
+        "Explain why the log-trick is used.",
+        "Apply the log-trick in a posterior calculation."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_016",
+        "c35_pro_thinking_007"
+      ],
+      "merge_rationale": "Both candidates address enhancing Naive Bayes; the log-trick is a specific, important technique within the broader set of improvement strategies."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Gaussian Naive Bayes: Prior, Likelihood, and PDF",
+      "description": "In Gaussian Naive Bayes, the prior P(y) is the class frequency. The class conditional probability P(xᵢ|y) is modeled with a Gaussian PDF: (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)), where μ and σ² are estimated per feature per class.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a dataset.",
+        "Write the Gaussian PDF formula.",
+        "Compute a PDF value given mean and variance."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_004",
+        "c35_pro_thinking_005",
+        "c35_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates detail the Gaussian-specific components: prior estimation, the rationale for the Gaussian assumption, and the exact formula, which together form the mathematical core of Gaussian Naive Bayes."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Naive Bayes Training and Prediction Procedure",
+      "description": "Training: compute per-class means, variances, and prior probabilities. Prediction: choose the class with the highest log-posterior: log P(y) + Σ log P(xᵢ|y) using argmax.",
+      "coverage_criteria": [
+        "List the statistics computed during training.",
+        "Explain the prediction step using argmax.",
+        "Perform a simple prediction by hand for a small dataset."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_008",
+        "c35_pro_thinking_009"
+      ],
+      "merge_rationale": "Training and prediction are the two essential phases of the Naive Bayes workflow, logically linked as a single concept."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Implementing Naive Bayes in Python",
+      "description": "The classifier is implemented as a Python class with fit() and predict() methods, using NumPy arrays, storing learned parameters as attributes. Model performance is evaluated using accuracy on a test set.",
+      "coverage_criteria": [
+        "Describe the class structure and key methods (fit, predict).",
+        "Explain how accuracy is computed and interpreted.",
+        "Identify the attributes stored after training (e.g., means, variances, priors)."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_010",
+        "c35_pro_thinking_011"
+      ],
+      "merge_rationale": "These candidates provide a complete implementation perspective: the class design and the evaluation harness, which together demonstrate how to code and test Naive Bayes."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "Sentiment Analysis: Definition and Supervised Learning",
+      "description": "Sentiment analysis classifies text as positive or negative based on sentiment-bearing words. It is a supervised classification task that requires labeled data for training.",
+      "coverage_criteria": [
+        "Define sentiment analysis.",
+        "Explain why labeled data is necessary for supervised sentiment analysis.",
+        "Give examples of positive and negative cue words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_001",
+        "c37_pro_thinking_001",
+        "c38_pro_thinking_001",
+        "c38_pro_thinking_003"
+      ],
+      "merge_rationale": "All four candidates introduce sentiment analysis as a text classification problem and stress the need for labeled data, forming the foundational definition of the task."
+    },
+    {
+      "id": "batch_001__lr012",
+      "label": "Bag-of-Words Representation",
+      "description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_002",
+        "c39_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the bag-of-words model as a fundamental text representation technique, covering the conceptual assumption and the practical creation of feature vectors."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Derivation of Naive Bayes Decision Rule",
+      "description": "The step-by-step derivation from Bayes theorem to the final classification formula: select class c that maximizes P(c) * ∏ P(word|c).",
+      "coverage_criteria": [
+        "Write the final decision rule formula.",
+        "Explain the steps: posterior maximization, dropping the denominator, independence assumption."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering the derivation."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Naive Bayes Training: Prior and Likelihood Computation",
+      "description": "How to compute prior class probabilities P(c) = Nc/N and word likelihoods P(word|c) as relative frequency in class c.",
+      "coverage_criteria": [
+        "Calculate prior from class counts.",
+        "Calculate word likelihoods from training documents."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_005",
+        "c36_pro_thinking_006"
+      ],
+      "merge_rationale": "These two calculations form the components learned during Naive Bayes training."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Laplace Smoothing in Naive Bayes",
+      "description": "Adding a constant (usually 1) to all word counts to avoid zero probabilities for unseen words, using the formula (count + 1) / (total words + vocabulary size).",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_007",
+        "c39_pro_thinking_004"
+      ],
+      "merge_rationale": "Two candidates describe the same technique with near-identical content."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Using the log of the Naive Bayes product to convert it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "Explain why log-sum avoids underflow.",
+        "Transform a product expression into a log-sum."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate covering log transformation."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Stop Words Removal",
+      "description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_009",
+        "c38_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates cover the same preprocessing step with identical intent."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Basic Text Cleaning",
+      "description": "Lowercasing text and removing HTML tags, special characters, and punctuation to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Explain why lowercasing and removing special characters helps text analysis.",
+        "Apply cleaning to a raw text sample."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering this initial preprocessing step."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Stemming",
+      "description": "Reducing words to their root form (e.g., 'running' → 'run') to consolidate terms, using algorithms like SnowballStemmer from NLTK.",
+      "coverage_criteria": [
+        "Explain the purpose of stemming.",
+        "Apply a stemmer to a list of words."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate covering stemming."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Binary Multinomial Naive Bayes",
+      "description": "A variant that uses binary features (word presence/absence) instead of word counts, emphasizing occurrence over frequency.",
+      "coverage_criteria": [
+        "Contrast binary and frequency-based Naive Bayes.",
+        "Explain when binary features might be useful."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate describing this variant."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Word-level Tokenization",
+      "description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ],
+      "source_candidate_ids": [
+        "c37_pro_thinking_005"
+      ],
+      "merge_rationale": "Single candidate covering tokenization."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_011",
+        "c37_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates address complementary aspects of managing word sets in text classification."
+    },
+    {
+      "id": "batch_002__lr011",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of AI focused on enabling computers to process and analyze human language, applied to tasks like text classification and sentiment analysis.",
+      "coverage_criteria": [
+        "Define NLP.",
+        "Give an example of an NLP task."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate providing a foundational definition."
+    },
+    {
+      "id": "batch_002__lr012",
+      "label": "Bag of Words with CountVectorizer",
+      "description": "Converting preprocessed text into a numerical matrix of token counts using scikit-learn's CountVectorizer, often with max_features to limit vocabulary size.",
+      "coverage_criteria": [
+        "Transform a list of texts into a BoW matrix using CountVectorizer.",
+        "Explain the role of the max_features parameter."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate demonstrating feature extraction."
+    },
+    {
+      "id": "batch_003__ac001",
+      "label": "Fundamentos do Naive Bayes",
+      "description": "Compreensão do teorema de Bayes, da suposição de independência ingênua, e como eles formam a base do classificador Naive Bayes para classificação de texto.",
+      "coverage_criteria": [
+        "Enunciar o teorema de Bayes e aplicá-lo à classificação.",
+        "Explicar a suposição de independência e sua implicação na fatoração de P(X|y).",
+        "Calcular a probabilidade de classe dado um exemplo a partir de frequências de termos."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_002",
+        "c35_pro_thinking_003",
+        "c39_pro_thinking_003"
+      ],
+      "merge_rationale": "Esses três candidatos cobrem aspectos complementares da base teórica do Naive Bayes: o teorema, a fatoração matemática e a visão geral do algoritmo."
+    },
+    {
+      "id": "batch_003__ac002",
+      "label": "Aplicação do Multinomial Naive Bayes em scikit-learn",
+      "description": "Implementação prática do classificador MultinomialNB para análise de sentimento ou detecção de spam, incluindo preparação dos dados e treinamento.",
+      "coverage_criteria": [
+        "Justificar a escolha do MultinomialNB para dados de contagem de palavras.",
+        "Carregar e pré-processar um dataset de texto para classificação.",
+        "Treinar um modelo MultinomialNB e fazer predições."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_008",
+        "c39_pro_thinking_005"
+      ],
+      "merge_rationale": "Um candidato explica a adequação do algoritmo, enquanto o outro fornece um passo a passo completo de implementação; juntos formam um conceito prático coeso."
+    },
+    {
+      "id": "batch_003__ac003",
+      "label": "Divisão treino-teste para avaliação de modelos",
+      "description": "Particionamento dos dados em conjuntos de treino e teste para avaliar a generalização do modelo e detectar overfitting.",
+      "coverage_criteria": [
+        "Explicar a necessidade de separar os dados.",
+        "Utilizar train_test_split do scikit-learn.",
+        "Discutir o que ocorre se não houver divisão (overfitting)."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_009",
+        "c39_pro_thinking_008"
+      ],
+      "merge_rationale": "Ambos abordam a mesma técnica de divisão treino-teste, um com foco em acurácia e outro na validação."
+    },
+    {
+      "id": "batch_003__ac004",
+      "label": "Métricas de avaliação para classificação",
+      "description": "Métricas derivadas da matriz de confusão: acurácia, precisão, recall, F1-score, para avaliar o desempenho de classificadores binários.",
+      "coverage_criteria": [
+        "Definir matriz de confusão e os termos VP, FP, VN, FN.",
+        "Calcular acurácia, precisão, recall e F1-score a partir da matriz.",
+        "Interpretar o significado de cada métrica."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_006"
+      ],
+      "merge_rationale": "Este candidato cobre de forma autônoma as métricas de avaliação padrão."
+    },
+    {
+      "id": "batch_003__ac005",
+      "label": "Ajuste de hiperparâmetros com GridSearchCV",
+      "description": "Busca exaustiva dos melhores hiperparâmetros usando validação cruzada para otimizar o desempenho do classificador Naive Bayes.",
+      "coverage_criteria": [
+        "Explicar o propósito do ajuste de hiperparâmetros.",
+        "Diferenciar Grid Search de Random Search.",
+        "Aplicar GridSearchCV no scikit-learn para encontrar os melhores parâmetros."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_007"
+      ],
+      "merge_rationale": "Um único candidato aborda a técnica de tuning hyperparâmetros com exemplo prático."
+    },
+    {
+      "id": "batch_003__ac006",
+      "label": "Distribuição de classes desbalanceada",
+      "description": "Identificação de conjuntos de dados com desproporção entre classes e compreensão de seu impacto na classificação.",
+      "coverage_criteria": [
+        "Reconhecer um dataset desbalanceado a partir da distribuição de rótulos.",
+        "Discutir por que dados desbalanceados podem ser problemáticos.",
+        "Mencionar possíveis estratégias de mitigação."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito pertinente dado o exemplo prático com spam, que é naturalmente desbalanceado."
+    }
+  ],
+  "accepted_concepts": [
+    {
+      "id": "batch_001__lr001",
+      "label": "Naive Bayes Classifier Core",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the naive assumption of feature independence given the class. It computes posterior probability for each class and predicts the one with maximum probability.",
+      "coverage_criteria": [
+        "State the naive independence assumption.",
+        "Describe how Naive Bayes uses Bayes theorem for classification.",
+        "Identify that it is an eager learning algorithm."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_004",
+        "c35_pro_thinking_001",
+        "c36_pro_thinking_003"
+      ],
+      "merge_rationale": "These three candidates all describe the core Naive Bayes algorithm from different sources, covering the probabilistic basis, the naive assumption, and its application to text classification."
+    },
+    {
+      "id": "batch_001__lr002",
+      "label": "Probability Foundations for Naive Bayes",
+      "description": "Foundational probability concepts: basic probability, conditional probability P(A|B) = P(A∩B)/P(B), and Bayes theorem P(B|A) = P(A|B)P(B)/P(A) with posterior, likelihood, prior, and evidence.",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Write Bayes theorem and name the terms.",
+        "Compute a simple probability using the formula."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_001",
+        "c34_pro_thinking_002",
+        "c34_pro_thinking_003"
+      ],
+      "merge_rationale": "These candidates build the mathematical prerequisites for Naive Bayes: probability, conditional probability, and Bayes theorem, which are often taught together."
+    },
+    {
+      "id": "batch_001__lr003",
+      "label": "Feature Independence Assumption and Multicollinearity",
+      "description": "Naive Bayes assumes features are independent given the class (the 'naive' assumption). Multicollinearity (high feature correlation) violates this independence, causing poor performance.",
+      "coverage_criteria": [
+        "Explain the naive independence assumption.",
+        "Define multicollinearity and its impact on Naive Bayes.",
+        "Describe a method to detect multicollinearity."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_005",
+        "c34_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates explain the independence assumption and the related issue of multicollinearity, forming a single concept about why the algorithm is called naive and a key limitation."
+    },
+    {
+      "id": "batch_001__lr004",
+      "label": "Naive Bayes Variants: Bernoulli, Multinomial, Gaussian",
+      "description": "Three main variants: Bernoulli for binary features, Multinomial for discrete counts (especially text), and Gaussian for continuous features assuming a normal distribution.",
+      "coverage_criteria": [
+        "Match each variant to its typical data type.",
+        "Identify the appropriate variant for a given scenario.",
+        "Recognize scikit-learn class names for each variant."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_007",
+        "c34_pro_thinking_008",
+        "c34_pro_thinking_009"
+      ],
+      "merge_rationale": "These three candidates describe the distinct variants of Naive Bayes, each tailored to different feature types, and are best taught as a comparative set."
+    },
+    {
+      "id": "batch_001__lr005",
+      "label": "Zero Frequency Error and Laplace Smoothing",
+      "description": "Zero frequency error occurs when a test feature value was not seen during training, causing zero posterior probability. Laplace smoothing adds a small constant (usually 1) to counts to avoid zeros.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_010",
+        "c34_pro_thinking_011"
+      ],
+      "merge_rationale": "The zero frequency error and its standard solution (Laplace smoothing) are closely linked and form a natural teachable unit."
+    },
+    {
+      "id": "batch_001__lr006",
+      "label": "Practical Aspects of Naive Bayes: Applications, Advantages, and Usage",
+      "description": "Naive Bayes is used in text classification, sentiment analysis, recommendation, and real-time prediction. Advantages: fast, less training data (when independent), good with categorical/text data. Disadvantages: independence assumption, zero frequency. Best when features are fairly independent and for text tasks.",
+      "coverage_criteria": [
+        "List at least three real-world applications.",
+        "State two advantages and two disadvantages.",
+        "Describe scenarios where Naive Bayes is a good choice or should be avoided."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_012",
+        "c34_pro_thinking_013",
+        "c34_pro_thinking_014",
+        "c34_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates collectively cover when and why to use Naive Bayes, combining applications, pros/cons, and usage guidelines into one practical concept."
+    },
+    {
+      "id": "batch_001__lr007",
+      "label": "Improving Naive Bayes Performance",
+      "description": "Techniques include removing correlated features, feature engineering, domain knowledge, using probabilistic features, Laplace smoothing, and the log-trick for numerical stability: argmax (log prior + Σ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Name at least three improvement strategies.",
+        "Explain why the log-trick is used.",
+        "Apply the log-trick in a posterior calculation."
+      ],
+      "source_candidate_ids": [
+        "c34_pro_thinking_016",
+        "c35_pro_thinking_007"
+      ],
+      "merge_rationale": "Both candidates address enhancing Naive Bayes; the log-trick is a specific, important technique within the broader set of improvement strategies."
+    },
+    {
+      "id": "batch_001__lr008",
+      "label": "Gaussian Naive Bayes: Prior, Likelihood, and PDF",
+      "description": "In Gaussian Naive Bayes, the prior P(y) is the class frequency. The class conditional probability P(xᵢ|y) is modeled with a Gaussian PDF: (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)), where μ and σ² are estimated per feature per class.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a dataset.",
+        "Write the Gaussian PDF formula.",
+        "Compute a PDF value given mean and variance."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_004",
+        "c35_pro_thinking_005",
+        "c35_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates detail the Gaussian-specific components: prior estimation, the rationale for the Gaussian assumption, and the exact formula, which together form the mathematical core of Gaussian Naive Bayes."
+    },
+    {
+      "id": "batch_001__lr009",
+      "label": "Naive Bayes Training and Prediction Procedure",
+      "description": "Training: compute per-class means, variances, and prior probabilities. Prediction: choose the class with the highest log-posterior: log P(y) + Σ log P(xᵢ|y) using argmax.",
+      "coverage_criteria": [
+        "List the statistics computed during training.",
+        "Explain the prediction step using argmax.",
+        "Perform a simple prediction by hand for a small dataset."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_008",
+        "c35_pro_thinking_009"
+      ],
+      "merge_rationale": "Training and prediction are the two essential phases of the Naive Bayes workflow, logically linked as a single concept."
+    },
+    {
+      "id": "batch_001__lr010",
+      "label": "Implementing Naive Bayes in Python",
+      "description": "The classifier is implemented as a Python class with fit() and predict() methods, using NumPy arrays, storing learned parameters as attributes. Model performance is evaluated using accuracy on a test set.",
+      "coverage_criteria": [
+        "Describe the class structure and key methods (fit, predict).",
+        "Explain how accuracy is computed and interpreted.",
+        "Identify the attributes stored after training (e.g., means, variances, priors)."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_010",
+        "c35_pro_thinking_011"
+      ],
+      "merge_rationale": "These candidates provide a complete implementation perspective: the class design and the evaluation harness, which together demonstrate how to code and test Naive Bayes."
+    },
+    {
+      "id": "batch_001__lr011",
+      "label": "Sentiment Analysis: Definition and Supervised Learning",
+      "description": "Sentiment analysis classifies text as positive or negative based on sentiment-bearing words. It is a supervised classification task that requires labeled data for training.",
+      "coverage_criteria": [
+        "Define sentiment analysis.",
+        "Explain why labeled data is necessary for supervised sentiment analysis.",
+        "Give examples of positive and negative cue words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_001",
+        "c37_pro_thinking_001",
+        "c38_pro_thinking_001",
+        "c38_pro_thinking_003"
+      ],
+      "merge_rationale": "All four candidates introduce sentiment analysis as a text classification problem and stress the need for labeled data, forming the foundational definition of the task."
+    },
+    {
+      "id": "batch_001__lr012",
+      "label": "Bag-of-Words Representation",
+      "description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_002",
+        "c39_pro_thinking_002"
+      ],
+      "merge_rationale": "Both candidates describe the bag-of-words model as a fundamental text representation technique, covering the conceptual assumption and the practical creation of feature vectors."
+    },
+    {
+      "id": "batch_002__lr001",
+      "label": "Derivation of Naive Bayes Decision Rule",
+      "description": "The step-by-step derivation from Bayes theorem to the final classification formula: select class c that maximizes P(c) * ∏ P(word|c).",
+      "coverage_criteria": [
+        "Write the final decision rule formula.",
+        "Explain the steps: posterior maximization, dropping the denominator, independence assumption."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering the derivation."
+    },
+    {
+      "id": "batch_002__lr002",
+      "label": "Naive Bayes Training: Prior and Likelihood Computation",
+      "description": "How to compute prior class probabilities P(c) = Nc/N and word likelihoods P(word|c) as relative frequency in class c.",
+      "coverage_criteria": [
+        "Calculate prior from class counts.",
+        "Calculate word likelihoods from training documents."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_005",
+        "c36_pro_thinking_006"
+      ],
+      "merge_rationale": "These two calculations form the components learned during Naive Bayes training."
+    },
+    {
+      "id": "batch_002__lr003",
+      "label": "Laplace Smoothing in Naive Bayes",
+      "description": "Adding a constant (usually 1) to all word counts to avoid zero probabilities for unseen words, using the formula (count + 1) / (total words + vocabulary size).",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_007",
+        "c39_pro_thinking_004"
+      ],
+      "merge_rationale": "Two candidates describe the same technique with near-identical content."
+    },
+    {
+      "id": "batch_002__lr004",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "description": "Using the log of the Naive Bayes product to convert it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "Explain why log-sum avoids underflow.",
+        "Transform a product expression into a log-sum."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_008"
+      ],
+      "merge_rationale": "Single candidate covering log transformation."
+    },
+    {
+      "id": "batch_002__lr005",
+      "label": "Stop Words Removal",
+      "description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_009",
+        "c38_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates cover the same preprocessing step with identical intent."
+    },
+    {
+      "id": "batch_002__lr006",
+      "label": "Basic Text Cleaning",
+      "description": "Lowercasing text and removing HTML tags, special characters, and punctuation to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "Explain why lowercasing and removing special characters helps text analysis.",
+        "Apply cleaning to a raw text sample."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_004"
+      ],
+      "merge_rationale": "Single candidate covering this initial preprocessing step."
+    },
+    {
+      "id": "batch_002__lr007",
+      "label": "Stemming",
+      "description": "Reducing words to their root form (e.g., 'running' → 'run') to consolidate terms, using algorithms like SnowballStemmer from NLTK.",
+      "coverage_criteria": [
+        "Explain the purpose of stemming.",
+        "Apply a stemmer to a list of words."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_006"
+      ],
+      "merge_rationale": "Single candidate covering stemming."
+    },
+    {
+      "id": "batch_002__lr008",
+      "label": "Binary Multinomial Naive Bayes",
+      "description": "A variant that uses binary features (word presence/absence) instead of word counts, emphasizing occurrence over frequency.",
+      "coverage_criteria": [
+        "Contrast binary and frequency-based Naive Bayes.",
+        "Explain when binary features might be useful."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_010"
+      ],
+      "merge_rationale": "Single candidate describing this variant."
+    },
+    {
+      "id": "batch_002__lr009",
+      "label": "Word-level Tokenization",
+      "description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ],
+      "source_candidate_ids": [
+        "c37_pro_thinking_005"
+      ],
+      "merge_rationale": "Single candidate covering tokenization."
+    },
+    {
+      "id": "batch_002__lr010",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ],
+      "source_candidate_ids": [
+        "c36_pro_thinking_011",
+        "c37_pro_thinking_006"
+      ],
+      "merge_rationale": "These candidates address complementary aspects of managing word sets in text classification."
+    },
+    {
+      "id": "batch_002__lr011",
+      "label": "Natural Language Processing (NLP) Definition",
+      "description": "NLP is a subfield of AI focused on enabling computers to process and analyze human language, applied to tasks like text classification and sentiment analysis.",
+      "coverage_criteria": [
+        "Define NLP.",
+        "Give an example of an NLP task."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_002"
+      ],
+      "merge_rationale": "Single candidate providing a foundational definition."
+    },
+    {
+      "id": "batch_002__lr012",
+      "label": "Bag of Words with CountVectorizer",
+      "description": "Converting preprocessed text into a numerical matrix of token counts using scikit-learn's CountVectorizer, often with max_features to limit vocabulary size.",
+      "coverage_criteria": [
+        "Transform a list of texts into a BoW matrix using CountVectorizer.",
+        "Explain the role of the max_features parameter."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_007"
+      ],
+      "merge_rationale": "Single candidate demonstrating feature extraction."
+    },
+    {
+      "id": "batch_003__ac001",
+      "label": "Fundamentos do Naive Bayes",
+      "description": "Compreensão do teorema de Bayes, da suposição de independência ingênua, e como eles formam a base do classificador Naive Bayes para classificação de texto.",
+      "coverage_criteria": [
+        "Enunciar o teorema de Bayes e aplicá-lo à classificação.",
+        "Explicar a suposição de independência e sua implicação na fatoração de P(X|y).",
+        "Calcular a probabilidade de classe dado um exemplo a partir de frequências de termos."
+      ],
+      "source_candidate_ids": [
+        "c35_pro_thinking_002",
+        "c35_pro_thinking_003",
+        "c39_pro_thinking_003"
+      ],
+      "merge_rationale": "Esses três candidatos cobrem aspectos complementares da base teórica do Naive Bayes: o teorema, a fatoração matemática e a visão geral do algoritmo."
+    },
+    {
+      "id": "batch_003__ac002",
+      "label": "Aplicação do Multinomial Naive Bayes em scikit-learn",
+      "description": "Implementação prática do classificador MultinomialNB para análise de sentimento ou detecção de spam, incluindo preparação dos dados e treinamento.",
+      "coverage_criteria": [
+        "Justificar a escolha do MultinomialNB para dados de contagem de palavras.",
+        "Carregar e pré-processar um dataset de texto para classificação.",
+        "Treinar um modelo MultinomialNB e fazer predições."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_008",
+        "c39_pro_thinking_005"
+      ],
+      "merge_rationale": "Um candidato explica a adequação do algoritmo, enquanto o outro fornece um passo a passo completo de implementação; juntos formam um conceito prático coeso."
+    },
+    {
+      "id": "batch_003__ac003",
+      "label": "Divisão treino-teste para avaliação de modelos",
+      "description": "Particionamento dos dados em conjuntos de treino e teste para avaliar a generalização do modelo e detectar overfitting.",
+      "coverage_criteria": [
+        "Explicar a necessidade de separar os dados.",
+        "Utilizar train_test_split do scikit-learn.",
+        "Discutir o que ocorre se não houver divisão (overfitting)."
+      ],
+      "source_candidate_ids": [
+        "c38_pro_thinking_009",
+        "c39_pro_thinking_008"
+      ],
+      "merge_rationale": "Ambos abordam a mesma técnica de divisão treino-teste, um com foco em acurácia e outro na validação."
+    },
+    {
+      "id": "batch_003__ac004",
+      "label": "Métricas de avaliação para classificação",
+      "description": "Métricas derivadas da matriz de confusão: acurácia, precisão, recall, F1-score, para avaliar o desempenho de classificadores binários.",
+      "coverage_criteria": [
+        "Definir matriz de confusão e os termos VP, FP, VN, FN.",
+        "Calcular acurácia, precisão, recall e F1-score a partir da matriz.",
+        "Interpretar o significado de cada métrica."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_006"
+      ],
+      "merge_rationale": "Este candidato cobre de forma autônoma as métricas de avaliação padrão."
+    },
+    {
+      "id": "batch_003__ac005",
+      "label": "Ajuste de hiperparâmetros com GridSearchCV",
+      "description": "Busca exaustiva dos melhores hiperparâmetros usando validação cruzada para otimizar o desempenho do classificador Naive Bayes.",
+      "coverage_criteria": [
+        "Explicar o propósito do ajuste de hiperparâmetros.",
+        "Diferenciar Grid Search de Random Search.",
+        "Aplicar GridSearchCV no scikit-learn para encontrar os melhores parâmetros."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_007"
+      ],
+      "merge_rationale": "Um único candidato aborda a técnica de tuning hyperparâmetros com exemplo prático."
+    },
+    {
+      "id": "batch_003__ac006",
+      "label": "Distribuição de classes desbalanceada",
+      "description": "Identificação de conjuntos de dados com desproporção entre classes e compreensão de seu impacto na classificação.",
+      "coverage_criteria": [
+        "Reconhecer um dataset desbalanceado a partir da distribuição de rótulos.",
+        "Discutir por que dados desbalanceados podem ser problemáticos.",
+        "Mencionar possíveis estratégias de mitigação."
+      ],
+      "source_candidate_ids": [
+        "c39_pro_thinking_009"
+      ],
+      "merge_rationale": "Conceito pertinente dado o exemplo prático com spam, que é naturalmente desbalanceado."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c34_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr002"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr003"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr005"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_012",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c34_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_011",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr010"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c37_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr012"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_001__lr012"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr001"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr002",
+      "explanation": "Computing prior probabilities is part of the combined training concept."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr002",
+      "explanation": "Computing likelihoods is part of the combined training concept."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_007",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr003",
+      "explanation": "Near-duplicate of c39_pro_thinking_004, both describe Laplace smoothing."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr004"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_004",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr003",
+      "explanation": "Near-duplicate of c36_pro_thinking_007, both describe Laplace smoothing."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr005",
+      "explanation": "Near-duplicate of c38_pro_thinking_005, both cover stop words removal."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr006"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr005",
+      "explanation": "Near-duplicate of c36_pro_thinking_009, both cover stop words removal."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr007"
+      ]
+    },
+    {
+      "candidate_id": "c39_pro_thinking_001",
+      "status": "pruned",
+      "reason": "near_duplicate",
+      "explanation": "This general preprocessing overview is fully represented by the specific accepted concepts of text cleaning (lr006), stop words removal (lr005), stemming (lr007), and tokenization (lr009)."
+    },
+    {
+      "candidate_id": "c36_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr008"
+      ]
+    },
+    {
+      "candidate_id": "c36_pro_thinking_011",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr010",
+      "explanation": "OOV handling is part of the combined vocabulary management concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_006",
+      "status": "merged_into",
+      "merged_into": "batch_002__lr010",
+      "explanation": "Vocabulary building with frequency filter is part of the combined vocabulary management concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_002",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Describing the IMDb dataset is incidental; it does not teach a transferable NLP or ML concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_003",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Downloading a dataset is a setup step not essential to understanding NLTK, BoW, or Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_004",
+      "status": "pruned",
+      "reason": "incidental",
+      "explanation": "Reading reviews from a specific directory structure is dataset-specific I/O and not a core lesson concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr009"
+      ]
+    },
+    {
+      "candidate_id": "c37_pro_thinking_007",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Padding sequences is a deep learning preparation step not relevant to this lesson's focus on traditional BoW and Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_008",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "Creating data iterators is a deep learning concept; this lesson does not cover minibatch training."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_009",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "The full deep learning data loading pipeline is off-topic for a lesson on NLTK, BoW, and Naive Bayes."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr011"
+      ]
+    },
+    {
+      "candidate_id": "c38_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_002__lr012"
+      ]
+    },
+    {
+      "candidate_id": "c35_pro_thinking_002",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac001",
+      "explanation": "Este candidato apresenta o teorema de Bayes, que é parte fundamental do conceito geral de Naive Bayes."
+    },
+    {
+      "candidate_id": "c35_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac001",
+      "explanation": "Este candidato detalha a fatoração sob independência, essencial para entender o algoritmo."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_003",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac001",
+      "explanation": "Este candidato fornece a visão geral do algoritmo, cobrindo tanto o teorema quanto a suposição ingênua."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac002",
+      "explanation": "Candidato que explica a adequação do MultinomialNB para texto, complementando a implementação prática."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_005",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac002",
+      "explanation": "Candidato com a aplicação prática completa do MultinomialNB no dataset SMS, representando a execução do conceito."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_009",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac003",
+      "explanation": "Candidato focado na divisão treino-teste e avaliação de acurácia, parte do conceito de validação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_008",
+      "status": "merged_into",
+      "merged_into": "batch_003__ac003",
+      "explanation": "Candidato que explica a divisão treino-teste e overfitting, complementando o conceito de validação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__ac004"
+      ],
+      "explanation": "Este candidato introduz e demonstra as métricas de avaliação essenciais para classificação."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__ac005"
+      ],
+      "explanation": "Candidato que aborda o tuning de hiperparâmetros com GridSearchCV."
+    },
+    {
+      "candidate_id": "c39_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": [
+        "batch_003__ac006"
+      ],
+      "explanation": "Candidato que discute o impacto do desbalanceamento de classes."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_010",
+      "status": "pruned",
+      "reason": "low_teaching_value",
+      "explanation": "Persistência de modelo com pickle é uma habilidade utilitária pequena, não central para a compreensão de análise de conteúdo ou Naive Bayes."
+    }
+  ],
+  "pruned": [
+    {
+      "candidate_id": "c39_pro_thinking_001",
+      "reason": "near_duplicate",
+      "explanation": "This general preprocessing overview is fully represented by the specific accepted concepts of text cleaning (lr006), stop words removal (lr005), stemming (lr007), and tokenization (lr009)."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_002",
+      "reason": "incidental",
+      "explanation": "Describing the IMDb dataset is incidental; it does not teach a transferable NLP or ML concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_003",
+      "reason": "incidental",
+      "explanation": "Downloading a dataset is a setup step not essential to understanding NLTK, BoW, or Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_004",
+      "reason": "incidental",
+      "explanation": "Reading reviews from a specific directory structure is dataset-specific I/O and not a core lesson concept."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_007",
+      "reason": "unrelated",
+      "explanation": "Padding sequences is a deep learning preparation step not relevant to this lesson's focus on traditional BoW and Naive Bayes."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_008",
+      "reason": "unrelated",
+      "explanation": "Creating data iterators is a deep learning concept; this lesson does not cover minibatch training."
+    },
+    {
+      "candidate_id": "c37_pro_thinking_009",
+      "reason": "unrelated",
+      "explanation": "The full deep learning data loading pipeline is off-topic for a lesson on NLTK, BoW, and Naive Bayes."
+    },
+    {
+      "candidate_id": "c38_pro_thinking_010",
+      "reason": "low_teaching_value",
+      "explanation": "Persistência de modelo com pickle é uma habilidade utilitária pequena, não central para a compreensão de análise de conteúdo ou Naive Bayes."
+    }
+  ],
+  "summary": {
+    "input_candidate_count": 66,
+    "accepted_count": 30,
+    "pruned_count": 8,
+    "candidate_assignment_count": 66,
+    "review_count": 0
+  }
+}

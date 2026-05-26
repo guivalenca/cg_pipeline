@@ -1,0 +1,86 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+    "display_code": "L07",
+    "workbook_row_number": 44,
+    "title": "Introdução a Rede Neural",
+    "date": "19/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Paradigmas e modelos de desenvolvimento de sistemas de informação",
+      "Programação funcional",
+      "Programação lógica",
+      "Redes Neurais",
+      "Vetores multidimensionais"
+    ],
+    "description": "Este encontro tem por objetivo apresentar as Redes Neurais para as pessoas desenvolvedoras. A sua concepção, aplicação, algoritmos de treinamento e evolução serão abordadas. Com o término da instrução, espera-se que as pessoas desenvolvedoras possam estar mais familiarizadas com a forma como as Redes Neurais são desenvolvidas."
+  },
+  "self_study": {
+    "self_study_id": "47",
+    "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 47,
+      "week": 5,
+      "sort": 5,
+      "title": "Deep Learning cheatsheet",
+      "description": "Um resumo dos conceitos principais de redes neurais. Efetuar a leitura apenas da página 1 do artigo.",
+      "url": "https://github.com/afshinea/stanford-cs-229-machine-learning/blob/master/en/cheatsheet-deep-learning.pdf",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Programação lógica",
+        "Redes Neurais",
+        "Vetores multidimensionais"
+      ],
+      "parent_class": "Introdução a Rede Neural",
+      "class_date": "19/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed_with_warnings",
+      "path": "extraction/post-image/0047-article-deep-learning-cheatsheet.md",
+      "sha256": "857acddedb425560a334c36831339de92b024421cbbc8e19a754266f9e9edfda",
+      "word_count": 858,
+      "bytes": 5583,
+      "source_markdown": "article/firecrawl/output/47/47-deep-learning-cheatsheet.md",
+      "artifact_dir": "article/firecrawl/output/47",
+      "availability_warnings": [
+        "missing_screenshot"
+      ],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0047-article-deep-learning-cheatsheet.md",
+    "sha256": "857acddedb425560a334c36831339de92b024421cbbc8e19a754266f9e9edfda",
+    "word_count": 858,
+    "source_markdown": "article/firecrawl/output/47/47-deep-learning-cheatsheet.md",
+    "markdown": "---\nid: \"47\"\ntitle: \"Deep Learning cheatsheet\"\nsource_url: \"https://github.com/afshinea/stanford-cs-229-machine-learning/blob/master/en/cheatsheet-deep-learning.pdf\"\nfetch_url: \"https://raw.githubusercontent.com/afshinea/stanford-cs-229-machine-learning/master/en/cheatsheet-deep-learning.pdf\"\nresolved_url: \"https://raw.githubusercontent.com/afshinea/stanford-cs-229-machine-learning/master/en/cheatsheet-deep-learning.pdf\"\nfirecrawl_title: null\ndescription: null\nfetched_at: \"2026-05-12T03:59:51.981347Z\"\nprovider: \"firecrawl\"\nstrategy: \"pdf\"\ncache_key: \"65be14d21a924e78e81654593cda8da1cb30bcbbd9912894a914cbfef958208a\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"application/pdf\"\nword_count: 758\nchar_count: 4448\ncontent_sha256: \"0dae51263b50ba52add18bd5d6a31af50b42440c1facbb45f4c52d040d79fafa\"\nimage_count: 0\nlink_count: 0\nwarnings:\n  - \"missing_screenshot\"\n  - \"rewritten_source_url\"\ngate_status: \"passed_with_warnings\"\ngate_failures: []\nroute_notes:\n  - \"github_blob_pdf_rewritten_to_raw_url\"\n  - \"pdf_mode_auto\"\n  - \"github_pdf_wrapper_rewrite\"\n  - \"github_app_ui_or_wrapper_page\"\n---\n\n# VIP Cheatsheet: Deep Learning\n\n**Afshine Amidi and Shervine Amidi**  \n**September 15, 2018**  \n\n## Neural Networks\n\nNeural networks are a class of models that are built with layers. Commonly used types of neural networks include convolutional and recurrent neural networks.\n\n### Architecture\n\nThe vocabulary around neural networks architectures is described in the figure below:\n\nInput layer  \nHidden layer 1  \nHidden layer k  \nOutput layer\n\nBy noting i the ith layer of the network and j the jth hidden unit of the layer, we have:\n\n$$z_{j}^{[i]}={w_{j}^{[i]}}^{T}x+b_{j}^{[i]}$$  \n\nwhere we note w, b, z the weight, bias and output respectively.\n\n### Activation Functions\n\n$$g(z)=\\frac{1}{1+e^{-z}}$$  \n$$\\overline{g(z)=\\frac{e^{z}-e^{-z}}{e^{z}+e^{-z}}}$$  \n$$g(z)=\\operatorname*{max}(0,z)$$  \n$$g(z)=\\operatorname*{max}(\\epsilon z, 0)$$\n\n### Learning Rate\n\nThe learning rate, often noted η, indicates at which pace the weights get updated. This can be fixed or adaptively changed. The current most popular method is called Adam, which is a method that adapts the learning rate.\n\n### Backpropagation\n\nBackpropagation is a method to update the weights in the neural network by taking into account the actual output and the desired output. The derivative with respect to weight w is computed using chain rule and is of the following form:\n\n$$\\frac{\\partial L(z,y)}{\\partial w}$$\n\nAs a result, the weight is updated as follows:\n1. Step 1: Take a batch of training data.\n2. Step 2: Perform forward propagation to obtain the corresponding loss.\n3. Step 3: Backpropagate the loss to get the gradients.\n4. Step 4: Use the gradients to update the weights of the network.\n\n### Dropout\n\nDropout is a technique meant at preventing overfitting the training data by dropping out units in a neural network. In practice, neurons are either dropped with probability p or kept with probability 1 − p.\n\n### Convolutional Layer Requirement\n\nBy noting W the input volume size, F the size of the convolutional layer neurons, P the amount of zero padding, then the number of neurons N that fit in a given volume is such that:\n\n$$x_{i}\\longleftarrow\\gamma\\frac{x_{i}-\\mu_{B}}{\\sqrt{\\sigma_{B}^{2}+\\epsilon}}+\\beta$$\n\n## Convolutional Neural Networks\n\n### Recurrent Neural Networks\n\n#### Types of Gates\n\nHere are the different types of gates that we encounter in a typical recurrent neural network:\n\n| Input gate | Forget gate | Output gate | Gate |\n| --- | --- | --- | --- |\n| Write to cell or not? | Erase a cell or not? | Reveal a cell or not? | How much writing? |\n\n#### LSTM\n\nA long short-term memory (LSTM) network is a type of RNN model that avoids the vanishing gradient problem by adding 'forget' gates.\n\n## Reinforcement Learning and Control\n\nThe goal of reinforcement learning is for an agent to learn how to evolve in an environment.\n\n### Markov Decision Processes\n\nA Markov decision process (MDP) is a 5-tuple (S,A,{P_sa},γ,R) where:\n- **S** is the set of states\n- **A** is the set of actions\n- **P_sa** are the state transition probabilities for s ∈ S and a ∈ A\n- **γ** ∈ [0,1[ is the discount factor\n- **R**: S×A −→ R or R: S −→ R is the reward function that the algorithm wants to maximize\n\n### Policy\n\nA policy π is a function π : S−→A that maps states to actions. Remark: we say that we execute a given policy π if given a state s we take the action a = π(s).\n\n### Value Function\n\nFor a given policy π and a given state s, we define the value function Vπ as follows:  \n\n### Bellman Equation\n\nThe optimal Bellman equations characterize the value function V of the optimal policy π*:  \n\n$$V^{*}(s)=\\operatornamewithlimits{argmax}{a \\in \\mathcal{A}}\\sum_{s^{\\prime}\\in\\mathcal{S}}P_{sa}(s^{\\prime})V^{*}(s^{\\prime})$$  \n\nWe initialize the value:\n\n$$V_{0}(s)=0$$\n\nWe iterate the value based on the values before:\n\n$$V_{i+1}(s)=R(s)+\\operatorname*{max}_{a\\in\\mathcal{A}}\\left[\\sum_{s^{\\prime}\\in\\mathcal{S}}\\gamma P_{sa}(s^{\\prime})V_{i}(s^{\\prime})\\right]$$\n\n### Maximum Likelihood Estimate\n\nThe maximum likelihood estimates for the state transition probabilities are as follows:\n\n$$P_{sa}(s^{\\prime})=\\frac{\\text{# times took action } a \\text{ in state } s \\text{ and got to } s^{\\prime}}{\\text{# times took action } a \\text{ in state } s}$$\n\n### Q-Learning\n\nQ-learning is a model-free estimation of Q, which is done as follows:\n\n$$Q(s,a)\\leftarrow Q(s,a)+\\alpha\\left[R(s,a)+\\gamma\\operatorname*{max}_{a^{\\prime}}Q(s^{\\prime},a^{\\prime})-Q(s,a)\\right]$$\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_011",
+    "area": {
+      "id": "area_011",
+      "label": "Data-Driven Decision Pitfalls",
+      "rationale": "These five candidates highlight common errors when organizations rely on data and metrics: tyranny of metrics, misinterpretation of correlations, overgeneralization, filter bubbles, and losing the human element. They form a distinct neighborhood on the dangers of data‑heavy decision cultures.",
+      "candidate_ids": [
+        "lr009_010",
+        "lr009_011",
+        "lr009_012",
+        "lr009_013",
+        "lr009_014"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr009_010",
+    "lr009_011",
+    "lr009_012",
+    "lr009_013",
+    "lr009_014"
+  ],
+  "candidates": [
+    {
+      "id": "lr009_010",
+      "label": "The Tyranny of Metrics",
+      "description": "A pitfall where quantitative targets and KPIs distort behavior, leading to unintended negative consequences that undermine the original goals.",
+      "coverage_criteria": [
+        "Explain the concept of 'tyranny of metrics' with an example.",
+        "Identify a situation where a metric might cause goal displacement.",
+        "Propose a safeguard to prevent metric-induced behavior distortion."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_011",
+      "label": "Misinterpreting Correlations as Causation",
+      "description": "The error of assuming that a statistical correlation between two variables implies a cause-and-effect relationship, without considering confounding factors.",
+      "coverage_criteria": [
+        "Define the difference between correlation and causation.",
+        "Provide an example where a correlation is mistakenly interpreted as causation.",
+        "Explain why rigorous causal analysis is important in data-driven decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_012",
+      "label": "Overgeneralizing from Limited Data Sets",
+      "description": "The risk of drawing broad conclusions from internal data sets that may not represent the full picture, leading to poor decisions when the data is extrapolated beyond its actual scope.",
+      "coverage_criteria": [
+        "Explain why a company's internal data may not reflect the entire market.",
+        "Identify a scenario where overgeneralizing from a limited data set led to a mistake.",
+        "Describe how to supplement internal data with external perspectives."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "application"
+    },
+    {
+      "id": "lr009_013",
+      "label": "Filter Bubbles and Confirmation Bias in Data Teams",
+      "description": "The tendency for data teams to only seek information that confirms their existing beliefs, creating an echo chamber that overlooks contradictory insights and black swan events.",
+      "coverage_criteria": [
+        "Define 'filter bubble' and 'confirmation bias' in the context of analytics.",
+        "Provide an example where a filter bubble led to flawed strategic planning.",
+        "Suggest a technique to counteract confirmation bias in data analysis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_014",
+      "label": "Losing the Human Element in Data-Driven Decisions",
+      "description": "The pitfall of overemphasizing quantitative data to the point where important human factors—such as skills, relationships, and cultural fit—are overlooked.",
+      "coverage_criteria": [
+        "Explain why data alone may fail to capture important human aspects of organizations.",
+        "Provide an example where an algorithm overlooked a qualified candidate due to a lack of demographic match.",
+        "Propose a method to blend quantitative data with qualitative human judgment."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "limitation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

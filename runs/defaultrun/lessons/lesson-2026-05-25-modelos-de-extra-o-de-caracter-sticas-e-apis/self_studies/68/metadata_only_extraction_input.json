@@ -1,0 +1,51 @@
+{
+  "artifact_type": "metadata_only_extraction_input",
+  "schema_version": "metadata_only_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/metadata_only_extraction.md",
+  "prompt": "# Metadata-only Extraction Agent\n\n## Task\n\nExtract a serious set of Candidate Concepts from exactly one Self-study whose\nSource Body is unavailable.\n\nUse this only when the input self-study has\n`source_body_status: \"unavailable_source_body\"`. The output is weak\nworkbook-metadata evidence for later reconciliation, not a final graph decision.\n\n## Quick Start\n\nRead the Lesson context and Workbook Metadata. If the title, description,\nrelated labels, resource code, URL identity, required flag, or grade weight show\nteachable ideas, extract the full defensible set of metadata-backed Candidate\nConcepts. If they do not contain any teaching signal, return an explicit\nexclusion.\n\nDo not stop at the single strongest label. This is a recall-oriented candidate\ndiscovery pass over thin metadata. It should surface all plausible teachable\nideas that a later reconciliation stage can accept, merge, or reject.\n\n## Workflow\n\n1. List every teaching signal visible in the Workbook Metadata and Lesson\n   context: title phrases, description phrases, related labels, parent lesson,\n   named methods, named tools, named task types, named application domains,\n   resource identity, and URL slug.\n2. Decompose broad signals into checkable Candidate Concepts. For example, a\n   title about \"Feature Extraction in NLP with Python\" can support separate\n   candidates for text feature extraction, feature representations for NLP, and\n   Python implementation workflow when those ideas are also compatible with the\n   lesson context.\n3. Keep direct and implied evidence honest:\n   - A directly stated candidate is supported by an explicit title,\n     description, label, or lesson phrase.\n   - A metadata-implied candidate is a plausible sub-idea of a named broad topic\n     or resource identity. Include it only when it is a normal, teachable part of\n     that named topic and the lesson context does not contradict it.\n   - In `metadata_grounded_rationale`, say whether the candidate is directly\n     stated or metadata-implied.\n4. Prefer a useful candidate set over a single umbrella concept. When metadata\n   names a broad technical area, usually return 2-5 candidates. Return only one\n   candidate only when the metadata really contains only one teachable idea.\n5. Ignore anything that would require reading the unavailable Source Body.\n6. Add workbook-field anchors showing which metadata field supports each\n   candidate.\n7. Before returning, run the self-check below.\n\n## Authority Boundary\n\nUse only the provided Workbook Metadata and Lesson context. Do not use Source\nBody evidence. Do not search the web. Do not open URLs. The URL and resource\nidentity may help identify the assigned material and its broad topic, but they\nare not readable source evidence.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"metadata-candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the metadata-backed idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"evidence_type\": \"workbook_metadata\",\n      \"metadata_anchors\": [\n        {\"kind\": \"workbook_description\", \"locator\": \"Description\"}\n      ],\n      \"extraction_reason\": {\n        \"metadata_grounded_rationale\": \"Why the workbook metadata supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      }\n    }\n  ]\n}\n```\n\nIf the metadata does not contain a teachable signal, return:\n\n```json\n{\n  \"excluded\": true,\n  \"exclusion_reason\": \"activity_only_without_teaching_signal\",\n  \"candidate_concepts\": []\n}\n```\n\n## Self-check\n\n- Be evidence-aware, not timid. Metadata-only evidence is weaker than Source\n  Body evidence, but this stage should still extract the serious idea set that\n  the metadata supports.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Set every candidate's `evidence_type` to `workbook_metadata`.\n- Make anchors point only to workbook fields such as title, description, related\n  labels, URL, resource code, required flag, or grade weight.\n- Do not claim specific source-body contents, examples, chapters, arguments, or\n  code from an article, video, book page, or website unless that claim appears in\n  the Workbook Metadata itself.\n- Do not collapse multiple teachable ideas into one umbrella label when the\n  metadata supports smaller checkable concepts.\n- Do not invent niche subtopics just to increase the count. Every candidate must\n  be grounded in a visible metadata phrase, lesson phrase, related label, or\n  ordinary subtopic of a named broad area.\n- Do not emit dependency edges, bridge concepts, final Concepts, source-local\n  connector candidates, or cross-source connector candidates.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "display_code": "L10",
+    "workbook_row_number": 65,
+    "title": "Modelos de Extração de Características e APIs",
+    "date": "25/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [],
+    "description": "O objetivo deste encontro é comparar os sistemas implementados utilizando modelos com Embedding Words e os modelos baseados em extração de características. Ao término do encontro, espera-se que as pessoas desenvolvedoras possam estar familiarizadas com as características comuns destes sistemas e suas peculiaridades de implementação. Também será realizada uma familiarização com o desenvolvimento de API Python."
+  },
+  "self_study": {
+    "self_study_id": "68",
+    "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+    "source_body_status": "unavailable_source_body",
+    "workbook_metadata": {
+      "workbook_row_number": 68,
+      "week": 6,
+      "sort": 4,
+      "title": "Feature Extraction in Natural Language Processing with Python",
+      "description": "Feature Extraction no contexto de PLN com Python.",
+      "url": "https://medium.com/@eiki1212/feature-extraction-in-natural-language-processing-with-python-59c7cdcaf064",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Modelos de Extração de Características e APIs",
+      "class_date": "25/05/2026"
+    },
+    "source_availability_failures": [
+      "auth_wall_detected",
+      "error_page_detected",
+      "http_status_410",
+      "metadata_error"
+    ],
+    "ledger_warnings": []
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not open URLs or use web search. Use Workbook Metadata only."
+  }
+}

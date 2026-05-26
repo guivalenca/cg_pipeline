@@ -1,0 +1,118 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-41-001",
+      "label": "Word2Vec produces word embeddings for analogical reasoning",
+      "description": "Word2Vec is a machine learning process that maps words to dense numerical vectors called word embeddings, enabling mathematical operations such as vector addition and subtraction to perform analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain what word2vec is and how word embeddings enable analogies like 'king - man + woman = queen'."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker explicitly defines word2vec as a process that produces word embeddings, describes mapping 'apple' to a vector, and poses the analogy 'apple' + 'purple' = 'plum' to illustrate vector arithmetic.",
+        "granularity_rationale": "This concept covers the core definition and a single illustrative example, allowing assessment with 1-2 focused questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:00 Introduction to Word2Vec"},
+        {"kind": "markdown_heading", "locator": "02:10 What is Word Embedding?"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "What is word2vec? - Programming with Text",
+      "source_year": "2017",
+      "name_drops": ["word2vec", "Allison Parrish", "Understanding Word Vectors"]
+    },
+    {
+      "candidate_id": "candidate-41-002",
+      "label": "Simple 2D word embeddings with hand-coded features illustrate word similarity",
+      "description": "Word embeddings can be constructed in two dimensions using manually assigned scores (e.g., cuteness and size for animals) so that similar words are close in the vector space, demonstrating the principle of semantic similarity through spatial proximity.",
+      "coverage_criteria": [
+        "Given a 2D plot of animals with cuteness and size scores, identify which animals are most similar based on spatial proximity.",
+        "Explain why euclidean distance can measure similarity in a 2D word embedding."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source presents a table of animals with cuteness and size scores and a scatter plot, explicitly calling this a simple word embedding to visualize similarity.",
+        "granularity_rationale": "This isolates the idea of using hand-crafted features to create a toy embedding, assessable by asking students to interpret a 2D plot."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "05:38 Animal Similarity and Simple Linear Algebra"},
+        {"kind": "markdown_heading", "locator": "06:18 Animal Space Visualization"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "What is word2vec? - Programming with Text",
+      "source_year": "2017",
+      "name_drops": ["euclidean distance"]
+    },
+    {
+      "candidate_id": "candidate-41-003",
+      "label": "Vector relationships model analogies in word embedding space",
+      "description": "In a word embedding space, the vector difference between two words can represent a relationship; applying that same difference to a third word leads to an analogous word (e.g., 'tarantula' to 'hamster' is similar to 'chicken' to 'kitten' in terms of size and cuteness).",
+      "coverage_criteria": [
+        "Given a 2D animal embedding with arrows, explain the analogy 'tarantula is to hamster as chicken is to kitten'.",
+        "Demonstrate how vector addition can produce an analogy: if 'apple' + 'purple' ≈ 'plum', what operation would find 'plum'?"
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source directly illustrates vector analogies by drawing arrows between animal points and explaining the resulting analogy.",
+        "granularity_rationale": "This focuses on the specific mechanism of using vector relationships to derive analogies, testable by having students interpret or extend a given analogy."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "06:48 Vectors and Relationships"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "What is word2vec? - Programming with Text",
+      "source_year": "2017",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-41-004",
+      "label": "Real-world word embeddings use high dimensions and reduced visualization",
+      "description": "Practical word2vec models use hundreds of dimensions (e.g., 100 to 300) to capture complex semantic relationships, making direct visualization impossible; dimensionality reduction techniques are necessary to project them into 2D for visualizing word clusters.",
+      "coverage_criteria": [
+        "State why real word2vec embeddings are high-dimensional and cannot be directly visualized.",
+        "Name a technique used to visualize high-dimensional word embeddings."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The speaker explains that real word2vec uses 100 or 300 dimensions and mentions dimensionality reduction to visualize word clusters.",
+        "granularity_rationale": "This concept addresses the scalability of embeddings and the need for dimensionality reduction, easily checked by asking students to explain the visualization challenge."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "08:13 Higher Dimensions and Next Steps"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "What is word2vec? - Programming with Text",
+      "source_year": "2017",
+      "name_drops": ["dimensionality reduction"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-41-001",
+      "to_candidate_id": "candidate-41-002",
+      "reason": "The 2D example with hand-coded features serves as a simplified introduction to the concept of word embeddings and vector similarity explained in the initial overview.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:10 What is Word Embedding?"},
+        {"kind": "markdown_heading", "locator": "05:38 Animal Similarity and Simple Linear Algebra"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-41-002",
+      "to_candidate_id": "candidate-41-003",
+      "reason": "The animal space visualization directly leads to the explanation of vector relationships and analogies by drawing arrows between points.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "06:18 Animal Space Visualization"},
+        {"kind": "markdown_heading", "locator": "06:48 Vectors and Relationships"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-41-001",
+      "to_candidate_id": "candidate-41-004",
+      "reason": "The initial introduction to word2vec is followed by a discussion of real-world high-dimensional spaces, highlighting the scalability of the technique.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:10 What is Word Embedding?"},
+        {"kind": "markdown_heading", "locator": "08:13 Higher Dimensions and Next Steps"}
+      ]
+    }
+  ]
+}

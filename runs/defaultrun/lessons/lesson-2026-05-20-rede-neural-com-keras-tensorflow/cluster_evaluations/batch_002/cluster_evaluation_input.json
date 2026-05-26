@@ -1,0 +1,479 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-05-20-rede-neural-com-keras-tensorflow/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "cluster": {
+    "id": "cluster_013",
+    "label": "Saving and reloading Keras models",
+    "rationale": "These candidates explain persisting a trained model with model.save() and restoring it with load_model(), enabling reuse and deployment.",
+    "candidate_ids": [
+      "c55_pro_thinking_018"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_013",
+      "label": "Saving and reloading Keras models",
+      "rationale": "These candidates explain persisting a trained model with model.save() and restoring it with load_model(), enabling reuse and deployment.",
+      "candidate_ids": [
+        "c55_pro_thinking_018"
+      ]
+    },
+    {
+      "id": "cluster_014",
+      "label": "Fine-tuning with optimizer parameters",
+      "rationale": "These candidates describe customizing optimizer instances (e.g., RMSprop with learning rate and decay) to fine-tune training behavior.",
+      "candidate_ids": [
+        "c55_pro_thinking_019"
+      ]
+    },
+    {
+      "id": "cluster_015",
+      "label": "Fine-tuning with Early Stopping",
+      "rationale": "These candidates explain using the EarlyStopping callback to prevent overfitting by halting training when a monitored metric stops improving.",
+      "candidate_ids": [
+        "c55_pro_thinking_020"
+      ]
+    },
+    {
+      "id": "cluster_016",
+      "label": "End-to-end Keras workflow for classification",
+      "rationale": "These candidates outline the complete pipeline from defining the network to making predictions, emphasizing a structured workflow that can be applied to classification tasks.",
+      "candidate_ids": [
+        "c55_pro_thinking_001",
+        "c56_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_017",
+      "label": "Loading built-in Keras datasets",
+      "rationale": "These candidates demonstrate loading standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb from tensorflow.keras.datasets, including code for unpacking into train/test sets.",
+      "candidate_ids": [
+        "c54_pro_thinking_002",
+        "c55_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_018",
+      "label": "MNIST dataset characteristics and loading",
+      "rationale": "These candidates specifically focus on the MNIST dataset: its properties (28x28 images, 10 digits, train/test split) and how to load it using keras.datasets.mnist.load_data().",
+      "candidate_ids": [
+        "c54_pro_thinking_001"
+      ]
+    },
+    {
+      "id": "cluster_019",
+      "label": "Inspecting data shape and labels",
+      "rationale": "Both candidates describe checking array shapes and inspecting labels after loading data, often using print statements and visualization (e.g., plt.matshow).",
+      "candidate_ids": [
+        "c54_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_020",
+      "label": "Sequence padding for RNNs",
+      "rationale": "These candidates cover the preprocessing step of padding sequences to a fixed length using pad_sequences, essential for feeding variable-length data into RNNs.",
+      "candidate_ids": [
+        "c55_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_021",
+      "label": "Train/test split with sklearn",
+      "rationale": "These candidates describe using sklearn.model_selection.train_test_split to partition data into training and test sets, controlling test_size and random_state.",
+      "candidate_ids": [
+        "c55_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_022",
+      "label": "Standardization with StandardScaler",
+      "rationale": "These candidates explain fitting a StandardScaler to training data and transforming both train and test sets to have zero mean and unit variance, a common preprocessing step.",
+      "candidate_ids": [
+        "c55_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_023",
+      "label": "Building an MLP for binary classification",
+      "rationale": "Both candidates show constructing a Sequential model with Dense layers using relu for hidden layers and sigmoid for the output layer, tailored for binary classification tasks.",
+      "candidate_ids": [
+        "c55_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_024",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "rationale": "These candidates illustrate stacking Dense layers with relu activation, interspersed with Dropout layers, and a softmax output layer for multi-class problems.",
+      "candidate_ids": [
+        "c55_pro_thinking_009"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c55_pro_thinking_018",
+    "c55_pro_thinking_019",
+    "c55_pro_thinking_020",
+    "c55_pro_thinking_001",
+    "c56_pro_thinking_003",
+    "c54_pro_thinking_002",
+    "c55_pro_thinking_002",
+    "c54_pro_thinking_001",
+    "c54_pro_thinking_003",
+    "c55_pro_thinking_004",
+    "c55_pro_thinking_006",
+    "c55_pro_thinking_007",
+    "c55_pro_thinking_008",
+    "c55_pro_thinking_009"
+  ],
+  "candidates": [
+    {
+      "id": "c55_pro_thinking_018",
+      "label": "Saving and reloading Keras models",
+      "description": "Persist a trained model to an HDF5 file with model.save() and reload it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can save a model to a .h5 file.",
+        "Student can load a saved model and verify its architecture."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Save/Reload Models' section provides the exact imports and calls for saving and loading.",
+        "granularity_rationale": "This is a pair of straightforward commands that can be checked by asking to write the save/load code."
+      },
+      "anchors": [
+        "Save/Reload Models"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_019",
+      "label": "Fine‑tuning by adjusting optimizer parameters",
+      "description": "Customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and then compiling the model with that optimizer.",
+      "coverage_criteria": [
+        "Student can create an RMSprop optimizer object with custom parameters.",
+        "Student can use that optimizer in model.compile()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Optimization Parameters' subsection under 'Model Fine‑Tuning' explicitly creates an RMSprop object with lr and decay, then compiles with it.",
+        "granularity_rationale": "Adjusting optimizer parameters is a focused task; the concept can be tested by asking the student to set a learning rate of 0.001."
+      },
+      "anchors": [
+        "Optimization Parameters"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_020",
+      "label": "Fine‑tuning with Early Stopping",
+      "description": "Prevent overfitting by using the EarlyStopping callback, which stops training when a monitored metric (e.g., validation loss) fails to improve after a given patience.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Early Stopping' subsection shows the creation of an EarlyStopping monitor with patience=2 and its use in fit() via the callbacks parameter.",
+        "granularity_rationale": "Early stopping is a single callback that can be assessed with a short coding exercise."
+      },
+      "anchors": [
+        "Early Stopping"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_001",
+      "label": "End-to-end Keras workflow for binary classification",
+      "description": "The overall pipeline for building a neural network in Keras: import modules, create a Sequential model, add Dense layers, compile with optimizer and loss, fit on data, and generate predictions.",
+      "coverage_criteria": [
+        "Student can explain each line of the basic example code and its role in a Keras workflow.",
+        "Student can write a similar minimal script for a binary classification problem."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The cheat sheet opens with a 'A Basic Example' section showing a complete, runnable code snippet that demonstrates every essential step of a Keras neural network pipeline.",
+        "granularity_rationale": "This candidate captures the high‑level workflow, allowing assessment of overall comprehension with one or two questions about the sequence and purpose of the steps."
+      },
+      "anchors": [
+        "A Basic Example"
+      ]
+    },
+    {
+      "id": "c56_pro_thinking_003",
+      "label": "Keras Model Workflow",
+      "description": "The basic steps to build a model in Keras are: define the network, compile the network, fit the network, evaluate the network, and make predictions.",
+      "coverage_criteria": [
+        "Student can list the five steps in order: define, compile, fit, evaluate, predict."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article outlines a clear step-by-step process under 'How to Build a Model in Keras?', explicitly listing the five steps, making this concept directly sourced.",
+        "granularity_rationale": "It is of appropriate size for a single checkable item—recalling the sequence, which can be tested with a straightforward question."
+      },
+      "anchors": [
+        "How to Build a Model in Keras?"
+      ]
+    },
+    {
+      "id": "c54_pro_thinking_002",
+      "label": "Loading MNIST with Keras",
+      "description": "The MNIST dataset can be loaded directly from tensorflow.keras.datasets using mnist.load_data(), which returns tuples of training and testing images and labels.",
+      "coverage_criteria": [
+        "Student can write the correct import and function call to load MNIST.",
+        "Student can unpack the returned data into training and test sets."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides the exact code: from tensorflow.keras.datasets import mnist, then (train_images, train_labels), (test_images, test_labels) = mnist.load_data().",
+        "granularity_rationale": "This is a single, actionable step that the Companion can verify with a short coding question."
+      },
+      "anchors": [
+        "## Loading Dataset from Keras"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_002",
+      "label": "Loading built-in Keras datasets",
+      "description": "How to load standard datasets (MNIST, CIFAR-10, Boston Housing, IMDb) from tensorflow.keras.datasets and split them into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three datasets available in tensorflow.keras.datasets.",
+        "Student can demonstrate loading one dataset and unpacking it into x_train, y_train, x_test, y_test."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Data' section provides explicit import statements and code for loading four different datasets, each showing the correct syntax.",
+        "granularity_rationale": "This concept is a single action (load_data) that can be verified by asking the student to recall the available datasets and the unpacking pattern."
+      },
+      "anchors": [
+        "Keras Data Sets"
+      ]
+    },
+    {
+      "id": "c54_pro_thinking_001",
+      "label": "MNIST dataset characteristics",
+      "description": "The MNIST dataset contains 28x28 grayscale images of handwritten digits 0-9, split into 60,000 training and 10,000 test samples. It is widely used as the 'Hello World' of deep learning.",
+      "coverage_criteria": [
+        "Student can state the image size, number of classes, and train/test split sizes.",
+        "Student can explain why MNIST is a common beginner dataset."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly describes the dataset's pixel dimensions, categories, and its role as a beginner's example.",
+        "granularity_rationale": "This is a single, checkable factual concept about the dataset that underpins the entire tutorial."
+      },
+      "anchors": [
+        "## About the dataset"
+      ]
+    },
+    {
+      "id": "c54_pro_thinking_003",
+      "label": "Inspecting MNIST data shape and labels",
+      "description": "After loading, you can inspect the shape and content of the arrays: training images are (60000,28,28), labels are (60000,), and you can visualize individual samples with matplotlib.",
+      "coverage_criteria": [
+        "Student can print and interpret train_images.shape and train_labels.shape.",
+        "Student can display a single digit image using plt.matshow()."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article shows print(train_images.shape), print(len(train_labels)), and a plt.matshow() example.",
+        "granularity_rationale": "This step ensures the learner can verify the data, which is essential before building a model."
+      },
+      "anchors": [
+        "## Loading Dataset from Keras"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_004",
+      "label": "Preprocessing: sequence padding with pad_sequences",
+      "description": "Pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, specifying a maxlen.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Sequence Padding' subsection directly illustrates padding on the IMDb dataset with a maxlen of 80, showing the call for both train and test.",
+        "granularity_rationale": "Pad_sequences is a single‑purpose utility that can be checked with a short coding question or explanation."
+      },
+      "anchors": [
+        "Sequence Padding"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_006",
+      "label": "Preprocessing: train/test split with sklearn",
+      "description": "Use sklearn.model_selection.train_test_split to split a dataset into training and test portions, controlling test_size and random_state.",
+      "coverage_criteria": [
+        "Student can import train_test_split and call it on features and labels.",
+        "Student can explain the roles of test_size and random_state."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Train And Test Sets' subsection provides the exact import and call for train_test_split on an external dataset.",
+        "granularity_rationale": "Splitting is a routine step, easily checked by asking to produce the split code with given parameters."
+      },
+      "anchors": [
+        "Train And Test Sets"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_007",
+      "label": "Preprocessing: standardization/normalization with StandardScaler",
+      "description": "Fit a StandardScaler to training data and transform both training and test sets to have zero mean and unit variance.",
+      "coverage_criteria": [
+        "Student can explain the difference between standardization and normalization.",
+        "Student can write the code to apply StandardScaler and transform datasets."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Standardization/Normalization' subsection illustrates using StandardScaler from sklearn.preprocessing on the Boston Housing dataset.",
+        "granularity_rationale": "This is a single scaling technique; a student can demonstrate it with a short coding task."
+      },
+      "anchors": [
+        "Standardization/Normalization"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_008",
+      "label": "Building an MLP for binary classification with Dense layers",
+      "description": "Construct a Sequential model with input, hidden, and output Dense layers for binary classification, using relu activation for hidden layers and sigmoid for output.",
+      "coverage_criteria": [
+        "Student can add Dense layers with specified units, input_dim, and activations.",
+        "Student can describe why relu and sigmoid are used in this structure."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Multi-Layer Perceptron (MLP) – Binary Classification' subsection shows a concrete three‑layer MLP architecture with the exact parameters.",
+        "granularity_rationale": "This focuses on one specific architecture pattern, testable by asking the student to code an MLP for a binary problem."
+      },
+      "anchors": [
+        "Multi-Layer Perceptron (MLP)",
+        "Binary Classification"
+      ]
+    },
+    {
+      "id": "c55_pro_thinking_009",
+      "label": "Building an MLP for multi‑class classification with Dropout",
+      "description": "Stack Dense layers with relu activation, interspersed with Dropout for regularization, and a softmax output layer for multi‑class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used in the output layer."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The 'Multi-Class Classification' subsection under MLP provides a complete architecture with Dropout and a softmax output.",
+        "granularity_rationale": "The concept focuses on the specific combination of Dropout and multi‑class output, checkable with a code‑writing exercise."
+      },
+      "anchors": [
+        "Multi-Class Classification"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "artifact_type": "knowledge_type_classification_input",
+  "schema_version": "knowledge_type_classification_input.v0",
+  "source_artifacts": {
+    "source_ledger": "source_ledger.json",
+    "subject_merge": "subject_merge.json",
+    "lesson_segments": "lessons/lesson-2026-05-19-introdu-o-a-rede-neural/lesson_segments.json"
+  },
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/classify.md",
+  "prompt": "# Knowledge Type Classification\n\n## Quick Start\n\nAssign the primary teaching mode for each Concept in one Lesson Segment.\n\n## Inputs\n\nUse only the provided `lesson`, `segment`, `concepts`, and `taxonomy`.\n\n- The Lesson contains `lesson_id` and `title`.\n- The Segment contains `segment_id`, `label`, and `concept_ids`.\n- Each Concept contains `concept_id`, `label`, `teaching_description`,\n  `coverage_criteria`, and optional `source_candidate_ids`.\n- The taxonomy definitions come from `prompts/system_prompt.txt`.\n\nDo not use existing `knowledge_type` values, source depth, dependency guesses,\nother Lessons, or web research.\n\n## Taxonomy\n\n- `conceptual`: principles, relationships, why questions.\n- `procedural`: algorithms, step-by-step processes, how questions.\n- `factual`: definitions, dates, terminology, what questions.\n- `applied`: real-world scenarios, design decisions, when-to-use judgment.\n\n## Workflow\n\n1. Read the Segment label for local teaching context.\n2. Read each Concept label, teaching description, and Coverage Criteria.\n3. Decide which teaching mode is primary for assessing that Concept.\n4. Use `procedural` for execution steps, API/library usage, algorithms, or\n   calculations performed step by step.\n5. Use `conceptual` for principles, relationships, distinctions, mental models,\n   and why-oriented understanding.\n6. Use `factual` only for direct recall of definitions, names, dates, or terms\n   with low reasoning.\n7. Use `applied` for scenario judgment, design decisions, trade-offs, and\n   choosing when to use an idea in context.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"input-concept-id\",\n      \"knowledge_type\": \"conceptual\",\n      \"rationale\": \"Short reason citing the deciding clue.\",\n      \"confidence\": 0.87\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not search the web.\n- Do not infer dependencies.\n- Do not edit Segments.\n- Do not rewrite Concepts.\n- Do not create new Concept IDs.\n- Do not omit, duplicate, or rename Concept IDs.\n\n## Self-Check\n\n- Every input Concept is classified exactly once.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale cites the clue that decided the label.\n- When a Concept mixes modes, choose the primary teaching mode required by the\n  Coverage Criteria.\n",
+  "task": "knowledge_type_classification",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-19-introdu-o-a-rede-neural",
+    "title": "Introdução a Rede Neural"
+  },
+  "segment": {
+    "segment_id": "segment_008",
+    "label": "Arquiteturas Avançadas: CNN, ResNet, Autoencoder, GAN",
+    "concept_ids": [
+      "concept-convolutional-neural-networks-7aa30e0e",
+      "concept-deep-residual-networks-5c9977b6",
+      "concept-autoencoder-fc4c9de6",
+      "concept-generative-adversarial-network-gan-779f2f0a"
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-convolutional-neural-networks-7aa30e0e",
+      "label": "Convolutional Neural Networks",
+      "teaching_description": "CNNs are architectures for grid-structured data (e.g., images) that use convolutional layers to detect spatial features, pooling layers to reduce dimensionality, and fully-connected layers for classification. Output size depends on input, filter, stride, and padding.",
+      "coverage_criteria": [
+        "Describe the operation of a convolutional layer (filter, stride, feature map).",
+        "Compute the output size of a convolutional layer given input dimensions, filter size, and padding."
+      ],
+      "source_candidate_ids": [
+        "lr007_015"
+      ]
+    },
+    {
+      "concept_id": "concept-deep-residual-networks-5c9977b6",
+      "label": "Deep Residual Networks",
+      "teaching_description": "Deep Residual Networks (DRNs) use skip connections (residual blocks) to allow gradients to flow through very deep architectures, mitigating the vanishing gradient problem and enabling training of networks like ResNet.",
+      "coverage_criteria": [
+        "Explain what a residual block is and why it helps train very deep networks.",
+        "Name a well-known residual network architecture."
+      ],
+      "source_candidate_ids": [
+        "lr007_016"
+      ]
+    },
+    {
+      "concept_id": "concept-autoencoder-fc4c9de6",
+      "label": "Autoencoder",
+      "teaching_description": "An unsupervised neural network that compresses input into a lower-dimensional representation (encoding) and reconstructs the original input (decoding), useful for dimensionality reduction and feature learning.",
+      "coverage_criteria": [
+        "Sketch the encoder-bottleneck-decoder structure.",
+        "Explain how an autoencoder can be used for data compression or denoising."
+      ],
+      "source_candidate_ids": [
+        "lr007_011"
+      ]
+    },
+    {
+      "concept_id": "concept-generative-adversarial-network-gan-779f2f0a",
+      "label": "Generative Adversarial Network (GAN)",
+      "teaching_description": "A framework where a generator network creates synthetic data and a discriminator network tries to distinguish it from real data; adversarial training improves both.",
+      "coverage_criteria": [
+        "Explain the roles of the generator and discriminator.",
+        "Describe the adversarial training process as a two-player game."
+      ],
+      "source_candidate_ids": [
+        "lr007_012"
+      ]
+    }
+  ],
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

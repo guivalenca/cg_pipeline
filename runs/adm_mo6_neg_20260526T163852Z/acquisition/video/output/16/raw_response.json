@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "chunks": [
+    {
+      "index": 1,
+      "start_seconds": null,
+      "end_seconds": null,
+      "cache_key": "6da4c48731ef14574b7f6121e6c222799d345e436d18f49e305fca7f538fc208",
+      "cache_status": "network",
+      "markdown": "## 0:00 Decision Making Without Probabilities (Cost Example)\n\n**Spoken content:** Welcome. In this brief video, we will be discussing decision making without probabilities, where cost is involved. We will cover the optimistic or maximax approach, the conservative or maximin approach, and also the minimax regret approach.\n\n**On-screen content:**\n![slide: Decision Making Without Probabilities Cost Example](video-frame://16@0:00)\n\n## 0:19 Payoff Table and Objectives\n\n**Spoken content:** We will be using this payoff table where payoffs are costs. The approach we will use in this tutorial is applicable to all cases where smaller payoff values are preferred over larger ones. The objective could be to minimize cost, minimize customer waiting time, minimize risk, minimize distance, and so on.\n\n**On-screen content:**\n![table: Payoff Table with Alternatives d1, d2, d3 and States of Nature S1, S2, S3. Values are d1: 12, -5, 14; d2: 15, 11, -9; d3: 5, 18, -5.](video-frame://16@0:20)\n* Decision making approaches:\n    * Optimistic (Maximax)\n    * Conservative (Maximin)\n    * Minimax Regret\n* Payoff Table\n    * Costs\n    * Minimize Cost\n    * Minimize Customer Waiting Time\n    * Minimize Risk\n    * Minimize Distance\n\n## 0:43 Optimistic (Maximax) Approach\n\n**Spoken content:** The optimistic or maximax approach. Using this approach, we choose the alternative with the best of the best payoffs. Note that the payoffs are costs. Therefore, the smaller the better. For d1, the best payoff is -5. For d2, the best is -9. And for d3, the best is -5. The overall best is -9. Therefore, the optimistic decision is to choose d2.\n\n**On-screen content:**\n![table: Payoff Table with Best column showing -5 for d1, -9 for d2, -5 for d3. The overall Best is -9.](video-frame://16@0:43)\n* Optimistic (Maximax) Approach\n    * Best of Bests\n    * Costs\n    * Decision: Choose d2\n\n## 1:16 Conservative (Maximin) Approach\n\n**Spoken content:** The conservative or maximin approach. Using this approach, we choose the alternative that has the best of the worst payoffs. We first choose the worst payoff in each decision alternative and then choose the best of them. Since these are costs, for d1, the worst is 14. For d2, the worst is 15. For d3, the worst is 18. The best of these worst payoffs is 14. Therefore, the conservative decision is to choose d1.\n\n**On-screen content:**\n![table: Payoff Table with Worst column showing 14 for d1, 15 for d2, 18 for d3. The Best of these Worsts is 14.](video-frame://16@1:16)\n* Conservative (Maximin) Approach\n    * Best of Worsts\n    * Costs\n    * Decision: Choose d1\n\n## 1:52 Minimax Regret Approach\n\n**Spoken content:** The minimax regret approach. Using this approach, we choose the alternative with the minimum of all the maximum regrets across all alternatives. Regret is the difference between the best payoff and the actual payoff received in a particular state of nature. Therefore, for S1, the best payoff is 5 since we're dealing with costs. That is, if you knew S1 was going to occur, you would have chosen D3. So if S1 occurs and you already chose D1, your regrets will be 12 - 5, which equals 7. That is, if you could pay $5 for an item and you paid $12 instead, your regret will be $7. Note that if these are profits, we will subtract all payoffs from the best, which in that case will be the largest value. But because these are costs, we will subtract the smallest from other payoffs. Whatever you do, make sure your regret values are not negative. So going back to S1, if instead you chose D2, you're paying $15 when you could pay $5, and your regrets will be 15 - 5, which equals 10. And if you chose D3, your regret is 5 - 5, which equals 0, that is, there is no regret.\n\n**On-screen content:**\n![table: Payoff Table with calculations for regret for S1. Regret = Payoff Received - Best Payoff.](video-frame://16@1:52)\n* Minimax Regret Approach\n    * Minimum of Maximum Regrets\n    * For costs, Regret = Payoff Received - Best Payoff\n    * S1 calculations:\n        * d1: 12 - 5 = 7\n        * d2: 15 - 5 = 10\n        * d3: 5 - 5 = 0\n\n## 3:21 Minimax Regret Calculations for S2 and S3\n\n**Spoken content:** For S2, your best payoff is -5. So if you chose D1, your regrets will be -5 - (-5), which equals 0. No regret. Note that the double negative becomes positive. And if you chose D2, your regret is 11 - (-5), which equals 16. If you chose D3, your regret will be 18 - (-5), which equals 23. If S3 occurs, the best payoff is -9. So if you chose D1, your regret will be 14 - (-9), which is 23. And if you chose D2, your regrets is -9 - (-9), which equals 0. If you chose D3, your regret will be -5 - (-9), which equals 4.\n\n**On-screen content:**\n![table: Payoff Table with calculations for regret for S2 and S3.](video-frame://16@3:21)\n* S2 calculations:\n    * d1: -5 - (-5) = 0\n    * d2: 11 - (-5) = 16\n    * d3: 18 - (-5) = 23\n* S3 calculations:\n    * d1: 14 - (-9) = 23\n    * d2: -9 - (-9) = 0\n    * d3: -5 - (-9) = 4\n\n## 4:14 Regret Table and Final Decision\n\n**Spoken content:** Here is the Regret Table. Note that after regrets are calculated, the approach for determining the best alternative is exactly the same for profit and cost problems. Since the decision is to be made on minimax regret, we first determine the maximum regret for each alternative and then choose the minimum. For D1, the maximum regret is 23. For D2, the maximum is 16. For D3, the maximum is 23. The minimum of these maximum regrets is 16. Therefore, the minimax regret decision is to choose D2.\n\n**On-screen content:**\n![table: Regret Table with Maximum column showing 23 for d1, 16 for d2, 23 for d3. The Minimum of these Maximums is 16.](video-frame://16@4:14)\n* Regret Table\n    * Max Regret for d1: 23\n    * Max Regret for d2: 16\n    * Max Regret for d3: 23\n    * Min of Maximums: 16\n    * Decision: Choose d2\n",
+      "response": {
+        "sdk_http_response": {
+          "headers": {
+            "x-gemini-service-tier": "standard",
+            "content-type": "application/json; charset=UTF-8",
+            "vary": "Origin, X-Origin, Referer",
+            "content-encoding": "gzip",
+            "date": "Tue, 26 May 2026 16:57:40 GMT",
+            "server": "scaffolding on HTTPServer2",
+            "x-xss-protection": "0",
+            "x-frame-options": "SAMEORIGIN",
+            "x-content-type-options": "nosniff",
+            "server-timing": "gfet4t7; dur=9773",
+            "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+            "transfer-encoding": "chunked"
+          }
+        },
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "## 0:00 Decision Making Without Probabilities (Cost Example)\n\n**Spoken content:** Welcome. In this brief video, we will be discussing decision making without probabilities, where cost is involved. We will cover the optimistic or maximax approach, the conservative or maximin approach, and also the minimax regret approach.\n\n**On-screen content:**\n![slide: Decision Making Without Probabilities Cost Example](video-frame://16@0:00)\n\n## 0:19 Payoff Table and Objectives\n\n**Spoken content:** We will be using this payoff table where payoffs are costs. The approach we will use in this tutorial is applicable to all cases where smaller payoff values are preferred over larger ones. The objective could be to minimize cost, minimize customer waiting time, minimize risk, minimize distance, and so on.\n\n**On-screen content:**\n![table: Payoff Table with Alternatives d1, d2, d3 and States of Nature S1, S2, S3. Values are d1: 12, -5, 14; d2: 15, 11, -9; d3: 5, 18, -5.](video-frame://16@0:20)\n* Decision making approaches:\n    * Optimistic (Maximax)\n    * Conservative (Maximin)\n    * Minimax Regret\n* Payoff Table\n    * Costs\n    * Minimize Cost\n    * Minimize Customer Waiting Time\n    * Minimize Risk\n    * Minimize Distance\n\n## 0:43 Optimistic (Maximax) Approach\n\n**Spoken content:** The optimistic or maximax approach. Using this approach, we choose the alternative with the best of the best payoffs. Note that the payoffs are costs. Therefore, the smaller the better. For d1, the best payoff is -5. For d2, the best is -9. And for d3, the best is -5. The overall best is -9. Therefore, the optimistic decision is to choose d2.\n\n**On-screen content:**\n![table: Payoff Table with Best column showing -5 for d1, -9 for d2, -5 for d3. The overall Best is -9.](video-frame://16@0:43)\n* Optimistic (Maximax) Approach\n    * Best of Bests\n    * Costs\n    * Decision: Choose d2\n\n## 1:16 Conservative (Maximin) Approach\n\n**Spoken content:** The conservative or maximin approach. Using this approach, we choose the alternative that has the best of the worst payoffs. We first choose the worst payoff in each decision alternative and then choose the best of them. Since these are costs, for d1, the worst is 14. For d2, the worst is 15. For d3, the worst is 18. The best of these worst payoffs is 14. Therefore, the conservative decision is to choose d1.\n\n**On-screen content:**\n![table: Payoff Table with Worst column showing 14 for d1, 15 for d2, 18 for d3. The Best of these Worsts is 14.](video-frame://16@1:16)\n* Conservative (Maximin) Approach\n    * Best of Worsts\n    * Costs\n    * Decision: Choose d1\n\n## 1:52 Minimax Regret Approach\n\n**Spoken content:** The minimax regret approach. Using this approach, we choose the alternative with the minimum of all the maximum regrets across all alternatives. Regret is the difference between the best payoff and the actual payoff received in a particular state of nature. Therefore, for S1, the best payoff is 5 since we're dealing with costs. That is, if you knew S1 was going to occur, you would have chosen D3. So if S1 occurs and you already chose D1, your regrets will be 12 - 5, which equals 7. That is, if you could pay $5 for an item and you paid $12 instead, your regret will be $7. Note that if these are profits, we will subtract all payoffs from the best, which in that case will be the largest value. But because these are costs, we will subtract the smallest from other payoffs. Whatever you do, make sure your regret values are not negative. So going back to S1, if instead you chose D2, you're paying $15 when you could pay $5, and your regrets will be 15 - 5, which equals 10. And if you chose D3, your regret is 5 - 5, which equals 0, that is, there is no regret.\n\n**On-screen content:**\n![table: Payoff Table with calculations for regret for S1. Regret = Payoff Received - Best Payoff.](video-frame://16@1:52)\n* Minimax Regret Approach\n    * Minimum of Maximum Regrets\n    * For costs, Regret = Payoff Received - Best Payoff\n    * S1 calculations:\n        * d1: 12 - 5 = 7\n        * d2: 15 - 5 = 10\n        * d3: 5 - 5 = 0\n\n## 3:21 Minimax Regret Calculations for S2 and S3\n\n**Spoken content:** For S2, your best payoff is -5. So if you chose D1, your regrets will be -5 - (-5), which equals 0. No regret. Note that the double negative becomes positive. And if you chose D2, your regret is 11 - (-5), which equals 16. If you chose D3, your regret will be 18 - (-5), which equals 23. If S3 occurs, the best payoff is -9. So if you chose D1, your regret will be 14 - (-9), which is 23. And if you chose D2, your regrets is -9 - (-9), which equals 0. If you chose D3, your regret will be -5 - (-9), which equals 4.\n\n**On-screen content:**\n![table: Payoff Table with calculations for regret for S2 and S3.](video-frame://16@3:21)\n* S2 calculations:\n    * d1: -5 - (-5) = 0\n    * d2: 11 - (-5) = 16\n    * d3: 18 - (-5) = 23\n* S3 calculations:\n    * d1: 14 - (-9) = 23\n    * d2: -9 - (-9) = 0\n    * d3: -5 - (-9) = 4\n\n## 4:14 Regret Table and Final Decision\n\n**Spoken content:** Here is the Regret Table. Note that after regrets are calculated, the approach for determining the best alternative is exactly the same for profit and cost problems. Since the decision is to be made on minimax regret, we first determine the maximum regret for each alternative and then choose the minimum. For D1, the maximum regret is 23. For D2, the maximum is 16. For D3, the maximum is 23. The minimum of these maximum regrets is 16. Therefore, the minimax regret decision is to choose D2.\n\n**On-screen content:**\n![table: Regret Table with Maximum column showing 23 for d1, 16 for d2, 23 for d3. The Minimum of these Maximums is 16.](video-frame://16@4:14)\n* Regret Table\n    * Max Regret for d1: 23\n    * Max Regret for d2: 16\n    * Max Regret for d3: 23\n    * Min of Maximums: 16\n    * Decision: Choose d2"
+                }
+              ],
+              "role": "model"
+            },
+            "citation_metadata": {
+              "citations": [
+                {
+                  "end_index": 2177,
+                  "license": "",
+                  "start_index": 1958,
+                  "uri": "https://youtube.com/v/ajkXzvVegBk"
+                },
+                {
+                  "end_index": 2336,
+                  "license": "",
+                  "start_index": 2121,
+                  "uri": "https://youtube.com/v/ajkXzvVegBk"
+                },
+                {
+                  "end_index": 3605,
+                  "license": "",
+                  "start_index": 3281,
+                  "uri": ""
+                },
+                {
+                  "end_index": 5338,
+                  "license": "",
+                  "start_index": 5098,
+                  "uri": "https://youtube.com/v/ajkXzvVegBk"
+                }
+              ]
+            },
+            "finish_reason": "STOP",
+            "index": 0
+          }
+        ],
+        "model_version": "gemini-2.5-flash",
+        "response_id": "-tAVaoa5IJCsqtsP1Lj5qAk",
+        "usage_metadata": {
+          "cache_tokens_details": [
+            {
+              "modality": "AUDIO",
+              "token_count": 4076
+            },
+            {
+              "modality": "TEXT",
+              "token_count": 1528
+            },
+            {
+              "modality": "VIDEO",
+              "token_count": 5975
+            }
+          ],
+          "cached_content_token_count": 11579,
+          "candidates_token_count": 1743,
+          "prompt_token_count": 13622,
+          "prompt_tokens_details": [
+            {
+              "modality": "TEXT",
+              "token_count": 1798
+            },
+            {
+              "modality": "VIDEO",
+              "token_count": 7029
+            },
+            {
+              "modality": "AUDIO",
+              "token_count": 4795
+            }
+          ],
+          "total_token_count": 15365
+        },
+        "automatic_function_calling_history": []
+      }
+    }
+  ]
+}

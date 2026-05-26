@@ -1,0 +1,89 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+    "display_code": "L05",
+    "workbook_row_number": 33,
+    "title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+    "date": "11/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Análise de sentimentos",
+      "Camadas de comunicação linguística",
+      "Determinação do conteúdo em PLN",
+      "Gramáticas lógicas",
+      "Linguagem estruturada",
+      "Linguagem não estruturada",
+      "Modelos probabilísticos para extração de informação",
+      "Ontologias",
+      "Pré-processamento e morfologia (Análise morfológica)",
+      "Processamento do discurso",
+      "Reconhecimento de voz",
+      "Representação de palavras",
+      "Semântica da sentença e conhecimento do ambiente (Análise semântica)",
+      "Sintaxe da sentença (Análise sintática)"
+    ],
+    "description": "Ao longo do encontro, as técnicas de NLTK, BoW e Naive Bayes são aplicadas para realizar a implementação de um sistema que analise os sentimentos das pessoas dados os textos expostos por elas. Além do objetivo de implementar o sistema, este encontro também apresenta aos estudantes o processo de implementação destes algoritmos para solucionar problemas abordando quais preocupações devem ser latentes durante sua arquitetura."
+  },
+  "self_study": {
+    "self_study_id": "37",
+    "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 37,
+      "week": 4,
+      "sort": 5,
+      "title": "Análise de Sentimentos e o Dataset",
+      "description": "Exemplo adicional de base de dados para análise de sentimentos de filmes.",
+      "url": "https://pt.d2l.ai/chapter_natural-language-processing-applications/sentiment-analysis-and-dataset.html",
+      "resource_code": "",
+      "required": false,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "NLTK, BoW e Naive Bayes para Análise de Conteúdo",
+      "class_date": "11/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0037-article-analise-de-sentimentos-e-o-dataset.md",
+      "sha256": "fb67d3b7595aa527e46fa7d48a422e799e17e61043bf1c90ef47a56256257e12",
+      "word_count": 859,
+      "bytes": 6502,
+      "source_markdown": "article/firecrawl/output/37/37-analise-de-sentimentos-e-o-dataset.md",
+      "artifact_dir": "article/firecrawl/output/37",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0037-article-analise-de-sentimentos-e-o-dataset.md",
+    "sha256": "fb67d3b7595aa527e46fa7d48a422e799e17e61043bf1c90ef47a56256257e12",
+    "word_count": 859,
+    "source_markdown": "article/firecrawl/output/37/37-analise-de-sentimentos-e-o-dataset.md",
+    "markdown": "---\nid: \"37\"\ntitle: \"Análise de Sentimentos e o Dataset\"\nsource_url: \"https://pt.d2l.ai/chapter_natural-language-processing-applications/sentiment-analysis-and-dataset.html\"\nfetch_url: \"https://pt.d2l.ai/chapter_natural-language-processing-applications/sentiment-analysis-and-dataset.html\"\nresolved_url: \"https://pt.d2l.ai/chapter_natural-language-processing-applications/sentiment-analysis-and-dataset.html\"\nfirecrawl_title: \"15.1. Análise de Sentimentos e o Dataset — Dive into Deep Learning 0.17.1 documentation\"\ndescription: null\nfetched_at: \"2026-05-12T03:59:51.916227Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"176b0e63ca449f00cadd5767f51c97a032a316b17b6d6ef048a2244b2a5c1d9a\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html\"\nword_count: 756\nchar_count: 5416\ncontent_sha256: \"f42dc89851e9909d458ae08de692aaae24a5e40888ab348fd1d9edfbd48e168e\"\nimage_count: 3\nlink_count: 37\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes: []\n---\n\n# 15.1. Análise de Sentimentos e o _Dataset_\n\nA classificação de texto é uma tarefa comum no processamento de linguagem natural, que transforma uma sequência de texto de comprimento indefinido em uma categoria de texto. É semelhante à classificação de imagem, o aplicativo usado com mais frequência neste livro, por exemplo, [Section 18.9](https://pt.d2l.ai/chapter_appendix-mathematics-for-deep-learning/naive-bayes.html#sec-naive-bayes). A única diferença é que, em vez de uma imagem, o exemplo da classificação de texto é uma frase de texto.\n\nEsta seção se concentrará no carregamento de dados para uma das subquestões neste campo: usar a classificação de sentimento do texto para analisar as emoções do autor do texto. Esse problema também é chamado de análise de sentimento e tem uma ampla gama de aplicações. Por exemplo, podemos analisar resenhas de usuários de produtos para obter estatísticas de satisfação do usuário ou analisar os sentimentos do usuário sobre as condições de mercado e usá-las para prever tendências futuras.\n\n## 15.1.1. O Dataset de Análise de Sentimento\n\nUsamos o _dataset_ [Large Movie Review Dataset](https://ai.stanford.edu/~amaas/data/sentiment/) de Stanford para análise de sentimento. Este conjunto de dados é dividido em dois conjuntos de dados para fins de treinamento e teste, cada um contendo 25.000 resenhas de filmes baixadas da IMDb. Em cada conjunto de dados, o número de comentários rotulados como “positivos” e “negativos” é igual.\n\n### 15.1.1.1. Lendo o _Dataset_\n\nPrimeiro, baixamos esse _dataset_ para o caminho “../data” e o extraímos para “../data/aclImdb”.\n\n```python\n#@save\nd2l.DATA_HUB['aclImdb'] = (\n    'http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz',\n    '01ada507287d82875905620988597833ad4e0903')\n\ndata_dir = d2l.download_extract('aclImdb', 'aclImdb')\n```\n\nEm seguida, leia os conjuntos de dados de treinamento e teste. Cada exemplo é uma revisão e seu rótulo correspondente: 1 indica “positivo” e 0 indica “negativo.\n\n```python\n#@save\ndef read_imdb(data_dir, is_train):\n    data, labels = [], []\n    for label in ('pos', 'neg'):\n        folder_name = os.path.join(data_dir, 'train' if is_train else 'test',\n                                   label)\n        for file in os.listdir(folder_name):\n            with open(os.path.join(folder_name, file), 'rb') as f:\n                review = f.read().decode('utf-8').replace('\\n', '')\n                data.append(review)\n                labels.append(1 if label == 'pos' else 0)\n    return data, labels\n\ntrain_data = read_imdb(data_dir, is_train=True)\nprint('# trainings:', len(train_data[0]))\nfor x, y in zip(train_data[0][:3], train_data[1][:3]):\n    print('label:', y, 'review:', x[0:60])\n```\n\n### 15.1.1.2. Tokenização e Vocabulário\n\nUsamos uma palavra como token e, em seguida, criamos um dicionário com base no conjunto de dados de treinamento.\n\n```python\ntrain_tokens = d2l.tokenize(train_data[0], token='word')\nvocab = d2l.Vocab(train_tokens, min_freq=5, reserved_tokens=['<pad>'])\n\nd2l.set_figsize()\nd2l.plt.hist([len(line) for line in train_tokens], bins=range(0, 1000, 50));\n```\n\n### 15.1.1.3. Preenchimento com o mesmo comprimento\n\nComo as resenhas têm durações diferentes, não podem ser combinadas diretamente em minibatches. Aqui, fixamos o comprimento de cada comentário em 500, truncando ou adicionando índices “<unk>”.\n\n```python\nnum_steps = 500  # sequence length\ntrain_features = np.array([d2l.truncate_pad(\\\n    vocab[line], num_steps, vocab['<pad>']) for line in train_tokens])\nprint(train_features.shape)\n```\n\n### 15.1.1.4. Criando o Iterador de Dados\n\nAgora, criaremos um iterador de dados. Cada iteração retornará um minibatch de dados.\n\n```python\ntrain_iter = d2l.load_array((train_features, train_data[1]), 64)\n\nfor X, y in train_iter:\n    print('X:', X.shape, ', y:', y.shape)\n    break\nprint('# batches:', len(train_iter))\n```\n\n## 15.1.2. Juntando Tudo\n\nPor último, salvaremos uma função `load_data_imdb` em`d2l`, que retorna o vocabulário e iteradores de dados.\n\n```python\n#@save\ndef load_data_imdb(batch_size, num_steps=500):\n    data_dir = d2l.download_extract('aclImdb', 'aclImdb')\n    train_data = read_imdb(data_dir, True)\n    test_data = read_imdb(data_dir, False)\n    train_tokens = d2l.tokenize(train_data[0], token='word')\n    test_tokens = d2l.tokenize(test_data[0], token='word')\n    vocab = d2l.Vocab(train_tokens, min_freq=5)\n    train_features = np.array([d2l.truncate_pad(\\\n        vocab[line], num_steps, vocab['<pad>']) for line in train_tokens])\n    test_features = np.array([d2l.truncate_pad(\\\n        vocab[line], num_steps, vocab['<pad>']) for line in test_tokens])\n    train_iter = d2l.load_array((train_features, train_data[1]), batch_size)\n    test_iter = d2l.load_array((test_features, test_data[1]), batch_size,\n                               is_train=False)\n    return train_iter, test_iter, vocab\n```\n\n## 15.1.3. Resumo\n\n- A classificação de texto pode classificar uma sequência de texto em uma categoria.\n- Para classificar um sentimento de texto, carregamos um conjunto de dados IMDb e tokenizar suas palavras. Em seguida, preenchemos a sequência de texto para revisões curtas e criamos um iterador de dados.\n\n## 15.1.4. Exercícios\n\n1. Descubra um conjunto de dados de linguagem natural diferente (como [revisões da Amazon](https://snap.stanford.edu/data/web-Amazon.html)) e crie uma função data_loader semelhante como `load_data_imdb`.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

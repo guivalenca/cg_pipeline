@@ -1,0 +1,407 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:01:04.131549+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+  "self_study_id": "35",
+  "source_body_path": "extraction/post-image/0035-video-how-to-implement-naive-bayes-from-scratch-with-python.md",
+  "source_body_sha256": "c3d8fe6cb1ad9559769bf37309dc83048cae201a19f78095e3e1c4b41e687cf4",
+  "source_name": "How to implement Naive Bayes from scratch with Python",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-35-001",
+      "label": "Naive Bayes as a probabilistic classifier with naive independence assumptions",
+      "description": "Naive Bayes is a probabilistic classifier that applies Bayes' theorem with the strong (naive) assumption that all features are conditionally independent given the class label.",
+      "coverage_criteria": [
+        "Define Naive Bayes as a probabilistic classifier.",
+        "Explain what the naive independence assumption means.",
+        "Identify why the assumption is considered naive."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video directly states: 'Naive Bayes is a probabilistic classifier based on applying Bayes' theorem with strong, also called naive, independence assumptions between the features.' and elaborates with an example.",
+        "granularity_rationale": "This is a foundational concept; checking it requires the student to understand the classifier's definition and the core assumption, which can be assessed with a couple of focused questions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:18] Naive Bayes Classifier Definition"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": [
+        "Naive Bayes"
+      ]
+    },
+    {
+      "candidate_id": "candidate-35-002",
+      "label": "Bayes' theorem and its application to classification",
+      "description": "Bayes' theorem states P(A|B) = P(B|A)*P(A)/P(B); in classification, this becomes P(y|X) = P(X|y)*P(y)/P(X), where y is the class label and X is the feature vector.",
+      "coverage_criteria": [
+        "Write Bayes' theorem formula.",
+        "Apply Bayes' theorem to compute class posterior probability given features.",
+        "Identify the terms: prior, likelihood, and evidence in the classification context."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video presents Bayes' theorem and then maps it to classification, with on-screen content showing the formulas and the mapping explicitly.",
+        "granularity_rationale": "The concept is foundational and verifiable by asking the student to state the theorem and adapt it to features and classes."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[00:32] Bayes' Theorem"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": [
+        "Bayes' theorem"
+      ]
+    },
+    {
+      "candidate_id": "candidate-35-003",
+      "label": "Factorization of P(X|y) under feature independence",
+      "description": "Under the naive assumption, P(X|y) = ∏ᵢ P(xᵢ|y), which simplifies the calculation of class conditional probabilities.",
+      "coverage_criteria": [
+        "Derive the factorization of P(X|y) from the independence assumption.",
+        "Explain why this factorization reduces computational complexity.",
+        "Identify that this assumption may not hold in real data."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly states: 'we can split this part here, P of X given Y, into the different components and say this is the product' and shows the product formula on screen.",
+        "granularity_rationale": "This is a key mathematical step; the student can demonstrate understanding by writing the product and explaining its derivation."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:38] Splitting P(X|y) and Log-Trick"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-004",
+      "label": "Prior probability calculation as class frequency",
+      "description": "The prior probability P(y) for a class is estimated as the frequency of that class in the training data, i.e., number of samples of class y divided by total samples.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a given dataset.",
+        "Explain why the prior is based on class frequency.",
+        "Implement the calculation in code using basic operations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "In the video, it says 'P of Y is called the prior probability, and we can simply calculate this as the frequency of each class' and then in the fit method, self._priors[idx] = X_c.shape[0] / float(n_samples).",
+        "granularity_rationale": "This is a concrete calculation that can be tested by asking the student to compute priors for a small dataset."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:07] Prior and Class Conditional Probabilities"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:41] Fit Method: Calculate Mean, Variance, and Prior"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-005",
+      "label": "Class conditional probability modeled with Gaussian distribution",
+      "description": "For continuous features, P(xᵢ|y) is modeled using a Gaussian (normal) distribution parameterized by mean and variance of feature values for each class.",
+      "coverage_criteria": [
+        "State that Naive Bayes often uses Gaussian distribution for continuous features.",
+        "Identify that mean and variance are estimated per feature per class.",
+        "Explain why a Gaussian is a reasonable choice for modeling continuous probabilities."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explains: 'P of Xi given Y is known as the class conditional probability. And for this, we model this with a Gaussian distribution.' and shows the formula and a plot.",
+        "granularity_rationale": "This is a specific modeling choice that can be assessed by asking the student to justify the use of Gaussian and describe its parameters."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:07] Prior and Class Conditional Probabilities"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": [
+        "Gaussian distribution"
+      ]
+    },
+    {
+      "candidate_id": "candidate-35-006",
+      "label": "Gaussian probability density function formula",
+      "description": "The Gaussian PDF is given by P(x|y) = (1/√(2πσ²)) * exp(-(x-μ)²/(2σ²)), where μ and σ² are class-specific mean and variance.",
+      "coverage_criteria": [
+        "Write the Gaussian PDF formula.",
+        "Identify the parameters: mean and variance.",
+        "Compute the PDF value for a given x, μ, and σ."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The formula is shown on screen and later implemented in the _pdf method, with code that directly translates the mathematical formula.",
+        "granularity_rationale": "This is a crucial formula; the student can be tested by asking them to write the formula or implement a simple version."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[11:29] PDF Function (Gaussian Probability Density Function)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:07] Prior and Class Conditional Probabilities"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-007",
+      "label": "Log-trick for numerical stability in Naive Bayes",
+      "description": "To avoid underflow from multiplying many small probabilities, the argmax over log-sum of probabilities is used: argmax_y (log P(y) + ∑ᵢ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Explain why multiplying probabilities can lead to numerical issues.",
+        "Derive the log-sum form from the original product form.",
+        "Apply log-trick to compute class posterior."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video details the log-trick: 'Instead of the product, we do a sum. And then we apply the logarithm... we can change the product with a sum' and shows the formula step-by-step.",
+        "granularity_rationale": "This is a specific technique that can be tested by asking the student to transform a given expression or explain its purpose."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:38] Splitting P(X|y) and Log-Trick"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:03] Selecting Class with Highest Posterior Probability"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-008",
+      "label": "Naive Bayes training procedure: computing per-class statistics",
+      "description": "Training involves computing the mean and variance of each feature for each class, and the prior probability as the fraction of samples per class.",
+      "coverage_criteria": [
+        "Describe the training procedure for Gaussian Naive Bayes.",
+        "For a given dataset, compute the required statistics manually.",
+        "Explain that training is just summarizing the data without iterative optimization."
+      ],
+      "source_roles": [
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video summarizes: 'In the training step, we calculate the mean, the variance and the prior, so the frequency for each class with our training set.' and then the fit method implements exactly this.",
+        "granularity_rationale": "This is a procedural concept; it can be checked by asking the student to list the training steps or compute them on a small example."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:53] Steps for Naive Bayes"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[05:41] Fit Method: Calculate Mean, Variance, and Prior"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-009",
+      "label": "Naive Bayes prediction: posterior calculation and argmax",
+      "description": "For a new sample, the class with the highest log-posterior (log prior + sum of log class conditionals) is chosen as the prediction.",
+      "coverage_criteria": [
+        "Write the formula for the log-posterior.",
+        "Explain the role of argmax in classification.",
+        "Step through a prediction example for a simple dataset."
+      ],
+      "source_roles": [
+        "explaining",
+        "implementing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video says: 'In the prediction step, we calculate the posterior for each class with the formula... choose the class with the highest posterior probability' and the predict method returns self._classes[np.argmax(posteriors)].",
+        "granularity_rationale": "This is the core prediction mechanism; the student can demonstrate understanding by performing a class prediction given prior and conditional probabilities."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[02:03] Selecting Class with Highest Posterior Probability"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[10:57] Predict Method: Return Class with Highest Posterior"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-35-010",
+      "label": "Python implementation details: NaiveBayes class structure",
+      "description": "The classifier is implemented as a Python class with methods fit() and predict(), using NumPy arrays, and storing learned parameters as class attributes.",
+      "coverage_criteria": [
+        "Outline the structure of the NaiveBayes class.",
+        "Explain the purpose of the fit and predict methods.",
+        "Identify the attributes stored by the model after training."
+      ],
+      "source_roles": [
+        "implementing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video creates a NaiveBayes class with fit and predict methods, using self._mean, self._var, self._priors, etc., and the code is shown step-by-step.",
+        "granularity_rationale": "This is an implementation concept; it can be checked by asking the student to describe the class API or fill in missing parts."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[04:23] Python Class Structure"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[08:27] Predict Method: Helper Function and Posterior Calculation"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": [
+        "NumPy"
+      ]
+    },
+    {
+      "candidate_id": "candidate-35-011",
+      "label": "Testing Naive Bayes with accuracy evaluation",
+      "description": "A standard test harness using sklearn's datasets.make_classification and train_test_split, then computing accuracy (percentage of correct predictions).",
+      "coverage_criteria": [
+        "Set up a test for Naive Bayes using a synthetic dataset.",
+        "Compute accuracy from true and predicted labels.",
+        "Interpret the accuracy score to assess model performance."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "practicing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video concludes by testing the classifier with code: generating a toy dataset, splitting, fitting, predicting, and printing accuracy, with the output 0.965.",
+        "granularity_rationale": "This covers model evaluation; the student can be asked to write a similar evaluation script or compute accuracy for given predictions."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[13:31] Testing the Naive Bayes Classifier"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "How to implement Naive Bayes from scratch with Python",
+      "source_year": "2026",
+      "name_drops": [
+        "sklearn",
+        "scikit-learn"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-35-003",
+      "to_candidate_id": "candidate-35-007",
+      "reason": "The product factorization of P(X|y) under independence leads to the log-trick to convert the product into a sum for numerical stability, as shown in the same presentation step.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[01:38] Splitting P(X|y) and Log-Trick"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-008",
+      "to_candidate_id": "candidate-35-009",
+      "reason": "The training step (computing mean, variance, prior) provides the parameters necessary for the prediction step's posterior calculation.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[03:53] Steps for Naive Bayes"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-35-006",
+      "to_candidate_id": "candidate-35-009",
+      "reason": "The Gaussian PDF formula is used to compute the class conditional probabilities P(x_i|y) within the log-posterior summation during prediction.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "[08:27] Predict Method: Helper Function and Posterior Calculation"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "[11:29] PDF Function (Gaussian Probability Density Function)"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 11,
+    "source_local_connector_candidate_count": 3
+  }
+}

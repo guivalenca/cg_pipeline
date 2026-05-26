@@ -1,0 +1,79 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/companion/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "si",
+  "module_id": "mod6",
+  "subject_id": "COM",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+    "display_code": "L08",
+    "workbook_row_number": 52,
+    "title": "Rede Neural com Keras (Tensorflow)",
+    "date": "20/05/2026",
+    "professor": "Bryan Kano Ferreira",
+    "axis": "COM",
+    "related_labels": [
+      "Redes Neurais"
+    ],
+    "description": "Os conceitos apresentados sobre redes neurais serão implementados utilizando a API Keras de Python em conjunto com o Tensorflow. Após este encontro, os estudantes deverão ser capazes de implementar Redes Neurais de diversas configurações utilizando as ferramentas apresentadas."
+  },
+  "self_study": {
+    "self_study_id": "54",
+    "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 54,
+      "week": 5,
+      "sort": 12,
+      "title": "Building our first neural network in keras",
+      "description": "Este autoestudo vai apresentar uma forma de construir os modelos de redes neurais utilizando o Keras.",
+      "url": "https://medium.com/@akashgopalgs/building-your-first-neural-network-a-practical-guide-ecf1a936bc47",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [
+        "Redes Neurais",
+        "Vetores multidimensionais"
+      ],
+      "parent_class": "Rede Neural com Keras (Tensorflow)",
+      "class_date": "20/05/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed",
+      "path": "extraction/post-image/0054-article-building-our-first-neural-network-in-keras.md",
+      "sha256": "74c55e850bd3c1766b6fb378a0fbda48d1b3c989a7191479f3ea79f6ab8f6e9e",
+      "word_count": 951,
+      "bytes": 7140,
+      "source_markdown": "article/firecrawl/output/54/54-building-our-first-neural-network-in-keras.md",
+      "artifact_dir": "article/firecrawl/output/54",
+      "availability_warnings": [],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "extraction/post-image/0054-article-building-our-first-neural-network-in-keras.md",
+    "sha256": "74c55e850bd3c1766b6fb378a0fbda48d1b3c989a7191479f3ea79f6ab8f6e9e",
+    "word_count": 951,
+    "source_markdown": "article/firecrawl/output/54/54-building-our-first-neural-network-in-keras.md",
+    "markdown": "---\nid: \"54\"\ntitle: \"Building our first neural network in keras\"\nsource_url: \"https://medium.com/@akashgopalgs/building-your-first-neural-network-a-practical-guide-ecf1a936bc47\"\nfetch_url: \"https://medium.com/@akashgopalgs/building-your-first-neural-network-a-practical-guide-ecf1a936bc47\"\nresolved_url: \"https://medium.com/@akashgopalgs/building-your-first-neural-network-a-practical-guide-ecf1a936bc47\"\nfirecrawl_title: \"Building Your First Neural Network: A Practical Guide | by Akash Gopal GS | Medium\"\ndescription: \"Building Your First Neural Network: A Practical Guide Neural networks are the backbone of modern artificial intelligence, powering applications like handwriting recognition, image classification, and …\"\nfetched_at: \"2026-05-12T03:59:52.136984Z\"\nprovider: \"firecrawl\"\nstrategy: \"static_with_actions\"\ncache_key: \"3db718de94da45630ab64bbd78d6401a1449805d528ede74b56585b415006279\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 737\nchar_count: 5374\ncontent_sha256: \"2f59448cd1580797322504462a6f3c90dc300ca3155c9ab536aa961d542505f6\"\nimage_count: 59\nlink_count: 60\nwarnings: []\ngate_status: \"passed\"\ngate_failures: []\nroute_notes:\n  - \"medium_can_return_deleted_or_member_wall\"\n---\n\n# Building Your First Neural Network: A Practical Guide\n\nNeural networks are the backbone of modern artificial intelligence, powering applications like handwriting recognition, image classification, and natural language processing. If you're new to the field, there's no better way to start than by building a simple neural network.\n\nIn this guide, we'll walk you through creating your first neural network using Python, TensorFlow, and Keras. We'll use the MNIST dataset, a collection of 28x28 grayscale images of handwritten digits (0–9). It's the \"Hello World\" of deep learning, perfect for beginners to grasp the basics.\n\n## About the dataset\n\n- Handwritten digits\n- 28x28 pixel\n- 10 categories (0–9)\n- MNIST (National Institute of Standards and Technology-1980s)\n- Hello World of Deep Learning\n- Sample >> label\n\nPython > Tensorflow > Keras\n\nImage summary: A sample MNIST image shows handwritten digit examples from the dataset, illustrating the kind of 28x28 grayscale inputs the model will classify. The article uses these digit images as the training and test data for recognizing numbers 0 through 9. [Original image: MNIST Sample Image](https://miro.medium.com/v2/resize:fit:700/1*1C6EN5UCbO7kBED4gIpu3w.png)\n\n## Loading Dataset from Keras\n```python\nfrom tensorflow.keras.datasets import mnist\nimport numpy as np\n```\n\n```python\n(train_images, train_labels), (test_images, test_labels) = mnist.load_data()\ntrain_images[1]\n```\n\n```python\narray([[  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,   \n          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0],\n       [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,   \n          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0],\n       [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,   \n          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0],\n       ...\n       [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,   \n          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0]], dtype=uint8)\n```\n\n```python\nplt.matshow(train_images[1], cmap='gray')\nplt.show()\n```\n\nImage summary: A grayscale MNIST digit is shown as a 28×28 pixel image with axes labeled roughly 0 to 25. The displayed sample is the handwritten digit 0, illustrating the kind of input the neural network will classify. [Original image: MNIST Image Visualization](https://miro.medium.com/v2/resize:fit:543/1*QM_Ts-PCMlmxri0nkD-uIw.png)\n\n```python\nprint(train_labels[1])\nprint(train_images.shape)\nprint(len(train_labels))\nprint(train_labels.shape)\n```\n\n```python\n0\n(60000, 28, 28)\n60000\n(60000,)\n```\n\n```python\nprint(train_labels)\nprint(test_images.shape)\nprint(test_labels.shape)\nprint(test_labels)\n```\n\n```python\narray([5, 0, 4, ..., 5, 6, 8], dtype=uint8)\n(10000, 28, 28)\n(10000,)\narray([7, 2, 1, ..., 4, 5, 6], dtype=uint8)\n```\n\n## Building our first Network\n\n```python\nfrom tensorflow import keras\nfrom tensorflow.keras import layers\n```\n\n```python\nmodel = keras.Sequential([\n    layers.Dense(512, activation='relu'),  # MLP MultiLayer PERCEPTRON\n    layers.Dense(10, activation='softmax')\n])\n\n# Dense layers or fully connected layers\n```\n\n- Output layer will return 10 probability scores for 0–9 (summing to 1)  \n- An optimizer (updater)  \n- A loss function (how the model will evaluate its performance)  \n- Metrics to monitor during training and testing – accuracy score (the fraction of correctly classified images)  \n\n```python\nmodel.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])\n```\n\n```python\nprint(train_images.shape)\nprint(train_images.dtype)\nprint(train_images.ndim)\n```\n\n```python\n(60000, 28, 28)\ndtype('uint8')\n3\n```\n\nDense layer expects one-dimensional data:\n\n```python\ntrain_images = train_images.reshape((60000, 28*28))\ntrain_images = train_images.astype('float32') / 255\ntest_images = test_images.reshape((10000, 28*28))\ntest_images = test_images.astype('float32') / 255\n```\n\nInstead of this step, we can use a Flatten layer inside the model when layers defining:\n\n```python\ntrain_images.ndim\n```\n\n```python\n2\n```\n\n## Fitting the model\n\n```python\nmodel.fit(train_images, train_labels, epochs=5, batch_size=128)\n```\n\n```\nEpoch 1/5\n469/469 [==============================] - 3s 5ms/step - loss: 0.2521 - accuracy: 0.9274\nEpoch 2/5\n469/469 [==============================] - 4s 8ms/step - loss: 0.1019 - accuracy: 0.9704\nEpoch 3/5\n469/469 [==============================] - 4s 8ms/step - loss: 0.0672 - accuracy: 0.9804\nEpoch 4/5\n469/469 [==============================] - 4s 8ms/step - loss: 0.0494 - accuracy: 0.9853\nEpoch 5/5\n469/469 [==============================] - 4s 8ms/step - loss: 0.0363 - accuracy: 0.9892\n```\n\n```python\ntest_digits = test_images[0:10]\n\npredictions = model.predict(test_digits)\n```\n\n```python\n1/1 [==============================] - 0s 87ms/step\n```\n\n```python\npredictions[0]\n```\n\n```python\narray([8.3242071e-09, 1.0642919e-09, 9.3442068e-06, 7.0566508e-05,\n       4.3198885e-11, 1.4322802e-07, 3.0529613e-13, 9.9991727e-01,\n       3.5945330e-08, 2.6615091e-06], dtype=float32)\n```\n\n```python\nnp.argmax(predictions[0])\n```\n\n```python\n7\n```\n\n```python\ntest_labels[0]\n```\n\n```python\n7\n```\n\nThe predicted output and its actual value are the same.\n\n## Performance measuring\n\n```python\ntest_loss, test_acc = model.evaluate(test_images, test_labels)\n```\n\n```\n313/313 [==============================] - 3s 10ms/step - loss: 0.0685 - accuracy: 0.9788\n```\n\n```python\nprint(test_loss)\nprint(test_acc)\n```\n\n```python\n0.06846360117197037\n0.9787999987602234\n```\n\n## Conclusion\n\nThis guide outlines building a simple neural network for MNIST digit classification, including loading the dataset, preprocessing, defining the model, training, and making predictions. It serves as an excellent \"Hello World\" for understanding deep learning.\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

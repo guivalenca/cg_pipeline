@@ -1,0 +1,329 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_016",
+    "area": {
+      "id": "area_016",
+      "label": "Text Summarization",
+      "rationale": "Summarization types, processing steps, extraction vs abstraction, compression rate, and examples using NLTK, BERT, GPT-2.",
+      "candidate_ids": [
+        "lr012_001",
+        "lr012_002",
+        "lr012_003",
+        "lr012_004",
+        "lr012_005",
+        "lr012_006",
+        "lr012_007",
+        "lr012_008",
+        "lr012_009",
+        "lr012_010",
+        "lr012_011",
+        "lr012_012",
+        "lr012_013",
+        "lr012_014",
+        "lr012_015",
+        "lr012_016",
+        "lr012_017"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr012_001",
+    "lr012_002",
+    "lr012_003",
+    "lr012_004",
+    "lr012_005",
+    "lr012_006",
+    "lr012_007",
+    "lr012_008",
+    "lr012_009",
+    "lr012_010",
+    "lr012_011",
+    "lr012_012",
+    "lr012_013",
+    "lr012_014",
+    "lr012_015",
+    "lr012_016",
+    "lr012_017"
+  ],
+  "candidates": [
+    {
+      "id": "lr012_001",
+      "label": "Text Summarization Objectives",
+      "description": "Text summarization aims to condense information from one or more source texts into a shorter version that preserves the main ideas and important content, serving as a tool for accessibility and efficient information retrieval.",
+      "coverage_criteria": [
+        "Student can state the primary goal of text summarization and list its benefits for readers and producers."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_002",
+      "label": "Mono-document vs Multi-document Summarization",
+      "description": "Summarization can be classified by the number of input documents: mono-document summarization produces a summary from a single text, while multi-document summarization synthesizes information from multiple related documents, often dealing with greater information volume.",
+      "coverage_criteria": [
+        "Student can differentiate between mono-document and multi-document summarization and provide an example scenario for each."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_003",
+      "label": "Extractive vs Abstractive Summarization",
+      "description": "Extractive summarization selects and concatenates unchanged sentences from the source text, while abstractive summarization may rephrase or generate new sentences, potentially altering structure and meaning, and requiring more complex NLP.",
+      "coverage_criteria": [
+        "Student can explain the difference between extractive and abstractive summarization, and identify which is more complex and why."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_004",
+      "label": "Indicative vs Informative Summaries",
+      "description": "Indicative summaries provide a vague idea of the content and cannot replace the source, while informative summaries preserve the main content and can act as substitutes, allowing users to understand the subject without reading the full text.",
+      "coverage_criteria": [
+        "Student can distinguish between indicative and informative summaries and explain when each is more appropriate."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_005",
+      "label": "Generic vs User-Oriented Summaries",
+      "description": "Generic summaries present the most important information without considering the user's background, while user-oriented summaries tailor the content based on the user's knowledge, providing context for novices or novelty for experts.",
+      "coverage_criteria": [
+        "Student can differentiate between generic and user-oriented summaries and describe a scenario where user-oriented would be beneficial."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_006",
+      "label": "Supervised vs Unsupervised Summarization",
+      "description": "Supervised summarization treats sentence inclusion as a classification task trained on labeled examples, while unsupervised summarization uses pre-defined features and heuristics to determine sentence importance without needing training data.",
+      "coverage_criteria": [
+        "Student can explain the difference between supervised and unsupervised approaches to summarization and give an example of each."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_007",
+      "label": "Intermediate Representation in Summarization",
+      "description": "The first step of summarization processing is creating an intermediate representation that captures the main aspects of the text, such as topic representations using word frequency tables or more complex indicators.",
+      "coverage_criteria": [
+        "The student can define intermediate representation and describe one common method."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_008",
+      "label": "Sentence Scoring for Summarization",
+      "description": "After intermediate representation, each sentence receives a score indicating its importance, often based on how well it expresses key topics or a combination of indicator evidence, sometimes using machine learning.",
+      "coverage_criteria": [
+        "The student can explain the purpose of sentence scoring and describe a common method."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_009",
+      "label": "Sentence Selection Algorithms",
+      "description": "The summarization system selects a set of high-scoring sentences to form a summary, using greedy approaches that recalculate importance considering redundancy, or global optimization maximizing importance and coherence.",
+      "coverage_criteria": [
+        "The student can describe the goal of sentence selection and outline one approach."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_010",
+      "label": "Reformulation in Abstractive Summarization",
+      "description": "In abstractive summarization, a final reformulation step rewrites or paraphrases the selected content to produce a fluent summary, often using natural language generation.",
+      "coverage_criteria": [
+        "The student can explain when reformulation is applied and its role."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_011",
+      "label": "Compression Rate in Summarization",
+      "description": "Compression rate defines the size of the summary relative to the source text; e.g., a 60% compression rate means the summary will be 40% of the original length.",
+      "coverage_criteria": [
+        "The student can define compression rate and calculate target summary length."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_012",
+      "label": "Extractive Summarization Example with Python and NLTK",
+      "description": "An extractive summarization workflow in Python using urllib, BeautifulSoup, NLTK for tokenization and stopword removal, then scoring sentences by word frequency to select the top sentences.",
+      "coverage_criteria": [
+        "The student can list the main steps: fetching data, parsing HTML, tokenizing, removing stopwords, creating frequency distribution, scoring sentences, and selecting top sentences."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_013",
+      "label": "BERT Sentence Embeddings and K-Medoid Clustering for Extractive Summarization",
+      "description": "Pre-trained BERT models convert sentences into fixed-length embeddings, which are then clustered using K-medoid to select representative sentences as the extractive summary, ensuring selected sentences are actual text excerpts.",
+      "coverage_criteria": [
+        "The student can explain how BERT creates sentence embeddings and how K-medoid clustering selects sentences.",
+        "The student can contrast K-means and K-medoid for this task."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_014",
+      "label": "Fine-tuning GPT-2 for Abstractive Summarization",
+      "description": "GPT-2 is fine-tuned with a multi-loss strategy combining language modeling and multiple-choice prediction, using special tokens like <summarize> and keywords as input, with masked self-attention ensuring auto-regressive generation.",
+      "coverage_criteria": [
+        "The student can describe the two training objectives (language modeling and multiple-choice) and their weighting.",
+        "The student can explain the role of special tokens and masked self-attention in the fine-tuning process."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_015",
+      "label": "Keyword Extraction for Abstractive Summarization",
+      "description": "In the abstractive summarization pipeline, important keywords (nouns and verbs) are automatically extracted using techniques like NLTK POS tagging or fine-tuned BERT, providing a condensed representation for the summarization model.",
+      "coverage_criteria": [
+        "The student can name at least one method for keyword extraction and explain how keywords are used in the summarization input."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr012_016",
+      "label": "Data Scarcity in Domain-Specific Summarization",
+      "description": "Low availability of domain-specific data (e.g., only 35k pairs in COVID-19 research vs 286k in general datasets) and rare terminology can hinder effective fine-tuning of large models like BERT and GPT-2.",
+      "coverage_criteria": [
+        "The student can quantify the data size challenge and explain why limited domain data degrades fine-tuning."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_017",
+      "label": "Future Direction: Hybrid Extractive-Abstractive Summarization",
+      "description": "A suggested future approach is to feed sentences extracted by extractive summarization directly into an abstractive model, potentially improving summary quality by providing richer context.",
+      "coverage_criteria": [
+        "The student can summarize this future work suggestion and discuss one potential benefit."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+      "lesson_title": "Sumarização de texto e Engenharia de Software",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

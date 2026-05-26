@@ -1,0 +1,256 @@
+{
+  "artifact_type": "knowledge_type_quality_repair_input",
+  "schema_version": "knowledge_type_quality_repair_input.v0",
+  "source_artifact": "knowledge_type_classification_summary.json",
+  "quality_audit_artifact": "knowledge_type_quality_audit.json",
+  "taxonomy": {
+    "source_artifact": "prompts/system_prompt.txt",
+    "definitions": {
+      "conceptual": "principles, relationships, \"why\" questions",
+      "procedural": "algorithms, step-by-step processes, \"how\" questions",
+      "factual": "definitions, dates, terminology, \"what\" questions",
+      "applied": "real-world scenarios, design decisions, \"when to use\""
+    }
+  },
+  "prompt_path": "knowledge_type_classification/quality_repair.md",
+  "prompt": "# Knowledge Type Quality Repair\n\n## Quick Start\n\nRepair only the targeted Concept `knowledge_type` labels from the quality audit.\n\n## Inputs\n\nUse only the provided `target_concept_ids`, `current_classifications`,\n`quality_audit`, and `taxonomy`.\n\nThe taxonomy definitions come from `prompts/system_prompt.txt`.\n\n## Workflow\n\n1. Read the repair plan and target Concept IDs.\n2. Inspect only the target Concepts and their Segment evidence.\n3. Choose one primary teaching mode per target Concept.\n4. Preserve every target Concept ID exactly.\n5. Return a short rationale that explains the deciding clue.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"classifications\": [\n    {\n      \"concept_id\": \"target-concept-id\",\n      \"knowledge_type\": \"procedural\",\n      \"rationale\": \"Coverage requires executing a step-by-step API workflow.\",\n      \"confidence\": 0.9\n    }\n  ]\n}\n```\n\n## Never\n\n- Do not repair untargeted Concepts.\n- Do not create new Concept IDs.\n- Do not change Segment membership.\n- Do not infer dependencies.\n- Do not search the web.\n\n## Self-Check\n\n- Every target Concept is classified exactly once.\n- No untargeted Concept appears in the output.\n- Every `knowledge_type` is one of `conceptual`, `procedural`, `factual`, or\n  `applied`.\n- Every rationale addresses the audit reason directly.\n",
+  "task": "knowledge_type_quality_repair",
+  "model_route": "Pro",
+  "target_concept_ids": [
+    "concept-payoff-table-8ec69664",
+    "concept-maximax-optimistic-criterion-92a5e247",
+    "concept-maximin-criterion-f0376021",
+    "concept-expected-monetary-value-emv-criterion-bee4de23"
+  ],
+  "current_classifications": [
+    {
+      "concept_id": "concept-payoff-table-8ec69664",
+      "knowledge_type": "applied",
+      "rationale": "Segment-level classifications disagree and require quality repair.",
+      "source": "segment_conflict_unresolved",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_001",
+          "segment_label": "Payoff Table Construction",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria require constructing a payoff table from a description and interpreting payoffs, which involves scenario application and design decisions.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_001",
+          "segment_label": "Foundations of Decision Analysis",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_001/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require constructing a payoff table and interpreting payoffs, which are step-by-step processes.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-maximax-optimistic-criterion-92a5e247",
+      "knowledge_type": "applied",
+      "rationale": "Segment-level classifications disagree and require quality repair.",
+      "source": "segment_conflict_unresolved",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_002",
+          "segment_label": "Extreme Outcomes: Maximax and Maximin",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Primarily requires selecting an alternative from a payoff table using the maximax rule (real-world scenario application) and explaining when to use the optimistic philosophy.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require step-by-step application of the maximax rule to a payoff table and explanation of its philosophy, making the primary teaching mode procedural execution.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-maximin-criterion-f0376021",
+      "knowledge_type": "applied",
+      "rationale": "Segment-level classifications disagree and require quality repair.",
+      "source": "segment_conflict_unresolved",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-06-decision-making-tools-i",
+          "segment_id": "segment_002",
+          "segment_label": "Extreme Outcomes: Maximax and Maximin",
+          "classification_artifact": "lessons/lesson-2026-05-06-decision-making-tools-i/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Primarily requires applying the maximin criterion to a payoff table (real-world scenario application) and explaining the conservative philosophy in context.",
+          "confidence": 0.9
+        },
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_002",
+          "segment_label": "Criteria for Decisions under Uncertainty",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria emphasize applying the maximin criterion to a payoff table, which is a step-by-step process.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "concept_id": "concept-expected-monetary-value-emv-criterion-bee4de23",
+      "knowledge_type": "procedural",
+      "rationale": "Segment-level classifications disagree and require quality repair.",
+      "source": "segment_conflict_unresolved",
+      "segment_refs": [
+        {
+          "lesson_id": "lesson-2026-05-08-decision-making-tools-ii",
+          "segment_id": "segment_003",
+          "segment_label": "Decision Making under Risk: Expected Monetary Value",
+          "classification_artifact": "lessons/lesson-2026-05-08-decision-making-tools-ii/knowledge_type_segments/segment_003/knowledge_type_classification.json",
+          "knowledge_type": "procedural",
+          "rationale": "Coverage criteria require computing EMV step-by-step from a payoff table, selecting the highest, and determining optimal decisions under risk, which are procedural how tasks.",
+          "confidence": 0.92
+        },
+        {
+          "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+          "segment_id": "segment_002",
+          "segment_label": "Solving Decision Trees",
+          "classification_artifact": "lessons/lesson-2026-05-22-decision-making-tools-iii/knowledge_type_segments/segment_002/knowledge_type_classification.json",
+          "knowledge_type": "applied",
+          "rationale": "Coverage criteria include determining optimal decision using EMV and explaining why criterion is optimal under risk neutrality, which are applied decision scenarios.",
+          "confidence": 0.9
+        }
+      ],
+      "confidence": 0.92
+    }
+  ],
+  "quality_audit": {
+    "artifact_type": "knowledge_type_quality_audit",
+    "schema_version": "knowledge_type_quality_audit.v0",
+    "generated_at": "2026-05-26T20:06:26.777775+00:00",
+    "model_route": "Pro Thinking",
+    "scores": {
+      "taxonomy_fit": 2,
+      "teaching_mode_alignment": 2,
+      "segment_consistency": 0,
+      "factual_boundary": 3,
+      "applied_boundary": 3
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "cross_segment_conflict",
+      "taxonomy_mismatch",
+      "segment_inconsistency"
+    ],
+    "findings": [
+      {
+        "issue": "Unresolved cross-segment conflict for Payoff Table",
+        "concept_ids": [
+          "concept-payoff-table-8ec69664"
+        ],
+        "explanation": "Two segments disagree: one classifies as 'applied' (scenario application), the other as 'procedural' (step-by-step process). The concept involves constructing a structured tool, which is primarily a procedural method."
+      },
+      {
+        "issue": "Unresolved cross-segment conflict for Maximax Criterion",
+        "concept_ids": [
+          "concept-maximax-optimistic-criterion-92a5e247"
+        ],
+        "explanation": "Disagreement between 'applied' (real-world philosophy and when to use) and 'procedural' (step-by-step application). The criterion is fundamentally about decision attitude, making 'applied' more appropriate."
+      },
+      {
+        "issue": "Unresolved cross-segment conflict for Maximin Criterion",
+        "concept_ids": [
+          "concept-maximin-criterion-f0376021"
+        ],
+        "explanation": "Same pattern as Maximax: one segment labels it 'applied', the other 'procedural'. The conservative philosophy and context-dependent use favor 'applied'."
+      },
+      {
+        "issue": "Unresolved cross-segment conflict for Expected Monetary Value Criterion",
+        "concept_ids": [
+          "concept-expected-monetary-value-emv-criterion-bee4de23"
+        ],
+        "explanation": "Conflicting labels of 'procedural' (computation steps) and 'applied' (decision scenarios). EMV requires significant calculation, making 'procedural' the better fit for the primary teaching mode."
+      },
+      {
+        "issue": "cross_segment_conflict",
+        "concept_ids": [
+          "concept-payoff-table-8ec69664"
+        ],
+        "explanation": "Segment-level classifications disagree for this Concept."
+      },
+      {
+        "issue": "cross_segment_conflict",
+        "concept_ids": [
+          "concept-maximax-optimistic-criterion-92a5e247"
+        ],
+        "explanation": "Segment-level classifications disagree for this Concept."
+      },
+      {
+        "issue": "cross_segment_conflict",
+        "concept_ids": [
+          "concept-maximin-criterion-f0376021"
+        ],
+        "explanation": "Segment-level classifications disagree for this Concept."
+      },
+      {
+        "issue": "cross_segment_conflict",
+        "concept_ids": [
+          "concept-expected-monetary-value-emv-criterion-bee4de23"
+        ],
+        "explanation": "Segment-level classifications disagree for this Concept."
+      }
+    ],
+    "repair_plan": [
+      {
+        "concept_ids": [
+          "concept-payoff-table-8ec69664"
+        ],
+        "repair_reason": "cross_segment_conflict",
+        "explanation": "Relabel to 'procedural'. Constructing a payoff table is a step-by-step process: list alternatives, states, and payoffs. It is an algorithmic tool, not primarily a real-world design decision."
+      },
+      {
+        "concept_ids": [
+          "concept-maximax-optimistic-criterion-92a5e247"
+        ],
+        "repair_reason": "cross_segment_conflict",
+        "explanation": "Relabel to 'applied'. The maximax rule represents an optimistic philosophy; teaching focuses on when to use this attitude (real-world scenario judgment) rather than the trivial max-of-max calculation."
+      },
+      {
+        "concept_ids": [
+          "concept-maximin-criterion-f0376021"
+        ],
+        "repair_reason": "cross_segment_conflict",
+        "explanation": "Relabel to 'applied'. Like maximax, maximin is a decision criterion emphasizing a conservative worldview, best taught as a contextual design decision ('when to use')."
+      },
+      {
+        "concept_ids": [
+          "concept-expected-monetary-value-emv-criterion-bee4de23"
+        ],
+        "repair_reason": "cross_segment_conflict",
+        "explanation": "Keep 'procedural'. EMV requires explicit calculation (multiply probabilities by outcomes and sum) and is algorithm-heavy. The criterion is best taught as a method, though its application is central."
+      }
+    ]
+  },
+  "output_contract": {
+    "classifications": [
+      {
+        "concept_id": "Every input Concept ID exactly once.",
+        "knowledge_type": "applied, conceptual, factual, procedural",
+        "rationale": "Short explanation citing the deciding clue.",
+        "confidence": "Optional number from 0.0 to 1.0."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Knowledge Type Classification must use only provided Concept and Segment context."
+  }
+}

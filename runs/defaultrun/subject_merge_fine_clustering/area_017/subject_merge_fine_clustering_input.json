@@ -1,0 +1,141 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_017",
+    "area": {
+      "id": "area_017",
+      "label": "Feature Extraction Pipelines and APIs",
+      "rationale": "End-to-end feature extraction, comparison of approaches, and serving NLP models via Flask APIs.",
+      "candidate_ids": [
+        "lr010_001",
+        "lr010_008",
+        "lr010_010",
+        "lr010_011",
+        "lr010_012",
+        "lr010_013"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr010_001",
+    "lr010_008",
+    "lr010_010",
+    "lr010_011",
+    "lr010_012",
+    "lr010_013"
+  ],
+  "candidates": [
+    {
+      "id": "lr010_001",
+      "label": "Feature Extraction in NLP",
+      "description": "The process of transforming cleaned text into numerical features that machine learning algorithms can process, a fundamental step in NLP pipelines.",
+      "coverage_criteria": [
+        "Explain why text needs to be converted to numbers for ML models.",
+        "List common feature extraction methods (e.g., BoW, TF-IDF, embeddings).",
+        "Describe the role of feature extraction in an NLP pipeline."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "application"
+    },
+    {
+      "id": "lr010_008",
+      "label": "Implementing Feature Extraction in Python for NLP",
+      "description": "Practical implementation of NLP feature extraction pipelines using Python libraries such as scikit-learn, NLTK, and spaCy, including loading text data and applying methods like CountVectorizer.",
+      "coverage_criteria": [
+        "Can write code that loads text data and applies a feature extraction method (e.g., using scikit-learn's CountVectorizer).",
+        "Can describe common Python libraries used for NLP feature extraction."
+      ],
+      "source_roles": [],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_010",
+      "label": "Building a Python Web API to Serve NLP Models",
+      "description": "Developing a Python-based web API to serve NLP models, using frameworks like Flask or FastAPI, including steps to wrap a model into a REST endpoint and considerations like latency and data serialization.",
+      "coverage_criteria": [
+        "Can outline steps to wrap an NLP model into a simple REST API using Python.",
+        "Can identify challenges in serving NLP models via APIs (e.g., latency, data serialization)."
+      ],
+      "source_roles": [],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_011",
+      "label": "Creating a Basic Flask API Endpoint",
+      "description": "Setting up a minimal Flask application by importing Flask, creating an instance, defining a route with @app.route to bind a view function that returns data (e.g., JSON), and running the app. This forms the basis for a simple API endpoint.",
+      "coverage_criteria": [
+        "Can write a minimal Flask app that defines a route returning a string or JSON.",
+        "Can explain how the @app.route decorator registers a URL endpoint."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_012",
+      "label": "Handling Dynamic URL Parameters and URL Generation in Flask",
+      "description": "Using Flask's variable rules to capture dynamic parts of a URL (e.g., <int:user_id>) and employing url_for() to generate URLs for view functions, promoting maintainable and flexible endpoint design.",
+      "coverage_criteria": [
+        "Can write a route with a dynamic path segment and enforce type with converters.",
+        "Can use url_for() to generate a URL to a given view function, including passing arguments."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_013",
+      "label": "Defining API endpoints with HTTP methods in Flask",
+      "description": "Specify allowed HTTP methods with the methods argument to @app.route; use request.method to branch, or use shortcut decorators @app.get/@app.post.",
+      "coverage_criteria": [
+        "Can create a route that handles both GET and POST",
+        "Can use request.method to distinguish request types",
+        "Can rewrite using separate @app.get and @app.post decorators"
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

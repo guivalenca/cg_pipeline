@@ -1,0 +1,230 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-42-001",
+      "label": "Word Embeddings (Incorporação de Palavras)",
+      "description": "Representação de palavras como vetores densos em um espaço vetorial que capturam significado semântico, contrastando com representações esparsas como bag-of-words.",
+      "coverage_criteria": [
+        "Explicar o que são word embeddings e como se diferem de representações vetoriais esparsas."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo define explicitamente word embeddings como uma abordagem de aprendizado de representação que mapeia palavras para vetores densos, melhorando modelos esparsos como BoW.",
+        "granularity_rationale": "Conceito central do capítulo que pode ser avaliado pedindo ao estudante para definir o termo e explicar a motivação."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-42-002",
+      "label": "Hipótese Distributiva",
+      "description": "Hipótese de que sinônimos aparecem frequentemente nos mesmos contextos, e a diferença entre palavras pode ser medida pelas diferenças nos ambientes onde ocorrem, fundamentando a representação vetorial semântica.",
+      "coverage_criteria": [
+        "Enunciar a hipótese distributiva e explicar seu papel na criação de vetores semânticos."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto menciona explicitamente a 'hipótese distributiva' como base para as word embeddings.",
+        "granularity_rationale": "Conceito fundamental que o estudante deve conseguir articular."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-42-003",
+      "label": "Similaridade por Cosseno entre Vetores de Palavras",
+      "description": "Medida de similaridade que utiliza o cosseno do ângulo entre dois vetores para quantificar a proximidade semântica, evitando viés de magnitude.",
+      "coverage_criteria": [
+        "Definir similaridade de cosseno e explicar por que é preferida ao produto escalar para comparar vetores de palavras."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta a similaridade de cosseno como substituta do produto escalar para evitar dominância de palavras frequentes.",
+        "granularity_rationale": "Ferramenta matemática específica frequentemente usada em PLN, testável com uma explicação curta."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["cosseno"]
+    },
+    {
+      "candidate_id": "candidate-42-004",
+      "label": "Arquiteturas do Word2Vec: CBOW e Skip-Gram",
+      "description": "Word2Vec implementa duas arquiteturas: CBOW (Continuous Bag-of-Words) que prevê uma palavra a partir do contexto, e Skip-Gram que prevê o contexto a partir de uma palavra.",
+      "coverage_criteria": [
+        "Diferenciar CBOW de Skip-Gram e descrever a entrada e saída de cada um."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo dedica uma seção para explicar CBOW e Skip-Gram com figuras e pseudocódigo.",
+        "granularity_rationale": "Distinção algorítmica central que o estudante deve saber comparar e contrastar."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Implementação de word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["Word2Vec", "CBOW", "Skip-Gram"]
+    },
+    {
+      "candidate_id": "candidate-42-005",
+      "label": "Objetivo de Treinamento do Word2Vec e Amostragem Negativa",
+      "description": "O treinamento do Word2Vec maximiza a probabilidade de pares palavra-contexto observados usando uma função softmax, e reduz custo computacional com amostragem negativa, que gera rótulos falsos para pares não observados.",
+      "coverage_criteria": [
+        "Explicar o objetivo de treinamento (maximização da probabilidade palavra-contexto) e o propósito da amostragem negativa."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto descreve o objetivo de log-verossimilhança e a amostragem negativa como técnica de treinamento eficiente.",
+        "granularity_rationale": "Compreender o procedimento de treinamento é chave para como o word2vec aprende, e pode ser verificado pedindo um resumo da função de perda e da amostragem negativa."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Implementação de word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["softmax", "negative sampling"]
+    },
+    {
+      "candidate_id": "candidate-42-006",
+      "label": "Analogias com Vetores do Word2Vec",
+      "description": "Os vetores word2vec codificam relações semânticas que permitem operações aritméticas como 'rei' - 'homem' + 'mulher' ≈ 'rainha', demonstrando a capacidade de capturar analogias.",
+      "coverage_criteria": [
+        "Fornecer um exemplo de aritmética vetorial para analogias e explicar o que demonstra sobre as word embeddings."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O capítulo dá o exemplo clássico rei/rainha e explica a intuição geométrica.",
+        "granularity_rationale": "Propriedade famosa do word2vec que ilustra seu poder, podendo ser testada pedindo ao estudante para descrever o exemplo ou um novo."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Algoritmos para word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["Rei/Rainha"]
+    },
+    {
+      "candidate_id": "candidate-42-007",
+      "label": "Comparação entre Word2Vec, GloVe e fastText",
+      "description": "Enquanto Word2Vec foca em contexto local, GloVe utiliza coocorrência global, e fastText usa subpalavras (character n-grams) para melhor generalização, especialmente para palavras desconhecidas.",
+      "coverage_criteria": [
+        "Comparar word2vec com GloVe e fastText em termos de contexto local vs. global e tratamento de palavras desconhecidas."
+      ],
+      "source_roles": ["introducing", "comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto contrasta explicitamente esses algoritmos na seção '2 Algoritmos para word embeddings'.",
+        "granularity_rationale": "Conhecimento comparativo essencial para entender a evolução e os trade-offs dos métodos de embedding, podendo ser avaliado por uma comparação sucinta."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Algoritmos para word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["GloVe", "fastText", "Word2Vec"]
+    },
+    {
+      "candidate_id": "candidate-42-008",
+      "label": "Pré-processamento para Word Embeddings",
+      "description": "Etapas comuns de pré-processamento incluem conversão para minúsculas, remoção de pontuações, stop words e tokenização, para uniformizar o texto antes da vetorização.",
+      "coverage_criteria": [
+        "Listar etapas típicas de pré-processamento para word embeddings e explicar seu propósito."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto fornece um pseudocódigo de pré-processamento e discute a necessidade de remover ruídos.",
+        "granularity_rationale": "Passo prático que os estudantes devem conhecer ao implementar word embeddings, testável solicitando a descrição do processo."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Implementação de word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-42-009",
+      "label": "TF-IDF e Suas Limitações",
+      "description": "TF-IDF pondera a frequência do termo pela inversa da frequência nos documentos, mas gera vetores esparsos de alta dimensionalidade incapazes de capturar semântica complexa.",
+      "coverage_criteria": [
+        "Definir TF-IDF e explicar por que é menos eficaz que word embeddings para capturar similaridade semântica."
+      ],
+      "source_roles": ["explaining", "comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto descreve o TF-IDF e suas desvantagens como representação vetorial, contrastando com embeddings densos.",
+        "granularity_rationale": "Conceito que esclarece por que as word embeddings foram necessárias, verificável com uma definição e contraste curtos."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["TF-IDF"]
+    },
+    {
+      "candidate_id": "candidate-42-010",
+      "label": "BERT: Representação Bidirecional com Transformers",
+      "description": "BERT é um modelo de word embedding bidirecional baseado em transformers que considera contexto anterior e posterior, permitindo representações mais ricas e refinadas para palavras.",
+      "coverage_criteria": [
+        "Descrever a principal característica de bidirecionalidade do BERT e sua diferença em relação a modelos unidirecionais."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o BERT como um modelo de ponta com contexto bidirecional e pré-treinamento.",
+        "granularity_rationale": "Avanço significativo mencionado no capítulo; o estudante deve conseguir identificar sua inovação principal."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "2 Algoritmos para word embeddings"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": ["BERT", "transformers"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-42-001",
+      "to_candidate_id": "candidate-42-002",
+      "reason": "O capítulo apresenta a hipótese distributiva como base teórica para a criação de vetores semânticos (word embeddings).",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-42-004",
+      "to_candidate_id": "candidate-42-005",
+      "reason": "O texto descreve que o treinamento do Word2Vec, tanto CBOW quanto Skip-Gram, utiliza um objetivo de maximização de probabilidade e amostragem negativa para otimização.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "3 Implementação de word embeddings"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-42-003",
+      "to_candidate_id": "candidate-42-002",
+      "reason": "A similaridade de cosseno é usada para quantificar a proximidade dos vetores semânticos derivados da hipótese distributiva.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "1 Word embeddings"}
+      ]
+    }
+  ]
+}

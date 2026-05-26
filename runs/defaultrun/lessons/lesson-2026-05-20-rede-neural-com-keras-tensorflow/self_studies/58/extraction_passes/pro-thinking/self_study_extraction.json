@@ -1,0 +1,270 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T03:27:38.356651+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+  "self_study_id": "58",
+  "source_body_path": "extraction/post-image/0058-article-setup-do-tensorflow-com-cpu-ou-gpu.md",
+  "source_body_sha256": "9c0fdf74fc53d763beff571733b6ab022f5e68e7a80a0c70ad47b5a219374a64",
+  "source_name": "Setup do Tensorflow com CPU ou GPU",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-58-001",
+      "label": "Pacotes pip do TensorFlow para CPU e GPU",
+      "description": "O TensorFlow oferece diferentes pacotes pip: 'tensorflow' para CPU, 'tensorflow[and-cuda]' para suporte a GPU em Linux/WSL2, e 'tensorflow-cpu' para compilação somente CPU.",
+      "coverage_criteria": [
+        "Identificar o pacote pip adequado para cada cenário (somente CPU, GPU Linux, GPU Windows)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O artigo apresenta explicitamente os comandos de instalação com os diferentes pacotes e uma nota sobre o tensorflow-cpu.",
+        "granularity_rationale": "O conceito é pequeno o suficiente para ser verificado com uma pergunta direta sobre os nomes dos pacotes e seus usos."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Instale o TensorFlow com pip"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "tensorflow",
+        "tensorflow[and-cuda]",
+        "tensorflow-cpu"
+      ]
+    },
+    {
+      "candidate_id": "candidate-58-002",
+      "label": "Verificação de instalação do TensorFlow na CPU",
+      "description": "Para confirmar que o TensorFlow foi instalado corretamente na CPU, executa-se um script que cria um tensor de números aleatórios e imprime sua soma reduzida, esperando obter um valor escalar como saída.",
+      "coverage_criteria": [
+        "O estudante deve saber o comando exato de verificação: python3 -c \"import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))\" e interpretar o resultado como sucesso."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O guia fornece o comando exato e explica que 'se um tensor for retornado, você instalou o TensorFlow com sucesso'.",
+        "granularity_rationale": "Testa um único comando e sua interpretação, sendo facilmente verificável com uma pergunta prática."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "4. Verifique a instalação"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "tf.reduce_sum",
+        "tf.random.normal"
+      ]
+    },
+    {
+      "candidate_id": "candidate-58-003",
+      "label": "Verificação de instalação do TensorFlow com GPU",
+      "description": "A instalação com suporte a GPU é verificada listando os dispositivos físicos de GPU reconhecidos pelo TensorFlow usando tf.config.list_physical_devices('GPU').",
+      "coverage_criteria": [
+        "Escrever o comando python3 -c \"import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))\" e saber que o retorno de uma lista de dispositivos GPU confirma a instalação."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O guia inclui o comando específico para verificação de GPU e a condição de sucesso.",
+        "granularity_rationale": "Conceito unitário e prático, verificável com uma única questão de execução de código."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "4. Verifique a instalação"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "tf.config.list_physical_devices"
+      ]
+    },
+    {
+      "candidate_id": "candidate-58-004",
+      "label": "Dependências de software NVIDIA para GPU no TensorFlow",
+      "description": "Para suporte a GPU, o TensorFlow exige driver NVIDIA versão 450.80.02+, CUDA Toolkit 11.8 e cuDNN SDK 8.6.0; TensorRT 7 é opcional para otimização de inferência.",
+      "coverage_criteria": [
+        "Listar as três dependências obrigatórias e suas versões mínimas, e diferenciar o papel opcional do TensorRT."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 'Requisitos de software' detalha as versões exatas dos softwares NVIDIA necessários.",
+        "granularity_rationale": "Esta é uma lista de requisitos bem definida que pode ser verificada solicitando-se a enumeração das dependências."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Requisitos de software"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "NVIDIA driver",
+        "CUDA Toolkit",
+        "cuDNN SDK",
+        "TensorRT"
+      ]
+    },
+    {
+      "candidate_id": "candidate-58-005",
+      "label": "Suporte a GPU por sistema operacional no TensorFlow",
+      "description": "O TensorFlow não oferece suporte oficial a GPU no macOS. No Windows Native, o suporte a GPU é limitado a versões inferiores a 2.11 e requer Miniconda. Linux e Windows WSL2 suportam GPU com CUDA.",
+      "coverage_criteria": [
+        "Identificar quais sistemas operacionais suportam GPU, mencionar a restrição de versão no Windows e a ausência no macOS."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O artigo afirma claramente que 'Atualmente não há suporte oficial de GPU para executar o TensorFlow no MacOS' e que 'Anything above 2.10 is not supported on the GPU on Windows Native'.",
+        "granularity_rationale": "Conhecimento fundamental para escolher o ambiente de desenvolvimento, verificável com perguntas de múltipla escolha."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Instruções passo a passo (macOS)"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Instruções passo a passo (Windows Native)"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-58-006",
+      "label": "Recomendação do Miniconda para GPU no Windows",
+      "description": "Para instalação com suporte a GPU no Windows Native, é recomendado o uso do Miniconda para criar um ambiente isolado e instalar CUDA e cuDNN via conda-forge, utilizando os comandos específicos.",
+      "coverage_criteria": [
+        "Saber que o Miniconda é a abordagem recomendada, e descrever os passos: criar ambiente 'tf' com Python 3.9, ativar e instalar cudatoolkit e cudnn via conda."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção do Windows Native descreve o Miniconda como 'a abordagem recomendada para instalar o TensorFlow com suporte a GPU' e fornece comandos passo a passo.",
+        "granularity_rationale": "Prática específica o suficiente para ser testada pedindo a sequência de comandos."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "3. Instale o Miniconda"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "Miniconda",
+        "conda",
+        "cudatoolkit=11.2",
+        "cudnn=8.1.0"
+      ]
+    },
+    {
+      "candidate_id": "candidate-58-007",
+      "label": "Requisitos de sistema para TensorFlow",
+      "description": "O TensorFlow é suportado em Ubuntu 16.04+ (64 bits), macOS 10.12.6+, Windows 7+ (64 bits) ou WSL2 no Windows 10 19044+, e requer Python 3.9-3.11 e pip versão >=19.0 (Linux/Windows) ou >=20.3 (macOS).",
+      "coverage_criteria": [
+        "Listar os sistemas operacionais e versões de Python e pip suportados."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "As seções 'Requisitos de sistema' e 'Requisitos de software' detalham essas especificações.",
+        "granularity_rationale": "Informações factuais que podem ser checadas com uma única pergunta de enumeração."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Requisitos de sistema"
+        },
+        {
+          "kind": "markdown_heading",
+          "locator": "Requisitos de software"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-58-008",
+      "label": "Dependência do Microsoft Visual C++ Redistributable no Windows",
+      "description": "No Windows Native, a instalação do TensorFlow requer o Microsoft Visual C++ Redistributable para Visual Studio 2015, 2017 e 2019, que fornece a DLL msvcp140_1.dll necessária a partir da versão 2.1.0.",
+      "coverage_criteria": [
+        "O estudante deve saber que essa dependência é obrigatória e como obtê-la no site da Microsoft."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção do Windows Native especifica essa necessidade e fornece o link para download.",
+        "granularity_rationale": "Um pré-requisito único e verificável com uma pergunta direta."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "2. Instale o Microsoft Visual C++ Redistribuível"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Setup do Tensorflow com CPU ou GPU",
+      "source_year": "2024",
+      "name_drops": [
+        "Microsoft Visual C++ Redistributable",
+        "Visual Studio 2015, 2017 e 2019"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-58-001",
+      "to_candidate_id": "candidate-58-003",
+      "reason": "O tipo de pacote instalado (CPU ou GPU) determina qual comando de verificação é aplicável; a instalação com suporte a GPU requer a verificação via list_physical_devices.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "4. Verifique a instalação"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 8,
+    "source_local_connector_candidate_count": 1
+  }
+}

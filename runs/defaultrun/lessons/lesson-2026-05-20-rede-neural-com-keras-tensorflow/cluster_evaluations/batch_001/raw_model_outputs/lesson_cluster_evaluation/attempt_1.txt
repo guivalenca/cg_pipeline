@@ -1,0 +1,295 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "What is Keras?",
+      "description": "Keras is a high-level deep learning API, available standalone and integrated into TensorFlow (tf.keras), designed to simplify the implementation of neural networks.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "State that Keras is available standalone and as tf.keras."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_001",
+        "c56_pro_thinking_001"
+      ],
+      "merge_rationale": "Both candidates introduce Keras as a high-level API that simplifies neural network development, making them suitable for a single introductory concept."
+    },
+    {
+      "id": "lr002",
+      "label": "Keras Backend Flexibility",
+      "description": "Keras supports multiple backend computation engines such as TensorFlow, Theano, PlaidML, MXNet, and CNTK, with TensorFlow adopting Keras as its official high-level API.",
+      "coverage_criteria": [
+        "List at least two backend engines supported by Keras.",
+        "Explain that TensorFlow has integrated Keras as its official high-level API."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_002"
+      ],
+      "merge_rationale": "The single candidate captures the backend flexibility; it stands alone as a focused teachable concept."
+    },
+    {
+      "id": "lr003",
+      "label": "Keras Model Types",
+      "description": "Keras provides two primary ways to define a neural network: the Sequential model for linear stacks of layers, and the Functional API for complex architectures with shared layers or multiple inputs/outputs.",
+      "coverage_criteria": [
+        "Differentiate between Sequential and Functional models in Keras.",
+        "Give an example of when to use each model type."
+      ],
+      "source_candidate_ids": [
+        "c56_pro_thinking_005"
+      ],
+      "merge_rationale": "The candidate explicitly describes the two model types, forming a clear, self-contained distinction."
+    },
+    {
+      "id": "lr004",
+      "label": "Building a Sequential Model with Dense Layers",
+      "description": "A simple feedforward neural network in Keras can be constructed using the Sequential model and stacking Dense layers with specified units and activation functions (e.g., ReLU for hidden layers, softmax for the output layer).",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer specifying units and activation.",
+        "Explain the choice of activation functions for hidden and output layers."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_005",
+        "c54_pro_thinking_004"
+      ],
+      "merge_rationale": "Both candidates demonstrate the same core skill: constructing a Sequential model by adding Dense layers, with examples and explanations."
+    },
+    {
+      "id": "lr005",
+      "label": "Compiling a Keras Model",
+      "description": "Before training, a Keras model must be compiled using model.compile() to configure the learning process by specifying a loss function (e.g., categorical_crossentropy), an optimizer (e.g., rmsprop), and metrics (e.g., accuracy).",
+      "coverage_criteria": [
+        "Identify the three main arguments to model.compile() and their purposes.",
+        "Choose appropriate loss, optimizer, and metrics for a given classification task."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_006",
+        "c54_pro_thinking_005",
+        "c55_pro_thinking_014",
+        "c56_pro_thinking_004"
+      ],
+      "merge_rationale": "All candidates describe the compilation step with model.compile(), covering the same required parameters and purpose; they naturally form one cohesive concept."
+    },
+    {
+      "id": "lr006",
+      "label": "Training a Keras Model with fit()",
+      "description": "The model.fit() method trains the compiled model on training data, with key hyperparameters such as epochs (number of passes over the dataset) and batch_size (samples per gradient update).",
+      "coverage_criteria": [
+        "Write a model.fit() call with the required arguments.",
+        "Explain the roles of epochs and batch_size in the training process."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_007",
+        "c54_pro_thinking_008",
+        "c55_pro_thinking_015"
+      ],
+      "merge_rationale": "These candidates all cover the same training function, illustrating its usage and explaining hyperparameters, thus they can be merged."
+    },
+    {
+      "id": "lr007",
+      "label": "Evaluating a Keras Model on Test Data",
+      "description": "After training, model.evaluate() computes the loss and any specified metrics (e.g., accuracy) on a held‑out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Write a model.evaluate() call on test data.",
+        "Interpret the printed loss and accuracy values."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_008",
+        "c54_pro_thinking_010",
+        "c55_pro_thinking_016"
+      ],
+      "merge_rationale": "All candidates demonstrate the evaluation step with model.evaluate(), using similar code and explanations, supporting a single concept."
+    },
+    {
+      "id": "lr008",
+      "label": "Making Predictions with Keras Models",
+      "description": "Trained Keras models can generate predictions on new data using model.predict() to obtain probability distributions, and np.argmax() (or model.predict_classes()) to get the predicted class labels.",
+      "coverage_criteria": [
+        "Use model.predict() to get predictions on test data.",
+        "Apply np.argmax() to convert probabilities to class labels."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_009",
+        "c55_pro_thinking_017"
+      ],
+      "merge_rationale": "Both candidates describe the prediction step and how to interpret the output, with complementary details (predict_classes vs. argmax) that together form a complete concept."
+    },
+    {
+      "id": "lr009",
+      "label": "Normalizing Pixel Values for Neural Networks",
+      "description": "To improve training stability, pixel values of images (originally 0‑255) should be normalized to the [0,1] range by dividing by 255.",
+      "coverage_criteria": [
+        "Explain why pixel normalization is beneficial.",
+        "Demonstrate the normalization step in code (dividing by 255)."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_003",
+        "c54_pro_thinking_006"
+      ],
+      "merge_rationale": "Both candidates cover the normalization of pixel values, either as a standalone step or as part of broader preprocessing; they share the same teachable idea."
+    },
+    {
+      "id": "lr010",
+      "label": "Reshaping and Flattening Image Data for Dense Layers",
+      "description": "Since Dense layers expect 1D input, 2D image arrays must be reshaped into 1D vectors, either manually with .reshape() or by inserting a Flatten layer as the first layer in the model.",
+      "coverage_criteria": [
+        "Perform manual reshaping of image data from 2D to 1D.",
+        "Explain how a Flatten layer can replace manual reshaping."
+      ],
+      "source_candidate_ids": [
+        "c54_pro_thinking_006",
+        "c54_pro_thinking_007"
+      ],
+      "merge_rationale": "These candidates address the same preprocessing requirement—reshaping images to 1D—with alternative methods, forming a complete lesson-local concept."
+    },
+    {
+      "id": "lr011",
+      "label": "One‑Hot Encoding for Categorical Labels",
+      "description": "For multi‑class classification, integer labels must be converted to one‑hot encoded vectors using tf.keras.utils.to_categorical() so that the model output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Describe why one‑hot encoding is necessary for categorical crossentropy loss.",
+        "Use tf.keras.utils.to_categorical() to transform labels."
+      ],
+      "source_candidate_ids": [
+        "c53_pro_thinking_004",
+        "c55_pro_thinking_005"
+      ],
+      "merge_rationale": "Both candidates teach one‑hot encoding with to_categorical, making them direct duplicates that can be merged."
+    },
+    {
+      "id": "lr012",
+      "label": "Inspecting a Keras Model",
+      "description": "Keras provides several methods to inspect a model's architecture and weights, including summary(), get_config(), and get_weights().",
+      "coverage_criteria": [
+        "Call model.summary() to view layer details.",
+        "Explain what get_config() and get_weights() return."
+      ],
+      "source_candidate_ids": [
+        "c55_pro_thinking_013"
+      ],
+      "merge_rationale": "The single candidate lists all inspection methods succinctly, representing a standalone utility concept."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c53_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_001",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr004"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_014",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c56_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr005"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_015",
+      "status": "used_in",
+      "accepted_ids": ["lr006"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_008",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_016",
+      "status": "used_in",
+      "accepted_ids": ["lr007"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["lr008"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_017",
+      "status": "used_in",
+      "accepted_ids": ["lr008"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_003",
+      "status": "used_in",
+      "accepted_ids": ["lr009"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr009", "lr010"]
+    },
+    {
+      "candidate_id": "c54_pro_thinking_007",
+      "status": "used_in",
+      "accepted_ids": ["lr010"]
+    },
+    {
+      "candidate_id": "c53_pro_thinking_004",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_005",
+      "status": "used_in",
+      "accepted_ids": ["lr011"]
+    },
+    {
+      "candidate_id": "c55_pro_thinking_013",
+      "status": "used_in",
+      "accepted_ids": ["lr012"]
+    }
+  ]
+}

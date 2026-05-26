@@ -1,0 +1,554 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-06-09-decision-making-tools-v-real-options/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-06-09-decision-making-tools-v-real-options",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Real option definition and contrast with DCF/NPV",
+    "rationale": "These candidates define real options and explain why they augment or address limitations of DCF/NPV by capturing flexibility and managerial adaptation. They are complementary foundational descriptions.",
+    "candidate_ids": [
+      "c46_pro_thinking_001",
+      "c47_pro_thinking_001",
+      "c47_pro_thinking_002"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Real option definition and contrast with DCF/NPV",
+      "rationale": "These candidates define real options and explain why they augment or address limitations of DCF/NPV by capturing flexibility and managerial adaptation. They are complementary foundational descriptions.",
+      "candidate_ids": [
+        "c46_pro_thinking_001",
+        "c47_pro_thinking_001",
+        "c47_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Learning and adaptive behavior as source of option value",
+      "rationale": "These candidates emphasize that real option value arises from learning and adaptive behavior, enabling staged investments to outperform static NPV. They describe the same core intuition.",
+      "candidate_ids": [
+        "c46_pro_thinking_002",
+        "c47_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Payoff diagrams for identifying real options",
+      "rationale": "These candidates focus on using payoff diagrams (call/put-like payoffs with kinks) to recognize embedded real options. They describe a visual, diagnostic method.",
+      "candidate_ids": [
+        "c46_pro_thinking_003"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Definitional characteristics of a real option",
+      "rationale": "This candidate lists the three necessary characteristics: defined underlying asset, contingent payoffs, and limited life. It is a compact checklist, distinct from the six determinants and tests.",
+      "candidate_ids": [
+        "c46_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Exclusivity as driver of significant option value",
+      "rationale": "Both candidates underscore that without exclusivity, real options have no economic value. They illustrate through anecdotes and contrast with public market access.",
+      "candidate_ids": [
+        "c46_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Six determinants of real option value",
+      "rationale": "These candidates enumerate the six factors (stock price, exercise price, uncertainty, time, dividends, interest rate) and explain their directional effects. They cover the same lever framework.",
+      "candidate_ids": [
+        "c46_pro_thinking_006",
+        "c47_pro_thinking_003",
+        "c47_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Replication and arbitrage principles in option pricing",
+      "rationale": "This candidate explains the two principles (replication and arbitrage) that underpin option pricing models. It is a foundational theoretical concept.",
+      "candidate_ids": [
+        "c46_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "Model choice: Black-Scholes vs. binomial for real options",
+      "rationale": "This candidate compares Black-Scholes (European, constant variance) with binomial (flexible, data-intensive) for real option valuation. It addresses practical modeling trade-offs.",
+      "candidate_ids": [
+        "c46_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Three tests for applying real option valuation",
+      "rationale": "This candidate outlines a three-step filter: identify embedded option, verify exclusivity, ensure tradeable underlying. It serves as a practical application checklist.",
+      "candidate_ids": [
+        "c46_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Proactive vs. reactive flexibility and lever influence",
+      "rationale": "These candidates discuss how managers can actively change option value levers (proactive) versus waiting to exercise (reactive). They also cover the limited-player context enabling proactive moves.",
+      "candidate_ids": [
+        "c47_pro_thinking_005",
+        "c47_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Strategic lever selection via sensitivity analysis",
+      "rationale": "This candidate describes prioritizing levers through sensitivity analysis, showing revenue/cost impact on option value. It is a practical decision-support step.",
+      "candidate_ids": [
+        "c47_pro_thinking_006"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c46_pro_thinking_001",
+    "c47_pro_thinking_001",
+    "c47_pro_thinking_002",
+    "c46_pro_thinking_002",
+    "c47_pro_thinking_007",
+    "c46_pro_thinking_003",
+    "c46_pro_thinking_004",
+    "c46_pro_thinking_005",
+    "c46_pro_thinking_006",
+    "c47_pro_thinking_003",
+    "c47_pro_thinking_004",
+    "c46_pro_thinking_007",
+    "c46_pro_thinking_008",
+    "c46_pro_thinking_009",
+    "c47_pro_thinking_005",
+    "c47_pro_thinking_008",
+    "c47_pro_thinking_006"
+  ],
+  "candidates": [
+    {
+      "id": "c46_pro_thinking_001",
+      "label": "Real Options Augment DCF Valuation",
+      "description": "Real option pricing serves as an augmentation to discounted cash flow valuation by capturing the value of managerial flexibility (options to delay, expand, abandon) that traditional DCF underestimates.",
+      "coverage_criteria": [
+        "Explain why traditional DCF can undervalue assets with embedded flexibility.",
+        "Identify at least two types of real options (delay, expand, abandon)."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that option pricing is not an alternative to DCF but an augmentation, and lists three option types that DCF misses.",
+        "granularity_rationale": "This is a foundational concept that students must grasp before applying option pricing. It is small enough to be checked with a few explanatory questions."
+      },
+      "anchors": [
+        "[00:49] Real Options as a Valuation Approach",
+        "[01:15] Limitations of Discounted Cash Flow (DCF) Valuation"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_001",
+      "label": "Real options definition",
+      "description": "Real options apply financial options theory to business investments, treating strategic opportunities as options to invest in the future, thereby capturing the value of flexibility and learning under uncertainty.",
+      "coverage_criteria": [
+        "Student can define real options in their own words and contrast them with static investment analysis like NPV."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article introduces the concept through an oil company example and explicitly states that real options are derived from financial options theory applied to real markets.",
+        "granularity_rationale": "This definition-level concept is small enough to be checked with a single definition question, yet foundational for the entire article."
+      },
+      "anchors": [
+        "Thinking in terms of real options"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_002",
+      "label": "NPV inadequacy for uncertain investments",
+      "description": "Net Present Value (NPV) analysis fails to account for the value of flexibility and learning, often undervaluing projects with high uncertainty because it assumes fixed, irreversible investment decisions.",
+      "coverage_criteria": [
+        "Student can explain why NPV may give misleading signals for strategic investments and how real options overcome this."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article repeatedly critiques NPV, stating it ignores flexibility and leads to undervaluation, as demonstrated with the oil block example.",
+        "granularity_rationale": "This focused concept isolates the key limitation of NPV, enabling a targeted check on the student's understanding of the need for real options."
+      },
+      "anchors": [
+        "Why real options are important"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_002",
+      "label": "Learning and Adaptive Behavior as Source of Option Value",
+      "description": "Real option value stems from the opportunity to observe outcomes (learn) and adjust actions accordingly (adaptive behavior), transforming a seemingly negative expected value investment into a positive one when staged.",
+      "coverage_criteria": [
+        "Restate why a two-step investment can have a higher expected value than a one-step investment with the same overall probabilities.",
+        "Define 'learning' and 'adaptive behavior' in the context of real options."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly breaks down a bad investment into two steps and attributes the increased value to learning and adaptive behavior, calling them the 'two key words'.",
+        "granularity_rationale": "This core intuition separates real options from simple DCF; it is a self-contained teachable idea checkable via a simple example."
+      },
+      "anchors": [
+        "[02:45] Illustrating Option Value with a Simple Investment",
+        "[03:05] Transforming a Bad Investment into a Good One",
+        "[03:53] The Essence of Real Options: Learning and Adaptive Behavior"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_007",
+      "label": "Real options foster learning and adaptive thinking",
+      "description": "Applying real options thinking shifts management focus from avoiding uncertainty to maximizing learning and opportunism, leading to more flexible, multistage investments and better strategic adaptation.",
+      "coverage_criteria": [
+        "Student can describe how real options change managerial mindset, contrasting it with the static planning approach of NPV.",
+        "Student can identify the four strategic improvements: emphasizing opportunities, enhancing leverage, maximizing rights, minimizing obligations."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The final section explicitly states that real options change thinking by promoting opportunistic logic, leverage, and flexibility, with four enumerated benefits.",
+        "granularity_rationale": "This high-level strategic impact is a key takeaway that can be checked by asking for the mindset shift or listing the four improvements."
+      },
+      "anchors": [
+        "Changing the way management thinks"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_003",
+      "label": "Using Payoff Diagrams to Identify Real Options",
+      "description": "A real option exists when the payoff structure of a decision resembles a call or put option payoff diagram, featuring a kinked payoff that limits downside losses while allowing upside gains.",
+      "coverage_criteria": [
+        "Sketch a call option payoff diagram and label the strike price.",
+        "Explain how limited losses and potential unlimited gains create option value."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source demonstrates how to recognize an option by drawing payoff diagrams for calls and puts and states that if the payoff looks like an option diagram, you have an option.",
+        "granularity_rationale": "This is a specific, visual criterion that students can apply directly; checking it requires them to draw and explain the diagram, which is a focused task."
+      },
+      "anchors": [
+        "[06:43] Using Payoff Diagrams to Identify Options",
+        "[07:44] Application of Payoff Diagrams"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_004",
+      "label": "Three Definitional Characteristics of a Real Option",
+      "description": "For an asset or decision to contain a real option, it must have: (1) a clearly defined underlying asset whose value changes unpredictably, (2) contingent payoffs triggered by a specific event, and (3) a limited life.",
+      "coverage_criteria": [
+        "List the three characteristics.",
+        "For a given business scenario, identify whether these characteristics are present."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly states three specific characteristics: derivative securities with underlying asset, contingent payoffs, limited lives.",
+        "granularity_rationale": "This is a precise checklist that can be taught and tested in three simple questions."
+      },
+      "anchors": [
+        "[06:10] Question 1: Identifying an Embedded Option"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_005",
+      "label": "Exclusivity as the Driver of Significant Option Value",
+      "description": "An option only has significant economic value if there is exclusivity—the holder alone can exercise it. Without exclusivity (e.g., anyone can buy at market price), the option value is zero.",
+      "coverage_criteria": [
+        "Explain why exclusivity is necessary for a real option to have economic value.",
+        "Contrast the landlord anecdote scenario with a proprietary technology option."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video emphasizes exclusivity as the key word, using the MBA student anecdote to show that without exclusivity the option is worthless.",
+        "granularity_rationale": "This is a critical filter that students must apply; it is a single clear concept with a memorable example, making it checkable."
+      },
+      "anchors": [
+        "[08:02] Question 2: When Does an Option Have Significant Economic Value?",
+        "[08:29] Anecdote: The Importance of Exclusivity"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_006",
+      "label": "Six Determinants of Real Option Value",
+      "description": "The value of a real option is influenced by six factors: underlying asset value, variance of that value, expected dividends, strike price, option life, and interest rates, with variance uniquely increasing option value.",
+      "coverage_criteria": [
+        "List the six determinants.",
+        "Explain why higher variance increases option value, contrary to DCF.",
+        "Predict the effect of higher interest rates on a call option."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video enumerates exactly six determinants, dividing them into those relating to the underlying asset, the option, and interest rates, and stresses the counterintuitive role of variance.",
+        "granularity_rationale": "These six factors form a compact set that can be memorized and applied; checking requires recall and simple application."
+      },
+      "anchors": [
+        "[09:30] Determinants of Option Value"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_003",
+      "label": "Six-lever framework for real option value",
+      "description": "The value of a real option is driven by six variables: present value of expected cash inflows (stock price), present value of fixed costs (exercise price), uncertainty (σ), time to expiry, value lost over option life (dividends), and risk-free interest rate.",
+      "coverage_criteria": [
+        "Student can list the six levers and describe their real-market equivalents.",
+        "Student can state how an increase in each lever affects option value."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly lays out the Black-Scholes variables and maps them to business equivalents in a dedicated section.",
+        "granularity_rationale": "This is a concrete, checkable framework; the six-lever list enables questions that ask for recall and simple directional impact."
+      },
+      "anchors": [
+        "The six levers of financial and real options"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_004",
+      "label": "Lever 3: Positive effect of uncertainty on option value",
+      "description": "Higher uncertainty increases real option value because the option holder has limited downside (only loses the option premium) but unlimited upside, unlike a full investment where returns are symmetrical.",
+      "coverage_criteria": [
+        "Student can explain why greater uncertainty raises option value in contrast to NPV logic.",
+        "Student can give a concrete example (e.g., gas companies encouraging competitive entry)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article highlights this counterintuitive lever with a detailed North Sea gas example, directly contrasting it with NPV.",
+        "granularity_rationale": "This single lever is sufficiently distinct and important to warrant separate extraction, making a focused question on the asymmetry of returns feasible."
+      },
+      "anchors": [
+        "Lever 3: Increase the uncertainty of expected cash flows"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_007",
+      "label": "Replication and Arbitrage Principles in Option Pricing",
+      "description": "Option pricing models rely on two principles: (1) replication—constructing a portfolio of the underlying asset and borrowing/lending that mimics the option's payoffs; (2) arbitrage—if two assets have identical payoffs, they must have the same price.",
+      "coverage_criteria": [
+        "Describe what a replicating portfolio is.",
+        "Explain why arbitrage forces options and replicating portfolios to have equal prices."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video clearly states that all option pricing models are built on replication and arbitrage, defining each.",
+        "granularity_rationale": "These are two fundamental financial concepts that underpin the models; they can be checked with simple definitions and reasoning."
+      },
+      "anchors": [
+        "[11:26] Question 3: Can an Option Pricing Model Value the Real Option?"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_008",
+      "label": "Trade-offs Between Black-Scholes and Binomial Models for Real Options",
+      "description": "The Black-Scholes model assumes European exercise, constant variance, and no jumps, requiring only six inputs. The binomial model allows early exercise and changing variances but demands detailed price path data, often infeasible for real assets.",
+      "coverage_criteria": [
+        "State the key restrictive assumptions of Black-Scholes.",
+        "Contrast the data requirements of the binomial model with its flexibility.",
+        "Articulate why practitioners might still prefer Black-Scholes despite its limitations."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video compares both models explicitly, highlighting Black-Scholes' parsimony versus binomial's generality but data demands.",
+        "granularity_rationale": "This is a practical decision point for practitioners; the comparison can be tested by asking students to list pros/cons."
+      },
+      "anchors": [
+        "[12:41] Choices of Option Pricing Models: Black-Scholes vs. Binomial",
+        "[13:51] Binomial Model",
+        "[14:11] Practical Considerations for Model Choice"
+      ]
+    },
+    {
+      "id": "c46_pro_thinking_009",
+      "label": "Three Tests for Applying Real Option Valuation",
+      "description": "To validly apply real option valuation, three tests must be passed: (1) identify an embedded option, (2) verify exclusivity, (3) ensure the underlying asset and option are tradeable enough for option pricing models to work.",
+      "coverage_criteria": [
+        "List the three tests.",
+        "For a given case, argue whether a test is satisfied."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video concludes by summarizing these three tests as essential filters before using option pricing.",
+        "granularity_rationale": "This is a high-level checklist that integrates the session; it is checkable by having students recall and apply the tests."
+      },
+      "anchors": [
+        "[15:00] Key Tests for Real Options"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_005",
+      "label": "Proactive vs. reactive flexibility",
+      "description": "Reactive flexibility involves optimally exercising an existing option; proactive flexibility means managers can actively influence the levers (e.g., increase uncertainty, extend duration) to increase option value before exercise.",
+      "coverage_criteria": [
+        "Student can distinguish between reactive and proactive flexibility and give an example of each."
+      ],
+      "source_roles": [
+        "explaining",
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly contrasts these two types, stating that proactive flexibility offers larger payoffs by changing option value.",
+        "granularity_rationale": "This dichotomy is a teachable strategic insight that can be assessed with a simple compare-and-contrast question."
+      },
+      "anchors": [
+        "Leveraging flexibility: Influencing the value of real options"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_008",
+      "label": "Financial vs. real option market differences",
+      "description": "Unlike financial options traded in deep, transparent markets, real options exist in contexts with few players; this allows managers to proactively influence option value, not just react to market prices.",
+      "coverage_criteria": [
+        "Student can explain why the limited-player environment enables proactive flexibility."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article notes that real business situations feature a limited number of players, each able to influence the levers, contrasting with financial options.",
+        "granularity_rationale": "This concise comparison clarifies the foundation of proactive flexibility, forming a checkable, distinct idea."
+      },
+      "anchors": [
+        "Leveraging flexibility: Influencing the value of real options"
+      ]
+    },
+    {
+      "id": "c47_pro_thinking_006",
+      "label": "Strategic lever selection via sensitivity analysis",
+      "description": "Managers can decide which levers to influence by performing sensitivity analysis, revealing that increasing revenues (stock price) and cutting costs (exercise price) often have the largest impact on option value.",
+      "coverage_criteria": [
+        "Student can interpret a simple sensitivity table to identify the most impactful levers.",
+        "Student can explain why revenue improvement may be more valuable than cost reduction in option management."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article includes a numerical sensitivity analysis of the six levers, explicitly comparing the impact of a 10% change in each.",
+        "granularity_rationale": "The concept of lever prioritization is a manageable unit for a check on strategic decision-making using option thinking."
+      },
+      "anchors": [
+        "Choosing your levers"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "artifact_type": "lesson_segmentation_quality_audit_input",
+  "schema_version": "lesson_segmentation_quality_audit_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "lesson_segmentation/quality_audit.md",
+  "prompt": "# Lesson Segmentation Quality Audit\n\n## Mission\n\nAudit the proposed Lesson Segments for exactly one Lesson. Decide whether the\nsegmentation is good enough for the Companion to teach from, or whether it needs\na targeted repair.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and `segments`. Stay blind to other\nLessons. Do not reopen source analysis, dependency inference, workbook labels,\nor web research.\n\n## Audit Criteria\n\nScore each field from 0 to 3:\n\n- `segment_coherence`: Concepts grouped into natural teaching chunks.\n- `segment_order`: Segments form a coherent lesson-local teaching flow.\n- `concept_order`: Concepts inside each Segment are ordered naturally.\n- `label_quality`: labels are short, accurate, and useful.\n- `focus_window_size`: Segments target one to four Concepts; five or more is\n  usually too broad.\n\nUse `repair_required` only for changes that materially improve teaching flow.\nDo not nitpick stylistic preferences.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"scores\": {\n    \"segment_coherence\": 3,\n    \"segment_order\": 3,\n    \"concept_order\": 3,\n    \"label_quality\": 3,\n    \"focus_window_size\": 3\n  },\n  \"reliability\": \"reliable\",\n  \"findings\": [],\n  \"repair_instructions\": []\n}\n```\n\nWhen `reliability` is `repair_required`, include targeted\n`repair_instructions`.\n",
+  "task": "lesson_segmentation_quality_audit",
+  "model_route": "Pro Thinking",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-06-biblioteca-de-manipula-o-de-texto-nltk-e-spacy",
+    "title": "Biblioteca de manipulação de texto: NLTK e Spacy"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-tokenization-with-nltk-6d8efb54",
+      "label": "Tokenization with NLTK",
+      "knowledge_type": "procedural",
+      "teaching_description": "Understanding tokenization as converting text into a list of words and punctuation, and using nltk.word_tokenize for better handling of contractions than simple regex splitting.",
+      "coverage_criteria": [
+        "Recognizes that NLTK represents tokenized text as a list of string tokens.",
+        "Uses nltk.word_tokenize to split a sentence with contractions and explains why it is advantageous."
+      ]
+    },
+    {
+      "concept_id": "concept-handling-portuguese-text-encoding-iso-8859-1-34f9ed07",
+      "label": "Handling Portuguese text encoding (ISO 8859-1)",
+      "knowledge_type": "procedural",
+      "teaching_description": "Awareness that many Portuguese text resources use ISO 8859-1 encoding and how to decode such text in Python when reading files.",
+      "coverage_criteria": [
+        "Explains why specifying encoding is necessary when opening Portuguese text files.",
+        "Decodes bytes using 'ISO 8859-1' encoding in Python."
+      ]
+    },
+    {
+      "concept_id": "concept-loading-and-exploring-nltk-s-portuguese-text-corpora-0349fa60",
+      "label": "Loading and exploring NLTK's Portuguese text corpora",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to import and access NLTK's built-in Portuguese corpora, including the examples module, Machado de Assis works, and the MacMorpho tagged corpus, to retrieve text, words, and tagged words.",
+      "coverage_criteria": [
+        "Imports a Portuguese corpus like nltk.corpus.machado.",
+        "Lists file IDs and retrieves raw text or words for a file.",
+        "For MacMorpho, accesses tagged_words and distinguishes between words and tagged tokens."
+      ]
+    },
+    {
+      "concept_id": "concept-working-with-the-floresta-treebank-367a20fc",
+      "label": "Working with the Floresta treebank",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to access the Floresta Portuguese treebank, simplify its complex part-of-speech tags, and retrieve parsed syntactic trees.",
+      "coverage_criteria": [
+        "Imports nltk.corpus.floresta and lists words or tagged words.",
+        "Writes a function to simplify tags (e.g., 'H+n' to 'n').",
+        "Accesses parsed_sents() and can explain that they represent syntactic structure."
+      ]
+    },
+    {
+      "concept_id": "concept-searching-text-with-nltk-s-built-in-and-regex-methods-c03b2b4d",
+      "label": "Searching text with NLTK's built-in and regex methods",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using NLTK's concordance, similar, collocations, and findall with regex to locate words and analyze their contexts.",
+      "coverage_criteria": [
+        "Uses concordance() to display a word in context.",
+        "Uses similar() to find words with similar distribution.",
+        "Uses collocations() to extract frequent multi-word expressions.",
+        "Applies findall() with a regex pattern to search text."
+      ]
+    },
+    {
+      "concept_id": "concept-analyzing-tokenized-text-with-nltk-and-python-47604749",
+      "label": "Analyzing tokenized text with NLTK and Python",
+      "knowledge_type": "procedural",
+      "teaching_description": "Performing basic text analysis operations on tokenized lists, including extracting unique vocabulary, filtering/transforming tokens with list comprehensions, computing frequency distributions, and finding n-grams containing a target word.",
+      "coverage_criteria": [
+        "Uses set() and sorted() to obtain the unique vocabulary of a tokenized text.",
+        "Writes a list comprehension to filter tokens by length or case.",
+        "Creates a FreqDist and retrieves the most frequent words.",
+        "Generates n-grams and filters those containing a specific word, displaying the most frequent."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-a-custom-concordance-tool-07cd8fad",
+      "label": "Implementing a custom concordance tool",
+      "knowledge_type": "procedural",
+      "teaching_description": "Writing a Python function that searches for a word in a list of sentences and prints it with surrounding context, mimicking NLTK's concordance.",
+      "coverage_criteria": [
+        "Defines a function that takes a word and context width, iterates over tokenized sentences, and prints formatted concordance lines."
+      ]
+    },
+    {
+      "concept_id": "concept-stemming-with-porter-stemmer-in-nltk-82cd7eff",
+      "label": "Stemming with Porter Stemmer in NLTK",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using the Porter Stemmer algorithm to reduce words to their stems through rule-based suffix stripping.",
+      "coverage_criteria": [
+        "Applies PorterStemmer to a list of words and observes the stemmed outputs.",
+        "Explains that stemmed outputs may not be real words (e.g., 'generously' -> 'gener')."
+      ]
+    },
+    {
+      "concept_id": "concept-snowball-stemmer-for-multilingual-stemming-24908b40",
+      "label": "Snowball Stemmer for multilingual stemming",
+      "knowledge_type": "procedural",
+      "teaching_description": "Snowball Stemmer is a stemming algorithm supporting multiple languages, often more accurate than Porter Stemmer. Use it to reduce words to their stems.",
+      "coverage_criteria": [
+        "List several languages supported by SnowballStemmer.",
+        "Initialize SnowballStemmer with a language and stem a word.",
+        "Explain why Snowball Stemmer might be preferred over Porter Stemmer."
+      ]
+    },
+    {
+      "concept_id": "concept-lemmatization-with-wordnetlemmatizer-a792830a",
+      "label": "Lemmatization with WordNetLemmatizer",
+      "knowledge_type": "procedural",
+      "teaching_description": "WordNetLemmatizer reduces words to dictionary form using WordNet. Unlike stemming, lemmas are actual words. Requires downloading wordnet corpus.",
+      "coverage_criteria": [
+        "Explain the difference between lemmatization and stemming.",
+        "Instantiate WordNetLemmatizer and lemmatize a word.",
+        "Identify that lemmatization depends on a lexical database like WordNet."
+      ]
+    },
+    {
+      "concept_id": "concept-processing-text-and-exploring-documents-tokens-and-spans-in-spacy-50219055",
+      "label": "Processing text and exploring documents, tokens, and spans in spaCy",
+      "knowledge_type": "procedural",
+      "teaching_description": "Use spacy.blank to create a pipeline and process text into a Doc. Understand tokenization as the process of splitting text into tokens. Access tokens by index and create spans.",
+      "coverage_criteria": [
+        "Write code to create a blank Portuguese pipeline, process 'Olá mundo', and confirm the result is a Doc.",
+        "Given a Doc for 'três cachorros e dois gatos', retrieve the first token and create a span for 'três cachorros'.",
+        "Define tokenization and explain that spaCy's tokenizer is language-specific, giving examples."
+      ]
+    },
+    {
+      "concept_id": "concept-using-lexical-attributes-for-pattern-detection-9b332a46",
+      "label": "Using lexical attributes for pattern detection",
+      "knowledge_type": "procedural",
+      "teaching_description": "Token attributes like `like_num` can identify numeric tokens. Combine attributes to find patterns such as percentages.",
+      "coverage_criteria": [
+        "Explain how to find tokens that represent numbers using `like_num`.",
+        "Write a loop to detect a number followed by a '%' sign."
+      ]
+    },
+    {
+      "concept_id": "concept-loading-and-understanding-pre-trained-spacy-models-f7946313",
+      "label": "Loading and understanding pre-trained spaCy models",
+      "knowledge_type": "procedural",
+      "teaching_description": "Load pre-trained pipelines with spacy.load. Understand model packages (config, weights, strings.json) and trade-offs between blank and pre-trained models of different sizes.",
+      "coverage_criteria": [
+        "Write code to load the Portuguese small pipeline and process a text, printing the Doc's text.",
+        "List what is included in a spaCy pipeline package and explain why training data is not needed.",
+        "Explain the difference between blank and pre-trained models, and compare speed/accuracy trade-offs of model sizes."
+      ]
+    },
+    {
+      "concept_id": "concept-predicting-part-of-speech-tags-and-dependencies-d53bdc37",
+      "label": "Predicting part-of-speech tags and dependencies",
+      "knowledge_type": "applied",
+      "teaching_description": "After processing text with a trained pipeline, each token has a .pos_ (coarse POS tag) and .dep_ (dependency label).",
+      "coverage_criteria": [
+        "Given a Doc from a Portuguese pipeline, write a loop to print each token's text, .pos_, and .dep_."
+      ]
+    },
+    {
+      "concept_id": "concept-named-entity-recognition-and-manual-correction-14ed86e8",
+      "label": "Named entity recognition and manual correction",
+      "knowledge_type": "procedural",
+      "teaching_description": "Trained pipelines identify named entities (doc.ents). When predictions miss an entity, manually create a Span for the missed tokens.",
+      "coverage_criteria": [
+        "Iterate over doc.ents printing entity text and label, and use spacy.explain to describe a label.",
+        "When a model fails to recognize 'iPhone X', write code to create a Span for those two tokens."
+      ]
+    },
+    {
+      "concept_id": "concept-rule-based-matching-with-matcher-15554a7f",
+      "label": "Rule-based matching with Matcher",
+      "knowledge_type": "procedural",
+      "teaching_description": "Use the Matcher class to define token-based patterns with attributes and operators for finding sequences in text.",
+      "coverage_criteria": [
+        "Write code to initialize a Matcher, add a pattern that matches 'iPhone X', apply it to a Doc, and print matched spans.",
+        "Write patterns using lemmas, POS tags, and quantifiers (e.g., '+', '*', '?') to match flexible sequences."
+      ]
+    },
+    {
+      "concept_id": "concept-overview-of-spacy-as-a-production-ready-nlp-library-7364f65c",
+      "label": "Overview of spaCy as a production-ready NLP library",
+      "knowledge_type": "procedural",
+      "teaching_description": "spaCy is an open-source MIT-licensed NLP library, maintained by Explosion.ai, supporting 73 languages and focused on production with pre-trained models.",
+      "coverage_criteria": [
+        "Identify spaCy as a production-focused NLP library.",
+        "Differentiate spaCy from other libraries like NLTK (academic).",
+        "State that it supports multiple languages and offers small, medium, and large pre-trained models."
+      ]
+    },
+    {
+      "concept_id": "concept-cont-ineres-spacy-doc-token-e-span-8cba563d",
+      "label": "Contêineres spaCy: Doc, Token e Span",
+      "knowledge_type": "conceptual",
+      "teaching_description": "No spaCy, um Doc representa o documento inteiro processado, contendo uma sequência de objetos Token. Um Span é uma fatia de um Doc. Esses contêineres são a base para navegar e acessar atributos linguísticos.",
+      "coverage_criteria": [
+        "Explicar o que é um Doc e como criá-lo.",
+        "Descrever Token como uma unidade individual com atributos.",
+        "Demonstrar como criar um Span usando slicing."
+      ]
+    },
+    {
+      "concept_id": "concept-atributos-de-tokens-no-spacy-text-shape-e-is-alpha-4cb1380e",
+      "label": "Atributos de tokens no spaCy: text, shape_ e is_alpha",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Cada token possui atributos como .text, .shape_ e .is_alpha que descrevem sua forma e tipo, permitindo filtrar ou identificar padrões no texto.",
+      "coverage_criteria": [
+        "Listar e definir os atributos text, shape_ e is_alpha.",
+        "Fornecer um exemplo de uso de shape_.",
+        "Usar is_alpha para separar palavras de pontuação ou números."
+      ]
+    },
+    {
+      "concept_id": "concept-pos-tagging-classifica-o-gramatical-dos-tokens-bdc6a6a1",
+      "label": "POS tagging – classificação gramatical dos tokens",
+      "knowledge_type": "conceptual",
+      "teaching_description": "POS tagging atribui a cada token uma classe gramatical (ex.: substantivo, verbo). No spaCy, usa-se .pos_ (como NOUN, VERB) e .tag_ para detalhes mais granulares.",
+      "coverage_criteria": [
+        "Explicar o que é POS tagging.",
+        "Extrair tags POS de uma frase com .pos_.",
+        "Identificar tags como PROPN, VERB em exemplos."
+      ]
+    },
+    {
+      "concept_id": "concept-lematiza-o-redu-o-forma-can-nica-bf9e30ef",
+      "label": "Lematização – redução à forma canônica",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Lematização transforma palavras flexionadas em sua forma base (ex.: 'faz' → 'fazer'). No spaCy, acessa-se via .lemma_. Diferencia-se de stemming, que apenas corta radicais.",
+      "coverage_criteria": [
+        "Definir lematização e diferenciar de stemming.",
+        "Obter o lema de um token com .lemma_.",
+        "Dar um exemplo de lematização como 'comprou' → 'comprar'."
+      ]
+    },
+    {
+      "concept_id": "concept-an-lise-de-depend-ncias-sint-ticas-dep-f95f710e",
+      "label": "Análise de dependências sintáticas (dep_)",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A análise de dependências atribui a cada token um rótulo .dep_ indicando sua função sintática (ex.: nsubj para sujeito, obj para objeto). Permite visualizar a estrutura da frase com displacy.",
+      "coverage_criteria": [
+        "Explicar o que .dep_ representa.",
+        "Identificar o nsubj de um verbo em uma frase.",
+        "Usar displacy.render para visualizar dependências."
+      ]
+    },
+    {
+      "concept_id": "concept-reconhecimento-de-entidades-nomeadas-ner-no-spacy-948db0a9",
+      "label": "Reconhecimento de Entidades Nomeadas (NER) no spaCy",
+      "knowledge_type": "conceptual",
+      "teaching_description": "NER identifica entidades como pessoas, organizações, locais no texto. No spaCy, acessível via doc.ents, com atributos como .label_ (PERSON, ORG, etc.).",
+      "coverage_criteria": [
+        "Definir NER e listar tipos de entidades.",
+        "Extrair entidades com doc.ents.",
+        "Imprimir texto e label de cada entidade."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-definition-05d4bc90",
+      "label": "NLP Definition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing (NLP) is a subfield of AI that focuses on enabling computers to understand, process, and derive meaning from human language, leveraging linguistics and computer science, often relying on statistical approximations.",
+      "coverage_criteria": [
+        "Define NLP as a subfield of AI that enables machines to read and understand human language.",
+        "Identify that NLP combines linguistics and computer science or relies on statistical methods.",
+        "Give an example of an NLP application (e.g., chatbots, sentiment analysis, information extraction)."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "NLP Fundamentals",
+      "concept_ids": [
+        "concept-nlp-definition-05d4bc90"
+      ]
+    },
+    {
+      "label": "Tokenization and Encoding in NLTK",
+      "concept_ids": [
+        "concept-tokenization-with-nltk-6d8efb54",
+        "concept-handling-portuguese-text-encoding-iso-8859-1-34f9ed07"
+      ]
+    },
+    {
+      "label": "Portuguese Corpora in NLTK",
+      "concept_ids": [
+        "concept-loading-and-exploring-nltk-s-portuguese-text-corpora-0349fa60",
+        "concept-working-with-the-floresta-treebank-367a20fc"
+      ]
+    },
+    {
+      "label": "Search and Concordance",
+      "concept_ids": [
+        "concept-searching-text-with-nltk-s-built-in-and-regex-methods-c03b2b4d",
+        "concept-implementing-a-custom-concordance-tool-07cd8fad"
+      ]
+    },
+    {
+      "label": "Text Analysis",
+      "concept_ids": [
+        "concept-analyzing-tokenized-text-with-nltk-and-python-47604749"
+      ]
+    },
+    {
+      "label": "Stemming and Lemmatization with NLTK",
+      "concept_ids": [
+        "concept-stemming-with-porter-stemmer-in-nltk-82cd7eff",
+        "concept-snowball-stemmer-for-multilingual-stemming-24908b40",
+        "concept-lemmatization-with-wordnetlemmatizer-a792830a"
+      ]
+    },
+    {
+      "label": "spaCy Fundamentals",
+      "concept_ids": [
+        "concept-overview-of-spacy-as-a-production-ready-nlp-library-7364f65c",
+        "concept-cont-ineres-spacy-doc-token-e-span-8cba563d",
+        "concept-processing-text-and-exploring-documents-tokens-and-spans-in-spacy-50219055",
+        "concept-loading-and-understanding-pre-trained-spacy-models-f7946313"
+      ]
+    },
+    {
+      "label": "Token Attributes and Patterns in spaCy",
+      "concept_ids": [
+        "concept-atributos-de-tokens-no-spacy-text-shape-e-is-alpha-4cb1380e",
+        "concept-using-lexical-attributes-for-pattern-detection-9b332a46"
+      ]
+    },
+    {
+      "label": "POS and Dependency Parsing",
+      "concept_ids": [
+        "concept-pos-tagging-classifica-o-gramatical-dos-tokens-bdc6a6a1",
+        "concept-predicting-part-of-speech-tags-and-dependencies-d53bdc37",
+        "concept-an-lise-de-depend-ncias-sint-ticas-dep-f95f710e"
+      ]
+    },
+    {
+      "label": "Lemmatization and Named Entities",
+      "concept_ids": [
+        "concept-lematiza-o-redu-o-forma-can-nica-bf9e30ef",
+        "concept-reconhecimento-de-entidades-nomeadas-ner-no-spacy-948db0a9",
+        "concept-named-entity-recognition-and-manual-correction-14ed86e8"
+      ]
+    },
+    {
+      "label": "Rule-based Matching",
+      "concept_ids": [
+        "concept-rule-based-matching-with-matcher-15554a7f"
+      ]
+    }
+  ],
+  "output_contract": {
+    "scores": {
+      "segment_coherence": "integer 0-3",
+      "segment_order": "integer 0-3",
+      "concept_order": "integer 0-3",
+      "label_quality": "integer 0-3",
+      "focus_window_size": "integer 0-3"
+    },
+    "reliability": "reliable or repair_required",
+    "findings": [
+      {
+        "issue": "Short issue name.",
+        "segment_labels": [
+          "Relevant Segment labels, if any."
+        ],
+        "concept_ids": [
+          "Relevant Concept IDs, if any."
+        ],
+        "explanation": "Concrete problem with the proposed segmentation."
+      }
+    ],
+    "repair_instructions": [
+      "Targeted instructions for a Pro repair call, required only when repair_required."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

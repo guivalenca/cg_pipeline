@@ -1,0 +1,70 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_015",
+    "area": {
+      "id": "area_015",
+      "label": "Excel Data Model for Decision Support",
+      "rationale": "Both candidates explain the basics of the Excel Data Model and how to create relationships between tables, a tool that supports data analysis and decision modeling. This small neighborhood covers a specific technical skill.",
+      "candidate_ids": [
+        "lr011_001",
+        "lr011_002"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr011_001",
+    "lr011_002"
+  ],
+  "candidates": [
+    {
+      "id": "lr011_001",
+      "label": "Excel Data Model basics",
+      "description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+      "lesson_title": "Excel Data Modeling and Analysis for Business",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_002",
+      "label": "Creating relationships in the Excel Data Model",
+      "description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating",
+        "referencing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-11-excel-data-modeling-and-analysis-for-business",
+      "lesson_title": "Excel Data Modeling and Analysis for Business",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

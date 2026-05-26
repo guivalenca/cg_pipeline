@@ -1,0 +1,603 @@
+{
+  "artifact_type": "lesson_candidate_clustering_input",
+  "schema_version": "lesson_candidate_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_candidate_clustering",
+  "model_route": "Pro",
+  "lesson": {
+    "id": "lesson-2026-05-26-decision-making-tools-iv-monte-carlo",
+    "title": "Decision-Making Tools IV (Monte Carlo)",
+    "description": "In this instruction, students will discuss how to make decisions supported by Monte Carlo tool.",
+    "date": "26/05/2026",
+    "display_code": "L07"
+  },
+  "input_candidate_ids": [
+    "c33_pro_thinking_001",
+    "c33_pro_thinking_002",
+    "c33_pro_thinking_003",
+    "c33_pro_thinking_004",
+    "c33_pro_thinking_005",
+    "c33_pro_thinking_006",
+    "c33_pro_thinking_007",
+    "c33_pro_thinking_008",
+    "c34_pro_thinking_001",
+    "c34_pro_thinking_002",
+    "c34_pro_thinking_003",
+    "c34_pro_thinking_004",
+    "c34_pro_thinking_005",
+    "c34_pro_thinking_006",
+    "c34_pro_thinking_007",
+    "c35_pro_thinking_001",
+    "c35_pro_thinking_002",
+    "c35_pro_thinking_003",
+    "c35_pro_thinking_004",
+    "c35_pro_thinking_005",
+    "c35_pro_thinking_006",
+    "c36_pro_thinking_001",
+    "c36_pro_thinking_002",
+    "c36_pro_thinking_003",
+    "c36_pro_thinking_004",
+    "c36_pro_thinking_005"
+  ],
+  "candidates": [
+    {
+      "id": "c33_pro_thinking_001",
+      "label": "Monte Carlo Simulation Definition",
+      "description": "A method that assigns probability distributions to uncertain inputs, uses random sampling to simulate thousands of outcomes, and analyzes the statistical results.",
+      "coverage_criteria": [
+        "Student can explain that Monte Carlo simulation uses probability distributions and random sampling to produce a range of possible outcomes with associated probabilities."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines Monte Carlo simulation at [02:01] as assigning probability distributions, computer random sampling, and analyzing outcomes, distinguishing from single-point estimates.",
+        "granularity_rationale": "This definition is a core concept that is checkable with a single explanation or identification question."
+      },
+      "anchors": [
+        "[02:01] Definition of a Monte Carlo Simulation"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_002",
+      "label": "Value of Monte Carlo for CFOs",
+      "description": "Monte Carlo simulation helps CFOs replace opinion-based forecasting with data-driven odds, quantify risks, and communicate more confidently to stakeholders.",
+      "coverage_criteria": [
+        "Student can list at least two ways Monte Carlo benefits CFOs, such as incorporating analytics, facing realities, or improving board communication."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Why a CFO Should Use Monte Carlo Simulation' [03:19] outlines benefits: planning with odds, analytics, facing realities, better communication.",
+        "granularity_rationale": "This is a distinct, practical concept that a student can articulate the value proposition, checkable with a short list or matching exercise."
+      },
+      "anchors": [
+        "[03:19] Why a CFO Should Use Monte Carlo Simulation"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_003",
+      "label": "Key Distributions: Normal, Triangular, Uniform",
+      "description": "For Monte Carlo, three useful distributions are normal (bell curve, mean and std dev), triangular (min, most likely, max), and uniform (equal likelihood within a range).",
+      "coverage_criteria": [
+        "Student can distinguish between normal, triangular, and uniform distributions and describe when each might be appropriate in financial forecasting."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [07:35], the speaker explicitly presents three distributions and their characteristics for financial contexts, such as triangular for bear/bull/base cases and uniform when only a range is known.",
+        "granularity_rationale": "This concept is small enough to be tested with one question asking to match distribution shapes to use cases."
+      },
+      "anchors": [
+        "[07:35] Understanding Distributions for Monte Carlo Simulation"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_004",
+      "label": "Triangular Distribution: Bear, Base, Bull Cases",
+      "description": "The triangular distribution is useful in finance because it naturally maps to three-point estimates: minimum (bear), most likely (base), and maximum (bull).",
+      "coverage_criteria": [
+        "Student can explain that a triangular distribution takes a minimum, a most likely, and a maximum value, and why that fits financial forecasting."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker says at [07:35]: 'triangular distribution where you know the min, max and most likely, I think of this as the bear, bull and base case.' Later uses it in Minitab at [10:56].",
+        "granularity_rationale": "This is a focused sub-concept of distributions, checkable by a single question about its parameters."
+      },
+      "anchors": [
+        "[07:35] Understanding Distributions for Monte Carlo Simulation"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_005",
+      "label": "Using Percentiles to Tighten Forecast Intervals",
+      "description": "Monte Carlo simulation provides percentiles (e.g., 10th, 50th, 90th) that allow you to say outcomes have a certain percentage chance of being below a value, narrowing a wide worst-case/best-case range to a more realistic interval like the 10th to 90th percentile.",
+      "coverage_criteria": [
+        "Given a simulation output table, student can identify that the 10th and 90th percentiles define a range with about 80% confidence, and explain how it reduces uncertainty from extreme scenarios."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [13:13] the speaker interprets percentiles: '90% of simulated outcomes less than or equal to 55' and later says the realistic range is 40-41 to 54 instead of 34-61.",
+        "granularity_rationale": "This is a key interpretive skill, testable by asking to pick the appropriate range from a simulation output."
+      },
+      "anchors": [
+        "[13:13] Examining the Results of the Simulations"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_006",
+      "label": "Forecasting Operating Income with Multiple Uncertain Inputs",
+      "description": "Monte Carlo can handle more complex equations with multiple uncertain inputs (e.g., regional revenues and expense categories) to produce a distribution of operating income, replacing the simple worst-case/best-case math with a data-driven range.",
+      "coverage_criteria": [
+        "Student can explain that adding expense uncertainty to revenue simulations yields a tighter likely range for operating income than the extremes, and can identify the mean and percentiles from an output."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "From [15:11] to [19:05], the speaker adds sales/marketing and R&D expenses with uniform distributions, runs simulation, and gets a mean of 27 and a tighter range (19-35) instead of 9-45.",
+        "granularity_rationale": "This demonstrates the method's scalability, testable by asking what changes when adding more uncertain variables."
+      },
+      "anchors": [
+        "[15:11] Example: More Complex Equation Forecasting (Operating Income)"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_007",
+      "label": "Estimate Std Dev from Range: Range/4",
+      "description": "When using a normal distribution without known standard deviation, a quick estimate is to divide the range (max - min) by 4.",
+      "coverage_criteria": [
+        "Student can recall the range/4 rule and apply it to a given range to estimate standard deviation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [12:17], the speaker says: 'the quick way to calculate standard deviation is take the range over 4' and does it for the example (range 10 → std dev 2.5).",
+        "granularity_rationale": "This is a small, checkable rule of thumb."
+      },
+      "anchors": [
+        "[11:57] Running a Monte Carlo Simulation with Normal Distribution"
+      ]
+    },
+    {
+      "id": "c33_pro_thinking_008",
+      "label": "Communicating Risks and Ranges to Stakeholders",
+      "description": "Monte Carlo outputs (percentiles, probability ranges) help CFOs answer board/CEO questions about likelihood of outcomes and provide mathematical context for guidance ranges.",
+      "coverage_criteria": [
+        "Student can describe how a CFO would use simulation results (e.g., 'there's a 90% chance profit exceeds X') to answer questions from the board or set guidance."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "Multiple sections emphasize communication: [06:14] Board asks questions, [19:39] review says it's a great communication tool. The speaker shows how results can answer board questions.",
+        "granularity_rationale": "This is a practical application concept, testable with a scenario question."
+      },
+      "anchors": [
+        "[06:14] Addressing Board and CEO Questions with Monte Carlo Simulation"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_001",
+      "label": "The Certainty Trap: Dangers of Single-Number Forecasts",
+      "description": "Relying on a single, precise forecast creates an illusion of certainty, hiding risks and variability that are crucial for decision-making.",
+      "coverage_criteria": [
+        "Student can explain why a single-number forecast can be misleading.",
+        "Student can give an example of how a single number hides risk (e.g., food truck loss probability).",
+        "Student can describe the phrase 'optimise a number rather than manage exposure'."
+      ],
+      "source_roles": [
+        "introducing",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly introduces the concept of the certainty trap as a key problem with single-number forecasts, using the food truck example and the quote about optimizing a number vs managing exposure.",
+        "granularity_rationale": "This concept is specific and self-contained; it can be assessed by asking the student to articulate why single numbers are dangerous and to recognize the trap."
+      },
+      "anchors": [
+        "01:28 The Certainty Trap: The Flawed Single Number",
+        "00:52 Food Truck Example: Single Forecast"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_002",
+      "label": "Deterministic Models",
+      "description": "Models that produce a single, specific outcome based on fixed input values, often using best guesses, without accounting for uncertainty or variability.",
+      "coverage_criteria": [
+        "Student can define a deterministic model and give an example.",
+        "Student can contrast deterministic models with Monte Carlo simulation."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video introduces deterministic models as the standard approach that the Monte Carlo simulation replaces, using the food truck spreadsheet example.",
+        "granularity_rationale": "This is a foundational concept small enough to be checked with a definition and an example; it sets up the contrast with simulation."
+      },
+      "anchors": [
+        "00:34 Deterministic Models and the Love for Certainty"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_003",
+      "label": "Risk vs. Uncertainty in Decision Making",
+      "description": "Risk involves situations where probabilities can be calculated from known outcomes (like roulette), while uncertainty involves unknown probabilities and requires judgment (like launching new technology).",
+      "coverage_criteria": [
+        "Student can differentiate between risk and uncertainty using examples.",
+        "Student can explain why standard models fail under true uncertainty."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly defines and contrasts risk and uncertainty, using a casino vs. new technology analogy, and states that standard models fall apart with uncertainty.",
+        "granularity_rationale": "This is a core conceptual distinction that can be assessed by asking the student to classify scenarios and explain implications."
+      },
+      "anchors": [
+        "02:28 Risk vs. Uncertainty: A New Way of Thinking",
+        "02:40 Defining Risk and Uncertainty"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_004",
+      "label": "Monte Carlo Simulation Process",
+      "description": "A method that handles uncertainty by defining variable ranges, randomly sampling those ranges thousands of times, aggregating the results, and analyzing the full distribution of outcomes.",
+      "coverage_criteria": [
+        "Student can list the four main steps: define ranges, sample & iterate, aggregate results, analyze.",
+        "Student can explain the purpose of using ranges instead of single values.",
+        "Student can describe the output of a Monte Carlo simulation as a distribution, not a single number."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video provides a step-by-step explanation of the Monte Carlo process, with a flowchart and food truck example, illustrating how it works.",
+        "granularity_rationale": "This process is a teachable algorithm that can be assessed with simple recall and application questions."
+      },
+      "anchors": [
+        "03:08 The Simulation Engine: How Monte Carlo Works",
+        "03:25 The Monte Carlo Process"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_005",
+      "label": "Interpreting Simulation Results: Distributions and Percentiles",
+      "description": "Monte Carlo simulations produce a probability distribution of outcomes; percentiles (e.g., 5th percentile) quantify downside risk by showing the value below which a given percentage of outcomes fall.",
+      "coverage_criteria": [
+        "Student can interpret a distribution chart to state the chance of loss or gain.",
+        "Student can define a percentile and apply it to assess worst-case scenarios.",
+        "Student can explain why the 5th percentile is relevant for risk management."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video shows the transition from a single number to a distribution, explains percentiles with a definition, and uses them to quantify downside risk (e.g., 20% chance of loss).",
+        "granularity_rationale": "This concept is specific and assessable: students can be shown a distribution and asked to compute percentiles or describe risk."
+      },
+      "anchors": [
+        "04:33 The New View: Distribution of Outcomes",
+        "05:11 Understanding Percentiles"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_006",
+      "label": "Decision Making with Monte Carlo: Comparing Risk Profiles",
+      "description": "Even when projects have the same average expected profit, Monte Carlo simulation reveals different risk profiles, enabling informed decision-making by comparing percentiles or probability of loss.",
+      "coverage_criteria": [
+        "Student can compare two projects with the same average profit but different 5th percentile outcomes and state which is riskier.",
+        "Student can explain why the average alone is insufficient for decision-making.",
+        "Student can suggest when a riskier project might be acceptable based on the distribution."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video explicitly compares food truck and coffee cart with identical average profit but different risk using 5th percentile and chance of loss, showing how simulation informs choice.",
+        "granularity_rationale": "This application is a concrete teachable skill that can be practiced with example data."
+      },
+      "anchors": [
+        "05:44 Comparing Food Truck vs. Coffee Cart with Simulation"
+      ]
+    },
+    {
+      "id": "c34_pro_thinking_007",
+      "label": "Simulation Organises Ignorance, Not Eliminates It",
+      "description": "Monte Carlo simulation does not eliminate uncertainty or predict the future; it structures our understanding of ignorance by mapping the range of possibilities, aiding judgment rather than replacing it.",
+      "coverage_criteria": [
+        "Student can paraphrase the quote 'Simulation remains a tool for organising ignorance, not eliminating it.'",
+        "Student can explain why it's impossible for a simulation to eliminate uncertainty.",
+        "Student can give an example of how simulation aids judgment without making the decision."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video ends with this quote and a discussion that simulation doesn't tell you which project to pick but provides clarity for using judgment.",
+        "granularity_rationale": "This is a key philosophical takeaway that can be assessed by asking the student to articulate the limitation of simulations."
+      },
+      "anchors": [
+        "06:16 Simulation Organizes Ignorance, Doesn't Eliminate It",
+        "06:40 Simulation: Organizing Ignorance"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_001",
+      "label": "Modelling Uncertain Inputs with Normal Distributions",
+      "description": "To set up a Monte Carlo simulation, represent uncertain variables like Sales, Variable Costs, and Fixed Costs by their mean and standard deviation, assuming a normal distribution.",
+      "coverage_criteria": [
+        "Student can explain why mean and standard deviation are chosen for uncertain inputs.",
+        "Student can set up a simple income statement with Mean and Std Dev columns for each line item."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The video begins by explaining that to do Monte Carlo simulation, 'we need to know the mean and we need to know the standard deviation of some numbers' and sets up a spreadsheet with Mean and Std Dev columns for Sales, Variable Costs, and Fixed Costs.",
+        "granularity_rationale": "This concept is a foundational prerequisite; the student can be asked to identify the required parameters for a simulation model and explain why they are needed."
+      },
+      "anchors": [
+        "[00:00] Introduction to Monte Carlo Simulation in Excel"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_002",
+      "label": "Generating Random Samples with NORM.INV and RAND()",
+      "description": "Use the Excel function NORM.INV(RAND(), mean, std_dev) to produce a random value from a normal distribution for each uncertain input, creating one simulated trial.",
+      "coverage_criteria": [
+        "Student can write the formula =NORM.INV(RAND(), mean, std_dev).",
+        "Student explains how RAND() randomizes the probability and NORM.INV returns the corresponding value from the specified distribution."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "At [00:24], the speaker explicitly shows entering the formula =NORM.INV(RAND(),C2,D2) and explains that RAND() randomizes the probability, while NORM.INV uses the mean and standard deviation to generate a random value.",
+        "granularity_rationale": "It is a single, checkable skill; the student can replicate the formula and explain how the two functions combine to generate a random normal value."
+      },
+      "anchors": [
+        "[00:24] Estimating Sales with NORM.INV and RAND()"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_003",
+      "label": "Using Excel Data Table for Multiple Simulation Trials",
+      "description": "Employ Excel's Data Table (What-If Analysis) with a blank column input cell to automatically recalculate a linked profit formula for 10,000 iterations, effectively running many Monte Carlo trials.",
+      "coverage_criteria": [
+        "Student can set up a column of trial numbers and link the profit cell to the current trial.",
+        "Student can invoke Data Table with a blank cell as column input to force recalculation across all rows."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "implementing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker demonstrates filling a series of 10,000 numbers, linking the profit cell, and using Data Table with a blank column input cell to force recalculation over many iterations, stating 'it'll take just a second to refresh'.",
+        "granularity_rationale": "This is a crucial trick to automate many trials without macros; the student can be asked to set up a Data Table for simulation and explain why a blank input cell is used."
+      },
+      "anchors": [
+        "[02:15] Setting Up 10,000 Simulations",
+        "[03:06] Running the Monte Carlo Simulation with Data Table"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_004",
+      "label": "Summarizing Simulation Output with Descriptive Statistics",
+      "description": "After running the simulation, calculate key statistics like average (AVERAGE), minimum (MIN), and maximum (MAX) of the simulated outcomes to understand central tendency and range.",
+      "coverage_criteria": [
+        "Student can use AVERAGE, MIN, MAX on the simulated profit column.",
+        "Student can interpret the results (e.g., mean profit of $109,789, worst-case loss of $173,152)."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "After simulation, the speaker selects the profit column, names the range 'profit', and uses AVERAGE, MIN, MAX to compute the mean, worst case, and best case, directly recounting the numbers.",
+        "granularity_rationale": "These are standard descriptive statistics; testing whether the student can correctly apply them to simulation output ensures they can summarize results meaningfully."
+      },
+      "anchors": [
+        "[04:04] Analyzing Simulation Results: Mean, Min, Max"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_005",
+      "label": "Calculating Risk of Loss with COUNTIFS",
+      "description": "Determine the probability of a negative outcome by counting the number of simulations where profit < 0 using COUNTIFS, and dividing by the total number of trials to get a risk percentage.",
+      "coverage_criteria": [
+        "Student can write the formula =COUNTIFS(profit, \"<0\").",
+        "Student can convert the count to a percentage of total simulations and interpret it (e.g., '7% risk of loss')."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker uses COUNTIFS to count the number of negative profits and divides by 10,000 to get the percentage of loss, stating '749 times out of the 10,000... about 7% of the time we would lose money'.",
+        "granularity_rationale": "This is a tangible risk metric directly from the simulation; the student should be able to construct the COUNTIFS formula and interpret the resulting probability."
+      },
+      "anchors": [
+        "[05:44] Calculating Risk of Loss and Impact of Changes"
+      ]
+    },
+    {
+      "id": "c35_pro_thinking_006",
+      "label": "Sensitivity Analysis by Changing Input Parameters",
+      "description": "After building the simulation, change an input mean (e.g., Fixed Costs) to observe the impact on risk of loss, demonstrating how Monte Carlo simulation supports decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can adjust a parameter (e.g., increase Fixed Costs) and predict how the risk of loss would change.",
+        "Student can interpret the new risk percentage in context of a business decision (e.g., '21% risk now, so maybe we should reduce fixed costs')."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The speaker changes Fixed Costs from 150,000 to 200,000 and notes the risk of loss jumps from 7% to 21%, explaining 'we're worried about the risk of loss'.",
+        "granularity_rationale": "Sensitivity analysis is a key decision-making step; the student can be asked to perform a similar parameter change and articulate its impact on risk."
+      },
+      "anchors": [
+        "[05:44] Calculating Risk of Loss and Impact of Changes"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_001",
+      "label": "Project-Based Learning (PBL)",
+      "description": "A pedagogical method where students learn by doing real projects proposed by companies, used throughout Inteli's curriculum.",
+      "coverage_criteria": [
+        "Define what PBL stands for and summarize how it is applied at Inteli."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source repeatedly and explicitly describes Inteli's methodology as 'Aprendizagem Baseada em Projetos (PBL)', details how students face real challenges from companies, and positions it as the core pedagogical approach.",
+        "granularity_rationale": "PBL is a well-defined educational method that can be assessed by a student's ability to explain its key characteristics and application, making it a single, checkable concept."
+      },
+      "anchors": [
+        "Metodologia: aprender fazendo",
+        "Por meio da Aprendizagem Baseada em Projetos (PBL), nossos alunos enfrentam desafios reais..."
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_002",
+      "label": "MEC Maximum Grade Recognition",
+      "description": "Inteli received the maximum grade (nota máxima) from Brazil's Ministry of Education (MEC) for all five of its graduation courses, validating its quality.",
+      "coverage_criteria": [
+        "State what is the highest MEC grade and list the five graduation courses that earned it at Inteli."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source prominently displays '5 vezes nota máxima no MEC' and explains that this recognition attests to the quality of the pedagogical model, infrastructure, and faculty.",
+        "granularity_rationale": "This is a specific institutional achievement that can be verified through recall of facts, making it an appropriately sized concept."
+      },
+      "anchors": [
+        "5 vezes nota máxima no MEC"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_003",
+      "label": "Career, Leadership and Employability (CDL) Center",
+      "description": "Inteli has a dedicated center (CDL) that provides personalized mentoring, career preparation, and a curriculum focused on soft skills, strategic vision, and decision-making from the start of the course.",
+      "coverage_criteria": [
+        "Explain the three pillars of the CDL and describe what services it offers to students."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that Inteli is the only Brazilian college with a team of specialists dedicated to career development from day one, and the CDL focuses on leadership, soft skills, and strategic vision.",
+        "granularity_rationale": "The CDL is a distinct institutional feature with clear components, small enough to be tested with a few recall or summary questions."
+      },
+      "anchors": [
+        "Carreira, Liderança e Empregabilidade: três pilares, um só destino"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_004",
+      "label": "Protagonism with Three Trails",
+      "description": "In the fourth year, Inteli students choose one of three trails (Empreendedora, Acadêmica, or Corporativa) with institutional support to align their education with their career goals.",
+      "coverage_criteria": [
+        "List the three available trails and explain the concept of protagonism at Inteli."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that in the fourth year, students choose a trail that best connects with their future, and Inteli provides mentoring and strategic support.",
+        "granularity_rationale": "This is a specific program structure element that can be memorized and explained succinctly, fitting the candidate concept size."
+      },
+      "anchors": [
+        "Protagonismo: você escolhe, o Inteli potencializa"
+      ]
+    },
+    {
+      "id": "c36_pro_thinking_005",
+      "label": "Company Partnerships and Project Prototypes",
+      "description": "Inteli partners with over 90 companies, has developed more than 685 prototypes, and each student completes 16 real projects during the graduation program.",
+      "coverage_criteria": [
+        "Recite the quantitative claims about the number of partner companies, prototypes developed, and projects per student."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source provides specific statistics: '+ de 90 empresas parceiras de projetos e + de 685 protótipos desenvolvidos' and notes that each student develops 16 projects.",
+        "granularity_rationale": "These numeric facts are discrete and easily checkable with straightforward recall questions."
+      },
+      "anchors": [
+        "+ de 90 empresas parceiras de projetos e + de 685 protótipos desenvolvidos"
+      ]
+    }
+  ],
+  "output_contract": {
+    "clusters": [
+      {
+        "id": "cluster_001",
+        "label": "Short cluster label",
+        "rationale": "Why these candidates may describe the same teachable idea.",
+        "candidate_ids": [
+          "compact-candidate-id"
+        ]
+      }
+    ],
+    "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Do not create accepted concepts, final labels, provenance, or evidence."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

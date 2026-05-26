@@ -1,0 +1,418 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-20-rede-neural-com-keras-tensorflow",
+    "title": "Rede Neural com Keras (Tensorflow)"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-what-is-keras-0ef39a49",
+      "label": "What is Keras?",
+      "knowledge_type": "procedural",
+      "teaching_description": "Keras is a high-level deep learning API, available standalone and integrated into TensorFlow (tf.keras), designed to simplify the implementation of neural networks.",
+      "coverage_criteria": [
+        "Identify Keras as a high-level API for neural networks.",
+        "State that Keras is available standalone and as tf.keras."
+      ]
+    },
+    {
+      "concept_id": "concept-keras-backend-flexibility-c2a21feb",
+      "label": "Keras Backend Flexibility",
+      "knowledge_type": "procedural",
+      "teaching_description": "Keras supports multiple backend computation engines such as TensorFlow, Theano, PlaidML, MXNet, and CNTK, with TensorFlow adopting Keras as its official high-level API.",
+      "coverage_criteria": [
+        "List at least two backend engines supported by Keras.",
+        "Explain that TensorFlow has integrated Keras as its official high-level API."
+      ]
+    },
+    {
+      "concept_id": "concept-keras-model-types-d8ea245d",
+      "label": "Keras Model Types",
+      "knowledge_type": "procedural",
+      "teaching_description": "Keras provides two primary ways to define a neural network: the Sequential model for linear stacks of layers, and the Functional API for complex architectures with shared layers or multiple inputs/outputs.",
+      "coverage_criteria": [
+        "Differentiate between Sequential and Functional models in Keras.",
+        "Give an example of when to use each model type."
+      ]
+    },
+    {
+      "concept_id": "concept-compiling-a-keras-model-4ec240dc",
+      "label": "Compiling a Keras Model",
+      "knowledge_type": "procedural",
+      "teaching_description": "Before training, a Keras model must be compiled using model.compile() to configure the learning process by specifying a loss function (e.g., categorical_crossentropy), an optimizer (e.g., rmsprop), and metrics (e.g., accuracy).",
+      "coverage_criteria": [
+        "Identify the three main arguments to model.compile() and their purposes.",
+        "Choose appropriate loss, optimizer, and metrics for a given classification task."
+      ]
+    },
+    {
+      "concept_id": "concept-training-a-keras-model-with-fit-8b2b2567",
+      "label": "Training a Keras Model with fit()",
+      "knowledge_type": "procedural",
+      "teaching_description": "The model.fit() method trains the compiled model on training data, with key hyperparameters such as epochs (number of passes over the dataset) and batch_size (samples per gradient update).",
+      "coverage_criteria": [
+        "Write a model.fit() call with the required arguments.",
+        "Explain the roles of epochs and batch_size in the training process."
+      ]
+    },
+    {
+      "concept_id": "concept-evaluating-a-keras-model-on-test-data-5d13d0d5",
+      "label": "Evaluating a Keras Model on Test Data",
+      "knowledge_type": "procedural",
+      "teaching_description": "After training, model.evaluate() computes the loss and any specified metrics (e.g., accuracy) on a held‑out test set, providing an unbiased estimate of model performance.",
+      "coverage_criteria": [
+        "Write a model.evaluate() call on test data.",
+        "Interpret the printed loss and accuracy values."
+      ]
+    },
+    {
+      "concept_id": "concept-making-predictions-with-keras-models-cf47bca5",
+      "label": "Making Predictions with Keras Models",
+      "knowledge_type": "procedural",
+      "teaching_description": "Trained Keras models can generate predictions on new data using model.predict() to obtain probability distributions, and np.argmax() (or model.predict_classes()) to get the predicted class labels.",
+      "coverage_criteria": [
+        "Use model.predict() to get predictions on test data.",
+        "Apply np.argmax() to convert probabilities to class labels."
+      ]
+    },
+    {
+      "concept_id": "concept-normalizing-pixel-values-for-neural-networks-67d55e5f",
+      "label": "Normalizing Pixel Values for Neural Networks",
+      "knowledge_type": "procedural",
+      "teaching_description": "To improve training stability, pixel values of images (originally 0‑255) should be normalized to the [0,1] range by dividing by 255.",
+      "coverage_criteria": [
+        "Explain why pixel normalization is beneficial.",
+        "Demonstrate the normalization step in code (dividing by 255)."
+      ]
+    },
+    {
+      "concept_id": "concept-reshaping-and-flattening-image-data-for-dense-layers-924eb32c",
+      "label": "Reshaping and Flattening Image Data for Dense Layers",
+      "knowledge_type": "procedural",
+      "teaching_description": "Since Dense layers expect 1D input, 2D image arrays must be reshaped into 1D vectors, either manually with .reshape() or by inserting a Flatten layer as the first layer in the model.",
+      "coverage_criteria": [
+        "Perform manual reshaping of image data from 2D to 1D.",
+        "Explain how a Flatten layer can replace manual reshaping."
+      ]
+    },
+    {
+      "concept_id": "concept-one-hot-encoding-for-categorical-labels-bbb8fa1d",
+      "label": "One‑Hot Encoding for Categorical Labels",
+      "knowledge_type": "procedural",
+      "teaching_description": "For multi‑class classification, integer labels must be converted to one‑hot encoded vectors using tf.keras.utils.to_categorical() so that the model output can be compared against a probability distribution.",
+      "coverage_criteria": [
+        "Describe why one‑hot encoding is necessary for categorical crossentropy loss.",
+        "Use tf.keras.utils.to_categorical() to transform labels."
+      ]
+    },
+    {
+      "concept_id": "concept-inspecting-a-keras-model-941fef1b",
+      "label": "Inspecting a Keras Model",
+      "knowledge_type": "procedural",
+      "teaching_description": "Keras provides several methods to inspect a model's architecture and weights, including summary(), get_config(), and get_weights().",
+      "coverage_criteria": [
+        "Call model.summary() to view layer details.",
+        "Explain what get_config() and get_weights() return."
+      ]
+    },
+    {
+      "concept_id": "concept-saving-and-reloading-keras-models-cf4c0c0a",
+      "label": "Saving and reloading Keras models",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to persist a trained Keras model to an HDF5 file using model.save() and restore it with load_model() from tensorflow.keras.models.",
+      "coverage_criteria": [
+        "Student can write the code to save a model to a .h5 file.",
+        "Student can reload a saved model and confirm its architecture."
+      ]
+    },
+    {
+      "concept_id": "concept-fine-tuning-with-custom-optimizer-parameters-c5cc5072",
+      "label": "Fine-tuning with custom optimizer parameters",
+      "knowledge_type": "conceptual",
+      "teaching_description": "How to customize the optimizer by instantiating it with specific learning rate and decay values (e.g., RMSprop(lr=0.0001, decay=1e-6)) and compiling the model with it.",
+      "coverage_criteria": [
+        "Student can create an optimizer object with custom parameters.",
+        "Student can use the optimizer in model.compile()."
+      ]
+    },
+    {
+      "concept_id": "concept-fine-tuning-with-early-stopping-b0852234",
+      "label": "Fine-tuning with Early Stopping",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to use the EarlyStopping callback to stop training when a monitored metric (e.g., validation loss) stops improving after a given patience, preventing overfitting.",
+      "coverage_criteria": [
+        "Student can instantiate EarlyStopping with a patience value.",
+        "Student can pass the callback to the fit() method."
+      ]
+    },
+    {
+      "concept_id": "concept-keras-model-building-workflow-944bd7f7",
+      "label": "Keras model building workflow",
+      "knowledge_type": "procedural",
+      "teaching_description": "The sequential pipeline for building a neural network in Keras: import modules, create a Sequential model, add layers, compile with optimizer and loss, fit on data, and make predictions. This high-level process applies to classification tasks.",
+      "coverage_criteria": [
+        "Student can list the steps: define, compile, fit, evaluate, predict.",
+        "Student can explain the role of each step in a basic Keras script."
+      ]
+    },
+    {
+      "concept_id": "concept-loading-built-in-keras-datasets-4d9fe9d7",
+      "label": "Loading built-in Keras datasets",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to load standard datasets like MNIST, CIFAR-10, Boston Housing, and IMDb directly from tensorflow.keras.datasets, including splitting into training and test sets.",
+      "coverage_criteria": [
+        "Student can list at least three available datasets.",
+        "Student can write the code to load one dataset and unpack it into (x_train, y_train), (x_test, y_test)."
+      ]
+    },
+    {
+      "concept_id": "concept-mnist-dataset-characteristics-25de3d5a",
+      "label": "MNIST dataset characteristics",
+      "knowledge_type": "procedural",
+      "teaching_description": "The MNIST dataset consists of 28x28 grayscale images of handwritten digits 0-9, with 60,000 training and 10,000 test samples. It is a common beginner dataset for deep learning.",
+      "coverage_criteria": [
+        "Student can recall the image size, number of classes, and train/test split.",
+        "Student can explain why MNIST is often used as an introductory dataset."
+      ]
+    },
+    {
+      "concept_id": "concept-inspecting-data-shape-and-labels-52ed19d1",
+      "label": "Inspecting data shape and labels",
+      "knowledge_type": "procedural",
+      "teaching_description": "After loading data, how to inspect array shapes (e.g., train_images.shape) and visualize samples using matplotlib to verify the data before modeling.",
+      "coverage_criteria": [
+        "Student can print and interpret the shape of training data and labels.",
+        "Student can display a single image using plt.imshow() or plt.matshow()."
+      ]
+    },
+    {
+      "concept_id": "concept-sequence-padding-for-rnns-50c45da7",
+      "label": "Sequence padding for RNNs",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to pad variable-length sequences to a fixed length using tensorflow.keras.preprocessing.sequence.pad_sequences, with specification of maxlen, to prepare data for recurrent neural networks.",
+      "coverage_criteria": [
+        "Student can explain why padding is necessary for RNN input.",
+        "Student can apply pad_sequences to both training and test sequences."
+      ]
+    },
+    {
+      "concept_id": "concept-standardization-with-standardscaler-c70e0742",
+      "label": "Standardization with StandardScaler",
+      "knowledge_type": "procedural",
+      "teaching_description": "How to standardize features by scaling them to have zero mean and unit variance using StandardScaler from sklearn.preprocessing, fitting on training data and transforming both train and test sets.",
+      "coverage_criteria": [
+        "Student can fit and transform data with StandardScaler.",
+        "Student can distinguish standardization from normalization."
+      ]
+    },
+    {
+      "concept_id": "concept-building-an-mlp-for-binary-classification-7124f1b3",
+      "label": "Building an MLP for binary classification",
+      "knowledge_type": "procedural",
+      "teaching_description": "Constructing a Sequential model with Dense layers for binary classification: relu activation for hidden layers and sigmoid for the output layer.",
+      "coverage_criteria": [
+        "Student can create an MLP with the correct activation functions.",
+        "Student can explain why sigmoid is suitable for binary output."
+      ]
+    },
+    {
+      "concept_id": "concept-building-an-mlp-for-multi-class-classification-with-dropout-dc3e4834",
+      "label": "Building an MLP for multi-class classification with Dropout",
+      "knowledge_type": "procedural",
+      "teaching_description": "Stacking Dense layers with relu activation, interspersed with Dropout for regularization, and ending with a softmax output layer for multi-class classification.",
+      "coverage_criteria": [
+        "Student can add Dropout layers between Dense layers.",
+        "Student can explain why softmax is used for multi-class output."
+      ]
+    },
+    {
+      "concept_id": "concept-building-an-mlp-for-regression-f7a28ce0",
+      "label": "Building an MLP for regression",
+      "knowledge_type": "procedural",
+      "teaching_description": "Construct a regression neural network using Dense layers without activation on the output to predict continuous values.",
+      "coverage_criteria": [
+        "Student can create a regression MLP by omitting activation on the final Dense layer.",
+        "Student can explain why no activation is needed for regression output."
+      ]
+    },
+    {
+      "concept_id": "concept-building-a-cnn-in-keras-78e7e7bc",
+      "label": "Building a CNN in Keras",
+      "knowledge_type": "procedural",
+      "teaching_description": "Construct a convolutional neural network using Conv2D, Activation, MaxPooling2D, Dropout, Flatten, and Dense layers.",
+      "coverage_criteria": [
+        "Student can stack Conv2D, Activation('relu'), and MaxPooling2D layers.",
+        "Student can explain the role of Flatten before the Dense classifier."
+      ]
+    },
+    {
+      "concept_id": "concept-building-an-rnn-with-lstm-10a2347a",
+      "label": "Building an RNN with LSTM",
+      "knowledge_type": "procedural",
+      "teaching_description": "Create a recurrent neural network by adding an Embedding layer and an LSTM layer with dropout, followed by a Dense output for binary classification.",
+      "coverage_criteria": [
+        "Student can add Embedding and LSTM layers to a Sequential model.",
+        "Student can explain the purpose of dropout and recurrent_dropout in LSTM."
+      ]
+    },
+    {
+      "concept_id": "concept-loading-external-data-from-a-url-with-numpy-cad6beaf",
+      "label": "Loading external data from a URL with NumPy",
+      "knowledge_type": "procedural",
+      "teaching_description": "Use urllib.request.urlopen and np.loadtxt to fetch a CSV dataset from a URL and split it into feature matrix and target vector.",
+      "coverage_criteria": [
+        "Student can write the code to open a URL, load its content as a NumPy array, and slice the columns into features and labels."
+      ]
+    },
+    {
+      "concept_id": "concept-building-a-sequential-model-with-dense-layers-74c93f61",
+      "label": "Building a Sequential Model with Dense Layers",
+      "knowledge_type": "procedural",
+      "teaching_description": "Construct a simple feedforward neural network using Keras Sequential model by stacking Dense layers, specifying input shape, number of units, and activation functions, and understand common activations like ReLU and softmax.",
+      "coverage_criteria": [
+        "Write code to create a Sequential model with at least one Dense layer, specifying units and activation.",
+        "Explain the purpose of activation functions on hidden and output layers."
+      ]
+    },
+    {
+      "concept_id": "concept-train-test-split-for-model-evaluation-3e355edb",
+      "label": "Train-Test Split for Model Evaluation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Splitting a dataset into training and testing subsets to evaluate model generalization and detect overfitting, using sklearn's train_test_split with parameters test_size and random_state to control split proportions and reproducibility.",
+      "coverage_criteria": [
+        "Explain why separating training and testing data is necessary.",
+        "Use sklearn.model_selection.train_test_split to split features and labels.",
+        "Describe the purpose of test_size and random_state.",
+        "Discuss overfitting if no split is performed."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introduction to Keras",
+      "concept_ids": [
+        "concept-what-is-keras-0ef39a49",
+        "concept-keras-backend-flexibility-c2a21feb"
+      ]
+    },
+    {
+      "label": "Keras Model Types",
+      "concept_ids": [
+        "concept-keras-model-types-d8ea245d"
+      ]
+    },
+    {
+      "label": "Loading and Inspecting Datasets",
+      "concept_ids": [
+        "concept-loading-built-in-keras-datasets-4d9fe9d7",
+        "concept-mnist-dataset-characteristics-25de3d5a",
+        "concept-inspecting-data-shape-and-labels-52ed19d1",
+        "concept-loading-external-data-from-a-url-with-numpy-cad6beaf"
+      ]
+    },
+    {
+      "label": "Data Preparation for Modeling",
+      "concept_ids": [
+        "concept-train-test-split-for-model-evaluation-3e355edb",
+        "concept-normalizing-pixel-values-for-neural-networks-67d55e5f",
+        "concept-reshaping-and-flattening-image-data-for-dense-layers-924eb32c",
+        "concept-one-hot-encoding-for-categorical-labels-bbb8fa1d"
+      ]
+    },
+    {
+      "label": "Feature Standardization",
+      "concept_ids": [
+        "concept-standardization-with-standardscaler-c70e0742"
+      ]
+    },
+    {
+      "label": "Keras Model Building Workflow",
+      "concept_ids": [
+        "concept-keras-model-building-workflow-944bd7f7"
+      ]
+    },
+    {
+      "label": "Building MLPs for Different Tasks",
+      "concept_ids": [
+        "concept-building-a-sequential-model-with-dense-layers-74c93f61",
+        "concept-building-an-mlp-for-binary-classification-7124f1b3",
+        "concept-building-an-mlp-for-multi-class-classification-with-dropout-dc3e4834",
+        "concept-building-an-mlp-for-regression-f7a28ce0"
+      ]
+    },
+    {
+      "label": "Compiling the Model",
+      "concept_ids": [
+        "concept-compiling-a-keras-model-4ec240dc"
+      ]
+    },
+    {
+      "label": "Training and Evaluation",
+      "concept_ids": [
+        "concept-training-a-keras-model-with-fit-8b2b2567",
+        "concept-evaluating-a-keras-model-on-test-data-5d13d0d5"
+      ]
+    },
+    {
+      "label": "Making Predictions",
+      "concept_ids": [
+        "concept-making-predictions-with-keras-models-cf47bca5"
+      ]
+    },
+    {
+      "label": "Inspecting and Saving Models",
+      "concept_ids": [
+        "concept-inspecting-a-keras-model-941fef1b",
+        "concept-saving-and-reloading-keras-models-cf4c0c0a"
+      ]
+    },
+    {
+      "label": "Fine‑Tuning Techniques",
+      "concept_ids": [
+        "concept-fine-tuning-with-custom-optimizer-parameters-c5cc5072",
+        "concept-fine-tuning-with-early-stopping-b0852234"
+      ]
+    },
+    {
+      "label": "Building a CNN",
+      "concept_ids": [
+        "concept-building-a-cnn-in-keras-78e7e7bc"
+      ]
+    },
+    {
+      "label": "Building an RNN with Sequence Padding",
+      "concept_ids": [
+        "concept-building-an-rnn-with-lstm-10a2347a",
+        "concept-sequence-padding-for-rnns-50c45da7"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "artifact_type": "self_study_extraction_input",
+  "schema_version": "self_study_extraction_input.v0",
+  "source_artifact": "source_ledger.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/self_study_extraction.md",
+  "prompt": "# Self-study Extraction Agent\n\n## Mission\n\nExtract source-local Candidate Concepts from exactly one assigned Self-study.\nYour job is to preserve teachable ideas with enough evidence for later\nreconciliation. Be thorough. Include borderline candidates when the source\nappears to teach or meaningfully support them.\n\n## Authority Boundary\n\nUse only the provided Self-study input:\n\n- Workbook Metadata.\n- Lesson context.\n- The assigned Source Body markdown.\n- Images linked by the Source Body markdown, limited to the allowed image URLs\n  in `web_access_policy.allowed_image_urls`.\n\nDo not search the web. Do not open unrelated URLs. Do not use external topic\nresearch. If a linked visual is unavailable, continue from the markdown and\nnote the limitation in the relevant Source Anchor or rationale.\n\n## Output Contract\n\nReturn one valid JSON object. Do not include markdown fences or commentary.\n\nPreferred compact shape:\n\n```json\n{\n  \"candidate_concepts\": [\n    {\n      \"candidate_id\": \"candidate-{self_study_id}-001\",\n      \"label\": \"Short teachable idea label\",\n      \"description\": \"One or two sentences describing the teachable idea.\",\n      \"coverage_criteria\": [\n        \"Observable student behavior that would show coverage.\"\n      ],\n      \"source_roles\": [\"introducing\"],\n      \"extraction_reason\": {\n        \"source_grounded_rationale\": \"Why this source supports the candidate.\",\n        \"granularity_rationale\": \"Why this is the right checkable concept size.\"\n      },\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ],\n      \"evidence_type\": \"source_body\",\n      \"source_name\": \"Source title when available\",\n      \"source_year\": \"2024\",\n      \"name_drops\": [\"Named method, tool, person, library, or paper if relevant\"]\n    }\n  ],\n  \"source_local_connector_candidates\": [\n    {\n      \"from_candidate_id\": \"candidate-{self_study_id}-001\",\n      \"to_candidate_id\": \"candidate-{self_study_id}-002\",\n      \"reason\": \"Why the source itself connects these ideas.\",\n      \"source_anchors\": [\n        {\"kind\": \"markdown_heading\", \"locator\": \"Heading text\"}\n      ]\n    }\n  ]\n}\n```\n\nYou may also return the full artifact shape if every field satisfies the same\ncontract.\n\n## Candidate Concept Rules\n\n- A Candidate Concept is a source-local teachable idea, not a final Concept.\n- Use temporary Candidate IDs only. Never emit final Concept IDs.\n- Keep candidates small enough for the Companion to check with one to three\n  focused questions.\n- Coverage Criteria should be raw but observable: what the student can say,\n  identify, explain, compare, implement, or debug.\n- Extraction Reasons must include both source grounding and granularity.\n- Source Anchors should point to headings, timestamps, pages, sections, captions,\n  figures, or other lightweight locators. Do not quote long source text.\n- Source Roles must describe how the source supports the candidate: introducing,\n  explaining, demonstrating, implementing, practicing, referencing, warning, or\n  incidental_mention.\n- Name drops are only for named entities that matter for later reconciliation,\n  such as libraries, algorithms, standards, papers, tools, or people.\n\n## Forbidden Output\n\nDo not merge or dedupe across Self-studies. Do not emit dependency edges,\nlesson order, final Concept IDs, final Concepts, bridge concepts, or cross-source\nconnector candidates. Source-local Connector Candidates are allowed only when\nboth sides are candidates in this same Self-study and the connection appears\ninside this same Source Body.\n",
+  "course_id": "adm",
+  "module_id": "mo6",
+  "subject_id": "NEG",
+  "extraction_pass": {
+    "pass_id": "pro-thinking",
+    "pass_index": 1,
+    "route_alias": "Pro Thinking",
+    "instruction": "Use the shared Self-study Extraction prompt with the Pro Thinking route."
+  },
+  "lesson": {
+    "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "display_code": "L01",
+    "workbook_row_number": 2,
+    "title": "Decision-making process and fundamentals of decision-making approaches.",
+    "date": "23/04/2026",
+    "professor": "Lisane Valdo",
+    "axis": "NEG",
+    "related_labels": [],
+    "description": "This lesson provides an overview of how people make decisions, exploring the factors that influence good or bad choices and the main cognitive biases. It also discusses practical strategies for making decisions more quickly and efficiently. Finally, it delves into the understanding of outcome bias, showing the risks of evaluating decisions solely based on their outcomes."
+  },
+  "self_study": {
+    "self_study_id": "5",
+    "lesson_id": "lesson-2026-04-23-decision-making-process-and-fundamentals-of-decision-making-approaches",
+    "source_body_status": "usable_source_body",
+    "metadata_only_candidate": false,
+    "exclusion_reason": null,
+    "workbook_metadata": {
+      "workbook_row_number": 5,
+      "week": 1,
+      "sort": 5,
+      "title": "“How to Make Great Decisions, Quickly”",
+      "description": "It presents practical strategies for making good decisions quickly, including when to wait, when to act, avoiding delays due to perfectionism, etc.",
+      "url": "https://www.linkedin.com/pulse/how-make-great-decisions-quickly-craig-king/",
+      "resource_code": "",
+      "required": true,
+      "grade_weight": 0.0,
+      "related_labels": [],
+      "parent_class": "Decision-making process and fundamentals of decision-making approaches.",
+      "class_date": "23/04/2026"
+    },
+    "source_body": {
+      "index_record_present": true,
+      "type": "article",
+      "status": "passed_with_warnings",
+      "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0005-article-how-to-make-great-decisions-quickly.md",
+      "sha256": "51f76bdf6733ab4efeb1644f64cd8f918bded344bf1f6da9a93d1f90a4207d41",
+      "word_count": 787,
+      "bytes": 4906,
+      "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/5/5-how-to-make-great-decisions-quickly.md",
+      "artifact_dir": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/5",
+      "availability_warnings": [
+        "missing_screenshot"
+      ],
+      "availability_failures": []
+    },
+    "ledger_warnings": []
+  },
+  "source_body": {
+    "path": "runs/adm_mo6_neg_20260526T163852Z/extraction/pre-image/0005-article-how-to-make-great-decisions-quickly.md",
+    "sha256": "51f76bdf6733ab4efeb1644f64cd8f918bded344bf1f6da9a93d1f90a4207d41",
+    "word_count": 787,
+    "source_markdown": "runs/adm_mo6_neg_20260526T163852Z/acquisition/article/output/5/5-how-to-make-great-decisions-quickly.md",
+    "markdown": "---\nid: \"5\"\ntitle: \"“How to Make Great Decisions, Quickly”\"\nsource_url: \"https://www.linkedin.com/pulse/how-make-great-decisions-quickly-craig-king/\"\nfetch_url: \"https://www.linkedin.com/pulse/how-make-great-decisions-quickly-craig-king\"\nresolved_url: \"https://www.linkedin.com/pulse/how-make-great-decisions-quickly-craig-king\"\nfirecrawl_title: \"How to Make Great Decisions, Quickly\"\ndescription: \"After years of trial and error, Martin G. Moore has distilled 10 + years of decision-making at the corporate level into eight elements that have allowed him to make consistent, great decisions in this Harvard Business Review article.\"\nfetched_at: \"2026-05-26T16:41:24.517408Z\"\nprovider: \"firecrawl\"\nstrategy: \"standard\"\ncache_key: \"60c37743c01a33d119bf1448e2a3795fee1fc66179e7dea95a63daaedb3ba628\"\nfirecrawl_status_code: 200\nfirecrawl_content_type: \"text/html; charset=utf-8\"\nword_count: 656\nchar_count: 3755\ncontent_sha256: \"920178aa58a93104532b374cf65b5da7d570cff6b83e0f1a7ac6f54f1bb148bb\"\nimage_count: 4\nlink_count: 77\nwarnings:\n  - \"missing_screenshot\"\ngate_status: \"passed_with_warnings\"\ngate_failures: []\nroute_notes: []\n---\n\n![How to Make Great Decisions, Quickly](https://media.licdn.com/dms/image/v2/D5612AQHfdskAkuzwug/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1653590438944?e=2147483647&v=beta&t=c-lhfJvMW-OpAfvbvwYbEl566brhtzGy96pLyUdwUcw)\n\nAfter years of trial and error, Martin G. Moore has distilled 10 + years of decision-making at the corporate level into eight elements that have allowed him to make consistent, great decisions in this Harvard Business Review [article](https://www.linkedin.com/redir/redirect?url=https%3A%2F%2Fhbr%2Eorg%2F2022%2F03%2Fhow-to-make-great-decisions-quickly&urlhash=LLKT&trk=article-ssr-frontend-pulse_little-text-block). They are:\n\n### Eight Elements of Great Decision-Making\n\n1. Great decisions are shaped by consideration of many different viewpoints.  \nWhile consensus-seeking should never be the goal, this doesn’t mean we get the freedom to act unilaterally.  \nThis can be tricky. How do I choose whose opinion to seek out? When do I bulldoze my own opinion into the mix and force a solution? How do I relax, understand the problem I am trying to solve, and come up with a smart, effective solution?\n\n2. Great decisions are made as close as possible to the action.  \nSometimes it is important to seek the advice and opinions of those doing the leg work, rather than those who are in powerful positions. This can be tricky for me, especially if I am seeking approval and validation from the powers-that-be. Time for me to put my ego on the shelf and trust!\n\n3. Great decisions address the root cause, not just the problem.  \nSometimes people want to gripe, focusing on the symptoms again and again. Reaching out to the people who understand where the issue came from in the first place and developing a plan to fix the root cause is more essential than repeatedly listening to the symptoms.\n\n4. Great decisions are made by a clearly accountable person.  \nI must learn to stand behind what I say, even if I ultimately find I have made a mistake. Yikes. This has been a lifelong lesson for me.\n\n5. Great decisions consider the holistic impacts of a problem and balance long-term and short-term value.  \nI get kudos and acknowledgment for being someone who makes things happen efficiently, but what if I am sacrificing efficiency for competence in the long run? Am I willing to sacrifice an ego boost to do what is right, whether I get praise or not? Am I really willing to take care of my people and organization? Am I willing to balance a short-term blast of nods against the long-term value of doing what is needed?\n\n6. Great decisions are communicated well to stakeholders.  \nWhat if the powerful people I must report to aren’t too nice? Am I willing to stay with myself, to back myself up and say what is true, and then go home after answering questions honestly? What if I am raked over the coals for my decision? The honest answer is that if I am listening to the processes and applying them, I will be able to be honest and have integrity, and leave the ass-kissing to someone else.\n\n7. Great decisions are timely.  \nRather than being a leader who procrastinates on decisions because I fear making a mistake, passing the buck to blame someone else if what I am doing goes south, or freezing because I won’t be liked, I am working on – and teaching others to work on – charting the best course forward with the information I have received. And pressing on as quickly as possible.\n\n8. All in all, I want to trust my gut, but my gut may not be the best course of action for everyone.  \nOr is it? 😊\n\nThis is a lifelong course. I will admit this is something I haven’t done perfectly. What about you?  \n[Coaching with Craig](https://www.linkedin.com/newsletters/coaching-with-craig-6892581782110269441)\n"
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [
+      "https://media.licdn.com/dms/image/v2/D5612AQHfdskAkuzwug/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1653590438944?e=2147483647&v=beta&t=c-lhfJvMW-OpAfvbvwYbEl566brhtzGy96pLyUdwUcw"
+    ],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  }
+}

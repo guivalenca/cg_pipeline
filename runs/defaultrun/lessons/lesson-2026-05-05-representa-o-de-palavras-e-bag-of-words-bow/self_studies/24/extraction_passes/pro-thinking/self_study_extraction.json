@@ -1,0 +1,406 @@
+{
+  "artifact_type": "self_study_extraction",
+  "schema_version": "self_study_extraction.v0",
+  "generated_at": "2026-05-18T02:58:18.577115+00:00",
+  "source_artifact": "source_ledger.json",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-05-05-representa-o-de-palavras-e-bag-of-words-bow",
+  "self_study_id": "24",
+  "source_body_path": "extraction/post-image/0024-book-representacao-vetorial-de-textos-bag-of-words.md",
+  "source_body_sha256": "7ee2c665314a1025fc6212670fc0ee2c87ce4b6122b5b5933594d5d98ee02607",
+  "source_name": "Representação vetorial de textos - bag of words",
+  "source_year": null,
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "allowed_image_urls": [],
+    "instruction": "You may inspect only these Source Body linked image URLs. Do not search or open unrelated URLs."
+  },
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-24-001",
+      "label": "Computadores interpretam textos por conversão numérica",
+      "description": "Computadores trabalham com bases numéricas e, para processar linguagem natural, o texto deve ser convertido para representações numéricas compreensíveis pela máquina.",
+      "coverage_criteria": [
+        "Explicar por que dados textuais precisam ser convertidos em números para processamento computacional."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto na seção 'Interpretação de dados textuais' afirma que computadores trabalham com números e que a linguagem natural deve ser convertida para que a máquina compreenda.",
+        "granularity_rationale": "Conceito fundamental e independente que pode ser verificado com uma explicação direta."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Interpretação de dados textuais"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-002",
+      "label": "Algoritmos de aprendizagem de máquina requerem entrada numérica",
+      "description": "Algoritmos de aprendizagem de máquina aprendem uma função de mapeamento Y=f(X) e, portanto, exigem variáveis de entrada (X) numéricas e geram saída (Y) numérica, com erro irredutível.",
+      "coverage_criteria": [
+        "Descrever a formulação Y=f(X) e explicar por que a entrada deve ser numérica em algoritmos de ML."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "No texto, após introduzir conversão numérica, afirma-se que algoritmos de ML se baseiam em valores numéricos e que a formulação geral é Y = f(X) + e.",
+        "granularity_rationale": "Conceito que encapsula a justificativa da vetorização; testável com perguntas sobre mapeamento."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Interpretação de dados textuais"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Bishop (2006)"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-003",
+      "label": "Vetorização de textos é extração de características para ML",
+      "description": "Vetorização (ou extração de características) é o processo de transformar documentos em representações vetoriais numéricas para que algoritmos de ML possam operar, criando uma matriz onde linhas são instâncias e colunas são características.",
+      "coverage_criteria": [
+        "Definir vetorização de textos e explicar seu propósito para aprendizado de máquina."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 'Vetorização de textos' explica que algoritmos de ML esperam matriz numérica e que vetorização é o primeiro passo essencial para análise de linguagem.",
+        "granularity_rationale": "Conceito central que conecta PLN e ML; adequado para questões de definição e justificativa."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Vetorização de textos"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Bengfort, Bilbro, Ojeda (2018)",
+        "Bishop (2006)"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-004",
+      "label": "Bag of Words (BoW): modelo de saco de palavras",
+      "description": "Bag of Words é um modelo simples de representação vetorial que trata o texto como uma coleção não ordenada de palavras, codificando significado e similaridade pelo vocabulário compartilhado; documentos com palavras semelhantes são próximos no espaço semântico.",
+      "coverage_criteria": [
+        "Explicar o princípio do BoW e como ele representa documentos como vetores de frequência de palavras."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto introduz o BoW como a codificação mais simples do espaço semântico e descreve sua ideia principal: vocabulário compartilhado indica similaridade.",
+        "granularity_rationale": "Conceito fundamental para a aula; pode ser avaliado com perguntas conceituais e exemplos simples."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Jurafsky (2000)",
+        "Sarkar (2016)"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-005",
+      "label": "Etapas do algoritmo Bag of Words",
+      "description": "O BoW é implementado em quatro etapas: (1) limpar o texto removendo stopwords e pontuação, (2) extrair tokens conforme a necessidade, (3) construir o vocabulário com tokens únicos, (4) gerar vetores de frequência para cada documento.",
+      "coverage_criteria": [
+        "Listar e descrever as quatro etapas do BoW."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "A seção 'Algoritmo bag of words' enumera claramente as quatro etapas, fornecendo um procedimento passo a passo.",
+        "granularity_rationale": "Conjunto de passos bem definido que pode ser verificado com uma lista e breve explicação."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-006",
+      "label": "Vocabulário e esparsidade em BoW",
+      "description": "O vocabulário é o conjunto de todos os tokens únicos extraídos; cada documento gera um vetor de tamanho igual ao vocabulário, com zeros para palavras ausentes, resultando em vetores esparsos que podem ser problemáticos para armazenamento/processamento.",
+      "coverage_criteria": [
+        "Explicar o que é vocabulário no contexto BoW e por que os vetores são esparsos."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o conceito de vocabulário após exemplificar a contagem de palavras e destaca que a presença de muitos zeros gera vetores esparsos.",
+        "granularity_rationale": "Propriedade importante do BoW que motiva técnicas de redução; verificável com definições e exemplos."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-24-007",
+      "label": "CountVectorizer: vetorizador por contagem no Scikit-learn",
+      "description": "CountVectorizer é um vetorizador do Scikit-learn que implementa BoW contando o número de ocorrências de cada termo em cada documento, gerando uma matriz termo-documento.",
+      "coverage_criteria": [
+        "Descrever o que é CountVectorizer e para que serve."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta o CountVectorizer como o mais simples dos três vetorizadores do Scikit-learn, explicando que conta ocorrências.",
+        "granularity_rationale": "Conceito de ferramenta específica que pode ser testado com definição e identificação de uso."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Scikit-learn",
+        "Python"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-008",
+      "label": "Parâmetros principais do CountVectorizer",
+      "description": "O CountVectorizer aceita diversos parâmetros para controlar pré-processamento e tokenização, incluindo lowercase, stop_words, token_pattern, ngram_range, analyzer, max_df, min_df, max_features, vocabulary, e binary.",
+      "coverage_criteria": [
+        "Listar pelo menos cinco parâmetros do CountVectorizer e explicar brevemente suas funções."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto dedica várias páginas a enumerar e explicar os parâmetros do CountVectorizer, mostrando sua importância para customização.",
+        "granularity_rationale": "Conjunto de detalhes de configuração que pode ser avaliado com perguntas de reconhecimento ou aplicação."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Scikit-learn",
+        "Pedregosa et al. (2011)"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-009",
+      "label": "HashVectorizer: vetorização por hashing",
+      "description": "HashVectorizer é um vetorizador do Scikit-learn que aplica uma função hash para codificar termos como índices numéricos, economizando memória, mas impossibilitando a recuperação dos nomes das características originais.",
+      "coverage_criteria": [
+        "Explicar a vantagem e desvantagem do HashVectorizer em relação ao CountVectorizer."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto menciona HashVectorizer como alternativa eficiente em memória, mas com perda de nomes de features.",
+        "granularity_rationale": "Conceito comparativo que pode ser verificado com uma questão de contraste."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Scikit-learn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-010",
+      "label": "TfidfVectorizer: ponderação TF-IDF",
+      "description": "TfidfVectorizer é um vetorizador do Scikit-learn que atribui pesos aos termos combinando a frequência no documento (TF) e a frequência inversa no corpus (IDF), dando maior importância a termos discriminativos.",
+      "coverage_criteria": [
+        "Explicar o que significa TF-IDF e como difere da contagem simples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto apresenta TfidfVectorizer como uma alternativa que considera não apenas frequência local, mas também recorrência em todo o conjunto de documentos.",
+        "granularity_rationale": "Conceito fundamental em recuperação de informação; pode ser testado com definição e exemplo."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Scikit-learn"
+      ]
+    },
+    {
+      "candidate_id": "candidate-24-011",
+      "label": "Uso do CountVectorizer em Python",
+      "description": "Exemplo prático de como usar o CountVectorizer em Python: importar a biblioteca, instanciar com parâmetros (ex.: lowercase=False), aplicar fit_transform ao texto para gerar a matriz termo-documento, e obter os nomes das features com get_feature_names().",
+      "coverage_criteria": [
+        "Escrever um trecho de código Python que use CountVectorizer para vetorizar um pequeno texto e recuperar o vocabulário."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "extraction_reason": {
+        "source_grounded_rationale": "O texto fornece um exemplo completo com código e saída, ensinando a aplicar o CountVectorizer.",
+        "granularity_rationale": "Habilidade prática que pode ser verificada com um exercício de codificação simples."
+      },
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Processamentos de Linguagem Natural",
+      "source_year": "2020",
+      "name_drops": [
+        "Python",
+        "CountVectorizer",
+        "Scikit-learn"
+      ]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-24-002",
+      "to_candidate_id": "candidate-24-003",
+      "reason": "O texto afirma que algoritmos de ML exigem entrada numérica, portanto, a vetorização é necessária para transformar texto em números.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Interpretação de dados textuais"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-003",
+      "to_candidate_id": "candidate-24-004",
+      "reason": "O BoW é apresentado como o modelo de vetorização mais simples para codificar o espaço semântico de documentos.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Vetorização de textos"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-004",
+      "to_candidate_id": "candidate-24-005",
+      "reason": "O texto descreve as quatro etapas práticas para implementar o algoritmo Bag of Words.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-005",
+      "to_candidate_id": "candidate-24-007",
+      "reason": "O CountVectorizer automatiza as etapas do BoW de forma eficiente em Python.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-007",
+      "to_candidate_id": "candidate-24-009",
+      "reason": "O HashVectorizer é mencionado como uma alternativa de vetorização com maior eficiência de memória.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-007",
+      "to_candidate_id": "candidate-24-010",
+      "reason": "O TfidfVectorizer é apresentado como um vetorizador que pondera termos por frequência no documento e no corpus.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-24-007",
+      "to_candidate_id": "candidate-24-011",
+      "reason": "O texto fornece um exemplo de código que demonstra a aplicação do CountVectorizer na prática.",
+      "source_anchors": [
+        {
+          "kind": "markdown_heading",
+          "locator": "Algoritmo bag of words"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "candidate_count": 11,
+    "source_local_connector_candidate_count": 7
+  }
+}

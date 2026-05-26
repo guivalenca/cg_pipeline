@@ -1,0 +1,198 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "adm-mod6-NEG",
+    "area_id": "area_010",
+    "area": {
+      "id": "area_010",
+      "label": "Organizational Decision-Making Practices",
+      "rationale": "Nine candidates describe key organizational decision types, widespread ineffectiveness, the speed–quality relationship, and foundational best practices (deciding at right level, enterprise value focus, stakeholder commitment) as well as best practices for big‑bet and cross‑cutting decisions. They constitute a focused neighborhood on how winning companies structure and execute decisions.",
+      "candidate_ids": [
+        "lr009_001",
+        "lr009_002",
+        "lr009_003",
+        "lr009_004",
+        "lr009_005",
+        "lr009_006",
+        "lr009_007",
+        "lr009_008",
+        "lr009_009"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr009_001",
+    "lr009_002",
+    "lr009_003",
+    "lr009_004",
+    "lr009_005",
+    "lr009_006",
+    "lr009_007",
+    "lr009_008",
+    "lr009_009"
+  ],
+  "candidates": [
+    {
+      "id": "lr009_001",
+      "label": "Three types of organizational decisions",
+      "description": "Organizations face big-bet, cross-cutting, and delegated decisions, each requiring different approaches for success.",
+      "coverage_criteria": [
+        "Define big-bet, cross-cutting, and delegated decisions and give examples."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_002",
+      "label": "Widespread ineffectiveness of decision-making time",
+      "description": "A majority of respondents spend over 30% of their time on decisions, but 61% say most of that time is used ineffectively, leading to large hidden costs for organizations.",
+      "coverage_criteria": [
+        "State the survey finding about time spent on decisions and the perceived ineffectiveness.",
+        "Explain why this ineffectiveness is costly for organizations."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_003",
+      "label": "Speed and quality are not trade-offs",
+      "description": "Faster organizational decisions tend to be higher in quality; companies do not need to sacrifice quality for speed.",
+      "coverage_criteria": [
+        "Explain the relationship between decision speed and quality found in the survey.",
+        "Distinguish this finding from the common assumption that speed reduces quality."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_004",
+      "label": "Foundational practice: decide at the right level",
+      "description": "Winning organizations delegate decisions to the appropriate level, often with fewer reporting layers, which increases speed and quality.",
+      "coverage_criteria": [
+        "Describe what it means to make decisions at the right level.",
+        "Connect this practice to flatter organizational structures."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_005",
+      "label": "Foundational practice: focus on enterprise-level value",
+      "description": "Winning organizations align decisions with corporate strategy and allocate resources to high-value projects.",
+      "coverage_criteria": [
+        "Explain how enterprise value focus relates to decision success.",
+        "Give examples of aligning decisions with strategy."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_006",
+      "label": "Foundational practice: get commitment from stakeholders",
+      "description": "Winning organizations build commitment to executing decisions by involving accountable stakeholders and ensuring a robust process.",
+      "coverage_criteria": [
+        "Describe how stakeholder commitment is achieved without requiring unanimity or slowing decisions.",
+        "Explain why commitment matters for execution."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_007",
+      "label": "Big-bet best practice: quality of debate",
+      "description": "For big-bet decisions, winning organizations ensure high-quality debate by exploring alternatives, seeking disconfirming information, and using a devil’s advocate.",
+      "coverage_criteria": [
+        "List the three elements of high-quality debate for big bets.",
+        "Explain why rapid consensus without debate is not successful."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_008",
+      "label": "Cross-cutting best practice: meeting process and coordination",
+      "description": "For cross-cutting decisions, winning organizations emphasize effective coordination among stakeholders and focus meeting time on the most critical issues.",
+      "coverage_criteria": [
+        "Identify the key success factors for cross-cutting decisions.",
+        "Explain why clearly defined roles alone are insufficient."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_009",
+      "label": "Delegated decisions best practice: empowerment",
+      "description": "For delegated decisions, winning organizations empower employees through coaching and providing space for safe failure, fostering ownership and a bias for action.",
+      "coverage_criteria": [
+        "List the key ingredients for empowering delegated decision making.",
+        "Distinguish empowerment from simply establishing clear roles or escalation guidelines."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-03-decision-making-in-companies",
+      "lesson_title": "Decision Making in Companies",
+      "depth": "definition"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

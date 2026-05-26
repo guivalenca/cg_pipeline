@@ -1,0 +1,439 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-05-11-nltk-bow-e-naive-bayes-para-an-lise-de-conte-do",
+    "title": "NLTK, BoW e Naive Bayes para Análise de Conteúdo"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-stop-words-removal-a0ab175e",
+      "label": "Stop Words Removal",
+      "knowledge_type": "procedural",
+      "teaching_description": "Filtering out common words (e.g., 'the', 'is') that carry little semantic value, using predefined lists such as NLTK's stopwords.",
+      "coverage_criteria": [
+        "Identify common stop words.",
+        "Remove stop words from text using NLTK."
+      ]
+    },
+    {
+      "concept_id": "concept-word-level-tokenization-16cef6b9",
+      "label": "Word-level Tokenization",
+      "knowledge_type": "procedural",
+      "teaching_description": "Splitting raw text into individual words (tokens) as the first step of NLP pipelines, often using functions like d2l.tokenize.",
+      "coverage_criteria": [
+        "Tokenize a sentence into words.",
+        "Explain why tokenization is necessary."
+      ]
+    },
+    {
+      "concept_id": "concept-vocabulary-construction-and-out-of-vocabulary-handling-7148c091",
+      "label": "Vocabulary Construction and Out-of-Vocabulary Handling",
+      "knowledge_type": "procedural",
+      "teaching_description": "Building a vocabulary from training tokens with a minimum frequency filter, and ignoring unknown words during testing to avoid errors.",
+      "coverage_criteria": [
+        "Create a vocabulary with frequency filters.",
+        "Explain the strategy for handling OOV words."
+      ]
+    },
+    {
+      "concept_id": "concept-bag-of-words-representation-24ac5d06",
+      "label": "Bag-of-Words Representation",
+      "knowledge_type": "procedural",
+      "teaching_description": "The bag-of-words model represents text as a vector of word frequencies, ignoring word order. It converts unstructured text into numerical features using a vocabulary of the most frequent words.",
+      "coverage_criteria": [
+        "Explain the bag-of-words assumption (ignoring word order).",
+        "Create a BoW vector from tokenized text and a vocabulary.",
+        "Describe how to select the vocabulary size (e.g., top N words)."
+      ]
+    },
+    {
+      "concept_id": "concept-probability-foundations-for-naive-bayes-c83fc42b",
+      "label": "Probability Foundations for Naive Bayes",
+      "knowledge_type": "procedural",
+      "teaching_description": "Foundational probability concepts: basic probability, conditional probability P(A|B) = P(A∩B)/P(B), and Bayes theorem P(B|A) = P(A|B)P(B)/P(A) with posterior, likelihood, prior, and evidence.",
+      "coverage_criteria": [
+        "State the formula for conditional probability.",
+        "Write Bayes theorem and name the terms.",
+        "Compute a simple probability using the formula."
+      ]
+    },
+    {
+      "concept_id": "concept-feature-independence-assumption-and-multicollinearity-f518e93f",
+      "label": "Feature Independence Assumption and Multicollinearity",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Naive Bayes assumes features are independent given the class (the 'naive' assumption). Multicollinearity (high feature correlation) violates this independence, causing poor performance.",
+      "coverage_criteria": [
+        "Explain the naive independence assumption.",
+        "Define multicollinearity and its impact on Naive Bayes.",
+        "Describe a method to detect multicollinearity."
+      ]
+    },
+    {
+      "concept_id": "concept-naive-bayes-variants-bernoulli-multinomial-gaussian-645224f5",
+      "label": "Naive Bayes Variants: Bernoulli, Multinomial, Gaussian",
+      "knowledge_type": "procedural",
+      "teaching_description": "Three main variants: Bernoulli for binary features, Multinomial for discrete counts (especially text), and Gaussian for continuous features assuming a normal distribution.",
+      "coverage_criteria": [
+        "Match each variant to its typical data type.",
+        "Identify the appropriate variant for a given scenario.",
+        "Recognize scikit-learn class names for each variant."
+      ]
+    },
+    {
+      "concept_id": "concept-practical-aspects-of-naive-bayes-applications-advantages-and-usage-a2e29072",
+      "label": "Practical Aspects of Naive Bayes: Applications, Advantages, and Usage",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Naive Bayes is used in text classification, sentiment analysis, recommendation, and real-time prediction. Advantages: fast, less training data (when independent), good with categorical/text data. Disadvantages: independence assumption, zero frequency. Best when features are fairly independent and for text tasks.",
+      "coverage_criteria": [
+        "List at least three real-world applications.",
+        "State two advantages and two disadvantages.",
+        "Describe scenarios where Naive Bayes is a good choice or should be avoided."
+      ]
+    },
+    {
+      "concept_id": "concept-improving-naive-bayes-performance-339ababc",
+      "label": "Improving Naive Bayes Performance",
+      "knowledge_type": "procedural",
+      "teaching_description": "Techniques include removing correlated features, feature engineering, domain knowledge, using probabilistic features, Laplace smoothing, and the log-trick for numerical stability: argmax (log prior + Σ log P(xᵢ|y)).",
+      "coverage_criteria": [
+        "Name at least three improvement strategies.",
+        "Explain why the log-trick is used.",
+        "Apply the log-trick in a posterior calculation."
+      ]
+    },
+    {
+      "concept_id": "concept-gaussian-naive-bayes-prior-likelihood-and-pdf-7cc67157",
+      "label": "Gaussian Naive Bayes: Prior, Likelihood, and PDF",
+      "knowledge_type": "conceptual",
+      "teaching_description": "In Gaussian Naive Bayes, the prior P(y) is the class frequency. The class conditional probability P(xᵢ|y) is modeled with a Gaussian PDF: (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)), where μ and σ² are estimated per feature per class.",
+      "coverage_criteria": [
+        "Calculate prior probabilities from a dataset.",
+        "Write the Gaussian PDF formula.",
+        "Compute a PDF value given mean and variance."
+      ]
+    },
+    {
+      "concept_id": "concept-naive-bayes-training-and-prediction-procedure-ee2d3329",
+      "label": "Naive Bayes Training and Prediction Procedure",
+      "knowledge_type": "procedural",
+      "teaching_description": "Training: compute per-class means, variances, and prior probabilities. Prediction: choose the class with the highest log-posterior: log P(y) + Σ log P(xᵢ|y) using argmax.",
+      "coverage_criteria": [
+        "List the statistics computed during training.",
+        "Explain the prediction step using argmax.",
+        "Perform a simple prediction by hand for a small dataset."
+      ]
+    },
+    {
+      "concept_id": "concept-implementing-naive-bayes-in-python-001c7318",
+      "label": "Implementing Naive Bayes in Python",
+      "knowledge_type": "procedural",
+      "teaching_description": "The classifier is implemented as a Python class with fit() and predict() methods, using NumPy arrays, storing learned parameters as attributes. Model performance is evaluated using accuracy on a test set.",
+      "coverage_criteria": [
+        "Describe the class structure and key methods (fit, predict).",
+        "Explain how accuracy is computed and interpreted.",
+        "Identify the attributes stored after training (e.g., means, variances, priors)."
+      ]
+    },
+    {
+      "concept_id": "concept-sentiment-analysis-definition-and-supervised-learning-8787d74e",
+      "label": "Sentiment Analysis: Definition and Supervised Learning",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Sentiment analysis classifies text as positive or negative based on sentiment-bearing words. It is a supervised classification task that requires labeled data for training.",
+      "coverage_criteria": [
+        "Define sentiment analysis.",
+        "Explain why labeled data is necessary for supervised sentiment analysis.",
+        "Give examples of positive and negative cue words."
+      ]
+    },
+    {
+      "concept_id": "concept-derivation-of-naive-bayes-decision-rule-35d3eb15",
+      "label": "Derivation of Naive Bayes Decision Rule",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The step-by-step derivation from Bayes theorem to the final classification formula: select class c that maximizes P(c) * ∏ P(word|c).",
+      "coverage_criteria": [
+        "Write the final decision rule formula.",
+        "Explain the steps: posterior maximization, dropping the denominator, independence assumption."
+      ]
+    },
+    {
+      "concept_id": "concept-naive-bayes-training-prior-and-likelihood-computation-ebe7b130",
+      "label": "Naive Bayes Training: Prior and Likelihood Computation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "How to compute prior class probabilities P(c) = Nc/N and word likelihoods P(word|c) as relative frequency in class c.",
+      "coverage_criteria": [
+        "Calculate prior from class counts.",
+        "Calculate word likelihoods from training documents."
+      ]
+    },
+    {
+      "concept_id": "concept-logarithmic-transformation-for-numerical-stability-c1d3d03b",
+      "label": "Logarithmic Transformation for Numerical Stability",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using the log of the Naive Bayes product to convert it into a sum, preventing underflow from multiplying many small probabilities.",
+      "coverage_criteria": [
+        "Explain why log-sum avoids underflow.",
+        "Transform a product expression into a log-sum."
+      ]
+    },
+    {
+      "concept_id": "concept-stemming-59552985",
+      "label": "Stemming",
+      "knowledge_type": "procedural",
+      "teaching_description": "Reducing words to their root form (e.g., 'running' → 'run') to consolidate terms, using algorithms like SnowballStemmer from NLTK.",
+      "coverage_criteria": [
+        "Explain the purpose of stemming.",
+        "Apply a stemmer to a list of words."
+      ]
+    },
+    {
+      "concept_id": "concept-binary-multinomial-naive-bayes-852ed91c",
+      "label": "Binary Multinomial Naive Bayes",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A variant that uses binary features (word presence/absence) instead of word counts, emphasizing occurrence over frequency.",
+      "coverage_criteria": [
+        "Contrast binary and frequency-based Naive Bayes.",
+        "Explain when binary features might be useful."
+      ]
+    },
+    {
+      "concept_id": "concept-aplica-o-do-multinomial-naive-bayes-em-scikit-learn-12f09e41",
+      "label": "Aplicação do Multinomial Naive Bayes em scikit-learn",
+      "knowledge_type": "procedural",
+      "teaching_description": "Implementação prática do classificador MultinomialNB para análise de sentimento ou detecção de spam, incluindo preparação dos dados e treinamento.",
+      "coverage_criteria": [
+        "Justificar a escolha do MultinomialNB para dados de contagem de palavras.",
+        "Carregar e pré-processar um dataset de texto para classificação.",
+        "Treinar um modelo MultinomialNB e fazer predições."
+      ]
+    },
+    {
+      "concept_id": "concept-m-tricas-de-avalia-o-para-classifica-o-2e674a2f",
+      "label": "Métricas de avaliação para classificação",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Métricas derivadas da matriz de confusão: acurácia, precisão, recall, F1-score, para avaliar o desempenho de classificadores binários.",
+      "coverage_criteria": [
+        "Definir matriz de confusão e os termos VP, FP, VN, FN.",
+        "Calcular acurácia, precisão, recall e F1-score a partir da matriz.",
+        "Interpretar o significado de cada métrica."
+      ]
+    },
+    {
+      "concept_id": "concept-ajuste-de-hiperpar-metros-com-gridsearchcv-0c955814",
+      "label": "Ajuste de hiperparâmetros com GridSearchCV",
+      "knowledge_type": "procedural",
+      "teaching_description": "Busca exaustiva dos melhores hiperparâmetros usando validação cruzada para otimizar o desempenho do classificador Naive Bayes.",
+      "coverage_criteria": [
+        "Explicar o propósito do ajuste de hiperparâmetros.",
+        "Diferenciar Grid Search de Random Search.",
+        "Aplicar GridSearchCV no scikit-learn para encontrar os melhores parâmetros."
+      ]
+    },
+    {
+      "concept_id": "concept-distribui-o-de-classes-desbalanceada-1a90b578",
+      "label": "Distribuição de classes desbalanceada",
+      "knowledge_type": "applied",
+      "teaching_description": "Identificação de conjuntos de dados com desproporção entre classes e compreensão de seu impacto na classificação.",
+      "coverage_criteria": [
+        "Reconhecer um dataset desbalanceado a partir da distribuição de rótulos.",
+        "Discutir por que dados desbalanceados podem ser problemáticos.",
+        "Mencionar possíveis estratégias de mitigação."
+      ]
+    },
+    {
+      "concept_id": "concept-nlp-definition-05d4bc90",
+      "label": "NLP Definition",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Natural Language Processing (NLP) is a subfield of AI that focuses on enabling computers to understand, process, and derive meaning from human language, leveraging linguistics and computer science, often relying on statistical approximations.",
+      "coverage_criteria": [
+        "Define NLP as a subfield of AI that enables machines to read and understand human language.",
+        "Identify that NLP combines linguistics and computer science or relies on statistical methods.",
+        "Give an example of an NLP application (e.g., chatbots, sentiment analysis, information extraction)."
+      ]
+    },
+    {
+      "concept_id": "concept-text-preprocessing-and-normalization-8124a469",
+      "label": "Text Preprocessing and Normalization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "The essential steps of cleaning and standardizing raw text for NLP, including lowercasing, removing punctuation, special characters, HTML tags, stop words, and tokenization, to reduce noise and ensure uniformity.",
+      "coverage_criteria": [
+        "List the common text preprocessing steps and explain the purpose of each.",
+        "Apply preprocessing to a given raw text sample, including lowercasing, removing punctuation and stop words, and tokenization."
+      ]
+    },
+    {
+      "concept_id": "concept-bag-of-words-with-scikit-learn-s-countvectorizer-3be24f58",
+      "label": "Bag of Words with scikit-learn's CountVectorizer",
+      "knowledge_type": "procedural",
+      "teaching_description": "Using CountVectorizer from scikit-learn to convert text documents into a term-document matrix of token counts. Students configure parameters such as max_features, n-gram range, and preprocessing options, then apply fit_transform to generate the matrix and interpret the output.",
+      "coverage_criteria": [
+        "Instantiate CountVectorizer with parameters like max_features and fit_transform a list of texts to obtain a sparse matrix.",
+        "Explain how parameters (e.g., max_features) control vocabulary size and interpret the resulting term-document matrix."
+      ]
+    },
+    {
+      "concept_id": "concept-naive-bayes-classifier-core-concept-15171720",
+      "label": "Naive Bayes Classifier Core Concept",
+      "knowledge_type": "applied",
+      "teaching_description": "Understanding the Naive Bayes classifier as a probabilistic method that applies Bayes' theorem with naive independence assumption to compute class posterior probabilities, without performing explicit calculations.",
+      "coverage_criteria": [
+        "State the naive independence assumption",
+        "Describe how Naive Bayes uses Bayes theorem for classification",
+        "Identify that it is an eager learning algorithm"
+      ]
+    },
+    {
+      "concept_id": "concept-naive-bayes-probability-calculation-95e5c12a",
+      "label": "Naive Bayes Probability Calculation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Applying Bayes' theorem with independence to compute class-conditional probabilities from term frequencies for text classification.",
+      "coverage_criteria": [
+        "State Bayes theorem and apply to classification",
+        "Explain independence assumption and its effect on factoring P(X|y)",
+        "Calculate class probability from term frequencies"
+      ]
+    },
+    {
+      "concept_id": "concept-zero-frequency-error-and-laplace-smoothing-concept-b4e9420a",
+      "label": "Zero Frequency Error and Laplace Smoothing Concept",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Understanding that zero frequency error occurs when a feature value is unseen in training, and that Laplace smoothing adds a small constant to counts to prevent zero probabilities, with the parameter α controlling the smoothing strength.",
+      "coverage_criteria": [
+        "Define zero frequency error.",
+        "Explain how Laplace smoothing mitigates the error.",
+        "Describe the effect of the smoothing parameter α."
+      ]
+    },
+    {
+      "concept_id": "concept-applying-laplace-smoothing-in-naive-bayes-07b4d314",
+      "label": "Applying Laplace Smoothing in Naive Bayes",
+      "knowledge_type": "procedural",
+      "teaching_description": "Ability to apply Laplace smoothing to word count tables using the formula (count + 1) / (total words + vocabulary size) to avoid zero probabilities for unseen words.",
+      "coverage_criteria": [
+        "Explain the zero probability problem.",
+        "Apply Laplace smoothing to word count tables."
+      ]
+    },
+    {
+      "concept_id": "concept-train-test-split-for-model-evaluation-3e355edb",
+      "label": "Train-Test Split for Model Evaluation",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Splitting a dataset into training and testing subsets to evaluate model generalization and detect overfitting, using sklearn's train_test_split with parameters test_size and random_state to control split proportions and reproducibility.",
+      "coverage_criteria": [
+        "Explain why separating training and testing data is necessary.",
+        "Use sklearn.model_selection.train_test_split to split features and labels.",
+        "Describe the purpose of test_size and random_state.",
+        "Discuss overfitting if no split is performed."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Introdução ao NLP e Pré-processamento de Texto",
+      "concept_ids": [
+        "concept-nlp-definition-05d4bc90",
+        "concept-text-preprocessing-and-normalization-8124a469"
+      ]
+    },
+    {
+      "label": "Tokenização, Remoção de Stop Words e Stemming com NLTK",
+      "concept_ids": [
+        "concept-word-level-tokenization-16cef6b9",
+        "concept-stop-words-removal-a0ab175e",
+        "concept-stemming-59552985"
+      ]
+    },
+    {
+      "label": "Vocabulário e Representação Bag-of-Words",
+      "concept_ids": [
+        "concept-vocabulary-construction-and-out-of-vocabulary-handling-7148c091",
+        "concept-bag-of-words-representation-24ac5d06",
+        "concept-bag-of-words-with-scikit-learn-s-countvectorizer-3be24f58"
+      ]
+    },
+    {
+      "label": "Fundamentos de Probabilidade para Naive Bayes",
+      "concept_ids": [
+        "concept-probability-foundations-for-naive-bayes-c83fc42b",
+        "concept-derivation-of-naive-bayes-decision-rule-35d3eb15",
+        "concept-naive-bayes-training-prior-and-likelihood-computation-ebe7b130",
+        "concept-naive-bayes-probability-calculation-95e5c12a",
+        "concept-logarithmic-transformation-for-numerical-stability-c1d3d03b"
+      ]
+    },
+    {
+      "label": "Conceitos do Naive Bayes, Independência e Variantes",
+      "concept_ids": [
+        "concept-naive-bayes-classifier-core-concept-15171720",
+        "concept-feature-independence-assumption-and-multicollinearity-f518e93f",
+        "concept-naive-bayes-variants-bernoulli-multinomial-gaussian-645224f5",
+        "concept-binary-multinomial-naive-bayes-852ed91c",
+        "concept-gaussian-naive-bayes-prior-likelihood-and-pdf-7cc67157"
+      ]
+    },
+    {
+      "label": "Suavização de Laplace para Frequência Zero",
+      "concept_ids": [
+        "concept-zero-frequency-error-and-laplace-smoothing-concept-b4e9420a",
+        "concept-applying-laplace-smoothing-in-naive-bayes-07b4d314"
+      ]
+    },
+    {
+      "label": "Análise de Sentimento como Aplicação",
+      "concept_ids": [
+        "concept-sentiment-analysis-definition-and-supervised-learning-8787d74e"
+      ]
+    },
+    {
+      "label": "Treinamento e Predição do Naive Bayes em Python",
+      "concept_ids": [
+        "concept-naive-bayes-training-and-prediction-procedure-ee2d3329",
+        "concept-implementing-naive-bayes-in-python-001c7318"
+      ]
+    },
+    {
+      "label": "Aspectos Práticos e Melhorias do Naive Bayes",
+      "concept_ids": [
+        "concept-practical-aspects-of-naive-bayes-applications-advantages-and-usage-a2e29072",
+        "concept-improving-naive-bayes-performance-339ababc"
+      ]
+    },
+    {
+      "label": "Pipeline Prático com scikit-learn: Treinamento, Avaliação e Ajuste",
+      "concept_ids": [
+        "concept-aplica-o-do-multinomial-naive-bayes-em-scikit-learn-12f09e41",
+        "concept-m-tricas-de-avalia-o-para-classifica-o-2e674a2f",
+        "concept-ajuste-de-hiperpar-metros-com-gridsearchcv-0c955814",
+        "concept-distribui-o-de-classes-desbalanceada-1a90b578",
+        "concept-train-test-split-for-model-evaluation-3e355edb"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

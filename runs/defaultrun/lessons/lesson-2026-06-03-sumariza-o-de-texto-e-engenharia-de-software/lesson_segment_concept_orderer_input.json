@@ -1,0 +1,241 @@
+{
+  "artifact_type": "lesson_segment_concept_orderer_input",
+  "schema_version": "lesson_segment_concept_orderer_input.v0",
+  "source_artifact": "source_ledger.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "planner_decision_artifact": "lesson_segment_planner_decision.json",
+  "prompt_path": "lesson_segmentation/concept_orderer.md",
+  "prompt": "# Lesson Segment Concept Orderer\n\n## Mission\n\nOrder Concepts inside each already-planned Lesson Segment. Preserve the Planner's\nSegment boundaries, Segment labels, and Segment order.\n\n## Inputs\n\nUse only the provided `lesson`, `concepts`, and planned `segments`.\n\nDo not move Concepts between Segments. Do not rename Segments. Do not add or\nremove Concepts. Do not infer from other Lessons, source order, workbook labels,\nor web research.\n\n## Workflow\n\n1. For each Segment, inspect only the Concepts already assigned to that Segment.\n2. Order definitions, distinctions, and mental models before procedures or\n   applications when that helps the teaching flow.\n3. Use Coverage Criteria to preserve the intended scope.\n4. Keep the same Segment list and labels from the input.\n\n## Output Contract\n\nReturn one valid JSON object only. Do not include markdown fences or commentary.\n\n```json\n{\n  \"segments\": [\n    {\n      \"label\": \"Same label from input\",\n      \"concept_ids\": [\"same_concept_ids\", \"only_reordered_if_needed\"]\n    }\n  ]\n}\n```\n",
+  "task": "lesson_segment_concept_orderer",
+  "model_route": "Pro",
+  "lesson": {
+    "lesson_id": "lesson-2026-06-03-sumariza-o-de-texto-e-engenharia-de-software",
+    "title": "Sumarização de texto e Engenharia de Software"
+  },
+  "concepts": [
+    {
+      "concept_id": "concept-text-summarization-objectives-beeb0abe",
+      "label": "Text Summarization Objectives",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Text summarization aims to condense information from one or more source texts into a shorter version that preserves the main ideas and important content, serving as a tool for accessibility and efficient information retrieval.",
+      "coverage_criteria": [
+        "Student can state the primary goal of text summarization and list its benefits for readers and producers."
+      ]
+    },
+    {
+      "concept_id": "concept-mono-document-vs-multi-document-summarization-31492848",
+      "label": "Mono-document vs Multi-document Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Summarization can be classified by the number of input documents: mono-document summarization produces a summary from a single text, while multi-document summarization synthesizes information from multiple related documents, often dealing with greater information volume.",
+      "coverage_criteria": [
+        "Student can differentiate between mono-document and multi-document summarization and provide an example scenario for each."
+      ]
+    },
+    {
+      "concept_id": "concept-extractive-vs-abstractive-summarization-bf3af602",
+      "label": "Extractive vs Abstractive Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Extractive summarization selects and concatenates unchanged sentences from the source text, while abstractive summarization may rephrase or generate new sentences, potentially altering structure and meaning, and requiring more complex NLP.",
+      "coverage_criteria": [
+        "Student can explain the difference between extractive and abstractive summarization, and identify which is more complex and why."
+      ]
+    },
+    {
+      "concept_id": "concept-indicative-vs-informative-summaries-d8f78890",
+      "label": "Indicative vs Informative Summaries",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Indicative summaries provide a vague idea of the content and cannot replace the source, while informative summaries preserve the main content and can act as substitutes, allowing users to understand the subject without reading the full text.",
+      "coverage_criteria": [
+        "Student can distinguish between indicative and informative summaries and explain when each is more appropriate."
+      ]
+    },
+    {
+      "concept_id": "concept-generic-vs-user-oriented-summaries-9cce5f14",
+      "label": "Generic vs User-Oriented Summaries",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Generic summaries present the most important information without considering the user's background, while user-oriented summaries tailor the content based on the user's knowledge, providing context for novices or novelty for experts.",
+      "coverage_criteria": [
+        "Student can differentiate between generic and user-oriented summaries and describe a scenario where user-oriented would be beneficial."
+      ]
+    },
+    {
+      "concept_id": "concept-supervised-vs-unsupervised-summarization-97e83bf5",
+      "label": "Supervised vs Unsupervised Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Supervised summarization treats sentence inclusion as a classification task trained on labeled examples, while unsupervised summarization uses pre-defined features and heuristics to determine sentence importance without needing training data.",
+      "coverage_criteria": [
+        "Student can explain the difference between supervised and unsupervised approaches to summarization and give an example of each."
+      ]
+    },
+    {
+      "concept_id": "concept-intermediate-representation-in-summarization-123cf749",
+      "label": "Intermediate Representation in Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "The first step of summarization processing is creating an intermediate representation that captures the main aspects of the text, such as topic representations using word frequency tables or more complex indicators.",
+      "coverage_criteria": [
+        "The student can define intermediate representation and describe one common method."
+      ]
+    },
+    {
+      "concept_id": "concept-sentence-scoring-for-summarization-7c9344e8",
+      "label": "Sentence Scoring for Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "After intermediate representation, each sentence receives a score indicating its importance, often based on how well it expresses key topics or a combination of indicator evidence, sometimes using machine learning.",
+      "coverage_criteria": [
+        "The student can explain the purpose of sentence scoring and describe a common method."
+      ]
+    },
+    {
+      "concept_id": "concept-sentence-selection-algorithms-1763af4d",
+      "label": "Sentence Selection Algorithms",
+      "knowledge_type": "procedural",
+      "teaching_description": "The summarization system selects a set of high-scoring sentences to form a summary, using greedy approaches that recalculate importance considering redundancy, or global optimization maximizing importance and coherence.",
+      "coverage_criteria": [
+        "The student can describe the goal of sentence selection and outline one approach."
+      ]
+    },
+    {
+      "concept_id": "concept-reformulation-in-abstractive-summarization-2a0805b1",
+      "label": "Reformulation in Abstractive Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "In abstractive summarization, a final reformulation step rewrites or paraphrases the selected content to produce a fluent summary, often using natural language generation.",
+      "coverage_criteria": [
+        "The student can explain when reformulation is applied and its role."
+      ]
+    },
+    {
+      "concept_id": "concept-compression-rate-in-summarization-cc2e432d",
+      "label": "Compression Rate in Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Compression rate defines the size of the summary relative to the source text; e.g., a 60% compression rate means the summary will be 40% of the original length.",
+      "coverage_criteria": [
+        "The student can define compression rate and calculate target summary length."
+      ]
+    },
+    {
+      "concept_id": "concept-extractive-summarization-example-with-python-and-nltk-3b08153b",
+      "label": "Extractive Summarization Example with Python and NLTK",
+      "knowledge_type": "procedural",
+      "teaching_description": "An extractive summarization workflow in Python using urllib, BeautifulSoup, NLTK for tokenization and stopword removal, then scoring sentences by word frequency to select the top sentences.",
+      "coverage_criteria": [
+        "The student can list the main steps: fetching data, parsing HTML, tokenizing, removing stopwords, creating frequency distribution, scoring sentences, and selecting top sentences."
+      ]
+    },
+    {
+      "concept_id": "concept-bert-sentence-embeddings-and-k-medoid-clustering-for-extractive-summarization-d85bd19d",
+      "label": "BERT Sentence Embeddings and K-Medoid Clustering for Extractive Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "Pre-trained BERT models convert sentences into fixed-length embeddings, which are then clustered using K-medoid to select representative sentences as the extractive summary, ensuring selected sentences are actual text excerpts.",
+      "coverage_criteria": [
+        "The student can explain how BERT creates sentence embeddings and how K-medoid clustering selects sentences.",
+        "The student can contrast K-means and K-medoid for this task."
+      ]
+    },
+    {
+      "concept_id": "concept-fine-tuning-gpt-2-for-abstractive-summarization-0c5498d2",
+      "label": "Fine-tuning GPT-2 for Abstractive Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "GPT-2 is fine-tuned with a multi-loss strategy combining language modeling and multiple-choice prediction, using special tokens like <summarize> and keywords as input, with masked self-attention ensuring auto-regressive generation.",
+      "coverage_criteria": [
+        "The student can describe the two training objectives (language modeling and multiple-choice) and their weighting.",
+        "The student can explain the role of special tokens and masked self-attention in the fine-tuning process."
+      ]
+    },
+    {
+      "concept_id": "concept-keyword-extraction-for-abstractive-summarization-e5f77518",
+      "label": "Keyword Extraction for Abstractive Summarization",
+      "knowledge_type": "procedural",
+      "teaching_description": "In the abstractive summarization pipeline, important keywords (nouns and verbs) are automatically extracted using techniques like NLTK POS tagging or fine-tuned BERT, providing a condensed representation for the summarization model.",
+      "coverage_criteria": [
+        "The student can name at least one method for keyword extraction and explain how keywords are used in the summarization input."
+      ]
+    },
+    {
+      "concept_id": "concept-data-scarcity-in-domain-specific-summarization-ff9d3cef",
+      "label": "Data Scarcity in Domain-Specific Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "Low availability of domain-specific data (e.g., only 35k pairs in COVID-19 research vs 286k in general datasets) and rare terminology can hinder effective fine-tuning of large models like BERT and GPT-2.",
+      "coverage_criteria": [
+        "The student can quantify the data size challenge and explain why limited domain data degrades fine-tuning."
+      ]
+    },
+    {
+      "concept_id": "concept-future-direction-hybrid-extractive-abstractive-summarization-a2c1a5ce",
+      "label": "Future Direction: Hybrid Extractive-Abstractive Summarization",
+      "knowledge_type": "conceptual",
+      "teaching_description": "A suggested future approach is to feed sentences extracted by extractive summarization directly into an abstractive model, potentially improving summary quality by providing richer context.",
+      "coverage_criteria": [
+        "The student can summarize this future work suggestion and discuss one potential benefit."
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "label": "Understanding Text Summarization",
+      "concept_ids": [
+        "concept-text-summarization-objectives-beeb0abe",
+        "concept-compression-rate-in-summarization-cc2e432d"
+      ]
+    },
+    {
+      "label": "Classifying Summarization Approaches",
+      "concept_ids": [
+        "concept-mono-document-vs-multi-document-summarization-31492848",
+        "concept-extractive-vs-abstractive-summarization-bf3af602",
+        "concept-indicative-vs-informative-summaries-d8f78890",
+        "concept-generic-vs-user-oriented-summaries-9cce5f14",
+        "concept-supervised-vs-unsupervised-summarization-97e83bf5"
+      ]
+    },
+    {
+      "label": "The Summarization Pipeline",
+      "concept_ids": [
+        "concept-intermediate-representation-in-summarization-123cf749",
+        "concept-sentence-scoring-for-summarization-7c9344e8",
+        "concept-sentence-selection-algorithms-1763af4d",
+        "concept-reformulation-in-abstractive-summarization-2a0805b1"
+      ]
+    },
+    {
+      "label": "Extractive Summarization Examples",
+      "concept_ids": [
+        "concept-extractive-summarization-example-with-python-and-nltk-3b08153b",
+        "concept-bert-sentence-embeddings-and-k-medoid-clustering-for-extractive-summarization-d85bd19d"
+      ]
+    },
+    {
+      "label": "Abstractive Summarization Examples",
+      "concept_ids": [
+        "concept-fine-tuning-gpt-2-for-abstractive-summarization-0c5498d2",
+        "concept-keyword-extraction-for-abstractive-summarization-e5f77518"
+      ]
+    },
+    {
+      "label": "Limitations and Emerging Trends",
+      "concept_ids": [
+        "concept-data-scarcity-in-domain-specific-summarization-ff9d3cef",
+        "concept-future-direction-hybrid-extractive-abstractive-summarization-a2c1a5ce"
+      ]
+    }
+  ],
+  "output_contract": {
+    "segments": [
+      {
+        "label": "Short human-readable teaching label.",
+        "concept_ids": [
+          "Every provided Concept ID exactly once across all Segments."
+        ]
+      }
+    ],
+    "rules": [
+      "Return only valid JSON.",
+      "Do not create Segment IDs.",
+      "Do not create instructional roles.",
+      "Every Concept must appear exactly once."
+    ]
+  },
+  "web_access_policy": {
+    "web_access": "disabled",
+    "reason": "Lesson Segmentation must use only the provided Lesson Concepts."
+  }
+}

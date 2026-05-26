@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "provider": "gemini_multimodal",
+  "strategy": "video_gemini_two_pass",
+  "settings": {
+    "profile": "triage",
+    "model": "gemini-2.5-flash-lite",
+    "fps": 0.5,
+    "media_resolution": "low",
+    "temperature": 0.2,
+    "max_output_tokens": 8192,
+    "prompt_version": "video_gemini_pass2_v1",
+    "chunk_longer_than_seconds": 3600,
+    "chunk_seconds": 1800,
+    "chunk_overlap_seconds": 5,
+    "max_transcript_chars_per_chunk": 60000,
+    "min_words": 150,
+    "timestamp_span_tolerance_seconds": 180,
+    "timestamp_span_min_ratio": 0.65,
+    "title_similarity_min": 0.45
+  },
+  "pass1_cache_key": "4b532ebb40ccdb25e1254439a4ddbbc4d749919ad861fa9e00c91ef05428efc8",
+  "pass1_transcript_sha256": "d6a2d63c693506ed02ec480192b92474e2a72d0a5efefb461881ec6356321e8b",
+  "chunks": [
+    {
+      "schema_version": "1.0",
+      "provider": "gemini_multimodal",
+      "strategy": "video_gemini_two_pass",
+      "source_url": "https://www.youtube.com/watch?v=ydvnVw80I_8",
+      "gemini_media_source": "https://www.youtube.com/watch?v=ydvnVw80I_8",
+      "audio_transcript_sha256": "d6a2d63c693506ed02ec480192b92474e2a72d0a5efefb461881ec6356321e8b",
+      "model": "gemini-2.5-flash-lite",
+      "fps": 0.5,
+      "media_resolution": "low",
+      "temperature": 0.2,
+      "max_output_tokens": 8192,
+      "prompt_version": "video_gemini_pass2_v1",
+      "prompt_sha256": "9ccc0643927061a0ecf23a15e51e408220fd729ee634bbc1ea4640bf096f9d0a",
+      "chunk": {
+        "index": 1,
+        "start_seconds": null,
+        "end_seconds": null
+      },
+      "media_reference": {
+        "mode": "external_uri",
+        "file_uri": "https://www.youtube.com/watch?v=ydvnVw80I_8",
+        "mime_type": "video/mp4",
+        "video_metadata": {
+          "fps": 0.5
+        }
+      },
+      "prompt": "You are the video acquisition layer for The Companion curriculum pipeline.\n\nTask: convert the provided video into cleaned markdown that downstream concept extraction can process without branching by source type.\n\nSource metadata:\n- XLSX row id: 24\n- XLSX row title: Decision Analysis 3: Decision Trees\n- Source URL or file: https://www.youtube.com/watch?v=ydvnVw80I_8\n- Probed source title: Decision Analysis 3: Decision Trees\n- Probed duration seconds: 185.0\n- Chunk window: Full video\n- Gemini model: gemini-2.5-flash-lite\n- Video sampling fps: 0.5\n- Media resolution: low\n- Prompt version: video_gemini_pass2_v1\n\nPass 1 audio transcript for temporal grounding:\n```text\n[00:00] Welcome to this Decision Analysis tutorial for constructing decision trees.\n[00:05] We will be constructing a basic decision tree.\n[00:08] We will also be making decisions using the expected value approach.\n[00:13] We will be constructing a decision tree using this payoff table,\n[00:18] where payoffs are profits and the probabilities of the states of nature\n[00:23] are .4 and .6 respectively.\n[00:28] Decision trees use two types of nodes:\n[00:32] A square or rectangle node called DECISION NODE\n[00:37] from which decision alternative branches will originate,\n[00:42] and a circle node called CHANCE NODE\n[00:45] from which states of nature or outcome branches will emanate.\n[00:51] The CHANCE NODE is also referred to as an OUTCOME NODE or EVENT NODE\n[00:57] Now let's construct a decision tree for this PAYOFF table.\n[01:01] We first draw a decision node\n[01:05] with branches coming out of the decision node representing decision alternatives.\n[01:10] Next we draw the chance node or outcome node\n[01:14] with respective states of nature or outcomes.\n[01:19] As it can be seen here for stocks.\n[01:22] The payoffs are placed at the end of the branches as you can see (70 and -13 for Stocks).\n[01:30] We do the same for Mutual Funds and for Bonds.\n[01:34] Notice that the payoff is 20 for Bonds\n[01:38] irrespective of the state of nature.\n[01:40] Therefore, we really don’t need to repeat 20,\n[01:44] we simply need to draw a single branch\n[01:47] from BONDS with a payoff of 20.\n[01:51] Now let's solve the decision tree.\n[01:54] Solving the decision tree is also known as\n[01:57] folding back the decision tree.\n[02:00] In essence, we are going to calculate the expected\n[02:04] values and then choose the best.\n[02:06] For Stocks, the expected value is calculated as\n[02:10] .4 times 70 + .6 times -13 which is 20.2.\n[02:17] So we just usually write the 20.2 on the chance node for stocks.\n[02:23] We do the same for mutual funds. The expected\n[02:27] value is. 4 times 53 + .6 times -5 which is 18.2.\n[02:35] We also write that on the chance node for mutual funds.\n[02:38] For Bonds, no calculation is required.\n[02:43] We can only expect a payoff of 20 (for Bonds).\n[02:46] Now comparing the three values: 20.2, 18.2, and 20,\n[02:52] the best expected value is 20.2.\n[02:56] We usually just place that value close to the decision node.\n[03:00] Therefore, the decision is to invest in Stocks.\n[03:04] Thanks for watching!\n```\n\nReturn only the markdown body. Do not include YAML frontmatter.\n\nRequired markdown structure:\n\n## [MM:SS] Concise moment heading\n\n**Spoken content:** faithful summary or transcript-aligned excerpt of what is being said at this timestamp.\n\n**On-screen content:** slide text, code, equations, diagrams, tables, terminal output, whiteboard content, or visible UI state at this timestamp.\n\nVisual reference rule:\n- When a slide, diagram, chart, equation, code block, table, whiteboard, or UI state is useful for downstream extraction, emit an inline image placeholder using this exact form:\n  ![descriptive alt text](video-frame://24@MM:SS)\n- Use H:MM:SS in the URI timestamp when needed.\n- The alt text must briefly name the visual type and key labels, for example: ![diagram: tokenization pipeline with normalization, vectorization, classifier](video-frame://24@12:34)\n- Do not emit JSON for diagrams. The downstream Qwen-VL phase will convert frame placeholders to structured JSON later.\n\nBehavior rules:\n- Use the Pass 1 transcript as the timing anchor, but focus model capacity on visual reasoning.\n- Preserve code blocks with fenced markdown.\n- Preserve equations in readable markdown/LaTeX form.\n- Do not invent content outside the video or outside the chunk window.\n- Do not describe blank or repeated frames unless the visual content changes.\n- Prefer timestamp sections that span the whole chunk/video, not a dense frame-by-frame log.\n- If speech and visuals disagree, say so explicitly inside the relevant timestamp section.\n"
+    }
+  ],
+  "credential_fields_redacted": true
+}

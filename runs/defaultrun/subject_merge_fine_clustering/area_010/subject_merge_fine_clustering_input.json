@@ -1,0 +1,545 @@
+{
+  "artifact_type": "subject_merge_fine_clustering_input",
+  "schema_version": "subject_merge_fine_clustering_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "prompt_path": "subject_merge/fine_clustering.md",
+  "prompt": "# Subject Merge Fine Clustering\n\n## Quick Start\n\nInside one topic area, create tight candidate clusters that are worth a later same-concept decision. Use only the provided candidate cards.\n\n## Identity Filter\n\nCluster candidates only when they might be the same teachable idea at the same level, testable with the same question.\n\nDo not cluster just because candidates share a keyword. Keep candidates separate when one adds implementation, math, limitation, application, deeper mechanism, tool-specific behavior, or a broader/narrower student action.\n\nDoubt means singleton. Under-clustering is safer than sending unrelated candidates to merge evaluation.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short candidate cluster\",\n      \"rationale\": \"Why these candidates may share concept identity.\",\n      \"candidate_ids\": [\"candidate-id\"]\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every input candidate ID appears exactly once.\n- Each non-singleton cluster has a plausible same-concept reason.\n- Implementation, limitation, application, math, and deeper-revisit candidates were not grouped with definitions just because labels overlap.\n- Mixed-language same-level candidates were clustered when their teachable idea matches.\n- No web search or external knowledge was used.\n",
+  "task": "subject_merge_fine_clustering",
+  "model_route": "Pro Thinking",
+  "scope": {
+    "id": "si-mod6-COM",
+    "area_id": "area_010",
+    "area": {
+      "id": "area_010",
+      "label": "Word Embeddings Concepts",
+      "rationale": "Core embedding ideas: distributional hypothesis, analogy, cosine similarity, Word2Vec architectures, training, negative sampling, GloVe, fastText, contextual embeddings (ELMo, BERT).",
+      "candidate_ids": [
+        "lr006_001",
+        "lr006_002",
+        "lr006_003",
+        "lr006_004",
+        "lr006_005",
+        "lr006_006",
+        "lr006_007",
+        "lr006_008",
+        "lr006_009",
+        "lr006_012",
+        "lr009_001",
+        "lr009_002",
+        "lr009_003",
+        "lr009_004",
+        "lr009_005",
+        "lr009_007",
+        "lr009_010",
+        "lr010_005",
+        "lr010_006",
+        "lr010_007",
+        "lr011_004",
+        "lr011_005",
+        "lr011_006",
+        "lr011_007",
+        "lr011_008",
+        "lr011_009",
+        "lr011_010"
+      ]
+    }
+  },
+  "input_candidate_ids": [
+    "lr006_001",
+    "lr006_002",
+    "lr006_003",
+    "lr006_004",
+    "lr006_005",
+    "lr006_006",
+    "lr006_007",
+    "lr006_008",
+    "lr006_009",
+    "lr006_012",
+    "lr009_001",
+    "lr009_002",
+    "lr009_003",
+    "lr009_004",
+    "lr009_005",
+    "lr009_007",
+    "lr009_010",
+    "lr010_005",
+    "lr010_006",
+    "lr010_007",
+    "lr011_004",
+    "lr011_005",
+    "lr011_006",
+    "lr011_007",
+    "lr011_008",
+    "lr011_009",
+    "lr011_010"
+  ],
+  "candidates": [
+    {
+      "id": "lr006_001",
+      "label": "Analogias com Vetores de Palavras (Word2Vec)",
+      "description": "Word2Vec produz embeddings densos que permitem realizar analogias através de operações aritméticas, como 'rei - homem + mulher ≈ rainha', evidenciando que as relações semânticas são codificadas como direções no espaço vetorial.",
+      "coverage_criteria": [
+        "Explique como vetores word2vec podem ser usados para resolver analogias.",
+        "Forneça um exemplo de analogia usando operações com vetores."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_002",
+      "label": "Incorporação 2D Simplificada para Visualizar Similaridade",
+      "description": "É possível construir word embeddings bidimensionais atribuindo manualmente pontuações (ex.: fofura e tamanho) para animais, de modo que palavras similares fiquem próximas no espaço vetorial, ilustrando o princípio da similaridade semântica por proximidade espacial.",
+      "coverage_criteria": [
+        "Dado um plot 2D de animais com escores de atributos, identifique os mais similares.",
+        "Explique como a distância euclidiana mede similaridade em um embedding 2D."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_003",
+      "label": "Alta Dimensionalidade dos Embeddings Reais e Redução de Dimensionalidade",
+      "description": "Modelos word2vec reais usam centenas de dimensões (100-300) para capturar relações semânticas complexas, impossibilitando visualização direta; técnicas como t-SNE ou PCA são necessárias para projetar em 2D.",
+      "coverage_criteria": [
+        "Explique por que embeddings reais são de alta dimensionalidade.",
+        "Cite uma técnica para visualizar embeddings de alta dimensionalidade."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_004",
+      "label": "Hipótese Distributiva",
+      "description": "A hipótese distributiva afirma que palavras que aparecem em contextos similares tendem a ter significados similares, fundamentando a representação vetorial semântica.",
+      "coverage_criteria": [
+        "Enuncie a hipótese distributiva.",
+        "Explique como essa hipótese justifica o uso de word embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_005",
+      "label": "Similaridade por Cosseno entre Vetores de Palavras",
+      "description": "A similaridade de cosseno mede o ângulo entre dois vetores para quantificar proximidade semântica, sendo preferida ao produto escalar por normalizar a magnitude e evitar viés de palavras frequentes.",
+      "coverage_criteria": [
+        "Defina similaridade de cosseno.",
+        "Explique por que é preferida ao produto escalar para comparar vetores de palavras."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_006",
+      "label": "Arquiteturas do Word2Vec: CBOW e Skip-Gram",
+      "description": "Word2Vec possui duas arquiteturas principais: CBOW (Continuous Bag-of-Words) prevê a palavra central a partir do contexto, enquanto Skip-Gram prevê o contexto a partir da palavra central.",
+      "coverage_criteria": [
+        "Diferencie CBOW de Skip-Gram.",
+        "Descreva a entrada e saída de cada arquitetura."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_007",
+      "label": "Treinamento do Word2Vec e Amostragem Negativa",
+      "description": "O treinamento do Word2Vec maximiza a probabilidade de pares palavra-contexto usando uma função softmax; para reduzir custo, a amostragem negativa gera exemplos negativos, otimizando o cálculo.",
+      "coverage_criteria": [
+        "Explique o objetivo de treinamento do Word2Vec.",
+        "Qual o propósito da amostragem negativa?"
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr006_008",
+      "label": "Comparação entre Word2Vec, GloVe e fastText",
+      "description": "Word2Vec foca em contexto local, GloVe utiliza estatísticas globais de co-ocorrência, e fastText usa subword n-grams para representar palavras desconhecidas, oferecendo diferentes trade-offs.",
+      "coverage_criteria": [
+        "Compare Word2Vec, GloVe e fastText em termos de contexto e tratamento de palavras desconhecidas."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_009",
+      "label": "BERT: Embeddings Bidirecionais com Transformers",
+      "description": "BERT é um modelo de embedding contextual que utiliza transformers bidirecionais para considerar o contexto à esquerda e à direita, gerando representações dinâmicas e ricas.",
+      "coverage_criteria": [
+        "Descreva a principal característica do BERT em relação a modelos unidirecionais."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr006_012",
+      "label": "Word Embeddings: Definição e Motivação",
+      "description": "Word embeddings são representações densas de palavras em um espaço vetorial, capturando significado semântico e contrastando com representações esparsas como bag-of-words.",
+      "coverage_criteria": [
+        "Explique o que são word embeddings.",
+        "Como eles se diferenciam de representações esparsas?"
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-12-vetores-multidimensionais-word2vec-e-gensim",
+      "lesson_title": "Vetores multidimensionais: Word2Vec e Gensim",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_001",
+      "label": "Distributional Hypothesis of Meaning",
+      "description": "The distributional hypothesis states that words with similar meanings occur in similar contexts. This concept covers the idea that a word's meaning can be inferred from the company it keeps, demonstrated through contextual inference examples.",
+      "coverage_criteria": [
+        "State the distributional hypothesis.",
+        "Given example sentences, identify words that are likely semantically related based on shared contexts.",
+        "Explain why antonyms like 'hot' and 'cold' can be considered similar under this hypothesis."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_002",
+      "label": "Word Vectors as Numerical Representations",
+      "description": "Words can be encoded as vectors of numbers, where each dimension represents a semantic or descriptive feature such as authority, richness, or gender. This concept forms the basis for representing text data in a continuous vector space.",
+      "coverage_criteria": [
+        "Explain that a word vector is a numerical encoding of a word's features.",
+        "Provide examples of possible features for a given word (e.g., 'king' could have high authority, male, royalty).",
+        "Distinguish between hand-crafted features and automatically learned features."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_003",
+      "label": "Vector Arithmetic for Semantic Analogies",
+      "description": "Word vectors learned by Word2Vec support vector arithmetic that reflects semantic relationships, enabling analogy solving (e.g., 'king' - 'man' + 'woman' ≈ 'queen').",
+      "coverage_criteria": [
+        "Given a word vector equation, predict the expected result word for a simple analogy.",
+        "Explain that vector difference can capture the relationship between two words.",
+        "Perform vector addition or subtraction to solve an analogy task."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr009_004",
+      "label": "Semantic and Syntactic Relationships in Word2Vec Embeddings",
+      "description": "Word2Vec embeddings capture a variety of linguistic relationships, including verb tenses, capital-country associations, and gender pairs, by encoding them as consistent vector offsets.",
+      "coverage_criteria": [
+        "Provide at least two distinct types of linguistic relationships that word vectors can capture (e.g., tense, geography).",
+        "Explain why such relationships emerge from the training objective."
+      ],
+      "source_roles": [
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_005",
+      "label": "Similarity Measures for Word Vectors",
+      "description": "Euclidean distance and cosine similarity are two metrics used to quantify the similarity between word vectors. Euclidean distance measures straight-line distance in vector space, while cosine similarity measures the angle between vectors, often preferred in high-dimensional spaces.",
+      "coverage_criteria": [
+        "Calculate Euclidean distance between two vectors.",
+        "Compute cosine similarity between two vectors.",
+        "Explain the differences between Euclidean distance and cosine similarity and when each might be more appropriate."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "definition"
+    },
+    {
+      "id": "lr009_007",
+      "label": "Word Embeddings as Neural Network Weights",
+      "description": "In Word2Vec, the word embeddings are the learned weights connecting the one-hot input to the hidden layer (or hidden to output, depending on architecture).",
+      "coverage_criteria": [
+        "Indicate that after training, the embedding for a word is extracted from the weight matrix of the neural network."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "math"
+    },
+    {
+      "id": "lr009_010",
+      "label": "Count-based Word Vector Construction and Dimensionality Reduction",
+      "description": "Word vectors can be built by counting word co-occurrences in contexts from a corpus. This yields high-dimensional vectors that often contain redundant information; dimensionality reduction techniques like SVD compress them into a smaller, more manageable number of dimensions (e.g., 100-300).",
+      "coverage_criteria": [
+        "Construct a simple co-occurrence matrix from a small corpus.",
+        "Explain why raw co-occurrence vectors can be too high-dimensional.",
+        "Name dimensionality reduction as a solution and state typical reduced dimensions."
+      ],
+      "source_roles": [
+        "introducing",
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-word2vec-aplica-o-utilizando-redes-neurais",
+      "lesson_title": "Word2Vec - Aplicação utilizando Redes Neurais",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_005",
+      "label": "Word Embedding",
+      "description": "Dense, low-dimensional vector representations of words that capture semantic similarities, enabling analogies through vector arithmetic.",
+      "coverage_criteria": [
+        "Explain how word embeddings capture meaning (e.g., similar words have close vectors).",
+        "Give an example of an analogy solvable with embeddings.",
+        "Contrast word embeddings with one-hot encoding."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_006",
+      "label": "Word2Vec",
+      "description": "A shallow neural network model that learns word embeddings from large corpora using either the Continuous Bag of Words (CBOW) or skip-gram architecture.",
+      "coverage_criteria": [
+        "Distinguish between CBOW and skip-gram training objectives.",
+        "Explain how Word2Vec produces dense vectors for words.",
+        "Describe a practical use of pre-trained Word2Vec embeddings."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr010_007",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe is an unsupervised learning algorithm for generating word embeddings by factorizing a word co-occurrence matrix, capturing global statistical information.",
+      "coverage_criteria": [
+        "Explain how GloVe uses a co-occurrence matrix to learn word embeddings.",
+        "Compare GloVe's approach to Word2Vec's context-window method."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-25-modelos-de-extra-o-de-caracter-sticas-e-apis",
+      "lesson_title": "Modelos de Extração de Características e APIs",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_004",
+      "label": "Semantic Similarity and Properties of Embedding Space",
+      "description": "In a distributional framework, words are similar if they share similar contexts. Embedding vectors place these words in a space where distance (e.g., cosine) reflects similarity. Well‑trained embeddings also exhibit clustering of related words and support analogical reasoning (e.g., king - man + woman ≈ queen).",
+      "coverage_criteria": [
+        "Explain how word similarity is defined by context rather than spelling.",
+        "Given a 2D plot, identify which words are most similar based on distance.",
+        "Describe the analogy property of ideal embeddings with an example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_005",
+      "label": "Training a Custom Embedding Layer",
+      "description": "A neural network can include an embedding layer initialized randomly and trained end‑to‑end for a specific task, producing specialized word representations. This requires large amounts of data.",
+      "coverage_criteria": [
+        "Describe how a custom embedding layer is trained within a model.",
+        "State one advantage and one disadvantage of training embeddings from scratch."
+      ],
+      "source_roles": [
+        "introducing"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_006",
+      "label": "Word2vec: CBOW and Skip‑gram Architectures",
+      "description": "Word2vec learns embeddings by training a shallow neural network on a prediction task: Continuous Bag‑of‑Words (CBOW) predicts a target word from context, while Skip‑gram predicts context words from a target word.",
+      "coverage_criteria": [
+        "Differentiate CBOW and Skip‑gram and state what each predicts.",
+        "Explain how Word2vec creates dense word vectors from unlabeled text."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_007",
+      "label": "GloVe: Global Vectors for Word Representation",
+      "description": "GloVe improves on Word2vec by leveraging a word co‑occurrence matrix, training vectors such that their dot product approximates the log of co‑occurrence probability, thereby incorporating global corpus statistics.",
+      "coverage_criteria": [
+        "Explain how GloVe differs from Word2vec regarding global information.",
+        "Describe the role of the co‑occurrence matrix in GloVe."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "math"
+    },
+    {
+      "id": "lr011_008",
+      "label": "fastText: Subword Embeddings",
+      "description": "fastText represents each word as the sum of its character n‑gram embeddings, allowing it to build vectors for out‑of‑vocabulary words and handle morphologically rich languages.",
+      "coverage_criteria": [
+        "Explain how fastText’s subword approach addresses the out‑of‑vocabulary problem.",
+        "Describe the difference between Word2vec and fastText regarding word representation."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    },
+    {
+      "id": "lr011_009",
+      "label": "ELMo: Contextualized Word Embeddings",
+      "description": "ELMo uses a bidirectional LSTM to produce word vectors that depend on the entire input sentence, allowing the same word to have different representations in different contexts (e.g., homonyms).",
+      "coverage_criteria": [
+        "Explain why ELMo provides different embeddings for the same word in different sentences.",
+        "Describe the advantage of context‑dependent over static word embeddings."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "definition"
+    },
+    {
+      "id": "lr011_010",
+      "label": "Using Pre‑trained Word Embeddings",
+      "description": "Pre‑trained word vectors can be used in two ways: as static features (fixed during downstream training) or fine‑tuned (adjusted to the task). The Gensim library provides convenient access to pre‑trained models (Word2vec, GloVe, fastText) and similarity operations.",
+      "coverage_criteria": [
+        "List and describe the two modes of using pre‑trained embeddings.",
+        "Write code to load a pre‑trained model from Gensim and find similar words."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-26-outras-t-cnicas-word-embedding-tf-tf-idf-e-lsa",
+      "lesson_title": "Outras técnicas Word Embedding: TF, TF-IDF e LSA",
+      "depth": "implementation"
+    }
+  ],
+  "candidate_assignment_rule": "Cluster only. Every input candidate ID must appear exactly once across clusters. Prefer tight clusters; topic overlap alone is not a cluster.",
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

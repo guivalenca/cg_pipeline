@@ -1,0 +1,1731 @@
+{
+  "artifact_type": "subject_merge_quality_repair_input",
+  "schema_version": "subject_merge_quality_repair_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "subject_merge_candidate_registry.json",
+  "subject_merge_artifact": "subject_merge.json",
+  "prompt_path": "subject_merge/quality_repair.md",
+  "prompt": "# Subject Merge Quality Repair\n\n## Quick Start\n\nRepair only the flagged target candidates from a Phase 5 quality audit. Use the current subject concepts as context, but do not reconsider unrelated candidates.\n\n## Repair Rules\n\n- If the audit flags an over-merge, split only the target candidates that represent different teachable ideas.\n- If the audit flags residual duplicates, merge only target candidates that are the same teachable idea at the same level.\n- If the audit flags a missed obvious merge, merge only target candidates that are clearly the same teachable idea at the same level; otherwise keep them standalone.\n- Preserve lesson-local candidate IDs in `source_candidate_ids`.\n- Keep implementation, math, limitation, application, deeper mechanism, and tool-specific behavior separate from definitions unless the target cards truly ask for the same student action.\n- If a target candidate is uncertain, accept it as a standalone concept rather than using review or pruning.\n\n## Output\n\nReturn one JSON object only:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific subject-level teachable idea\",\n      \"description\": \"Canonical understanding represented by this repaired concept.\",\n      \"coverage_criteria\": [\"Observable check across repaired candidates.\"],\n      \"source_candidate_ids\": [\"target-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates are the same concept or must stand alone.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"]\n    },\n    {\n      \"candidate_id\": \"represented-target-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"repair001\",\n      \"explanation\": \"Why it is represented by repair001.\"\n    }\n  ]\n}\n```\n\n## Self-Check\n\n- Every target candidate ID appears exactly once in `candidate_assignments`.\n- No unrelated candidate was added, removed, merged, or split.\n- The repair addresses the audit reason directly.\n- No `review`, `pruned`, dependency edges, final graph IDs, web search, or external knowledge.\n",
+  "task": "subject_merge_quality_repair",
+  "model_route": "Pro Thinking",
+  "scope_id": "adm-mod6-NEG",
+  "quality_audit": {
+    "artifact_type": "subject_merge_quality_audit",
+    "schema_version": "subject_merge_quality_audit.v0",
+    "generated_at": "2026-05-26T19:17:51.864253+00:00",
+    "scope_id": "adm-mod6-NEG",
+    "stage_name": "subject_merge_quality_audit",
+    "model_route": "Pro Thinking",
+    "scores": {
+      "identity_correctness": 3,
+      "granularity_preservation": 3,
+      "provenance_preservation": 3,
+      "assignment_completeness": 3,
+      "overlap_reduction": 2,
+      "subject_coherence": 3,
+      "net_phase5_benefit": 2
+    },
+    "reliability": "repair_required",
+    "flags": [
+      "missed_obvious_merge"
+    ],
+    "metrics": {
+      "input_candidate_count": 130,
+      "concept_count": 121,
+      "assignment_count": 130,
+      "missing_assignment_count": 0,
+      "provenance_loss_candidate_count": 0,
+      "largest_concept_source_count": 2,
+      "merged_concept_count": 9
+    },
+    "guardrail_findings": [],
+    "repair_plan": [
+      {
+        "repair_reason": "missed_obvious_merge",
+        "candidate_ids": [
+          "lr004_008",
+          "lr005_007"
+        ],
+        "explanation": "Both concepts define the EMV criterion: compute expected monetary value and select the highest. They are the same teachable idea and should be merged."
+      },
+      {
+        "repair_reason": "missed_obvious_merge",
+        "candidate_ids": [
+          "lr005_008",
+          "lr012_002"
+        ],
+        "explanation": "Both concepts teach sensitivity analysis with tornado charts to rank inputs by impact. The core skill is identical."
+      }
+    ],
+    "missed_merge_candidates": [
+      {
+        "candidate_ids": [
+          "lr004_008",
+          "lr005_007"
+        ],
+        "confidence": "high",
+        "explanation": "These are clearly the same idea: using expected monetary value to choose among alternatives under risk. Both cover computation and the decision rule."
+      },
+      {
+        "candidate_ids": [
+          "lr005_008",
+          "lr012_002"
+        ],
+        "confidence": "high",
+        "explanation": "Both introduce tornado charts for sensitivity analysis, teaching how to identify which inputs most affect the outcome. They are duplicates."
+      }
+    ]
+  },
+  "repair_reason": "missed_obvious_merge",
+  "target_candidate_ids": [
+    "lr005_008",
+    "lr012_002"
+  ],
+  "target_candidates": [
+    {
+      "id": "lr005_008",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-05-22-decision-making-tools-iii",
+      "lesson_title": "Decision-Making Tools III",
+      "depth": "definition"
+    },
+    {
+      "id": "lr012_002",
+      "label": "Sensitivity Analysis to Identify Key Risk Factors",
+      "description": "Sensitivity analysis uses tornado graphs and spider charts to rank risk factors by their impact on the output criterion, helping prioritize factors for risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado graph: identify the factor with the widest bar, explain quantile ranges, and determine direction of impact."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "lesson_reconciliation",
+      "lesson_id": "lesson-2026-06-18-from-model-outputs-to-business-recommendations",
+      "lesson_title": "From Model Outputs to Business Recommendations",
+      "depth": "implementation"
+    }
+  ],
+  "current_subject_concepts": [
+    {
+      "concept_id": "concept-integration-of-pestel-with-other-frameworks-b11c3c6f",
+      "label": "Integration of PESTEL with Other Frameworks",
+      "description": "Insights from a PESTEL analysis can be incorporated into strategic frameworks such as Ansoff's matrix, Porter's 5 forces, and SWOT analysis to support comprehensive decision-making.",
+      "coverage_criteria": [
+        "Name at least two strategic frameworks that can utilize PESTEL outputs."
+      ],
+      "source_candidate_ids": [
+        "lr001_001"
+      ],
+      "depth": "math"
+    },
+    {
+      "concept_id": "concept-use-of-pestel-in-financial-analysis-845f5721",
+      "label": "Use of PESTEL in Financial Analysis",
+      "description": "In financial analysis, PESTEL factors influence model assumptions such as revenue growth, profit margins, cash reserves for carbon taxes, and debt service coverage ratios, aiding in risk assessment and forecasting.",
+      "coverage_criteria": [
+        "Give an example of how a PESTEL factor might affect a financial model assumption."
+      ],
+      "source_candidate_ids": [
+        "lr001_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-consider-many-different-viewpoints-in-decision-making-67e8e16d",
+      "label": "Consider Many Different Viewpoints in Decision-Making",
+      "description": "Great decisions are shaped by consideration of many different viewpoints, without seeking consensus but not acting unilaterally; it requires discernment on whose opinion to seek and when to force a solution.",
+      "coverage_criteria": [
+        "Explain why considering many different viewpoints shapes great decisions.",
+        "Describe how to balance seeking input versus making a unilateral decision."
+      ],
+      "source_candidate_ids": [
+        "lr001_006"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-make-decisions-close-to-the-action-a6a8400a",
+      "label": "Make Decisions Close to the Action",
+      "description": "Great decisions are made as close as possible to the action, involving those who do the work rather than only those in power, which requires trust and putting ego aside.",
+      "coverage_criteria": [
+        "Describe why involving front-line workers improves decision quality.",
+        "Identify situations where it is better to seek advice from those at the operational level."
+      ],
+      "source_candidate_ids": [
+        "lr001_007"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-address-root-cause-in-decision-making-d4ade183",
+      "label": "Address Root Cause in Decision-Making",
+      "description": "Great decisions address the root cause of problems, not just symptoms, by engaging people who understand where issues originated and developing plans to fix the underlying cause.",
+      "coverage_criteria": [
+        "Differentiate between symptoms and root causes in a decision context.",
+        "Explain why focusing on root causes leads to more effective decisions."
+      ],
+      "source_candidate_ids": [
+        "lr001_008"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-assign-clear-accountability-in-decisions-9cc18b39",
+      "label": "Assign Clear Accountability in Decisions",
+      "description": "Great decisions are made by a clearly accountable person who stands behind their decisions, even if they later turn out to be mistakes.",
+      "coverage_criteria": [
+        "Explain the importance of clear accountability in decision-making.",
+        "Describe how accountability fosters ownership and integrity in the decision process."
+      ],
+      "source_candidate_ids": [
+        "lr001_009"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-balance-short-term-and-long-term-value-in-decisions-17a8f9f2",
+      "label": "Balance Short-Term and Long-Term Value in Decisions",
+      "description": "Great decisions consider the holistic impacts of a problem and balance long-term and short-term value, sometimes requiring sacrifice of immediate efficiency for long-term competence.",
+      "coverage_criteria": [
+        "Discuss how to evaluate trade-offs between short-term gains and long-term value in decision-making.",
+        "Provide examples where short-term sacrifices lead to long-term benefits."
+      ],
+      "source_candidate_ids": [
+        "lr001_010"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-communicate-decisions-effectively-to-stakeholders-5adbae8b",
+      "label": "Communicate Decisions Effectively to Stakeholders",
+      "description": "Great decisions are communicated well to stakeholders, involving honesty and integrity even when facing difficult audiences or consequences.",
+      "coverage_criteria": [
+        "Outline key principles for effectively communicating decisions to stakeholders.",
+        "Explain the importance of transparency and integrity in decision communication."
+      ],
+      "source_candidate_ids": [
+        "lr001_011"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-make-timely-decisions-972b810f",
+      "label": "Make Timely Decisions",
+      "description": "Great decisions are timely; they avoid procrastination, fear of mistakes, or blame-shifting by charting the best course forward with available information and acting promptly.",
+      "coverage_criteria": [
+        "Explain the importance of timeliness in decision-making.",
+        "Identify common barriers to timely decisions such as perfectionism or fear of disapproval."
+      ],
+      "source_candidate_ids": [
+        "lr001_012"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-balance-gut-instinct-with-team-considerations-94c76019",
+      "label": "Balance Gut Instinct with Team Considerations",
+      "description": "While trusting one's gut can be valuable, great decisions also require considering whether that instinct is the best course for everyone involved.",
+      "coverage_criteria": [
+        "Discuss the role of intuition in decision-making.",
+        "Describe when it is appropriate to rely on gut instinct versus when broader team or organizational considerations should prevail."
+      ],
+      "source_candidate_ids": [
+        "lr001_013"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-explicit-decision-making-procedure-b536ebf3",
+      "label": "Explicit Decision-Making Procedure",
+      "description": "Groups should spell out the decision-making process ahead of time; following an explicit procedure leads to more effective decisions.",
+      "coverage_criteria": [
+        "Student can explain why clarifying the decision-making process in advance benefits group effectiveness.",
+        "Student can cite or summarize the research finding that explicit procedures improve decision quality."
+      ],
+      "source_candidate_ids": [
+        "lr008_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-strategies-for-effective-group-discussion-39c797f1",
+      "label": "Strategies for Effective Group Discussion",
+      "description": "Practical techniques to improve group decision-making, including encouraging all members to participate and thoroughly discussing the advantages and disadvantages of each option before deciding.",
+      "coverage_criteria": [
+        "Student can explain why encouraging broad participation and discussing pros and cons lead to better group decisions."
+      ],
+      "source_candidate_ids": [
+        "lr008_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-delaying-intuition-and-structured-judgment-0513dc51",
+      "label": "Delaying Intuition and Structured Judgment",
+      "description": "A decision-making approach that involves delaying intuitive judgments and instead collecting information on specific, independent attributes systematically before forming an overall evaluation. This method reduces bias and improves accuracy, as demonstrated in personnel selection contexts like the IDF and Google hiring.",
+      "coverage_criteria": [
+        "Explain why delaying intuition leads to better decisions.",
+        "Describe Kahneman's structured interviewing method and how it differs from holistic judgment.",
+        "Identify conditions under which intuition is reliable."
+      ],
+      "source_candidate_ids": [
+        "lr001_003"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-optimism-bias-in-decision-making-64fbe9d3",
+      "label": "Optimism Bias in Decision-Making",
+      "description": "Optimism bias is the cognitive tendency to overestimate one's abilities and underestimate risks, leading to a high rate of failure among entrepreneurs but also fueling innovation and economic growth, as excessive risk-taking drives capitalism.",
+      "coverage_criteria": [
+        "Define optimism bias in decision-making.",
+        "Explain how optimism can be both detrimental and beneficial.",
+        "Summarize Kahneman's perspective on the necessity of excessive optimism for large successes."
+      ],
+      "source_candidate_ids": [
+        "lr001_004"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-judgment-noise-3f73c647",
+      "label": "Judgment Noise",
+      "description": "Noise in human judgment refers to unwanted variability in decisions that should be similar. This variability is consistently underestimated by observers, as demonstrated by studies showing insurance underwriters' assessments varying more than expected.",
+      "coverage_criteria": [
+        "Define judgment noise.",
+        "Provide an example of judgment noise.",
+        "Explain why people underestimate noise."
+      ],
+      "source_candidate_ids": [
+        "lr001_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-linear-thinking-and-exponential-change-f098b598",
+      "label": "Linear Thinking and Exponential Change",
+      "description": "The cognitive limitation that humans think linearly, making it difficult to properly assess exponential technological growth, which can lead to flawed decisions about technology adoption.",
+      "coverage_criteria": [
+        "Explain why humans are ill-suited to grasp exponential change.",
+        "Identify possible social consequences of rapid technological development.",
+        "Compare ex-ante and ex-post views on technological adoption."
+      ],
+      "source_candidate_ids": [
+        "lr001_014"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-outcome-bias-and-evaluating-decision-quality-74909305",
+      "label": "Outcome Bias and Evaluating Decision Quality",
+      "description": "Outcome bias is the tendency to evaluate the quality of a decision based solely on its outcomes. To evaluate decisions effectively, one must consider the decision process and not just outcomes.",
+      "coverage_criteria": [
+        "Define outcome bias and give an example.",
+        "Explain why evaluating decisions by outcomes alone can be misleading.",
+        "Describe how a process-based evaluation differs from an outcome-based evaluation."
+      ],
+      "source_candidate_ids": [
+        "lr001_015"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-definition-and-everyday-examples-of-heuristics-6fdd5c91",
+      "label": "Definition and everyday examples of heuristics",
+      "description": "Heuristics are mental shortcuts or rules of thumb developed from past experiences that enable quick decisions, sacrificing optimality for speed. Everyday examples include choosing default outfits or ordering familiar food.",
+      "coverage_criteria": [
+        "Define heuristic and provide an everyday example.",
+        "Explain why heuristics prioritize speed over perfection."
+      ],
+      "source_candidate_ids": [
+        "lr006_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-limitations-and-intellectual-humility-regarding-heuristics-d9f85aa5",
+      "label": "Limitations and intellectual humility regarding heuristics",
+      "description": "Heuristics can lead to over-reliance in areas like political views, causing uninformed positions and resistance to facts. Because of such errors, it is crucial to practice intellectual humility: acknowledging uncertainty and remaining open to opposing perspectives.",
+      "coverage_criteria": [
+        "Explain how heuristics can bias political opinions and why intellectual humility is important when relying on mental shortcuts."
+      ],
+      "source_candidate_ids": [
+        "lr006_002"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-cognitive-biases-that-distort-risk-decisions-8220c543",
+      "label": "Cognitive Biases that Distort Risk Decisions",
+      "description": "Decision makers often rely on cognitive simplifications that lead to biases such as prior hypothesis, adjustment/anchoring, escalating commitment, and insensitivity to predictability, which can cause errors in risk assessment.",
+      "coverage_criteria": [
+        "Name three cognitive biases mentioned in the source and describe how each can affect a risk decision.",
+        "Explain why awareness of cognitive biases is important for directors overseeing risk."
+      ],
+      "source_candidate_ids": [
+        "lr013_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-problem-framing-definition-and-importance-ce0aa172",
+      "label": "Problem Framing Definition and Importance",
+      "description": "Problem framing is the process of discovering and defining the real problem before seeking solutions. It is distinct from problem solving, and identifying the right problem is more critical than solving it well.",
+      "coverage_criteria": [
+        "Student can define problem framing.",
+        "Student can differentiate problem framing from problem solving.",
+        "Student can articulate why problem identification takes precedence over problem solving."
+      ],
+      "source_candidate_ids": [
+        "lr002_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-cognitive-biases-that-lead-to-premature-convergence-9ca435b8",
+      "label": "Cognitive Biases that Lead to Premature Convergence",
+      "description": "Premature convergence is the tendency to jump to solutions quickly, driven by pattern completion and confirmation bias. These cognitive mechanisms cause people to settle on the first plausible answer without fully understanding the problem.",
+      "coverage_criteria": [
+        "Student can define premature convergence.",
+        "Student can explain how pattern completion and confirmation bias contribute to premature convergence.",
+        "Student can identify an example of each bias in a problem-framing scenario."
+      ],
+      "source_candidate_ids": [
+        "lr002_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-organizational-pressures-that-reinforce-solution-jumping-201ce888",
+      "label": "Organizational Pressures that Reinforce Solution-Jumping",
+      "description": "Organizational systems such as business case templates, status meetings, and budgeting processes can inadvertently push teams toward quick solutions before adequate problem framing, reinforcing premature convergence at an institutional level.",
+      "coverage_criteria": [
+        "Student can list at least two organizational practices that hinder problem framing.",
+        "Student can explain how these practices create pressure to jump to solutions."
+      ],
+      "source_candidate_ids": [
+        "lr002_003"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-double-diamond-model-for-problem-framing-175b9579",
+      "label": "Double Diamond Model for Problem Framing",
+      "description": "The Double Diamond model is a framework for problem framing consisting of two phases: Discover (divergent thinking to explore the problem space) and Define (convergent thinking to crystallize the problem).",
+      "coverage_criteria": [
+        "Student can describe the Discover and Define phases.",
+        "Student can explain why divergent and convergent thinking are both necessary for effective problem framing."
+      ],
+      "source_candidate_ids": [
+        "lr002_004"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-problem-reframing-technique-a9cc4e81",
+      "label": "Problem Reframing Technique",
+      "description": "Problem reframing is the deliberate restating of a strategic question to expose new perspectives, risks, and opportunities. For example, shifting from 'How do we grow revenue?' to 'Which customer problems would drive sustainable growth?' can uncover more valuable solutions.",
+      "coverage_criteria": [
+        "Student can reframe a given business problem into a more effective framing question.",
+        "Student can explain how reframing led to better outcomes in a provided example."
+      ],
+      "source_candidate_ids": [
+        "lr002_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-impact-of-poor-framing-on-ai-effectiveness-b692c7b5",
+      "label": "Impact of Poor Framing on AI Effectiveness",
+      "description": "AI systems optimize for the problem they are given. When problem framing is poor, AI efficiently solves the wrong problem, often leading to wasted resources and missed business value.",
+      "coverage_criteria": [
+        "Student can explain why bad framing leads to AI project failure.",
+        "Student can give an example of a scenario where better framing would improve AI outcomes."
+      ],
+      "source_candidate_ids": [
+        "lr002_006"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-strategies-for-building-a-problem-framing-culture-22b92b32",
+      "label": "Strategies for Building a Problem Framing Culture",
+      "description": "Leaders can embed problem framing into organizational culture by shifting focus from 'how to fix' to 'why this happens', and by establishing habits such as asking reflective questions, standardizing problem statements, and adding diagnostic phases before solutioning.",
+      "coverage_criteria": [
+        "Student can list at least three cultural practices that encourage problem framing.",
+        "Student can explain how these practices counteract solution-jumping."
+      ],
+      "source_candidate_ids": [
+        "lr002_007"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-benefits-of-problem-framing-for-execution-clarity-f0867a2e",
+      "label": "Benefits of Problem Framing for Execution Clarity",
+      "description": "A well-framed problem clarifies ownership, metrics, and cross-functional involvement, leading to more efficient execution with fewer mid-course corrections.",
+      "coverage_criteria": [
+        "Student can describe how clarity from problem framing improves execution.",
+        "Student can identify which aspects of execution become clearer with good framing (ownership, metrics, teams)."
+      ],
+      "source_candidate_ids": [
+        "lr002_008"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-applying-problem-framing-to-thought-leadership-a12b1e92",
+      "label": "Applying Problem Framing to Thought Leadership",
+      "description": "In thought leadership, starting with a clearly defined problem rather than a broad audience attracts the right followers. Clear problem definition serves as market positioning, aligning your message with what people are searching for.",
+      "coverage_criteria": [
+        "Student can contrast problem-centric vs. audience-centric thought leadership.",
+        "Student can explain how problem articulation can attract a specific audience."
+      ],
+      "source_candidate_ids": [
+        "lr002_009"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-description-invariance-9144ee07",
+      "label": "Description Invariance",
+      "description": "A normative principle of classical decision theory stating that rational agents' choices should not depend on the particular way options are described, as long as the descriptions are logically equivalent.",
+      "coverage_criteria": [
+        "Define description invariance and explain why it is important for rational decision-making.",
+        "Identify a scenario where description invariance is violated."
+      ],
+      "source_candidate_ids": [
+        "lr002_010"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-framing-effects-and-preference-reversals-f91e7b57",
+      "label": "Framing Effects and Preference Reversals",
+      "description": "Framing effects occur when different but logically equivalent descriptions of a decision problem lead to systematic preference reversals, violating description invariance. For example, people tend to be risk-averse when options are framed as gains and risk-seeking when framed as losses.",
+      "coverage_criteria": [
+        "Define framing effect and give an example (e.g., Asian disease problem).",
+        "Explain how framing leads to preference reversals in decisions under risk."
+      ],
+      "source_candidate_ids": [
+        "lr002_011"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-prospect-theory-as-explanation-for-framing-effects-fd91a5a1",
+      "label": "Prospect Theory as Explanation for Framing Effects",
+      "description": "Prospect theory explains framing effects via a reference-dependent value function, loss aversion, and the principle that people are risk-averse for gains and risk-seeking for losses.",
+      "coverage_criteria": [
+        "Describe the key components of prospect theory (value function, loss aversion, reference point).",
+        "Apply prospect theory to predict choices in a given framing scenario."
+      ],
+      "source_candidate_ids": [
+        "lr002_012"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-adaptiveness-of-decision-processes-in-framing-8dd1ecbd",
+      "label": "Adaptiveness of Decision Processes in Framing",
+      "description": "Framing effects are not purely irrational; they reflect adaptive mechanisms in human judgment and choice, which may serve important functions in real-world decision-making.",
+      "coverage_criteria": [
+        "Explain why framing effects can be considered adaptive.",
+        "Provide an example where sensitivity to framing might be beneficial."
+      ],
+      "source_candidate_ids": [
+        "lr002_013"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-decision-environments-fb53d6ad",
+      "label": "Decision Environments",
+      "description": "Four types of decision contexts: certainty (known outcomes), uncertainty (no probability information), risk (known probabilities), and conflict (adversarial decisions).",
+      "coverage_criteria": [
+        "Student can list the four environments",
+        "Student can distinguish them based on knowledge of states and probabilities"
+      ],
+      "source_candidate_ids": [
+        "lr004_003"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-in-decision-models-57117290",
+      "label": "Sensitivity Analysis in Decision Models",
+      "description": "Sensitivity analysis examines how changes in input parameters (e.g., probabilities, payoffs) affect the optimal decision and EMV. Tools like tornado charts and spider charts rank inputs by their impact on the outcome.",
+      "coverage_criteria": [
+        "Interpret a tornado chart to identify the most influential inputs on EMV.",
+        "Explain the purpose of sensitivity analysis in decision-making."
+      ],
+      "source_candidate_ids": [
+        "lr005_008"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-bayes-rule-for-updating-probabilities-d8473089",
+      "label": "Bayes' Rule for Updating Probabilities",
+      "description": "Bayes' rule computes posterior probabilities given prior probabilities and new evidence: P(B_i|A) = [P(A|B_i) P(B_i)] / Σ[P(A|B_j) P(B_j)]. It is used in decision trees to update probability estimates when new information becomes available.",
+      "coverage_criteria": [
+        "Calculate posterior probabilities using Bayes' rule given priors and likelihoods.",
+        "Explain how Bayes' rule is applied in a decision tree to incorporate new information."
+      ],
+      "source_candidate_ids": [
+        "lr005_009"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-multistage-decision-problems-and-contingency-plans-b2b00b0e",
+      "label": "Multistage Decision Problems and Contingency Plans",
+      "description": "Multistage decisions involve alternating decisions and uncertain outcomes over time. The optimal strategy is a contingency plan specifying actions at later decision nodes conditional on earlier outcomes. Decision trees are particularly useful for representing and solving such problems.",
+      "coverage_criteria": [
+        "Identify a multistage decision situation from a description.",
+        "Explain what a contingency plan is and how it differs from a single-stage decision.",
+        "Given a multistage decision tree, trace the optimal contingency plan."
+      ],
+      "source_candidate_ids": [
+        "lr005_012"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-utility-functions-and-risk-aversion-62118670",
+      "label": "Utility Functions and Risk Aversion",
+      "description": "A utility function U(x) transforms monetary values into utilities to capture risk attitudes. Risk-averse individuals have concave utility functions, leading them to value certain outcomes more than uncertain ones with the same expected monetary value (EMV). Decisions are made by maximizing expected utility rather than EMV.",
+      "coverage_criteria": [
+        "Describe the shape of a risk-averse utility function and why it implies risk aversion.",
+        "Compare decisions using expected utility versus EMV in a simple scenario."
+      ],
+      "source_candidate_ids": [
+        "lr005_013"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-exponential-utility-function-and-risk-tolerance-3a311e4a",
+      "label": "Exponential Utility Function and Risk Tolerance",
+      "description": "An exponential utility function has the form U(x) = 1 - e^{-x/R}, where R is the risk tolerance parameter. Larger R implies less risk aversion. It is a convenient one-parameter model for incorporating risk attitudes into decision analysis.",
+      "coverage_criteria": [
+        "Write the exponential utility function and identify the risk tolerance parameter R.",
+        "Compute expected utility given probabilities and payoffs using the exponential function.",
+        "Interpret the effect of changing R on the degree of risk aversion."
+      ],
+      "source_candidate_ids": [
+        "lr005_014"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-certainty-equivalent-95a83eef",
+      "label": "Certainty Equivalent",
+      "description": "The certainty equivalent of a risky prospect is the guaranteed monetary amount that makes a decision maker indifferent between the certain amount and the uncertain prospect. It is derived by solving for the value x such that U(x) equals the expected utility of the prospect.",
+      "coverage_criteria": [
+        "Define certainty equivalent.",
+        "Compute the certainty equivalent given an exponential utility function and expected utility.",
+        "Explain the relationship between certainty equivalent, risk premium, and risk aversion."
+      ],
+      "source_candidate_ids": [
+        "lr005_015"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-sunk-costs-in-decision-making-9ee4d58e",
+      "label": "Sunk Costs in Decision Making",
+      "description": "Sunk costs are past expenditures that cannot be recovered and should not influence current decisions. In decision tree analysis, sunk costs must be excluded from the evaluation.",
+      "coverage_criteria": [
+        "Define sunk cost.",
+        "Explain why sunk costs should be ignored in decision making.",
+        "Identify sunk costs in a given scenario and justify their exclusion from a decision tree."
+      ],
+      "source_candidate_ids": [
+        "lr005_017"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-importance-of-reliable-inputs-in-decision-tree-analysis-3db6e81e",
+      "label": "Importance of Reliable Inputs in Decision Tree Analysis",
+      "description": "The validity of a decision tree depends on a comprehensive list of probable outcomes and accurate estimates of probabilities and values. Poor-quality inputs lead to unreliable output, often summarized as 'garbage in, garbage out'.",
+      "coverage_criteria": [
+        "Explain why a comprehensive list of outcomes is essential.",
+        "Discuss the consequences of using unreliable probability or value estimates."
+      ],
+      "source_candidate_ids": [
+        "lr005_018"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-risk-profiles-1e5d37df",
+      "label": "Risk Profiles",
+      "description": "A risk profile lists all possible monetary outcomes of a decision along with their probabilities, often visualized as a bar chart. It helps in understanding the riskiness of different decision alternatives.",
+      "coverage_criteria": [
+        "Construct a risk profile from a payoff table or decision tree.",
+        "Interpret a risk profile bar chart to compare the riskiness of alternatives."
+      ],
+      "source_candidate_ids": [
+        "lr005_019"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-handling-deterministic-payoffs-in-decision-trees-458de048",
+      "label": "Handling Deterministic Payoffs in Decision Trees",
+      "description": "When an alternative yields a single certain payoff regardless of the states of nature, it can be represented as a single branch without a chance node, simplifying the decision tree structure.",
+      "coverage_criteria": [
+        "Recognize an alternative with a certain payoff in a decision problem.",
+        "Correctly model it as a deterministic branch in a decision tree.",
+        "Explain how this simplification affects the tree evaluation."
+      ],
+      "source_candidate_ids": [
+        "lr005_020"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-business-value-and-communication-of-monte-carlo-simulation-c0a43c5a",
+      "label": "Business Value and Communication of Monte Carlo Simulation",
+      "description": "Monte Carlo simulation helps CFOs replace opinion-based forecasting with data-driven odds, quantify risks, and communicate more confidently to stakeholders. Outputs like percentiles and probability ranges enable answering board questions and providing mathematical context for guidance.",
+      "coverage_criteria": [
+        "Student can explain the value of Monte Carlo for financial decision-makers and how simulation results improve stakeholder communication."
+      ],
+      "source_candidate_ids": [
+        "lr007_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-financial-distributions-for-monte-carlo-normal-triangular-uniform-dc00b58c",
+      "label": "Financial Distributions for Monte Carlo: Normal, Triangular, Uniform",
+      "description": "For Monte Carlo simulation in financial forecasting, three useful distributions are normal (mean and standard deviation), triangular (minimum, most likely, maximum) often mapping to bear/base/bull cases, and uniform (equal likelihood within a range). The triangular distribution is especially popular for three-point estimates.",
+      "coverage_criteria": [
+        "Student can distinguish between normal, triangular, and uniform distributions and explain when to use each in a Monte Carlo model."
+      ],
+      "source_candidate_ids": [
+        "lr007_003"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-interpreting-simulation-output-with-percentiles-b945e564",
+      "label": "Interpreting Simulation Output with Percentiles",
+      "description": "Monte Carlo simulations produce a probability distribution of outcomes; percentiles (e.g., 10th, 50th, 90th) quantify the range of possible outcomes. You can tighten forecast intervals by using the 10th to 90th percentile instead of min-max extremes. The 5th percentile is particularly useful for assessing downside risk.",
+      "coverage_criteria": [
+        "Given simulation output, student can interpret percentiles to describe the range of likely outcomes and assess risk."
+      ],
+      "source_candidate_ids": [
+        "lr007_004"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-multi-input-monte-carlo-forecasting-589d81dc",
+      "label": "Multi-Input Monte Carlo Forecasting",
+      "description": "Monte Carlo can handle complex equations with multiple uncertain inputs (e.g., regional revenues and expense categories). By modelling each input with a distribution, the simulation produces a distribution of the output (like operating income), replacing static best/worst-case math with a data-driven likely range.",
+      "coverage_criteria": [
+        "Student can explain how to incorporate multiple uncertain inputs into a Monte Carlo model and interpret the resulting output distribution."
+      ],
+      "source_candidate_ids": [
+        "lr007_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-estimating-standard-deviation-from-range-range-4-rule-36fc7fd6",
+      "label": "Estimating Standard Deviation from Range (Range/4 Rule)",
+      "description": "When using a normal distribution without a known standard deviation, a quick estimate is to divide the range (max - min) by 4. This rule of thumb provides an approximate standard deviation for simulation inputs.",
+      "coverage_criteria": [
+        "Student can apply the range/4 rule to estimate standard deviation from a given range."
+      ],
+      "source_candidate_ids": [
+        "lr007_006"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-the-problem-with-single-number-forecasts-certainty-trap-and-deterministic-models-e16f175d",
+      "label": "The Problem with Single-Number Forecasts: Certainty Trap and Deterministic Models",
+      "description": "Deterministic models produce a single outcome based on fixed inputs, creating an illusion of certainty (the certainty trap). This hides risks and variability, leading to managing a number rather than exposure. Monte Carlo simulation addresses this by incorporating uncertainty.",
+      "coverage_criteria": [
+        "Student can explain why single-number forecasts are misleading and contrast deterministic and probabilistic approaches."
+      ],
+      "source_candidate_ids": [
+        "lr007_007"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-risk-vs-uncertainty-544f3de5",
+      "label": "Risk vs. Uncertainty",
+      "description": "Risk involves situations where probabilities can be calculated from known outcomes (e.g., roulette), while uncertainty involves unknown probabilities requiring judgment (e.g., launching new technology). Standard models fail under uncertainty; Monte Carlo helps model those unknowns.",
+      "coverage_criteria": [
+        "Student can differentiate between risk and uncertainty and explain why Monte Carlo is useful under uncertainty."
+      ],
+      "source_candidate_ids": [
+        "lr007_008"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-comparing-risk-profiles-for-decision-making-22cd6841",
+      "label": "Comparing Risk Profiles for Decision Making",
+      "description": "Even when projects have the same expected value, Monte Carlo can reveal different risk profiles. By comparing percentiles (e.g., 5th percentile) or probability of loss, a decision-maker can choose based on risk tolerance, not just average.",
+      "coverage_criteria": [
+        "Student can compare two projects using simulation output and select the option aligned with a given risk appetite."
+      ],
+      "source_candidate_ids": [
+        "lr007_009"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-limitations-simulation-organises-ignorance-897d802d",
+      "label": "Limitations: Simulation Organises Ignorance",
+      "description": "Monte Carlo simulation does not eliminate uncertainty or predict the future; it structures our understanding of ignorance by mapping possible outcomes. It aids judgment but does not replace it.",
+      "coverage_criteria": [
+        "Student can explain that simulation is a tool for organising ignorance, not eliminating it, and discuss its limitations."
+      ],
+      "source_candidate_ids": [
+        "lr007_010"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-excel-implementation-of-monte-carlo-simulation-e55589a1",
+      "label": "Excel Implementation of Monte Carlo Simulation",
+      "description": "To implement Monte Carlo in Excel: model uncertain inputs (e.g., Sales, Costs) with mean and standard deviation; generate random trials using =NORM.INV(RAND(), mean, std_dev) for each input; run thousands of trials efficiently with a Data Table that recalculates a linked profit formula for each iteration in a column.",
+      "coverage_criteria": [
+        "Student can set up an Excel sheet to run a Monte Carlo simulation by modelling inputs, using NORM.INV with RAND, and automating trials with a Data Table."
+      ],
+      "source_candidate_ids": [
+        "lr007_011"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-analyzing-simulation-output-in-excel-0e785e51",
+      "label": "Analyzing Simulation Output in Excel",
+      "description": "After running a Monte Carlo simulation in Excel, analyze the results by calculating descriptive statistics (AVERAGE, MIN, MAX) to understand central tendency and range, and use COUNTIFS to count outcomes below a threshold (e.g., profit < 0) to quantify risk as a percentage.",
+      "coverage_criteria": [
+        "Student can compute summary statistics and the probability of loss from a set of simulated profits in Excel."
+      ],
+      "source_candidate_ids": [
+        "lr007_012"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-by-changing-input-parameters-123897bf",
+      "label": "Sensitivity Analysis by Changing Input Parameters",
+      "description": "After building the simulation, change an input mean (e.g., Fixed Costs) to observe the impact on risk of loss, demonstrating how Monte Carlo simulation supports decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can adjust a parameter (e.g., increase Fixed Costs) and predict how the risk of loss would change.",
+        "Student can interpret the new risk percentage in context of a business decision (e.g., '21% risk now, so maybe we should reduce fixed costs')."
+      ],
+      "source_candidate_ids": [
+        "lr007_013"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-real-options-definition-and-contrast-with-dcf-npv-d33ca312",
+      "label": "Real options definition and contrast with DCF/NPV",
+      "description": "Real options extend financial options theory to business investments, capturing the value of flexibility and learning under uncertainty that traditional DCF/NPV undervalues. They enable delayed, expanded, or abandoned decisions, turning negative expected value into positive by staging investments.",
+      "coverage_criteria": [
+        "Define real options and contrast them with static investment analysis like NPV.",
+        "Explain why traditional DCF can undervalue assets with embedded flexibility.",
+        "Identify at least two types of real options (delay, expand, abandon)."
+      ],
+      "source_candidate_ids": [
+        "lr010_001"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-learning-and-adaptive-behavior-in-real-options-1a700886",
+      "label": "Learning and adaptive behavior in real options",
+      "description": "Real option value stems from the ability to observe outcomes (learn) and adjust actions (adaptive behavior). Staging investments transforms a negative NPV into positive by acting on new information. This shifts management focus from avoiding uncertainty to maximizing learning and flexibility.",
+      "coverage_criteria": [
+        "Restate why a two-step investment can outperform a one-step investment with the same overall probabilities.",
+        "Describe the mindset shift from static NPV planning to proactive real options thinking.",
+        "List the four strategic improvements from real options thinking (emphasize opportunities, enhance leverage, maximize rights, minimize obligations)."
+      ],
+      "source_candidate_ids": [
+        "lr010_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-using-payoff-diagrams-to-identify-real-options-0e3d00f6",
+      "label": "Using payoff diagrams to identify real options",
+      "description": "A real option exists when the payoff structure resembles a call or put option diagram, featuring a kinked payoff limiting downside losses while allowing upside gains. This visual criterion helps recognize embedded options in business decisions.",
+      "coverage_criteria": [
+        "Sketch a call option payoff diagram and label the strike price.",
+        "Explain how limited losses and potential unlimited gains create option value."
+      ],
+      "source_candidate_ids": [
+        "lr010_003"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-three-definitional-characteristics-of-a-real-option-5c1f2338",
+      "label": "Three definitional characteristics of a real option",
+      "description": "To qualify as a real option, an asset or decision must have: (1) a clearly defined underlying asset whose value varies unpredictably, (2) contingent payoffs triggered by a specific event, and (3) a limited life.",
+      "coverage_criteria": [
+        "List the three characteristics.",
+        "For a given business scenario, determine whether these characteristics are present."
+      ],
+      "source_candidate_ids": [
+        "lr010_004"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-exclusivity-as-driver-of-significant-option-value-afecaf34",
+      "label": "Exclusivity as driver of significant option value",
+      "description": "An option has significant economic value only if the holder has exclusivity—the sole right to exercise it. Without exclusivity (e.g., anyone can buy at market price), the option value is zero.",
+      "coverage_criteria": [
+        "Explain why exclusivity is necessary for a real option to have economic value.",
+        "Contrast the landlord anecdote scenario with a proprietary technology option."
+      ],
+      "source_candidate_ids": [
+        "lr010_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-six-determinants-of-real-option-value-6367267e",
+      "label": "Six determinants of real option value",
+      "description": "The value of a real option is driven by six factors: underlying asset value, variance of that value, expected dividends, strike price, option life, and risk-free interest rate. Uncertainty (variance) uniquely increases option value because of asymmetric payoffs, contrary to NPV logic.",
+      "coverage_criteria": [
+        "List the six determinants and their real-market equivalents.",
+        "Explain why higher variance increases option value, while higher dividends reduce it.",
+        "Predict the directional effect of a change in each determinant on a call option."
+      ],
+      "source_candidate_ids": [
+        "lr010_006"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-replication-and-arbitrage-principles-in-option-pricing-cc93da31",
+      "label": "Replication and arbitrage principles in option pricing",
+      "description": "Option pricing models rely on: (1) replication—constructing a portfolio of the underlying asset and borrowing/lending that mimics the option's payoffs; (2) arbitrage—if two assets have identical payoffs, they must have the same price.",
+      "coverage_criteria": [
+        "Describe what a replicating portfolio is.",
+        "Explain why arbitrage forces options and replicating portfolios to have equal prices."
+      ],
+      "source_candidate_ids": [
+        "lr010_007"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-model-choice-black-scholes-vs-binomial-for-real-options-f76742be",
+      "label": "Model choice: Black-Scholes vs. binomial for real options",
+      "description": "The Black-Scholes model assumes European exercise, constant variance, and no jumps, requiring only six inputs. The binomial model allows early exercise and changing variances but demands detailed price path data, often infeasible for real assets. Practitioners often prefer Black-Scholes for its parsimony.",
+      "coverage_criteria": [
+        "State the key restrictive assumptions of Black-Scholes.",
+        "Contrast the data requirements of the binomial model with its flexibility.",
+        "Articulate why practitioners might still prefer Black-Scholes despite its limitations."
+      ],
+      "source_candidate_ids": [
+        "lr010_008"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-three-tests-for-applying-real-option-valuation-e1bad74b",
+      "label": "Three tests for applying real option valuation",
+      "description": "To validly apply real option valuation, three tests must be passed: (1) identify an embedded option, (2) verify exclusivity, (3) ensure the underlying asset and option are tradeable enough for option pricing models to work.",
+      "coverage_criteria": [
+        "List the three tests.",
+        "For a given case, argue whether each test is satisfied."
+      ],
+      "source_candidate_ids": [
+        "lr010_009"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-proactive-vs-reactive-flexibility-in-real-options-870afb26",
+      "label": "Proactive vs. reactive flexibility in real options",
+      "description": "Reactive flexibility involves optimally exercising an existing option; proactive flexibility means managers can influence option value levers (e.g., increase uncertainty, extend duration) before exercise. Unlike financial options in deep markets, real options exist in contexts with few players, enabling proactive influence.",
+      "coverage_criteria": [
+        "Distinguish between reactive and proactive flexibility and give an example of each.",
+        "Explain why the limited-player environment in real business situations enables proactive flexibility."
+      ],
+      "source_candidate_ids": [
+        "lr010_010"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-strategic-lever-selection-via-sensitivity-analysis-a382d707",
+      "label": "Strategic lever selection via sensitivity analysis",
+      "description": "Managers can decide which real option levers to influence by performing sensitivity analysis, revealing that increasing revenues (stock price) and cutting costs (exercise price) often have the largest impact on option value.",
+      "coverage_criteria": [
+        "Interpret a sensitivity table to identify the most impactful levers.",
+        "Explain why revenue improvement may be more valuable than cost reduction in option management."
+      ],
+      "source_candidate_ids": [
+        "lr010_011"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-three-types-of-organizational-decisions-d4991c82",
+      "label": "Three types of organizational decisions",
+      "description": "Organizations face big-bet, cross-cutting, and delegated decisions, each requiring different approaches for success.",
+      "coverage_criteria": [
+        "Define big-bet, cross-cutting, and delegated decisions and give examples."
+      ],
+      "source_candidate_ids": [
+        "lr009_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-widespread-ineffectiveness-of-decision-making-time-e393027f",
+      "label": "Widespread ineffectiveness of decision-making time",
+      "description": "A majority of respondents spend over 30% of their time on decisions, but 61% say most of that time is used ineffectively, leading to large hidden costs for organizations.",
+      "coverage_criteria": [
+        "State the survey finding about time spent on decisions and the perceived ineffectiveness.",
+        "Explain why this ineffectiveness is costly for organizations."
+      ],
+      "source_candidate_ids": [
+        "lr009_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-speed-and-quality-are-not-trade-offs-9f56b3f6",
+      "label": "Speed and quality are not trade-offs",
+      "description": "Faster organizational decisions tend to be higher in quality; companies do not need to sacrifice quality for speed.",
+      "coverage_criteria": [
+        "Explain the relationship between decision speed and quality found in the survey.",
+        "Distinguish this finding from the common assumption that speed reduces quality."
+      ],
+      "source_candidate_ids": [
+        "lr009_003"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-foundational-practice-decide-at-the-right-level-7b99a339",
+      "label": "Foundational practice: decide at the right level",
+      "description": "Winning organizations delegate decisions to the appropriate level, often with fewer reporting layers, which increases speed and quality.",
+      "coverage_criteria": [
+        "Describe what it means to make decisions at the right level.",
+        "Connect this practice to flatter organizational structures."
+      ],
+      "source_candidate_ids": [
+        "lr009_004"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-foundational-practice-focus-on-enterprise-level-value-e314e59b",
+      "label": "Foundational practice: focus on enterprise-level value",
+      "description": "Winning organizations align decisions with corporate strategy and allocate resources to high-value projects.",
+      "coverage_criteria": [
+        "Explain how enterprise value focus relates to decision success.",
+        "Give examples of aligning decisions with strategy."
+      ],
+      "source_candidate_ids": [
+        "lr009_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-foundational-practice-get-commitment-from-stakeholders-14c3772a",
+      "label": "Foundational practice: get commitment from stakeholders",
+      "description": "Winning organizations build commitment to executing decisions by involving accountable stakeholders and ensuring a robust process.",
+      "coverage_criteria": [
+        "Describe how stakeholder commitment is achieved without requiring unanimity or slowing decisions.",
+        "Explain why commitment matters for execution."
+      ],
+      "source_candidate_ids": [
+        "lr009_006"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-big-bet-best-practice-quality-of-debate-c1f1a488",
+      "label": "Big-bet best practice: quality of debate",
+      "description": "For big-bet decisions, winning organizations ensure high-quality debate by exploring alternatives, seeking disconfirming information, and using a devil’s advocate.",
+      "coverage_criteria": [
+        "List the three elements of high-quality debate for big bets.",
+        "Explain why rapid consensus without debate is not successful."
+      ],
+      "source_candidate_ids": [
+        "lr009_007"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-cross-cutting-best-practice-meeting-process-and-coordination-523a4101",
+      "label": "Cross-cutting best practice: meeting process and coordination",
+      "description": "For cross-cutting decisions, winning organizations emphasize effective coordination among stakeholders and focus meeting time on the most critical issues.",
+      "coverage_criteria": [
+        "Identify the key success factors for cross-cutting decisions.",
+        "Explain why clearly defined roles alone are insufficient."
+      ],
+      "source_candidate_ids": [
+        "lr009_008"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-delegated-decisions-best-practice-empowerment-fe0ccc93",
+      "label": "Delegated decisions best practice: empowerment",
+      "description": "For delegated decisions, winning organizations empower employees through coaching and providing space for safe failure, fostering ownership and a bias for action.",
+      "coverage_criteria": [
+        "List the key ingredients for empowering delegated decision making.",
+        "Distinguish empowerment from simply establishing clear roles or escalation guidelines."
+      ],
+      "source_candidate_ids": [
+        "lr009_009"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-the-tyranny-of-metrics-faef25e2",
+      "label": "The Tyranny of Metrics",
+      "description": "A pitfall where quantitative targets and KPIs distort behavior, leading to unintended negative consequences that undermine the original goals.",
+      "coverage_criteria": [
+        "Explain the concept of 'tyranny of metrics' with an example.",
+        "Identify a situation where a metric might cause goal displacement.",
+        "Propose a safeguard to prevent metric-induced behavior distortion."
+      ],
+      "source_candidate_ids": [
+        "lr009_010"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-misinterpreting-correlations-as-causation-089d4a80",
+      "label": "Misinterpreting Correlations as Causation",
+      "description": "The error of assuming that a statistical correlation between two variables implies a cause-and-effect relationship, without considering confounding factors.",
+      "coverage_criteria": [
+        "Define the difference between correlation and causation.",
+        "Provide an example where a correlation is mistakenly interpreted as causation.",
+        "Explain why rigorous causal analysis is important in data-driven decisions."
+      ],
+      "source_candidate_ids": [
+        "lr009_011"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-overgeneralizing-from-limited-data-sets-6ca24ada",
+      "label": "Overgeneralizing from Limited Data Sets",
+      "description": "The risk of drawing broad conclusions from internal data sets that may not represent the full picture, leading to poor decisions when the data is extrapolated beyond its actual scope.",
+      "coverage_criteria": [
+        "Explain why a company's internal data may not reflect the entire market.",
+        "Identify a scenario where overgeneralizing from a limited data set led to a mistake.",
+        "Describe how to supplement internal data with external perspectives."
+      ],
+      "source_candidate_ids": [
+        "lr009_012"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-filter-bubbles-and-confirmation-bias-in-data-teams-5afb213a",
+      "label": "Filter Bubbles and Confirmation Bias in Data Teams",
+      "description": "The tendency for data teams to only seek information that confirms their existing beliefs, creating an echo chamber that overlooks contradictory insights and black swan events.",
+      "coverage_criteria": [
+        "Define 'filter bubble' and 'confirmation bias' in the context of analytics.",
+        "Provide an example where a filter bubble led to flawed strategic planning.",
+        "Suggest a technique to counteract confirmation bias in data analysis."
+      ],
+      "source_candidate_ids": [
+        "lr009_013"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-losing-the-human-element-in-data-driven-decisions-63fc8aeb",
+      "label": "Losing the Human Element in Data-Driven Decisions",
+      "description": "The pitfall of overemphasizing quantitative data to the point where important human factors—such as skills, relationships, and cultural fit—are overlooked.",
+      "coverage_criteria": [
+        "Explain why data alone may fail to capture important human aspects of organizations.",
+        "Provide an example where an algorithm overlooked a qualified candidate due to a lack of demographic match.",
+        "Propose a method to blend quantitative data with qualitative human judgment."
+      ],
+      "source_candidate_ids": [
+        "lr009_014"
+      ],
+      "depth": "limitation"
+    },
+    {
+      "concept_id": "concept-definition-and-properties-of-intuition-in-strategic-decision-making-fc1a80ff",
+      "label": "Definition and Properties of Intuition in Strategic Decision-Making",
+      "description": "Intuition is rapid, automatic, unconscious, and affectively charged, synthesizing experience and information to provide a holistic 'gut feeling' that guides decisions.",
+      "coverage_criteria": [
+        "Define intuition as described in the article, distinguishing it from rational analysis, instinct, insight, and guessing.",
+        "List the key properties: rapid, automatic, unconscious, affectively charged, holistic, based on experience."
+      ],
+      "source_candidate_ids": [
+        "lr009_015"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-ceo-core-self-evaluations-as-a-trigger-for-intuition-use-86fe4ee5",
+      "label": "CEO Core Self-Evaluations as a Trigger for Intuition Use",
+      "description": "Executives with high core self-evaluations (self-esteem, self-efficacy, internal locus of control) are more confident relying on intuition. Hyper CSE can lead to unbridled intuition and risky decisions.",
+      "coverage_criteria": [
+        "Explain how core self-evaluations influence reliance on intuition.",
+        "Describe the concept of hyper core self-evaluations and its risks (hubris, unbridled intuition)."
+      ],
+      "source_candidate_ids": [
+        "lr009_016"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-cognitive-style-and-cognitive-diversity-in-intuitive-decision-making-a7b9a044",
+      "label": "Cognitive Style and Cognitive Diversity in Intuitive Decision-Making",
+      "description": "The CEO's cognitive style (preference for intuition vs. analysis) shapes the team's decision process. Cognitive diversity in the TMT can check dominant intuition, promoting integration of perspectives.",
+      "coverage_criteria": [
+        "Explain how cognitive style influences the use of intuition in SDM.",
+        "Describe how cognitive diversity can serve as a check on excessive reliance on one person's intuition."
+      ],
+      "source_candidate_ids": [
+        "lr009_017"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-expertise-as-a-driver-and-moderator-of-intuition-s-reliability-25681a2a",
+      "label": "Expertise as a Driver and Moderator of Intuition's Reliability",
+      "description": "Expertise, built through extensive experience and deliberate practice, enables accurate intuitive pattern recognition. Experts have more reliable gut feelings due to complex mental models.",
+      "coverage_criteria": [
+        "Explain why expertise enhances intuition reliability.",
+        "Articulate the journey from novice to expert reliance on intuition.",
+        "State that expertise derives from experience, deliberate practice, and feedback."
+      ],
+      "source_candidate_ids": [
+        "lr009_018"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-decision-framing-and-familiarity-as-intuition-triggers-ab49ab71",
+      "label": "Decision Framing and Familiarity as Intuition Triggers",
+      "description": "Decisions framed as threats may trigger intuitive or analytical responses depending on firm size. Decision familiarity increases reliance on intuition because past experiences provide a basis for gut feel.",
+      "coverage_criteria": [
+        "Explain how decision framing influences intuition use differently in small vs. large firms.",
+        "Describe why familiarity with a decision type promotes intuitive decision-making."
+      ],
+      "source_candidate_ids": [
+        "lr009_019"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-firm-level-factors-influencing-intuition-use-7ff5d614",
+      "label": "Firm-Level Factors Influencing Intuition Use",
+      "description": "Smaller firms allow more intuitive decision-making due to agility. Larger firms with heavy governance stifle intuition. Financial performance and slack resources affect the intuition-analysis balance.",
+      "coverage_criteria": [
+        "Explain how firm size affects the ability to act on intuition.",
+        "Discuss how financial performance and slack resources influence the balance between intuition and analysis."
+      ],
+      "source_candidate_ids": [
+        "lr009_020"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-team-power-structure-and-psychological-safety-as-moderators-of-intuition-10487c34",
+      "label": "Team Power Structure and Psychological Safety as Moderators of Intuition",
+      "description": "Centralized power enables one person's intuition to drive decisions but risks unbridled intuition. Psychological safety encourages sharing and challenging intuitions, fostering effective team intuitive processes.",
+      "coverage_criteria": [
+        "Explain how power centralization influences whose intuition prevails and the risk of unbridled intuition.",
+        "Define psychological safety and explain its role in facilitating intuitive judgment sharing."
+      ],
+      "source_candidate_ids": [
+        "lr009_021"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-contextual-enhancers-of-intuition-effectiveness-e55ce59c",
+      "label": "Contextual Enhancers of Intuition Effectiveness",
+      "description": "Intuition is more effective under time pressure, high uncertainty, in M&A decisions (soft issues), and in dynamic or services industries where information is incomplete or change is rapid.",
+      "coverage_criteria": [
+        "List at least three contextual factors that enhance intuition effectiveness.",
+        "Explain why time pressure and uncertainty make intuition more valuable.",
+        "Give an example of why M&A decisions benefit from intuition."
+      ],
+      "source_candidate_ids": [
+        "lr009_022"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-causes-of-intuitive-misses-in-strategic-decisions-d6995e9a",
+      "label": "Causes of Intuitive Misses in Strategic Decisions",
+      "description": "Intuition fails when there is excessive reliance without rational checking, dominant actor power centralization, lack of integration of diverse intuitions, or when applied to unfamiliar domains.",
+      "coverage_criteria": [
+        "Identify at least two reasons why intuitive misses occur.",
+        "Describe the danger of unbridled intuition in a centralized power structure.",
+        "Explain why intuition is less reliable in new market entry decisions."
+      ],
+      "source_candidate_ids": [
+        "lr009_023"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-rational-decision-making-success-and-failure-conditions-3e60a293",
+      "label": "Rational Decision-Making: Success and Failure Conditions",
+      "description": "Rational processes excel in stable or hostile environments and when firms have resources for analysis. They can fail in dynamic environments, information overload, or when predicting human behavior.",
+      "coverage_criteria": [
+        "State when rational decision-making tends to be more effective.",
+        "Identify situations where excessive reliance on rationality leads to missed opportunities."
+      ],
+      "source_candidate_ids": [
+        "lr009_024"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-practical-implications-for-improving-intuitive-decision-making-bb98a280",
+      "label": "Practical Implications for Improving Intuitive Decision-Making",
+      "description": "Organizations should develop intuitive awareness in education, encourage executives to embrace intuition mindfully, and foster expertise through deliberate practice and feedback.",
+      "coverage_criteria": [
+        "Summarize the three key practical implications: develop awareness, embrace intuition, develop expertise.",
+        "Give an example of a technique to develop intuitive awareness.",
+        "Explain why job mobility hampers expert intuition development."
+      ],
+      "source_candidate_ids": [
+        "lr009_025"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-sensitivity-analysis-to-identify-key-risk-factors-6410d30b",
+      "label": "Sensitivity Analysis to Identify Key Risk Factors",
+      "description": "Sensitivity analysis uses tornado graphs and spider charts to rank risk factors by their impact on the output criterion, helping prioritize factors for risk management.",
+      "coverage_criteria": [
+        "Interpret a tornado graph: identify the factor with the widest bar, explain quantile ranges, and determine direction of impact."
+      ],
+      "source_candidate_ids": [
+        "lr012_002"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-risk-mapping-for-preliminary-risk-identification-3fa06f26",
+      "label": "Risk Mapping for Preliminary Risk Identification",
+      "description": "Risk mapping uses expert assessment to score probability and impact, creating a matrix that categorizes risks to guide quantitative analysis.",
+      "coverage_criteria": [
+        "Create a risk matrix given a list of risks, assign probability and impact scores, and explain how the matrix informs subsequent simulation focus."
+      ],
+      "source_candidate_ids": [
+        "lr012_003"
+      ],
+      "depth": "math"
+    },
+    {
+      "concept_id": "concept-project-comparison-using-simulation-statistics-9446a388",
+      "label": "Project Comparison Using Simulation Statistics",
+      "description": "When comparing projects using simulation results, apply decision rules based on mean, standard deviation, coefficient of variation, and skewness to select the best project.",
+      "coverage_criteria": [
+        "Compare two projects using mean, standard deviation, and skewness; explain which project is preferable and why; compute and interpret the coefficient of variation."
+      ],
+      "source_candidate_ids": [
+        "lr012_004"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-risk-as-both-a-threat-and-an-opportunity-1c881fb9",
+      "label": "Risk as both a threat and an opportunity",
+      "description": "When defending a decision under uncertainty, it is effective to acknowledge that risk includes both negative dangers and positive opportunities. Recognizing the dual nature of risk helps communicate that embracing risk can lead to upside, which is essential for credible recommendations.",
+      "coverage_criteria": [
+        "Explain why risk is both a threat and an opportunity, using an example.",
+        "Describe how acknowledging the dual nature of risk can enhance the credibility of a decision defense."
+      ],
+      "source_candidate_ids": [
+        "lr013_002"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-scenario-planning-for-stress-testing-assumptions-and-preparing-responses-1bc38bbf",
+      "label": "Scenario planning for stress-testing assumptions and preparing responses",
+      "description": "Scenario planning simulates plausible risk events to help leaders stress-test strategic assumptions and practice responses. This technique is directly applicable to preparing for stakeholder questions when defending a decision under uncertainty, embodying the 'Prepare to Be Wrong' principle.",
+      "coverage_criteria": [
+        "Explain what scenario planning is and how it helps stress-test assumptions.",
+        "Describe how scenario planning can be used to anticipate and prepare for stakeholder pushback."
+      ],
+      "source_candidate_ids": [
+        "lr013_003"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-strategic-discipline-for-ai-augmented-decision-making-2b954a67",
+      "label": "Strategic Discipline for AI-Augmented Decision-Making",
+      "description": "Before integrating AI into decisions, organizations should treat decision-making as a strategic discipline and intentionally design human-machine relationships.",
+      "coverage_criteria": [
+        "Student can explain why decision-making must be treated as a strategic discipline when adopting AI."
+      ],
+      "source_candidate_ids": [
+        "lr014_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-preserving-human-agency-in-ai-decisions-a8934a15",
+      "label": "Preserving Human Agency in AI Decisions",
+      "description": "Maintain human agency by building accountability, ensuring decision-makers understand (not just comply with) AI outputs, and clearly connecting choices to choosers.",
+      "coverage_criteria": [
+        "Student can describe at least two concrete ways to preserve human agency when AI supports decisions."
+      ],
+      "source_candidate_ids": [
+        "lr014_002"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-human-purpose-and-judgment-as-irreplaceable-by-ai-a2cdf6ca",
+      "label": "Human Purpose and Judgment as Irreplaceable by AI",
+      "description": "Technology can speed up analysis and reduce uncertainty, but it cannot substitute human purpose, values, and judgment behind choices.",
+      "coverage_criteria": [
+        "Student can articulate at least one reason why human purpose and judgment remain essential even when AI provides analysis."
+      ],
+      "source_candidate_ids": [
+        "lr014_003"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-building-decision-making-competence-for-humans-and-ai-37c63b16",
+      "label": "Building Decision-Making Competence for Humans and AI",
+      "description": "Organizations should simultaneously invest in developing human decision-making skills and rigorously measuring AI decision performance.",
+      "coverage_criteria": [
+        "Student can describe one approach to improve human decision skill and one approach to measure AI decision performance."
+      ],
+      "source_candidate_ids": [
+        "lr014_004"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-risk-based-ai-agency-level-665ba769",
+      "label": "Risk-Based AI Agency Level",
+      "description": "The degree of autonomy granted to AI agents should be calibrated according to the risk profile of the decision.",
+      "coverage_criteria": [
+        "Student can justify why a high-risk decision warrants lower AI autonomy."
+      ],
+      "source_candidate_ids": [
+        "lr014_005"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-decision-classification-framework-4443e22d",
+      "label": "Decision Classification Framework",
+      "description": "Decisions can be categorized across multiple dimensions including risk, frequency, urgency, horizon, certainty, and the Cynefin domains. Understanding these dimensions helps in choosing appropriate decision strategies.",
+      "coverage_criteria": [
+        "Student can name at least three decision dimensions and explain how the Cynefin context (Clear, Complicated, Complex, Chaotic) influences decision approach."
+      ],
+      "source_candidate_ids": [
+        "lr014_006"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-excel-data-model-basics-843f9a17",
+      "label": "Excel Data Model basics",
+      "description": "The Excel Data Model is a feature that lets you combine multiple tables into a single pivot table by creating relationships. It is activated by adding tables to the model when creating a pivot table.",
+      "coverage_criteria": [
+        "Explain what the Excel Data Model is used for.",
+        "Demonstrate how to add tables to the Data Model when creating a PivotTable."
+      ],
+      "source_candidate_ids": [
+        "lr011_001"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-creating-relationships-in-the-excel-data-model-06c71c2c",
+      "label": "Creating relationships in the Excel Data Model",
+      "description": "Excel can automatically detect relationships between tables based on matching field names or values, or users can manually create them via the Relationships dialog. Using consistent field names facilitates automatic detection.",
+      "coverage_criteria": [
+        "Explain how Excel can automatically detect relationships.",
+        "Describe how to manually create a relationship in the Data Model.",
+        "State the importance of consistent field naming for relationship detection."
+      ],
+      "source_candidate_ids": [
+        "lr011_002"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-payoff-table-8ec69664",
+      "label": "Payoff Table",
+      "description": "A payoff table organizes decision alternatives (rows) and states of nature (columns), with payoffs in cells representing outcomes, used as input to decision criteria.",
+      "coverage_criteria": [
+        "Given a description, construct a payoff table and identify alternatives and states.",
+        "Interpret payoffs from a table."
+      ],
+      "source_candidate_ids": [
+        "lr003_001",
+        "lr004_004"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-maximax-optimistic-criterion-92a5e247",
+      "label": "Maximax (Optimistic) Criterion",
+      "description": "An optimistic decision rule where one selects the alternative with the maximum possible payoff (best outcome). For profits, maximize the maximum; for costs, minimize the minimum. This concept covers identifying the maximax choice from a payoff table and explaining its optimistic nature.",
+      "coverage_criteria": [
+        "Given a payoff table, apply the maximax criterion to select the alternative with the best possible outcome.",
+        "Explain the optimistic philosophy behind the maximax rule."
+      ],
+      "source_candidate_ids": [
+        "lr003_002",
+        "lr004_005"
+      ],
+      "depth": "mixed"
+    },
+    {
+      "concept_id": "concept-maximin-criterion-f0376021",
+      "label": "Maximin Criterion",
+      "description": "Choose the alternative with the best worst-case payoff (maximize the minimum for profits, minimize the maximum for costs). This conservative approach guarantees a minimum outcome.",
+      "coverage_criteria": [
+        "Apply the maximin criterion to a payoff table to select the alternative with the best worst-case outcome.",
+        "Explain the conservative/pessimistic philosophy behind the maximin rule."
+      ],
+      "source_candidate_ids": [
+        "lr003_003",
+        "lr004_006"
+      ],
+      "depth": "mixed"
+    },
+    {
+      "concept_id": "concept-minimax-regret-criterion-9023049f",
+      "label": "Minimax Regret Criterion",
+      "description": "A decision criterion that minimizes the maximum regret by constructing a regret table and selecting the alternative with the smallest maximum regret.",
+      "coverage_criteria": [
+        "Construct a regret table from a payoff table.",
+        "Apply the minimax regret criterion to choose an alternative."
+      ],
+      "source_candidate_ids": [
+        "lr003_004",
+        "lr004_007"
+      ],
+      "depth": "mixed"
+    },
+    {
+      "concept_id": "concept-laplace-criterion-1cefa1f7",
+      "label": "Laplace Criterion",
+      "description": "Decision rule that assumes all states of nature are equally likely, computing the average payoff for each alternative and selecting the highest average.",
+      "coverage_criteria": [
+        "Explain the equal likelihood assumption",
+        "Calculate average payoffs from a payoff table",
+        "Determine the optimal alternative using this criterion"
+      ],
+      "source_candidate_ids": [
+        "lr003_005",
+        "lr004_001"
+      ],
+      "depth": "mixed"
+    },
+    {
+      "concept_id": "concept-hurwicz-criterion-a9ee1edb",
+      "label": "Hurwicz Criterion",
+      "description": "A decision-making criterion that balances optimism and pessimism by computing a weighted average of the best and worst payoffs using a coefficient of optimism (α).",
+      "coverage_criteria": [
+        "Calculate the Hurwicz value for given alternatives and α.",
+        "Interpret α as degree of optimism.",
+        "Select the alternative with the highest weighted average."
+      ],
+      "source_candidate_ids": [
+        "lr003_006",
+        "lr004_002"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-decision-tree-basics-8f627409",
+      "label": "Decision Tree Basics",
+      "description": "Understanding of what a decision tree is, its purpose, and its standard symbolic representation.",
+      "coverage_criteria": [
+        "Define a decision tree and explain its use in decision-making.",
+        "Identify and explain the standard symbols used in decision trees (decision nodes, chance nodes, end nodes) and the left-to-right reading convention."
+      ],
+      "source_candidate_ids": [
+        "lr005_001",
+        "lr005_002"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-building-and-labeling-decision-trees-bf331b30",
+      "label": "Building and Labeling Decision Trees",
+      "description": "Construct a decision tree from a scenario, including drawing decision and chance nodes, branches, and labeling branches with probabilities and payoffs, ensuring probabilities from a chance node sum to 100%.",
+      "coverage_criteria": [
+        "Given a simple decision scenario or payoff table, draw the corresponding decision tree with correct nodes and branches, and label the branches with given probabilities and payoffs.",
+        "Explain the steps for constructing a decision tree and why probabilities from a chance node must sum to 100%."
+      ],
+      "source_candidate_ids": [
+        "lr005_003",
+        "lr005_004"
+      ],
+      "depth": "mixed"
+    },
+    {
+      "concept_id": "concept-calculating-expected-monetary-value-emv-at-chance-nodes-faf87790",
+      "label": "Calculating Expected Monetary Value (EMV) at Chance Nodes",
+      "description": "Computing the expected value by multiplying outcomes by probabilities and summing.",
+      "coverage_criteria": [
+        "Given a chance node with payoffs and probabilities, calculate the expected value.",
+        "Explain the formula for expected value at a chance node."
+      ],
+      "source_candidate_ids": [
+        "lr005_005"
+      ],
+      "depth": "math"
+    },
+    {
+      "concept_id": "concept-folding-back-procedure-c4ee63bd",
+      "label": "Folding Back Procedure",
+      "description": "The folding back procedure solves a decision tree from right to left: at chance nodes, compute EMV; at decision nodes, select the alternative with the highest EMV. The EMV at the root is the optimal EMV.",
+      "coverage_criteria": [
+        "Apply the folding back procedure to a small decision tree to find the optimal decision and its EMV.",
+        "Explain the rule for selecting at a decision node during folding back."
+      ],
+      "source_candidate_ids": [
+        "lr005_006"
+      ],
+      "depth": "application"
+    },
+    {
+      "concept_id": "concept-net-benefit-calculation-at-decision-nodes-74871ce2",
+      "label": "Net Benefit Calculation at Decision Nodes",
+      "description": "At a decision node, the cost of each option is subtracted from its expected outcome value to compute net benefit. The option with the highest net benefit is selected.",
+      "coverage_criteria": [
+        "Given a decision node with costs and outcome values, compute net benefits for each option.",
+        "Identify the optimal choice based on the highest net benefit."
+      ],
+      "source_candidate_ids": [
+        "lr005_016"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-expected-value-of-sample-information-evsi-0d22ce53",
+      "label": "Expected Value of Sample Information (EVSI)",
+      "description": "The difference between the expected monetary value with free sample information and without that information, representing the maximum a decision maker should pay for the sample.",
+      "coverage_criteria": [
+        "Compute EVSI from a decision tree with sample information.",
+        "Interpret EVSI as a threshold for purchasing information."
+      ],
+      "source_candidate_ids": [
+        "lr005_010"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-expected-value-of-perfect-information-evpi-ddeb0332",
+      "label": "Expected Value of Perfect Information (EVPI)",
+      "description": "The difference between the expected monetary value with free perfect information and without information, serving as the upper bound on the value of any imperfect sample information.",
+      "coverage_criteria": [
+        "Compute EVPI from a simple decision scenario.",
+        "Explain why EVPI is the upper limit for EVSI."
+      ],
+      "source_candidate_ids": [
+        "lr005_011"
+      ],
+      "depth": "definition"
+    },
+    {
+      "concept_id": "concept-monte-carlo-simulation-definition-and-process-a03cf504",
+      "label": "Monte Carlo Simulation Definition and Process",
+      "description": "Monte Carlo simulation is a stochastic method that assigns probability distributions to uncertain inputs, uses random sampling to generate thousands of simulated outcomes, and analyzes the full distribution of possible results to support decision-making under uncertainty. It involves defining input distributions, running iterations, aggregating results, and interpreting output distributions (e.g., via frequency histograms).",
+      "coverage_criteria": [
+        "Define Monte Carlo simulation and explain how it differs from deterministic modeling.",
+        "List the steps of Monte Carlo simulation and describe how to interpret the output distribution."
+      ],
+      "source_candidate_ids": [
+        "lr007_001",
+        "lr012_001"
+      ],
+      "depth": "implementation"
+    },
+    {
+      "concept_id": "concept-expected-monetary-value-emv-criterion-bee4de23",
+      "label": "Expected Monetary Value (EMV) Criterion",
+      "description": "The EMV criterion selects the decision alternative with the highest expected monetary value, calculated as the probability-weighted average of all possible monetary outcomes. Given known probabilities for states of nature, compute the expected monetary value for each alternative and choose the highest. This rule is appropriate for risk-neutral decision makers.",
+      "coverage_criteria": [
+        "Compute EMV from a payoff table given probabilities.",
+        "Explain why the EMV criterion is optimal under risk neutrality.",
+        "Determine the optimal decision under risk using EMV."
+      ],
+      "source_candidate_ids": [
+        "lr004_008",
+        "lr005_007"
+      ],
+      "depth": "definition"
+    }
+  ],
+  "output_contract": {
+    "candidate_assignment_rule": "Return accepted subject concepts plus exactly one assignment for every input candidate. Allowed statuses are only used_in and merged_into. Never use review or pruned. When uncertain, create a standalone accepted concept.",
+    "accepted_concepts": [
+      {
+        "id": "stage-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "stage-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "stage-local-id",
+        "explanation": "Why it is represented by that accepted concept."
+      }
+    ]
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

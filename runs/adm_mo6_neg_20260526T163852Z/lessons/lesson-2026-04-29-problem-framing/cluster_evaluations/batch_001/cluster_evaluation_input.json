@@ -1,0 +1,690 @@
+{
+  "artifact_type": "cluster_evaluation_input",
+  "schema_version": "cluster_evaluation_input.v0",
+  "source_artifact": "source_ledger.json",
+  "candidate_registry_artifact": "semantic_reduce_candidate_registry.json",
+  "lesson_candidate_clusters_artifact": "lessons/lesson-2026-04-29-problem-framing/lesson_candidate_clusters.json",
+  "prompt_path": "/Users/guilhermevalenca/Desktop/cg_pipeline/creation/prompts/lesson_reconciliation.md",
+  "prompt": "# Lesson Reconciliation Prompt\n\n## Mission\n\nSupport the two internal Lesson Reconciliation tasks for exactly one Lesson:\n\n- `lesson_candidate_clustering`: group candidate IDs only.\n- `lesson_cluster_evaluation`: evaluate one validated cluster or a small batch\n  of validated clusters into clean lesson-local teachable concepts.\n- `lesson_reconciliation_quality_repair`: repair a deterministic Phase 4b\n  quality failure for targeted candidates only.\n\nThe input candidates come from Self-study Extraction and Metadata-only\nExtraction. There is no top-down lesson extraction in this pipeline branch.\n\n## Quick Start\n\nFirst inspect `task`.\n\nIf `task` is `lesson_candidate_clustering`, return clusters only. Every\n`input_candidate_ids` item must appear exactly once across cluster `candidate_ids`.\nDo not create accepted concepts, pruning decisions, evidence, or provenance.\n\nIf `task` is `lesson_cluster_evaluation`, read the provided `clusters`,\n`candidates`, and `input_candidate_ids`. Create the smallest clean set of\nlesson-local concepts for those clusters only. Return accepted concepts plus one\n`candidate_assignments` row for every input ID in the batch.\n\nIf `task` is `lesson_reconciliation_quality_repair`, read the quality audit,\ncurrent reconciled candidates, and target candidates. Decide whether each target\ncandidate should be represented by a new accepted concept, merged into an\nexisting accepted concept, or pruned. Do not return `review`.\n\n## Concept Standard\n\nA lesson-local concept is one teachable idea small enough for the Companion to\ncheck with one to three focused questions. It is not a source title, activity,\nworkbook label, technology name, vague topic, name-drop, incidental mention, or\ntiny fragment that belongs inside a stronger concept.\n\nSource-backed does not automatically mean lesson-worthy. A candidate can be\ngrounded in a source and still be incidental, off-lesson, too broad,\nadministrative, setup-oriented, or better represented inside another concept.\nAccept only candidates that fit the Lesson's title, description, related labels,\nand candidate evidence as teachable content for this Lesson.\n\n## Clustering Workflow\n\n1. Group duplicates and near-duplicates that likely describe the same teachable\n   idea in this Lesson.\n2. Keep distinct prerequisite, implementation, evaluation, or application ideas\n   in separate clusters.\n3. Prefer small coherent clusters over broad topic buckets.\n4. Put operational setup, installation, licensing, career, administrative, and\n   generic programming candidates in their own clusters unless the Lesson\n   metadata clearly makes them central content.\n5. Do not prune during clustering unless an input is clearly unrelated to the\n   Lesson; if uncertain, put it in its own cluster for evaluation.\n6. Every input candidate ID must appear exactly once across all clusters. Never\n   emit empty clusters or invented candidate IDs.\n\n## Evaluation Workflow\n\n1. Treat Source Body candidates as the strongest evidence.\n2. Merge duplicates and near-duplicates across Self-studies when they teach the\n   same idea inside the provided cluster batch.\n3. Split compound or messy candidates into cleaner accepted concepts when one\n   input candidate supports multiple teachable ideas.\n4. Accept Metadata-only candidates only when Workbook Metadata fills a real\n   lesson gap not already covered by Source Body candidates.\n5. Prefer lesson coherence over source-by-source preservation, but never drop a\n   source-backed candidate silently.\n6. Preserve useful granularity. Do not merge distinct definitions, pipeline\n   steps, limitations, implementation methods, evaluation methods, or\n   applications merely because they share a broad topic.\n7. Reject off-lesson or low-transfer material even when it is source-backed:\n   setup commands, environment configuration, licensing/legal administration,\n   certification/career advice, repository mechanics, dataset download\n   utilities, and routine file I/O should be accepted only when the Lesson\n   metadata clearly makes that material central teachable content.\n8. Use `used_in` when a candidate directly supports one or more accepted\n   concepts.\n9. Use `merged_into` when a candidate should not stand alone but is represented\n   by one accepted concept.\n10. Use `pruned` only when the candidate should not influence the lesson concept\n   set at all. Use only a reason from `controlled_pruning_reasons`.\n11. Do not prune a distinct teachable idea as a duplicate unless an accepted\n   concept in this same response actually represents it. Never justify pruning\n   by saying another cluster, later batch, or future step will handle the idea.\n12. Avoid `review`. Phase 4 has no human review escape hatch. If the lesson\n   metadata, candidate description, source roles, and coverage criteria are\n   sufficient, decide accepted, merged, or pruned.\n13. Use `review` only when the input is structurally impossible to interpret.\n   Phase 4b will treat any review output as unresolved work requiring repair.\n\n## Quality Repair Workflow\n\nFor `task: lesson_reconciliation_quality_repair`:\n\n1. Evaluate only `target_candidate_ids`; do not rewrite the whole Lesson.\n2. Use `current_reconciled_candidates` to decide whether a target candidate is\n   already represented.\n3. Create `new_accepted_concepts` only for target candidates that represent\n   lesson-worthy teachable ideas not already covered.\n4. Use `existing_concept_candidate_additions` when a target candidate is\n   represented by an existing reconciled concept.\n5. Use `pruned` only when the target candidate should not influence the Lesson.\n6. Never return `review`. A hard choice must still become accepted, merged, or\n   pruned with a clear explanation.\n7. Do not use a duplicate or near-duplicate reason unless the target candidate\n   is represented by an existing or new accepted concept in this response.\n8. If the audit flags `over_pruned`, re-check pruned target candidates for\n   lesson-local definitions, methods, steps, limitations, evaluations, or\n   applications that were lost by an overly broad pruning decision.\n9. If the audit flags `over_merged`, split target candidates out of broad\n   accepted concepts when they contain distinct lesson-local ideas.\n10. If the audit flags `fragmented_duplicates`, merge duplicate accepted\n   concepts by assigning target candidates to the best existing concept.\n11. If the audit flags `metadata_overreach`, accept metadata-only targets only\n   when they fill a lesson gap not already covered by source-body evidence.\n12. If the audit flags `off_lesson_accepted`, prune setup, repository,\n   administration, download, career, or generic tooling material unless the\n   Lesson metadata clearly makes it central teachable content.\n13. If the audit flags `over_accepted`, re-check whether target candidates\n   should be merged into stronger accepted concepts or pruned for low teaching\n   value.\n\n## Clustering Output Contract\n\nFor `task: lesson_candidate_clustering`, return one valid JSON object only:\n\n```json\n{\n  \"clusters\": [\n    {\n      \"id\": \"cluster_001\",\n      \"label\": \"Short cluster label\",\n      \"rationale\": \"Why these candidates may describe the same teachable idea.\",\n      \"candidate_ids\": [\"compact-candidate-id\"]\n    }\n  ]\n}\n```\n\n## Evaluation Output Contract\n\nFor `task: lesson_cluster_evaluation`, return one valid JSON object only. Cover\nall candidates in the provided cluster batch:\n\n```json\n{\n  \"accepted_concepts\": [\n    {\n      \"id\": \"lr001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"compact-candidate-id\"],\n      \"merge_rationale\": \"Why these candidates form one lesson-local concept.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"lr001\"]\n    },\n    {\n      \"candidate_id\": \"represented-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"lr001\",\n      \"explanation\": \"Why it is represented by lr001 instead of standing alone.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"incidental\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    },\n    {\n      \"candidate_id\": \"discarded-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"unrelated\",\n      \"explanation\": \"Why this candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Quality Repair Output Contract\n\nFor `task: lesson_reconciliation_quality_repair`, return one valid JSON object\nonly:\n\n```json\n{\n  \"new_accepted_concepts\": [\n    {\n      \"id\": \"repair001\",\n      \"label\": \"Specific lesson-local teachable idea\",\n      \"description\": \"What the student needs to understand in this Lesson.\",\n      \"coverage_criteria\": [\"Observable check in one to three focused questions.\"],\n      \"source_candidate_ids\": [\"target-compact-candidate-id\"],\n      \"merge_rationale\": \"Why these target candidates form a lesson-local concept.\"\n    }\n  ],\n  \"existing_concept_candidate_additions\": [\n    {\n      \"reconciled_candidate_id\": \"existing-final-reconciled-candidate-id\",\n      \"candidate_ids\": [\"target-compact-candidate-id\"],\n      \"explanation\": \"Why the target candidate is already represented.\"\n    }\n  ],\n  \"candidate_assignments\": [\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"used_in\",\n      \"accepted_ids\": [\"repair001\"],\n      \"explanation\": \"Why this target candidate is accepted.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"merged_into\",\n      \"merged_into\": \"existing-final-reconciled-candidate-id\",\n      \"explanation\": \"Why this target candidate is represented by an existing concept.\"\n    },\n    {\n      \"candidate_id\": \"target-compact-candidate-id\",\n      \"status\": \"pruned\",\n      \"reason\": \"low_teaching_value\",\n      \"explanation\": \"Why this target candidate should not influence the lesson set.\"\n    }\n  ]\n}\n```\n\n## Self-check\n\n- For clustering, every `input_candidate_ids` item appears exactly once across\n  all cluster `candidate_ids`.\n- For evaluation, every `input_candidate_ids` item appears exactly once in\n  `candidate_assignments`.\n- Every `used_in` or `merged_into` assignment references accepted concept IDs\n  that also list that candidate in `source_candidate_ids`.\n- A candidate may support multiple accepted concepts with `used_in`.\n- A `pruned` or `review` candidate must not appear in any accepted concept's\n  `source_candidate_ids`.\n- Every pruned near-duplicate must be represented by an accepted concept in this\n  response, or it should not be pruned as a duplicate.\n- For quality repair, every `target_candidate_ids` item appears exactly once in\n  `candidate_assignments`, and no assignment has `status: review`.\n- If several accepted concepts are mainly setup, environment, licensing,\n  administration, career guidance, or generic programming basics, re-check the\n  Lesson metadata before accepting them.\n- Before returning, ask whether the accepted concept set would let the Companion\n  tutor the Lesson described by the metadata without major off-topic detours or\n  missing central teachable distinctions.\n- Do not emit dependencies, lesson segments, final Concept IDs, bridge concepts,\n  subject-level merge decisions, or runtime graph fields.\n",
+  "task": "lesson_cluster_evaluation",
+  "model_route": "Pro Thinking",
+  "lesson_id": "lesson-2026-04-29-problem-framing",
+  "cluster": {
+    "id": "cluster_001",
+    "label": "Combining data and intuition in decision making",
+    "rationale": "These candidates all focus on the relationship between data-driven and intuitive decision making, emphasizing the need to integrate both, the role of expertise, and methods to resolve conflicts. They are from the same source article and describe overlapping aspects of the same central theme.",
+    "candidate_ids": [
+      "c8_pro_thinking_001",
+      "c8_pro_thinking_002",
+      "c8_pro_thinking_003",
+      "c8_pro_thinking_005",
+      "c8_pro_thinking_006"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "cluster_001",
+      "label": "Combining data and intuition in decision making",
+      "rationale": "These candidates all focus on the relationship between data-driven and intuitive decision making, emphasizing the need to integrate both, the role of expertise, and methods to resolve conflicts. They are from the same source article and describe overlapping aspects of the same central theme.",
+      "candidate_ids": [
+        "c8_pro_thinking_001",
+        "c8_pro_thinking_002",
+        "c8_pro_thinking_003",
+        "c8_pro_thinking_005",
+        "c8_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_002",
+      "label": "Value of qualitative data in decisions",
+      "rationale": "This candidate specifically highlights the importance of qualitative data (like customer satisfaction) in decision making, which is a distinct sub-topic from the general data-intuition integration, though related. It is kept separate to preserve granularity.",
+      "candidate_ids": [
+        "c8_pro_thinking_004"
+      ]
+    },
+    {
+      "id": "cluster_003",
+      "label": "Problem framing definition and distinction from problem solving",
+      "rationale": "These candidates define problem framing and contrast it with problem solving. They are closely related and often taught together as the foundational concept of problem framing.",
+      "candidate_ids": [
+        "c9_pro_thinking_001",
+        "c9_pro_thinking_002"
+      ]
+    },
+    {
+      "id": "cluster_004",
+      "label": "Cognitive biases leading to premature convergence",
+      "rationale": "These candidates describe specific cognitive biases (premature convergence, pattern completion, confirmation bias) that hinder effective problem framing. They are all mechanisms that cause solution-jumping, a key challenge in problem framing.",
+      "candidate_ids": [
+        "c9_pro_thinking_003",
+        "c9_pro_thinking_004",
+        "c9_pro_thinking_005"
+      ]
+    },
+    {
+      "id": "cluster_005",
+      "label": "Organizational dynamics reinforcing solution-jumping",
+      "rationale": "This candidate discusses how organizational processes and culture push teams toward quick solutions instead of proper problem framing. It is a distinct enabler of premature convergence at the organizational level.",
+      "candidate_ids": [
+        "c9_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_006",
+      "label": "Problem framing framework: Double Diamond model",
+      "rationale": "This candidate introduces a specific structured approach to problem framing. It is a standalone technique, separate from definitions or biases.",
+      "candidate_ids": [
+        "c9_pro_thinking_007"
+      ]
+    },
+    {
+      "id": "cluster_007",
+      "label": "Problem reframing examples and technique",
+      "rationale": "This candidate provides concrete examples of reframing problems to reveal new opportunities. It is a practical application of problem framing, distinct from theoretical models.",
+      "candidate_ids": [
+        "c9_pro_thinking_008"
+      ]
+    },
+    {
+      "id": "cluster_008",
+      "label": "AI amplification of bad framing",
+      "rationale": "This candidate connects problem framing to AI effectiveness, warning that poor framing leads to AI solving the wrong problem. It is a modern, technology-specific consequence of bad framing.",
+      "candidate_ids": [
+        "c9_pro_thinking_009"
+      ]
+    },
+    {
+      "id": "cluster_009",
+      "label": "Building a problem framing culture",
+      "rationale": "This candidate outlines specific leadership practices to embed problem framing in organizational culture. It is a prescriptive, actionable concept separate from definitions or consequences.",
+      "candidate_ids": [
+        "c9_pro_thinking_010"
+      ]
+    },
+    {
+      "id": "cluster_010",
+      "label": "Problem framing enables execution clarity",
+      "rationale": "This candidate describes the outcome of effective problem framing on ownership and execution. It is a benefit-oriented concept that can stand alone.",
+      "candidate_ids": [
+        "c9_pro_thinking_011"
+      ]
+    },
+    {
+      "id": "cluster_011",
+      "label": "Primacy of problem identification in leadership and innovation",
+      "rationale": "These candidates all stress that identifying the right problem is more critical than solving it, and that this principle applies to both general leadership and thought leadership. They share the core message that problem framing is foundational.",
+      "candidate_ids": [
+        "c10_pro_thinking_001",
+        "c10_pro_thinking_002",
+        "c10_pro_thinking_006"
+      ]
+    },
+    {
+      "id": "cluster_012",
+      "label": "Thought leadership as a process beyond the book",
+      "rationale": "These candidates discuss how thought leadership extends beyond publishing a book, requiring refinement through feedback and shareability. They focus on the strategy of disseminating ideas effectively.",
+      "candidate_ids": [
+        "c10_pro_thinking_003",
+        "c10_pro_thinking_004",
+        "c10_pro_thinking_007"
+      ]
+    }
+  ],
+  "input_candidate_ids": [
+    "c8_pro_thinking_001",
+    "c8_pro_thinking_002",
+    "c8_pro_thinking_003",
+    "c8_pro_thinking_005",
+    "c8_pro_thinking_006",
+    "c8_pro_thinking_004",
+    "c9_pro_thinking_001",
+    "c9_pro_thinking_002",
+    "c9_pro_thinking_003",
+    "c9_pro_thinking_004",
+    "c9_pro_thinking_005",
+    "c9_pro_thinking_006",
+    "c9_pro_thinking_007",
+    "c9_pro_thinking_008",
+    "c9_pro_thinking_009",
+    "c9_pro_thinking_010",
+    "c9_pro_thinking_011",
+    "c10_pro_thinking_001",
+    "c10_pro_thinking_002",
+    "c10_pro_thinking_006",
+    "c10_pro_thinking_003",
+    "c10_pro_thinking_004",
+    "c10_pro_thinking_007"
+  ],
+  "candidates": [
+    {
+      "id": "c8_pro_thinking_001",
+      "label": "The necessity of combining data and intuition in decision making",
+      "description": "Effective decision making requires integrating quantitative data analysis with intuitive judgment, especially in complex or ambiguous situations where neither is sufficient alone.",
+      "coverage_criteria": [
+        "Student can articulate why both data and intuition are needed and provide a scenario where one alone would fail."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states that better results happen when decision makers combine the best of each, and it provides multiple examples (data overload, qualitative data, conflict resolution) to illustrate why both are necessary.",
+        "granularity_rationale": "This is the central thesis of the article; it can be checked by asking the student to explain the need for both in a specific decision context, making it a teachable, standalone idea."
+      },
+      "anchors": [
+        "Data and Intuition: Good Decisions Need Both"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_002",
+      "label": "Intuition as pattern recognition",
+      "description": "Intuition is a form of unconscious intelligence that recognizes patterns from past experiences, making it valuable for decision-making under uncertainty.",
+      "coverage_criteria": [
+        "Student can explain how pattern recognition contributes to intuitive judgment and give an original example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states 'At its best, intuition is a powerful form of pattern recognition—something human brains are wired to do,' grounding the claim in cognitive science.",
+        "granularity_rationale": "This isolates the underlying mechanism of intuition, a concept small enough to be assessed with a single question about pattern recognition in decision contexts."
+      },
+      "anchors": [
+        "At its best, intuition is a powerful form of pattern recognition—something human brains are wired to do."
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_003",
+      "label": "Using intuition to overcome data overload",
+      "description": "When decision makers face excessive or low-quality data, intuition can cut through the noise and enable timely decisions without being paralyzed by analysis.",
+      "coverage_criteria": [
+        "Student can describe a scenario where data overload occurred and intuition helped, referencing the article's rationale."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Use intuition to make data-driven decisions quickly' discusses how intuition helps when data is overwhelming, citing Laura Huang's research on high-stakes decisions.",
+        "granularity_rationale": "This concept focuses on a specific application of intuition under a particular condition (data overload), making it concrete and testable via scenario-based questions."
+      },
+      "anchors": [
+        "Use intuition to make data-driven decisions quickly"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_005",
+      "label": "Using emotional awareness to resolve data-intuition conflicts",
+      "description": "When data and intuition conflict, pausing to name and examine one's emotions can reveal underlying risks or biases and lead to more informed decisions.",
+      "coverage_criteria": [
+        "Student can list three emotion-focused questions from the article to ask during a conflict and explain their purpose."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'How to respond when data and intuition conflict' provides concrete guidance on naming feelings to create space between emotions and actions, quoting Cheryl Strauss Einhorn.",
+        "granularity_rationale": "This is a specific, actionable technique that can be practiced; its granularity allows checking via role-play or identification of emotion-based questioning."
+      },
+      "anchors": [
+        "How to respond when data and intuition conflict"
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_006",
+      "label": "Expertise as a prerequisite for reliable intuition",
+      "description": "Intuition is more accurate and useful when the decision maker possesses extensive experience and expertise in the relevant domain.",
+      "coverage_criteria": [
+        "Student can explain why novices should be cautious about relying on gut feelings alone."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states 'intuition is more reliable if decision makers have extensive experience and expertise with the decision topic' in the section about blending data and gut feel.",
+        "granularity_rationale": "This concept refines the understanding of intuition by adding a boundary condition, making it a standalone criterion that can be checked with a single comprehension question."
+      },
+      "anchors": [
+        "Important to note here: When blending data and gut feel, intuition is more reliable if decision makers have extensive experience and expertise with the decision topic."
+      ]
+    },
+    {
+      "id": "c8_pro_thinking_004",
+      "label": "Value of qualitative data in decision making",
+      "description": "Qualitative data, such as customer satisfaction or employee morale, though harder to quantify, can provide critical insights for decisions and should not be neglected.",
+      "coverage_criteria": [
+        "Student can give an example of how qualitative data was used effectively (e.g., Google's Project Oxygen) and explain why ignoring it can lead to narrow decisions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'Don’t ignore data just because it’s hard to quantify' explains that even hard-to-measure data can contain valuable insights, using Google's Project Oxygen as a concrete example.",
+        "granularity_rationale": "This concept isolates the distinction between data types and their decision value, small enough to verify by asking the student to name a qualitative metric and its decision impact."
+      },
+      "anchors": [
+        "Don’t ignore data just because it’s hard to quantify"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_001",
+      "label": "Problem Framing Definition",
+      "description": "Problem framing is the process of discovering, analyzing, and defining the real strategic problem before committing to solutions.",
+      "coverage_criteria": [
+        "Student can explain what problem framing means in their own words.",
+        "Student can distinguish problem framing from problem solving."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly defines problem framing in the 'What Is Problem Framing in Business Strategy?' section.",
+        "granularity_rationale": "This concept is atomic enough to be checked with a short explanation question, yet not so small that it's trivial."
+      },
+      "anchors": [
+        "What Is Problem Framing in Business Strategy?"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_002",
+      "label": "Problem Framing vs Problem Solving",
+      "description": "Problem framing identifies the right question to ask, while problem solving finds the answer.",
+      "coverage_criteria": [
+        "Student can articulate the difference between framing and solving with an example."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article states 'Problem framing is different from problem-solving because it is about discovering the right question to ask, while problem-solving is about finding the right answer.' in the FAQs.",
+        "granularity_rationale": "This distinction is a key teachable point that can be assessed with a simple compare-and-contrast question."
+      },
+      "anchors": [
+        "FAQs About Problem Framing in Strategy",
+        "2. How is problem framing different from problem solving?"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_003",
+      "label": "Premature Convergence",
+      "description": "Premature convergence is the brain's tendency to seek closure quickly under uncertainty, leading to locking onto the first plausible explanation or solution.",
+      "coverage_criteria": [
+        "Student can define premature convergence and give an example.",
+        "Student can identify a scenario where premature convergence occurs."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article describes premature convergence in the neuroscience section and cites research.",
+        "granularity_rationale": "This cognitive bias is a specific mechanism that can be checked with definition and scenario questions."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_004",
+      "label": "Pattern Completion Bias",
+      "description": "Pattern completion pushes our brains to fill gaps with familiar narratives, even when the problem is new.",
+      "coverage_criteria": [
+        "Student can explain pattern completion and how it leads to jumping to solutions."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article lists pattern completion as one of the three mechanisms driving premature convergence.",
+        "granularity_rationale": "This is a distinct cognitive bias that can be assessed independently."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_005",
+      "label": "Confirmation Bias",
+      "description": "Confirmation bias leads people to seek evidence that supports their initial interpretation rather than challenging it.",
+      "coverage_criteria": [
+        "Student can define confirmation bias and relate it to premature convergence."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article mentions confirmation bias as a mechanism of premature convergence.",
+        "granularity_rationale": "It's a well-known bias but taught here in the context of problem framing, making it a relevant checkable concept."
+      },
+      "anchors": [
+        "The Neuroscience of Premature Convergence"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_006",
+      "label": "Organizational Pressures to Jump to Solutions",
+      "description": "Organizational systems like business case templates, status meetings, and budgeting processes push teams toward quick solutions before problem understanding.",
+      "coverage_criteria": [
+        "Student can list at least two organizational practices that reinforce solution-jumping.",
+        "Student can explain how these practices hinder problem framing."
+      ],
+      "source_roles": [
+        "explaining",
+        "warning"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article dedicates a section to organizational dynamics that reinforce solution-jumping.",
+        "granularity_rationale": "This concept encompasses multiple examples integrated into a single teachable point about organizational culture."
+      },
+      "anchors": [
+        "Organizational Dynamics that Reinforce Solution-Jumping"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_007",
+      "label": "Double Diamond Model for Problem Framing",
+      "description": "The Double Diamond model consists of Discover (diverge) and Define (converge) phases for identifying and framing a problem before developing solutions.",
+      "coverage_criteria": [
+        "Student can describe the two phases of the first diamond.",
+        "Student can explain why these phases are important for problem framing."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article presents the Double Diamond model as a structured approach to problem framing.",
+        "granularity_rationale": "This is a core framework that can be assessed by asking the student to recall and apply it."
+      },
+      "anchors": [
+        "A Simple Framework for Effective Problem Framing"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_008",
+      "label": "Problem Reframing Technique",
+      "description": "Problem reframing involves restating a strategic question to uncover different solutions, risks, and opportunities, as shown in examples like asking 'Which customer problems would drive sustainable growth?' instead of 'How do we grow revenue 20%?'",
+      "coverage_criteria": [
+        "Student can give an example of reframing a problem.",
+        "Student can explain how reframing led to a better outcome in one of the provided examples."
+      ],
+      "source_roles": [
+        "demonstrating",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article provides multiple examples of problem reframing with before-and-after scenarios.",
+        "granularity_rationale": "This concept is teachable by asking the student to apply reframing to a new situation."
+      },
+      "anchors": [
+        "Problem Reframing Examples Leaders Can Use"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_009",
+      "label": "AI Amplifies Bad Framing",
+      "description": "AI tools optimize around the problem framing they are given, so poorly framed problems lead AI to efficiently solve the wrong problem, often failing to deliver business value.",
+      "coverage_criteria": [
+        "Student can explain why bad framing leads to AI project failure.",
+        "Student can describe an example from the article where AI didn't improve outcomes due to framing."
+      ],
+      "source_roles": [
+        "warning",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article explicitly states 'AI tools are only as good as the questions they are given' and provides an example with customer service AI.",
+        "granularity_rationale": "This concept ties problem framing to modern AI challenges, making it relevant and checkable with a scenario."
+      },
+      "anchors": [
+        "How AI Amplifies Bad Framing"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_010",
+      "label": "Building a Problem Framing Culture",
+      "description": "Leaders can instill a culture of problem framing by shifting focus from 'how to fix' to 'why is this happening', establishing habits like asking reflective questions, standardizing problem statements, and adding a diagnostic phase.",
+      "coverage_criteria": [
+        "Student can list at least three habits or rituals that encourage problem framing.",
+        "Student can explain why these habits help prevent solution-jumping."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The article's section 'Building a Culture That Stays in the Problem Space' provides specific practices.",
+        "granularity_rationale": "This concept packages multiple actionable habits into a single teachable idea about cultural change."
+      },
+      "anchors": [
+        "Building a Culture That Stays in the Problem Space"
+      ]
+    },
+    {
+      "id": "c9_pro_thinking_011",
+      "label": "Problem Framing Enables Execution Clarity",
+      "description": "A well-framed problem clarifies ownership, metrics, and cross-functional involvement, leading to better execution with fewer mid-course corrections.",
+      "coverage_criteria": [
+        "Student can explain how clarity from problem framing impacts execution.",
+        "Student can identify what aspects of execution are clarified (ownership, metrics, teams)."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The section 'From Framing to Ownership and Execution' explains this link.",
+        "granularity_rationale": "This concept is a direct outcome of good framing, teachable with a cause-effect question."
+      },
+      "anchors": [
+        "From Framing to Ownership and Execution"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_001",
+      "label": "Primacy of problem identification over problem solving",
+      "description": "Most leaders are skilled at solving problems but often fail at identifying the right problem to solve. Effective problem-solving requires correctly framing the problem first.",
+      "coverage_criteria": [
+        "Student can explain why identifying the right problem is more critical than solving it well.",
+        "Student can provide an example where misidentifying a problem led to ineffective solutions."
+      ],
+      "source_roles": [
+        "introducing",
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly states that 'most leaders are not bad at solving problems. They are bad at identifying the right problem to solve.' This is a core teaching point of the episode and the book 'What’s Your Problem?'",
+        "granularity_rationale": "This concept is a single, distinct principle that can be verified by asking the student to articulate the difference between problem identification and solving, and its importance."
+      },
+      "anchors": [
+        "Three Key Takeaways (first bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_002",
+      "label": "Problem-centric thought leadership",
+      "description": "Effective thought leadership originates from identifying and addressing a real, meaningful problem rather than first targeting a broad audience. The right audience will be attracted by a clearly defined problem.",
+      "coverage_criteria": [
+        "Student can contrast problem-centric vs audience-centric approaches to thought leadership.",
+        "Student can give an example of a thought leader who built their platform around a specific problem."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'Great thought leadership starts with a real problem, not a broad audience.' and describes how Tom focused on underserved problems to build his thought leadership. This is a key takeaway of the episode.",
+        "granularity_rationale": "This is a focused strategic principle that can be assessed by asking the student to explain its reasoning and provide an application."
+      },
+      "anchors": [
+        "Three Key Takeaways (first bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_006",
+      "label": "Clear problem definition as market positioning",
+      "description": "Clearly naming the problem you solve helps the right audience find your work, effectively serving as your market positioning. It aligns what you offer with what people are actually searching for.",
+      "coverage_criteria": [
+        "Student can explain how problem articulation can attract a specific audience.",
+        "Student can give an example of a company or thought leader that used clear problem definition for positioning."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'You do not start by chasing the audience. You start by naming the problem clearly. That is what helps the right audience find you.' and 'Clear problem definition becomes clear market positioning.' This is a direct teaching point.",
+        "granularity_rationale": "This is a concise principle linking problem framing to marketing, which can be assessed by asking the student to apply it to a hypothetical scenario."
+      },
+      "anchors": [
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_003",
+      "label": "Book as a platform, not an endpoint",
+      "description": "In thought leadership, a book launch is not the final goal but the beginning of a longer process of spreading the idea, building traction, and finding the people it helps.",
+      "coverage_criteria": [
+        "Student can describe what activities should follow a book launch to build thought leadership.",
+        "Student can explain why the book itself is insufficient for lasting impact."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source explicitly says: 'A book is not the end product. It is the platform.' and discusses the anticlimax of launch and the real work that follows. It is a clear lesson from the episode.",
+        "granularity_rationale": "This is a single actionable insight about thought leadership that can be checked by asking the student to outline post-publication strategies."
+      },
+      "anchors": [
+        "Three Key Takeaways (second bullet)"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_004",
+      "label": "Shareability as a signal of idea usefulness",
+      "description": "Ideas that are practical, clear, and easy for others to pass along have greater reach. A spontaneous desire to share an idea with peers indicates it is useful and well-framed.",
+      "coverage_criteria": [
+        "Student can identify characteristics that make an idea shareable.",
+        "Student can evaluate whether a given idea would likely spread in an organization based on its practicality and clarity."
+      ],
+      "source_roles": [
+        "explaining",
+        "demonstrating"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source states: 'The strongest ideas spread because they are practical and shareable.' and describes how Tom tests his work by watching for the 'Can I share this with a buddy?' reaction. This is a key insight on thought leadership durability.",
+        "granularity_rationale": "This is a specific, testable criterion for idea dissemination that can be applied to new contexts."
+      },
+      "anchors": [
+        "Three Key Takeaways (third bullet)",
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    },
+    {
+      "id": "c10_pro_thinking_007",
+      "label": "Feedback-driven refinement of thought leadership",
+      "description": "Thought leadership content becomes stronger when it is pressure-tested with blunt feedback and refined over time. Iterative improvement based on feedback leads to more practical and durable ideas.",
+      "coverage_criteria": [
+        "Student can describe a feedback loop for improving an idea.",
+        "Student can explain why external testing is critical for thought leadership quality."
+      ],
+      "source_roles": [
+        "explaining"
+      ],
+      "evidence_type": "source_body",
+      "rationale": {
+        "source_grounded_rationale": "The source describes how Thomas tested ideas, got blunt feedback, and refined his material to make his second book stronger. It notes that 'thought leadership becomes more powerful when it is pressure-tested, practical, and easy for others to pass along.'",
+        "granularity_rationale": "This is a specific practice that can be checked by asking the student to design a testing process for a nascent idea."
+      },
+      "anchors": [
+        "How Great Thought Leadership Begins with the Right Question"
+      ]
+    }
+  ],
+  "controlled_pruning_reasons": [
+    "duplicate",
+    "incidental",
+    "low_teaching_value",
+    "near_duplicate",
+    "too_broad",
+    "too_narrow",
+    "unrelated",
+    "unsupported_lesson_intent",
+    "unsupported_metadata_only"
+  ],
+  "output_contract": {
+    "accepted_concepts": [
+      {
+        "id": "cluster-local-id",
+        "label": "Specific teachable idea",
+        "description": "What the student needs to understand.",
+        "coverage_criteria": [
+          "Observable check in one to three focused questions."
+        ],
+        "source_candidate_ids": [
+          "compact-candidate-id"
+        ],
+        "merge_rationale": "Why these candidates belong together or stand alone."
+      }
+    ],
+    "candidate_assignments": [
+      {
+        "candidate_id": "compact-candidate-id",
+        "status": "used_in",
+        "accepted_ids": [
+          "cluster-local-id"
+        ]
+      },
+      {
+        "candidate_id": "represented-compact-candidate-id",
+        "status": "merged_into",
+        "merged_into": "cluster-local-id",
+        "explanation": "Why it should not stand alone but is represented by the accepted concept."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "low_teaching_value",
+        "explanation": "Why this candidate should not influence the graph."
+      },
+      {
+        "candidate_id": "discarded-compact-candidate-id",
+        "status": "pruned",
+        "reason": "unrelated",
+        "explanation": "Why this candidate should not influence the graph."
+      }
+    ],
+    "review_policy": "Do not use review except for structurally impossible inputs; Phase 4b repairs review outputs."
+  },
+  "web_access_policy": {
+    "web_search_allowed": false,
+    "instruction": "Do not use web search or open URLs. Use only the provided candidate cards."
+  }
+}

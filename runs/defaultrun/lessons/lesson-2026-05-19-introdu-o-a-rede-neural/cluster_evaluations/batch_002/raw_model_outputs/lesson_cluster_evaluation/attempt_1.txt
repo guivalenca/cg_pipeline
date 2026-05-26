@@ -1,0 +1,217 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Activation Functions",
+      "description": "Non-linear activation functions (sigmoid, tanh, ReLU, step, softmax) applied to neuron outputs introduce non-linearity into the network, enabling learning of complex patterns. The sigmoid maps any real to (0,1); tanh to (-1,1); ReLU outputs max(0,x); step produces binary output.",
+      "coverage_criteria": [
+        "List at least three activation functions with their formulas and typical output ranges.",
+        "Explain why non-linear activation functions are necessary in hidden layers.",
+        "Compare ReLU with sigmoid in terms of gradient flow and practical usage."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_010",
+        "c47_pro_thinking_002",
+        "c48_pro_thinking_002",
+        "c49_pro_thinking_005",
+        "c50_pro_thinking_006",
+        "c51_pro_thinking_005"
+      ],
+      "merge_rationale": "These candidates describe various activation functions, their formulas, and their roles, together forming a single coherent teachable concept on activation functions."
+    },
+    {
+      "id": "lr002",
+      "label": "Loss Functions",
+      "description": "Loss functions quantify the prediction error during training, guiding weight updates. Mean squared error is used for regression, binary cross-entropy for classification; logistic loss is commonly used for binary classification.",
+      "coverage_criteria": [
+        "Match loss functions (MSE, binary cross-entropy) to the appropriate problem type.",
+        "Write the logistic loss formula and explain its intuition."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_011",
+        "c48_pro_thinking_004"
+      ],
+      "merge_rationale": "Both cover the purpose and specifics of loss functions, with one providing general types and the other focusing on logistic loss."
+    },
+    {
+      "id": "lr003",
+      "label": "Convolutional Neural Networks",
+      "description": "CNNs are architectures for grid-structured data (e.g., images) that use convolutional layers to detect spatial features, pooling layers to reduce dimensionality, and fully-connected layers for classification. Output size depends on input, filter, stride, and padding.",
+      "coverage_criteria": [
+        "Describe the operation of a convolutional layer (filter, stride, feature map).",
+        "Compute the output size of a convolutional layer given input dimensions, filter size, and padding."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_012",
+        "c47_pro_thinking_006"
+      ],
+      "merge_rationale": "c47_pro_thinking_006 adds practical output size computation to the CNN overview, completing the teachable concept."
+    },
+    {
+      "id": "lr004",
+      "label": "Deep Residual Networks",
+      "description": "Deep Residual Networks (DRNs) use skip connections (residual blocks) to allow gradients to flow through very deep architectures, mitigating the vanishing gradient problem and enabling training of networks like ResNet.",
+      "coverage_criteria": [
+        "Explain what a residual block is and why it helps train very deep networks.",
+        "Name a well-known residual network architecture."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_013"
+      ],
+      "merge_rationale": "Standalone concept on an advanced architecture."
+    },
+    {
+      "id": "lr005",
+      "label": "Keras for Neural Networks",
+      "description": "Keras is a high-level TensorFlow API that simplifies neural network construction. The Sequential model allows stacking layers; Dense layers are fully-connected; the input_shape argument specifies input dimensions; activation functions (e.g., ReLU) are set per layer.",
+      "coverage_criteria": [
+        "Create a Keras Sequential model, add a Dense layer with a given number of neurons and activation, and specify input_shape."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_014",
+        "c51_pro_thinking_001",
+        "c51_pro_thinking_002",
+        "c51_pro_thinking_003",
+        "c51_pro_thinking_004"
+      ],
+      "merge_rationale": "These candidates together cover the essential Keras API for building feedforward networks."
+    },
+    {
+      "id": "lr006",
+      "label": "Overfitting and Regularization",
+      "description": "Overfitting occurs when a model learns training noise and fails to generalize; underfitting is the opposite. Dropout is a regularization technique that randomly drops neurons during training to prevent overfitting.",
+      "coverage_criteria": [
+        "Define overfitting and underfitting with examples.",
+        "Explain how dropout works and why it reduces overfitting."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_015",
+        "c47_pro_thinking_005"
+      ],
+      "merge_rationale": "Dropout is a specific technique to combat overfitting, forming a unified concept with the general problem of overfitting."
+    },
+    {
+      "id": "lr007",
+      "label": "Linear Algebra Foundations",
+      "description": "Neural network computations rely on linear vector spaces, inner products, norms, and linear transformations. These concepts underpin weight matrices and forward/backward passes.",
+      "coverage_criteria": [
+        "Define a linear vector space and list two axioms.",
+        "Compute the dot product of two vectors and explain its role in a neuron's weighted sum."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_016"
+      ],
+      "merge_rationale": "Standalone mathematical prerequisite concept."
+    },
+    {
+      "id": "lr008",
+      "label": "Gradient Descent Optimization",
+      "description": "Gradient descent minimizes the loss by iteratively updating parameters: w = w - η * ∇J. The learning rate η controls step size; bias is an additional parameter; Adam adapts η per parameter; an epoch is one full pass over the dataset.",
+      "coverage_criteria": [
+        "Write the gradient descent update rule for a weight.",
+        "Explain the role of the learning rate and describe the advantage of the Adam optimizer.",
+        "Define epoch and distinguish it from an iteration over a single sample."
+      ],
+      "source_candidate_ids": [
+        "c46_pro_thinking_017",
+        "c47_pro_thinking_003",
+        "c48_pro_thinking_006",
+        "c49_pro_thinking_007",
+        "c50_pro_thinking_004",
+        "c50_pro_thinking_005",
+        "c50_pro_thinking_010"
+      ],
+      "merge_rationale": "These candidates cover the core algorithm, hyperparameters (learning rate, bias), and training loop concepts, forming a comprehensive optimization concept."
+    },
+    {
+      "id": "lr009",
+      "label": "Neural Network Training Implementation",
+      "description": "Training involves: forward propagation to compute outputs; random weight initialization to break symmetry; a loop over epochs performing forward, cost, backward, and update steps; layer dimensions determine parameter shapes; caches store intermediate values for backprop.",
+      "coverage_criteria": [
+        "List the steps in one training iteration (forward, cost, backward, update).",
+        "Explain why weights are initialized randomly and what happens if they are set to zero.",
+        "Describe the purpose of caching in forward propagation."
+      ],
+      "source_candidate_ids": [
+        "c48_pro_thinking_003",
+        "c48_pro_thinking_007",
+        "c48_pro_thinking_008",
+        "c48_pro_thinking_009",
+        "c48_pro_thinking_010"
+      ],
+      "merge_rationale": "These low-level implementation details together form a single coherent training procedure concept."
+    },
+    {
+      "id": "lr010",
+      "label": "Perceptron and Its Limitations",
+      "description": "The perceptron is a single neuron with step activation: output = step(∑ w_i x_i + b). Its training rule: w = w + η (d - y) x. It only solves linearly separable problems; XOR requires a hidden layer (e.g., two-layer network computing AND and OR).",
+      "coverage_criteria": [
+        "Write the perceptron forward pass and training update rule.",
+        "Explain why a single perceptron cannot solve XOR and how a hidden layer enables the solution."
+      ],
+      "source_candidate_ids": [
+        "c49_pro_thinking_002",
+        "c49_pro_thinking_003",
+        "c50_pro_thinking_002",
+        "c50_pro_thinking_003",
+        "c49_pro_thinking_009"
+      ],
+      "merge_rationale": "These candidates explain the perceptron model, its training, the concept of linear separability, and the XOR limitation, with an explicit solution example."
+    },
+    {
+      "id": "lr011",
+      "label": "Data Preparation for Neural Networks",
+      "description": "Non-numeric inputs must be encoded (e.g., binary encoding, one-hot encoding) for neural networks. Datasets consist of features (attributes) and a target column, and data often needs to be numeric and normalized.",
+      "coverage_criteria": [
+        "Choose an encoding scheme for a categorical variable (e.g., one-hot encoding) and justify.",
+        "Given a CSV, identify the feature columns and the target column."
+      ],
+      "source_candidate_ids": [
+        "c49_pro_thinking_008",
+        "c50_pro_thinking_011"
+      ],
+      "merge_rationale": "Both deal with preparing input data for neural networks, from encoding to dataset structure."
+    }
+  ],
+  "candidate_assignments": [
+    {"candidate_id": "c46_pro_thinking_010", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c47_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c48_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c49_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c50_pro_thinking_006", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c51_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr001"]},
+    {"candidate_id": "c46_pro_thinking_011", "status": "used_in", "accepted_ids": ["lr002"]},
+    {"candidate_id": "c48_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr002"]},
+    {"candidate_id": "c46_pro_thinking_012", "status": "used_in", "accepted_ids": ["lr003"]},
+    {"candidate_id": "c47_pro_thinking_006", "status": "used_in", "accepted_ids": ["lr003"]},
+    {"candidate_id": "c46_pro_thinking_013", "status": "used_in", "accepted_ids": ["lr004"]},
+    {"candidate_id": "c46_pro_thinking_014", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c51_pro_thinking_001", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c51_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c51_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c51_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr005"]},
+    {"candidate_id": "c46_pro_thinking_015", "status": "used_in", "accepted_ids": ["lr006"]},
+    {"candidate_id": "c47_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr006"]},
+    {"candidate_id": "c46_pro_thinking_016", "status": "used_in", "accepted_ids": ["lr007"]},
+    {"candidate_id": "c46_pro_thinking_017", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c47_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c48_pro_thinking_006", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c49_pro_thinking_007", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c50_pro_thinking_004", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c50_pro_thinking_005", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c50_pro_thinking_010", "status": "used_in", "accepted_ids": ["lr008"]},
+    {"candidate_id": "c48_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr009"]},
+    {"candidate_id": "c48_pro_thinking_007", "status": "used_in", "accepted_ids": ["lr009"]},
+    {"candidate_id": "c48_pro_thinking_008", "status": "used_in", "accepted_ids": ["lr009"]},
+    {"candidate_id": "c48_pro_thinking_009", "status": "used_in", "accepted_ids": ["lr009"]},
+    {"candidate_id": "c48_pro_thinking_010", "status": "used_in", "accepted_ids": ["lr009"]},
+    {"candidate_id": "c49_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr010"]},
+    {"candidate_id": "c49_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr010"]},
+    {"candidate_id": "c50_pro_thinking_002", "status": "used_in", "accepted_ids": ["lr010"]},
+    {"candidate_id": "c50_pro_thinking_003", "status": "used_in", "accepted_ids": ["lr010"]},
+    {"candidate_id": "c49_pro_thinking_009", "status": "used_in", "accepted_ids": ["lr010"]},
+    {"candidate_id": "c49_pro_thinking_008", "status": "used_in", "accepted_ids": ["lr011"]},
+    {"candidate_id": "c50_pro_thinking_011", "status": "used_in", "accepted_ids": ["lr011"]},
+    {"candidate_id": "c49_pro_thinking_010", "status": "pruned", "reason": "low_teaching_value", "explanation": "FizzBuzz is an illustrative end-to-end application that consolidates previously taught concepts (encoding, architecture, training) without introducing a new distinct teachable idea suitable for standalone lesson coverage."}
+  ]
+}

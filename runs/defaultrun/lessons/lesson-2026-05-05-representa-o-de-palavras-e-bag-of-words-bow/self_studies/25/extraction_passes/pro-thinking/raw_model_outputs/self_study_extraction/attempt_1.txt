@@ -1,0 +1,252 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-25-001",
+      "label": "Natural Language Challenges",
+      "description": "Natural language has inherent structure but is free-form; the same meaning can be expressed in many ways, and similar words can convey different meanings.",
+      "coverage_criteria": [
+        "Student can give examples of sentences with subtle meaning differences due to word choice or emphasis, and explain why NLP requires different approaches."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video opens by discussing unique challenges of natural language that separate it from other data types, providing examples of sentences with nuanced meanings.",
+        "granularity_rationale": "This is a foundational understanding needed to appreciate why BoW and other encoding methods exist; it can be checked with a few examples or explanation."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[00:00] Introduction to Natural Language Processing Challenges"},
+        {"kind": "markdown_heading", "locator": "[00:46] The Special Nature of Natural Language"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-002",
+      "label": "Data Representation as Matrices in Machine Learning",
+      "description": "Machine learning models typically operate on numerical matrices; images and structured data map naturally to matrices, but text requires a conversion step.",
+      "coverage_criteria": [
+        "Student can explain why images and spreadsheet data are naturally matrices, and why text needs encoding before being used as input to ML models."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source emphasizes turning data into matrices, using images as an example of inherent matrix representation, to motivate the need for text encoding.",
+        "granularity_rationale": "This concept is a prerequisite for understanding BoW's purpose and can be assessed by asking about data preprocessing in ML."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[01:03] Converting Data to Matrices"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-003",
+      "label": "Bag of Words Encoding Concept",
+      "description": "Bag of Words (BoW) is a method for encoding free-form text into numerical vectors by representing the presence (or count) of words from a predefined vocabulary, disregarding word order.",
+      "coverage_criteria": [
+        "Student can define Bag of Words, explain the role of a vocabulary, and describe how a sentence is converted into a vector based on word presence."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video introduces BoW as a foundational approach to NLP encoding, explicitly stating it scrambles word order like a 'bag of words', and demonstrates with an example.",
+        "granularity_rationale": "This is the central concept; it is the right size to check understanding with a few questions about vocabulary, encoding, and the trade-off of ignoring order."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[01:29] Bag of Words: Encoding Free-Form Text"},
+        {"kind": "markdown_heading", "locator": "[02:35] Encoding the Sentence into an Array"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-004",
+      "label": "Vocabulary Selection for Bag of Words",
+      "description": "The vocabulary is a predefined list of words (e.g., the most common 400 words) that the BoW model recognizes; words not in the vocabulary are ignored during encoding.",
+      "coverage_criteria": [
+        "Student can explain how a vocabulary is chosen (e.g., most frequent words, fixed size) and what happens to out-of-vocabulary words."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video illustrates a limited vocabulary of 10 words and then mentions choosing a larger size like 400 for practical models, using Keras's Tokenizer num_words parameter.",
+        "granularity_rationale": "Vocabulary choice is a key design decision in BoW; understanding its impact is checkable by asking about trade-offs of vocabulary size."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[01:39] Understanding Bag of Words with a Vocabulary Example"},
+        {"kind": "markdown_heading", "locator": "[04:28] Encoding Text with Keras"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": ["Keras Tokenizer"]
+    },
+    {
+      "candidate_id": "candidate-25-005",
+      "label": "Binary Vector Encoding for Text in BoW",
+      "description": "A sentence is encoded as a binary vector of length equal to vocabulary size, with 1s at positions corresponding to present words and 0s elsewhere.",
+      "coverage_criteria": [
+        "Given a vocabulary and a sentence, student can produce the binary vector encoding."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly shows setting array indices to 1 for words like 'plot', 'dataframe', 'graph' and 0 for others, with a visual example.",
+        "granularity_rationale": "This is the core encoding mechanism; it's small enough to test by having a student encode a sample sentence."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[02:35] Encoding the Sentence into an Array"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-006",
+      "label": "Multi-label Encoding for Text Classification",
+      "description": "In multi-label classification, labels are encoded as binary vectors where each element corresponds to a label; a single example can have multiple 1s, unlike multi-class one-hot encoding.",
+      "coverage_criteria": [
+        "Student can explain how to encode labels for a multi-label problem using a binary vector, and contrast with multi-class encoding."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source discusses encoding labels for sentences that can belong to multiple topics, setting multiple indices to 1.",
+        "granularity_rationale": "This is a practical detail for classification tasks; checkable by asking to encode a set of labels for a given text."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:29] Preprocessing Labels for Prediction"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-007",
+      "label": "Machine Learning as Mapping Numbers to Numbers",
+      "description": "After encoding text and labels into numerical arrays, ML models simply learn a function mapping input numbers to output numbers; preprocessing is the key transformation.",
+      "coverage_criteria": [
+        "Student can explain how BoW preprocessing turns a text classification problem into a standard numerical prediction task."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states 'we can let machine learning do what it does best--map one set of numbers to another set of numbers' and emphasizes the heavy lifting in preprocessing.",
+        "granularity_rationale": "This high-level insight is useful for understanding the ML pipeline; it's a single idea, checkable by asking to describe the transformation from text to numbers in a classification task."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-008",
+      "label": "Effectiveness of Simple Bag of Words",
+      "description": "Despite its simplicity and disregard for word order, Bag of Words can perform surprisingly well in many text classification tasks.",
+      "coverage_criteria": [
+        "Student can provide examples or reasoning for when BoW might work well (e.g., topic classification where presence of words is discriminative)."
+      ],
+      "source_roles": ["explaining", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video notes 'it might surprise you how well it works in some situations,' highlighting its practical utility.",
+        "granularity_rationale": "This is a key takeaway about BoW's performance; it's a single concept checkable by asking for advantages or scenarios where BoW is effective."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:55] Inputs to Predictions: Machine Learning in Action"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-25-009",
+      "label": "Keras Tokenizer for Bag of Words Implementation",
+      "description": "Keras provides a Tokenizer class that can be configured with a vocabulary size (num_words), fit on training texts, and then used to convert text into a binary matrix (texts_to_matrix).",
+      "coverage_criteria": [
+        "Student can write code using Keras Tokenizer to create a BoW representation from a corpus of texts."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video shows actual code: tokenize = keras.preprocessing.text.Tokenizer(num_words=400), .fit_on_texts, .texts_to_matrix, providing a hands-on implementation.",
+        "granularity_rationale": "This is a specific tool usage that can be assessed by asking a student to write a snippet or explain the steps."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[04:28] Encoding Text with Keras"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": ["Keras Tokenizer", "texts_to_matrix"]
+    },
+    {
+      "candidate_id": "candidate-25-010",
+      "label": "Multi-label Classification Model with Sigmoid Activation",
+      "description": "For multi-label text classification using BoW, a neural network with a final sigmoid activation and binary cross-entropy loss is appropriate, as it allows independent binary predictions for each label.",
+      "coverage_criteria": [
+        "Student can explain why sigmoid activation is preferred over softmax for multi-label classification, and configure a model with binary cross-entropy."
+      ],
+      "source_roles": ["demonstrating", "warning"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly warns to use sigmoid activation and binary cross-entropy loss for multi-label problems, contrasting with softmax for multi-class.",
+        "granularity_rationale": "This is an important practical detail that can be checked by asking a student to choose the correct output layer and loss for a given classification type."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[05:00] Model Architecture for Bag of Words"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Getting started with Natural Language Processing: Bag of words",
+      "source_year": "2024",
+      "name_drops": ["sigmoid", "softmax", "binary_crossentropy", "relu"]
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-25-001",
+      "to_candidate_id": "candidate-25-003",
+      "reason": "The video discusses natural language challenges like free-form structure and varied expressions, motivating the need for a method like Bag of Words to convert text into a usable format for ML.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[00:00] Introduction to Natural Language Processing Challenges"},
+        {"kind": "markdown_heading", "locator": "[01:29] Bag of Words: Encoding Free-Form Text"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-25-002",
+      "to_candidate_id": "candidate-25-003",
+      "reason": "The source explains that ML models need matrices; Bag of Words is introduced as the method to turn natural language into numbers, bridging the gap.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[01:03] Converting Data to Matrices"},
+        {"kind": "markdown_heading", "locator": "[01:29] Bag of Words: Encoding Free-Form Text"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-25-003",
+      "to_candidate_id": "candidate-25-005",
+      "reason": "Bag of Words encoding is directly demonstrated by showing how a sentence is converted into a binary vector based on vocabulary presence.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[02:35] Encoding the Sentence into an Array"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-25-004",
+      "to_candidate_id": "candidate-25-009",
+      "reason": "The concept of vocabulary selection is practically implemented using Keras Tokenizer with the num_words parameter.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[04:28] Encoding Text with Keras"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-25-006",
+      "to_candidate_id": "candidate-25-010",
+      "reason": "Multi-label encoding (multiple 1s in label vector) leads to the recommendation to use sigmoid activation instead of softmax for the output layer.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "[03:29] Preprocessing Labels for Prediction"},
+        {"kind": "markdown_heading", "locator": "[05:00] Model Architecture for Bag of Words"}
+      ]
+    }
+  ]
+}
