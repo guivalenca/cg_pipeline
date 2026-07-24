@@ -1,0 +1,461 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept Universe: plano de construção v1</title>
+<style>
+  :root {
+    --ink: #1a1d21;
+    --ink-soft: #5a616b;
+    --paper: #fafaf8;
+    --card: #ffffff;
+    --line: #e3e2dd;
+    --fact: #2f5d50;
+    --fact-soft: #e8f0ed;
+    --interp: #7c5cad;
+    --interp-soft: #f0ebf7;
+    --accent: #b08830;
+    --accent-soft: #f7f1e3;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 0 0 96px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+  header { padding: 56px 0 8px; }
+  h1 { font-size: 30px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .sub { color: var(--ink-soft); max-width: 720px; margin: 0; }
+  h2 { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; margin: 64px 0 4px; }
+  .h2sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 20px; max-width: 760px; }
+  .legend { display: flex; gap: 22px; margin: 18px 0 6px; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .dot.f { background: var(--fact); }
+  .dot.i { background: var(--interp); }
+  .dot.h { background: var(--accent); }
+
+  /* ---- fluxo ---- */
+  .flow { overflow-x: auto; padding: 10px 0 18px; }
+  .flow svg { min-width: 980px; display: block; }
+  .flow text { font: 12.5px -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+  .flow .tag { font-size: 10.5px; fill: var(--ink-soft); }
+  .flow .stage { cursor: pointer; }
+  .flow .stage:hover rect { filter: brightness(0.96); }
+
+  /* ---- peças ---- */
+  .piece { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin: 14px 0; overflow: hidden; }
+  .piece > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 14px;
+    padding: 16px 22px; user-select: none;
+  }
+  .piece > summary::-webkit-details-marker { display: none; }
+  .piece > summary:hover { background: #f5f5f2; }
+  .num {
+    font: 600 13px var(--mono); color: var(--accent); background: var(--accent-soft);
+    border-radius: 6px; padding: 2px 8px; flex-shrink: 0;
+  }
+  .ptitle { font-weight: 620; font-size: 16.5px; }
+  .pwhat { color: var(--ink-soft); font-size: 14px; margin-left: auto; text-align: right; }
+  .pbody { padding: 4px 22px 20px; border-top: 1px solid var(--line); }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 14px; }
+  .col h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); font-weight: 650; }
+  .col ul { margin: 0; padding-left: 18px; font-size: 14.5px; }
+  .col li { margin: 4px 0; }
+  .closes { margin-top: 14px; font-size: 14px; background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; }
+  .closes b { font-weight: 650; }
+
+  /* ---- schema ---- */
+  .schemas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .schema { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 14px; }
+  .schema.fact { border-top: 3px solid var(--fact); }
+  .schema.interp { border-top: 3px solid var(--interp); }
+  .schema h3 { margin: 0 0 2px; font: 600 15px var(--mono); }
+  .schema .role { font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
+  .fld { display: flex; gap: 10px; padding: 5px 0; border-top: 1px dashed var(--line); font-size: 13.5px; }
+  .fld code { font: 12.5px var(--mono); color: var(--fact); white-space: nowrap; }
+  .schema.interp .fld code { color: var(--interp); }
+  .fld span { color: var(--ink-soft); }
+
+  /* ---- roi ---- */
+  .roi { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .roi { grid-template-columns: 1fr; } }
+  .roibox { border-radius: 12px; padding: 20px 24px; }
+  .roibox.hi { background: var(--fact-soft); border: 1px solid #cfdeda; }
+  .roibox.lo { background: #f2f2ef; border: 1px solid var(--line); }
+  .roibox h3 { margin: 0 0 10px; font-size: 15px; font-weight: 650; }
+  .roibox ul { margin: 0; padding-left: 18px; font-size: 14.5px; }
+  .roibox li { margin: 7px 0; }
+  .roibox li b { font-weight: 620; }
+
+  .note { font-size: 14px; color: var(--ink-soft); border-left: 3px solid var(--line); padding: 2px 0 2px 16px; margin: 22px 0; max-width: 760px; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8e6e1; --ink-soft: #9aa0a8; --paper: #16181b; --card: #1e2125;
+      --line: #33373c; --fact: #7fb8a5; --fact-soft: #223129; --interp: #b39ddb;
+      --interp-soft: #2c2536; --accent: #d4af5a; --accent-soft: #322a1a;
+    }
+    .piece > summary:hover { background: #23262b; }
+    .roibox.hi { border-color: #33473f; }
+    .roibox.lo { background: #202328; }
+    .flow text { fill: var(--ink); }
+    .flow .tag { fill: var(--ink-soft); }
+  }
+  :root[data-theme="light"] {
+    --ink: #1a1d21; --ink-soft: #5a616b; --paper: #fafaf8; --card: #ffffff;
+    --line: #e3e2dd; --fact: #2f5d50; --fact-soft: #e8f0ed; --interp: #7c5cad;
+    --interp-soft: #f0ebf7; --accent: #b08830; --accent-soft: #f7f1e3;
+  }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Concept Universe: plano de construção, fase 1</h1>
+  <p class="sub">Sete peças, cada uma termina com algo que roda, algo que testamos e algo que você vê.
+  O painel de auditoria nasce na peça 2 e cresce junto com o pipeline: é o mesmo app que depois vai para o servidor, nunca um descartável.</p>
+</header>
+
+<h2>O sistema inteiro numa tela</h2>
+<p class="h2sub">Clique em qualquer estágio para ir à peça que o constrói.</p>
+<div class="legend">
+  <span><i class="dot f"></i>fato permanente (ledger, nunca editado)</span>
+  <span><i class="dot i"></i>interpretação (computada, versionada, recomputável)</span>
+  <span><i class="dot h"></i>gate de auditoria humana</span>
+</div>
+
+<div class="flow">
+<svg viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#9aa0a8"/>
+    </marker>
+  </defs>
+
+  <!-- linha ingestão (fatos) -->
+  <g class="stage" onclick="go('p2')">
+    <rect x="10" y="30" width="118" height="46" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="69" y="49" text-anchor="middle">Syllabus</text>
+    <text x="69" y="65" text-anchor="middle" class="tag">versão v1, v2…</text>
+  </g>
+  <g class="stage" onclick="go('p2')">
+    <rect x="158" y="30" width="118" height="46" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="217" y="49" text-anchor="middle">Source</text>
+    <text x="217" y="65" text-anchor="middle" class="tag">identidade estável</text>
+  </g>
+  <g class="stage" onclick="go('p2')">
+    <rect x="306" y="30" width="118" height="46" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="365" y="49" text-anchor="middle">Snapshot</text>
+    <text x="365" y="65" text-anchor="middle" class="tag">material no tempo</text>
+  </g>
+  <g class="stage" onclick="go('p2')">
+    <rect x="454" y="30" width="118" height="46" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="513" y="49" text-anchor="middle">Artifact</text>
+    <text x="513" y="65" text-anchor="middle" class="tag">markdown p/ modelo</text>
+  </g>
+  <g class="stage" onclick="go('p4')">
+    <rect x="602" y="30" width="128" height="46" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="666" y="49" text-anchor="middle">Model Reading</text>
+    <text x="666" y="65" text-anchor="middle" class="tag">modelo + prompt</text>
+  </g>
+  <g class="stage" onclick="go('p4')">
+    <rect x="760" y="8" width="110" height="40" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="815" y="33" text-anchor="middle">Passages</text>
+  </g>
+  <g class="stage" onclick="go('p4')">
+    <rect x="760" y="58" width="110" height="40" rx="9" fill="var(--fact-soft)" stroke="var(--fact)"/>
+    <text x="815" y="83" text-anchor="middle">Grains</text>
+  </g>
+
+  <line x1="128" y1="53" x2="156" y2="53" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="276" y1="53" x2="304" y2="53" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="424" y1="53" x2="452" y2="53" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="572" y1="53" x2="600" y2="53" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="730" y1="45" x2="758" y2="30" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="730" y1="62" x2="758" y2="76" stroke="#9aa0a8" marker-end="url(#arr)"/>
+
+  <!-- gate auditoria extração -->
+  <circle cx="915" cy="78" r="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+  <text x="915" y="82" text-anchor="middle" style="font-size:11px; fill:var(--accent); font-weight:700">A</text>
+  <line x1="870" y1="78" x2="903" y2="78" stroke="#9aa0a8" marker-end="url(#arr)"/>
+
+  <!-- linha KC (interpretações) -->
+  <g class="stage" onclick="go('p5')">
+    <rect x="10" y="160" width="130" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="75" y="179" text-anchor="middle">Sizing gate</text>
+    <text x="75" y="195" text-anchor="middle" class="tag">pass / split / drop + eixos</text>
+  </g>
+  <g class="stage" onclick="go('p5')">
+    <rect x="170" y="160" width="120" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="230" y="179" text-anchor="middle">Blocking</text>
+    <text x="230" y="195" text-anchor="middle" class="tag">pgvector, determinístico</text>
+  </g>
+  <g class="stage" onclick="go('p5')">
+    <rect x="320" y="160" width="150" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="395" y="179" text-anchor="middle">Membership judge</text>
+    <text x="395" y="195" text-anchor="middle" class="tag">5 veredictos, âncora canônica</text>
+  </g>
+  <g class="stage" onclick="go('p5')">
+    <rect x="500" y="160" width="130" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="565" y="179" text-anchor="middle">Whole-set gate</text>
+    <text x="565" y="195" text-anchor="middle" class="tag">o KC ainda é uma skill?</text>
+  </g>
+  <g class="stage" onclick="go('p5')">
+    <rect x="660" y="160" width="110" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="715" y="179" text-anchor="middle">KC</text>
+    <text x="715" y="195" text-anchor="middle" class="tag">id congelado + log</text>
+  </g>
+  <g class="stage" onclick="go('p5')">
+    <rect x="660" y="235" width="110" height="42" rx="9" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="715" y="253" text-anchor="middle">Quarentena</text>
+    <text x="715" y="268" text-anchor="middle" class="tag">match múltiplo</text>
+  </g>
+
+  <line x1="815" y1="98" x2="815" y2="130" stroke="#9aa0a8"/>
+  <line x1="815" y1="130" x2="75" y2="130" stroke="#9aa0a8"/>
+  <line x1="75" y1="130" x2="75" y2="158" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="140" y1="183" x2="168" y2="183" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="290" y1="183" x2="318" y2="183" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="470" y1="183" x2="498" y2="183" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="630" y1="183" x2="658" y2="183" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="395" y1="206" x2="395" y2="256" stroke="#9aa0a8" stroke-dasharray="4 3"/>
+  <line x1="395" y1="256" x2="658" y2="256" stroke="#9aa0a8" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+  <!-- concepts e compilador -->
+  <g class="stage" onclick="go('p6')">
+    <rect x="10" y="255" width="130" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)"/>
+    <text x="75" y="274" text-anchor="middle">Concepts</text>
+    <text x="75" y="290" text-anchor="middle" class="tag">prateleiras, sem autoridade</text>
+  </g>
+  <g class="stage" onclick="go('p7')">
+    <rect x="170" y="255" width="130" height="46" rx="9" fill="var(--interp-soft)" stroke="var(--interp)" stroke-dasharray="5 3"/>
+    <text x="235" y="274" text-anchor="middle">Compilador</text>
+    <text x="235" y="290" text-anchor="middle" class="tag">descartável, one-way</text>
+  </g>
+  <g class="stage" onclick="go('p7')">
+    <rect x="330" y="255" width="150" height="46" rx="9" fill="none" stroke="var(--ink-soft)"/>
+    <text x="405" y="274" text-anchor="middle">Companion</text>
+    <text x="405" y="290" text-anchor="middle" class="tag">Concept Graph, zero mudanças</text>
+  </g>
+  <line x1="715" y1="206" x2="715" y2="225" stroke="#9aa0a8"/>
+  <line x1="715" y1="225" x2="75" y2="225" stroke="#9aa0a8"/>
+  <line x1="75" y1="225" x2="75" y2="253" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="140" y1="278" x2="168" y2="278" stroke="#9aa0a8" marker-end="url(#arr)"/>
+  <line x1="300" y1="278" x2="328" y2="278" stroke="#9aa0a8" marker-end="url(#arr)"/>
+</svg>
+</div>
+
+<h2>As sete peças, na ordem</h2>
+<p class="h2sub">Cada peça abre com o que ela entrega. Clique para ver o que testamos, como você audita e qual decisão fecha ali.
+Os fixtures do si-mod6-com (69 sources, 67 corpos transcritos, 2 indisponíveis, syllabus original) alimentam tudo: aquisição ao vivo de fontes fica fora da fase 1.</p>
+
+<details class="piece" id="p1" open>
+  <summary><span class="num">1</span><span class="ptitle">Fundação</span><span class="pwhat">repo, Postgres + pgvector, migrações, pytest</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">Projeto Python novo no workspace, docker-compose com Postgres + pgvector, sistema de migração simples e suíte de teste. Zero import do Companion, zero import do cg_pipeline.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>Migrações sobem e descem limpas</li><li>pgvector operacional (insert + busca por similaridade)</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Nada ainda. Peça de meio dia, sem cerimônia.</li></ul></div>
+    </div>
+  </div>
+</details>
+
+<details class="piece" id="p2">
+  <summary><span class="num">2</span><span class="ptitle">Cadeia de ingestão + primeira tela do painel</span><span class="pwhat">os 5 registros de fato, backfill do fixture</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">Schema dos cinco registros (abaixo) e um backfill que ingere o si-mod6-com inteiro: o xlsx vira Syllabus v1, o inventário vira Sources, cada corpo Markdown vira Snapshot + Artifact. As 2 fontes indisponíveis viram gaps de cobertura reais, não sintéticos. Junto nasce o painel: FastAPI + HTML servindo a primeira tela, a tabela de fontes com a cadeia de cada uma.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>Backfill idempotente (rodar duas vezes não duplica nada)</li><li>Proveniência íntegra: todo artifact chega ao seu source por FK</li><li>Gap de cobertura aparece para as 2 fontes sem corpo</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Tabela: 69 fontes, dia do syllabus, status da cadeia, 2 gaps destacados</li><li>Clicar numa fonte abre a cadeia dela: syllabus, snapshot, artifact, corpo</li></ul></div>
+    </div>
+    <div class="closes"><b>Fecha aqui:</b> o schema da cadeia de ingestão (minha proposta abaixo, seu aval em cima do real).</div>
+  </div>
+</details>
+
+<details class="piece" id="p3">
+  <summary><span class="num">3</span><span class="ptitle">Harness</span><span class="pwhat">prompts versionados, runs carimbados, comparação</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">A ferramenta de trabalho de todo o resto da fase 1. Prompts versionados em arquivo, cada run gera um registro carimbado (modelo, prompt, versão, custo, data) e as saídas viram fatos no banco ligados ao run. Comparação de runs entra como visão lado a lado no painel, sem o botão de push ainda.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>Dois runs do mesmo prompt são distinguíveis e comparáveis</li><li>Replay: qualquer saída reconstruível a partir do carimbo</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Lista de runs com custo e contagens</li><li>Diff lado a lado de dois runs sobre o mesmo artifact</li></ul></div>
+    </div>
+  </div>
+</details>
+
+<details class="piece" id="p4">
+  <summary><span class="num">4</span><span class="ptitle">Extração: passages e grains</span><span class="pwhat">Model Reading no harness, iteração de prompt</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">O primeiro estágio de LLM: Model Reading extrai passages (com função: definição, motivação, exemplo resolvido, procedimento, limitação) e grains candidatos com proveniência de passage. Iteramos o prompt no harness contra artifacts reais do módulo de NLP. É aqui que você olha saídas reais pela primeira vez e confirma (ou ajusta) a regra de sizing.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>Qualidade de grain a olho seu, no gate de auditoria</li><li>Regra teaches-vs-assumes: nada extraído do que a fonte só assume</li><li>Estabilidade entre runs do mesmo prompt</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Leitura sobreposta: o texto da fonte com passages destacadas</li><li>Grains como cartões ao lado, cada um apontando sua passage</li><li>Gate A: aprovar ou reprovar a leitura antes de seguir</li></ul></div>
+    </div>
+    <div class="closes"><b>Fecha aqui:</b> a regra de sizing ("uma pergunta focada testa isso") sai de provisória para confirmada, com você olhando o material real.</div>
+  </div>
+</details>
+
+<details class="piece" id="p5">
+  <summary><span class="num">5</span><span class="ptitle">Estágio KC: experimento na mão, depois automação</span><span class="pwhat">sizing gate, blocking, judge, whole-set, quarentena</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">Antes de automatizar o judge, o experimento do perceptron com grains reais da peça 4: card sort (P1), troca cega de perguntas (P2), auditoria estrutural dos eixos (P3). Alvos: kappa por volta de 0.7 e cerca de 80% de crossover. O que o experimento validar vira o critério do judge. Só então a cadeia decomposta do ADR 0009 roda inteira: sizing gate escreve os eixos, blocking por pgvector, judge contra frase canônica + perguntas exemplares com os 5 veredictos, whole-set gate antes de commit, match múltiplo cai na quarentena.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>O experimento em si é o teste: o critério de membership se decide aqui, empiricamente</li><li>Judge automatizado contra o gabarito do card sort</li><li>Quarentena dispara nos casos plantados de grain grosso</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Cartão de KC: frase canônica, eixos, perguntas exemplares, log de membership</li><li>Fila de quarentena com as 3 resoluções possíveis</li><li>Comparação de runs do judge no harness</li></ul></div>
+    </div>
+    <div class="closes"><b>Fecha aqui:</b> o critério de membership (candidato líder: intercambialidade de pool de perguntas), decidido com dados, não com teoria.</div>
+  </div>
+</details>
+
+<details class="piece" id="p6">
+  <summary><span class="num">6</span><span class="ptitle">Concepts</span><span class="pwhat">prateleiras nomeadas, mínimo viável</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">Agrupamento de KCs em Concepts nomeados, deliberadamente simples: sugestão do modelo, renomeio e remanejo seus no painel como atos de curadoria. Concepts não têm autoridade de ensino, então erro aqui custa legibilidade, nada mais. É a peça de menor risco da fase.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>Todo KC tem prateleira, nenhum órfão</li><li>Renomear ou mover escreve fato de curadoria</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>Estante: Concepts com seus KCs, arrastar para remanejar</li></ul></div>
+    </div>
+  </div>
+</details>
+
+<details class="piece" id="p7">
+  <summary><span class="num">7</span><span class="ptitle">Compilador e prova de fogo</span><span class="pwhat">universe vira Concept Graph, Companion carrega</span></summary>
+  <div class="pbody">
+    <p style="font-size:14.5px">O compilador descartável: lê o universo e emite um Concept Graph no formato de hoje, ids embutindo identidade do universo, arestas de dependência vazias como as de produção. Validação em dois passos: diff estrutural contra o runtime-graph.json de referência do fixture, depois carga real num Companion local rodando uma sessão em cima do grafo compilado.</p>
+    <div class="cols">
+      <div class="col"><h4>Testamos</h4><ul><li>O loader atual do Companion aceita o grafo sem mudar uma linha</li><li>Uma sessão de estudo roda de ponta a ponta no grafo compilado</li><li>Todo concept exportado é rastreável ao KC de origem pelo id</li></ul></div>
+      <div class="col"><h4>Você vê</h4><ul><li>O Companion local ensinando a partir do universo</li><li>Comparação lado a lado: grafo antigo do módulo vs compilado</li></ul></div>
+    </div>
+    <div class="closes"><b>Fecha aqui:</b> a fase 1 tem um caminho completo de syllabus a sessão. Deploy no Railway e o botão de push da comparação de runs vêm depois disso.</div>
+  </div>
+</details>
+
+<h2>Proposta de schema: os registros de fato e os dois objetos</h2>
+<p class="h2sub">O que a peça 2 e a peça 5 criam no banco. Campos resumidos, não DDL; verde = ledger de fatos, roxo = camada de interpretação. Todo registro de interpretação carrega carimbo (modelo, prompt e versão, ou curador humano).</p>
+
+<div class="schemas">
+  <div class="schema fact">
+    <h3>source</h3>
+    <p class="role">A coisa lógica que o professor escolheu. Identidade = metadado estável.</p>
+    <div class="fld"><code>id</code><span>slug legível</span></div>
+    <div class="fld"><code>identity</code><span>jsonb: tipo + valor (youtube_id, isbn, url canônica)</span></div>
+    <div class="fld"><code>title, media_type</code><span>livres para mudar</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>source_snapshot</h3>
+    <p class="role">O material como estava num momento. Nada sobrescreve nada.</p>
+    <div class="fld"><code>source_id</code><span>FK</span></div>
+    <div class="fld"><code>captured_at, content_hash</code><span>quando e o quê</span></div>
+    <div class="fld"><code>status</code><span>ok | failed, com nota de falha (alimenta o gap de cobertura)</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>artifact</h3>
+    <p class="role">Forma processada de um snapshot, para consumo de modelo.</p>
+    <div class="fld"><code>snapshot_id</code><span>FK</span></div>
+    <div class="fld"><code>kind</code><span>markdown | transcript | ocr</span></div>
+    <div class="fld"><code>tool, tool_version</code><span>ferramenta melhor = artifact novo ao lado</span></div>
+    <div class="fld"><code>body</code><span>o texto em si</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>syllabus + syllabus_entry</h3>
+    <p class="role">O input real do professor, versionado como git.</p>
+    <div class="fld"><code>module, version</code><span>recebido = v1</span></div>
+    <div class="fld"><code>authored_by</code><span>import original ou ato de curadoria (ADR 0006)</span></div>
+    <div class="fld"><code>entry: day, topic, source_id</code><span>ordem só entre dias, nunca dentro do dia</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>model_reading</h3>
+    <p class="role">Um modelo, um prompt, um artifact: o que aquele extrator disse.</p>
+    <div class="fld"><code>artifact_id</code><span>FK</span></div>
+    <div class="fld"><code>model, prompt_id, prompt_version</code><span>o carimbo</span></div>
+    <div class="fld"><code>run_id</code><span>liga ao registro de run do harness</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>passage</h3>
+    <p class="role">A fonte cortada nas peças naturais de ensino.</p>
+    <div class="fld"><code>reading_id</code><span>FK</span></div>
+    <div class="fld"><code>span</code><span>onde no artifact (proveniência)</span></div>
+    <div class="fld"><code>function</code><span>definição | motivação | exemplo | procedimento | limitação</span></div>
+  </div>
+
+  <div class="schema fact">
+    <h3>grain</h3>
+    <p class="role">Observação local de uma skill. Nasce da leitura, é permanente.</p>
+    <div class="fld"><code>reading_id, passage_id</code><span>proveniência dupla</span></div>
+    <div class="fld"><code>statement</code><span>a frase do grain</span></div>
+    <div class="fld"><code>axes</code><span>jsonb: condição→resposta, fact | category | rule, do | explain (escritos pelo sizing gate)</span></div>
+  </div>
+
+  <div class="schema interp">
+    <h3>kc</h3>
+    <p class="role">Knowledge Component. Id cunhado no nascimento, congelado para sempre.</p>
+    <div class="fld"><code>id</code><span>slug + sufixo curto, nunca muda (ADR 0008)</span></div>
+    <div class="fld"><code>canonical_phrasing</code><span>âncora de admissão</span></div>
+    <div class="fld"><code>axes</code><span>mismatch de eixo = no-match automático</span></div>
+    <div class="fld"><code>exemplar_questions</code><span>2 a 3, substância da identidade</span></div>
+  </div>
+
+  <div class="schema interp">
+    <h3>kc_membership</h3>
+    <p class="role">Log append-only. A trilha vive aqui, não em churn de id.</p>
+    <div class="fld"><code>kc_id, grain_id</code><span>um grain, um KC</span></div>
+    <div class="fld"><code>verdict</code><span>match | no-match | contains | contained-by | uncertain</span></div>
+    <div class="fld"><code>stamped_by</code><span>modelo + prompt, ou curador</span></div>
+  </div>
+
+  <div class="schema interp">
+    <h3>containment_edge</h3>
+    <p class="role">Subproduto oportunista. Nada consome em v1.</p>
+    <div class="fld"><code>kc_a, kc_b, direction</code><span>KC contém KC, cego a concepts</span></div>
+    <div class="fld"><code>stamp</code><span>de onde veio o veredicto</span></div>
+  </div>
+
+  <div class="schema interp">
+    <h3>run + curation_act</h3>
+    <p class="role">Todo julgamento e toda ação sua no painel viram registro.</p>
+    <div class="fld"><code>run: model, prompt, cost</code><span>carimbo do harness</span></div>
+    <div class="fld"><code>curation_act: actor, action, target</code><span>aprovar gate, resolver quarentena, renomear concept</span></div>
+  </div>
+</div>
+
+<h2>Onde o ROI está e onde não está</h2>
+<div class="roi">
+  <div class="roibox hi">
+    <h3>Vale caro agora</h3>
+    <ul>
+      <li><b>Qualidade de extração (peça 4).</b> Tudo rio abaixo herda a qualidade do grain. É onde a iteração de prompt mais paga.</li>
+      <li><b>Experimento na mão antes do judge (peça 5).</b> Barato, e evita automatizar um critério errado.</li>
+      <li><b>Harness cedo (peça 3).</b> Toda peça seguinte itera através dele; construir depois seria pagar juros.</li>
+      <li><b>Telas de auditoria funcionais.</b> Seus gates são o controle de qualidade da fase inteira; a tela precisa existir, não precisa ser bonita.</li>
+      <li><b>Prova de fogo do compilador (peça 7).</b> Valida a costura com o Companion cedo o bastante para corrigir barato.</li>
+    </ul>
+  </div>
+  <div class="roibox lo">
+    <h3>Fica barato depois</h3>
+    <ul>
+      <li><b>Aquisição de fontes ao vivo.</b> Os fixtures cobrem a fase 1 inteira; scraping e transcrição entram quando houver módulo novo.</li>
+      <li><b>Botão de push na comparação de runs.</b> Diff lado a lado resolve agora; adotar mudança segue manual.</li>
+      <li><b>Deploy no Railway.</b> O app já nasce em forma de servir; subir é tarde, quando o fluxo estiver estável.</li>
+      <li><b>Consumo de containment edges.</b> Só gravamos; concept links e prerequisitos são pós-universo.</li>
+      <li><b>Estética do painel.</b> Curadoria funcional primeiro; linguagem visual quando virar superfície de verdade.</li>
+    </ul>
+  </div>
+</div>
+
+<p class="note">Sobre reuso: do Companion, nada (decisão de construir externo, ADR 0004). Do cg_pipeline, os fixtures e os grafos de referência, mais nenhuma linha sem revisão. Dos scripts da era Fragment neste workspace, só inspiração de prompt; o modelo de dados mudou por baixo deles.</p>
+
+</div>
+
+<script>
+  function go(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.open = true;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+</script>
