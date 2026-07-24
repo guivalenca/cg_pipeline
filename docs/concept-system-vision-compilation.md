@@ -125,7 +125,32 @@ avoids. Each grain points at the evidence in the source that supports it. How
 grains are sized (open, see Open Questions) and how exactly they are
 extracted, including their precise relationship to passages, is still being
 designed (open, see Open Questions). What is decided: passages may suggest
-grains but must never constrain them.
+grains but must never constrain them. Also decided: grains are extracted only
+for what a source teaches, never for what it assumes; assumed background is
+not evidence (a source that assumes dot products has taught us nothing about
+dot products).
+
+## The grain and KC objects
+
+Grains and KCs are structured objects, not phrasings; a phrase is one field
+among few. Every grain and KC carries three axes drawn from the
+tutoring-systems literature: its condition→response form (when given X, the
+student does or produces Y), its knowledge type (fact, category, or rule),
+and its modality (do versus explain). Axis mismatches are hard boundaries: a
+"do" grain never merges into an "explain" KC, and a fact never joins a rule.
+
+A grain carries: its statement, its axes, and provenance to the passages and
+Model Reading that produced it.
+
+A KC carries: its frozen id (ADR 0008), its canonical phrasing (the human
+handle and the embedding anchor), its axes, two or three exemplar checking
+questions (born with the KC, refreshed alongside the canonical; they are
+identity substance and the anchor material admission judging reads), its
+membership log, and its versioned digests.
+
+The axes will eventually supersede the Companion's older
+fact/procedure/applied/conceptual labels (through the compiler, later) and
+enable future instructional-form selection (guivalenca/companion#74).
 
 ## From grains to Knowledge Components
 
@@ -144,10 +169,12 @@ policy (ADR 0007):
    of existing KCs. This collapses the unaffordable "compare everything
    against everything" space into a short candidate list.
 2. **Judging** (careful, precision-oriented): an LLM compares the new
-   grain against each candidate KC's canonical phrasing only, never
-   against individual member grains, and issues one of three verdicts:
-   match, no-match, or uncertain. Uncertain routes to a human. We avoid binary
-   verdicts because they convert model hesitation into silent errors.
+   grain against each candidate KC's canonical phrasing and exemplar
+   questions only, never against individual member grains, and issues one of
+   five verdicts: match, no-match, contains, contained-by, or uncertain.
+   Uncertain routes to a human; an axis mismatch is an automatic no-match. We
+   avoid binary verdicts because they convert model hesitation into silent
+   errors.
 3. **Committing**: exactly one match joins the grain to that KC, after a
    whole-set gate in which a judge reads the entire resulting KC and confirms
    it is still one skill. No matches create a new KC. Multiple matches
@@ -163,6 +190,20 @@ optimization, not corruption, and recurring conflicts are a signal to improve
 the system. Every time a KC gains a grain, an LLM refreshes its canonical
 phrasing, which triggers a cheap re-embedding of its vector. A triggered local
 repair pass over messy neighborhoods is deferred (guivalenca/companion#72).
+
+Containment verdicts (one question pool sitting strictly inside the other)
+are recorded as stamped KC-to-KC edges and consumed by nothing in v1. They
+are an opportunistic byproduct, captured only when blocking happens to
+surface the pair, never a sought-after prerequisite mapper. The edges are
+concept-blind, and genuine "needed before, not part of" prerequisites remain
+future work (see Deferred).
+
+Intake runs as decomposed focused calls (ADR 0009): the Model Reading, a
+sizing gate that passes, splits, or drops each candidate grain while writing
+its axes, deterministic blocking, the membership judge, and the whole-set
+gate, each a separate call whose output is a stamped fact. This is what makes
+per-stage auditing in the dashboard and per-stage comparison in the harness
+possible; stages may be subdivided further during execution.
 
 KC identity is durable (ADR 0008): the id is minted once when the KC is born,
 as a readable slug plus a short suffix derived from the initial canonical
@@ -197,9 +238,12 @@ A concept is made of three moving pieces, each changing at its own pace:
 3. **Description**: a human-facing summary, occasionally recompiled when the
    contents materially change, and versioned.
 
-A concept owns no content of its own: its teaching material is its KCs'
-digests, its assessment plan comes from its KCs, its mastery is computed from
-its KCs' evidence. The process for aggregating KCs into Concepts is undefined
+A concept owns no content of its own and has no teaching authority: lessons
+select KCs through the chain syllabus → sources → grains → KCs, never through
+concepts. The concept is the shelf a KC is displayed on; its teaching material
+is its KCs' digests, its assessment plan comes from its KCs, its mastery is
+computed from its KCs' evidence, and a misfiled KC costs readability, not
+learning. The process for aggregating KCs into Concepts is undefined
 (open, see Open Questions).
 
 ## From Syllabus to lessons and sessions
@@ -265,6 +309,21 @@ it, handles the embedding search, keeping vectors and rows in the same
 database under the same transactions. The universe is a deployed web service
 operated through the admin dashboard (ADR 0005), not a local pipeline.
 
+## Working method
+
+The system is built through the harness: prompts are versioned, every run is
+recorded with its model and prompt stamps, and a run-comparison view (same
+fixture, two prompt versions, side by side, with a push action to adopt the
+preferred result) is how prompt changes are evaluated and adopted.
+cg_pipeline's transcribed corpora serve as fixtures.
+
+The harness's first act is the perceptron hand experiment for the KC
+membership and sizing rules: a multi-rater card sort, a blind question-swap
+test, and a structural audit over the axes, with adoption thresholds agreed
+in advance (about .7 kappa agreement on membership pairs, and question-swap
+verdicts matching the piles on about 80% of pairs). Below those thresholds
+the rule under test, not the raters, is revised before extraction scales.
+
 ## Deferred to future implementation
 
 Decided as out of scope for the initial system; the architecture keeps each
@@ -293,22 +352,22 @@ Each entry describes the problem, not just the question, so it can be picked
 up without the original conversation.
 
 1. **KC membership test.** What rule decides that two grains are "the same
-   skill" and belong in one KC? The original candidate was "do they admit the
-   same checking question?". A research memo surveying how the tutoring
-   systems literature operationalizes KC identity
-   (`docs/research/kc-granularity-membership.md`) found that candidate
-   validated as a sizing gate but weak as an identity test, and proposes
-   question-pool interchangeability (two objectives are one KC iff any fair
-   checking question for one is a fair checking question for the other) as the
-   refinement, with concrete validation protocols. Nothing is formally
-   adopted: this decision is deliberately parked for a dedicated session, and
-   the planned validation is a hand experiment on the perceptron sources in
-   our fixture.
-2. **Grain sizing rule.** What makes something one grain rather than
-   two, or too trivial to be one at all? Checkability (one focused question
-   could test it) is the candidate, and the research memo above found it well
-   supported in the literature. Formal adoption is parked together with
-   question 1.
+   skill" and belong in one KC? The decision is scheduled for the KC-stage
+   build and will be made empirically via the perceptron hand experiment (see
+   Working method), not in the abstract. The leading candidate is
+   question-pool interchangeability (two grains are one KC iff any fair
+   checking question for one is a fair checking question for the other),
+   proposed by the research memo
+   (`docs/research/kc-granularity-membership.md`), which found our original
+   "same checking question" candidate validated as a sizing gate but weak as
+   an identity test. Regardless of the outcome, KCs carry exemplar questions
+   (see the object section), so the material the decision needs accumulates
+   either way.
+2. **Grain sizing rule.** Adopted as a working rule: one focused question
+   could test it (too big splits; nothing worth asking drops). Final
+   confirmation waits until real extraction outputs are inspected in the
+   harness; the rule is one prompt edit away from revision if outputs look
+   wrong.
 3. **Grain extraction method.** How exactly are grains derived during
    a Model Reading? Passages may suggest grains but must never constrain
    them (decided); whether extraction works from passages plus a
