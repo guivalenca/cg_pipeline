@@ -90,7 +90,7 @@ def test_prompt_ref_and_sha_come_from_the_file_on_disk(prompt):
 def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
     calls: list = []
     summary = harness.execute(
-        db, STAGE, prompt, client(transport=fake_transport(calls=calls)), targets
+        db, prompt, client(transport=fake_transport(calls=calls)), targets
     )
     assert summary["ok"] == 2 and summary["failed"] == 0 and summary["status"] == "done"
 
@@ -113,7 +113,7 @@ def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
 
 def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets):
     summary = harness.execute(
-        db, STAGE, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets
+        db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets
     )
     assert summary == {"run_id": summary["run_id"], "status": "done", "ok": 1, "failed": 1}
 
@@ -125,24 +125,55 @@ def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets)
     assert failed[0]["source_id"] == "harness-src-2"
 
 
+def test_a_response_that_is_not_text_fails_its_item_only(db, prompt, targets):
+    """Content blocks instead of a string must not take the whole run down."""
+
+    def blocks(url, headers, payload, timeout):
+        if "SOURCE 2" in payload["messages"][0]["content"]:
+            return {"choices": [{"message": {"content": [{"type": "text", "text": "hi"}]}}]}
+        return fake_transport()(url, headers, payload, timeout)
+
+    summary = harness.execute(db, prompt, client(transport=blocks), targets)
+    assert summary["ok"] == 1 and summary["failed"] == 1
+
+    items = harness.fetch_items(db, summary["run_id"])
+    assert len(items) == 2
+    failed = [item for item in items if item["error"]][0]
+    assert "content is not text" in failed["error"]
+
+
+def test_an_empty_selection_selects_nothing(db, targets):
+    """Only None means "no restriction"; a falsy selection must not mean "all"."""
+    assert harness.select_targets(db, [], None) == []
+    assert harness.select_targets(db, None, 0) == []
+    assert len(harness.select_targets(db, None, 1)) == 1
+
+
+@pytest.mark.parametrize("selection", [["--sources", ""], ["--limit", "0"], ["--limit", "-1"]])
+def test_the_cli_refuses_an_empty_selection(selection):
+    argv = ["run", "--stage", STAGE, "--prompt", VERSION, "--model", "m", *selection]
+    with pytest.raises(SystemExit):
+        harness.build_parser().parse_args(argv)
+
+
 def test_a_run_where_everything_fails_is_marked_failed(db, prompt, targets):
     summary = harness.execute(
-        db, STAGE, prompt, client(transport=fake_transport(fail_on="BODY")), targets
+        db, prompt, client(transport=fake_transport(fail_on="BODY")), targets
     )
     assert summary["status"] == "failed" and summary["ok"] == 0
     assert harness.fetch_run(db, summary["run_id"])["status"] == "failed"
 
 
 def test_run_ids_are_readable_and_sortable(db, prompt, targets):
-    first = harness.execute(db, STAGE, prompt, client(transport=fake_transport()), targets[:1])
-    second = harness.execute(db, STAGE, prompt, client(transport=fake_transport()), targets[:1])
+    first = harness.execute(db, prompt, client(transport=fake_transport()), targets[:1])
+    second = harness.execute(db, prompt, client(transport=fake_transport()), targets[:1])
     assert first["run_id"].startswith("r") and len(first["run_id"]) == 5
     assert first["run_id"] < second["run_id"]
 
 
 def test_report_holds_the_stamp_and_every_response(db, prompt, targets, tmp_path):
     summary = harness.execute(
-        db, STAGE, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets
+        db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets
     )
     path = harness.write_report(db, summary["run_id"], tmp_path)
     html = path.read_text()
@@ -158,9 +189,9 @@ def test_report_holds_the_stamp_and_every_response(db, prompt, targets, tmp_path
 
 
 def test_compare_puts_shared_items_side_by_side_and_names_the_rest(db, prompt, targets, tmp_path):
-    both = harness.execute(db, STAGE, prompt, client(transport=fake_transport("left")), targets)
+    both = harness.execute(db, prompt, client(transport=fake_transport("left")), targets)
     one = harness.execute(
-        db, STAGE, prompt, client(transport=fake_transport("right")), targets[:1]
+        db, prompt, client(transport=fake_transport("right")), targets[:1]
     )
 
     path = harness.write_comparison(db, both["run_id"], one["run_id"], tmp_path)
@@ -175,7 +206,7 @@ def test_compare_puts_shared_items_side_by_side_and_names_the_rest(db, prompt, t
 
 
 def test_list_shows_each_run_with_its_item_counts(db, prompt, targets, monkeypatch, capsys):
-    harness.execute(db, STAGE, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets)
+    harness.execute(db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets)
     monkeypatch.setattr(harness, "connect", lambda *a, **k: KeepOpen(db))
     harness.main(["list"])
 
@@ -186,7 +217,7 @@ def test_list_shows_each_run_with_its_item_counts(db, prompt, targets, monkeypat
 
 
 def test_report_via_the_cli(db, prompt, targets, monkeypatch, capsys, tmp_path):
-    summary = harness.execute(db, STAGE, prompt, client(transport=fake_transport()), targets[:1])
+    summary = harness.execute(db, prompt, client(transport=fake_transport()), targets[:1])
     monkeypatch.setattr(harness, "connect", lambda *a, **k: KeepOpen(db))
     monkeypatch.setattr(harness, "REPORTS_DIR", tmp_path)
     harness.main(["report", summary["run_id"]])

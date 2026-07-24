@@ -3,8 +3,8 @@
 Configured by MODEL_API_BASE and MODEL_API_KEY; the model id is passed per
 call, because switching models is the point of the harness.
 
-The transport is a plain function (url, headers, payload) -> parsed JSON, so
-tests hand in a fake one and never touch the network.
+The transport is a plain function (url, headers, payload, timeout) -> parsed
+JSON, so tests hand in a fake one and never touch the network.
 """
 
 import json
@@ -96,4 +96,6 @@ def extract_text(body: dict) -> str:
     text = message.get("content")
     if not text:
         raise ModelError(f"empty completion (finish_reason={body['choices'][0].get('finish_reason')})")
+    if not isinstance(text, str):
+        raise ModelError(f"content is not text: {json.dumps(text)[:500]}")
     return text

@@ -69,7 +69,11 @@ def _usage_rank(pair: tuple[str, float]) -> tuple[int, str]:
 
 
 def format_usage(usage: dict) -> str:
-    return ", ".join(f"{key} {value:g}" for key, value in usage.items())
+    """Token counts exact and grouped; costs and other floats short."""
+    return ", ".join(
+        f"{key} {value:,}" if isinstance(value, int) else f"{key} {value:g}"
+        for key, value in usage.items()
+    )
 
 
 def _stamp(run: dict, items: list[dict]) -> dict[str, str]:
