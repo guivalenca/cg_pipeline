@@ -49,6 +49,27 @@ For `data/si-mod6-com` that is 69 sources, 67 ok snapshots with a sha256 of
 the Markdown body plus 67 markdown artifacts, and 2 failed snapshots carrying
 the archive's reason for the failure.
 
+## Harness
+
+Runs a versioned prompt against stored artifacts and records every call as a
+fact: `run` (stage, model, prompt ref, sha of the prompt file at run time,
+params, timings) and `run_item` (one call, its response or its error, usage,
+duration). Prompts live at `prompts/<stage>/<vNNN>.md`, with `{{body}}` where
+the artifact body goes.
+
+    python -m universe.harness run --stage passage-segmentation --prompt v001 \
+        --model <model-id> --limit 3
+    python -m universe.harness list
+    python -m universe.harness report r0001
+    python -m universe.harness compare r0001 r0002
+
+`report` and `compare` write self-contained HTML into `reports/`, which is
+git-ignored because it is regenerable from the database. The model endpoint is
+any OpenAI-chat-completions-compatible API, set by `MODEL_API_BASE` and
+`MODEL_API_KEY`; the model id is per run, because switching models is the
+point. A failed call does not end the run: the error lands on the item, and
+the run is `failed` only if every item failed.
+
 ## Test
 
 Tests need the compose database running. They drop and recreate a separate
