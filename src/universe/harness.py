@@ -233,7 +233,12 @@ def cmd_run(args: argparse.Namespace) -> None:
         targets = select_targets(conn, args.sources, args.limit)
         if not targets:
             raise SystemExit("no artifacts selected")
-        client = ModelClient(args.model, temperature=args.temperature, max_tokens=args.max_tokens)
+        client = ModelClient(
+            args.model,
+            temperature=args.temperature,
+            max_tokens=args.max_tokens,
+            extra=args.extra,
+        )
         print(f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} artifact(s) via {args.model}")
         summary = execute(conn, prompt, client, targets)
         items = fetch_items(conn, summary["run_id"])
@@ -283,6 +288,18 @@ def source_ids(value: str) -> list[str]:
     return ids
 
 
+def json_object(value: str) -> dict:
+    import json
+
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise argparse.ArgumentTypeError(f"not valid JSON: {exc}")
+    if not isinstance(parsed, dict):
+        raise argparse.ArgumentTypeError("must be a JSON object")
+    return parsed
+
+
 def positive_int(value: str) -> int:
     number = int(value)
     if number < 1:
@@ -304,6 +321,12 @@ def build_parser() -> argparse.ArgumentParser:
     selection.add_argument("--all", action="store_true")
     run.add_argument("--temperature", type=float)
     run.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
+    run.add_argument(
+        "--extra",
+        type=json_object,
+        help="extra JSON merged into the request payload and stamped in run"
+        " params, e.g. '{\"thinking\": {\"type\": \"enabled\"}}'",
+    )
     run.set_defaults(func=cmd_run)
 
     sub.add_parser("list", help="list runs").set_defaults(func=cmd_list)

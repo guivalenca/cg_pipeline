@@ -46,6 +46,7 @@ class ModelClient:
         temperature: float | None = None,
         max_tokens: int = DEFAULT_MAX_TOKENS,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        extra: dict | None = None,
         transport=http_transport,
     ) -> None:
         self.model = model
@@ -54,6 +55,7 @@ class ModelClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
+        self.extra = extra or {}
         self.transport = transport
 
     @property
@@ -62,6 +64,7 @@ class ModelClient:
         params = {"max_tokens": self.max_tokens}
         if self.temperature is not None:
             params["temperature"] = self.temperature
+        params.update(self.extra)
         return params
 
     def complete(self, prompt: str) -> tuple[str, dict, int]:
@@ -75,6 +78,7 @@ class ModelClient:
         }
         if self.temperature is not None:
             payload["temperature"] = self.temperature
+        payload.update(self.extra)
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"

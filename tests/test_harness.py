@@ -108,7 +108,7 @@ def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
 
     # The artifact body reached the model inside the template, not on its own.
     sent = calls[0]["messages"][0]["content"]
-    assert "BODY OF SOURCE" in sent and "Passage segmentation" in sent
+    assert "BODY OF SOURCE" in sent and "Split it into passages" in sent
 
 
 def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets):
@@ -230,3 +230,14 @@ def test_report_via_the_cli(db, prompt, targets, monkeypatch, capsys, tmp_path):
 def test_a_missing_prompt_version_is_a_clear_error():
     with pytest.raises(SystemExit, match="no prompt at"):
         harness.load_prompt(STAGE, "v999")
+
+
+def test_extra_payload_is_sent_and_stamped():
+    calls = []
+    extra = {"thinking": {"type": "enabled"}, "reasoning_effort": "high"}
+    c = client(transport=fake_transport(calls=calls), extra=extra)
+    c.complete("hello")
+    assert calls[0]["thinking"] == {"type": "enabled"}
+    assert calls[0]["reasoning_effort"] == "high"
+    assert c.params["thinking"] == {"type": "enabled"}
+    assert c.params["reasoning_effort"] == "high"
