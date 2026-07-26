@@ -1,0 +1,27 @@
+{
+  "name": "report_tasks",
+  "description": "Report the tasks this passage supports.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "tasks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "task": {
+              "type": "string",
+              "description": "What the learner is asked to do."
+            },
+            "answer": {
+              "type": "string",
+              "description": "A short answer in your own words, drawn from the source."
+            }
+          },
+          "required": ["task", "answer"]
+        }
+      }
+    },
+    "required": ["tasks"]
+  }
+}

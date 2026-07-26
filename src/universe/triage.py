@@ -17,6 +17,7 @@ away.
 """
 
 import argparse
+import json
 
 import psycopg
 
@@ -44,6 +45,27 @@ from universe.passages import (
 
 STAGE = "passage-triage"
 DEFAULT_WORKERS = 4
+
+
+def verdict_of(item: dict) -> str:
+    """The verdict the item reported, or the reason there is none."""
+    if item["error"]:
+        return "error"
+    try:
+        verdict = json.loads(item["response"]).get("verdict")
+    except (AttributeError, TypeError, json.JSONDecodeError):
+        return "unparseable"
+    return verdict if isinstance(verdict, str) and verdict else "unparseable"
+
+
+def judged_passages(conn: psycopg.Connection, run_ids: list[str]) -> set[str]:
+    """The passages these runs already answered for; errors do not count."""
+    rows = conn.execute(
+        "SELECT DISTINCT passage_id FROM run_item"
+        " WHERE run_id = ANY(%s) AND passage_id IS NOT NULL AND error IS NULL",
+        (run_ids,),
+    ).fetchall()
+    return {row[0] for row in rows}
 
 
 def build_targets(conn: psycopg.Connection, passages: list[dict]) -> list[Target]:
@@ -84,6 +106,13 @@ def cmd_run(args: argparse.Namespace) -> None:
         if not passages:
             raise SystemExit(f"no passages from {', '.join(args.cuts_runs)}")
         ranges = count_ranges(conn, args.cuts_runs)
+        if args.skip_runs:
+            already = judged_passages(conn, args.skip_runs)
+            skipped = sum(1 for p in passages if p["id"] in already)
+            passages = [p for p in passages if p["id"] not in already]
+            print(f"{skipped} passage(s) already judged in {', '.join(args.skip_runs)}, skipped")
+            if not passages:
+                raise SystemExit("every passage is already judged; nothing to run")
 
         targets = build_targets(conn, passages)
         client = ModelClient(
@@ -127,6 +156,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--tool",
         required=True,
         help="path to a tool definition JSON; every call is forced through it",
+    )
+    run.add_argument(
+        "--skip-runs",
+        type=id_list,
+        help="triage run ids whose already-judged passages get no new call",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)

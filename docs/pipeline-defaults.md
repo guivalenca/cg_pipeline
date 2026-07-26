@@ -12,7 +12,11 @@ result changes our mind, and old runs remain in the ledger either way.
 
 Task generation takes provenance at the passage level only (the run_item
 already records it); block-level citation stays in reserve if results ask
-for it.
+for it. A task carries two fields, task and answer, both in English whatever
+the source language: the answer is the model's own words drawn from the
+source, kept for the grouping embedding and as the answerability check, not
+for the tutor. Only passages every gating triage run judged not_filler get
+calls (universe.taskgen).
 
 Retired along the way: passage-cuts/v003 (destabilizes flash badly, no
 gain over v002 on pro), deepseek-v4-pro without thinking for judgment

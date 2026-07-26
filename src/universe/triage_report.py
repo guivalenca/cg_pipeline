@@ -13,7 +13,6 @@ the run rows are what keep.
 """
 
 import argparse
-import json
 from pathlib import Path
 
 import psycopg
@@ -22,20 +21,10 @@ from universe.db import connect
 from universe.harness import fetch_items, fetch_run
 from universe.passage_report import thinking_label
 from universe.passages import fetch_passages, passage_text
+from universe.triage import verdict_of
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 LABEL_WORDS = 8
-
-
-def verdict_of(item: dict) -> str:
-    """The verdict the item reported, or the reason there is none."""
-    if item["error"]:
-        return "error"
-    try:
-        verdict = json.loads(item["response"]).get("verdict")
-    except (AttributeError, TypeError, json.JSONDecodeError):
-        return "unparseable"
-    return verdict if isinstance(verdict, str) and verdict else "unparseable"
 
 
 def cell(text: str) -> str:
