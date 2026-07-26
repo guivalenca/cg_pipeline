@@ -90,13 +90,26 @@ class ModelClient:
 
 
 def extract_text(body: dict) -> str:
-    """Pull the completion out, or say plainly what came back instead."""
+    """Pull the completion out, or say plainly what came back instead.
+
+    A response that carries tool calls yields the call's raw arguments string:
+    with a forced tool that IS the completion. The prompt asks for one call,
+    so more than one is an error, not something to silently pick from.
+    """
     if "error" in body:
         raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
     try:
         message = body["choices"][0]["message"]
     except (KeyError, IndexError, TypeError) as exc:
         raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
+    calls = message.get("tool_calls")
+    if calls:
+        if len(calls) != 1:
+            raise ModelError(f"expected one tool call, got {len(calls)}")
+        arguments = (calls[0].get("function") or {}).get("arguments")
+        if not arguments or not isinstance(arguments, str):
+            raise ModelError(f"tool call without arguments: {json.dumps(calls[0])[:500]}")
+        return arguments
     text = message.get("content")
     if not text:
         raise ModelError(f"empty completion (finish_reason={body['choices'][0].get('finish_reason')})")

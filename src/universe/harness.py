@@ -9,10 +9,16 @@
 Prompts live at prompts/<stage>/<vNNN>.md; `{{body}}` is where the artifact
 body goes. Every run records the prompt's hash, so an edit without a version
 bump is visible afterwards instead of silently rewriting history.
+
+`--body-from blocks` feeds the artifact as its numbered blocks, each wrapped
+in <block n="N">, so the model can cite positions instead of characters.
+`--tool prompts/<stage>/tool-vNNN.json` forces every completion through one
+declared tool; the whole tool definition is stamped into the run's params.
 """
 
 import argparse
 import hashlib
+import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -22,6 +28,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from universe import report
+from universe.blocks import BLOCKER_VERSION, fetch_blocks
 from universe.db import connect
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 
@@ -89,6 +96,35 @@ def select_targets(
         params,
     ).fetchall()
     return [Target(*row) for row in rows]
+
+
+def blocks_body(conn: psycopg.Connection, artifact_id: str, version: str = BLOCKER_VERSION) -> str:
+    """The artifact as its numbered blocks, the shape the cut prompts read."""
+    rows = fetch_blocks(conn, artifact_id, version)
+    if not rows:
+        raise SystemExit(
+            f"{artifact_id} has no blocks at version {version}; run universe.blocks first"
+        )
+    return "\n\n".join(f'<block n="{row["seq"]}">\n{row["body"]}\n</block>' for row in rows)
+
+
+def with_blocks_bodies(conn: psycopg.Connection, targets: list[Target]) -> list[Target]:
+    return [
+        Target(t.source_id, t.source_title, t.artifact_id, blocks_body(conn, t.artifact_id))
+        for t in targets
+    ]
+
+
+def load_tool(path: str) -> dict:
+    """A tool definition file, as the payload fields that force its use."""
+    tool = json.loads(Path(path).read_text())
+    missing = [key for key in ("name", "description", "parameters") if key not in tool]
+    if missing:
+        raise SystemExit(f"{path} lacks {', '.join(missing)}")
+    return {
+        "tools": [{"type": "function", "function": tool}],
+        "tool_choice": {"type": "function", "function": {"name": tool["name"]}},
+    }
 
 
 def next_run_id(conn: psycopg.Connection) -> str:
@@ -229,15 +265,19 @@ def write_comparison(
 
 def cmd_run(args: argparse.Namespace) -> None:
     prompt = load_prompt(args.stage, args.prompt)
+    extra = dict(load_tool(args.tool)) if args.tool else {}
+    extra.update(args.extra or {})
     with connect() as conn:
         targets = select_targets(conn, args.sources, args.limit)
         if not targets:
             raise SystemExit("no artifacts selected")
+        if args.body_from == "blocks":
+            targets = with_blocks_bodies(conn, targets)
         client = ModelClient(
             args.model,
             temperature=args.temperature,
             max_tokens=args.max_tokens,
-            extra=args.extra,
+            extra=extra or None,
         )
         print(f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} artifact(s) via {args.model}")
         summary = execute(conn, prompt, client, targets)
@@ -321,6 +361,16 @@ def build_parser() -> argparse.ArgumentParser:
     selection.add_argument("--all", action="store_true")
     run.add_argument("--temperature", type=float)
     run.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
+    run.add_argument(
+        "--body-from",
+        choices=("artifact", "blocks"),
+        default="artifact",
+        help="what fills {{body}}: the raw artifact, or its numbered blocks",
+    )
+    run.add_argument(
+        "--tool",
+        help="path to a tool definition JSON; every completion is forced through it",
+    )
     run.add_argument(
         "--extra",
         type=json_object,
