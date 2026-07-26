@@ -46,6 +46,12 @@ def test_plain_text_responses_still_come_through():
     assert extract_text({"choices": [{"message": {"content": "hi"}}]}) == "hi"
 
 
+def test_prose_when_a_tool_was_declared_is_an_error():
+    body = {"choices": [{"message": {"content": "The cuts are 4 and 9."}}]}
+    with pytest.raises(ModelError, match="prose instead of the declared tool call"):
+        extract_text(body, require_tool=True)
+
+
 def test_the_versioned_tool_file_loads_as_a_forcing_payload():
     payload = load_tool(str(PROMPTS_DIR / "passage-cuts" / "tool-v001.json"))
     assert payload["tools"][0]["type"] == "function"

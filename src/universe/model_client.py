@@ -86,15 +86,19 @@ class ModelClient:
         started = time.monotonic()
         body = self.transport(f"{self.api_base}/chat/completions", headers, payload, self.timeout)
         duration_ms = int((time.monotonic() - started) * 1000)
-        return extract_text(body), body.get("usage") or {}, duration_ms
+        text = extract_text(body, require_tool="tools" in payload)
+        return text, body.get("usage") or {}, duration_ms
 
 
-def extract_text(body: dict) -> str:
+def extract_text(body: dict, require_tool: bool = False) -> str:
     """Pull the completion out, or say plainly what came back instead.
 
     A response that carries tool calls yields the call's raw arguments string:
-    with a forced tool that IS the completion. The prompt asks for one call,
-    so more than one is an error, not something to silently pick from.
+    with a declared tool that IS the completion. The prompt asks for one call,
+    so more than one is an error, not something to silently pick from. When a
+    tool was declared (`require_tool`), prose instead of a call is an error
+    too: it happens when the API forbids forcing (thinking mode), and the
+    answer must be a recorded failure to rerun, never accepted as if parsed.
     """
     if "error" in body:
         raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
@@ -110,6 +114,8 @@ def extract_text(body: dict) -> str:
         if not arguments or not isinstance(arguments, str):
             raise ModelError(f"tool call without arguments: {json.dumps(calls[0])[:500]}")
         return arguments
+    if require_tool:
+        raise ModelError("prose instead of the declared tool call")
     text = message.get("content")
     if not text:
         raise ModelError(f"empty completion (finish_reason={body['choices'][0].get('finish_reason')})")
