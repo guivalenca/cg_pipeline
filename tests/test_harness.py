@@ -7,7 +7,7 @@ import pytest
 from universe import harness
 from universe.model_client import ModelClient, ModelError
 
-STAGE = "passage-segmentation"
+STAGE = "passage-cuts"
 VERSION = "v001"
 
 
@@ -108,7 +108,7 @@ def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
 
     # The artifact body reached the model inside the template, not on its own.
     sent = calls[0]["messages"][0]["content"]
-    assert "BODY OF SOURCE" in sent and "Split it into passages" in sent
+    assert "BODY OF SOURCE" in sent and "Use the report_cuts tool" in sent
 
 
 def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets):
