@@ -141,20 +141,29 @@ def execute(
     targets: list[Target],
 ) -> dict:
     """Call the model once per target, writing each outcome as it lands."""
-    run_id = next_run_id(conn)
-    conn.execute(
-        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
-        " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
-        (
-            run_id,
-            prompt.ref.split("/", 1)[0],
-            client.model,
-            prompt.ref,
-            prompt.sha,
-            Jsonb(client.params),
-        ),
-    )
-    conn.commit()
+    # Concurrent harnesses race for the next id; the loser of an id simply
+    # takes the next one. Bounded so a broken insert cannot spin forever.
+    for _ in range(20):
+        run_id = next_run_id(conn)
+        try:
+            conn.execute(
+                "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
+                " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
+                (
+                    run_id,
+                    prompt.ref.split("/", 1)[0],
+                    client.model,
+                    prompt.ref,
+                    prompt.sha,
+                    Jsonb(client.params),
+                ),
+            )
+            conn.commit()
+            break
+        except psycopg.errors.UniqueViolation:
+            conn.rollback()
+    else:
+        raise SystemExit("could not claim a run id in 20 attempts")
 
     def call(indexed: tuple[int, Target]) -> tuple[int, Target, tuple | None, str | None]:
         index, target = indexed

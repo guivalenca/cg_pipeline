@@ -70,15 +70,20 @@ def thinking_label(params: dict) -> str:
 
 def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
     lines = [f"# Passage cuts: {', '.join(run_ids)}", ""]
-    overview = ["| run | model | thinking | cuts | passages | problems |", "| - | - | - | - | - | - |"]
+    overview = [
+        "| run | model | prompt | thinking | cuts | passages | problems |",
+        "| - | - | - | - | - | - | - |",
+    ]
     sections = []
 
     for run_id in run_ids:
         run = fetch_run(conn, run_id)
+        version = run["prompt_ref"].rsplit("/", 1)[-1]
         for item in fetch_items(conn, run_id):
-            title = f"{run_id} {run['model']} ({thinking_label(run['params'])})"
+            title = f"{run_id} {run['model']} {version} ({thinking_label(run['params'])})"
+            meta = f"| {run_id} | {run['model']} | {version} | {thinking_label(run['params'])}"
             if item["error"]:
-                overview.append(f"| {run_id} | {run['model']} | {thinking_label(run['params'])} | - | - | call failed |")
+                overview.append(f"{meta} | - | - | call failed |")
                 sections += [f"## {title}", "", f"Call failed: `{item['error']}`", ""]
                 continue
 
@@ -88,7 +93,7 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
             try:
                 cuts = parse_cuts(item["response"])
             except (ValueError, json.JSONDecodeError) as exc:
-                overview.append(f"| {run_id} | {run['model']} | {thinking_label(run['params'])} | - | - | unparseable |")
+                overview.append(f"{meta} | - | - | unparseable |")
                 sections += [f"## {title}", "", f"Unparseable response: `{exc}`", "", f"```\n{item['response']}\n```", ""]
                 continue
 
@@ -96,8 +101,7 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
             usable = repair_cuts(cuts, seqs)
             ranges = passage_ranges(usable, seqs)
             overview.append(
-                f"| {run_id} | {run['model']} | {thinking_label(run['params'])}"
-                f" | {len(cuts)} | {len(ranges)} | {'; '.join(problems) or 'none'} |"
+                f"{meta} | {len(cuts)} | {len(ranges)} | {'; '.join(problems) or 'none'} |"
             )
 
             sections += [f"## {title}", ""]
