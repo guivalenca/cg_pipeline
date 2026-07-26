@@ -1,12 +1,17 @@
 """Read task-generation runs back side by side, a passage at a time.
 
     python -m universe.taskgen_report r0046 r0047 r0048
+    python -m universe.taskgen_report r0046 r0047 --passages-from r0017
 
 The overview table counts tasks per passage per run, so volume differences
 between models are visible before reading anything. The body then walks the
 passages in reading order: the passage text first, then every run's tasks
 under it, so judging whether the tasks fit the passage never needs a scroll
 to somewhere else.
+
+`--passages-from` narrows the report to the passages certain cuts runs drew,
+which is how one generation run over a union of divisions is read back as
+one report per division, without the divisions ever costing separate calls.
 """
 
 import argparse
@@ -15,9 +20,9 @@ from pathlib import Path
 import psycopg
 
 from universe.db import connect
-from universe.harness import fetch_items, fetch_run
+from universe.harness import fetch_items, fetch_run, id_list
 from universe.passage_report import thinking_label
-from universe.passages import fetch_passages, passage_text
+from universe.passages import fetch_passages, fetch_passages_for_runs, passage_text
 from universe.taskgen import tasks_of
 from universe.triage_report import cell, short_label
 
@@ -50,14 +55,26 @@ def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], d
     return runs, results
 
 
-def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
+def render_runs(
+    conn: psycopg.Connection, run_ids: list[str], passages_from: list[str] | None = None
+) -> str:
     runs, results = collect(conn, run_ids)
     passage_ids = sorted({passage_id for _, passage_id in results})
+    if passages_from:
+        drawn = {p["id"] for p in fetch_passages_for_runs(conn, passages_from)}
+        passage_ids = [passage_id for passage_id in passage_ids if passage_id in drawn]
+        if not passage_ids:
+            raise SystemExit(
+                f"no passage of {', '.join(run_ids)} was drawn by {', '.join(passages_from)}"
+            )
     passages = fetch_passages(conn, passage_ids)
     texts = {passage["id"]: passage_text(conn, passage) for passage in passages}
 
     header = "| passage | " + " | ".join(run["id"] for run in runs) + " |"
-    lines = [f"# Task generation: {', '.join(run_ids)}", ""]
+    title = f"# Task generation: {', '.join(run_ids)}"
+    if passages_from:
+        title += f" (passages of {', '.join(passages_from)})"
+    lines = [title, ""]
     lines += [f"- {run['id']}: {run['label']}" for run in runs]
     lines += ["", f"{len(passages)} passage(s), {len(runs)} run(s). Cells count tasks.", ""]
     lines += [header, "| - " * (len(runs) + 1) + "|"]
@@ -107,20 +124,31 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
 
 
 def write_report(
-    conn: psycopg.Connection, run_ids: list[str], reports_dir: Path | None = None
+    conn: psycopg.Connection,
+    run_ids: list[str],
+    reports_dir: Path | None = None,
+    passages_from: list[str] | None = None,
 ) -> Path:
-    path = (reports_dir or REPORTS_DIR) / f"task-generation-{'-'.join(run_ids)}.md"
+    name = f"task-generation-{'-'.join(run_ids)}"
+    if passages_from:
+        name += f"-of-{'-'.join(passages_from)}"
+    path = (reports_dir or REPORTS_DIR) / f"{name}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_runs(conn, run_ids))
+    path.write_text(render_runs(conn, run_ids, passages_from))
     return path
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="universe.taskgen_report", description=__doc__)
     parser.add_argument("run_ids", nargs="+")
+    parser.add_argument(
+        "--passages-from",
+        type=id_list,
+        help="comma-separated cuts run ids; only their passages enter the report",
+    )
     args = parser.parse_args(argv)
     with connect() as conn:
-        print(write_report(conn, args.run_ids))
+        print(write_report(conn, args.run_ids, passages_from=args.passages_from))
 
 
 if __name__ == "__main__":
