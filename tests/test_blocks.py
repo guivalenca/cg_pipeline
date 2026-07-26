@@ -23,7 +23,7 @@ across two lines.
 
 [Image: A captioned figure](https://example.invalid/b.png)
 
-Image summary: this describes a figure and is ordinary prose, not an image.
+Image summary: our ingestion's description of a figure, not the author's prose.
 
 - first item
 - second item
@@ -66,7 +66,7 @@ def test_every_kind_appears_in_the_order_it_is_written():
         "heading",
         "image",
         "image",
-        "paragraph",
+        "image_summary",
         "list_item",
         "list_item",
         "list_item",
@@ -136,7 +136,15 @@ def test_image_only_paragraphs_are_images_and_prose_about_images_is_not():
         "![alt text](https://example.invalid/a.png)",
         "[Image: A captioned figure](https://example.invalid/b.png)",
     ]
-    assert any(text.startswith("Image summary:") for text in texts(SYNTHETIC, "paragraph"))
+
+
+def test_an_ingestion_image_summary_is_its_own_kind_not_a_paragraph():
+    summaries = texts(SYNTHETIC, "image_summary")
+    assert len(summaries) == 1 and summaries[0].startswith("Image summary:")
+    assert not any(t.startswith("Image summary:") for t in texts(SYNTHETIC, "paragraph"))
+    # Prose that merely mentions the prefix mid-sentence stays a paragraph.
+    body = "The words Image summary: appear here mid-thought.\n"
+    assert kinds(body) == ["paragraph"]
 
 
 def test_a_paragraph_stops_at_the_next_block_start():
@@ -179,7 +187,13 @@ def test_the_real_source_0023_splits_cleanly(fixture_dir):
     result = split_blocks(body)  # the invariants are asserted inside
 
     assert len(result) > 30
-    assert {block.kind for block in result} >= {"heading", "paragraph", "code_block", "image"}
+    assert {block.kind for block in result} >= {
+        "heading",
+        "paragraph",
+        "code_block",
+        "image",
+        "image_summary",
+    }
     assert all(body[b.start_char : b.end_char] == b.text for b in result)
 
     # The front matter is our metadata, so no block may carry any of it.

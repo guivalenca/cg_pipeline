@@ -20,6 +20,9 @@ The precedence of the line rules, highest first:
     list_item     one marker line plus its indented continuation lines; each
                   item is its own block, never the list as a whole
     image         a paragraph that is nothing but one image reference
+    image_summary a paragraph opening with 'Image summary:', the description
+                  our own ingestion wrote for an image; the one content that
+                  is ours, not the author's, and provenance must see that
     paragraph     any remaining run of non-blank lines
 
 Blank lines between blocks belong to no block. Every non-whitespace character
@@ -37,7 +40,7 @@ import psycopg
 
 from universe.db import connect
 
-BLOCKER_VERSION = "1"
+BLOCKER_VERSION = "2"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 KINDS = (
@@ -46,6 +49,7 @@ KINDS = (
     "code_block",
     "list_item",
     "image",
+    "image_summary",
     "table",
     "blockquote",
 )
@@ -60,6 +64,8 @@ LIST_ITEM = re.compile(r"^(\s*)([-*+]|\d+[.)])\s")
 # A whole paragraph that is one image reference: markdown's own form, and the
 # '[Image: caption](url)' form the archive's extractor emits.
 IMAGE_ONLY = re.compile(r"(?:!\[[^\]\n]*\]|\[Image:[^\]\n]*\])\([^)\n]*\)")
+# The fixed prefix the ingestion pipeline puts on its own image descriptions.
+IMAGE_SUMMARY_PREFIX = "Image summary:"
 
 
 @dataclass(frozen=True)
@@ -202,6 +208,8 @@ def split_blocks(body: str) -> list[Block]:
         text = body[start_char:end_char]
         if kind == "paragraph" and IMAGE_ONLY.fullmatch(text.strip()):
             kind = "image"
+        elif kind == "paragraph" and text.lstrip().startswith(IMAGE_SUMMARY_PREFIX):
+            kind = "image_summary"
         blocks.append(Block(kind, start_char, end_char, text))
         index = stop
 
