@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from universe import passage_report
+from universe import cuts
 from universe.harness import load_tool
 from universe.model_client import ModelError, extract_text
 
@@ -67,30 +67,30 @@ def test_the_prompt_file_has_the_placeholder_inside_source_tags():
 
 
 def test_cuts_parse_and_reject_non_integers():
-    assert passage_report.parse_cuts('{"cuts": [3, 7]}') == [3, 7]
+    assert cuts.parse_cuts('{"cuts": [3, 7]}') == [3, 7]
     with pytest.raises(ValueError):
-        passage_report.parse_cuts('{"cuts": ["3"]}')
+        cuts.parse_cuts('{"cuts": ["3"]}')
     with pytest.raises(json.JSONDecodeError):
-        passage_report.parse_cuts("not json")
+        cuts.parse_cuts("not json")
 
 
 def test_every_contract_deviation_is_named():
     seqs = list(range(1, 11))
-    assert passage_report.check_cuts([4, 9], seqs) == []
-    assert passage_report.check_cuts([9, 4], seqs) == ["not ascending"]
-    assert passage_report.check_cuts([4, 4], seqs) == ["duplicates"]
-    assert passage_report.check_cuts([1, 4], seqs) == ["includes the first block (1)"]
-    assert passage_report.check_cuts([4, 40], seqs) == ["outside the block range: [40]"]
+    assert cuts.check_cuts([4, 9], seqs) == []
+    assert cuts.check_cuts([9, 4], seqs) == ["not ascending"]
+    assert cuts.check_cuts([4, 4], seqs) == ["duplicates"]
+    assert cuts.check_cuts([1, 4], seqs) == ["includes the first block (1)"]
+    assert cuts.check_cuts([4, 40], seqs) == ["outside the block range: [40]"]
 
 
 def test_repair_keeps_the_nearest_valid_reading():
     seqs = list(range(1, 11))
-    assert passage_report.repair_cuts([9, 4, 4, 1, 40], seqs) == [4, 9]
-    assert passage_report.repair_cuts([2], []) == []
+    assert cuts.repair_cuts([9, 4, 4, 1, 40], seqs) == [4, 9]
+    assert cuts.repair_cuts([2], []) == []
 
 
 def test_cuts_become_covering_ranges():
     seqs = list(range(1, 11))
-    assert passage_report.passage_ranges([4, 9], seqs) == [(1, 3), (4, 8), (9, 10)]
-    assert passage_report.passage_ranges([], seqs) == [(1, 10)]
-    assert passage_report.passage_ranges([], []) == []
+    assert cuts.passage_ranges([4, 9], seqs) == [(1, 3), (4, 8), (9, 10)]
+    assert cuts.passage_ranges([], seqs) == [(1, 10)]
+    assert cuts.passage_ranges([], []) == []

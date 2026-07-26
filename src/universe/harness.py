@@ -14,11 +14,17 @@ bump is visible afterwards instead of silently rewriting history.
 in <block n="N">, so the model can cite positions instead of characters.
 `--tool prompts/<stage>/tool-vNNN.json` forces every completion through one
 declared tool; the whole tool definition is stamped into the run's params.
+`--workers` bounds how many calls are in flight at once.
+
+A target is usually a whole artifact, but it may carry a passage of one plus
+extra template fields, which is how the per-passage stages (universe.triage)
+reuse `execute` instead of growing their own runner.
 """
 
 import argparse
 import hashlib
 import json
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -36,6 +42,7 @@ PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 MAX_WORKERS = 4
 PLACEHOLDER = "{{body}}"
+FIELD = re.compile(r"\{\{(\w+)\}\}")
 
 
 @dataclass(frozen=True)
@@ -44,18 +51,42 @@ class Prompt:
     sha: str
     template: str
 
+    def render_fields(self, fields: dict[str, str]) -> str:
+        """Fill every `{{key}}` the template declares, or refuse to render.
+
+        One pass over the template, so a field whose value happens to contain
+        `{{something}}` is content and never a placeholder. A placeholder with
+        no field is an immediate error: a prompt silently missing the passage
+        it was supposed to be about would still get a plausible answer back.
+        """
+        missing: list[str] = []
+
+        def fill(match: re.Match) -> str:
+            key = match.group(1)
+            if key not in fields:
+                missing.append(key)
+                return match.group(0)
+            return fields[key]
+
+        rendered = FIELD.sub(fill, self.template)
+        if missing:
+            raise SystemExit(f"{self.ref}: no value for {', '.join(sorted(set(missing)))}")
+        return rendered
+
     def render(self, body: str) -> str:
-        return self.template.replace(PLACEHOLDER, body)
+        return self.render_fields({"body": body})
 
 
 @dataclass(frozen=True)
 class Target:
-    """One artifact the run will be pointed at."""
+    """One call the run will make: an artifact, and optionally one passage of it."""
 
     source_id: str
     source_title: str | None
     artifact_id: str
     body: str
+    passage_id: str | None = None
+    extra_fields: dict | None = None
 
 
 def load_prompt(stage: str, version: str) -> Prompt:
@@ -96,6 +127,22 @@ def select_targets(
         params,
     ).fetchall()
     return [Target(*row) for row in rows]
+
+
+def fetch_sources(conn: psycopg.Connection, artifact_ids: list[str]) -> dict[str, tuple]:
+    """The (source_id, title) each artifact belongs to, for labelling targets.
+
+    Targets assembled from something other than a source list still have to
+    say which source they came from; this is that lookup, done once.
+    """
+    rows = conn.execute(
+        "SELECT a.id, s.id, s.title FROM artifact a"
+        " JOIN source_snapshot sn ON sn.id = a.snapshot_id"
+        " JOIN source s ON s.id = sn.source_id"
+        " WHERE a.id = ANY(%s)",
+        (artifact_ids,),
+    ).fetchall()
+    return {row[0]: (row[1], row[2]) for row in rows}
 
 
 def blocks_body(conn: psycopg.Connection, artifact_id: str, version: str = BLOCKER_VERSION) -> str:
@@ -139,8 +186,16 @@ def execute(
     prompt: Prompt,
     client: ModelClient,
     targets: list[Target],
+    workers: int = MAX_WORKERS,
 ) -> dict:
     """Call the model once per target, writing each outcome as it lands."""
+    # Rendered before anything is written: an unfilled placeholder must stop
+    # the run, not leave a stamped run of plausible answers to a broken prompt.
+    prompts = [
+        prompt.render_fields({"body": target.body, **(target.extra_fields or {})})
+        for target in targets
+    ]
+
     # Concurrent harnesses race for the next id; the loser of an id simply
     # takes the next one. Bounded so a broken insert cannot spin forever.
     for _ in range(20):
@@ -165,25 +220,27 @@ def execute(
     else:
         raise SystemExit("could not claim a run id in 20 attempts")
 
-    def call(indexed: tuple[int, Target]) -> tuple[int, Target, tuple | None, str | None]:
-        index, target = indexed
+    def call(work: tuple[int, Target, str]) -> tuple[int, Target, tuple | None, str | None]:
+        index, target, rendered = work
         try:
-            return index, target, client.complete(prompt.render(target.body)), None
+            return index, target, client.complete(rendered), None
         except Exception as exc:  # one bad call must not end the run
             return index, target, None, f"{type(exc).__name__}: {exc}"
 
+    work = [(index, target, text) for index, (target, text) in enumerate(zip(targets, prompts), 1)]
     ok = failed = 0
-    with ThreadPoolExecutor(max_workers=max(1, min(MAX_WORKERS, len(targets) or 1))) as pool:
-        for index, target, result, error in pool.map(call, enumerate(targets, start=1)):
+    with ThreadPoolExecutor(max_workers=max(1, min(workers, len(targets) or 1))) as pool:
+        for index, target, result, error in pool.map(call, work):
             text, usage, duration_ms = result if result else (None, None, None)
             conn.execute(
                 "INSERT INTO run_item"
-                " (id, run_id, artifact_id, response, usage, duration_ms, error)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                " (id, run_id, artifact_id, passage_id, response, usage, duration_ms, error)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     f"{run_id}-{index:04d}",
                     run_id,
                     target.artifact_id,
+                    target.passage_id,
                     text,
                     Jsonb(usage) if usage is not None else None,
                     duration_ms,
@@ -193,7 +250,7 @@ def execute(
             conn.commit()
             if error:
                 failed += 1
-                print(f"  {target.source_id}: {error}", file=sys.stderr)
+                print(f"  {target.passage_id or target.source_id}: {error}", file=sys.stderr)
             else:
                 ok += 1
 
@@ -222,7 +279,8 @@ def fetch_run(conn: psycopg.Connection, run_id: str) -> dict:
 
 def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
-        "SELECT i.id, i.artifact_id, s.id, s.title, i.response, i.usage, i.duration_ms, i.error"
+        "SELECT i.id, i.artifact_id, i.passage_id, s.id, s.title,"
+        " i.response, i.usage, i.duration_ms, i.error"
         " FROM run_item i"
         " JOIN artifact a ON a.id = i.artifact_id"
         " JOIN source_snapshot sn ON sn.id = a.snapshot_id"
@@ -230,7 +288,9 @@ def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
         " WHERE i.run_id = %s ORDER BY i.id",
         (run_id,),
     ).fetchall()
-    keys = "id artifact_id source_id source_title response usage duration_ms error".split()
+    keys = (
+        "id artifact_id passage_id source_id source_title response usage duration_ms error".split()
+    )
     return [dict(zip(keys, row)) for row in rows]
 
 
@@ -289,7 +349,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             extra=extra or None,
         )
         print(f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} artifact(s) via {args.model}")
-        summary = execute(conn, prompt, client, targets)
+        summary = execute(conn, prompt, client, targets, workers=args.workers)
         items = fetch_items(conn, summary["run_id"])
 
     usage = report.aggregate_usage(items)
@@ -330,10 +390,10 @@ def cmd_compare(args: argparse.Namespace) -> None:
         print(write_comparison(conn, args.run_a, args.run_b))
 
 
-def source_ids(value: str) -> list[str]:
+def id_list(value: str) -> list[str]:
     ids = [part.strip() for part in value.split(",") if part.strip()]
     if not ids:
-        raise argparse.ArgumentTypeError("no source ids given")
+        raise argparse.ArgumentTypeError("no ids given")
     return ids
 
 
@@ -365,11 +425,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--prompt", required=True, help="prompt version, e.g. v001")
     run.add_argument("--model", required=True)
     selection = run.add_mutually_exclusive_group(required=True)
-    selection.add_argument("--sources", type=source_ids, help="comma-separated source ids")
+    selection.add_argument("--sources", type=id_list, help="comma-separated source ids")
     selection.add_argument("--limit", type=positive_int, help="first N sources by id")
     selection.add_argument("--all", action="store_true")
     run.add_argument("--temperature", type=float)
     run.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
+    run.add_argument("--workers", type=positive_int, default=MAX_WORKERS, help="calls in flight")
     run.add_argument(
         "--body-from",
         choices=("artifact", "blocks"),
