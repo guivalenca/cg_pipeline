@@ -90,13 +90,13 @@ class Target:
     extra_fields: dict | None = None
 
 
-def load_prompt(stage: str, version: str) -> Prompt:
+def load_prompt(stage: str, version: str, require_body: bool = True) -> Prompt:
     path = PROMPTS_DIR / stage / (version if version.endswith(".md") else f"{version}.md")
     if not path.exists():
         raise SystemExit(f"no prompt at {path}")
     raw = path.read_bytes()
     template = raw.decode("utf-8")
-    if PLACEHOLDER not in template:
+    if require_body and PLACEHOLDER not in template:
         raise SystemExit(f"{path} has no {PLACEHOLDER} placeholder")
     return Prompt(
         ref=f"{stage}/{path.stem}",

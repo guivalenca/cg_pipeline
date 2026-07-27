@@ -72,6 +72,21 @@ def fetch_tasks_for_runs(conn: psycopg.Connection, gen_run_ids: list[str]) -> li
     return [dict(zip(keys, row)) for row in rows]
 
 
+def fetch_tasks(conn: psycopg.Connection, task_ids: list[str]) -> list[dict]:
+    """The named task rows, in id order."""
+    rows = conn.execute(
+        "SELECT t.id, t.run_item_id, t.passage_id, t.seq, t.body, t.answer,"
+        " p.artifact_id"
+        " FROM task t"
+        " JOIN passage p ON p.id = t.passage_id"
+        " WHERE t.id = ANY(%s)"
+        " ORDER BY t.id",
+        (task_ids,),
+    ).fetchall()
+    keys = "id run_item_id passage_id seq body answer artifact_id".split()
+    return [dict(zip(keys, row)) for row in rows]
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="universe.tasks", description=__doc__)
     parser.add_argument("run_ids", nargs="+", help="task-generation run ids")
