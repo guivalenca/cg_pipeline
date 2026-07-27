@@ -182,6 +182,32 @@ def next_run_id(conn: psycopg.Connection) -> str:
     return f"r{number:04d}"
 
 
+def claim_run(
+    conn: psycopg.Connection,
+    stage: str,
+    model: str,
+    prompt_ref: str,
+    prompt_sha: str,
+    params: dict,
+) -> str:
+    """Stamp a running run under the next id, retrying concurrent claims."""
+    # Concurrent harnesses race for the next id; the loser of an id simply
+    # takes the next one. Bounded so a broken insert cannot spin forever.
+    for _ in range(20):
+        run_id = next_run_id(conn)
+        try:
+            conn.execute(
+                "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
+                " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
+                (run_id, stage, model, prompt_ref, prompt_sha, Jsonb(params)),
+            )
+            conn.commit()
+            return run_id
+        except psycopg.errors.UniqueViolation:
+            conn.rollback()
+    raise SystemExit("could not claim a run id in 20 attempts")
+
+
 def execute(
     conn: psycopg.Connection,
     prompt: Prompt,
@@ -197,29 +223,14 @@ def execute(
         for target in targets
     ]
 
-    # Concurrent harnesses race for the next id; the loser of an id simply
-    # takes the next one. Bounded so a broken insert cannot spin forever.
-    for _ in range(20):
-        run_id = next_run_id(conn)
-        try:
-            conn.execute(
-                "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
-                " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
-                (
-                    run_id,
-                    prompt.ref.split("/", 1)[0],
-                    client.model,
-                    prompt.ref,
-                    prompt.sha,
-                    Jsonb(client.params),
-                ),
-            )
-            conn.commit()
-            break
-        except psycopg.errors.UniqueViolation:
-            conn.rollback()
-    else:
-        raise SystemExit("could not claim a run id in 20 attempts")
+    run_id = claim_run(
+        conn,
+        prompt.ref.split("/", 1)[0],
+        client.model,
+        prompt.ref,
+        prompt.sha,
+        client.params,
+    )
 
     def call(work: tuple[int, Target, str]) -> tuple[int, Target, tuple | None, str | None]:
         index, target, rendered = work
