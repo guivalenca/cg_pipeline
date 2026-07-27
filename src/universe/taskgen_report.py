@@ -84,12 +84,14 @@ def render_runs(
             cell(count_label(results.get((run["id"], passage["id"]), "-"))) for run in runs
         ]
         lines.append("| " + " | ".join(row) + " |")
+    # Totals honour the same cut as the rows: only the passages on display.
+    shown = set(passage_ids)
     totals = [
         str(
             sum(
                 len(tasks)
-                for (run_id, _), tasks in results.items()
-                if run_id == run["id"] and isinstance(tasks, list)
+                for (run_id, passage_id), tasks in results.items()
+                if run_id == run["id"] and passage_id in shown and isinstance(tasks, list)
             )
         )
         for run in runs
