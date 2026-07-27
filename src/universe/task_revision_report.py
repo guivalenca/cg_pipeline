@@ -9,22 +9,31 @@ verdict and rewrite under it, so judging a rewrite never needs a scroll.
 """
 
 import argparse
+import sys
 from pathlib import Path
 
 import psycopg
 
 from universe.db import connect
-from universe.harness import fetch_items, fetch_run
+from universe.harness import fetch_items, fetch_run, id_list
 from universe.passage_report import thinking_label
 from universe.passages import fetch_passages
+from universe.task_granularity import materialize_parts
 from universe.task_revision import STAGE, VERDICTS, revision_of
 from universe.tasks import fetch_tasks
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 
-def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], dict]:
+def collect(
+    conn: psycopg.Connection,
+    run_ids: list[str],
+    granularity_runs: list[str] | None = None,
+) -> tuple[list[dict], dict]:
     """Each run with its label, and every (run, task) revision."""
+    for granularity_run in granularity_runs or []:
+        materialize_parts(conn, granularity_run)
+
     runs, results = [], {}
     for run_id in run_ids:
         run = fetch_run(conn, run_id)
@@ -48,8 +57,12 @@ def verdict_label(revision: dict | str) -> str:
     return revision["verdict"] if isinstance(revision, dict) else revision
 
 
-def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
-    runs, results = collect(conn, run_ids)
+def render_runs(
+    conn: psycopg.Connection,
+    run_ids: list[str],
+    granularity_runs: list[str] | None = None,
+) -> str:
+    runs, results = collect(conn, run_ids, granularity_runs)
     task_ids = sorted({task_id for _, task_id in results})
     tasks = fetch_tasks(conn, task_ids)
     passages = {p["id"]: p for p in fetch_passages(conn, sorted({t["passage_id"] for t in tasks}))}
@@ -96,20 +109,37 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
 
 
 def write_report(
-    conn: psycopg.Connection, run_ids: list[str], reports_dir: Path | None = None
+    conn: psycopg.Connection,
+    run_ids: list[str],
+    reports_dir: Path | None = None,
+    granularity_runs: list[str] | None = None,
 ) -> Path:
     path = (reports_dir or REPORTS_DIR) / f"task-revision-{'-'.join(run_ids)}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_runs(conn, run_ids))
+    path.write_text(render_runs(conn, run_ids, granularity_runs))
     return path
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="universe.task_revision_report", description=__doc__)
     parser.add_argument("run_ids", nargs="+")
+    parser.add_argument(
+        "--granularity-runs",
+        type=id_list,
+        help="task-granularity run ids whose materialized parts were revised",
+    )
+    parser.add_argument("--output-dir", type=Path, help="directory for the report")
     args = parser.parse_args(argv)
     with connect() as conn:
-        print(write_report(conn, args.run_ids))
+        print(
+            write_report(
+                conn,
+                args.run_ids,
+                reports_dir=args.output_dir,
+                granularity_runs=args.granularity_runs,
+            ),
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":

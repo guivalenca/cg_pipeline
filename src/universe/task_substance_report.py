@@ -10,6 +10,7 @@ listed compactly at the end.
 """
 
 import argparse
+import sys
 from pathlib import Path
 
 import psycopg
@@ -17,6 +18,7 @@ import psycopg
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run, id_list
 from universe.passages import fetch_passages_for_runs
+from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_substance import STAGE, VERDICTS, substance_of
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
@@ -34,6 +36,8 @@ def render_runs(
     gen_runs: list[str],
     revision_run: str | None = None,
     passages_from: list[str] | None = None,
+    granularity_run: str | None = None,
+    parts_revision_run: str | None = None,
 ) -> str:
     """Render side-by-side report comparing verdicts across runs."""
     # Materialize and fetch the task set to be judged
@@ -56,6 +60,44 @@ def render_runs(
                 f"{len(unjudged)} task(s) have no usable revision in"
                 f" {revision_run}: {names}; silence is not a verdict"
             )
+
+    if parts_revision_run and not granularity_run:
+        raise SystemExit("--parts-revision-run requires --granularity-run")
+
+    if granularity_run:
+        granularity = {}
+        for item in fetch_items(conn, granularity_run):
+            if not item["task_id"]:
+                raise SystemExit(f"{item['id']} is not about a task")
+            granularity[item["task_id"]] = granularity_of(item)
+        unjudged = [
+            task
+            for task in tasks
+            if not isinstance(granularity.get(task["id"]), dict)
+        ]
+        if unjudged:
+            names = ", ".join(task["id"] for task in unjudged)
+            raise SystemExit(
+                f"{len(unjudged)} task(s) have no usable granularity in"
+                f" {granularity_run}: {names}; silence is not a verdict"
+            )
+        tasks = [
+            task
+            for task in tasks
+            if granularity[task["id"]]["verdict"] != "composite"
+        ]
+        materialize_parts(conn, granularity_run)
+        part_tasks = fetch_tasks_for_runs(conn, [granularity_run])
+        if parts_revision_run:
+            revisions = fetch_revisions(conn, parts_revision_run)
+            part_tasks, dropped, unjudged = apply_revisions(part_tasks, revisions)
+            if unjudged:
+                names = ", ".join(task["id"] for task in unjudged)
+                raise SystemExit(
+                    f"{len(unjudged)} task(s) have no usable revision in"
+                    f" {parts_revision_run}: {names}; silence is not a verdict"
+                )
+        tasks.extend(part_tasks)
 
     # Build set of task_ids we're judging
     judged_task_ids = {t["id"] for t in tasks}
@@ -182,12 +224,22 @@ def write_report(
     gen_runs: list[str],
     revision_run: str | None = None,
     passages_from: list[str] | None = None,
+    granularity_run: str | None = None,
+    parts_revision_run: str | None = None,
     reports_dir: Path | None = None,
 ) -> Path:
     path = (reports_dir or REPORTS_DIR) / f"task-substance-{'-'.join(run_ids)}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        render_runs(conn, run_ids, gen_runs, revision_run=revision_run, passages_from=passages_from)
+        render_runs(
+            conn,
+            run_ids,
+            gen_runs,
+            revision_run=revision_run,
+            passages_from=passages_from,
+            granularity_run=granularity_run,
+            parts_revision_run=parts_revision_run,
+        )
     )
     return path
 
@@ -198,11 +250,30 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--gen-runs", type=id_list, required=True, help="task-generation run ids")
     parser.add_argument("--revision-run", help="task-revision run id for overlay")
     parser.add_argument(
+        "--granularity-run",
+        help="task-granularity run id; replace composite tasks with its parts",
+    )
+    parser.add_argument(
+        "--parts-revision-run",
+        help="task-revision run id; overlay rewrites and drop unfixable parts",
+    )
+    parser.add_argument(
         "--passages-from", type=id_list, help="comma-separated cuts run ids to filter by"
     )
     args = parser.parse_args(argv)
     with connect() as conn:
-        print(write_report(conn, args.run_ids, args.gen_runs, args.revision_run, args.passages_from))
+        print(
+            write_report(
+                conn,
+                args.run_ids,
+                args.gen_runs,
+                revision_run=args.revision_run,
+                passages_from=args.passages_from,
+                granularity_run=args.granularity_run,
+                parts_revision_run=args.parts_revision_run,
+            ),
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":

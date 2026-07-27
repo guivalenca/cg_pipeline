@@ -23,6 +23,7 @@ from universe.harness import (
     Target,
     execute,
     fetch_items,
+    fetch_run,
     fetch_sources,
     id_list,
     json_object,
@@ -33,7 +34,7 @@ from universe.harness import (
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passages import fetch_passages_for_runs
 from universe.task_triage import apply_revisions, fetch_revisions
-from universe.tasks import fetch_tasks_for_runs, materialize
+from universe.tasks import fetch_tasks, fetch_tasks_for_runs, materialize, task_id
 
 STAGE = "task-granularity"
 VERDICTS = ("single", "composite", "unsure")
@@ -70,6 +71,45 @@ def granularity_of(item: dict) -> dict | str:
         "verdict": "composite",
         "parts": [{"task": part["task"], "answer": part["answer"]} for part in parts],
     }
+
+
+def materialize_parts(conn: psycopg.Connection, run_id: str) -> dict:
+    """Write the task rows implied by a task-granularity run's splits."""
+    run = fetch_run(conn, run_id)
+    if run["stage"] != STAGE:
+        raise SystemExit(f"{run_id} is a {run['stage']} run, not {STAGE}")
+
+    counts = {"tasks_new": 0, "tasks_existing": 0}
+    for item in fetch_items(conn, run_id):
+        if item["error"]:
+            raise SystemExit(f"{item['id']} failed and has no parts: {item['error']}")
+        granularity = granularity_of(item)
+        if not isinstance(granularity, dict):
+            raise SystemExit(
+                f"{item['id']} did not report usable granularity: {granularity}"
+            )
+        if granularity["verdict"] != "composite":
+            continue
+
+        parents = fetch_tasks(conn, [item["task_id"]])
+        if len(parents) != 1:
+            raise SystemExit(f"{item['id']} names unknown parent task {item['task_id']}")
+        for seq, part in enumerate(granularity["parts"], 1):
+            written = conn.execute(
+                "INSERT INTO task (id, run_item_id, passage_id, seq, body, answer)"
+                " VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                (
+                    task_id(item["id"], seq),
+                    item["id"],
+                    parents[0]["passage_id"],
+                    seq,
+                    part["task"],
+                    part["answer"],
+                ),
+            ).rowcount
+            counts["tasks_new" if written else "tasks_existing"] += 1
+    conn.commit()
+    return counts
 
 
 def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:

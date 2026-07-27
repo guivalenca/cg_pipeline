@@ -32,6 +32,7 @@ from universe.harness import (
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passages import fetch_passages_for_runs
+from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
 
@@ -73,6 +74,9 @@ def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
 
 
 def cmd_run(args: argparse.Namespace) -> None:
+    if args.parts_revision_run and not args.granularity_run:
+        raise SystemExit("--parts-revision-run requires --granularity-run")
+
     prompt = load_prompt(STAGE, args.prompt, require_body=False)
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
@@ -112,6 +116,62 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{args.revision_run}: {len(dropped)} task(s) dropped as unfixable,"
                 f" {rewritten} task {bodies} swapped by rewrites"
             )
+        if args.granularity_run:
+            granularity = {}
+            for item in fetch_items(conn, args.granularity_run):
+                if not item["task_id"]:
+                    raise SystemExit(f"{item['id']} is not about a task")
+                granularity[item["task_id"]] = granularity_of(item)
+            unjudged = [
+                task
+                for task in tasks
+                if not isinstance(granularity.get(task["id"]), dict)
+            ]
+            if unjudged:
+                names = ", ".join(task["id"] for task in unjudged)
+                raise SystemExit(
+                    f"{len(unjudged)} task(s) have no usable granularity in"
+                    f" {args.granularity_run}: {names}; silence is not a verdict"
+                )
+
+            composite_count = sum(
+                granularity[task["id"]]["verdict"] == "composite" for task in tasks
+            )
+            tasks = [
+                task
+                for task in tasks
+                if granularity[task["id"]]["verdict"] != "composite"
+            ]
+            materialize_parts(conn, args.granularity_run)
+            part_tasks = fetch_tasks_for_runs(conn, [args.granularity_run])
+            parts_count = len(part_tasks)
+            tasks.extend(part_tasks)
+            print(
+                f"{args.granularity_run}: {composite_count} composite task(s)"
+                f" replaced by {parts_count} part(s)"
+            )
+
+            if args.parts_revision_run:
+                revisions = fetch_revisions(conn, args.parts_revision_run)
+                revised_parts, dropped, unjudged = apply_revisions(part_tasks, revisions)
+                if unjudged:
+                    names = ", ".join(task["id"] for task in unjudged)
+                    raise SystemExit(
+                        f"{len(unjudged)} task(s) have no usable revision in"
+                        f" {args.parts_revision_run}: {names}; silence is not a verdict"
+                    )
+                rewritten = sum(
+                    1
+                    for task in revised_parts
+                    if isinstance(revisions[task["id"]], dict)
+                    and revisions[task["id"]]["verdict"] == "rewritten"
+                )
+                tasks = tasks[: len(tasks) - parts_count] + revised_parts
+                bodies = "body was" if rewritten == 1 else "bodies were"
+                print(
+                    f"{args.parts_revision_run}: {len(dropped)} task(s) dropped as"
+                    f" unfixable, {rewritten} task {bodies} swapped by rewrites"
+                )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
@@ -172,6 +232,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--revision-run",
         help="task-revision run id; overlay its rewrites and drop unfixables",
+    )
+    run.add_argument(
+        "--granularity-run",
+        help="task-granularity run id; replace composite tasks with its parts",
+    )
+    run.add_argument(
+        "--parts-revision-run",
+        help="task-revision run id; overlay rewrites and drop unfixable parts",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)

@@ -74,17 +74,34 @@ def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
 
 
 def cmd_run(args: argparse.Namespace) -> None:
+    gen_runs = args.gen_runs or []
+    granularity_runs = args.granularity_runs or []
+    if not gen_runs and not granularity_runs:
+        raise SystemExit("at least one of --gen-runs or --granularity-runs is required")
+
     prompt = load_prompt(STAGE, args.prompt, require_body=False)
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
     with connect() as conn:
-        for run_id in args.gen_runs:
+        for run_id in gen_runs:
             counts = materialize(conn, run_id)
             print(
                 f"{run_id}: {counts['tasks_new']} new task(s),"
                 f" {counts['tasks_existing']} already known"
             )
-        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
+        if granularity_runs:
+            # Local import avoids the task_revision -> task_granularity ->
+            # task_triage -> task_revision import cycle.
+            from universe.task_granularity import materialize_parts
+
+            for run_id in granularity_runs:
+                counts = materialize_parts(conn, run_id)
+                print(
+                    f"{run_id}: {counts['tasks_new']} new task(s),"
+                    f" {counts['tasks_existing']} already known"
+                )
+        combined_run_ids = gen_runs + granularity_runs
+        tasks = fetch_tasks_for_runs(conn, combined_run_ids)
         if args.passages_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
@@ -94,7 +111,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {', '.join(args.passages_from)}, skipped"
             )
         if not tasks:
-            raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
+            raise SystemExit(f"no tasks from {', '.join(combined_run_ids)}")
 
         targets = build_targets(conn, tasks)
         client = ModelClient(
@@ -138,7 +155,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--prompt", required=True, help="prompt version, e.g. v001")
     run.add_argument("--model", required=True)
     run.add_argument(
-        "--gen-runs", required=True, type=id_list, help="comma-separated task-generation run ids"
+        "--gen-runs", type=id_list, help="comma-separated task-generation run ids"
+    )
+    run.add_argument(
+        "--granularity-runs",
+        type=id_list,
+        help="comma-separated task-granularity run ids whose parts get revised",
     )
     run.add_argument(
         "--tool",
