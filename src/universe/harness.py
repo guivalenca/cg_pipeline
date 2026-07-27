@@ -79,13 +79,14 @@ class Prompt:
 
 @dataclass(frozen=True)
 class Target:
-    """One call the run will make: an artifact, and optionally one passage of it."""
+    """One call the run will make: an artifact, or one passage or task of it."""
 
     source_id: str
     source_title: str | None
     artifact_id: str
     body: str
     passage_id: str | None = None
+    task_id: str | None = None
     extra_fields: dict | None = None
 
 
@@ -234,13 +235,15 @@ def execute(
             text, usage, duration_ms = result if result else (None, None, None)
             conn.execute(
                 "INSERT INTO run_item"
-                " (id, run_id, artifact_id, passage_id, response, usage, duration_ms, error)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                " (id, run_id, artifact_id, passage_id, task_id,"
+                "  response, usage, duration_ms, error)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     f"{run_id}-{index:04d}",
                     run_id,
                     target.artifact_id,
                     target.passage_id,
+                    target.task_id,
                     text,
                     Jsonb(usage) if usage is not None else None,
                     duration_ms,
@@ -279,7 +282,7 @@ def fetch_run(conn: psycopg.Connection, run_id: str) -> dict:
 
 def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
-        "SELECT i.id, i.artifact_id, i.passage_id, s.id, s.title,"
+        "SELECT i.id, i.artifact_id, i.passage_id, i.task_id, s.id, s.title,"
         " i.response, i.usage, i.duration_ms, i.error"
         " FROM run_item i"
         " JOIN artifact a ON a.id = i.artifact_id"
@@ -289,8 +292,9 @@ def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
         (run_id,),
     ).fetchall()
     keys = (
-        "id artifact_id passage_id source_id source_title response usage duration_ms error".split()
-    )
+        "id artifact_id passage_id task_id source_id source_title"
+        " response usage duration_ms error"
+    ).split()
     return [dict(zip(keys, row)) for row in rows]
 
 
