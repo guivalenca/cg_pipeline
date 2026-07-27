@@ -13,6 +13,12 @@ same prefix discipline.
 A task judged unsupported is not corrected, it is discarded downstream, the
 same way triage discards filler passages: volume is free and rows are
 insert-only, so the cure for a bad task is its absence.
+
+`--revision-run` overlays a task-revision run before judging: a rewritten
+task is judged with its rewritten text, an unfixable one is dropped, and a
+task the revision run never saw stops the run, because silence is not a
+verdict. The revision rewrote without ever seeing the source; this pass has
+the source, so an invented referent that contradicts it is caught here.
 """
 
 import argparse
@@ -25,6 +31,7 @@ from universe.harness import (
     Target,
     execute,
     fetch_items,
+    fetch_run,
     fetch_sources,
     id_list,
     json_object,
@@ -34,10 +41,43 @@ from universe.harness import (
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passages import fetch_passages_for_runs, source_text
+from universe.task_revision import STAGE as REVISION_STAGE
+from universe.task_revision import revision_of
 from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-triage"
 DEFAULT_WORKERS = 4
+
+
+def fetch_revisions(conn: psycopg.Connection, revision_run_id: str) -> dict[str, dict | str]:
+    """Every revision the run reported, keyed by the task it was about."""
+    run = fetch_run(conn, revision_run_id)
+    if run["stage"] != REVISION_STAGE:
+        raise SystemExit(f"{revision_run_id} is a {run['stage']} run, not {REVISION_STAGE}")
+    revisions: dict[str, dict | str] = {}
+    for item in fetch_items(conn, revision_run_id):
+        if not item["task_id"]:
+            raise SystemExit(f"{item['id']} is not about a task")
+        revisions[item["task_id"]] = revision_of(item)
+    return revisions
+
+
+def apply_revisions(
+    tasks: list[dict], revisions: dict[str, dict | str]
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """The tasks as the revision run left them: revised, dropped, or unjudged."""
+    kept, dropped, unjudged = [], [], []
+    for task in tasks:
+        revision = revisions.get(task["id"])
+        if not isinstance(revision, dict):
+            unjudged.append(task)
+        elif revision["verdict"] == "unfixable":
+            dropped.append(task)
+        elif revision["verdict"] == "rewritten":
+            kept.append({**task, "body": revision["task"]})
+        else:
+            kept.append(task)
+    return kept, dropped, unjudged
 
 
 def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
@@ -82,6 +122,23 @@ def cmd_run(args: argparse.Namespace) -> None:
             print(
                 f"{outside} task(s) outside the passages of"
                 f" {', '.join(args.passages_from)}, skipped"
+            )
+        if args.revision_run:
+            revisions = fetch_revisions(conn, args.revision_run)
+            tasks, dropped, unjudged = apply_revisions(tasks, revisions)
+            if unjudged:
+                names = ", ".join(t["id"] for t in unjudged)
+                raise SystemExit(
+                    f"{len(unjudged)} task(s) have no usable revision in"
+                    f" {args.revision_run}: {names}; revise them first"
+                )
+            rewritten = sum(
+                1 for t in tasks if isinstance(revisions[t["id"]], dict)
+                and revisions[t["id"]]["verdict"] == "rewritten"
+            )
+            print(
+                f"{args.revision_run}: {rewritten} task(s) judged as rewritten,"
+                f" {len(dropped)} dropped as unfixable"
             )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
@@ -129,6 +186,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--passages-from",
         type=id_list,
         help="comma-separated cuts run ids; only tasks of their passages get calls",
+    )
+    run.add_argument(
+        "--revision-run",
+        help="task-revision run id; tasks are judged as it left them,"
+        " rewrites applied and unfixables dropped",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)

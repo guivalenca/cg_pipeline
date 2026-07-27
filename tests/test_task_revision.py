@@ -43,6 +43,37 @@ def test_revision_of_names_what_it_cannot_use(item):
     assert revision_of(item) in ("error", "unparseable")
 
 
+# --- overlaying revisions onto the tasks triage judges ----------------------
+
+
+def task_row(name: str) -> dict:
+    return {"id": name, "body": f"original {name}", "answer": "A."}
+
+
+def test_apply_revisions_swaps_rewrites_drops_unfixables_keeps_stands():
+    from universe.task_triage import apply_revisions
+
+    tasks = [task_row("t1"), task_row("t2"), task_row("t3")]
+    revisions = {
+        "t1": {"verdict": "stands", "task": None},
+        "t2": {"verdict": "rewritten", "task": "better t2"},
+        "t3": {"verdict": "unfixable", "task": None},
+    }
+    kept, dropped, unjudged = apply_revisions(tasks, revisions)
+    assert [t["body"] for t in kept] == ["original t1", "better t2"]
+    assert [t["id"] for t in dropped] == ["t3"]
+    assert unjudged == []
+
+
+def test_a_task_the_revision_run_never_saw_is_unjudged():
+    from universe.task_triage import apply_revisions
+
+    silent, broken = task_row("t1"), task_row("t2")
+    kept, dropped, unjudged = apply_revisions([silent, broken], {"t2": "unparseable"})
+    assert kept == [] and dropped == []
+    assert unjudged == [silent, broken]
+
+
 # --- the stage's files ------------------------------------------------------
 
 
