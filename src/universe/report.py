@@ -53,12 +53,25 @@ USAGE_ORDER = ["prompt_tokens", "completion_tokens", "total_tokens", "cost", "to
 
 
 def aggregate_usage(items: list[dict]) -> dict:
-    """Sum whatever numeric fields the API reported, across items."""
+    """Sum whatever numeric fields the API reported, across items.
+
+    One level of nesting is flattened by inner key, because OpenRouter
+    reports cache and reasoning counts inside prompt_tokens_details and
+    completion_tokens_details instead of at the top level.
+    """
     totals: dict[str, float] = {}
+
+    def add(key: str, value) -> None:
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            totals[key] = totals.get(key, 0) + value
+
     for item in items:
         for key, value in (item.get("usage") or {}).items():
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                totals[key] = totals.get(key, 0) + value
+            if isinstance(value, dict):
+                for inner_key, inner_value in value.items():
+                    add(inner_key, inner_value)
+            else:
+                add(key, value)
     return {key: round(value, 6) if isinstance(value, float) else value
             for key, value in sorted(totals.items(), key=_usage_rank)}
 

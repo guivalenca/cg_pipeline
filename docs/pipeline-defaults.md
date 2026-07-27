@@ -43,3 +43,9 @@ gain over v002 on pro), deepseek-v4-pro without thinking for judgment
 stages (erratic in cuts r0014 and the only dissenter in triage r0044).
 v002 was briefly retired by mistake and restored; the reference runs for
 the next stage are r0017 and r0031.
+
+Provider note (2026-07-26): runs up to r0067 went to the native DeepSeek
+API; the pipeline now runs on OpenRouter. The model presets above map to
+`deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`, thinking
+toggled per request. Payload shapes, usage field changes and caching
+caveats are in docs/lab/experiments.md.

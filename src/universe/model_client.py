@@ -1,7 +1,6 @@
-"""A minimal OpenAI-chat-completions client, stdlib only.
-
-Configured by MODEL_API_BASE and MODEL_API_KEY; the model id is passed per
-call, because switching models is the point of the harness.
+"""A minimal OpenAI-chat-completions client, stdlib only, configured by
+MODEL_API_BASE and MODEL_API_KEY, defaulting to OpenRouter with
+OPEN_ROUTER_API_KEY.
 
 The transport is a plain function (url, headers, payload, timeout) -> parsed
 JSON, so tests hand in a fake one and never touch the network.
@@ -15,6 +14,7 @@ import urllib.request
 
 DEFAULT_TIMEOUT_SECONDS = float(os.environ.get("CONCEPT_UNIVERSE_MODEL_TIMEOUT_SECONDS", 300))
 DEFAULT_MAX_TOKENS = int(os.environ.get("CONCEPT_UNIVERSE_MODEL_MAX_TOKENS", 8000))
+DEFAULT_API_BASE = "https://openrouter.ai/api/v1"
 
 
 class ModelError(RuntimeError):
@@ -50,8 +50,19 @@ class ModelClient:
         transport=http_transport,
     ) -> None:
         self.model = model
-        self.api_base = (api_base or os.environ.get("MODEL_API_BASE", "")).rstrip("/")
-        self.api_key = api_key or os.environ.get("MODEL_API_KEY", "")
+        resolved_api_base = (
+            api_base
+            if api_base is not None
+            else os.environ.get("MODEL_API_BASE") or DEFAULT_API_BASE
+        )
+        self.api_base = resolved_api_base.rstrip("/")
+        self.api_key = (
+            api_key
+            if api_key is not None
+            else os.environ.get("MODEL_API_KEY")
+            or os.environ.get("OPEN_ROUTER_API_KEY")
+            or ""
+        )
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
@@ -88,6 +99,76 @@ class ModelClient:
         duration_ms = int((time.monotonic() - started) * 1000)
         text = extract_text(body, require_tool="tools" in payload)
         return text, body.get("usage") or {}, duration_ms
+
+
+class EmbeddingClient:
+    """Embed texts to vectors via the model endpoint."""
+
+    def __init__(
+        self,
+        model: str,
+        *,
+        api_base: str | None = None,
+        api_key: str | None = None,
+        timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        transport=http_transport,
+    ) -> None:
+        self.model = model
+        resolved_api_base = (
+            api_base
+            if api_base is not None
+            else os.environ.get("MODEL_API_BASE") or DEFAULT_API_BASE
+        )
+        self.api_base = resolved_api_base.rstrip("/")
+        self.api_key = (
+            api_key
+            if api_key is not None
+            else os.environ.get("MODEL_API_KEY")
+            or os.environ.get("OPEN_ROUTER_API_KEY")
+            or ""
+        )
+        self.timeout = timeout
+        self.transport = transport
+
+    def embed(self, texts: list[str]) -> tuple[list[list[float]], dict, int]:
+        """Send texts for embedding and return vectors, usage, and duration."""
+        if not self.api_base:
+            raise ModelError("api_base is not set")
+        payload = {
+            "model": self.model,
+            "input": texts,
+        }
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        started = time.monotonic()
+        body = self.transport(f"{self.api_base}/embeddings", headers, payload, self.timeout)
+        duration_ms = int((time.monotonic() - started) * 1000)
+
+        if "error" in body:
+            raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
+
+        try:
+            data = body["data"]
+            if not isinstance(data, list):
+                raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
+            if len(data) != len(texts):
+                raise ModelError(f"expected {len(texts)} embeddings, got {len(data)}")
+
+            sorted_data = sorted(data, key=lambda item: item.get("index", 0))
+
+            vectors = []
+            for item in sorted_data:
+                if "embedding" not in item or not isinstance(item["embedding"], list):
+                    raise ModelError(f"item without embedding: {json.dumps(item)[:500]}")
+                if not item["embedding"]:
+                    raise ModelError(f"empty embedding vector: {json.dumps(item)[:500]}")
+                vectors.append(item["embedding"])
+
+            return vectors, body.get("usage") or {}, duration_ms
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
 
 
 def extract_text(body: dict, require_tool: bool = False) -> str:

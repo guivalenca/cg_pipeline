@@ -4,11 +4,28 @@ A content ledger: permanent fact records for the material a course is taught
 from, kept apart from every interpretation built on top of them
 (`docs/concept-system-vision-compilation.md`, `docs/adr/`).
 
-What exists today is the first three links of the ingestion chain, in
-Postgres: **source** (the thing a teacher chose), **source_snapshot** (its
-material at a moment in time, including failed acquisitions), and **artifact**
-(a processed form of a snapshot, typically extracted Markdown). Rows are
-inserted, never updated or deleted.
+The ingestion chain in Postgres: **source** (the thing a teacher chose),
+**source_snapshot** (its material at a moment in time, including failed
+acquisitions), and **artifact** (a processed form of a snapshot, typically
+extracted Markdown). Rows are inserted, never updated or deleted.
+
+On top of it, the extraction pipeline as built so far, one module per
+stage under `src/universe/`:
+
+    blocks → passages (cuts) → passage-triage → task-generation
+        → task-revision → task-triage → [next: grouping into grains]
+
+Orientation for a new session:
+
+- **Why the pipeline has this shape**: `docs/adr/`, one decision per file;
+  ADR 0010 (amended) is the pipeline itself.
+- **Which model and prompt each stage uses, and the current reference
+  chain of runs**: `docs/pipeline-defaults.md`.
+- **What the experiments taught us** (prompt lessons, model temperaments,
+  why stages exist): `docs/lab/experiments.md`.
+
+Every model call is stamped in the run ledger (`run`, `run_item`); prompts
+are versioned files under `prompts/<stage>/`, hashed into each run.
 
 ## Setup
 
@@ -57,17 +74,20 @@ params, timings) and `run_item` (one call, its response or its error, usage,
 duration). Prompts live at `prompts/<stage>/<vNNN>.md`, with `{{body}}` where
 the artifact body goes.
 
-    python -m universe.harness run --stage passage-segmentation --prompt v001 \
-        --model <model-id> --limit 3
     python -m universe.harness list
     python -m universe.harness report r0001
     python -m universe.harness compare r0001 r0002
 
+Each pipeline stage has its own runner on the same machinery, e.g.
+`python -m universe.taskgen run ...`, `python -m universe.task_revision
+run ...`; run them with `--help` for the exact flags, and see
+`docs/pipeline-defaults.md` for the presets that are known to work.
+
 `report` and `compare` write self-contained HTML into `reports/`, which is
 git-ignored because it is regenerable from the database. The model endpoint is
 any OpenAI-chat-completions-compatible API, set by `MODEL_API_BASE` and
-`MODEL_API_KEY`; the model id is per run, because switching models is the
-point. A failed call does not end the run: the error lands on the item, and
+`MODEL_API_KEY`, defaulting to OpenRouter with `OPEN_ROUTER_API_KEY` from
+`.env`; the model id is per run, because switching models is the point. A failed call does not end the run: the error lands on the item, and
 the run is `failed` only if every item failed.
 
 ## Test

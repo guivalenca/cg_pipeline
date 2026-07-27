@@ -5,7 +5,7 @@ import hashlib
 import pytest
 
 from universe import harness
-from universe.model_client import ModelClient, ModelError
+from universe.model_client import DEFAULT_API_BASE, EmbeddingClient, ModelClient, ModelError
 
 STAGE = "passage-cuts"
 VERSION = "v001"
@@ -241,3 +241,94 @@ def test_extra_payload_is_sent_and_stamped():
     assert calls[0]["reasoning_effort"] == "high"
     assert c.params["thinking"] == {"type": "enabled"}
     assert c.params["reasoning_effort"] == "high"
+
+
+def test_model_client_api_base_fallback_order(monkeypatch):
+    monkeypatch.delenv("MODEL_API_BASE", raising=False)
+    assert ModelClient("fake/model").api_base == DEFAULT_API_BASE
+
+    monkeypatch.setenv("MODEL_API_BASE", "https://env.example/v1")
+    assert ModelClient("fake/model").api_base == "https://env.example/v1"
+    assert (
+        ModelClient("fake/model", api_base="https://explicit.example/v1").api_base
+        == "https://explicit.example/v1"
+    )
+    empty_client = ModelClient("fake/model", api_base="")
+    assert empty_client.api_base == ""
+    with pytest.raises(ModelError, match="MODEL_API_BASE is not set"):
+        empty_client.complete("hello")
+
+
+def test_model_client_api_key_fallback_order(monkeypatch):
+    monkeypatch.delenv("MODEL_API_KEY", raising=False)
+    monkeypatch.delenv("OPEN_ROUTER_API_KEY", raising=False)
+    assert ModelClient("fake/model").api_key == ""
+
+    monkeypatch.setenv("MODEL_API_KEY", "model-key")
+    assert ModelClient("fake/model").api_key == "model-key"
+
+    monkeypatch.delenv("MODEL_API_KEY")
+    monkeypatch.setenv("OPEN_ROUTER_API_KEY", "open-router-key")
+    assert ModelClient("fake/model").api_key == "open-router-key"
+
+    monkeypatch.setenv("MODEL_API_KEY", "model-key")
+    assert ModelClient("fake/model", api_key="explicit-key").api_key == "explicit-key"
+
+
+def test_embedding_client_embed_returns_ordered_vectors_and_usage():
+    calls = []
+
+    def transport(url, headers, payload, timeout):
+        calls.append((url, headers, payload, timeout))
+        return {
+            "data": [
+                {"index": 1, "embedding": [3.0, 4.0]},
+                {"index": 0, "embedding": [1.0, 2.0]},
+            ],
+            "usage": {"prompt_tokens": 2, "total_tokens": 2},
+        }
+
+    client = EmbeddingClient(
+        "fake/embedding-model",
+        api_base="https://example.invalid/v1",
+        transport=transport,
+    )
+    vectors, usage, duration_ms = client.embed(["hello", "world"])
+
+    url, _, payload, _ = calls[0]
+    assert url.endswith("/embeddings")
+    assert payload == {
+        "model": "fake/embedding-model",
+        "input": ["hello", "world"],
+    }
+    assert vectors == [[1.0, 2.0], [3.0, 4.0]]
+    assert usage == {"prompt_tokens": 2, "total_tokens": 2}
+    assert duration_ms >= 0
+
+
+@pytest.mark.parametrize(
+    ("body", "message"),
+    [
+        ({"error": {"message": "upstream failed"}}, "api error"),
+        ({"data": [{"index": 0, "embedding": [1.0]}]}, "expected 2 embeddings, got 1"),
+        (
+            {"data": [{"index": 0}, {"index": 1, "embedding": [2.0]}]},
+            "item without embedding",
+        ),
+        (
+            {"data": [{"index": 0, "embedding": []}, {"index": 1, "embedding": [2.0]}]},
+            "empty embedding vector",
+        ),
+    ],
+)
+def test_embedding_client_rejects_error_responses(body, message):
+    def transport(url, headers, payload, timeout):
+        return body
+
+    client = EmbeddingClient(
+        "fake/embedding-model",
+        api_base="https://example.invalid/v1",
+        transport=transport,
+    )
+    with pytest.raises(ModelError, match=message):
+        client.embed(["hello", "world"])

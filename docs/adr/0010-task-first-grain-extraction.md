@@ -1,7 +1,7 @@
 # 0010: Task-first grain extraction over deterministic blocks
 
 Date: 2026-07-26
-Status: accepted
+Status: accepted, amended 2026-07-26 (see Amendments)
 
 ## Context
 
@@ -74,3 +74,42 @@ F1, which measured cut positions before any definition existed.
   design is task generation.
 - The fact ledger of ingestion (source, snapshot, artifact, blocks) contains
   no model output. Everything a model writes is stamped and re-runnable.
+
+## Amendments (2026-07-26, after building stages 1 to 3)
+
+Building and measuring the pipeline changed four things about the stage
+list above. The as-built flow is:
+
+blocks → passages → **passage-triage** → task generation →
+**task-revision** → **task-triage** → grouping → naming
+
+1. **Passage-triage gates generation.** A stamped judgment run marks each
+   passage filler or not_filler; only passages every gating run judged
+   not_filler get generation calls. Silence is not a verdict: an unjudged
+   passage stops the run instead of slipping through.
+2. **A task is a pair, not a question.** Each task carries two fields,
+   task and answer, both in English whatever the source language. The
+   answer is the model's short answer in its own words drawn from the
+   source. It exists for three consumers: the grouping embedding (task
+   plus answer is what gets embedded), the answerability check during
+   generation, and as the anchor for revision. It is not tutor-facing.
+3. **Block citation was dropped.** Stage 3 above says each task cites the
+   block(s) that answer it; in practice provenance is taken at the passage
+   level only (the run item already records it), and block-level citation
+   stays in reserve. The "answerable from the source alone" guardrail
+   survived as prompt wording, iterated empirically (see
+   docs/lab/experiments.md).
+4. **Two per-task stages exist between generation and grouping.**
+   Task-revision judges each task blind, seeing only the task and its
+   answer, the way the learner will meet it: a task that leans on a text
+   it cannot show is rewritten minimally, anchored on the answer, or
+   declared unfixable when even the answer cannot rebuild it. Task-triage
+   then judges the revised text with the whole source in hand. The pairing
+   is deliberate: revision rewrites blind and can invent a referent;
+   triage holds the source and catches it. Unsupported and unfixable
+   tasks are discarded, never patched: volume is free and rows are
+   insert-only, so the cure for a bad task is its absence. Grouping
+   consumes the revised, triaged set.
+
+Operational choices per stage (which model, which prompt version, which
+run is the reference) live in docs/pipeline-defaults.md, not here.
