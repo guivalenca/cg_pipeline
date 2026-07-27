@@ -19,6 +19,7 @@ from universe.harness import fetch_items, fetch_run, id_list
 from universe.passage_report import thinking_label
 from universe.passages import fetch_passages
 from universe.task_granularity import materialize_parts
+from universe.task_labels import label_map
 from universe.task_revision import STAGE, VERDICTS, revision_of
 from universe.tasks import fetch_tasks
 
@@ -61,8 +62,16 @@ def render_runs(
     conn: psycopg.Connection,
     run_ids: list[str],
     granularity_runs: list[str] | None = None,
+    gen_runs: list[str] | None = None,
+    passages_from: list[str] | None = None,
+    revision_run: str | None = None,
 ) -> str:
     runs, results = collect(conn, run_ids, granularity_runs)
+    task_labels = (
+        label_map(conn, gen_runs, passages_from, revision_run, granularity_runs)
+        if gen_runs and passages_from and revision_run
+        else {}
+    )
     task_ids = sorted({task_id for _, task_id in results})
     tasks = fetch_tasks(conn, task_ids)
     passages = {p["id"]: p for p in fetch_passages(conn, sorted({t["passage_id"] for t in tasks}))}
@@ -93,7 +102,13 @@ def render_runs(
                 else f"blocks {passage['first_seq']} to {passage['last_seq']}"
             )
             lines += [f"### {span}", ""]
-        lines += [f"**{number}. {task['body']}**", "", f"- answer: {task['answer']}"]
+        task_label = task_labels.get(task["id"])
+        heading = (
+            f"{task_label}: {task['body']}"
+            if task_label
+            else f"{number}. {task['body']}"
+        )
+        lines += [f"**{heading}**", "", f"- answer: {task['answer']}"]
         for run in runs:
             revision = results.get((run["id"], task["id"]))
             if revision is None:
@@ -105,6 +120,10 @@ def render_runs(
             else:
                 lines.append(f"- {run['id']}: {revision['verdict']}")
         lines.append("")
+    if task_labels:
+        lines += ["## Label map", ""]
+        lines += [f"- {label} = {task_id}" for task_id, label in task_labels.items()]
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -113,10 +132,22 @@ def write_report(
     run_ids: list[str],
     reports_dir: Path | None = None,
     granularity_runs: list[str] | None = None,
+    gen_runs: list[str] | None = None,
+    passages_from: list[str] | None = None,
+    revision_run: str | None = None,
 ) -> Path:
     path = (reports_dir or REPORTS_DIR) / f"task-revision-{'-'.join(run_ids)}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_runs(conn, run_ids, granularity_runs))
+    path.write_text(
+        render_runs(
+            conn,
+            run_ids,
+            granularity_runs,
+            gen_runs=gen_runs,
+            passages_from=passages_from,
+            revision_run=revision_run,
+        )
+    )
     return path
 
 
@@ -124,12 +155,34 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="universe.task_revision_report", description=__doc__)
     parser.add_argument("run_ids", nargs="+")
     parser.add_argument(
+        "--granularity-run",
         "--granularity-runs",
+        dest="granularity_runs",
         type=id_list,
         help="task-granularity run ids whose materialized parts were revised",
     )
+    parser.add_argument(
+        "--gen-runs",
+        type=id_list,
+        help="comma-separated generation run ids for chain-relative labels",
+    )
+    parser.add_argument(
+        "--passages-from",
+        type=id_list,
+        help="comma-separated cuts run ids for chain-relative labels",
+    )
+    parser.add_argument(
+        "--revision-run",
+        help="base task-revision run id for chain-relative labels",
+    )
+    parser.add_argument(
+        "--parts-revision-run",
+        help="parts revision run id; must also be one of the reported run ids",
+    )
     parser.add_argument("--output-dir", type=Path, help="directory for the report")
     args = parser.parse_args(argv)
+    if args.parts_revision_run and args.parts_revision_run not in args.run_ids:
+        parser.error("--parts-revision-run must be one of the reported run ids")
     with connect() as conn:
         print(
             write_report(
@@ -137,6 +190,9 @@ def main(argv: list[str] | None = None) -> None:
                 args.run_ids,
                 reports_dir=args.output_dir,
                 granularity_runs=args.granularity_runs,
+                gen_runs=args.gen_runs,
+                passages_from=args.passages_from,
+                revision_run=args.revision_run,
             ),
             file=sys.stderr,
         )

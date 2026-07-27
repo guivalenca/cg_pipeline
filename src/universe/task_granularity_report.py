@@ -19,6 +19,7 @@ import psycopg
 from universe.db import connect
 from universe.harness import REPORTS_DIR, fetch_items, fetch_run, id_list
 from universe.task_granularity import STAGE, VERDICTS, granularity_of
+from universe.task_labels import label_map
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs
 
@@ -31,9 +32,10 @@ def _blockquote(task: dict) -> list[str]:
     return lines
 
 
-def _part(number: int, part: dict) -> list[str]:
+def _part(number: int, part: dict, label: str | None = None) -> list[str]:
     task_lines = part["task"].splitlines()
-    lines = [f"{number}. {task_lines[0]}"]
+    prefix = f"{label}: " if label else ""
+    lines = [f"{number}. {prefix}{task_lines[0]}"]
     lines += [f"   {line}" for line in task_lines[1:]]
     lines.append("")
     lines += [f"   > {line}" if line else "   >" for line in part["answer"].splitlines()]
@@ -98,8 +100,14 @@ def render_run(
     run_id: str,
     gen_runs: list[str],
     revision_run: str | None = None,
+    passages_from: list[str] | None = None,
 ) -> str:
     run, judged = collect(conn, run_id, gen_runs, revision_run)
+    task_labels = (
+        label_map(conn, gen_runs, passages_from, revision_run, [run_id])
+        if passages_from and revision_run
+        else {}
+    )
     labels = VERDICTS + ("error", "unparseable")
     tally = {
         label: sum(1 for _, granularity in judged if _label(granularity) == label)
@@ -128,11 +136,15 @@ def render_run(
     if not composites:
         lines += ["None.", ""]
     for task, granularity in composites:
-        lines += [f"### {task['id']}", ""]
+        task_label = task_labels.get(task["id"], task["id"])
+        lines += [f"### {task_label}", ""]
         lines += _blockquote(task)
         lines += ["", f"Split into {len(granularity['parts'])}:", ""]
         for number, part in enumerate(granularity["parts"], 1):
-            lines += _part(number, part)
+            part_label = (
+                f"{task_label} part {number}" if task["id"] in task_labels else None
+            )
+            lines += _part(number, part, part_label)
             lines.append("")
 
     lines += ["## Unsure", ""]
@@ -144,7 +156,7 @@ def render_run(
     if not unsure:
         lines += ["None.", ""]
     for task in unsure:
-        lines += [f"### {task['id']}", ""]
+        lines += [f"### {task_labels.get(task['id'], task['id'])}", ""]
         lines += _blockquote(task)
         lines.append("")
 
@@ -155,10 +167,18 @@ def render_run(
         if isinstance(granularity, dict) and granularity["verdict"] == "single"
     ]
     if singles:
-        lines += [f"- {task['id']}: {' '.join(task['body'].split())}" for task in singles]
+        lines += [
+            f"- {task_labels.get(task['id'], task['id'])}:"
+            f" {' '.join(task['body'].split())}"
+            for task in singles
+        ]
     else:
         lines.append("None.")
     lines.append("")
+    if task_labels:
+        lines += ["## Label map", ""]
+        lines += [f"- {label} = {task_id}" for task_id, label in task_labels.items()]
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -168,10 +188,19 @@ def write_report(
     gen_runs: list[str],
     reports_dir: Path | None = None,
     revision_run: str | None = None,
+    passages_from: list[str] | None = None,
 ) -> Path:
     path = (reports_dir or REPORTS_DIR) / f"task-granularity-{run_id}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_run(conn, run_id, gen_runs, revision_run))
+    path.write_text(
+        render_run(
+            conn,
+            run_id,
+            gen_runs,
+            revision_run=revision_run,
+            passages_from=passages_from,
+        )
+    )
     return path
 
 
@@ -190,6 +219,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--revision-run",
         help="task-revision run id used by the granularity run",
     )
+    parser.add_argument(
+        "--passages-from",
+        type=id_list,
+        help="comma-separated cuts run ids used to select the labeled task chain",
+    )
     return parser
 
 
@@ -202,6 +236,7 @@ def main(argv: list[str] | None = None) -> None:
                 args.run_id,
                 args.gen_runs,
                 revision_run=args.revision_run,
+                passages_from=args.passages_from,
             )
         )
 

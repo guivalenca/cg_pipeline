@@ -19,6 +19,7 @@ from universe.db import connect
 from universe.harness import fetch_items, fetch_run, id_list
 from universe.passages import fetch_passages_for_runs
 from universe.task_granularity import granularity_of, materialize_parts
+from universe.task_labels import label_map
 from universe.task_substance import STAGE, VERDICTS, substance_of
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
@@ -99,6 +100,18 @@ def render_runs(
                 )
         tasks.extend(part_tasks)
 
+    task_labels = (
+        label_map(
+            conn,
+            gen_runs,
+            passages_from,
+            revision_run,
+            [granularity_run] if granularity_run else None,
+        )
+        if passages_from and revision_run
+        else {}
+    )
+
     # Build set of task_ids we're judging
     judged_task_ids = {t["id"] for t in tasks}
     task_dict = {t["id"]: t for t in tasks}
@@ -171,7 +184,7 @@ def render_runs(
     if trivial_tasks:
         for task_id in sorted(trivial_tasks):
             task = task_dict[task_id]
-            lines.append(f"### {task_id}")
+            lines.append(f"### {task_labels.get(task_id, task_id)}")
             lines.append("")
             lines.append(f"> {task['body']}")
             lines.append(f">\n> {task['answer']}")
@@ -190,7 +203,7 @@ def render_runs(
     if unsure_tasks:
         for task_id in sorted(unsure_tasks):
             task = task_dict[task_id]
-            lines.append(f"### {task_id}")
+            lines.append(f"### {task_labels.get(task_id, task_id)}")
             lines.append("")
             lines.append(f"> {task['body']}")
             lines.append(f">\n> {task['answer']}")
@@ -210,10 +223,14 @@ def render_runs(
     if substantive_tasks:
         for task_id in sorted(substantive_tasks):
             task = task_dict[task_id]
-            lines.append(f"- {task_id}: {task['body']}")
+            lines.append(f"- {task_labels.get(task_id, task_id)}: {task['body']}")
     else:
         lines.append("None.")
     lines.append("")
+    if task_labels:
+        lines += ["## Label map", ""]
+        lines += [f"- {label} = {task_id}" for task_id, label in task_labels.items()]
+        lines.append("")
 
     return "\n".join(lines)
 
