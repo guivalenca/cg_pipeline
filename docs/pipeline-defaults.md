@@ -9,6 +9,15 @@ result changes our mind, and old runs remain in the ledger either way.
 | passage-cuts (coarse candidate) | deepseek-v4-flash, thinking high | passage-cuts/v001 | 2026-07-26, identical cuts across 4 runs; r0017 is the reference |
 | passage-cuts (granular candidate) | deepseek-v4-pro, thinking high | passage-cuts/v002 | 2026-07-26, steadiest granular behaviour (13 passages in 3 of 4 runs); r0031 is the reference |
 | passage-triage | deepseek-v4-flash, thinking high | passage-triage/v001 | 2026-07-26, r0043; zero unsure, zero disagreement with the pro thinking preset over 25 passages |
+| task-generation | deepseek-v4-pro, thinking high | task-generation/v004 | 2026-07-26, r0052; zero factual errors over four runs, deepest sets on dense passages, atomic tasks map one-to-one onto grains |
+
+Task generation runs over the coarse division (r0017). The granular division
+(r0031) is retired for this stage: its stub passages (heading plus an input
+array) produced memorization and counting trivia under every model and every
+prompt tried. Deixis in task wording ("according to the passage") is accepted:
+prompt wording cannot move the pro model on that axis, grouping reads task
+plus answer so the shared prefix carries no discriminating weight, and
+passage provenance resolves the reference anyway.
 
 Task generation takes provenance at the passage level only (the run_item
 already records it); block-level citation stays in reserve if results ask

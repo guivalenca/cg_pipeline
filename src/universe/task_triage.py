@@ -33,7 +33,7 @@ from universe.harness import (
     positive_int,
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
-from universe.passages import source_text
+from universe.passages import fetch_passages_for_runs, source_text
 from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-triage"
@@ -75,6 +75,14 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {counts['tasks_existing']} already known"
             )
         tasks = fetch_tasks_for_runs(conn, args.gen_runs)
+        if args.passages_from:
+            drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
+            outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
+            tasks = [t for t in tasks if t["passage_id"] in drawn]
+            print(
+                f"{outside} task(s) outside the passages of"
+                f" {', '.join(args.passages_from)}, skipped"
+            )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
@@ -116,6 +124,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--tool",
         required=True,
         help="path to a tool definition JSON; every call is forced through it",
+    )
+    run.add_argument(
+        "--passages-from",
+        type=id_list,
+        help="comma-separated cuts run ids; only tasks of their passages get calls",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)
