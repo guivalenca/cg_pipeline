@@ -1,0 +1,19 @@
+{
+  "name": "report_revision",
+  "description": "Report whether the task stands on its own.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["stands", "rewritten", "unfixable"],
+        "description": "unfixable when even the answer does not give you enough to rebuild the task."
+      },
+      "task": {
+        "type": "string",
+        "description": "The rewritten task, only when the verdict is rewritten."
+      }
+    },
+    "required": ["verdict"]
+  }
+}
