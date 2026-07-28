@@ -172,6 +172,7 @@ def load_tool(path: str) -> dict:
     return {
         "tools": [{"type": "function", "function": tool}],
         "tool_choice": {"type": "function", "function": {"name": tool["name"]}},
+        "parallel_tool_calls": False,
     }
 
 

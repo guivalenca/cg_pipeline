@@ -345,3 +345,49 @@ def test_embedding_client_rejects_error_responses(body, message):
     )
     with pytest.raises(ModelError, match=message):
         client.embed(["hello", "world"])
+
+
+def test_load_tool_includes_parallel_tool_calls_false(tmp_path):
+    """Verify that load_tool includes parallel_tool_calls: False to prevent multiple calls."""
+    tool_file = tmp_path / "test_tool.json"
+    tool_file.write_text('{"name": "test", "description": "Test tool", "parameters": {"type": "object"}}')
+    
+    result = harness.load_tool(str(tool_file))
+    
+    assert "parallel_tool_calls" in result
+    assert result["parallel_tool_calls"] is False
+    assert "tools" in result
+    assert "tool_choice" in result
+
+
+def test_parallel_tool_calls_is_sent_in_request_payload(tmp_path):
+    """Verify that parallel_tool_calls: false is actually sent to the model."""
+    tool_file = tmp_path / "test_tool.json"
+    tool_file.write_text('{"name": "test", "description": "Test tool", "parameters": {"type": "object"}}')
+    
+    tool_dict = harness.load_tool(str(tool_file))
+    calls = []
+    
+    # Create a transport that returns a valid tool call response
+    def tool_transport(url, headers, payload, timeout):
+        calls.append(payload)
+        return {
+            "choices": [{
+                "message": {
+                    "tool_calls": [{
+                        "function": {"name": "test", "arguments": '{"key": "value"}'}
+                    }]
+                },
+                "finish_reason": "tool_calls"
+            }],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120},
+        }
+    
+    # Create a client with the tool dict merged into extra
+    c = client(transport=tool_transport, extra=tool_dict)
+    c.complete("hello")
+    
+    # Verify the payload sent includes parallel_tool_calls: false
+    assert calls[0]["parallel_tool_calls"] is False
+    assert calls[0]["tools"] is not None
+    assert calls[0]["tool_choice"] is not None
