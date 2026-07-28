@@ -7,18 +7,18 @@ import pytest
 from universe.harness import load_prompt, load_tool
 from universe.task_substance import substance_of
 
-TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v001.json"
+TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v002.json"
 
 
 # --- reading verdicts back -------------------------------------------------
 
 
-def test_a_substantive_task_carries_the_verdict():
+def test_a_legacy_substantive_task_carries_the_verdict():
     item = {"error": None, "response": '{"verdict": "substantive"}'}
     assert substance_of(item) == {"verdict": "substantive"}
 
 
-def test_a_trivial_task_carries_the_verdict():
+def test_a_legacy_trivial_task_carries_the_verdict():
     item = {"error": None, "response": '{"verdict": "trivial"}'}
     assert substance_of(item) == {"verdict": "trivial"}
 
@@ -26,6 +26,31 @@ def test_a_trivial_task_carries_the_verdict():
 def test_an_unsure_task_carries_the_verdict():
     item = {"error": None, "response": '{"verdict": "unsure"}'}
     assert substance_of(item) == {"verdict": "unsure"}
+
+
+def test_a_fixable_task_carries_delivered_corrections():
+    item = {
+        "error": None,
+        "response": '{"verdict": "fixable", "task": "Ask about stopwords.", "answer": "They add little meaning."}',
+    }
+    assert substance_of(item) == {
+        "verdict": "fixable",
+        "task": "Ask about stopwords.",
+        "answer": "They add little meaning.",
+    }
+
+
+def test_a_fixable_verdict_without_a_nonblank_correction_is_unparseable():
+    item = {"error": None, "response": '{"verdict": "fixable", "task": "  "}'}
+    assert substance_of(item) == "unparseable"
+
+
+def test_nonfixable_verdicts_drop_stray_corrections():
+    item = {
+        "error": None,
+        "response": '{"verdict": "works", "task": "Ignore this", "answer": "Ignore this too"}',
+    }
+    assert substance_of(item) == {"verdict": "works"}
 
 
 @pytest.mark.parametrize(
@@ -44,20 +69,20 @@ def test_substance_of_names_what_it_cannot_use(item):
 
 
 def test_the_prompt_reads_task_and_answer_and_no_source():
-    prompt = load_prompt("task-substance", "v001", require_body=False)
-    assert "Use the report_substance tool" in prompt.template
+    prompt = load_prompt("task-substance", "v003", require_body=False)
+    assert "Use the report_check tool" in prompt.template
     assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
     assert "{{body}}" not in prompt.template
 
 
 def test_a_bodyless_prompt_still_fails_where_a_body_is_required():
     with pytest.raises(SystemExit):
-        load_prompt("task-substance", "v001")
+        load_prompt("task-substance", "v003")
 
 
-def test_the_tool_definition_loads_and_forces_report_substance():
+def test_the_tool_definition_loads_and_forces_report_check():
     payload = load_tool(str(TOOL_PATH))
-    assert payload["tool_choice"]["function"]["name"] == "report_substance"
+    assert payload["tool_choice"]["function"]["name"] == "report_check"
     parameters = payload["tools"][0]["function"]["parameters"]
-    assert parameters["properties"]["verdict"]["enum"] == ["substantive", "trivial", "unsure"]
+    assert parameters["properties"]["verdict"]["enum"] == ["works", "fixable", "beyond_repair", "unsure"]
     assert parameters["required"] == ["verdict"]

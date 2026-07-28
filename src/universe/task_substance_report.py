@@ -4,9 +4,9 @@
         --revision-run r0065 [--passages-from r0017]
 
 Reconstructs the judged texts exactly as the runner does (applying
---passages-from filter and --revision-run overlay), then lays out
-flagged tasks (trivial, unsure) side by side, with substantive tasks
-listed compactly at the end.
+--passages-from filter and --revision-run overlay), then lays out repairs,
+uncertain cases, and rejected pairs side by side, with working pairs listed
+compactly at the end.
 """
 
 import argparse
@@ -20,7 +20,7 @@ from universe.harness import fetch_items, fetch_run, id_list
 from universe.passages import fetch_passages_for_runs
 from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_labels import label_map
-from universe.task_substance import STAGE, VERDICTS, substance_of
+from universe.task_substance import DROPPED, KEPT, STAGE, substance_of
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
 
@@ -29,6 +29,16 @@ REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 def verdict_label(substance: dict | str) -> str:
     return substance["verdict"] if isinstance(substance, dict) else substance
+
+
+def render_verdict(run_id: str, substance: dict | str) -> list[str]:
+    lines = [f"- {run_id}: {verdict_label(substance)}"]
+    if isinstance(substance, dict) and substance["verdict"] == "fixable":
+        if "task" in substance:
+            lines.append(f"  > Corrected task: {substance['task']}")
+        if "answer" in substance:
+            lines.append(f"  > Corrected answer: {substance['answer']}")
+    return lines
 
 
 def render_runs(
@@ -146,43 +156,45 @@ def render_runs(
     # Build tally per run
     lines = [f"# Task substance: {', '.join(run_ids)}", ""]
     for run in runs:
-        tally = {label: 0 for label in VERDICTS + ("error", "unparseable")}
-        for (run_id, _), substance in results.items():
-            if run_id == run["id"]:
-                tally[verdict_label(substance)] += 1
-        counts = [f"{tally[v]} {v}" for v in VERDICTS if tally[v]]
-        errors = []
-        if tally["error"]:
-            errors.append(f"{tally['error']} error")
-        if tally["unparseable"]:
-            errors.append(f"{tally['unparseable']} unparseable")
-        tally_str = ", ".join(counts + errors)
+        labels = sorted(
+            verdict_label(substance)
+            for (run_id, _), substance in results.items()
+            if run_id == run["id"]
+        )
+        tally = {label: labels.count(label) for label in set(labels)}
+        tally_str = ", ".join(f"{tally[label]} {label}" for label in sorted(tally))
         lines.append(f"- {run['id']}: {run['model']}, {tally_str}")
 
     lines.append("")
 
-    # Find flagged tasks: trivial and unsure
-    trivial_tasks = set()
+    # Classify each task by the strongest verdict it received.
+    beyond_repair_tasks = set()
+    fixable_tasks = set()
     unsure_tasks = set()
     for task_id in judged_task_ids:
-        has_trivial = any(
-            verdict_label(results.get((run["id"], task_id))) == "trivial"
+        has_dropped = any(
+            verdict_label(results.get((run["id"], task_id))) in DROPPED
+            for run in runs
+        )
+        has_fixable = any(
+            verdict_label(results.get((run["id"], task_id))) == "fixable"
             for run in runs
         )
         has_unsure = any(
             verdict_label(results.get((run["id"], task_id))) == "unsure"
             for run in runs
         )
-        if has_trivial:
-            trivial_tasks.add(task_id)
+        if has_dropped:
+            beyond_repair_tasks.add(task_id)
+        elif has_fixable:
+            fixable_tasks.add(task_id)
         elif has_unsure:
             unsure_tasks.add(task_id)
 
-    # Section: Trivial tasks
-    lines.append("## Trivial")
+    lines.append("## Beyond repair")
     lines.append("")
-    if trivial_tasks:
-        for task_id in sorted(trivial_tasks):
+    if beyond_repair_tasks:
+        for task_id in sorted(beyond_repair_tasks):
             task = task_dict[task_id]
             lines.append(f"### {task_labels.get(task_id, task_id)}")
             lines.append("")
@@ -190,14 +202,29 @@ def render_runs(
             lines.append(f">\n> {task['answer']}")
             lines.append("")
             for run in runs:
-                verdict = verdict_label(results.get((run["id"], task_id)))
-                lines.append(f"- {run['id']}: {verdict}")
+                lines += render_verdict(run["id"], results.get((run["id"], task_id)))
             lines.append("")
     else:
         lines.append("None.")
         lines.append("")
 
-    # Section: Unsure tasks (only if no trivial verdict for the task)
+    lines.append("## Fixable")
+    lines.append("")
+    if fixable_tasks:
+        for task_id in sorted(fixable_tasks):
+            task = task_dict[task_id]
+            lines.append(f"### {task_labels.get(task_id, task_id)}")
+            lines.append("")
+            lines.append(f"> {task['body']}")
+            lines.append(f">\n> {task['answer']}")
+            lines.append("")
+            for run in runs:
+                lines += render_verdict(run["id"], results.get((run["id"], task_id)))
+            lines.append("")
+    else:
+        lines.append("None.")
+        lines.append("")
+
     lines.append("## Unsure")
     lines.append("")
     if unsure_tasks:
@@ -209,19 +236,21 @@ def render_runs(
             lines.append(f">\n> {task['answer']}")
             lines.append("")
             for run in runs:
-                verdict = verdict_label(results.get((run["id"], task_id)))
-                lines.append(f"- {run['id']}: {verdict}")
+                lines += render_verdict(run["id"], results.get((run["id"], task_id)))
             lines.append("")
     else:
         lines.append("None.")
         lines.append("")
 
-    # Section: Substantive everywhere
-    lines.append("## Substantive everywhere")
+    lines.append("## Works everywhere")
     lines.append("")
-    substantive_tasks = judged_task_ids - trivial_tasks - unsure_tasks
-    if substantive_tasks:
-        for task_id in sorted(substantive_tasks):
+    works_tasks = {
+        task_id
+        for task_id in judged_task_ids
+        if all(verdict_label(results.get((run["id"], task_id))) in KEPT for run in runs)
+    }
+    if works_tasks:
+        for task_id in sorted(works_tasks):
             task = task_dict[task_id]
             lines.append(f"- {task_labels.get(task_id, task_id)}: {task['body']}")
     else:

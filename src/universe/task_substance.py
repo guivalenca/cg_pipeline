@@ -1,14 +1,11 @@
-"""Judge each task for subject knowledge required to answer: pure discard gate.
+"""Judge whether a task-and-answer pair can show learning.
 
-    python -m universe.task_substance run --prompt v001 --model deepseek-v4-pro \
-        --gen-runs r0052 --tool prompts/task-substance/tool-v001.json
+    python -m universe.task_substance run --prompt v003 --model deepseek/deepseek-v4-pro \
+        --gen-runs r0052 --tool prompts/task-substance/tool-v002.json
 
-One call per task, carrying only the task and its expected answer. A task
-is trivial when someone who never studied the subject could answer it just
-as well; unsure counts as substantive (kept) by design, because importance
-ranking belongs to teachers later, our job is only to drop what tests no
-knowledge of the subject at all. Silence (an unjudged task) is still an
-error that stops downstream stages, distinct from unsure.
+One call per task, carrying only the task and its expected answer. A pair may
+work as-is, be repairable, or be beyond repair. Silence remains an error,
+distinct from an unsure verdict.
 """
 
 import argparse
@@ -37,21 +34,34 @@ from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-substance"
-VERDICTS = ("substantive", "trivial", "unsure")
+LEGACY_VERDICTS = {"substantive", "trivial", "unsure"}
+NEW_VERDICTS = {"works", "fixable", "beyond_repair", "unsure"}
+KEPT = {"works", "fixable", "unsure", "substantive"}
+DROPPED = {"beyond_repair", "trivial"}
 DEFAULT_WORKERS = 4
 
 
 def substance_of(item: dict) -> dict | str:
-    """The verdict the item reported, or the reason there is none."""
+    """The verdict and any delivered correction, or why neither is usable."""
     if item["error"]:
         return "error"
     try:
         parsed = json.loads(item["response"])
     except (TypeError, json.JSONDecodeError):
         return "unparseable"
-    if not isinstance(parsed, dict) or parsed.get("verdict") not in VERDICTS:
+    if not isinstance(parsed, dict) or parsed.get("verdict") not in LEGACY_VERDICTS | NEW_VERDICTS:
         return "unparseable"
-    return {"verdict": parsed["verdict"]}
+    verdict = parsed["verdict"]
+    if verdict != "fixable":
+        return {"verdict": verdict}
+    correction = {
+        name: value.strip()
+        for name in ("task", "answer")
+        if isinstance((value := parsed.get(name)), str) and value.strip()
+    }
+    if not correction:
+        return "unparseable"
+    return {"verdict": verdict, **correction}
 
 
 def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
@@ -190,13 +200,14 @@ def cmd_run(args: argparse.Namespace) -> None:
         items = fetch_items(conn, summary["run_id"])
 
     verdicts = [substance_of(item) for item in items]
+    labels = sorted({v["verdict"] if isinstance(v, dict) else v for v in verdicts})
     tally = {
         label: sum(
             1
             for v in verdicts
             if (v["verdict"] if isinstance(v, dict) else v) == label
         )
-        for label in VERDICTS + ("error", "unparseable")
+        for label in labels
     }
     counted = ", ".join(f"{count} {label}" for label, count in tally.items() if count)
     usage = report.aggregate_usage(items)
