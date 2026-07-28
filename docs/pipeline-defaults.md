@@ -15,6 +15,7 @@ result changes our mind, and old runs remain in the ledger either way.
 | task-granularity | deepseek-v4-pro, thinking high | task-granularity/v004 | 2026-07-27, r0075; 22 single / 9 composite / 18 parts; the founder's target splits (T08, T18) land and enumerations stay single |
 | task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | retired 2026-07-28 by the new single-pass order |
 | task-substance | deepseek-v4-pro, thinking high | task-substance/v004, tool-v004 (mandatory reason) | 2026-07-28, r0091; verdict-only pair gate, 5 does_not_work / 35 works; reasons legible one by one, protected simple-but-real tasks all kept |
+| kc-statement | deepseek-v4-pro, thinking high | kc-statement/v001, tool-v001 | 2026-07-28, r0102; five-preset bench r0102-r0106, judged best on form consistency and same-skill convergence; flash thinking (r0104) is the cost fallback; prompt iteration continues on this preset |
 
 Task generation runs over the coarse division (r0017). The granular division
 (r0031) is retired for this stage: its stub passages (heading plus an input
