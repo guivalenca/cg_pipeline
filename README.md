@@ -12,8 +12,7 @@ extracted Markdown). Rows are inserted, never updated or deleted.
 On top of it, the extraction pipeline as built so far, one module per
 stage under `src/universe/`:
 
-    blocks → passages (cuts) → passage-triage → task-generation
-        → task-revision → task-triage → [next: grouping into grains]
+    blocks → passages (cuts) → passage-triage → task-generation → task-granularity → task-revision → task-triage → task-substance → kc-statement → task-embedding → [next: grouping into grains]
 
 Orientation for a new session:
 

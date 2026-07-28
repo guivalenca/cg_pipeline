@@ -1,0 +1,23 @@
+{
+  "name": "report_statement",
+  "description": "State what answering the task well shows about what the learner now knows or can do.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["stated", "unsure"],
+        "description": "stated when you can say it; unsure when you cannot tell what answering well would show"
+      },
+      "statement": {
+        "type": "string",
+        "description": "The statement, in one sentence. Required with stated."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Why you cannot tell, in one sentence. Required with unsure."
+      }
+    },
+    "required": ["verdict"]
+  }
+}
