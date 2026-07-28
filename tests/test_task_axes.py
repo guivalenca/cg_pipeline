@@ -70,17 +70,6 @@ def test_two_to_one_split_keeps_the_majority_and_sets_split():
     }
 
 
-@pytest.mark.parametrize("modality", ["do", "explain"])
-def test_fact_overrides_modality(modality):
-    result = derive(
-        {"t01": (modality,) * 3},
-        {"t01": ("fact",) * 3},
-    )[0]
-
-    assert result["modality"]["verdict"] == modality
-    assert result["grain_class"] == "fact"
-
-
 @pytest.mark.parametrize(
     ("knowledge", "modality", "grain_class"),
     [
@@ -111,7 +100,7 @@ def test_three_way_split_raises_and_names_the_task():
     ("modalities", "knowledges"),
     [
         ({"t01": ("unsure", "unsure", "do")}, {"t01": ("concept",) * 3}),
-        ({"t01": ("do",) * 3}, {"t01": ("unsure", "unsure", "fact")}),
+        ({"t01": ("do",) * 3}, {"t01": ("unsure", "unsure", "procedure")}),
     ],
 )
 def test_unsure_majority_raises_and_names_the_task(modalities, knowledges):
@@ -131,3 +120,17 @@ def test_missing_usable_verdict_raises_and_names_every_silent_task():
 
     with pytest.raises(SystemExit, match=r"silence is not a verdict.*t02"):
         derive_axes(modality_items, knowledge_items)
+
+
+def test_fact_verdict_from_retired_module_raises():
+    with pytest.raises(
+        SystemExit,
+        match=(
+            "Fact verdict encountered from retired task-fact module; "
+            "cannot mix retired-class runs into derivation"
+        ),
+    ):
+        derive(
+            {"t01": ("do",) * 3},
+            {"t01": ("fact",) * 3},
+        )

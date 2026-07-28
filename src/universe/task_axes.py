@@ -1,4 +1,4 @@
-"""Consolidate repeated task-modality and task-knowledge judgments.
+"""Consolidate judgments into the four task grain classes.
 
     python -m universe.task_axes derive \
         --modality-runs r0109,r0110,r0111 \
@@ -6,7 +6,8 @@
 
 Each axis is decided by an odd-run majority. Disagreement remains visible as
 a split flag, while missing judgments, ties, and unsure majorities stop the
-derivation instead of silently becoming grain classes.
+derivation instead of silently becoming one of concept-explain, concept-apply,
+procedure-explain, or procedure-do.
 """
 
 import argparse
@@ -98,9 +99,17 @@ def derive_axes(modality_items: list[dict], knowledge_items: list[dict]) -> list
     per-run records detectable; otherwise the largest per-task vote count is
     treated as the number of runs.
     """
-    task_ids = {
-        item["task_id"] for item in modality_items + knowledge_items
-    }
+    if any(
+        isinstance(result := _result_of(item), dict)
+        and result.get("verdict") == "fact"
+        for item in knowledge_items
+    ):
+        raise SystemExit(
+            "Fact verdict encountered from retired task-fact module; "
+            "cannot mix retired-class runs into derivation"
+        )
+
+    task_ids = {item["task_id"] for item in modality_items + knowledge_items}
     missing = _missing_tasks(modality_items, task_ids, MODALITY_VERDICTS)
     missing |= _missing_tasks(knowledge_items, task_ids, KNOWLEDGE_VERDICTS)
     if missing:
@@ -140,17 +149,14 @@ def derive_axes(modality_items: list[dict], knowledge_items: list[dict]) -> list
     derived = []
     for task_id in sorted(task_ids):
         modality, knowledge = majorities[task_id]
-        grain_class = (
-            "fact"
-            if knowledge["verdict"] == "fact"
-            else classes[(knowledge["verdict"], modality["verdict"])]
-        )
         derived.append(
             {
                 "task_id": task_id,
                 "modality": modality,
                 "knowledge": knowledge,
-                "grain_class": grain_class,
+                "grain_class": classes[
+                    (knowledge["verdict"], modality["verdict"])
+                ],
             }
         )
     return derived

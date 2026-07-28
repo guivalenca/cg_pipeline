@@ -139,3 +139,15 @@ embeddings. What changed against native DeepSeek:
 - Embedding ids are not discoverable via GET /models; they must be known
   a priori. Certified working: `qwen/qwen3-embedding-8b` (4096 dims) and
   `openai/text-embedding-3-small` (1536 dims).
+
+## Fact class investigation (2026-07-28)
+
+**Scoreboard**: three-way v001/v002 majority: 6 facts, ground truth 2; binary v001: 8 facts/2 hits; binary v002: 6/2 hits; binary v003: 3/1 hit — missed CountVectorizer because motivated names read as 'reasoned'.
+
+**Persistent failure modes**:
+- Recall-shaped phrasing reads as memorization
+- Every knowledge contains an arbitrary ingredient the model can latch onto
+
+**Literature split**: KLI/Anderson-Krathwohl define definitions as facts; Merrill treats concepts differently (see docs/lab/axis-definitions-research.md).
+
+**Decision**: Class dropped. Detection deferred to group level post-naming if ever needed.
