@@ -1,0 +1,23 @@
+{
+  "name": "report_statement",
+  "description": "State the one thing a person must know or be able to do to answer the task well.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["stated", "unsure"],
+        "description": "stated when you can say it; unsure when you cannot tell what answering well requires"
+      },
+      "statement": {
+        "type": "string",
+        "description": "The one thing, in one short line. Required with stated."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Why you cannot tell, in one sentence. Required with unsure."
+      }
+    },
+    "required": ["verdict"]
+  }
+}
