@@ -1,0 +1,19 @@
+{
+  "name": "report_knowledge",
+  "description": "Report which kind of knowledge answering the task rests on.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["fact", "concept", "procedure", "unsure"],
+        "description": "unsure when you cannot tell"
+      },
+      "reason": {
+        "type": "string",
+        "description": "The reason for the verdict, in one sentence."
+      }
+    },
+    "required": ["verdict", "reason"]
+  }
+}
