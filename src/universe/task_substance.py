@@ -1,7 +1,7 @@
 """Judge whether a task-and-answer pair can show learning.
 
     python -m universe.task_substance run --prompt v003 --model deepseek/deepseek-v4-pro \
-        --gen-runs r0052 --tool prompts/task-substance/tool-v002.json
+        --gen-runs r0052 --tool prompts/task-substance/tool-v003.json
 
 One call per task, carrying only the task and its expected answer. A pair may
 work as-is, be repairable, or be beyond repair. Silence remains an error,
@@ -35,9 +35,9 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-substance"
 LEGACY_VERDICTS = {"substantive", "trivial", "unsure"}
-NEW_VERDICTS = {"works", "fixable", "beyond_repair", "unsure"}
+NEW_VERDICTS = {"works", "fixable", "does_not_work", "beyond_repair", "unsure"}
 KEPT = {"works", "fixable", "unsure", "substantive"}
-DROPPED = {"beyond_repair", "trivial"}
+DROPPED = {"does_not_work", "beyond_repair", "trivial"}
 DEFAULT_WORKERS = 4
 
 

@@ -168,7 +168,7 @@ def render_runs(
     lines.append("")
 
     # Classify each task by the strongest verdict it received.
-    beyond_repair_tasks = set()
+    dropped_tasks = set()
     fixable_tasks = set()
     unsure_tasks = set()
     for task_id in judged_task_ids:
@@ -185,16 +185,16 @@ def render_runs(
             for run in runs
         )
         if has_dropped:
-            beyond_repair_tasks.add(task_id)
+            dropped_tasks.add(task_id)
         elif has_fixable:
             fixable_tasks.add(task_id)
         elif has_unsure:
             unsure_tasks.add(task_id)
 
-    lines.append("## Beyond repair")
+    lines.append("## Dropped")
     lines.append("")
-    if beyond_repair_tasks:
-        for task_id in sorted(beyond_repair_tasks):
+    if dropped_tasks:
+        for task_id in sorted(dropped_tasks):
             task = task_dict[task_id]
             lines.append(f"### {task_labels.get(task_id, task_id)}")
             lines.append("")

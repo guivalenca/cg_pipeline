@@ -5,9 +5,10 @@ from pathlib import Path
 import pytest
 
 from universe.harness import load_prompt, load_tool
-from universe.task_substance import substance_of
+from universe.task_substance import DROPPED, substance_of
+from universe.task_substance_report import render_verdict
 
-TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v002.json"
+TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v003.json"
 
 
 # --- reading verdicts back -------------------------------------------------
@@ -28,6 +29,21 @@ def test_an_unsure_task_carries_the_verdict():
     assert substance_of(item) == {"verdict": "unsure"}
 
 
+def test_a_does_not_work_task_carries_the_verdict():
+    item = {"error": None, "response": '{"verdict": "does_not_work"}'}
+    assert substance_of(item) == {"verdict": "does_not_work"}
+
+
+def test_does_not_work_is_a_dropped_verdict():
+    assert "does_not_work" in DROPPED
+
+
+def test_a_does_not_work_verdict_renders_as_its_raw_name():
+    assert render_verdict("r0001", {"verdict": "does_not_work"}) == [
+        "- r0001: does_not_work"
+    ]
+
+
 def test_a_fixable_task_carries_delivered_corrections():
     item = {
         "error": None,
@@ -45,12 +61,13 @@ def test_a_fixable_verdict_without_a_nonblank_correction_is_unparseable():
     assert substance_of(item) == "unparseable"
 
 
-def test_nonfixable_verdicts_drop_stray_corrections():
+@pytest.mark.parametrize("verdict", ["works", "does_not_work", "beyond_repair"])
+def test_nonfixable_verdicts_drop_stray_corrections(verdict):
     item = {
         "error": None,
-        "response": '{"verdict": "works", "task": "Ignore this", "answer": "Ignore this too"}',
+        "response": f'{{"verdict": "{verdict}", "task": "Ignore this", "answer": "Ignore this too"}}',
     }
-    assert substance_of(item) == {"verdict": "works"}
+    assert substance_of(item) == {"verdict": verdict}
 
 
 @pytest.mark.parametrize(
@@ -80,9 +97,15 @@ def test_a_bodyless_prompt_still_fails_where_a_body_is_required():
         load_prompt("task-substance", "v003")
 
 
-def test_the_tool_definition_loads_and_forces_report_check():
+def test_the_verdict_only_tool_definition_loads_and_forces_report_check():
     payload = load_tool(str(TOOL_PATH))
     assert payload["tool_choice"]["function"]["name"] == "report_check"
     parameters = payload["tools"][0]["function"]["parameters"]
-    assert parameters["properties"]["verdict"]["enum"] == ["works", "fixable", "beyond_repair", "unsure"]
+    assert parameters["properties"] == {
+        "verdict": {
+            "type": "string",
+            "enum": ["works", "does_not_work", "unsure"],
+            "description": "works when the pair does its job as it is; does_not_work when it does not; unsure when you cannot tell",
+        }
+    }
     assert parameters["required"] == ["verdict"]
