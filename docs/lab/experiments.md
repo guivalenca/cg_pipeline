@@ -119,6 +119,23 @@ embeddings. What changed against native DeepSeek:
   provider: a run whose calls bounce between providers loses cache hits.
   If cache economics matter for a big run, pin with the `provider`
   routing field.
+- **Disabling thinking (audited 2026-07-28, after r0103 thought through a
+  disable).** The native passthrough `{"thinking":{"type":"disabled"}}` is
+  honored only by some upstream providers: flash's routes obeyed it, pro's
+  (Novita, Wafer, Fireworks) ignored it and thought anyway. The unified
+  form `{"reasoning":{"enabled":false}}` was honored by every provider
+  tested, on both models, with tool calls intact; it is the non-thinking
+  preset now. `{"reasoning":{"effort":"none"}}` also worked;
+  `{"reasoning":{"max_tokens":0}}` did not, and `{"reasoning":
+  {"exclude":true}}` only hides the reasoning while still billing it. Pro
+  defaults to thinking when no field is sent. Routing stays
+  non-deterministic, so the standing check is the ledger itself: a
+  non-thinking run whose usage bills reasoning_tokens > 0 was not honored.
+- **One tool call is not implied by forced tool_choice.** The
+  OpenAI-compatible contract allows parallel tool calls unless
+  `parallel_tool_calls: false` is sent; r0105 got two calls in one
+  response under a forced tool. load_tool now always sends the flag, and
+  the client's got-N guard stays as the error of record.
 - Embedding ids are not discoverable via GET /models; they must be known
   a priori. Certified working: `qwen/qwen3-embedding-8b` (4096 dims) and
   `openai/text-embedding-3-small` (1536 dims).
