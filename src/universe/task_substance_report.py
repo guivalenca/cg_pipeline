@@ -247,7 +247,7 @@ def render_runs(
     works_tasks = {
         task_id
         for task_id in judged_task_ids
-        if all(verdict_label(results.get((run["id"], task_id))) in KEPT for run in runs)
+        if task_id not in (dropped_tasks | fixable_tasks | unsure_tasks)
     }
     if works_tasks:
         for task_id in sorted(works_tasks):
