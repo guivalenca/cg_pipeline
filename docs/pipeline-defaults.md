@@ -10,10 +10,10 @@ result changes our mind, and old runs remain in the ledger either way.
 | passage-cuts (granular candidate) | deepseek-v4-pro, thinking high | passage-cuts/v002 | 2026-07-26, steadiest granular behaviour (13 passages in 3 of 4 runs); r0031 is the reference |
 | passage-triage | deepseek-v4-flash, thinking high | passage-triage/v001 | 2026-07-26, r0043; zero unsure, zero disagreement with the pro thinking preset over 25 passages |
 | task-generation | deepseek-v4-pro, thinking high | task-generation/v004 | 2026-07-26, r0052; zero factual errors over four runs, deepest sets on dense passages, atomic tasks map one-to-one onto grains |
-| task-revision | deepseek-v4-pro, thinking high | task-revision/v003 | 2026-07-26, r0063-r0065; verdict profile stable across three trials, rewrites answer-consistent, and pro alone kept the vacuous task unfixable (flash rescued it, r0066) |
+| task-revision | deepseek-v4-pro, thinking high | task-revision/v004, tool-v003 (brake variant) | 2026-07-28, r0090 originals bench: 27 stands / 4 rewritten / 1 unfixable, all four blocking defects fixed; r0087 parts bench: 18/18 stands, zero expansions |
 | task-triage | deepseek-v4-pro, thinking high | task-triage/v001 | 2026-07-26, r0067; runs after revision via --revision-run, 31/31 supported, zero unsure |
 | task-granularity | deepseek-v4-pro, thinking high | task-granularity/v004 | 2026-07-27, r0075; 22 single / 9 composite / 18 parts; the founder's target splits (T08, T18) land and enumerations stay single |
-| task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | 2026-07-27, r0076; decided to reuse v003 and tool-v002 unchanged over materialized parts |
+| task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | retired 2026-07-28 by the new single-pass order |
 
 Task generation runs over the coarse division (r0017). The granular division
 (r0031) is retired for this stage: its stub passages (heading plus an input
@@ -25,14 +25,17 @@ passage provenance resolves the reference anyway.
 
 The task flow is generation, revision, triage, granularity (v004 splits packed
 tasks; parts materialized as task rows with provenance in granularity run
-item), second revision over parts, substance as pure discard gate over the
-post-split set (surviving singles plus revised parts), then embedding.
+item), substance as pure discard gate over the post-split set (surviving
+singles plus parts), then embedding.
 Revision judges each task blind (task and answer only, no source): the answer
 anchors the rewrite, and unfixable means even the answer cannot rebuild it.
 Triage then holds the source, so a referent the revision invented is caught
 there; the two stages cover each other's failure mode. The reference chain
-is r0052 generation, r0065 revision, r0067 triage, r0075 granularity, r0076
-parts-revision, r0079/r0080 substance.
+is r0052 generation, r0090 revision, r0067 triage, r0075 granularity, then
+substance.
+
+The accepted cost is that decorative deixis ("according to the passage"-style
+garnish) now survives revision by design; revisit this if it pollutes embeddings.
 
 Task generation takes provenance at the passage level only (the run_item
 already records it); block-level citation stays in reserve if results ask
