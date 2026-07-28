@@ -148,9 +148,9 @@ def cmd_run(args: argparse.Namespace) -> None:
                 and base_revisions[task["id"]]["verdict"] == "rewritten"
             ]
             if rewritten_composites:
-                raise SystemExit(
-                    f"{args.revision_run} rewrote composite task(s) that {args.granularity_run}"
-                    f" splits: {', '.join(rewritten_composites)}; revise the parts instead"
+                print(
+                    f"warning: {len(rewritten_composites)} rewritten composite parent(s)"
+                    " whose rewrites are superseded by their parts"
                 )
             composite_count = sum(
                 granularity[task["id"]]["verdict"] == "composite" for task in tasks

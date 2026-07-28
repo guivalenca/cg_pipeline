@@ -7,7 +7,7 @@ import pytest
 
 from universe import harness
 from universe.harness import load_prompt
-from universe.task_embedding import STAGE
+from universe.task_embedding import STAGE, build_parser, cmd_run
 from universe.task_embedding_report import components, percentile
 
 PROMPT_PATH = (
@@ -149,3 +149,18 @@ def test_claim_run_returns_readable_incrementing_ids(db):
     assert re.fullmatch(r"r\d{4}", first)
     assert int(second[1:]) == int(first[1:]) + 1
     assert harness.fetch_run(db, first)["status"] == "running"
+
+
+def test_post_split_overlay_flags_are_available_and_require_granularity():
+    args = build_parser().parse_args(
+        [
+            "run", "--prompt", "v001", "--model", "fake/embedding", "--gen-runs", "r0001",
+            "--granularity-run", "r0002", "--parts-revision-run", "r0003",
+        ]
+    )
+    assert args.granularity_run == "r0002"
+    assert args.parts_revision_run == "r0003"
+
+    args.granularity_run = None
+    with pytest.raises(SystemExit, match="--parts-revision-run requires --granularity-run"):
+        cmd_run(args)

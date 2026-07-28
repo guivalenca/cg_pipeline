@@ -24,18 +24,21 @@ def test_revision_report_task_set_must_match(monkeypatch):
         revision_report.render_runs(object(), ["r1", "r2"])
 
 
-def test_task_substance_refuses_rewritten_composites(monkeypatch):
+def test_task_substance_warns_for_rewritten_composites(monkeypatch, capsys):
     args = argparse.Namespace(
         prompt="v004", tool=None, extra=None, gen_runs=["gen"], passages_from=None,
         revision_run="revision", granularity_run="split", parts_revision_run=None,
         model="model", temperature=None, max_tokens=1, workers=1,
     )
     monkeypatch.setattr(task_substance, "connect", lambda: nullcontext(object()))
-    monkeypatch.setattr(task_substance, "load_prompt", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(task_substance, "materialize", lambda *_: {"tasks_new": 0, "tasks_existing": 0})
     monkeypatch.setattr(
-        task_substance, "fetch_tasks_for_runs", lambda *_: [{"id": "base:t01", "passage_id": "p1"}]
+        task_substance, "load_prompt",
+        lambda *_args, **_kwargs: argparse.Namespace(ref="v004", sha="a" * 12),
     )
+    monkeypatch.setattr(task_substance, "materialize", lambda *_: {"tasks_new": 0, "tasks_existing": 0})
+    base = [{"id": "base:t01", "passage_id": "p1"}]
+    parts = [{"id": "split-1:t01", "run_item_id": "split-1", "passage_id": "p1"}]
+    monkeypatch.setattr(task_substance, "fetch_tasks_for_runs", lambda _conn, runs: base if runs == ["gen"] else parts)
     monkeypatch.setattr(
         task_substance, "fetch_revisions",
         lambda *_: {"base:t01": {"verdict": "rewritten", "task": "replacement"}},
@@ -43,11 +46,18 @@ def test_task_substance_refuses_rewritten_composites(monkeypatch):
     monkeypatch.setattr(
         task_substance, "fetch_items",
         lambda *_: [{"id": "split-1", "task_id": "base:t01", "error": None,
+                      "duration_ms": None, "usage": None,
                       "response": '{"verdict": "composite", "parts": [{"task": "one", "answer": "one"}]}' }],
     )
 
-    with pytest.raises(SystemExit, match="rewrote composite task"):
-        task_substance.cmd_run(args)
+    monkeypatch.setattr(task_substance, "materialize_parts", lambda *_: {})
+    monkeypatch.setattr(task_substance, "build_targets", lambda _conn, tasks: tasks)
+    monkeypatch.setattr(task_substance, "ModelClient", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(task_substance, "execute", lambda *_args, **_kwargs: {"run_id": "substance", "status": "done"})
+
+    task_substance.cmd_run(args)
+
+    assert "warning: 1 rewritten composite parent(s) whose rewrites are superseded by their parts" in capsys.readouterr().out
 
 
 def test_task_triage_replaces_composites_with_parts(monkeypatch):

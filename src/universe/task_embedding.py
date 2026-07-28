@@ -3,12 +3,13 @@
     python -m universe.task_embedding run --prompt v001 \
         --model qwen/qwen3-embedding-8b --gen-runs r0052 --revision-run r0065
 
-The input is the task and its answer concatenated by a versioned template;
-with --revision-run the revised bodies are what gets embedded and unfixable
-tasks are dropped, the same overlay task-triage applies. The vector is the
-call's output and lands in task_embedding, so the readable fact kept on the
-run item is the rendered input itself; input_sha is its sha256, tying each
-vector to the exact text it came from.
+The input is the task and its answer concatenated by a versioned template.
+Revision and post-split overlays match task-substance: revised bodies are
+embedded, unfixable tasks are dropped, composite parents are replaced by
+parts, and part revisions can be overlaid. The vector is the call's output
+and lands in task_embedding, so the readable fact kept on the run item is the
+rendered input itself; input_sha is its sha256, tying each vector to the exact
+text it came from.
 """
 
 import argparse
@@ -23,6 +24,7 @@ from universe.db import connect
 from universe.harness import claim_run, fetch_items, id_list, load_prompt, positive_int
 from universe.model_client import EmbeddingClient
 from universe.passages import fetch_passages_for_runs
+from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
 
@@ -31,6 +33,9 @@ DEFAULT_WORKERS = 4
 
 
 def cmd_run(args: argparse.Namespace) -> None:
+    if args.parts_revision_run and not args.granularity_run:
+        raise SystemExit("--parts-revision-run requires --granularity-run")
+
     prompt = load_prompt(STAGE, args.prompt, require_body=False)
     with connect() as conn:
         for run_id in args.gen_runs:
@@ -49,8 +54,8 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {', '.join(args.passages_from)}, skipped"
             )
         if args.revision_run:
-            revisions = fetch_revisions(conn, args.revision_run)
-            tasks, dropped, unjudged = apply_revisions(tasks, revisions)
+            base_revisions = fetch_revisions(conn, args.revision_run)
+            tasks, revision_dropped, unjudged = apply_revisions(tasks, base_revisions)
             if unjudged:
                 names = ", ".join(t["id"] for t in unjudged)
                 raise SystemExit(
@@ -60,14 +65,66 @@ def cmd_run(args: argparse.Namespace) -> None:
             rewritten = sum(
                 1
                 for task in tasks
-                if isinstance(revisions[task["id"]], dict)
-                and revisions[task["id"]]["verdict"] == "rewritten"
+                if isinstance(base_revisions[task["id"]], dict)
+                and base_revisions[task["id"]]["verdict"] == "rewritten"
             )
             bodies = "body was" if rewritten == 1 else "bodies were"
             print(
-                f"{args.revision_run}: {len(dropped)} task(s) dropped as unfixable,"
+                f"{args.revision_run}: {len(revision_dropped)} task(s) dropped as unfixable,"
                 f" {rewritten} task {bodies} swapped by rewrites"
             )
+        if args.granularity_run:
+            granularity = {}
+            for item in fetch_items(conn, args.granularity_run):
+                if not item["task_id"]:
+                    raise SystemExit(f"{item['id']} is not about a task")
+                granularity[item["task_id"]] = granularity_of(item)
+            unjudged = [task for task in tasks if not isinstance(granularity.get(task["id"]), dict)]
+            if unjudged:
+                names = ", ".join(task["id"] for task in unjudged)
+                raise SystemExit(
+                    f"{len(unjudged)} task(s) have no usable granularity in"
+                    f" {args.granularity_run}: {names}; silence is not a verdict"
+                )
+            surviving_task_ids = {task["id"] for task in tasks}
+            composite_count = sum(
+                granularity[task["id"]]["verdict"] == "composite" for task in tasks
+            )
+            tasks = [task for task in tasks if granularity[task["id"]]["verdict"] != "composite"]
+            materialize_parts(conn, args.granularity_run)
+            parent_by_part_run_item = {
+                item["id"]: item["task_id"] for item in fetch_items(conn, args.granularity_run)
+            }
+            part_tasks = [
+                task for task in fetch_tasks_for_runs(conn, [args.granularity_run])
+                if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
+            ]
+            parts_count = len(part_tasks)
+            tasks.extend(part_tasks)
+            print(
+                f"{args.granularity_run}: {composite_count} composite task(s)"
+                f" replaced by {parts_count} part(s)"
+            )
+            if args.parts_revision_run:
+                part_revisions = fetch_revisions(conn, args.parts_revision_run)
+                revised_parts, part_dropped, unjudged = apply_revisions(part_tasks, part_revisions)
+                if unjudged:
+                    names = ", ".join(task["id"] for task in unjudged)
+                    raise SystemExit(
+                        f"{len(unjudged)} task(s) have no usable revision in"
+                        f" {args.parts_revision_run}: {names}; silence is not a verdict"
+                    )
+                rewritten = sum(
+                    isinstance(part_revisions[task["id"]], dict)
+                    and part_revisions[task["id"]]["verdict"] == "rewritten"
+                    for task in revised_parts
+                )
+                tasks = tasks[: len(tasks) - parts_count] + revised_parts
+                bodies = "body was" if rewritten == 1 else "bodies were"
+                print(
+                    f"{args.parts_revision_run}: {len(part_dropped)} task(s) dropped as"
+                    f" unfixable, {rewritten} task {bodies} swapped by rewrites"
+                )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
@@ -81,7 +138,15 @@ def cmd_run(args: argparse.Namespace) -> None:
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(tasks)} task(s)"
             f" via {args.model}, {args.workers} at a time"
         )
-        run_id = claim_run(conn, STAGE, args.model, prompt.ref, prompt.sha, {})
+        run_id = claim_run(
+            conn, STAGE, args.model, prompt.ref, prompt.sha,
+            {
+                "gen_runs": args.gen_runs,
+                "revision_run": args.revision_run,
+                "granularity_run": args.granularity_run,
+                "parts_revision_run": args.parts_revision_run,
+            },
+        )
 
         def call(work: tuple[int, dict, str, str]) -> tuple:
             index, task, text, input_sha = work
@@ -183,6 +248,14 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         type=id_list,
         help="comma-separated task-generation run ids",
+    )
+    run.add_argument(
+        "--granularity-run",
+        help="task-granularity run id; replace composite tasks with its parts",
+    )
+    run.add_argument(
+        "--parts-revision-run",
+        help="task-revision run id; overlay rewrites and drop unfixable parts",
     )
     run.add_argument(
         "--revision-run",
