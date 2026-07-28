@@ -29,7 +29,7 @@ from universe.task_triage import apply_revisions, fetch_revisions
 from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-embedding"
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 8
 
 
 def cmd_run(args: argparse.Namespace) -> None:
@@ -132,6 +132,11 @@ def cmd_run(args: argparse.Namespace) -> None:
             prompt.render_fields({"task": task["body"], "answer": task["answer"]})
             for task in tasks
         ]
+        empty = [task["id"] for task, text in zip(tasks, rendered) if not text.strip()]
+        if empty:
+            # The provider rejects empty inputs; an empty rendering means a
+            # broken task row, which must stop the run, not become a vector.
+            raise SystemExit(f"{len(empty)} task(s) render to empty input: {', '.join(empty)}")
         input_shas = [hashlib.sha256(text.encode()).hexdigest() for text in rendered]
         client = EmbeddingClient(args.model)
         print(
