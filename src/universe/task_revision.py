@@ -124,7 +124,10 @@ def cmd_run(args: argparse.Namespace) -> None:
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} task(s)"
             f" via {args.model}, {args.workers} at a time"
         )
-        summary = execute(conn, prompt, client, targets, workers=args.workers)
+        summary = execute(
+            conn, prompt, client, targets, workers=args.workers,
+            run_params={"gen_runs": gen_runs, "granularity_runs": granularity_runs},
+        )
         items = fetch_items(conn, summary["run_id"])
 
     verdicts = [revision_of(item) for item in items]

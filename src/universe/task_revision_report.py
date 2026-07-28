@@ -72,7 +72,23 @@ def render_runs(
         if gen_runs and passages_from and revision_run
         else {}
     )
-    task_ids = sorted({task_id for _, task_id in results})
+    task_ids_by_run = {
+        run["id"]: {task_id for run_id, task_id in results if run_id == run["id"]}
+        for run in runs
+    }
+    expected_task_ids = task_ids_by_run[runs[0]["id"]]
+    for run in runs[1:]:
+        actual_task_ids = task_ids_by_run[run["id"]]
+        if actual_task_ids != expected_task_ids:
+            missing = expected_task_ids - actual_task_ids
+            extra = actual_task_ids - expected_task_ids
+            msg = f"{run['id']}: task_id mismatch."
+            if missing:
+                msg += f" Missing: {', '.join(sorted(missing))}."
+            if extra:
+                msg += f" Extra: {', '.join(sorted(extra))}."
+            raise SystemExit(msg)
+    task_ids = sorted(expected_task_ids)
     tasks = fetch_tasks(conn, task_ids)
     passages = {p["id"]: p for p in fetch_passages(conn, sorted({t["passage_id"] for t in tasks}))}
 
@@ -111,8 +127,6 @@ def render_runs(
         lines += [f"**{heading}**", "", f"- answer: {task['answer']}"]
         for run in runs:
             revision = results.get((run["id"], task["id"]))
-            if revision is None:
-                continue
             if not isinstance(revision, dict):
                 lines.append(f"- {run['id']}: ({revision})")
             elif revision["verdict"] == "rewritten":

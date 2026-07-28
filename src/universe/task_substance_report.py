@@ -94,13 +94,20 @@ def render_runs(
                 f"{len(unjudged)} task(s) have no usable granularity in"
                 f" {granularity_run}: {names}; silence is not a verdict"
             )
+        surviving_task_ids = {task["id"] for task in tasks}
         tasks = [
             task
             for task in tasks
             if granularity[task["id"]]["verdict"] != "composite"
         ]
         materialize_parts(conn, granularity_run)
-        part_tasks = fetch_tasks_for_runs(conn, [granularity_run])
+        parent_by_part_run_item = {
+            item["id"]: item["task_id"] for item in fetch_items(conn, granularity_run)
+        }
+        part_tasks = [
+            task for task in fetch_tasks_for_runs(conn, [granularity_run])
+            if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
+        ]
         if parts_revision_run:
             revisions = fetch_revisions(conn, parts_revision_run)
             part_tasks, dropped, unjudged = apply_revisions(part_tasks, revisions)
@@ -206,8 +213,15 @@ def render_runs(
     lines.append("")
     if no_verdict_tasks:
         for task_id in sorted(no_verdict_tasks):
-            failed = ", ".join(f"{run_id}: {status}" for run_id, status in no_verdict_tasks[task_id])
-            lines.append(f"- {task_labels.get(task_id, task_id)}: {failed}")
+            task = task_dict[task_id]
+            lines.append(f"### {task_labels.get(task_id, task_id)}")
+            lines.append("")
+            lines.append(f"> {task['body']}")
+            lines.append(f">\n> {task['answer']}")
+            lines.append("")
+            for run in runs:
+                lines += render_verdict(run["id"], results.get((run["id"], task_id)))
+            lines.append("")
     else:
         lines.append("None.")
     lines.append("")

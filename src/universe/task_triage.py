@@ -114,7 +114,18 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{run_id}: {counts['tasks_new']} new task(s),"
                 f" {counts['tasks_existing']} already known"
             )
-        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
+        for run_id in args.granularity_runs or []:
+            # Local import avoids the task_triage -> task_granularity ->
+            # task_triage import cycle.
+            from universe.task_granularity import materialize_parts
+
+            counts = materialize_parts(conn, run_id)
+            print(
+                f"{run_id}: {counts['tasks_new']} new task(s),"
+                f" {counts['tasks_existing']} already known"
+            )
+        task_run_ids = args.gen_runs + (args.granularity_runs or [])
+        tasks = fetch_tasks_for_runs(conn, task_run_ids)
         if args.passages_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
@@ -141,7 +152,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {len(dropped)} dropped as unfixable"
             )
         if not tasks:
-            raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
+            raise SystemExit(f"no tasks from {', '.join(task_run_ids)}")
 
         targets = build_targets(conn, tasks)
         client = ModelClient(
@@ -154,7 +165,14 @@ def cmd_run(args: argparse.Namespace) -> None:
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} task(s)"
             f" via {args.model}, {args.workers} at a time"
         )
-        summary = execute(conn, prompt, client, targets, workers=args.workers)
+        summary = execute(
+            conn, prompt, client, targets, workers=args.workers,
+            run_params={
+                "gen_runs": args.gen_runs,
+                "revision_run": args.revision_run,
+                "granularity_runs": args.granularity_runs or [],
+            },
+        )
         items = fetch_items(conn, summary["run_id"])
 
     usage = report.aggregate_usage(items)
@@ -191,6 +209,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--revision-run",
         help="task-revision run id; tasks are judged as it left them,"
         " rewrites applied and unfixables dropped",
+    )
+    run.add_argument(
+        "--granularity-run",
+        "--granularity-runs",
+        dest="granularity_runs",
+        type=id_list,
+        help="comma-separated task-granularity run ids; judge their materialized parts",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)

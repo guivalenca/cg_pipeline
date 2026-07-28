@@ -111,6 +111,19 @@ def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
     assert "BODY OF SOURCE" in sent and "Use the report_cuts tool" in sent
 
 
+def test_run_records_explicit_upstream_inputs(db, prompt, targets):
+    summary = harness.execute(
+        db,
+        prompt,
+        client(transport=fake_transport()),
+        targets[:1],
+        run_params={"gen_runs": ["r0001"], "revision_run": "r0002"},
+    )
+    params = harness.fetch_run(db, summary["run_id"])["params"]
+    assert params["gen_runs"] == ["r0001"]
+    assert params["revision_run"] == "r0002"
+
+
 def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets):
     summary = harness.execute(
         db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets

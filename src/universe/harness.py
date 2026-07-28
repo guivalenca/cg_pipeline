@@ -214,6 +214,7 @@ def execute(
     client: ModelClient,
     targets: list[Target],
     workers: int = MAX_WORKERS,
+    run_params: dict | None = None,
 ) -> dict:
     """Call the model once per target, writing each outcome as it lands."""
     # Rendered before anything is written: an unfilled placeholder must stop
@@ -223,13 +224,14 @@ def execute(
         for target in targets
     ]
 
+    params = {**client.params, **(run_params or {})}
     run_id = claim_run(
         conn,
         prompt.ref.split("/", 1)[0],
         client.model,
         prompt.ref,
         prompt.sha,
-        client.params,
+        params,
     )
 
     def call(work: tuple[int, Target, str]) -> tuple[int, Target, tuple | None, str | None]:

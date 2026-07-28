@@ -112,25 +112,14 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {', '.join(args.passages_from)}, skipped"
             )
         if args.revision_run:
-            revisions = fetch_revisions(conn, args.revision_run)
-            tasks, dropped, unjudged = apply_revisions(tasks, revisions)
+            base_revisions = fetch_revisions(conn, args.revision_run)
+            tasks, revision_dropped, unjudged = apply_revisions(tasks, base_revisions)
             if unjudged:
                 names = ", ".join(t["id"] for t in unjudged)
                 raise SystemExit(
                     f"{len(unjudged)} task(s) have no usable revision in"
                     f" {args.revision_run}: {names}; silence is not a verdict"
                 )
-            rewritten = sum(
-                1
-                for task in tasks
-                if isinstance(revisions[task["id"]], dict)
-                and revisions[task["id"]]["verdict"] == "rewritten"
-            )
-            bodies = "body was" if rewritten == 1 else "bodies were"
-            print(
-                f"{args.revision_run}: {len(dropped)} task(s) dropped as unfixable,"
-                f" {rewritten} task {bodies} swapped by rewrites"
-            )
         if args.granularity_run:
             granularity = {}
             for item in fetch_items(conn, args.granularity_run):
@@ -149,6 +138,20 @@ def cmd_run(args: argparse.Namespace) -> None:
                     f" {args.granularity_run}: {names}; silence is not a verdict"
                 )
 
+            surviving_task_ids = {task["id"] for task in tasks}
+            rewritten_composites = [
+                task["id"]
+                for task in tasks
+                if granularity[task["id"]]["verdict"] == "composite"
+                and args.revision_run
+                and isinstance(base_revisions[task["id"]], dict)
+                and base_revisions[task["id"]]["verdict"] == "rewritten"
+            ]
+            if rewritten_composites:
+                raise SystemExit(
+                    f"{args.revision_run} rewrote composite task(s) that {args.granularity_run}"
+                    f" splits: {', '.join(rewritten_composites)}; revise the parts instead"
+                )
             composite_count = sum(
                 granularity[task["id"]]["verdict"] == "composite" for task in tasks
             )
@@ -158,7 +161,13 @@ def cmd_run(args: argparse.Namespace) -> None:
                 if granularity[task["id"]]["verdict"] != "composite"
             ]
             materialize_parts(conn, args.granularity_run)
-            part_tasks = fetch_tasks_for_runs(conn, [args.granularity_run])
+            parent_by_part_run_item = {
+                item["id"]: item["task_id"] for item in fetch_items(conn, args.granularity_run)
+            }
+            part_tasks = [
+                task for task in fetch_tasks_for_runs(conn, [args.granularity_run])
+                if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
+            ]
             parts_count = len(part_tasks)
             tasks.extend(part_tasks)
             print(
@@ -167,8 +176,8 @@ def cmd_run(args: argparse.Namespace) -> None:
             )
 
             if args.parts_revision_run:
-                revisions = fetch_revisions(conn, args.parts_revision_run)
-                revised_parts, dropped, unjudged = apply_revisions(part_tasks, revisions)
+                part_revisions = fetch_revisions(conn, args.parts_revision_run)
+                revised_parts, part_dropped, unjudged = apply_revisions(part_tasks, part_revisions)
                 if unjudged:
                     names = ", ".join(task["id"] for task in unjudged)
                     raise SystemExit(
@@ -178,15 +187,28 @@ def cmd_run(args: argparse.Namespace) -> None:
                 rewritten = sum(
                     1
                     for task in revised_parts
-                    if isinstance(revisions[task["id"]], dict)
-                    and revisions[task["id"]]["verdict"] == "rewritten"
+                    if isinstance(part_revisions[task["id"]], dict)
+                    and part_revisions[task["id"]]["verdict"] == "rewritten"
                 )
                 tasks = tasks[: len(tasks) - parts_count] + revised_parts
                 bodies = "body was" if rewritten == 1 else "bodies were"
                 print(
-                    f"{args.parts_revision_run}: {len(dropped)} task(s) dropped as"
+                    f"{args.parts_revision_run}: {len(part_dropped)} task(s) dropped as"
                     f" unfixable, {rewritten} task {bodies} swapped by rewrites"
                 )
+        if args.revision_run:
+            rewritten = sum(
+                1
+                for task in tasks
+                if task["id"] in base_revisions
+                and isinstance(base_revisions[task["id"]], dict)
+                and base_revisions[task["id"]]["verdict"] == "rewritten"
+            )
+            bodies = "body was" if rewritten == 1 else "bodies were"
+            print(
+                f"{args.revision_run}: {len(revision_dropped)} task(s) dropped as unfixable,"
+                f" {rewritten} task {bodies} swapped by rewrites"
+            )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
@@ -201,7 +223,15 @@ def cmd_run(args: argparse.Namespace) -> None:
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} task(s)"
             f" via {args.model}, {args.workers} at a time"
         )
-        summary = execute(conn, prompt, client, targets, workers=args.workers)
+        summary = execute(
+            conn, prompt, client, targets, workers=args.workers,
+            run_params={
+                "gen_runs": args.gen_runs,
+                "revision_run": args.revision_run,
+                "granularity_run": args.granularity_run,
+                "parts_revision_run": args.parts_revision_run,
+            },
+        )
         items = fetch_items(conn, summary["run_id"])
 
     verdicts = [substance_of(item) for item in items]
