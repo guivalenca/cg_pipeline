@@ -124,8 +124,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{run_id}: {counts['tasks_new']} new task(s),"
                 f" {counts['tasks_existing']} already known"
             )
-        task_run_ids = args.gen_runs + (args.granularity_runs or [])
-        tasks = fetch_tasks_for_runs(conn, task_run_ids)
+        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
         if args.passages_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
@@ -134,6 +133,29 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{outside} task(s) outside the passages of"
                 f" {', '.join(args.passages_from)}, skipped"
             )
+        if args.granularity_runs:
+            # Local import avoids the task_triage -> task_granularity ->
+            # task_triage import cycle.
+            from universe.task_granularity import granularity_of
+
+            surviving_task_ids = {task["id"] for task in tasks}
+            parent_by_item = {}
+            composite_parent_ids = set()
+            for granularity_run in args.granularity_runs:
+                for item in fetch_items(conn, granularity_run):
+                    if not item["task_id"]:
+                        raise SystemExit(f"{item['id']} is not about a task")
+                    granularity = granularity_of(item)
+                    if isinstance(granularity, dict) and granularity["verdict"] == "composite":
+                        parent_by_item[item["id"]] = item["task_id"]
+                        composite_parent_ids.add(item["task_id"])
+            tasks = [task for task in tasks if task["id"] not in composite_parent_ids]
+            part_tasks = [
+                task
+                for task in fetch_tasks_for_runs(conn, args.granularity_runs)
+                if parent_by_item.get(task["run_item_id"]) in surviving_task_ids
+            ]
+            tasks.extend(part_tasks)
         if args.revision_run:
             revisions = fetch_revisions(conn, args.revision_run)
             tasks, dropped, unjudged = apply_revisions(tasks, revisions)
@@ -152,7 +174,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {len(dropped)} dropped as unfixable"
             )
         if not tasks:
-            raise SystemExit(f"no tasks from {', '.join(task_run_ids)}")
+            raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
         targets = build_targets(conn, tasks)
         client = ModelClient(

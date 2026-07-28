@@ -43,8 +43,11 @@ def label_map(
                 raise SystemExit(f"{item['id']} is not about a task")
             parent_by_item[item["id"]] = item["task_id"]
 
+    surviving_task_ids = {task["id"] for task in tasks}
     for part in fetch_tasks_for_runs(conn, granularity_runs):
         parent_id = parent_by_item.get(part["run_item_id"])
+        if parent_id not in surviving_task_ids:
+            continue
         if parent_id is None:
             raise SystemExit(
                 f"{part['id']} has no granularity run item naming its parent task"

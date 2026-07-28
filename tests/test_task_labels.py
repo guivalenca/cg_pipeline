@@ -78,3 +78,31 @@ def test_label_map_rejects_an_incomplete_revision_overlay(monkeypatch):
 
     with pytest.raises(SystemExit, match="no usable revision"):
         task_labels.label_map(object(), ["gen"], ["cuts"], "revision")
+
+
+def test_label_map_filters_orphaned_parts(monkeypatch):
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_tasks_for_runs",
+        lambda _conn, run_ids: (
+            [{"id": "base:t01", "passage_id": "p1"}]
+            if run_ids == ["gen"]
+            else [{"id": "part:t01", "run_item_id": "split-orphan", "seq": 1}]
+        ),
+    )
+    monkeypatch.setattr(task_labels, "fetch_passages_for_runs", lambda *_: [{"id": "p1"}])
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_revisions",
+        lambda *_: {"base:t01": {"verdict": "stands", "task": None}},
+    )
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_items",
+        lambda *_: [{"id": "split-orphan", "task_id": "dropped:t01"}],
+    )
+    monkeypatch.setattr(task_labels, "materialize_parts", lambda *_: None)
+
+    assert task_labels.label_map(object(), ["gen"], ["cuts"], "revision", ["split"]) == {
+        "base:t01": "T01"
+    }
