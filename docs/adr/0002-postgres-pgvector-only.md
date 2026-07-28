@@ -8,7 +8,8 @@ Status: accepted
 The grouping loop needs embedding search; the rest of the system needs
 ordinary relational storage with transactions. Graph databases, GraphRAG
 stacks, and dedicated vector databases were evaluated and rejected during the
-technology research phase (`docs/technology-foundations.md`).
+technology research phase (`docs/technology-foundations.md`, removed from
+the tree 2026-07-28, available in git history).
 
 ## Decision
 

@@ -4,8 +4,9 @@ Purpose: the maintained design narrative for the Concept Universe. Update this
 document whenever the model materially changes.
 
 Predecessor: the earlier Fragment/Facet model, including the CG pipeline
-findings and the first extraction experiment record, is preserved unchanged at
-`docs/archive/concept-system-vision-compilation-2026-07-14-fragment-facet-model.md`.
+findings and the first extraction experiment record, was kept for a while at
+`docs/archive/concept-system-vision-compilation-2026-07-14-fragment-facet-model.md`
+and removed from the tree on 2026-07-28; it remains available in git history.
 
 Status convention: the body of this document states only what has been
 formally decided. Anything still under design is marked "(open, see Open
@@ -118,10 +119,17 @@ represented and used is left for future implementation (see Deferred).
 
 **KC Grains** (short form: grains) are the Companion's base learning unit:
 source-local observations of a skill, statements of what a student could walk
-away with, expressed as capabilities. The term is ours, not the literature's:
-the literature's "learning objective" names a much coarser unit spanning
-several Knowledge Components, which is exactly the collision the rename
-avoids. Each grain points at the evidence in the source that supports it. How
+away with, expressed as capabilities. A vocabulary note, because it is easy
+to trip on: in the literature's terms a candidate grain, a grain, and a
+grouping of grains are all Knowledge Components — the same kind of unit at
+different points in the process. We reserve the plain name KC for the grouped
+unit because that is what the running system will generally refer to; the
+finer names exist only because the process necessarily produces duplicates
+(a single source generates identical KCs from different passages, and
+multiple sources generate identical KCs about the same skill), so the
+pipeline needs names for the stages of resolving them. Once the universe is
+running, candidates and grains fade into pipeline detail.
+Each grain points at the evidence in the source that supports it. How
 grains are sized (open, see Open Questions) and how exactly they are
 extracted, including their precise relationship to passages, is still being
 designed (open, see Open Questions). What is decided: passages may suggest
