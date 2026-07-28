@@ -14,6 +14,7 @@ result changes our mind, and old runs remain in the ledger either way.
 | task-triage | deepseek-v4-pro, thinking high | task-triage/v001 | 2026-07-26, r0067; runs after revision via --revision-run, 31/31 supported, zero unsure |
 | task-granularity | deepseek-v4-pro, thinking high | task-granularity/v004 | 2026-07-27, r0075; 22 single / 9 composite / 18 parts; the founder's target splits (T08, T18) land and enumerations stay single |
 | task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | retired 2026-07-28 by the new single-pass order |
+| task-substance | deepseek-v4-pro, thinking high | task-substance/v004, tool-v004 (mandatory reason) | 2026-07-28, r0091; verdict-only pair gate, 5 does_not_work / 35 works; reasons legible one by one, protected simple-but-real tasks all kept |
 
 Task generation runs over the coarse division (r0017). The granular division
 (r0031) is retired for this stage: its stub passages (heading plus an input
@@ -23,16 +24,24 @@ prompt wording cannot move the pro model on that axis, grouping reads task
 plus answer so the shared prefix carries no discriminating weight, and
 passage provenance resolves the reference anyway.
 
-The task flow is generation, revision, triage, granularity (v004 splits packed
-tasks; parts materialized as task rows with provenance in granularity run
-item), substance as pure discard gate over the post-split set (surviving
-singles plus parts), then embedding.
-Revision judges each task blind (task and answer only, no source): the answer
-anchors the rewrite, and unfixable means even the answer cannot rebuild it.
-Triage then holds the source, so a referent the revision invented is caught
-there; the two stages cover each other's failure mode. The reference chain
-is r0052 generation, r0090 revision, r0067 triage, r0075 granularity, then
-substance.
+The canonical task order (decided 2026-07-28): generation, granularity
+(splits packed tasks; parts materialized as task rows with provenance in
+the granularity run item), one revision pass over the whole post-split set,
+triage with the source over the final text, substance as the last gate,
+then embedding. Each stage runs exactly once, and everything that creates
+or transforms text happens before the gates: a generative act after a gate
+would invalidate that gate's guarantee, which is what kept happening under
+the old interleaved order.
+Revision judges each task blind (task and answer only, no source); unfixable
+means even the answer cannot rebuild it. Triage then holds the source, so a
+referent the revision invented is caught there; the two stages cover each
+other's failure mode. Substance judges the pair as evidence of learning and
+only discards, with a mandatory one-sentence reason per verdict.
+Stage references: r0052 generation, r0075 granularity, r0090 revision
+(originals bench), r0087 (parts bench), r0067 triage, r0091 substance.
+Pending before the order is fully proven: granularity has not yet been run
+over raw unrevised tasks (r0075 judged revised text), and triage has not
+yet been rerun in its new position over the post-split revised set.
 
 The accepted cost is that decorative deixis ("according to the passage"-style
 garnish) now survives revision by design; revisit this if it pollutes embeddings.
