@@ -33,6 +33,8 @@ def verdict_label(substance: dict | str) -> str:
 
 def render_verdict(run_id: str, substance: dict | str) -> list[str]:
     lines = [f"- {run_id}: {verdict_label(substance)}"]
+    if isinstance(substance, dict) and substance.get("reason"):
+        lines[0] += f" — {substance['reason']}"
     if isinstance(substance, dict) and substance["verdict"] == "fixable":
         if "task" in substance:
             lines.append(f"  > Corrected task: {substance['task']}")
@@ -171,7 +173,16 @@ def render_runs(
     dropped_tasks = set()
     fixable_tasks = set()
     unsure_tasks = set()
+    no_verdict_tasks = {}
     for task_id in judged_task_ids:
+        failed_runs = [
+            (run["id"], verdict_label(results.get((run["id"], task_id))))
+            for run in runs
+            if verdict_label(results.get((run["id"], task_id))) in {"error", "unparseable"}
+        ]
+        if failed_runs:
+            no_verdict_tasks[task_id] = failed_runs
+            continue
         has_dropped = any(
             verdict_label(results.get((run["id"], task_id))) in DROPPED
             for run in runs
@@ -190,6 +201,16 @@ def render_runs(
             fixable_tasks.add(task_id)
         elif has_unsure:
             unsure_tasks.add(task_id)
+
+    lines.append("## No verdict")
+    lines.append("")
+    if no_verdict_tasks:
+        for task_id in sorted(no_verdict_tasks):
+            failed = ", ".join(f"{run_id}: {status}" for run_id, status in no_verdict_tasks[task_id])
+            lines.append(f"- {task_labels.get(task_id, task_id)}: {failed}")
+    else:
+        lines.append("None.")
+    lines.append("")
 
     lines.append("## Dropped")
     lines.append("")
@@ -247,7 +268,7 @@ def render_runs(
     works_tasks = {
         task_id
         for task_id in judged_task_ids
-        if task_id not in (dropped_tasks | fixable_tasks | unsure_tasks)
+        if task_id not in (set(no_verdict_tasks) | dropped_tasks | fixable_tasks | unsure_tasks)
     }
     if works_tasks:
         for task_id in sorted(works_tasks):

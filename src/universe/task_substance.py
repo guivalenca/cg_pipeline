@@ -36,6 +36,7 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 STAGE = "task-substance"
 LEGACY_VERDICTS = {"substantive", "trivial", "unsure"}
 NEW_VERDICTS = {"works", "fixable", "does_not_work", "beyond_repair", "unsure"}
+REASON_VERDICTS = {"works", "does_not_work", "unsure"}
 KEPT = {"works", "fixable", "unsure", "substantive"}
 DROPPED = {"does_not_work", "beyond_repair", "trivial"}
 DEFAULT_WORKERS = 4
@@ -53,7 +54,11 @@ def substance_of(item: dict) -> dict | str:
         return "unparseable"
     verdict = parsed["verdict"]
     if verdict != "fixable":
-        return {"verdict": verdict}
+        result = {"verdict": verdict}
+        if verdict in REASON_VERDICTS and isinstance((reason := parsed.get("reason")), str):
+            if reason := reason.strip():
+                result["reason"] = reason
+        return result
     correction = {
         name: value.strip()
         for name in ("task", "answer")

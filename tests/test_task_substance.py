@@ -8,7 +8,7 @@ from universe.harness import load_prompt, load_tool
 from universe.task_substance import DROPPED, substance_of
 from universe.task_substance_report import render_verdict
 
-TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v003.json"
+TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v004.json"
 
 
 # --- reading verdicts back -------------------------------------------------
@@ -34,6 +34,19 @@ def test_a_does_not_work_task_carries_the_verdict():
     assert substance_of(item) == {"verdict": "does_not_work"}
 
 
+def test_a_verdict_carries_a_nonblank_reason_when_present():
+    item = {"error": None, "response": '{"verdict": "does_not_work", "reason": "It asks about the document."}'}
+    assert substance_of(item) == {
+        "verdict": "does_not_work",
+        "reason": "It asks about the document.",
+    }
+
+
+def test_a_missing_or_blank_reason_does_not_make_a_verdict_unparseable():
+    assert substance_of({"error": None, "response": '{"verdict": "works"}'}) == {"verdict": "works"}
+    assert substance_of({"error": None, "response": '{"verdict": "unsure", "reason": "  "}'}) == {"verdict": "unsure"}
+
+
 def test_does_not_work_is_a_dropped_verdict():
     assert "does_not_work" in DROPPED
 
@@ -41,6 +54,12 @@ def test_does_not_work_is_a_dropped_verdict():
 def test_a_does_not_work_verdict_renders_as_its_raw_name():
     assert render_verdict("r0001", {"verdict": "does_not_work"}) == [
         "- r0001: does_not_work"
+    ]
+
+
+def test_a_verdict_reason_renders_on_its_run_line():
+    assert render_verdict("r0001", {"verdict": "does_not_work", "reason": "It is document trivia."}) == [
+        "- r0001: does_not_work — It is document trivia."
     ]
 
 
@@ -86,7 +105,7 @@ def test_substance_of_names_what_it_cannot_use(item):
 
 
 def test_the_prompt_reads_task_and_answer_and_no_source():
-    prompt = load_prompt("task-substance", "v003", require_body=False)
+    prompt = load_prompt("task-substance", "v004", require_body=False)
     assert "Use the report_check tool" in prompt.template
     assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
     assert "{{body}}" not in prompt.template
@@ -105,7 +124,11 @@ def test_the_verdict_only_tool_definition_loads_and_forces_report_check():
         "verdict": {
             "type": "string",
             "enum": ["works", "does_not_work", "unsure"],
-            "description": "works when the pair does its job as it is; does_not_work when it does not; unsure when you cannot tell",
-        }
+            "description": "works when the task does its job as it is; does_not_work when it does not; unsure when you cannot tell",
+        },
+        "reason": {
+            "type": "string",
+            "description": "The reason for the verdict, in one sentence.",
+        },
     }
-    assert parameters["required"] == ["verdict"]
+    assert parameters["required"] == ["verdict", "reason"]
