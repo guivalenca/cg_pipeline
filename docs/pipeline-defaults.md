@@ -16,8 +16,8 @@ result changes our mind, and old runs remain in the ledger either way.
 | task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | retired 2026-07-28 by the new single-pass order |
 | task-substance | deepseek-v4-pro, thinking high | task-substance/v004, tool-v004 (mandatory reason) | 2026-07-28, r0091; verdict-only pair gate, 5 does_not_work / 35 works; reasons legible one by one, protected simple-but-real tasks all kept |
 | kc-statement | deepseek-v4-pro, thinking high | kc-statement/v001, tool-v001 | 2026-07-28, r0102; five-preset bench r0102-r0106, judged best on form consistency and same-skill convergence; flash thinking (r0104) is the cost fallback; prompt iteration continues on this preset |
-| task-modality | deepseek-v4-pro, thinking high | task-modality/v001, tool-v001 | 2026-07-28, r0109; four-preset bench r0109-r0112, 1 miss in 33 per preset; the "Name X" recall convention is the open v002 candidate |
-| task-knowledge | deepseek-v4-pro, thinking high | task-knowledge/v001, tool-v001 | 2026-07-28, r0113; four-preset bench r0113-r0116, 2 misses in 33, no solo deviations; flash non-thinking excluded (27% miss, concept flattening) |
+| task-modality | majority of 3: pro thinking + pro non-thinking + flash thinking | task-modality/v001, tool-v001 | 2026-07-28, r0109+r0110+r0111 under universe.task_axes; modality is inert when knowledge is fact (decided convention); Name-X convention moot under scoping |
+| task-knowledge | majority of 3: pro thinking + pro non-thinking + flash thinking | task-knowledge/v001, tool-v001 | 2026-07-28, r0113+r0114+r0115 under universe.task_axes; flash non-thinking excluded (27% miss, concept flattening); 2-1 splits flagged as the working unsure |
 
 Task generation runs over the coarse division (r0017). The granular division
 (r0031) is retired for this stage: its stub passages (heading plus an input
