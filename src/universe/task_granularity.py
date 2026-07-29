@@ -187,7 +187,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
         summary = execute(
             conn, prompt, client, targets, workers=args.workers,
-            run_params={"gen_runs": args.gen_runs, "revision_run": args.revision_run},
+            run_params={"gen_runs": args.gen_runs, "passages_from": args.passages_from, "revision_run": args.revision_run},
         )
         items = fetch_items(conn, summary["run_id"])
 

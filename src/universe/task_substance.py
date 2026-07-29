@@ -227,6 +227,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             conn, prompt, client, targets, workers=args.workers,
             run_params={
                 "gen_runs": args.gen_runs,
+                "passages_from": args.passages_from,
                 "revision_run": args.revision_run,
                 "granularity_run": args.granularity_run,
                 "parts_revision_run": args.parts_revision_run,
