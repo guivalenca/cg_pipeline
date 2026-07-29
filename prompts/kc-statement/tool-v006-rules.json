@@ -1,28 +1,28 @@
-[
-  {
-    "type": "function",
-    "function": {
-      "name": "report_statement",
-      "description": "State the one thing a person must know to answer the task well.",
-      "parameters": {
-        "type": "object",
-        "required": ["verdict"],
-        "properties": {
-          "verdict": {
-            "type": "string",
-            "enum": ["stated", "unsure"],
-            "description": "stated when you can say it; unsure when you cannot tell what answering well requires"
-          },
-          "statement": {
-            "type": "string",
-            "description": "The one thing, in one short line. One demand only — never two joined by 'and'. One declarative sentence about the subject: a claim that is true of it — never a command, never a topic label, never a sentence about a learner (no 'know', 'understand', 'recognize', 'be able to', 'how to'). Built only from what the task and answer contain: no examples, no parentheses, no code, no mention of the task or the passage, and no ordering borrowed from the source (no 'first', 'second', or 'main' anything). Required with stated."
-          },
-          "reason": {
-            "type": "string",
-            "description": "Why you cannot tell, in one sentence. Required with unsure."
-          }
-        }
+{
+  "name": "report_statement",
+  "description": "State the one thing a person must know to answer the task well.",
+  "parameters": {
+    "type": "object",
+    "required": [
+      "verdict"
+    ],
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": [
+          "stated",
+          "unsure"
+        ],
+        "description": "stated when you can say it; unsure when you cannot tell what answering well requires"
+      },
+      "statement": {
+        "type": "string",
+        "description": "The one thing, in one short line. One demand only \u2014 never two joined by 'and'. One declarative sentence about the subject: a claim that is true of it \u2014 never a command, never a topic label, never a sentence about a learner (no 'know', 'understand', 'recognize', 'be able to', 'how to'). Built only from what the task and answer contain: no examples, no parentheses, no code, no mention of the task or the passage, and no ordering borrowed from the source (no 'first', 'second', or 'main' anything). Required with stated."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Why you cannot tell, in one sentence. Required with unsure."
       }
     }
   }
-]
+}

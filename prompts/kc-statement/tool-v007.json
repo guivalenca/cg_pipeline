@@ -1,33 +1,28 @@
-[
-  {
-    "type": "function",
-    "function": {
-      "name": "report_statement",
-      "description": "State the one thing a person must know to answer the task well.",
-      "parameters": {
-        "type": "object",
-        "required": [
-          "verdict"
+{
+  "name": "report_statement",
+  "description": "State the one thing a person must know to answer the task well.",
+  "parameters": {
+    "type": "object",
+    "required": [
+      "verdict"
+    ],
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": [
+          "stated",
+          "unsure"
         ],
-        "properties": {
-          "verdict": {
-            "type": "string",
-            "enum": [
-              "stated",
-              "unsure"
-            ],
-            "description": "stated when you can say it; unsure when you cannot tell what answering well requires"
-          },
-          "statement": {
-            "type": "string",
-            "description": "The one thing, as one sentence making one claim of fact about the subject matter. Its subject is the thing being learned, not the person learning it. When the knowledge is a way of doing something, the sentence states how it is done, never as a command to the reader. It uses the vocabulary of the task and answer, carries the substance the answer gives it \u2014 shortened, not hollowed \u2014 and reads the same without the task, the source, or the source's ordering. If several things could be stated, state the one the answer most directly demonstrates. Required with stated."
-          },
-          "reason": {
-            "type": "string",
-            "description": "Why you cannot tell, in one sentence. Required with unsure."
-          }
-        }
+        "description": "stated when you can say it; unsure when you cannot tell what answering well requires"
+      },
+      "statement": {
+        "type": "string",
+        "description": "The one thing, as one sentence making one claim of fact about the subject matter. Its subject is the thing being learned, not the person learning it. When the knowledge is a way of doing something, the sentence states how it is done, never as a command to the reader. It uses the vocabulary of the task and answer, carries the substance the answer gives it \u2014 shortened, not hollowed \u2014 and reads the same without the task, the source, or the source's ordering. If several things could be stated, state the one the answer most directly demonstrates. Required with stated."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Why you cannot tell, in one sentence. Required with unsure."
       }
     }
   }
-]
+}

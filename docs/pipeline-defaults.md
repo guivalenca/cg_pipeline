@@ -15,10 +15,21 @@ result changes our mind, and old runs remain in the ledger either way.
 | task-granularity | deepseek-v4-pro, thinking high | task-granularity/v004 | 2026-07-27, r0075; 22 single / 9 composite / 18 parts; the founder's target splits (T08, T18) land and enumerations stay single |
 | task-revision (parts) | deepseek-v4-pro, thinking high | task-revision/v003, tool-v002 | retired 2026-07-28 by the new single-pass order |
 | task-substance | deepseek-v4-pro, thinking high | task-substance/v004, tool-v004 (mandatory reason) | 2026-07-28, r0091; verdict-only pair gate, 5 does_not_work / 35 works; reasons legible one by one, protected simple-but-real tasks all kept |
-| kc-statement | deepseek-v4-pro, thinking high | kc-statement/v001, tool-v001 | 2026-07-28, r0102; five-preset bench r0102-r0106, judged best on form consistency and same-skill convergence; flash thinking (r0104) is the cost fallback; prompt iteration continues on this preset |
+| kc-statement | deepseek-v4-pro, thinking high | kc-statement/v005, tool-v007 | 2026-07-28; class-neutral knowledge identifier (declarative claim, procedures as rules, axes carry no trace in wording). Arc: v001 learner-objectives (r0102) -> v002 one-demand (r0121) -> v003 retired (grammar cast axis votes) -> v004 A/B (prohibition vs destination framing; differences at the run noise floor) -> v005 = destination base + one targeted anti-command clause. Scratch benches on the 33-task set; see prompts/kc-statement/README.md. Ledger reference run pending: reruns hit the 30 unjudged filler tasks of r0052 (selection blocker, open task). Stable defect classes fixed structurally; invented terms/source echoes/code names flicker at 2-3 per 33 per run (model noise floor; majority-of-N is the known remedy if grouping suffers). |
 | task-modality | majority of 3: pro thinking + pro non-thinking + flash thinking | task-modality/v002, tool-v001 | 2026-07-28, r0124+r0125+r0126 under universe.task_axes; v002 draws the line at apply-to-a-case vs put-into-words (Merrill use/remember, KLI new-instance), so retrieval-shaped "Name X" tasks are explain; 31/33 unanimous. v001 (r0109-r0111) retired with the fact scoping |
 | task-knowledge | majority of 3: pro thinking + pro non-thinking + flash thinking | task-knowledge/v003, tool-v002 (two-way: concept/procedure) | 2026-07-28, r0113+r0114+r0115 under universe.task_axes; flash non-thinking excluded (27% miss, concept flattening); 2-1 splits flagged as the working unsure. 2026-07-28: fact dropped as a class — five prompt attempts could not detect it reliably (best: 2 hits + 4 false positives), and fact misclassifications blocked the strongest true pairs in grouping; any fact is learnable phrased as a concept. Reference runs r0127+r0128+r0129 (30/33 unanimous). Our concept deliberately folds in principles (A&K's sense, not Merrill/KLI's narrow category sense). |
 | task-fact | retired 2026-07-28 | task-fact/v001-v003 | binary fact detector benched in r0120/r0122/r0123; retired with the fact class. Ledger keeps the runs. |
+
+Grouping input (decided 2026-07-28): the embedding for grouping encodes
+the kc-statement text, not task+answer — the statement is the grouping
+key, class-neutral by design; the voted axes partition each proximity
+group into grains, and the canonical per-grain phrasing at the end
+re-introduces the axis deliberately. The task-embedding stage still
+renders task+answer and needs a statement-input template before the next
+ledger embedding run. First statement embedding (scratch, v005 bench,
+qwen3-embedding-8b): median unrelated-pair cosine 0.57, known
+same-knowledge pairs at 0.84-0.90 — clean separation; data in
+reports/explorer-data.json, tool in reports/embedding-explorer.html.
 
 Task generation runs over the coarse division (r0017). The granular division
 (r0031) is retired for this stage: its stub passages (heading plus an input
