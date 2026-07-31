@@ -1,0 +1,1465 @@
+{
+ "judge": "anthropic/claude-opus-5",
+ "params": {
+  "reasoning_effort": "high",
+  "knn": 5,
+  "workers": 8,
+  "passages_from": "r0130",
+  "embedding": "google/gemini-embedding-001",
+  "convencao": "A->B = dominar A implica dominar B; ab = menor_indice -> maior_indice"
+ },
+ "prompt": {
+  "system": "You are one judge inside a knowledge-mapping pipeline. Each call puts before you two knowledge items, A and B, extracted from the same source material. An item is the knowledge behind one assessment task and carries three fields: the knowledge statement, the task that tests it, and the task's answer.\n\nYou judge exactly one directional question per call: would a learner who has genuinely mastered A — able to answer any fair question of the kind A's task represents — necessarily, through that mastery alone, also answer fair questions of the kind B's task represents?\n\nGround the judgment in transfer, the learning-science criterion: a piece of knowledge is identified by the pool of fair test questions that probe it, and mastery of A covers B only when B's whole demand already lives inside what mastering A requires. When B requires any fact, distinction or step that mastering A does not carry, the answer is no, however close the two topics are.\n\nYour verdict becomes one directed edge in a knowledge graph: yes draws the arrow A→B, meaning mastery of A implies mastery of B. The opposite direction is judged in a separate call by a judge who does not see your answer; disagreement between the two directions is legitimate and expected when one item is broader than the other. Judge only the direction in front of you.\n\nRecord the verdict with the tool, with a one-sentence reason.",
+  "tool": {
+   "type": "function",
+   "function": {
+    "name": "record_verdict",
+    "description": "Record the directional mastery verdict for this pair.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "verdict": {
+       "type": "string",
+       "enum": [
+        "yes",
+        "no"
+       ],
+       "description": "yes = mastery of A necessarily brings mastery of B"
+      },
+      "reason": {
+       "type": "string",
+       "description": "One sentence."
+      }
+     },
+     "required": [
+      "verdict",
+      "reason"
+     ],
+     "additionalProperties": false
+    }
+   }
+  },
+  "user_template": "<item_a>\n<statement>{statement_a}</statement>\n<task>{task_a}</task>\n<answer>{answer_a}</answer>\n</item_a>\n\n<item_b>\n<statement>{statement_b}</statement>\n<task>{task_b}</task>\n<answer>{answer_b}</answer>\n</item_b>\n\nQuestion: would a learner who has mastered A necessarily, through that mastery alone, also master B?"
+ },
+ "order": [
+  "16|32",
+  "0|31",
+  "17|18",
+  "8|11",
+  "15|30",
+  "30|31",
+  "15|31",
+  "8|10",
+  "10|24",
+  "8|24",
+  "3|10",
+  "0|13",
+  "0|30",
+  "10|11",
+  "11|13",
+  "25|26",
+  "1|4",
+  "0|1",
+  "7|16",
+  "0|11",
+  "13|14",
+  "1|5",
+  "22|23",
+  "7|8",
+  "0|15",
+  "3|9",
+  "11|24",
+  "8|13",
+  "7|29",
+  "1|2",
+  "0|14",
+  "10|13",
+  "7|24",
+  "13|24",
+  "2|14",
+  "2|4",
+  "0|2",
+  "5|24",
+  "14|15",
+  "5|13",
+  "19|20",
+  "1|13",
+  "5|8",
+  "5|10",
+  "14|31",
+  "2|13",
+  "24|31",
+  "0|4",
+  "22|24",
+  "27|28",
+  "7|11",
+  "13|16",
+  "5|16",
+  "4|10",
+  "3|11",
+  "2|15",
+  "2|30",
+  "14|30",
+  "4|5",
+  "15|17",
+  "0|17",
+  "6|8",
+  "3|29",
+  "2|32",
+  "3|8",
+  "8|29",
+  "16|24",
+  "7|32",
+  "8|22",
+  "16|23",
+  "17|31",
+  "11|19",
+  "11|22",
+  "13|32",
+  "0|19",
+  "14|32",
+  "16|29",
+  "11|29",
+  "2|19",
+  "4|19",
+  "2|9",
+  "1|17",
+  "16|22",
+  "9|10",
+  "6|11",
+  "23|32",
+  "5|9",
+  "11|20",
+  "0|9",
+  "9|26",
+  "11|21",
+  "6|13",
+  "12|26",
+  "9|25",
+  "13|21",
+  "0|6",
+  "14|21",
+  "7|23",
+  "0|21",
+  "28|29",
+  "8|21",
+  "6|10",
+  "9|27",
+  "15|28",
+  "0|18",
+  "13|20",
+  "17|28",
+  "10|20",
+  "8|20",
+  "9|28",
+  "12|25",
+  "23|24",
+  "1|18",
+  "3|27",
+  "15|18",
+  "17|27",
+  "9|12",
+  "27|29",
+  "18|31",
+  "15|26",
+  "2|26",
+  "24|25",
+  "15|25",
+  "12|19",
+  "2|12",
+  "0|24",
+  "13|15",
+  "21|24"
+ ],
+ "verdicts": {
+  "15|30": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's explanation of why BOW fails semantically already contains the fact that BOW ignores context, which is all B asks for."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Knowing that BOW disregards context is essentially the whole content of B's explanation, since the semantic-meaning limitation follows directly from treating words independently of context."
+   }
+  },
+  "30|31": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores context does not by itself entail knowing the distinct fact that it also discards word order/sequence, which is a separate property a learner must be told."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores word order does not by itself carry the separate fact that BOW also disregards context, treating words independently of surrounding text."
+   }
+  },
+  "0|31": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's definition explicitly includes that BOW ignores word order, so B's demand is entirely contained within A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only requires knowing that BOW ignores word order, whereas B additionally requires the positive definitional component that BOW represents text by counting word occurrences."
+   }
+  },
+  "17|18": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery entails knowing the n-gram terminology and that unigrams/bigrams are its instances, which is exactly all B asks for."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's statement already encompasses that n-grams are contiguous sequences of n items with unigrams as single words and bigrams as word pairs, which is exactly what B asks to distinguish."
+   }
+  },
+  "15|31": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery explicitly includes the fact that BOW discards word order and context, so identifying word order as the disregarded aspect is fully contained within it."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only requires knowing that BOW ignores word order, whereas B additionally requires understanding that BOW ignores context and thus fails to capture context-dependent semantic meaning — an explanatory step not carried by A."
+   }
+  },
+  "16|32": {
+   "ab": {
+    "v": "sim",
+    "reason": "Both items encode the identical fact—that BOW vectors grow huge for large documents causing heavy computation, mitigated by dropping irrelevant words—so mastery of A fully covers B's demand, the only added element being the trivial label \"second limitation.\""
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Both items probe the identical fact — that BOW vectors grow huge for large documents causing heavy computation, mitigated by dropping irrelevant words — so mastery of A fully covers B."
+   }
+  },
+  "8|10": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery is exactly the bag-of-words vector construction procedure (zero vector, count at vocabulary index), which is all B asks about, with B merely naming the function that implements it."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Both items describe the same bag-of-words vector construction (zero-initialized vector, counts placed at vocabulary indices), differing only in whether the loop is over sentence words or vocabulary words, so mastery of A carries the whole demand of B."
+   }
+  },
+  "8|11": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery of the counting-per-vocabulary-position procedure is exactly what B requires, since B is just applying that procedure to a concrete vocabulary and sentence with no extra concept needed."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A learner who can correctly construct count vectors against an ordered vocabulary and explain each index's value already possesses the full procedural knowledge B asks to be described (zero-initialize, count each vocabulary word's occurrences, place at its position)."
+   }
+  },
+  "0|13": {
+   "ab": {
+    "v": "sim",
+    "reason": "Knowing that BOW represents text by counting each word's occurrences directly entails explaining why a repeated word like 'train' yields a value of 2 at its index, since B only applies the counting principle to a concrete example."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that a BOW vector's entries are word occurrence counts, as A requires, entails the general definition of BOW as counting words while ignoring order that B asks for."
+   }
+  },
+  "10|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding that the vector starts as zeros and is incremented only for words present in the sentence directly entails that positions for absent vocabulary words remain zero."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only requires understanding why absent words yield zeros, whereas B requires knowing the full construction algorithm—initializing a zero vector, looking up each cleaned word's vocabulary index, and incrementing counts—steps not entailed by A's narrower fact."
+   }
+  },
+  "8|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "Knowing that vectors start at zero and counts are only incremented for vocabulary words present in the sentence directly entails that absent words leave zeros at their positions."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only covers why absent words yield zeros, whereas B requires describing the full construction procedure including initialization and incrementing positions by each word's occurrence count, which mastery of the zero case does not guarantee."
+   }
+  },
+  "3|10": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four-step outline of the BoW pipeline does not carry the mechanical detail of vector construction—initializing a zero vector of vocabulary length and incrementing counts at each word's vocabulary index—which B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of A covers only the final vectorization step's mechanics and does not necessarily carry knowledge of the full four-stage pipeline sequence (cleaning, tokenizing, vocabulary building, vectorizing) as an enumerated framework."
+   }
+  },
+  "0|30": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding that BOW is just word counts ignoring order inherently entails knowing it discards context, so B's demand is contained in A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores context does not by itself supply BOW's positive definition — representing text by word counts while disregarding word order — which B requires."
+   }
+  },
+  "25|26": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the definition of stopwords as low-significance common words does not by itself carry the rationale for their removal (saving database space and processing time), which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Knowing why stopwords are removed (they are common, low-value words wasting space and time) entails knowing what stopwords are, including canonical examples like \"a\", \"the\", \"is\"."
+   }
+  },
+  "11|13": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery of placing counts at vocabulary indices inherently includes understanding that a word occurring twice yields a value of 2, which is exactly B's demand."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's mastery is exactly the counting-by-index principle of bag-of-words, and B only asks to apply that same principle across a given ordered vocabulary, adding no new fact or step beyond mechanical index lookup."
+   }
+  },
+  "10|11": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery is exactly the algorithm of incrementing counts at vocabulary indices, which is all that B's task requires—applying it to a concrete sentence and vocabulary."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A learner who can construct count vectors against an ordered vocabulary already understands the zero-vector-plus-increment procedure that B asks to describe, since B adds no fact beyond restating that same algorithm."
+   }
+  },
+  "1|4": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's statement of BoW's purpose already includes that the produced numerical representations are used to train machine learning algorithms, which is exactly what B asks."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only establishes what the resulting vectors are used for (input to ML), whereas B additionally requires knowing that BoW is a feature-extraction method representing documents as unordered multisets of words, a characterization not carried by A's downstream-use knowledge."
+   }
+  },
+  "0|1": {
+   "ab": {
+    "v": "nao",
+    "reason": "A covers only the mechanics of BOW (word counts, order ignored), while B requires knowing its purpose as a feature-extraction technique producing numerical inputs for training machine learning algorithms, which A's mastery does not carry."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's statement already contains B's whole demand — representing a document as an unordered multiset (i.e., word counts ignoring order) — so a learner who masters A's account of BOW can also explain BOW in simple terms."
+   }
+  },
+  "0|11": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the conceptual definition of BOW as word counts ignoring order does not by itself carry the procedural skill of mapping counts onto fixed vocabulary indices to produce a positional vector."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Someone who can correctly build count vectors against a fixed vocabulary already understands that text is represented by word counts irrespective of order, which is exactly the conceptual definition B asks for."
+   }
+  },
+  "7|8": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that vector length equals vocabulary size does not entail knowing the counting/indexing procedure that fills the vector's entries, which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Knowing that a vector holds one counted slot per vocabulary word inherently entails that its length equals the vocabulary size, so B's question is answered by A's mastery."
+   }
+  },
+  "7|16": {
+   "ab": {
+    "v": "nao",
+    "reason": "A only establishes the numeric fact that vector length equals vocabulary size, whereas B additionally requires knowing the practical consequence (huge vectors causing heavy computation/time) and mitigation by pruning irrelevant words, which mastery of A does not carry."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's statement explicitly encodes that vector dimensionality equals vocabulary size, so applying it to a stated vocabulary of 11 requires no additional fact or step."
+   }
+  },
+  "1|5": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the general purpose of Bag of Words (feature extraction for ML) does not itself entail the specific procedural fact that the vocabulary is built from all unique words across the training documents."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the mechanical detail of how the vocabulary is assembled does not by itself carry the broader understanding of BoW's purpose as a feature-extraction technique producing numerical representations for training ML algorithms."
+   }
+  },
+  "13|14": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering how counts are placed in a BOW vector does not by itself carry the further inferential claim that similarity of these count vectors indicates document similarity, which is an added interpretive principle of the model."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Mastering A's claim that documents are compared via word-frequency vectors presupposes understanding that each vector entry is the count of that word's occurrences, which is all B asks."
+   }
+  },
+  "22|23": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the definition of a sparse vector does not by itself carry the additional knowledge of its computational consequences — memory/resource costs and the difficulty high dimensionality poses for traditional modeling algorithms."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Explaining why sparse vectors are problematic (high dimensionality, mostly zero entries straining memory and algorithms) presupposes and contains the definition of a sparse vector, so the definitional question is already covered."
+   }
+  },
+  "8|13": {
+   "ab": {
+    "v": "sim",
+    "reason": "B is a direct instance of the counting rule A describes—knowing that each vector position holds the word's occurrence count in the sentence immediately explains the value 2 for a doubled 'train'."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's mastery — understanding that each vector index holds the count of the corresponding word, as produced by incrementing per occurrence — already contains the whole procedure B asks to be described (zero-initialized vector, count per vocabulary word placed at its index)."
+   }
+  },
+  "1|2": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing BoW's purpose as a feature-extraction technique does not by itself supply the specific list of application fields (NLP, information retrieval, document classification) that B requires recalling."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the application fields where Bag of Words is used does not entail understanding its purpose as a feature-extraction technique producing numerical representations for machine learning."
+   }
+  },
+  "7|29": {
+   "ab": {
+    "v": "nao",
+    "reason": "A only carries the general vocabulary-size-equals-vector-dimension rule, whereas B additionally requires knowing that the specific `tokenize` function's output list is what constitutes the document's vocabulary, a pipeline-specific fact not entailed by A."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's mastery includes knowing that vocabulary length determines sentence vector size, which directly yields B's trivial application that a vocabulary of 11 gives 11-element vectors."
+   }
+  },
+  "0|15": {
+   "ab": {
+    "v": "sim",
+    "reason": "Knowing that BOW is just word counts with order disregarded directly entails the limitation that context-dependent meaning cannot be captured, so B's demand lives inside A's mastery."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Explaining why BOW fails at semantics presupposes knowing what BOW is—a word-count representation that ignores order—so the definitional demand of B is already contained in mastery of A."
+   }
+  },
+  "0|14": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW represents text as unordered word counts does not by itself carry the further inferential step that comparing these count vectors is a measure of document similarity, which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Knowing that BOW judges document similarity by comparing word-frequency vectors presupposes understanding that BOW represents text as word counts ignoring order, so the definitional question in B is already contained in A's mastery."
+   }
+  },
+  "10|13": {
+   "ab": {
+    "v": "sim",
+    "reason": "Knowing that the vector is built by incrementing the index for each occurrence of a word directly entails that a word appearing twice yields a value of 2, so B's demand is fully contained in A."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's answer already articulates the full procedure — a vocabulary-indexed vector whose positions are incremented once per occurrence of each cleaned word — so explaining how generate_bow builds a sentence vector demands nothing beyond what mastering A requires."
+   }
+  },
+  "3|9": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four high-level pipeline steps does not carry the specific implementation details of the tokenization function (regex replacement of non-word characters, lowercasing, stopword filtering) that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastering the word_extraction (clean/tokenize) step does not by itself carry knowledge of the full four-step BOW pipeline, which additionally requires knowing the vocabulary-building and vector-generation stages and their ordering."
+   }
+  },
+  "11|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery of building count vectors against an ordered vocabulary explicitly includes knowing that absent vocabulary words leave zeros at their positions, which is all B demands."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that a zero marks an absent vocabulary word entails grasping the index-to-word mapping and count semantics of bag-of-words encoding, so the learner can construct the full vector for a given vocabulary, with counts of 1 for present words being the trivial complement of the zero rule."
+   }
+  },
+  "7|24": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that a sentence vector's length equals the vocabulary size does not by itself entail understanding the position-to-word mapping and the count/zero semantics of bag-of-words entries that B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that each vocabulary word has an assigned position that is zero when absent presupposes the one-position-per-vocabulary-word mapping, which directly entails that vector length equals vocabulary size."
+   }
+  },
+  "13|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding that each index holds the count of the corresponding vocabulary word in the document inherently entails that a count of zero means the word is absent, so B's demand is fully contained in A's mastery."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that a BoW position holds zero because the word is absent presupposes the counting semantics of positions, so the learner can equally explain a count of 2 for a word appearing twice."
+   }
+  },
+  "0|2": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing BOW's definition (word counts, order ignored) does not by itself supply the separate factual list of application domains—NLP, information retrieval, document classification—that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the application domains where BOW is used does not itself convey the definitional mechanics of BOW (counting word occurrences while ignoring word order), which B requires."
+   }
+  },
+  "2|14": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application fields of Bag of Words carries no information about how the model represents documents as word-frequency vectors or how similarity is inferred from comparable word counts."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself supply the separate factual list of application fields (NLP, information retrieval, document classification) that B requires."
+   }
+  },
+  "5|24": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how the vocabulary is built from unique words does not by itself entail understanding the vector encoding step, where each position records a word's count/presence and is zero when that vocabulary word is absent from the sentence."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that each vector position maps to a vocabulary word and is zero when that word is absent from the sentence presupposes knowing the vocabulary is the collection of unique words drawn from all the documents, so B's demand is contained within A's mastery."
+   }
+  },
+  "2|4": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application fields where BoW is used does not itself carry the specific fact that BoW output vectors serve as input features to machine learning algorithms."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors feed machine learning algorithms does not entail knowing the specific list of application fields (NLP, information retrieval, document classification) that B requires naming."
+   }
+  },
+  "5|13": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how the vocabulary is built from unique words across documents does not itself entail understanding that vector entries are word frequency counts incremented per occurrence."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastering A concerns how counts are placed at indices for a given document, which does not necessarily carry the separate fact that the index set (vocabulary) is built from the unique words across all training documents."
+   }
+  },
+  "14|15": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself entail understanding its limitation—that discarding word order and context prevents capturing semantics—which is an additional distinction B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of A concerns BOW's limitation in ignoring word order and context, which does not by itself carry the positive insight that BOW measures document similarity through comparison of word-frequency vectors."
+   }
+  },
+  "19|20": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that CountVectorizer exists as a ready-made BOW tool does not entail knowing its API usage (instantiation, fit_transform, toarray) required to write the working code snippet."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Writing the CountVectorizer code, including its import path and purpose, entails knowing that CountVectorizer from sklearn.feature_extraction.text is the ready-made class for Bag of Words, which is all B asks."
+   }
+  },
+  "5|10": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that the vocabulary is the set of unique words across training documents does not entail the separate vectorization procedure—initializing a zero vector of vocabulary length and incrementing counts at each word's index—which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Mastering how the BoW vector is built by indexing each cleaned word into a vocabulary-length zero vector presupposes understanding that the vocabulary is the set of unique words collected across the training documents, so B's demand is contained in A."
+   }
+  },
+  "1|13": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing BoW's general purpose (feature extraction for ML) does not entail knowing the specific counting mechanic that each vector index holds the word's occurrence frequency, which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Understanding that BoW encodes word counts into a numeric vector inherently entails knowing its purpose is to turn text into numerical features for machine learning, so B's demand lives within A's mastery."
+   }
+  },
+  "14|31": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding that BOW judges similarity purely by word-frequency vectors inherently entails knowing that word order/sequence is discarded, so B's demand lives inside A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores word order does not itself entail understanding how BOW represents documents as word-frequency vectors and uses count similarity to judge document similarity."
+   }
+  },
+  "0|4": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW represents text as word counts ignoring order does not by itself convey the downstream purpose that these vectors serve as input features to machine learning algorithms."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW vectors feed into machine learning algorithms does not itself entail knowing the definition of BOW as word-count representation that ignores word order."
+   }
+  },
+  "24|31": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering why zeros appear for absent vocabulary words concerns count/presence encoding and does not itself require knowing the separate fact that BOW discards word order."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores word order does not entail understanding the vector encoding scheme where each position maps to a vocabulary word and zero marks its absence in the sentence."
+   }
+  },
+  "5|8": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how the vocabulary is assembled from unique words says nothing about the subsequent counting/encoding step that produces a sentence's count vector, which is an additional procedure."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A concerns the vectorization step given an existing vocabulary and does not itself require knowing how the vocabulary is constructed (the set of unique words across all training documents), which is B's distinct demand."
+   }
+  },
+  "2|13": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application domains of Bag of Words says nothing about how the representation encodes word frequency counts, which B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Understanding how BoW counts word occurrences does not entail knowing the specific list of application fields (NLP, information retrieval, document classification), which is separate factual knowledge."
+   }
+  },
+  "7|11": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that vector length equals vocabulary size does not entail knowing the count-encoding procedure of placing word frequencies at the correct vocabulary indices, which B requires."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Producing a count vector indexed by an ordered vocabulary inherently requires knowing that the vector has one slot per vocabulary word, so the learner directly infers that a vocabulary of 11 yields 11-element vectors."
+   }
+  },
+  "22|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's definition already encodes that zeros arise because vocabulary terms are absent from the instance, which is exactly the explanation B's task demands for specific zero positions in a bag-of-words sentence vector."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Understanding why individual positions are zero in a bag-of-words vector does not by itself supply the term \"sparse vector\" or the generalization that large vocabularies yield mostly-zero vectors."
+   }
+  },
+  "13|16": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering how counts fill a BOW vector does not itself carry the knowledge that vector dimensionality equals vocabulary size and the resulting computational-cost drawback (and mitigation by filtering words)."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A concerns the dimensionality/computational cost issue of BOW vectors and does not itself require knowing that each vector entry stores the word's occurrence count, which B's task demands."
+   }
+  },
+  "3|11": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four named steps of the BoW pipeline does not carry the procedural skill of mapping words to vocabulary indices and filling in counts to produce a concrete vector."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of the vectorization step alone does not entail knowing and naming the four-stage BoW pipeline (cleaning, tokenizing, vocabulary building, vectorizing), which requires additional procedural overview knowledge."
+   }
+  },
+  "27|28": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's definition already names the pieces (words, phrases, symbols) produced by tokenization as tokens, so giving an example of a token follows directly from that mastery."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's statement already defines tokens as the units produced by splitting text during tokenization, so a learner who can exemplify tokens necessarily carries the definition of tokenization as breaking text into such pieces."
+   }
+  },
+  "5|16": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how the vocabulary is built does not by itself carry the further knowledge that vector dimensionality equals vocabulary size and that this causes computational/time costs (and mitigation by filtering irrelevant words)."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "A's knowledge that BOW vector dimensionality equals the vocabulary size presupposes understanding what the vocabulary is — the set of unique words across the training documents — so B's demand is already contained in mastering A."
+   }
+  },
+  "2|15": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application domains of Bag of Words carries no understanding of its internal mechanics — that it discards word order and context — which is what B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Understanding BOW's semantic limitation from ignoring word order does not supply the separate factual knowledge of the application domains (NLP, information retrieval, document classification) where BOW is widely used."
+   }
+  },
+  "4|10": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors feed into machine learning algorithms says nothing about the construction procedure (zero vector of vocabulary length, index lookup, count incrementing) that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastering the mechanics of constructing a count vector does not by itself carry the purpose-level knowledge that such vectors serve as feature input to machine learning algorithms."
+   }
+  },
+  "2|30": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application fields of Bag of Words does not entail knowing the model's defining limitation that it disregards context, which is a separate conceptual fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores context says nothing about the application domains (NLP, information retrieval, document classification) where BOW is used, which is separate factual knowledge."
+   }
+  },
+  "14|30": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself carry the distinct fact that BOW ignores context/word order, which is a separate limitation of the model."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores context says nothing about how BOW positively measures document similarity through comparison of word-frequency vectors, which is an additional fact B requires."
+   }
+  },
+  "15|17": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing why BOW fails to capture semantics does not itself supply the definitional fact of what n-grams are and how unigrams differ from bigrams in tokenizing text."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definitional difference between unigrams and bigrams does not by itself supply the conceptual insight that BOW discards word order and context and therefore fails to capture semantics."
+   }
+  },
+  "0|17": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW counts words while ignoring order does not carry the additional n-gram terminology and the unigram/bigram distinction, which is a separate fact beyond A's demand."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the n-gram distinction (unigram vs bi-gram tokenization) does not by itself carry the core definition of BOW as counting word occurrences while disregarding word order, which B requires."
+   }
+  },
+  "4|5": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors feed into machine learning algorithms says nothing about how the vocabulary is constructed from unique words across the training documents, which is a separate procedural fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how the BoW vocabulary is constructed from unique words in the training corpus does not itself convey the downstream purpose of the resulting vectors as feature inputs to machine learning algorithms."
+   }
+  },
+  "2|32": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application fields of Bag of Words carries no information about its limitations, such as the vector-size/computation problem, which is a separate fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing a limitation of Bag of Words (vector size/computation cost) does not carry the separate factual knowledge of its application fields (NLP, information retrieval, document classification)."
+   }
+  },
+  "3|29": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four-step sequence of the BoW pipeline does not entail the specific implementation detail that the tokenize function's output list serves as the vocabulary whose length fixes each sentence vector's dimensionality."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only covers the role of the tokenize output (vocabulary and vector dimensionality) and does not require knowing the full four-step Bag of Words pipeline, notably the initial text-cleaning step."
+   }
+  },
+  "6|8": {
+   "ab": {
+    "v": "nao",
+    "reason": "Building a word-count dictionary for a single sentence does not require knowing the vocabulary-indexed vector construction (fixed ordering, zero-initialization, positional placement across a shared vocabulary), which B demands."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Building a count vector requires knowing each word's frequency in the sentence, so the learner can trivially produce the word-count mapping that B asks for."
+   }
+  },
+  "8|29": {
+   "ab": {
+    "v": "nao",
+    "reason": "A covers how counts fill vector positions given a vocabulary, but B requires knowing that the `tokenize` function's output list is the vocabulary and sets the vector's dimensionality — a specific pipeline fact not entailed by A's counting procedure."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that the tokenized list is the vocabulary and sets vector length does not entail knowing the count-based filling procedure (zero initialization, per-word occurrence counting at each index) that B requires."
+   }
+  },
+  "16|24": {
+   "ab": {
+    "v": "nao",
+    "reason": "A concerns the computational cost implied by vocabulary-sized vectors, while B requires knowing the encoding mechanics—that each position maps to a vocabulary word and holds zero when that word is absent from the sentence—a step A's mastery does not necessarily carry."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Understanding why absent vocabulary words yield zeros in a BoW vector does not by itself carry the knowledge that vector dimensionality equals vocabulary size and thus creates computational/time costs for large corpora (nor the mitigation of dropping irrelevant words)."
+   }
+  },
+  "8|22": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the count-based construction procedure does not itself supply the term \"sparse vector\" or its definition as a vector dominated by zeros arising from large vocabularies."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of a sparse vector does not carry the procedural knowledge of constructing a bag-of-words count vector by indexing vocabulary positions and incrementing counts."
+   }
+  },
+  "7|32": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that vector length equals vocabulary size does not carry the specific knowledge of the Bag of Words limitations enumerated in the passage (nor which one is \"second,\" nor the computational-cost consequence and word-dropping remedy)."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors grow large for big documents does not by itself establish the precise rule that vector dimensionality equals vocabulary size, which B's task requires applying to a specific number."
+   }
+  },
+  "17|31": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the definitional distinction between unigrams and bigrams does not by itself entail knowing the BOW model's core limitation that word order is disregarded, which is a separate property of the representation."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores word order does not supply the definition of n-grams or the specific distinction between unigrams and bi-grams, which is additional factual content."
+   }
+  },
+  "16|23": {
+   "ab": {
+    "v": "nao",
+    "reason": "A covers only the size/computation cost of vocabulary-sized BOW vectors, whereas B additionally requires understanding sparsity (predominantly zero entries) and its specific difficulty for traditional modeling algorithms, which mastery of A does not carry."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A conveys the general computational/memory cost of sparse high-dimensional vectors, but B additionally requires knowing the specific BOW mechanism (dimensionality equals vocabulary size) and the mitigation of dropping irrelevant words, which mastery of A alone does not supply."
+   }
+  },
+  "11|19": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering the manual counting/vectorization procedure does not entail knowing the specific library fact that scikit-learn's CountVectorizer implements Bag of Words."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that CountVectorizer is a ready-made Bag of Words tool is a recall fact that does not itself carry the procedural skill of mapping words to vocabulary indices and constructing the count vector by hand."
+   }
+  },
+  "3|8": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four-step sequence names \"generate vectors\" but does not carry the mechanics of counting word occurrences and placing counts at vocabulary positions, which B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of the vector-generation step alone does not guarantee knowledge of the full four-step Bag of Words pipeline (cleaning, tokenizing, vocabulary building), which A never requires."
+   }
+  },
+  "11|22": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering the mechanical procedure of counting vocabulary words into indexed positions does not necessarily carry the definitional term \"sparse vector\" and its characterization as a mostly-zero vector arising from large vocabularies."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of a sparse vector does not itself supply the procedure of mapping words to vocabulary indices and filling in counts to construct a bag-of-words vector."
+   }
+  },
+  "13|32": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding how BoW counts word occurrences does not entail knowing the passage's enumerated limitations of BoW, such as vector size causing heavy computation."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors grow unwieldy for large documents does not by itself entail understanding the counting mechanism whereby each index stores the word's occurrence frequency."
+   }
+  },
+  "14|32": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW judges similarity via comparable word-frequency vectors does not entail knowing the model's specific limitations, such as vector size explosion causing heavy computation for large documents."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing BOW's vector-size limitation does not by itself entail understanding the model's positive insight that similar word-count vectors indicate similar documents, which is a distinct piece of knowledge."
+   }
+  },
+  "11|29": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastering how to build a count vector against an ordered vocabulary inherently entails knowing that the vocabulary list defines the index positions and that its length fixes the vector's dimensionality, which is all B asks."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only states that the tokenized list serves as the vocabulary and sets vector length, whereas B requires the additional procedure of filling each index with the count of the corresponding vocabulary word in the sentence."
+   }
+  },
+  "0|19": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the conceptual definition of Bag of Words does not entail knowing the specific scikit-learn implementation (CountVectorizer in sklearn.feature_extraction.text), which is a separate tooling fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that CountVectorizer is a ready-made BOW implementation is a tool-recall fact that does not itself guarantee the conceptual definition of BOW as word counts ignoring order."
+   }
+  },
+  "2|19": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application domains of Bag of Words carries no knowledge of the specific scikit-learn CountVectorizer implementation, which is a separate factual item."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that CountVectorizer implements Bag of Words does not entail knowing the application domains (NLP, information retrieval, document classification) where the approach is widely used."
+   }
+  },
+  "4|19": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors feed into machine learning algorithms carries no information about the specific scikit-learn CountVectorizer class and its module, which is a separate factual item."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that CountVectorizer is a ready-made tool implementing Bag of Words does not by itself carry the separate fact about the purpose of the resulting vectors as input features for machine learning algorithms."
+   }
+  },
+  "2|9": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application domains of Bag of Words carries no knowledge of the tokenization/preprocessing steps implemented in a word_extraction function."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of the tokenization/preprocessing step in a BOW implementation does not carry the separate factual knowledge of the application domains (NLP, information retrieval, document classification) where BOW is used."
+   }
+  },
+  "16|29": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery already entails knowing that the vocabulary list determines vector dimensionality in BOW, which is exactly what B asks about the tokenize output serving as vocabulary and setting vector size."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only establishes that vocabulary length sets vector dimensionality, whereas B additionally requires knowing the computational/time cost consequence for large corpora and the mitigation of filtering irrelevant words, which A's mastery does not carry."
+   }
+  },
+  "1|17": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the general purpose of Bag of Words as a feature-extraction method does not carry the specific n-gram terminology and the unigram/bigram distinction that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definitional distinction between 1-grams and bi-grams within BoW tokenization does not by itself entail knowing BoW's overall purpose of converting text into numerical features for training machine learning algorithms."
+   }
+  },
+  "16|22": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering A concerns the computational cost of high-dimensional BOW vectors and does not necessarily carry the distinct concept and definition of sparsity (vectors mostly filled with zeros)."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of a sparse vector does not carry the BOW-specific fact that dimensionality equals vocabulary size nor the computational-cost consequence and mitigation (filtering irrelevant words) that B requires."
+   }
+  },
+  "9|10": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastery of the tokenization/cleaning step does not itself supply the vocabulary-indexed zero-vector construction and count-incrementing logic that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A covers vector construction from already-\"cleaned\" words and does not require knowing the specific tokenization steps (non-word character replacement, splitting, lowercasing, stopword filtering) that B demands."
+   }
+  },
+  "6|11": {
+   "ab": {
+    "v": "nao",
+    "reason": "Building a word-count dictionary does not itself require the extra step of aligning counts to a fixed ordered vocabulary and filling absent words with zeros at the correct indices."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Producing a count vector against a vocabulary already requires counting occurrences of each distinct word in a text, so building a word→count dictionary demands nothing beyond what mastery of A carries (only a simpler, unordered representation)."
+   }
+  },
+  "23|32": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering the general reasons sparse vectors are costly does not carry the specific knowledge of which limitations the passage enumerates for Bag of Words or that vector size is the \"second\" one (nor the remedy of dropping words by relevance)."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A covers only the vector-size/computation limitation of Bag of Words, whereas B requires understanding sparsity itself — mostly zero entries and the resulting difficulty for traditional modeling algorithms — which A's mastery does not supply."
+   }
+  },
+  "9|26": {
+   "ab": {
+    "v": "nao",
+    "reason": "A only requires describing the mechanics of tokenizing and filtering an ignore list, whereas B demands the rationale for stopword removal (low semantic value, saving space and processing time), which mastery of A's procedural description does not necessarily carry."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing why stopwords are removed does not carry the full tokenization pipeline steps (non-word character replacement, whitespace splitting, lowercasing) that B's task requires explaining."
+   }
+  },
+  "11|20": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding how to build a count vector by hand does not supply the specific scikit-learn API knowledge (import path, CountVectorizer, fit_transform, toarray) that B's task requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the CountVectorizer API calls does not itself require the ability to manually construct a count vector by indexing words against an ordered vocabulary, which is B's conceptual demand."
+   }
+  },
+  "0|9": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the conceptual definition of BOW does not carry the specific preprocessing steps of the word_extraction implementation (punctuation replacement, splitting, lowercasing, stopword filtering)."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastering the tokenization/preprocessing step of a BOW pipeline does not by itself carry the conceptual definition of BOW as word-count representation that disregards word order, which is a separate fact."
+   }
+  },
+  "11|21": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastery of counting word occurrences to build a vector inherently includes tallying a word's occurrences, and summing those tallies across two texts is a trivial arithmetic extension already implicit in the counting skill."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only requires summing a word's counts across texts, whereas B requires knowing how to build a positionally aligned count vector against an ordered vocabulary (index mapping, zeros for absent words), a step A's mastery does not carry."
+   }
+  },
+  "6|13": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastering the word-count mapping (each distinct word paired with its occurrence count) directly supplies the reasoning that a repeated word like 'train' yields a count/vector value of 2, since B only asks to explain that same counting principle in vector-index form."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Mastery of A — understanding that each position/entry holds the occurrence count of its word — directly supplies the counting operation needed to build a word-count dictionary, which is just the same tallying expressed as word→count pairs."
+   }
+  },
+  "5|9": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that the vocabulary is the set of unique words across training documents does not entail knowledge of the specific tokenization preprocessing steps (regex replacement of non-word characters, lowercasing, stopword filtering) performed by the word_extraction function."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A covers only the tokenization/cleaning step for a single sentence, whereas B requires the additional notion of aggregating unique words across all training documents to form a vocabulary, a step not entailed by A's mastery."
+   }
+  },
+  "12|26": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how to import NLTK's stopword corpus is a procedural/API fact that does not itself carry the conceptual rationale for why stopwords—low-semantic-value common words—are removed to save space and processing time."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the conceptual rationale for removing stopwords does not convey the specific NLTK implementation detail (importing nltk.corpus stopwords and calling stopwords.words('english')) that B requires."
+   }
+  },
+  "9|25": {
+   "ab": {
+    "v": "sim",
+    "reason": "A's mastery already includes knowing that the ignore list consists of low-significance common words like \"a\", \"the\", \"is\" that are filtered out, which is exactly what B asks."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of stopwords does not convey the full word_extraction pipeline steps (non-word character replacement, whitespace splitting, lowercasing) required by B."
+   }
+  },
+  "13|21": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastery of counting word occurrences to fill BoW vector positions trivially extends to summing those counts across two texts, which requires no new concept beyond addition of the same per-document counts."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Mastery of A — understanding that word frequency is a count of occurrences summed across texts — already contains the simpler idea that a bag-of-words vector entry equals the number of occurrences of that word in the document."
+   }
+  },
+  "14|21": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastering the BOW similarity insight presupposes understanding word-count vectors, so tallying and summing a word's occurrences across texts is a trivially contained sub-skill."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how to sum word counts across texts is a counting operation and does not entail the conceptual claim that BOW judges document similarity by comparing frequency vectors."
+   }
+  },
+  "0|21": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastery of BOW as counting word occurrences ignoring order directly entails being able to count a word's occurrences across sentences and add them, which is all B's task requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how to sum word counts across texts does not by itself carry the conceptual definition of Bag of Words as a text representation that disregards word order."
+   }
+  },
+  "28|29": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing what a token is does not entail knowing that the tokenize function's output list serves as the vocabulary whose length sets the vector dimensionality, which is an additional implementation/vectorization fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that tokenize's output list serves as the vocabulary defining vector dimensionality does not itself supply the definition of a token or examples of what units (words, phrases, sentences, punctuation handling) count as tokens."
+   }
+  },
+  "7|23": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that vector length equals vocabulary size does not itself supply the knowledge of why sparse, high-dimensional vectors burden memory, computation, and traditional modeling algorithms."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing why sparsity is computationally problematic does not itself supply the specific representational fact that a sentence vector's length equals the vocabulary size."
+   }
+  },
+  "9|27": {
+   "ab": {
+    "v": "sim",
+    "reason": "Explaining that word_extraction splits text into cleaned word tokens entails understanding the general notion of tokenization as breaking a string into token pieces, so B's definitional demand is contained within A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the general definition of tokenization does not carry the specific preprocessing steps of the BOW word_extraction function (non-word character replacement, lowercasing, stopword filtering against an ignore list)."
+   }
+  },
+  "0|6": {
+   "ab": {
+    "v": "sim",
+    "reason": "Genuinely understanding BOW as counting each word's occurrences while ignoring order directly entails being able to produce the word-count dictionary for a given sentence, which is just the mechanical application of that definition."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Being able to construct a word-count dictionary from a sentence entails understanding that text is represented by word counts without regard to order, which is exactly what B's definitional question asks."
+   }
+  },
+  "8|21": {
+   "ab": {
+    "v": "sim",
+    "reason": "Mastering the counting-based construction of sentence vectors entails knowing how to count word occurrences per sentence and aggregate them, so summing 'likes' counts across two sentences is already within that mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A only requires summing a word's counts across texts, whereas B requires knowing the vector-construction procedure — zero-initialization, vocabulary ordering, and placing counts at each word's index — which mastery of A does not supply."
+   }
+  },
+  "15|28": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding why BOW loses context does not by itself carry the definition of a token and the tokenization granularities (word, phrase, sentence, punctuation handling) that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing what a token is does not carry the specific knowledge of the Bag of Words model and its limitation in ignoring word order and context."
+   }
+  },
+  "0|18": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BOW counts words while ignoring order does not supply the separate n-gram terminology (unigram/bigram, contiguous sequences of n items) that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing n-gram notation for grouping words does not entail knowing the Bag of Words representation, which requires the distinct facts of word counting and order-insensitivity."
+   }
+  },
+  "6|10": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastery of A only requires tallying words into a per-sentence dictionary, whereas B demands knowledge of a fixed shared vocabulary, index alignment, zero-vector initialization and the algorithmic procedure of generate_bow — steps not entailed by A."
+   },
+   "ba": {
+    "v": "sim",
+    "reason": "Mastery of building count vectors by incrementing per-word counts entails the simpler ability to tally each distinct word's occurrences into a word-count dictionary, which is the same counting operation in an unindexed representation."
+   }
+  },
+  "13|20": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding that BOW values are word counts does not supply the specific scikit-learn API knowledge (CountVectorizer, fit_transform, toarray) required to write B's code."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A tests knowing the API calls for CountVectorizer, which can be memorized without understanding the underlying counting semantics that B requires explaining (why a repeated word yields a value of 2 in the vector)."
+   }
+  },
+  "10|20": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding the manual counting algorithm does not supply knowledge of scikit-learn's CountVectorizer API (import path, fit_transform, toarray), which is a separate library-specific fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how to call scikit-learn's CountVectorizer API does not entail understanding or being able to describe the internal zero-vector-and-increment algorithm of the custom generate_bow implementation."
+   }
+  },
+  "17|28": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding n-grams as contiguous sequences of n tokens (words vs. word pairs) presupposes knowing what a token is and being able to give examples such as individual words from a split sentence, so B's demand is already contained in A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing what a token is does not entail the n-gram concept or the unigram/bigram distinction within the Bag of Words approach, which requires additional facts about contiguous sequences of n tokens."
+   }
+  },
+  "9|28": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding the word_extraction pipeline (splitting text into words, discarding punctuation/non-word characters) inherently entails knowing what a token is and being able to give examples, which is the whole of B's demand."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing what a token is does not entail knowing the specific word_extraction preprocessing steps (non-word character replacement, lowercasing, stopword filtering) in the BOW pipeline."
+   }
+  },
+  "8|20": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding the conceptual counting procedure for building sentence vectors does not supply the specific scikit-learn API knowledge (import path, CountVectorizer, fit_transform, toarray) that B's task requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the CountVectorizer API calls is a library-usage skill that does not by itself require understanding or being able to articulate the underlying zero-initialized, per-vocabulary-word counting procedure that builds a sentence vector."
+   }
+  },
+  "1|18": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the purpose of Bag of Words as a feature-extraction method does not itself supply the n-gram terminology and the unigram/bigram distinction that B tests."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing n-gram notation for grouping words does not entail knowing the Bag of Words method's purpose of extracting numerical features for training machine learning algorithms."
+   }
+  },
+  "12|25": {
+   "ab": {
+    "v": "sim",
+    "reason": "Knowing how to obtain and apply NLTK's stopword corpus presupposes understanding what stopwords are — the common, low-significance words the list contains — so the conceptual definition in B is already contained in A's mastery."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the conceptual definition of stopwords does not supply the specific NLTK library knowledge (importing `from nltk.corpus import stopwords` and calling `stopwords.words('english')`) that B requires."
+   }
+  },
+  "17|27": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the unigram/bigram distinction presupposes tokens exist but does not itself supply the definition of tokenization as breaking strings into words, keywords, phrases, symbols and other elements."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of tokenization does not carry the n-gram concept or the specific unigram/bigram distinction in the Bag of Words approach, which is additional knowledge."
+   }
+  },
+  "23|24": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing why sparsity is computationally problematic does not entail understanding the bag-of-words encoding scheme in which each position maps to a vocabulary word and holds zero when that word is absent from the sentence."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing why zeros appear in a bag-of-words vector does not carry the separate knowledge of the computational/memory costs and modeling difficulties that sparse high-dimensional representations impose."
+   }
+  },
+  "15|18": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding why Bag of Words fails to capture context does not by itself supply the terminology of n-grams (unigrams, bigrams) that B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that n-gram notation names word groupings does not entail understanding the Bag of Words model's specific limitation of discarding order and context, which is a separate conceptual fact."
+   }
+  },
+  "3|27": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the four-step sequence of the BoW pipeline (which merely names tokenization) does not entail the definitional knowledge of what tokenization is — breaking strings into words, phrases, symbols and other tokens."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of tokenization does not supply the additional steps and ordering of the Bag of Words pipeline (cleaning, vocabulary building, vector generation)."
+   }
+  },
+  "18|31": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing n-gram notation for grouping words does not itself entail knowing the Bag of Words model or its specific property of ignoring word order."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that BOW ignores word order does not carry the separate terminology and definitions of n-grams (unigrams, bigrams), which B requires."
+   }
+  },
+  "27|29": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the general definition of tokenization does not carry the specific implementation knowledge that the tokenize function's output list serves as the vocabulary whose length sets the vector dimensionality."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how the tokenize function's output feeds vocabulary and vector dimensionality does not by itself supply the definition of tokenization as breaking strings into tokens (words, phrases, symbols, etc.)."
+   }
+  },
+  "9|12": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding what the tokenizing/stopword-filtering function does does not carry the specific library knowledge of NLTK's stopwords corpus and its import/API usage."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how to import NLTK's stopword corpus does not carry the full tokenization pipeline steps (regex replacement of non-word characters, splitting, lowercasing, filtering) that explaining the word_extraction function requires."
+   }
+  },
+  "15|26": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding why Bag of Words loses semantic/contextual meaning does not entail knowing the separate preprocessing concept of stopwords and the space/time efficiency rationale for removing them."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing why stopwords are removed says nothing about the Bag of Words model's structure or its loss of word order and context, which B requires."
+   }
+  },
+  "2|26": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application fields of Bag of Words carries no information about stopwords or the space/time rationale for removing them, which is a separate preprocessing fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing why stopwords are removed carries no information about the application domains of the Bag of Words approach, which is a separate factual recall."
+   }
+  },
+  "24|25": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding why bag-of-words vector positions hold zeros involves only vocabulary-to-position mapping and word absence, and carries no knowledge of the separate concept and definition of stopwords."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of stopwords says nothing about how bag-of-words vectors index vocabulary positions or why absent words yield zeros."
+   }
+  },
+  "15|25": {
+   "ab": {
+    "v": "nao",
+    "reason": "Understanding why Bag of Words loses semantic/contextual meaning does not entail knowing the separate definition of stopwords as low-significance common words removed in preprocessing."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing the definition of stopwords carries no knowledge of the Bag of Words model's disregard for word order and context, which B requires."
+   }
+  },
+  "2|12": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing the application domains of Bag of Words carries no knowledge of NLTK's stopwords corpus or its import syntax, which B requires."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing how to import NLTK's stopword corpus carries no information about the application domains of the Bag of Words approach, which is a separate factual recall."
+   }
+  },
+  "12|19": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing how to load NLTK's stopword corpus carries no information about scikit-learn's CountVectorizer class for Bag of Words, which is a separate library fact."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that sklearn's CountVectorizer implements Bag of Words carries no information about NLTK's stopwords corpus and its import/usage syntax, which B requires."
+   }
+  },
+  "21|24": {
+   "ab": {
+    "v": "nao",
+    "reason": "Mastering how counts sum across texts does not itself entail understanding the bag-of-words vector representation, its fixed vocabulary-to-position mapping, and why absent words yield zeros in a sentence's vector."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Mastery of A concerns interpreting zero entries as words absent from a sentence, which does not by itself require the counting/summing of a word's occurrences across multiple texts that B demands."
+   },
+   "closure": 1
+  },
+  "0|24": {
+   "ab": {
+    "v": "sim",
+    "reason": "Understanding that BOW represents a sentence by counting each vocabulary word's occurrences directly entails that a word absent from the sentence has a count of zero at its vocabulary position."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "Knowing that a zero marks an absent vocabulary word does not by itself carry the general definition of BOW as counting word occurrences while disregarding word order, which B requires."
+   },
+   "closure": 1
+  },
+  "13|15": {
+   "ab": {
+    "v": "nao",
+    "reason": "Knowing that BoW vectors store word counts does not by itself entail understanding the model's conceptual limitation—that discarding word order and context prevents capturing semantic meaning—which is a separate insight about what the representation loses."
+   },
+   "ba": {
+    "v": "nao",
+    "reason": "A concerns BOW's conceptual limitation regarding context and semantics, whereas B requires knowing the mechanics of the count-based vector encoding (index positions incremented per occurrence), a procedural fact not entailed by understanding the limitation."
+   },
+   "closure": 1
+  }
+ },
+ "usage": {
+  "calls": 256,
+  "prompt_tokens": 344968,
+  "completion_tokens": 29484,
+  "cost_usd": 0
+ }
+}
