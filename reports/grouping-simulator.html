@@ -148,6 +148,7 @@ button:disabled{opacity:.45;cursor:default}
 .tensao{color:var(--reescrita);font-weight:600;font-size:12px}
 .pend-linha b{font-weight:650}
 .vazio{color:var(--tinta-3);font-size:13px;padding:6px 0}
+.flag-item .empate{margin-top:5px;font-size:12px;font-weight:650;color:var(--reescrita)}
 .flag-item .menu{margin-top:5px;font-size:12px;color:var(--tinta-2)}
 .flag-item .menu li{margin:2px 0}
 .acoes{display:flex;gap:10px;margin-top:16px}
@@ -1876,40 +1877,141 @@ function derive(){
     else { singlesList.push({k, de: t==='ab'?unkey(k)[0]:unkey(k)[1], para: t==='ab'?unkey(k)[1]:unkey(k)[0]}); if (!same) crossRel.push({k, tipo:'simples'}); }
   }
 
-  const cliques = [];
-  (function bk(R,P,X){
-    if (!P.size && !X.size){ if (R.size>=2) cliques.push([...R]); return; }
-    for (const v of [...P]){
-      bk(new Set([...R,v]), new Set([...P].filter(u=>doubles[v].has(u))), new Set([...X].filter(u=>doubles[v].has(u))));
-      P.delete(v); X.add(v);
-    }
-  })(new Set(), new Set([...Array(N).keys()].filter(i=>doubles[i].size)), new Set());
-  cliques.sort((a,b)=> b.length-a.length || sumSim(b)-sumSim(a));
-  function sumSim(c){ let s=0; for (let x=0;x<c.length;x++) for (let y=x+1;y<c.length;y++) s+=S[c[x]][c[y]]; return s; }
+  /* --- formacao de KC por minimizacao de desacordo (correlation clustering, §4) ---
+     Estrutura decide sozinha: nenhuma escolha usa cosseno. Empate estrutural
+     genuino nao e desempatado — vira pendencia + sinalizacao para diagnostico. */
 
   const kcOf = new Array(N).fill(-1);
   const kcs = [];
-  for (const c of cliques){
-    const avail = c.filter(i=>kcOf[i]<0);
-    if (avail.length>=2){ const id=kcs.length; avail.forEach(i=>kcOf[i]=id); kcs.push({membros:avail.slice(), tensoes:[]}); }
-  }
-  let mudou = true;
-  while (mudou){
-    mudou = false;
-    for (const kc of kcs){
-      if (kc.membros.length < 3) continue;
-      for (let i=0;i<N;i++){
-        if (kcOf[i]>=0) continue;
-        if (cls(i)!==cls(kc.membros[0])) continue;
-        const dd = kc.membros.filter(m=>doubles[i].has(m)).length;
-        const nn = kc.membros.filter(m=>negs[i].has(m));
-        if (dd >= kc.membros.length-1 && nn.length<=1 && kc.membros.length+1>=4){
-          kcOf[i]=kcs.indexOf(kc); kc.membros.push(i);
-          nn.forEach(m=>kc.tensoes.push(key(i,m)));
-          mudou = true;
+  const empate = new Array(N).fill(false);
+
+  /* predicado v1 de bloco: 1 sempre vale; 2-3 exige clique perfeito de duplas;
+     >=4 exige 2-plex (cada membro com duplas para >= tamanho-2 dos outros)
+     e no maximo uma negativa testada interna por membro. */
+  const blocoValido = b => {
+    const n = b.length;
+    if (n <= 1) return true;
+    if (n <= 3){
+      for (let x=0;x<n;x++) for (let y=x+1;y<n;y++) if (!doubles[b[x]].has(b[y])) return false;
+      return true;
+    }
+    for (const m of b){
+      let d=0, g=0;
+      for (const o of b){ if (o===m) continue; if (doubles[m].has(o)) d++; if (negs[m].has(o)) g++; }
+      if (d < n-2 || g > 1) return false;
+    }
+    return true;
+  };
+  const tensoesDe = b => {
+    const out=[];
+    for (let x=0;x<b.length;x++) for (let y=x+1;y<b.length;y++) if (negs[b[x]].has(b[y])) out.push(key(b[x],b[y]));
+    return out;
+  };
+
+  /* escape para componentes grandes demais para enumerar (Bell(n) explode):
+     comportamento guloso antigo, restrito ao componente. */
+  function fallbackGuloso(M){
+    const cliques = [];
+    (function bk(R,P,X){
+      if (!P.size && !X.size){ if (R.size>=2) cliques.push([...R]); return; }
+      for (const v of [...P]){
+        bk(new Set([...R,v]), new Set([...P].filter(u=>doubles[v].has(u))), new Set([...X].filter(u=>doubles[v].has(u))));
+        P.delete(v); X.add(v);
+      }
+    })(new Set(), new Set(M), new Set());
+    const sumSim = c => { let s=0; for (let x=0;x<c.length;x++) for (let y=x+1;y<c.length;y++) s+=S[c[x]][c[y]]; return s; };
+    cliques.sort((a,b)=> b.length-a.length || sumSim(b)-sumSim(a));
+    const criados = [];
+    for (const c of cliques){
+      const avail = c.filter(i=>kcOf[i]<0);
+      if (avail.length>=2){ const id=kcs.length; avail.forEach(i=>kcOf[i]=id); kcs.push({membros:avail.slice(), tensoes:[]}); criados.push(id); }
+    }
+    let mudou = true;
+    while (mudou){
+      mudou = false;
+      for (const id of criados){
+        const kc = kcs[id];
+        if (kc.membros.length < 3) continue;
+        for (const i of M){
+          if (kcOf[i]>=0) continue;
+          const dd = kc.membros.filter(m=>doubles[i].has(m)).length;
+          const nn = kc.membros.filter(m=>negs[i].has(m));
+          if (dd >= kc.membros.length-1 && nn.length<=1 && kc.membros.length+1>=4){
+            kcOf[i]=id; kc.membros.push(i);
+            nn.forEach(m=>kc.tensoes.push(key(i,m)));
+            mudou = true;
+          }
         }
       }
     }
+  }
+
+  /* componentes conexos do grafo de duplas (duplas ja sao so intra-classe) */
+  const compOf = new Array(N).fill(-1);
+  const comps = [];
+  for (let i=0;i<N;i++){
+    if (compOf[i]>=0 || !doubles[i].size) continue;
+    const id = comps.length, pilha=[i], membros=[];
+    compOf[i]=id;
+    while (pilha.length){
+      const u = pilha.pop(); membros.push(u);
+      for (const v of doubles[u]) if (compOf[v]<0){ compOf[v]=id; pilha.push(v); }
+    }
+    comps.push(membros.sort((a,b)=>a-b));
+  }
+
+  for (const M of comps){
+    if (M.length > 10){
+      console.warn('componente de '+M.length+' nós acima do teto de enumeração (10); fallback guloso neste componente:', M.map(i=>IT[i].task_id));
+      fallbackGuloso(M);
+      continue;
+    }
+    const n = M.length;
+    const dEdges = [], nEdges = [];
+    for (let x=0;x<n;x++) for (let y=x+1;y<n;y++){
+      if (doubles[M[x]].has(M[y])) dEdges.push([x,y]);
+      if (negs[M[x]].has(M[y])) nEdges.push([x,y]);
+    }
+
+    /* enumeracao de todas as particoes (restricted growth strings) */
+    let melhor = Infinity, nMin = 0;
+    const contaBloco = new Map();          // assinatura do bloco -> em quantas particoes minimas aparece
+    const assinDoNo = new Map();           // no -> conjunto de assinaturas de bloco nas particoes minimas
+    for (const i of M) assinDoNo.set(i, new Set());
+    const a = new Array(n).fill(0);
+    (function rgs(pos, maxb){
+      if (pos === n){
+        const blocos = [];
+        for (let b=0;b<=maxb;b++) blocos.push([]);
+        for (let x=0;x<n;x++) blocos[a[x]].push(M[x]);
+        for (const b of blocos) if (!blocoValido(b)) return;
+        let custo = 0;
+        for (const [x,y] of dEdges) if (a[x]!==a[y]) custo++;   // duplas cortadas
+        for (const [x,y] of nEdges) if (a[x]===a[y]) custo++;   // negativas testadas internas
+        if (custo > melhor) return;
+        if (custo < melhor){ melhor = custo; nMin = 0; contaBloco.clear(); for (const s of assinDoNo.values()) s.clear(); }
+        nMin++;
+        for (const b of blocos){
+          const sig = b.join(',');
+          contaBloco.set(sig, (contaBloco.get(sig)||0)+1);
+          for (const i of b) assinDoNo.get(i).add(sig);
+        }
+        return;
+      }
+      for (let b=0;b<=maxb+1;b++){ a[pos]=b; rgs(pos+1, b>maxb?b:maxb); }
+    })(0, -1);
+
+    /* bloco comprometido: identico em TODAS as particoes de desacordo minimo */
+    for (const [sig, c] of contaBloco){
+      if (c !== nMin) continue;
+      const b = sig.split(',').map(Number);
+      if (b.length < 2) continue;
+      const id = kcs.length;
+      b.forEach(i=>kcOf[i]=id);
+      kcs.push({membros:b.slice(), tensoes:tensoesDe(b)});
+    }
+    /* empate estrutural: pertinencia a bloco varia entre as particoes minimas */
+    for (const i of M) if (assinDoNo.get(i).size > 1) empate[i] = true;
   }
 
   const pend = [];
@@ -1923,7 +2025,7 @@ function derive(){
   for (let i=0;i<N;i++){
     const interno = kcOf[i]>=0 ? kcs[kcOf[i]].membros.filter(m=>m!==i && doubles[i].has(m)).length : 0;
     const externo = [...doubles[i]].filter(j=> kcOf[i]<0 || kcOf[j]!==kcOf[i]).length;
-    if (externo>=2 || (interno>=1 && externo>=interno)) flags.push({i, interno, externo});
+    if (externo>=2 || (interno>=1 && externo>=interno) || empate[i]) flags.push({i, interno, externo, empate:empate[i]});
   }
   return {doubles, negs, kcs, kcOf, pend, flags, crossRel, singlesList};
 }
@@ -2202,6 +2304,7 @@ function renderPaineis(D){
 
   const flagsEl=$('lista-flags');
   flagsEl.innerHTML = D.flags.length ? D.flags.map(f=>'<div class="item flag-item"><b class="mono">'+shortId(IT[f.i].task_id)+'</b> · '+f.interno+' dupla(s) interna(s), '+f.externo+' externa(s)'+
+    (f.empate?'<div class="empate">empate estrutural — diagnóstico</div>':'')+
     '<div class="menu">menu de diagnóstico: <li>preencher arestas não testadas da região</li><li>composto? (statement com 2 afirmações → dividir)</li><li>vago? (→ reescrever)</li><li>rebaixar dupla→simples (era aninhamento)</li><li>defeito na outra ponta?</li><li>escalar para modelo mais forte</li></div></div>').join('') : '<div class="vazio">nenhum</div>';
 
   const crossEl=$('lista-cross');
