@@ -3,7 +3,7 @@
 Research memo, 2026-07-30. Scope: the design evolution decided in the founder
 sessions of 2026-07-29/30, after the blind review of run r0130 ended the
 embedding-proximity grouping plan. It replaces similarity-based KC formation
-with a directed graph of mastery-implication verdicts over permanent grains,
+with a directed graph of mastery-implication verdicts over permanent unitary KCs,
 and grounds each component of the new design in primary literature. This memo
 documents the design under discussion; it is the basis for a future ADR and
 decides nothing by itself. Prior memo on clustering-from-pairwise-verdicts:
@@ -15,15 +15,22 @@ Terminology mapping used throughout:
 
 | our term | meaning | literature counterpart |
 | - | - | - |
-| KC grain | per-task extracted unit (task, answer, class-neutral knowledge statement, two voted axes); permanent, insert-only | KLI knowledge component as inferred from one task ([Koedinger, Corbett & Perfetti 2012](http://pact.cs.cmu.edu/pubs/Koedinger,%20Corbett,%20Perfetti%202012-KLI.pdf)); ER record |
-| KC | derived snapshot: a cluster recomputed from the edge ledger | resolved entity / cluster; KLI KC at the model grain the evidence supports |
+| unitary KC | the permanent unit born from one task; insert-only | KLI knowledge component as inferred from one task ([Koedinger, Corbett & Perfetti 2012](http://pact.cs.cmu.edu/pubs/Koedinger,%20Corbett,%20Perfetti%202012-KLI.pdf)); ER record |
+| evidence | the per-task record backing a unitary KC: task, answer, class-neutral knowledge statement, two voted axes | the observations a KC is inferred from |
+| KC | derived snapshot: a cluster recomputed from the edge ledger; one unitary KC alone, or 2+ merged | resolved entity / cluster; KLI KC at the model grain size the evidence supports |
+| composite KC | a KC holding 2+ unitary KCs merged by double arrows | multi-record resolved entity |
 | directional edge A→B | one judged verdict: "mastery of A implies mastery of B" | surmise relation of knowledge space theory ([Doignon & Falmagne 1985](https://www.sciencedirect.com/science/article/abs/pii/S0020737385800316)) |
 | double arrow A⇄B | both directions judged yes: same KC | mutual surmise (equally informative items); must-link edge |
 | single arrow | one direction yes: nested relation, kept as map structure | strict surmise; precedence |
 | tested-negative edge | a direction judged no | (−) edge of a signed graph ([Cartwright & Harary 1956](https://ucilnica.fri.uni-lj.si/pluginfile.php/1147/course/section/4647/Cartwright%20and%20Harary%20-%20Structural%20balance%20-%20A%20generalization%20of%20Heiders%20theory%2C%201956.pdf)) |
 | tension | a tolerated negative edge inside a formed KC | frustrated edge / disagreement ([Bansal, Blum & Chawla 2004](https://link.springer.com/article/10.1023/B:MACH.0000033116.57574.95)) |
 | pendência (pending state) | a double arrow that cannot yet close a clique with any group; a label on a live object, not a queue for humans | unresolved constraint awaiting evidence |
-| node health | internal vs external double-arrow degree of a grain | within-module degree and participation coefficient ([Guimerà & Amaral 2005](https://www.nature.com/articles/nature03288)) |
+| node health | internal vs external double-arrow degree of a unitary KC | within-module degree and participation coefficient ([Guimerà & Amaral 2005](https://www.nature.com/articles/nature03288)) |
+
+Terminology updated 2026-07-31 by founder decision: "grain" is retired; the
+unit is the unitary KC, merged clusters are composite KCs, and the per-task
+record (task, answer, statement, axes) is the unitary KC's evidence. Earlier
+documents and run ledgers keep the historical term.
 
 Arrow convention, fixed for the whole system: **A→B means "mastery of A
 implies mastery of B". The arrow points from advanced to basic. Learning
@@ -43,7 +50,7 @@ concept/procedure). The plan of record — ADR
 [0010](../adr/0010-task-first-grain-extraction.md) stage 4 plus ADR
 [0007](../adr/0007-kc-grouping-canonical-anchor.md) — was: embed the
 statements, form proximity groups by cosine threshold, and have an LLM judge
-merge group members into grains/KCs, with membership anchored to a canonical
+merge group members into merged units and KCs, with membership anchored to a canonical
 phrasing to prevent chaining.
 
 The blind review of 2026-07-29
@@ -84,16 +91,16 @@ must.
 Two ideas introduced by the founder in the 2026-07-29/30 sessions replace the
 proximity model.
 
-**Extensional identity via question pools.** A grain's identity is not its
-statement wording; it is the set of tasks/questions that test it. Two grains
-are the same knowledge exactly when a learner who can answer one's question
+**Extensional identity via question pools.** A unitary KC's identity is not
+its statement wording; it is the set of tasks/questions that test it. Two
+unitary KCs are the same knowledge exactly when a learner who can answer one's question
 pool can answer the other's, and vice versa. Statement text becomes evidence
 about the pool, not the identity itself. This is precisely the KLI
 framework's definition of a knowledge component: "an acquired unit of
 cognitive function or structure that can be inferred from performance on a
 set of related tasks"
 ([Koedinger, Corbett & Perfetti 2012](http://pact.cs.cmu.edu/pubs/Koedinger,%20Corbett,%20Perfetti%202012-KLI.pdf),
-already adopted as our grain definition in ADR 0010). In KLI practice two
+already adopted in ADR 0010 as the definition of the unit). In KLI practice two
 tasks tap the same KC exactly when practice transfers between them, and a KC
 model is validated empirically by whether learning curves smooth out under
 it — the Learning Factors Analysis / Additive Factor Model tradition
@@ -110,9 +117,9 @@ semantics:
 
 - **Both directions yes (double arrow A⇄B): same KC.** Identity is defined
   as mutual implication over the question pools.
-- **One direction yes (single arrow): a nested relation.** The grains are
-  distinct; the arrow is kept as knowledge-map structure (§6).
-- **Neither, or partial: distinct grains**, possibly related by weaker
+- **One direction yes (single arrow): a nested relation.** The unitary KCs
+  are distinct; the arrow is kept as knowledge-map structure (§6).
+- **Neither, or partial: distinct unitary KCs**, possibly related by weaker
   relations later.
 
 This primitive has a fifty-year-old formal home: knowledge space theory's
@@ -136,7 +143,7 @@ Spaces*, Springer 2011). Two properties of KST matter to us:
    ([Cosyn, Uzun, Doble & Matayoshi 2021](https://www.sciencedirect.com/science/article/abs/pii/S0022249621000134),
    J. Math. Psychology 101; [ALEKS research pages](https://www.aleks.com/about_aleks/knowledge_space_theory)).
    The structure we are building is a surmise-relation graph whose items are
-   grains and whose oracle is an LLM judge instead of expert querying.
+   unitary KCs and whose oracle is an LLM judge instead of expert querying.
 
 For positioning: the education-NLP literature on *prerequisite* graphs —
 [Talukdar & Cohen 2012](https://aclanthology.org/W12-2037/) predicting
@@ -145,16 +152,16 @@ prerequisite structure in Wikipedia,
 metric, [Pan et al. 2017](https://aclanthology.org/P17-1133/) on MOOC
 concepts — learns asymmetric *curricular* relations between named topics
 from document signals. Ours is a different relation (mastery implication
-between tested grains, judged pairwise) even though the graph shape is
+between tested unitary KCs, judged pairwise) even though the graph shape is
 similar; the non-"prerequisite" naming is load-bearing, not cosmetic.
 
 ## 3. The graph model
 
-- **Nodes: KC grains.** Permanent and insert-only (unchanged from ADR 0010
-  and consistent with the frozen-id policy of ADR 0008). A grain is never
-  edited in place by graph operations; the compound fix (§6) *splits* a
-  grain into new grains and retires the old one, which is an insert-only
-  event.
+- **Nodes: unitary KCs.** Permanent and insert-only (unchanged from ADR 0010
+  and consistent with the frozen-id policy of ADR 0008). A unitary KC is
+  never edited in place by graph operations; the compound fix (§6) *splits*
+  a unitary KC into new unitary KCs and retires the old one, which is an
+  insert-only event.
 - **Edges: stamped directional verdicts.** Each ordered pair judged gets one
   verdict, stored forever with its run stamp. An edge is judged **once per
   direction and never re-asked** (§7 for why). The ledger distinguishes
@@ -163,13 +170,14 @@ similar; the non-"prerequisite" naming is load-bearing, not cosmetic.
 - **KCs: derived snapshots.** A KC is a cluster computed from the current
   edge ledger. It is recomputed — never hand-edited — as content arrives or
   the pipeline improves. Ingesting a new source runs the identical process:
-  new grains are extracted, candidates proposed, directions judged, clusters
+  new unitary KCs are extracted, candidates proposed, directions judged, clusters
   recomputed. There is no special cross-source phase; the graph is the
   integration mechanism.
 - **Terminology shift.** What ADR 0010 called "grains" produced by a
-  grouping step are now the per-task units themselves — **KC grains** — and
-  what it called KCs are the derived snapshots. The old intermediate
-  ("proximity group → grain → KC") disappears.
+  grouping step are now the per-task units themselves — **unitary KCs** —
+  and what it called KCs are the derived snapshots (**composite KCs** when
+  they hold 2+ unitary KCs). The old intermediate ("proximity group → grain
+  → KC") disappears.
 
 ## 4. Group formation as signed-graph clustering
 
@@ -199,7 +207,7 @@ prefer cheap local rules over global optimization. The prior memo's Policy C
 described exactly this ("conflicts are the normal input; correlation
 clustering is literally defined as minimizing disagreement with conflicting
 edges") and shelved it for id-stability reasons; the new design adopts its
-worldview while neutralizing the id concern, because ids live on grains
+worldview while neutralizing the id concern, because ids live on unitary KCs
 (permanent) and KCs are declared snapshots with no pretense of engine-level
 stability. FAMER-style local repair (re-cluster only the touched
 neighborhood; see prior memo §1.5) remains the recompute pattern.
@@ -223,7 +231,7 @@ predicate over double arrows:
   not an error to be silently absorbed.
 - **Tested-negative ≠ untested.** Only tested negatives count against the
   plex tolerance. Untested internal edges are a to-do, not evidence, and the
-  entry rule keeps them rare: **a grain joining a group is tested against
+  entry rule keeps them rare: **a unitary KC joining a group is tested against
   all current members** (both directions each), so groups are fully tested
   at admission time and tolerance is spent only on genuine judge conflict.
 
@@ -240,14 +248,14 @@ edge count and would let one member carry all the missing edges. We use
 
 ## 5. Node health and the diagnostic menu
 
-A grain's membership strength is read off the graph, not re-litigated by
+A unitary KC's membership strength is read off the graph, not re-litigated by
 judges. The measure is the split between **internal degree** (double arrows
 to own-KC members) and **external degree** (double arrows out of the KC) —
 the community-cartography pair of within-module degree and participation
 coefficient from
 [Guimerà & Amaral 2005](https://www.nature.com/articles/nature03288)
 (Nature 433:895–900): a node with links spread across modules (participation
-coefficient near 1) is a connector or, in our reading, a suspect grain; a
+coefficient near 1) is a connector or, in our reading, a suspect unitary KC; a
 node with all links inside (near 0) is embedded. Exact flag thresholds are
 calibration knobs deferred to the operational test (§10).
 
@@ -259,16 +267,16 @@ When a node is flagged, a **diagnostic menu** runs, ordered by cost:
    — Granovetter's forbidden-triad argument
    ([Granovetter 1973](https://www.cs.cmu.edu/~jure/pub/papers/granovetter73ties.pdf),
    AJS 78:1360–1380) applied to verdicts instead of friendships.
-1. **Compound check.** A dedicated exam on the grain itself: "does this
-   statement make more than one claim?" If yes, split into new grains
-   (insert-only; the old grain retires). The blind review proved compound
+1. **Compound check.** A dedicated exam on the unitary KC itself: "does this
+   statement make more than one claim?" If yes, split into new unitary KCs
+   (insert-only; the old one retires). The blind review proved compound
    statements are the dominant bridge mechanism, so this check is expected
    to pay for itself.
 2. **Vagueness check.** The statement underdetermines its question pool;
-   rewrite (again as a new grain version).
+   rewrite (again as a new unitary KC version).
 3. **Downgrade double→single.** The identity verdict was actually a nesting
    caught too coarsely. Expected to be the most common resolution: the
-   judge's yes/yes becomes yes/no, the grain leaves the KC but stays on the
+   judge's yes/yes becomes yes/no, the unitary KC leaves the composite KC but stays on the
    map as a single arrow.
 4. **The other endpoint is defective.** Symmetric application of 1–3 to the
    neighbor.
@@ -285,7 +293,7 @@ territories — legitimately broad outgoing implication from one coherent
 skill. Compoundness is diagnosed only by the direct exam (menu item 1),
 never inferred from degree. Under a graded verdict scale (a 4-level
 candidate idea, undecided — §10): strong doubles in a coherent neighborhood
-mark the central grain of a large KC; strong doubles across an incoherent
+mark the central unitary KC of a large composite KC; strong doubles across an incoherent
 neighborhood raise compound suspicion; weak doubles everywhere indicate a
 vague statement.
 
@@ -293,10 +301,10 @@ vague statement.
 
 Single (one-way) arrows never threaten membership; they are the product. The
 knowledge map's KC-to-KC structure is **inherited from member arrows**: if
-grains of KC X carry arrows into grains of KC Y, X relates to Y. This
-includes **cross-axis links**: grains on different axes (a procedure-do and
-a concept-explain grain) can relate by arrows but can never merge into one
-KC — the axes partition identity but not structure.
+unitary KCs of KC X carry arrows into unitary KCs of KC Y, X relates to Y.
+This includes **cross-axis links**: unitary KCs on different axes (a
+procedure-do and a concept-explain one) can relate by arrows but can never
+merge into one composite KC — the axes partition identity but not structure.
 
 **Non-transitivity is a rule, not an accident.** A→B and B→C never
 auto-derive A→C as a fact. KST's surmise relation is transitive as an
@@ -331,13 +339,13 @@ structural sources:
    append-only fact, in the spirit of ADR 0001's facts-versus-
    interpretations split: the verdict *event* is a fact even when the
    verdict is wrong.
-2. **KCs are derived views.** Any improvement — new grains, new edges, a
+2. **KCs are derived views.** Any improvement — new unitary KCs, new edges, a
    better clustering rule — recomputes snapshots from the same ledger. No
    wrong verdict is load-bearing forever, because nothing downstream is
    hand-built on it.
 3. **Evidence dilution.** As the graph grows, a wrong edge is increasingly
    outvoted by the structure around it: one bad double arrow cannot hold a
-   grain in a group against accumulating negatives (the plex rule), and one
+   unitary KC in a group against accumulating negatives (the plex rule), and one
    bad negative costs only a logged tension.
 4. **New-question exams, not re-asks.** Structural symptoms (flags from §5)
    trigger *new* questions — compound exam, vagueness exam, fresh edges in
@@ -356,9 +364,9 @@ cluster-health result and the ComEM joint-view findings in the prior memo,
 §§1.3, Policy D); veto-only keeps the value without the regress.
 
 **Pendências.** A double arrow that cannot close a clique with any existing
-group becomes a *pending* label on a live object — a single-grain KC remains
+group becomes a *pending* label on a live object — a lone unitary KC remains
 its own active KC while pending. Pendências are resolved by future evidence
-(new grains, new edges) — not by humans. The human role in this design is
+(new unitary KCs, new edges) — not by humans. The human role in this design is
 operator: watch a dashboard of flags, tensions and pendência counts, tune
 knobs, improve prompts. Humans never hand-decide content questions — a
 sharpened restatement of ADR 0007's "recurring conflicts are a signal to
@@ -367,12 +375,12 @@ one level further from the individual dispute.
 
 ## 8. Cost model
 
-Measured on the 33-grain r0130 corpus: per-node top-5 candidate generation
+Measured on the r0130 corpus of 33 unitary KCs: per-node top-5 candidate generation
 yields 125 unique pairs = 250 directional judge calls. Extrapolated at the
-same k: ~1000 grains → ~8000 calls. The scheme is linear in corpus size for
+same k: ~1000 unitary KCs → ~8000 calls. The scheme is linear in corpus size for
 fixed k (each node proposes k pairs, deduplicated), against quadratic for
-exhaustive pairing (33 grains: 528 pairs; 1000 grains: ~500k pairs). Entry
-testing (a joining grain judged against all members) adds cost proportional
+exhaustive pairing (33 units: 528 pairs; 1000 units: ~500k pairs). Entry
+testing (a joining unitary KC judged against all members) adds cost proportional
 to group size, which stays small (~1.65 tasks/KC measured on this corpus,
 expected to fall toward 1 on multi-source corpora per the blind review).
 Diagnostic exams and escalations are triggered, not scheduled, so their cost
@@ -397,7 +405,7 @@ Honestly open, in rough priority order:
    contamination — the framing *is* the definition of the relation. To be
    A/B tested like every stage prompt.
 6. **The operational test**: run the full loop (candidates → 250 directional
-   calls → plex formation → health flags → diagnostics) on the 33-grain
+   calls → plex formation → health flags → diagnostics) on the 33-unit
    corpus, with the blind review's manual grouping as the comparison
    partition. This is the next concrete step.
 7. **Learner-data audit**: real learning curves are the ground truth this
@@ -419,7 +427,7 @@ No ADR is edited until the founder freezes this design. When that happens:
   formation — the anchor prevented chaining by construction, and the
   directional primitive now prevents it by making identity mutual and
   tested. 0007's instincts survive transformed: the quarantine of
-  multi-match grains becomes the pendência state; the whole-set gate
+  multi-match units becomes the pendência state; the whole-set gate
   becomes veto-only; "verdicts stored as stamped facts" becomes the edge
   ledger, which was 0007's stated prerequisite for future repair and is now
   the system's backbone. The human-decides-conflicts rule is replaced by
@@ -428,10 +436,10 @@ No ADR is edited until the founder freezes this design. When that happens:
   unchanged; stage 4 (grouping) and stage 5 (naming) are redefined.**
   Grouping is no longer embed-cluster-merge; it is candidate generation +
   directional judging + snapshot clustering. Naming attaches to derived KC
-  snapshots rather than merge-produced grains. The reliability metric
+  snapshots rather than merge-produced units. The reliability metric
   ("re-run and compare final grains in embedding space") needs restating
   over graph outputs.
-- **ADR 0008 (frozen ids): reinforced.** Grains are the permanent id-bearing
+- **ADR 0008 (frozen ids): reinforced.** Unitary KCs are the permanent id-bearing
   layer; KC snapshot ids are explicitly derived and re-mintable, which
   resolves the id-stability objection that shelved correlation clustering
   in the prior memo.
@@ -473,4 +481,4 @@ Internal:
 - Prior memo: [entity-resolution-grouping.md](entity-resolution-grouping.md) (ER clustering policies; Policy C promoted here).
 - Blind review: [reports/blind-review-2026-07-29-r0130-gemini.md](../../reports/blind-review-2026-07-29-r0130-gemini.md).
 - ADRs [0001](../adr/0001-facts-versus-interpretations.md), [0007](../adr/0007-kc-grouping-canonical-anchor.md), [0008](../adr/0008-kc-identity-frozen-ids.md), [0010](../adr/0010-task-first-grain-extraction.md).
-- Axis groundwork: [docs/lab/axis-definitions-research.md](../lab/axis-definitions-research.md) (KLI reading notes; grain definition adoption).
+- Axis groundwork: [docs/lab/axis-definitions-research.md](../lab/axis-definitions-research.md) (KLI reading notes; adoption of the unit definition).
