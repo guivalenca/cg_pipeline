@@ -318,14 +318,47 @@ queued for future judging like any other candidate. If real learner data
 ever arrives (§10), those decays could become estimated probabilities
 instead of priors.
 
-**Candidate generation.** Embedding proposes pairs; it **never decides
-truth, only who gets tested**. The v1 mechanism is per-node top-k nearest
-neighbors rather than a global cosine threshold: linear cost in corpus size,
-and it adapts to local density where a global threshold provably fails on
-our geometry (§1). Structural proposals join the same queue: the untested
-third side of a two-double-arrow path (triadic closure again), and decayed
-chain candidates. All candidates flow into the same once-per-direction
-judging.
+**Candidate generation (architecture decided 2026-07-31).** Embedding
+proposes pairs; it **never decides truth, only who gets tested**. The
+decided mechanism replaces the earlier per-node top-k idea with the
+standard entity-resolution answer, multi-pass blocking (multiple blocking
+rules whose candidate sets are unioned — Splink's production pattern):
+**candidate generators are pluggable functions `candidates(item) → pairs`,
+and the judged set is their union, deduplicated, capped per item (~15, by
+rank).** V1 ships three generators:
+
+1. **Semantic**: pgvector ANN neighbors of the statement embedding above a
+   generous absolute floor, starting at **0.70**. Measured basis (r0130 ×
+   Opus 5): real doubles were found at 0.70–0.75 while 0.75–0.80 was
+   mostly nothing — the bands overlap, so no clean boundary exists and the
+   floor is a recall/cost dial, not a frontier. It starts absolute (there
+   is no data to calibrate against yet) and is later recalibrated from the
+   accumulated (similarity, verdict) pairs of the whole universe — never
+   per ingestion batch, so the same pair can never pass in one batch and
+   fail in another.
+2. **Lexical**: top-5 by full-text relevance (Postgres BM25-style) over
+   statements. Near-zero cost; covers shared rare terms
+   ("CountVectorizer") when phrasing diverges. This generator is the hedge
+   that makes the architecture correct in both worlds of the open
+   cross-source question (§9): whether or not cross-source same-knowledge
+   pairs embed high — an unverified hypothesis either way, weakened by the
+   kc-statement normalization funnel — recall does not depend on the
+   answer.
+3. **Structural**: triadic closure (the untested third side of a
+   two-double-arrow path). A low-priority v2 queue adds decayed chain
+   candidates and pending-region revisits.
+
+**No mandatory per-node minimum.** True orphans are legitimate (an item
+with no real kin should stay alone), and a forced minimum manufactures
+candidates even for a garbage batch, flooding the judge with pairs no
+decent floor would propose. The floor rejects junk for free.
+
+**Per-generator audit.** Every tested pair records which generator(s)
+proposed it. With accumulated verdicts this yields a health report — real
+edges found per judge call spent, per generator — so keeping, dropping or
+re-weighting generators becomes a data decision, not an opinion. All
+candidates flow into the same once-per-direction judging; the judge never
+knows which generator proposed the pair.
 
 ## 7. The resilience model
 
@@ -392,8 +425,16 @@ Honestly open, in rough priority order:
 
 1. **Flag thresholds** for internal/external degree (embeddedness): numbers
    deferred to the operational test.
-2. **k for top-k candidate generation**: 5 is the measured default;
-   untested whether recall of true kin pairs holds at 5 on mixed corpora.
+2. **Candidate generation: DECIDED 2026-07-31** (see §6): union of
+   pluggable generators (semantic floor 0.70 + lexical top-5 + closure),
+   per-item cap ~15, no mandatory minimum. Still open inside it: the
+   floor-recalibration curve (how exactly accumulated verdicts move the
+   floor), and the cross-source embedding question — resolved empirically
+   when the second source is ingested (measure cross-source same-knowledge
+   pair similarities directly). Also pending: the first Opus run left 54
+   dense pairs (sim ≥ 0.75, cut by the old top-5 rule) unjudged; the
+   deepseek bench should include them so generator comparison rests on
+   verdicts, not extrapolation.
 3. **The 4-level graded verdict scale**: adopt, or stay binary per
    direction? If adopted, how graded verdicts aggregate into the
    clique/plex predicate is undesigned.
@@ -404,10 +445,18 @@ Honestly open, in rough priority order:
    surmise language) is considered genuinely helpful here rather than
    contamination — the framing *is* the definition of the relation. To be
    A/B tested like every stage prompt.
-6. **The operational test**: run the full loop (candidates → 250 directional
-   calls → plex formation → health flags → diagnostics) on the 33-unit
-   corpus, with the blind review's manual grouping as the comparison
-   partition. This is the next concrete step.
+6. **The operational test: FIRST RUN DONE 2026-07-31.** Opus 5 judged 128
+   pairs (125 top-5 base + 3 closure) in 256 blind directional calls
+   (results and the exact prompt: reports/opus5-judge-r0130.json; review
+   UI: reports/grouping-simulator.html). Outcome: 17 doubles / 39 singles
+   / 72 nothing; the deterministic resolver (this memo's §4 rules,
+   implemented in the maquete) commits 4 composite KCs, holds 5 pendências
+   and flags 6 unitary KCs — all with structural ties, all orbiting the
+   known compound statement t01, which mechanically froze its whole
+   6-node region (the strongest evidence yet that compound statements must
+   be fixed at the kc-statement prompt, not diagnosed downstream). Still
+   pending: the founder's manual review of the verdicts (the gold standard
+   for the deepseek bench), and the 54 unjudged dense pairs from item 2.
 7. **Learner-data audit**: real learning curves are the ground truth this
    whole design proxies. When learner performance data exists, AFM-style
    curve analysis ([Cen et al. 2006](https://link.springer.com/chapter/10.1007/11774303_17))
