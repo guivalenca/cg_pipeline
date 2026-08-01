@@ -423,8 +423,20 @@ scales with anomaly count, not corpus size.
 
 Honestly open, in rough priority order:
 
-1. **Flag thresholds** for internal/external degree (embeddedness): numbers
-   deferred to the operational test.
+1. **Flag thresholds: DECIDED 2026-08-01, in two parts.** There are two
+   distinct flags with different natures. (a) The **structural-tie flag**
+   is parameter-free and fully resolved by graph theory: a unitary KC is
+   flagged when its block membership varies across the
+   minimum-disagreement partitions — no number to choose; implemented in
+   the reference resolver (maquete, commit 6a25301). (b) The
+   **embeddedness flag** keeps one soft knob: the metric (internal vs
+   external double-arrow degree of a committed member) comes from the
+   community-detection literature, but the cutoff — v1 default: flag when
+   external ≥ 2, or external ≥ internal — is a chosen dial, low-stakes
+   because it only triggers exams (nothing destructive), and secondary
+   because severe cases produce structural ties first. Tune on
+   operational data; with graded verdicts (item 3) both flags can weight
+   edges by confidence level.
 2. **Candidate generation: DECIDED 2026-07-31** (see §6): union of
    pluggable generators (semantic floor 0.70 + lexical top-5 + closure),
    per-item cap ~15, no mandatory minimum. Still open inside it: the
@@ -435,9 +447,23 @@ Honestly open, in rough priority order:
    dense pairs (sim ≥ 0.75, cut by the old top-5 rule) unjudged; the
    deepseek bench should include them so generator comparison rests on
    verdicts, not extrapolation.
-3. **The 4-level graded verdict scale**: adopt, or stay binary per
-   direction? If adopted, how graded verdicts aggregate into the
-   clique/plex predicate is undesigned.
+3. **The 4-level graded verdict scale: ADOPTED 2026-08-01.** Each
+   directional call answers on four levels — clear yes / likely /
+   unlikely / clear no. **Structure stays binary underneath**: for
+   edge classification, clear-yes and likely collapse to "yes", unlikely
+   and clear-no to "no", so the clique/2-plex/disagreement machinery is
+   unchanged; the level is stored on the edge as evidence, and an edge's
+   own level is the minimum of its two directions. What the granularity
+   buys: (a) **weighted disagreement minimization** — cutting a clear
+   double costs 2, a likely double costs 1 — which becomes the legitimate
+   tiebreak for structural ties (judge confidence is evidence; cosine
+   stays banned from decisions); (b) the **vagueness signature** becomes
+   visible (pervasive weak mutual arrows around one statement); (c) exam
+   prioritization (flags resting on weak edges go first); (d) a richer
+   floor-recalibration curve. Known risk: judges dumping into the middle
+   levels as a hedge — measured in the deepseek bench against the
+   founder's reviewed gold standard; binary runs (the Opus r0130 set)
+   stay comparable by collapse.
 4. **The whole-set veto gate**: keep, or drop as redundant once node health
    works? Its regress-safety is argued, its marginal value unmeasured.
 5. **Prompt design for the directional mastery question.** Unusually,
