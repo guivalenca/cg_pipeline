@@ -98,7 +98,10 @@ class ModelClient:
         body = self.transport(f"{self.api_base}/chat/completions", headers, payload, self.timeout)
         duration_ms = int((time.monotonic() - started) * 1000)
         text = extract_text(body, require_tool="tools" in payload)
-        return text, body.get("usage") or {}, duration_ms
+        usage = dict(body.get("usage") or {})
+        if body.get("provider"):
+            usage["provider"] = body["provider"]
+        return text, usage, duration_ms
 
 
 class EmbeddingClient:

@@ -1,0 +1,20 @@
+{
+  "name": "record_verdict",
+  "description": "Record the directional mastery verdict for this pair.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["clear_yes", "likely", "unlikely", "clear_no"],
+        "description": "clear_yes = transfer is demonstrable: B's whole demand lives inside what mastering A requires, and the reason can point to where. likely = transfer is expected: no concrete fact, distinction or step of B's demand is missing from A, but the coverage rests on reading rather than demonstration. unlikely = transfer is doubtful: part of B's demand appears to sit outside mastering A, though no single decisive missing piece can be named. clear_no = transfer fails: the reason can name a fact, distinction or step B requires that mastering A does not carry. The middle levels record genuine uncertainty about this pair, not caution."
+      },
+      "reason": {
+        "type": "string",
+        "description": "One sentence. At the clear levels it points at the demonstration; at the middle levels, at the uncertainty."
+      }
+    },
+    "required": ["verdict", "reason"],
+    "additionalProperties": false
+  }
+}

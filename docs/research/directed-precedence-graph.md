@@ -461,9 +461,9 @@ Honestly open, in rough priority order:
    visible (pervasive weak mutual arrows around one statement); (c) exam
    prioritization (flags resting on weak edges go first); (d) a richer
    floor-recalibration curve. Known risk: judges dumping into the middle
-   levels as a hedge — measured in the deepseek bench against the
-   founder's reviewed gold standard; binary runs (the Opus r0130 set)
-   stay comparable by collapse.
+   levels as a hedge — watched in the deepseek bench against the Opus 5
+   reference (see item 6: there is no human gold standard); binary runs
+   (the Opus r0130 set) stay comparable by collapse.
 4. **The whole-set veto gate**: keep, or drop as redundant once node health
    works? Its regress-safety is argued, its marginal value unmeasured.
 5. **Prompt design for the directional mastery question.** Unusually,
@@ -479,10 +479,21 @@ Honestly open, in rough priority order:
    implemented in the maquete) commits 4 composite KCs, holds 5 pendências
    and flags 6 unitary KCs — all with structural ties, all orbiting the
    known compound statement t01, which mechanically froze its whole
-   6-node region (the strongest evidence yet that compound statements must
-   be fixed at the kc-statement prompt, not diagnosed downstream). Still
-   pending: the founder's manual review of the verdicts (the gold standard
-   for the deepseek bench), and the 54 unjudged dense pairs from item 2.
+   6-node region (at the time read as evidence that compound statements
+   must be fixed at the kc-statement prompt; the v006 bench of 2026-08-01
+   overturned that reading — see prompts/kc-statement/README.md — and the
+   frozen region is now owned by the graph-side machinery: weighted
+   tiebreak and triggered exams). **Gold standard decided 2026-08-01: there
+   will be no founder review of the verdicts.** The founder lacks the
+   domain expertise and the time to adjudicate 256 directional calls, and
+   says so plainly; the Opus 5 verdicts are adopted as the working
+   reference — trusted until a concrete problem implicates them, at which
+   point the specific edges get the escalation treatment (§5 menu item 5),
+   not a wholesale review. Deepseek-vs-Opus comparison is therefore
+   informal: the two runs differ in candidate set, scale (binary vs
+   4-level) and model strength, so disagreement locates *pairs worth
+   examining* rather than scoring either judge. Still pending: the 54
+   unjudged dense pairs from item 2 (folded into the deepseek bench set).
 7. **Learner-data audit**: real learning curves are the ground truth this
    whole design proxies. When learner performance data exists, AFM-style
    curve analysis ([Cen et al. 2006](https://link.springer.com/chapter/10.1007/11774303_17))

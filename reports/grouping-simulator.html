@@ -47,6 +47,8 @@ header.capa p.lede b{color:var(--tinta);font-weight:600}
 
 .stats{display:flex;flex-wrap:wrap;gap:10px 22px;margin:16px 0 0;font-size:13px;color:var(--tinta-2)}
 .stats b{font-size:17px;color:var(--tinta);font-weight:650}
+.stats .niveis{font-size:12.5px;color:var(--tinta-3)}
+.stats .niveis b{font-size:13px;color:var(--tinta-2);font-weight:650}
 
 main{display:grid;grid-template-columns:480px 1fr;gap:22px;padding:22px 0 60px;align-items:start}
 @media(max-width:1100px){main{grid-template-columns:1fr}}
@@ -56,6 +58,26 @@ main{display:grid;grid-template-columns:480px 1fr;gap:22px;padding:22px 0 60px;a
 .card h3{font-size:17px;margin-bottom:2px}
 .subt{font-size:12.5px;color:var(--tinta-3)}
 
+/* -------- fonte de dados -------- */
+.fonte{margin-top:18px}
+.fonte .pad{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:center}
+.fonte-bloco{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fonte-rot{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3);font-weight:600}
+.fonte-val{font-size:12.5px;color:var(--tinta-2)}
+.chip{font-size:12.5px;padding:3px 12px;border-radius:99px;border:1px solid var(--linha-forte);background:var(--papel-2);color:var(--tinta-2);font-weight:600}
+.chip.on{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.chip.manual.on{background:var(--reescrita);border-color:var(--reescrita)}
+.fonte .acoes-fonte{margin-left:auto;display:flex;align-items:center;gap:10px}
+.aviso{width:100%;margin-top:2px;background:var(--morta-fraca);color:var(--morta);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600}
+.vazio-card{margin:26px 0 40px}
+.vazio-card p{color:var(--tinta-2);font-size:14.5px;margin:8px 0 0}
+.vazio-card ol{color:var(--tinta-2);font-size:14.5px;margin:10px 0 0;padding-left:20px}
+.vazio-card li{margin:6px 0}
+.vazio-card .mono{background:#f4f1ea;border-radius:5px;padding:1px 6px;font-size:12.5px}
+#drop-alvo{position:fixed;inset:0;z-index:80;background:rgba(251,250,247,.92);display:none;align-items:center;justify-content:center;pointer-events:none}
+#drop-alvo.on{display:flex}
+#drop-alvo .caixa{border:2px dashed var(--azul);border-radius:var(--raio);padding:34px 52px;color:var(--azul);font-weight:650;font-size:17px;background:var(--papel-2)}
+
 /* -------- painel do par -------- */
 .par-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
 .sim-chip{font-size:12.5px;color:var(--tinta-2);text-align:right}
@@ -63,6 +85,11 @@ main{display:grid;grid-template-columns:480px 1fr;gap:22px;padding:22px 0 60px;a
 .navsetas{display:flex;gap:6px}
 .navsetas button{padding:4px 13px;font-size:16px;line-height:1.2}
 .forcado{display:inline-block;background:var(--reescrita-fraca);color:var(--reescrita);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:600;margin-left:8px}
+.gens{display:flex;flex-wrap:wrap;gap:5px;margin:-4px 0 10px}
+.gchip{font-size:10.5px;font-weight:700;letter-spacing:.03em;border-radius:5px;padding:1px 7px;background:#f0ede6;color:var(--tinta-3)}
+.gchip.g-semantico{background:var(--azul-fraca);color:var(--azul)}
+.gchip.g-lexico{background:var(--dividida-fraca);color:var(--dividida)}
+.gchip.g-fechamento{background:var(--reescrita-fraca);color:var(--reescrita)}
 .grain{border:1px solid var(--linha);border-radius:10px;padding:12px 14px;margin-bottom:10px;position:relative}
 .grain .letra{position:absolute;top:-9px;left:12px;background:var(--tinta);color:#fff;border-radius:6px;font-size:11px;font-weight:700;padding:1px 7px;letter-spacing:.05em}
 .grain.b .letra{background:var(--azul)}
@@ -79,15 +106,21 @@ details.ta p{margin:6px 0 0}
 .pergunta .q{font-size:14px;margin-bottom:8px}
 .pergunta .q b{font-weight:650}
 .botoes{display:flex;gap:8px}
+.botoes.niveis{gap:6px;flex-wrap:wrap}
+.botoes.niveis button{padding:6px 10px;font-size:13px}
 button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--linha-forte);background:var(--papel-2);padding:7px 18px;font-weight:600;font-size:14px}
 button:hover{border-color:var(--tinta-3)}
-button.sim.on{background:var(--viva);border-color:var(--viva);color:#fff}
-button.nao.on{background:var(--morta);border-color:var(--morta);color:#fff}
+button.nv1.on{background:var(--viva);border-color:var(--viva);color:#fff}
+button.nv2.on{background:var(--viva-fraca);border-color:var(--viva);color:var(--viva)}
+button.nv3.on{background:var(--morta-fraca);border-color:var(--morta);color:var(--morta)}
+button.nv4.on{background:var(--morta);border-color:var(--morta);color:#fff}
 button.ghost{border:none;background:none;color:var(--tinta-3);font-weight:500;font-size:13px;padding:6px 8px}
 button.ghost:hover{color:var(--tinta)}
 button.next{background:var(--tinta);color:#fff;border-color:var(--tinta);width:100%;margin-top:12px;padding:10px}
 button:disabled{opacity:.45;cursor:default}
 .tecla{color:var(--tinta-3);font-size:11px;font-weight:500;margin-left:6px}
+button.on .tecla{color:rgba(255,255,255,.7)}
+button.nv2.on .tecla,button.nv3.on .tecla{color:inherit;opacity:.7}
 .razao{font-size:12px;color:var(--tinta-3);font-style:italic;margin-top:7px;line-height:1.4}
 .razao b{font-style:normal;color:var(--tinta-2)}
 
@@ -110,9 +143,10 @@ button:disabled{opacity:.45;cursor:default}
 .filtros{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 8px}
 .filtros button{font-size:12px;padding:3px 11px;border-radius:99px}
 .filtros button.on{background:var(--tinta);border-color:var(--tinta);color:#fff}
-.hist{max-height:300px;overflow-y:auto;font-size:12.5px}
+.hist{max-height:300px;overflow-y:auto;overflow-x:auto;font-size:12.5px}
 .hist table{width:100%;border-collapse:collapse}
-.hist td{padding:4px 8px;border-top:1px solid var(--linha);white-space:nowrap}
+.hist td{padding:4px 6px;border-top:1px solid var(--linha);white-space:nowrap}
+.hist .gchip{padding:1px 5px;font-size:10px}
 .hist tr{cursor:pointer}
 .hist tr:hover td{background:#f6f4ee}
 .hist tr.atual td{background:var(--azul-fraca)}
@@ -120,6 +154,8 @@ button:disabled{opacity:.45;cursor:default}
 .hist .e-simples{color:var(--azul);font-weight:700}
 .hist .e-nada{color:var(--tinta-3)}
 .hist .alt{color:var(--reescrita);font-weight:700}
+.hist .nivel{color:var(--tinta-3);font-size:11.5px}
+.hist .fraca{color:var(--reescrita);font-weight:600}
 
 /* -------- mapa -------- */
 #mapa{width:100%;height:640px;display:block}
@@ -129,6 +165,7 @@ button:disabled{opacity:.45;cursor:default}
 .halo{fill:none;stroke:#f0b429;stroke-width:2;opacity:.9;animation:pulsa 1.4s infinite}
 @keyframes pulsa{0%{stroke-opacity:.9}50%{stroke-opacity:.2}100%{stroke-opacity:.9}}
 .flag-ring{fill:none;stroke:var(--morta);stroke-width:2;stroke-dasharray:3 2.5}
+.vago-marca{font-size:9px;font-weight:700;fill:var(--reescrita);pointer-events:none}
 .tip{position:fixed;z-index:30;max-width:380px;background:var(--tinta);color:#fdfcfa;border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.45;pointer-events:none;display:none;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .tip .t-id{opacity:.65;font-size:11px}
 .legenda{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--tinta-2);padding:10px 20px 14px;border-top:1px solid var(--linha)}
@@ -149,10 +186,22 @@ button:disabled{opacity:.45;cursor:default}
 .pend-linha b{font-weight:650}
 .vazio{color:var(--tinta-3);font-size:13px;padding:6px 0}
 .flag-item .empate{margin-top:5px;font-size:12px;font-weight:650;color:var(--reescrita)}
+.flag-item .vago{margin-top:5px;font-size:12px;font-weight:650;color:var(--reescrita)}
 .flag-item .menu{margin-top:5px;font-size:12px;color:var(--tinta-2)}
 .flag-item .menu li{margin:2px 0}
 .acoes{display:flex;gap:10px;margin-top:16px}
 .acoes button{font-size:13px;padding:7px 14px}
+table.audit{width:100%;border-collapse:collapse;font-size:12.5px}
+table.audit th{text-align:right;font-weight:600;color:var(--tinta-3);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:0 6px 5px;border-bottom:1px solid var(--linha)}
+table.audit th:first-child{text-align:left}
+table.audit td{padding:6px;border-top:1px solid var(--linha);text-align:right}
+table.audit td:first-child{text-align:left}
+table.audit td.n{font-variant-numeric:tabular-nums}
+.comp-linha{cursor:pointer}
+.comp-linha:hover{background:#f6f4ee}
+.comp-tag{font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px}
+.comp-tag.real{background:var(--morta-fraca);color:var(--morta)}
+.comp-tag.nivel{background:var(--reescrita-fraca);color:var(--reescrita)}
 
 /* -------- modal de inspecao -------- */
 .link-id{cursor:pointer;border-bottom:1px dotted var(--linha-forte)}
@@ -173,9 +222,9 @@ button:disabled{opacity:.45;cursor:default}
 <body>
 <header class="capa">
   <div class="wrap">
-    <div class="eyebrow" id="eyebrow">Concept Universe · maquete interativa · nenhum modelo é chamado</div>
+    <div class="eyebrow" id="eyebrow">Concept Universe · maquete interativa · nenhum modelo é chamado · dados carregados de arquivos</div>
     <h1>A maquete do juiz</h1>
-    <p class="lede" id="lede">Os <b>33 KCs unitários</b> reais do corpus Bag-of-Words, com as similaridades reais do embedding. O embedding só propõe os pares (5 vizinhos por KC unitário, do mais parecido ao menos); <b>você é o juiz</b>: responde as duas perguntas direcionais e assiste os KCs se formarem como cliques de setas duplas — com pendências, tensões e sinalizações acendendo pelas regras que desenhamos. Tudo fica salvo no navegador; exporte quando quiser.</p>
+    <p class="lede" id="lede">O fluxo inteiro em uma página: <b>3 geradores de candidatos</b> (semântico, léxico, fechamento) → <b>união + dedupe + teto</b> de ~15 pares por KC unitário → <b>juiz direcional em 4 níveis</b> (duas chamadas por par) → <b>ledger de arestas</b> → <b>resolvedor</b> que devolve KCs compostos, pendências e sinais. Aqui <b>você é o juiz</b>: responde as duas perguntas e assiste a estrutura se formar.</p>
     <div class="convencao">Convenção: A→B significa "dominar A implica dominar B" — a seta sai do avançado e aponta para o básico</div>
     <div class="stats">
       <span><b id="st-julgados">0</b> <span id="st-julgados-rot">pares julgados</span></span>
@@ -183,13 +232,40 @@ button:disabled{opacity:.45;cursor:default}
       <span><b id="st-duplas">0</b> setas duplas</span>
       <span><b id="st-simples">0</b> setas simples</span>
       <span><b id="st-negativas">0</b> sem relação</span>
+      <span><b id="st-fracas">0</b> duplas fracas</span>
       <span><b id="st-kcs">0</b> KCs compostos</span>
       <span><b id="st-pend">0</b> pendências</span>
+      <span class="niveis" id="st-niveis"></span>
     </div>
   </div>
 </header>
 
-<div class="wrap">
+<div class="wrap" id="zona-vazia" style="display:none">
+  <div class="card vazio-card"><div class="pad">
+    <h3>Nenhum dado carregado</h3>
+    <p>Esta página não embute mais os dados: ela lê os arquivos JSON que ficam ao lado dela, na pasta <span class="mono">reports/</span>. O navegador bloqueia essa leitura quando a página é aberta direto do disco (endereço começando com <span class="mono">file://</span>). Duas saídas:</p>
+    <ol>
+      <li><b>Servir a pasta.</b> No terminal, dentro de <span class="mono">reports/</span>, rode <span class="mono">python3 -m http.server 8000</span> e abra <span class="mono">http://localhost:8000/grouping-simulator.html</span>. Para carregar uma run do juiz junto: acrescente <span class="mono">?runs=opus5-judge-r0130.json</span> ao endereço.</li>
+      <li><b>Arrastar os arquivos.</b> Solte <span class="mono">grouping-data.json</span> (o corpus) — e, se quiser, um ou mais arquivos de run do juiz — em qualquer lugar desta página. O botão abaixo faz o mesmo pelo seletor de arquivos.</li>
+    </ol>
+    <div class="acoes"><button id="btn-carregar-2">escolher arquivos…</button></div>
+  </div></div>
+</div>
+
+<div class="wrap" id="zona-fonte" style="display:none">
+  <div class="card fonte"><div class="pad">
+    <div class="fonte-bloco"><span class="fonte-rot">corpus</span><span class="fonte-val mono" id="fonte-corpus">—</span></div>
+    <div class="fonte-bloco"><span class="fonte-rot">vista</span><div class="fonte-bloco" id="chips-runs"></div></div>
+    <div class="acoes-fonte">
+      <button id="btn-carregar">carregar arquivos JSON…</button>
+      <span class="subt">ou arraste para a página</span>
+    </div>
+    <input type="file" id="file-in" multiple accept="application/json,.json" style="display:none">
+    <div class="aviso" id="aviso" style="display:none"></div>
+  </div></div>
+</div>
+
+<div class="wrap" id="zona-app" style="display:none">
 <main>
   <div>
     <div class="card">
@@ -202,6 +278,7 @@ button:disabled{opacity:.45;cursor:default}
           </div>
           <span class="sim-chip">similaridade <b class="num" id="par-sim">—</b><span id="par-forcado"></span></span>
         </div>
+        <div class="gens" id="par-gens"></div>
         <div class="grain a"><span class="letra">A</span>
           <div class="stmt" id="a-stmt"></div>
           <div class="badges"><span class="badge eixo" id="a-eixo"></span><span class="badge id mono" id="a-id"></span></div>
@@ -214,17 +291,21 @@ button:disabled{opacity:.45;cursor:default}
         </div>
         <div class="pergunta">
           <div class="q">1 · Quem domina <b>A</b> necessariamente domina <b>B</b>?</div>
-          <div class="botoes">
-            <button class="sim" id="q1-sim">Sim<span class="tecla">s</span></button>
-            <button class="nao" id="q1-nao">Não<span class="tecla">n</span></button>
+          <div class="botoes niveis" data-q="q1" data-dir="ab">
+            <button class="nv nv1" data-v="clear_yes">Sim, claro<span class="tecla">1</span></button>
+            <button class="nv nv2" data-v="likely">Provável<span class="tecla">2</span></button>
+            <button class="nv nv3" data-v="unlikely">Improvável<span class="tecla">3</span></button>
+            <button class="nv nv4" data-v="clear_no">Não, claro<span class="tecla">4</span></button>
           </div>
           <div class="razao" id="q1-razao" style="display:none"></div>
         </div>
         <div class="pergunta">
           <div class="q">2 · Quem domina <b>B</b> necessariamente domina <b>A</b>?</div>
-          <div class="botoes">
-            <button class="sim" id="q2-sim">Sim<span class="tecla">s</span></button>
-            <button class="nao" id="q2-nao">Não<span class="tecla">n</span></button>
+          <div class="botoes niveis" data-q="q2" data-dir="ba">
+            <button class="nv nv1" data-v="clear_yes">Sim, claro<span class="tecla">1</span></button>
+            <button class="nv nv2" data-v="likely">Provável<span class="tecla">2</span></button>
+            <button class="nv nv3" data-v="unlikely">Improvável<span class="tecla">3</span></button>
+            <button class="nv nv4" data-v="clear_no">Não, claro<span class="tecla">4</span></button>
           </div>
           <div class="razao" id="q2-razao" style="display:none"></div>
         </div>
@@ -249,11 +330,12 @@ button:disabled{opacity:.45;cursor:default}
         <button data-f="dupla">⇄ duplas</button>
         <button data-f="simples">→ simples</button>
         <button data-f="nada">✕ sem relação</button>
+        <button data-f="fracas">fracas</button>
         <button data-f="alteradas">alteradas</button>
       </div>
       <div class="hist" id="hist"></div>
       <div class="acoes" style="padding:0 20px 16px">
-        <button id="btn-export">Exportar vereditos</button>
+        <button id="btn-export">Exportar como run</button>
         <button id="btn-reset" class="ghost" style="color:var(--morta)">zerar tudo</button>
       </div>
     </div>
@@ -271,11 +353,13 @@ button:disabled{opacity:.45;cursor:default}
       </div>
       <svg id="mapa" viewBox="0 0 980 640"></svg>
       <div class="legenda">
-        <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="#2f7d63" stroke-width="3"/></svg> dupla (mesmo KC)</span>
+        <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="#2f7d63" stroke-width="3.2"/></svg> dupla clara (mesmo KC)</span>
+        <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="#2f7d63" stroke-width="1.6" opacity=".5"/></svg> dupla provável (fraca)</span>
         <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="19" y2="5" stroke="#2f5f8f" stroke-width="2"/><path d="M19 1 L25 5 L19 9 z" fill="#2f5f8f"/></svg> simples (implicação)</span>
         <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="#b3761d" stroke-width="3" stroke-dasharray="5 3"/></svg> dupla pendente</span>
         <span class="lg"><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="#c9c2b4" stroke-width="1.5" stroke-dasharray="2 3"/></svg> sem relação</span>
         <span class="lg"><svg width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="#b04a3f" stroke-width="2" stroke-dasharray="3 2.5"/></svg> KC unitário sinalizado</span>
+        <span class="lg"><svg width="14" height="14"><text x="1" y="11" font-size="10" font-weight="700" fill="#b3761d">?</text></svg> assinatura de vagueza</span>
       </div>
     </div>
 
@@ -291,7 +375,7 @@ button:disabled{opacity:.45;cursor:default}
       </div></div>
       <div class="card"><div class="pad">
         <h3>KCs unitários sinalizados</h3>
-        <div class="subt" style="margin-bottom:4px">mal-embutidos: duplas externas ≥ 2, ou ≥ grau interno — candidatos ao menu de diagnóstico</div>
+        <div class="subt" style="margin-bottom:4px">mal-embutidos (duplas externas ≥ 2, ou ≥ grau interno), empate estrutural ou assinatura de vagueza — candidatos ao menu de diagnóstico</div>
         <div class="lista" id="lista-flags"><div class="vazio">nenhum</div></div>
       </div></div>
       <div class="card"><div class="pad">
@@ -299,11 +383,23 @@ button:disabled{opacity:.45;cursor:default}
         <div class="subt" style="margin-bottom:4px">setas entre classes diferentes — relacionam, nunca fundem</div>
         <div class="lista" id="lista-cross"><div class="vazio">nenhuma</div></div>
       </div></div>
+      <div class="card"><div class="pad">
+        <h3>Auditoria por gerador</h3>
+        <div class="subt" style="margin-bottom:8px" id="audit-subt">quanto cada gerador de candidatos rendeu — um par conta para todos os geradores que o propuseram</div>
+        <div class="lista" id="lista-audit"><div class="vazio">nenhum</div></div>
+      </div></div>
+      <div class="card" id="card-comp" style="display:none"><div class="pad">
+        <h3>Comparação entre runs</h3>
+        <div class="subt" style="margin-bottom:4px" id="comp-subt">pares em que a run ativa discorda de outra run carregada</div>
+        <div class="lista" id="lista-comp"><div class="vazio">nenhuma</div></div>
+      </div></div>
     </div>
   </div>
 </main>
 </div>
 <div class="tip" id="tip"></div>
+
+<div id="drop-alvo"><div class="caixa">solte os arquivos JSON (corpus ou runs do juiz)</div></div>
 
 <div class="modal-fundo" id="modal-fundo">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-id">
@@ -322,1508 +418,223 @@ button:disabled{opacity:.45;cursor:default}
 </div>
 
 <script>
-const DATA = {"run_id": "r0130", "model": "google/gemini-embedding-001", "items": [{"task_id": "r0052-0002:t01", "body": "What is Bag of Words (BOW) in simple terms?", "answer": "Bag of Words is a way to represent a sentence by collecting its words along with their counts, while mostly ignoring the order in which the words appear.", "statement": "Bag of Words (BOW) represents a text by counting the occurrences of each word in it, disregarding the order in which the words appear.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1165, "y": 0.237, "neighbors": [{"task_id": "r0093-0022:t03", "sim": 0.907}, {"task_id": "r0052-0006:t08", "sim": 0.8544}, {"task_id": "r0093-0022:t02", "sim": 0.8528}, {"task_id": "r0052-0002:t02", "sim": 0.8324}, {"task_id": "r0052-0006:t06", "sim": 0.83}, {"task_id": "r0052-0011:t02", "sim": 0.8246}, {"task_id": "r0052-0010:t03", "sim": 0.8101}, {"task_id": "r0052-0006:t05", "sim": 0.8025}]}, {"task_id": "r0052-0002:t02", "body": "What is the main purpose of the Bag of Words method?", "answer": "It is a method to extract features from text documents, and those features can then be used to train machine learning algorithms.", "statement": "The Bag of Words method extracts features from text by representing each document as an unordered multiset of its words, producing numerical representations usable for training machine learning algorithms.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1013, "y": 0.1561, "neighbors": [{"task_id": "r0052-0002:t05", "sim": 0.8448}, {"task_id": "r0052-0002:t01", "sim": 0.8324}, {"task_id": "r0052-0002:t06", "sim": 0.8278}, {"task_id": "r0052-0002:t03", "sim": 0.8148}, {"task_id": "r0052-0006:t08", "sim": 0.7974}, {"task_id": "r0052-0006:t06", "sim": 0.7833}, {"task_id": "r0052-0006:t05", "sim": 0.7749}, {"task_id": "r0052-0010:t03", "sim": 0.7748}]}, {"task_id": "r0052-0002:t03", "body": "Name three fields where the Bag of Words approach is widely used.", "answer": "Natural language processing, information retrieval from documents, and document classification.", "statement": "The Bag of Words approach is widely used in natural language processing, information retrieval from documents, and document classification.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0525, "y": 0.1525, "neighbors": [{"task_id": "r0052-0002:t02", "sim": 0.8148}, {"task_id": "r0052-0010:t03", "sim": 0.804}, {"task_id": "r0052-0002:t05", "sim": 0.8029}, {"task_id": "r0052-0002:t01", "sim": 0.8021}, {"task_id": "r0052-0006:t08", "sim": 0.7916}, {"task_id": "r0052-0011:t02", "sim": 0.783}, {"task_id": "r0093-0022:t02", "sim": 0.7827}, {"task_id": "r0052-0002:t06", "sim": 0.7815}]}, {"task_id": "r0052-0002:t04", "body": "What are the four high-level steps in the Bag of Words pipeline?", "answer": "Clean the text, tokenize it, build a vocabulary, and generate vectors.", "statement": "The Bag of Words pipeline proceeds in four high-level steps: clean the text, tokenize it, build a vocabulary, and generate vectors.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "procedure", "grain": "procedure-explain", "axis_split": false, "x": -0.0038, "y": 0.0152, "neighbors": [{"task_id": "r0052-0006:t05", "sim": 0.86}, {"task_id": "r0052-0006:t03", "sim": 0.8195}, {"task_id": "r0052-0006:t06", "sim": 0.7831}, {"task_id": "r0093-0016:t02", "sim": 0.772}, {"task_id": "r0052-0004:t04", "sim": 0.771}, {"task_id": "r0052-0002:t05", "sim": 0.7704}, {"task_id": "r0052-0002:t06", "sim": 0.77}, {"task_id": "r0093-0012:t02", "sim": 0.7643}]}, {"task_id": "r0052-0002:t05", "body": "What can be done with the vectors once they are generated by the Bag of Words process?", "answer": "The generated vectors can be used as input to a machine learning algorithm.", "statement": "Bag of Words vectors serve as input features for machine learning algorithms.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0992, "y": 0.1207, "neighbors": [{"task_id": "r0052-0002:t02", "sim": 0.8448}, {"task_id": "r0052-0002:t03", "sim": 0.8029}, {"task_id": "r0052-0002:t01", "sim": 0.7889}, {"task_id": "r0052-0006:t05", "sim": 0.7831}, {"task_id": "r0052-0002:t06", "sim": 0.7804}, {"task_id": "r0093-0012:t02", "sim": 0.7795}, {"task_id": "r0093-0022:t02", "sim": 0.7773}, {"task_id": "r0052-0010:t03", "sim": 0.7708}]}, {"task_id": "r0052-0002:t06", "body": "How is the vocabulary created in the Bag of Words method?", "answer": "The vocabulary is created by collecting all the unique words that occur across all the documents in the training set.", "statement": "In the Bag of Words method, the vocabulary is the set of all unique words appearing across all documents in the training set.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0004-0012", "modality": "explain", "knowledge": "procedure", "grain": "procedure-explain", "axis_split": true, "x": 0.1442, "y": 0.0475, "neighbors": [{"task_id": "r0052-0002:t02", "sim": 0.8278}, {"task_id": "r0093-0012:t02", "sim": 0.8013}, {"task_id": "r0052-0006:t08", "sim": 0.8001}, {"task_id": "r0052-0004:t04", "sim": 0.7949}, {"task_id": "r0052-0006:t05", "sim": 0.7922}, {"task_id": "r0052-0002:t01", "sim": 0.7865}, {"task_id": "r0052-0011:t03", "sim": 0.786}, {"task_id": "r0052-0002:t03", "sim": 0.7815}]}, {"task_id": "r0052-0004:t01", "body": "Convert the sentence \"John also likes to watch football games.\" into a word-count dictionary as shown in the passage.", "answer": "{\"John\":1,\"also\":1,\"likes\":1,\"to\":1,\"watch\":1,\"football\":1,\"games\":1}", "statement": "A word-count dictionary maps each distinct word in a sentence to the number of times it appears.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "do", "knowledge": "procedure", "grain": "procedure-do", "axis_split": false, "x": -0.0055, "y": -0.0633, "neighbors": [{"task_id": "r0052-0004:t04", "sim": 0.7725}, {"task_id": "r0052-0006:t06", "sim": 0.7515}, {"task_id": "r0052-0006:t08", "sim": 0.7385}, {"task_id": "r0052-0002:t01", "sim": 0.7289}, {"task_id": "r0052-0006:t05", "sim": 0.7204}, {"task_id": "r0052-0010:t03", "sim": 0.7099}, {"task_id": "r0093-0008:t02", "sim": 0.6967}, {"task_id": "r0093-0012:t02", "sim": 0.6858}]}, {"task_id": "r0052-0004:t03", "body": "If the vocabulary size for a document is 11, how many elements does each sentence vector have?", "answer": "Each sentence vector has a length of 11, because the vector length is always equal to the vocabulary size.", "statement": "In vector space models of text, the dimensionality of a sentence vector equals the vocabulary size.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "do", "knowledge": "concept", "grain": "concept-do", "axis_split": true, "x": 0.1709, "y": -0.1996, "neighbors": [{"task_id": "r0052-0011:t03", "sim": 0.8319}, {"task_id": "r0052-0004:t04", "sim": 0.827}, {"task_id": "r0093-0016:t02", "sim": 0.8154}, {"task_id": "r0093-0012:t02", "sim": 0.809}, {"task_id": "r0052-0006:t06", "sim": 0.7865}, {"task_id": "r0052-0006:t05", "sim": 0.7742}, {"task_id": "r0093-0024:t02", "sim": 0.7672}, {"task_id": "r0052-0002:t06", "sim": 0.759}]}, {"task_id": "r0052-0004:t04", "body": "Describe the process used to build a vector for a sentence from the vocabulary.", "answer": "Each vector is initialized with all zeros. Then the algorithm iterates and compares each word in the vocabulary with the sentence: if the sentence contains that vocabulary word, the value at that position in the vector is incremented by the word's count in the sentence.", "statement": "A sentence vector over a vocabulary is built by counting, for each vocabulary word, how many times it appears in the sentence, and placing that count at the word's position in the vector.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "explain", "knowledge": "procedure", "grain": "procedure-explain", "axis_split": false, "x": 0.205, "y": -0.0962, "neighbors": [{"task_id": "r0052-0006:t06", "sim": 0.8932}, {"task_id": "r0052-0006:t05", "sim": 0.8764}, {"task_id": "r0093-0012:t02", "sim": 0.8623}, {"task_id": "r0052-0004:t03", "sim": 0.827}, {"task_id": "r0052-0006:t08", "sim": 0.8165}, {"task_id": "r0052-0002:t01", "sim": 0.8007}, {"task_id": "r0052-0002:t06", "sim": 0.7949}, {"task_id": "r0052-0010:t03", "sim": 0.7764}]}, {"task_id": "r0052-0006:t03", "body": "Explain what the `word_extraction` function does in the BOW implementation shown.", "answer": "The function takes a sentence, replaces non-word characters with spaces, splits the sentence into words, converts each word to lowercase, and removes any word that appears in a predefined ignore list (stopwords like 'a', 'the', 'is'). It returns the cleaned list of significant words.", "statement": "In a bag-of-words pipeline, word extraction tokenizes text by replacing non-word characters with spaces, splitting on whitespace, lowercasing all tokens, and filtering out stopwords.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.1832, "y": 0.0446, "neighbors": [{"task_id": "r0052-0002:t04", "sim": 0.8195}, {"task_id": "r0052-0002:t03", "sim": 0.7538}, {"task_id": "r0052-0006:t05", "sim": 0.7524}, {"task_id": "r0052-0002:t06", "sim": 0.7499}, {"task_id": "r0052-0002:t01", "sim": 0.7482}, {"task_id": "r0052-0002:t02", "sim": 0.7476}, {"task_id": "r0093-0012:t02", "sim": 0.7465}, {"task_id": "r0093-0013:t02", "sim": 0.7414}]}, {"task_id": "r0052-0006:t05", "body": "How does the `generate_bow` function build a vector for a single sentence?", "answer": "It starts with a zero vector the length of the vocabulary. Then for each cleaned word in the sentence, it finds that word's position in the vocabulary and increments the vector value at that index by one. This produces a vector of word counts aligned to the vocabulary order.", "statement": "A bag-of-words vector for a sentence is built by incrementing counts at vocabulary-indexed positions in a zero vector as each cleaned word is encountered.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "procedure", "grain": "procedure-explain", "axis_split": false, "x": 0.1434, "y": -0.0265, "neighbors": [{"task_id": "r0052-0004:t04", "sim": 0.8764}, {"task_id": "r0093-0012:t02", "sim": 0.8681}, {"task_id": "r0052-0002:t04", "sim": 0.86}, {"task_id": "r0052-0006:t06", "sim": 0.8499}, {"task_id": "r0052-0006:t08", "sim": 0.8098}, {"task_id": "r0052-0002:t01", "sim": 0.8025}, {"task_id": "r0052-0002:t06", "sim": 0.7922}, {"task_id": "r0052-0002:t05", "sim": 0.7831}]}, {"task_id": "r0052-0006:t06", "body": "Given the vocabulary ['and','arrived','at','bus','but','early','for','i','joe','late','looked','mary','noon','samantha','station','the','took','train','until','waited','was'], what does the vector for 'The train was late' look like and why?", "answer": "The vector is [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,1]. The word 'late' is at index 9, 'the' is at index 15, 'train' is at index 17, and 'was' is at index 20 \u2014 each gets a count of 1 because each appears once. All other positions remain 0.", "statement": "To vectorize text against an ordered vocabulary, place at each index the count of how many times the vocabulary word at that index appears in the text.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "do", "knowledge": "procedure", "grain": "procedure-do", "axis_split": true, "x": 0.1513, "y": -0.0362, "neighbors": [{"task_id": "r0052-0004:t04", "sim": 0.8932}, {"task_id": "r0052-0006:t05", "sim": 0.8499}, {"task_id": "r0052-0006:t08", "sim": 0.8465}, {"task_id": "r0052-0002:t01", "sim": 0.83}, {"task_id": "r0093-0012:t02", "sim": 0.8176}, {"task_id": "r0052-0004:t03", "sim": 0.7865}, {"task_id": "r0052-0002:t02", "sim": 0.7833}, {"task_id": "r0052-0002:t04", "sim": 0.7831}]}, {"task_id": "r0052-0006:t07", "body": "How can you use a more robust set of stopwords instead of a manually defined list in Python?", "answer": "You can import the nltk library and use `from nltk.corpus import stopwords`, then call `set(stopwords.words('english'))` to get a predefined set of English stopwords.", "statement": "The NLTK library provides a predefined corpus of stopwords that can be imported and used in Python instead of manually defining a list.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "procedure", "grain": "procedure-explain", "axis_split": false, "x": -0.3293, "y": -0.1517, "neighbors": [{"task_id": "r0093-0013:t02", "sim": 0.7331}, {"task_id": "r0093-0013:t01", "sim": 0.6969}, {"task_id": "r0052-0006:t03", "sim": 0.6859}, {"task_id": "r0052-0013:t04", "sim": 0.6524}, {"task_id": "r0052-0002:t03", "sim": 0.6412}, {"task_id": "r0052-0006:t05", "sim": 0.6293}, {"task_id": "r0052-0002:t06", "sim": 0.6269}, {"task_id": "r0052-0011:t03", "sim": 0.6253}]}, {"task_id": "r0052-0006:t08", "body": "Why would the vector for 'Joe waited for the train train' have a value of 2 at the index for 'train'?", "answer": "Because the word 'train' appears twice in that sentence, and the `generate_bow` function increments the vector value at the position matching 'train' by one each time it encounters the word, resulting in a final count of 2.", "statement": "In a bag-of-words representation, the value at each index equals the number of times the corresponding word occurs in the document.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1944, "y": 0.1033, "neighbors": [{"task_id": "r0052-0002:t01", "sim": 0.8544}, {"task_id": "r0052-0006:t06", "sim": 0.8465}, {"task_id": "r0052-0010:t03", "sim": 0.8282}, {"task_id": "r0052-0004:t04", "sim": 0.8165}, {"task_id": "r0052-0006:t05", "sim": 0.8098}, {"task_id": "r0093-0012:t02", "sim": 0.809}, {"task_id": "r0052-0002:t06", "sim": 0.8001}, {"task_id": "r0052-0002:t02", "sim": 0.7974}]}, {"task_id": "r0052-0010:t03", "body": "What insight does BOW provide about document similarity?", "answer": "Similar documents will have word counts similar to each other; the more similar the words in two documents, the more similar the documents can be.", "statement": "Under the Bag of Words model, document similarity is determined by comparing word frequency vectors, so that documents whose word counts are alike are judged to be alike.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0064-0067", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1432, "y": 0.1237, "neighbors": [{"task_id": "r0052-0006:t08", "sim": 0.8282}, {"task_id": "r0052-0002:t01", "sim": 0.8101}, {"task_id": "r0052-0002:t03", "sim": 0.804}, {"task_id": "r0052-0011:t02", "sim": 0.801}, {"task_id": "r0093-0022:t03", "sim": 0.7921}, {"task_id": "r0093-0022:t02", "sim": 0.7816}, {"task_id": "r0052-0006:t06", "sim": 0.7801}, {"task_id": "r0052-0004:t04", "sim": 0.7764}]}, {"task_id": "r0052-0011:t02", "body": "Why does the Bag of Words approach struggle with semantic meaning?", "answer": "Because it does not consider the meaning of a word or the context in which it appears. The same word can be used in multiple ways depending on the context or nearby words, but BOW ignores this entirely.", "statement": "The Bag of Words model discards word order and context, treating each word as an independent token and leaving it unable to capture the semantic meaning that depends on how words relate to one another.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0068-0070", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.0153, "y": 0.2518, "neighbors": [{"task_id": "r0093-0022:t02", "sim": 0.8926}, {"task_id": "r0093-0022:t03", "sim": 0.8798}, {"task_id": "r0052-0002:t01", "sim": 0.8246}, {"task_id": "r0052-0010:t03", "sim": 0.801}, {"task_id": "r0052-0002:t03", "sim": 0.783}, {"task_id": "r0052-0013:t01", "sim": 0.7774}, {"task_id": "r0093-0012:t02", "sim": 0.7704}, {"task_id": "r0052-0002:t02", "sim": 0.7695}]}, {"task_id": "r0052-0011:t03", "body": "What practical problem arises from the vector size in BOW when dealing with large documents?", "answer": "The vector size can become huge, which results in a lot of computation and time. One way to address this is to ignore words based on their relevance to the specific use case.", "statement": "In a Bag of Words representation, the vector dimensionality equals the vocabulary size, so large documents or corpora produce huge vectors that demand heavy computation and time.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0068-0070", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.2062, "y": -0.1582, "neighbors": [{"task_id": "r0093-0024:t02", "sim": 0.941}, {"task_id": "r0052-0004:t03", "sim": 0.8319}, {"task_id": "r0052-0006:t08", "sim": 0.7862}, {"task_id": "r0052-0002:t06", "sim": 0.786}, {"task_id": "r0093-0012:t02", "sim": 0.7699}, {"task_id": "r0093-0011:t02", "sim": 0.7656}, {"task_id": "r0052-0010:t03", "sim": 0.7649}, {"task_id": "r0052-0002:t01", "sim": 0.7624}]}, {"task_id": "r0052-0013:t01", "body": "What is the difference between a 1-gram and a bi-gram when splitting sentences in the Bag of Words approach?", "answer": "A 1-gram splits the sentence into single words, while a bi-gram (or 2-gram) splits the sentence into pairs of two consecutive words.", "statement": "In the Bag of Words approach, an n-gram is a contiguous sequence of n tokens from a text: a 1-gram (unigram) is a single word, and a bi-gram is a pair of two consecutive words.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0071-0076", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.1715, "y": 0.2438, "neighbors": [{"task_id": "r0052-0013:t03", "sim": 0.9068}, {"task_id": "r0052-0011:t02", "sim": 0.7774}, {"task_id": "r0052-0002:t01", "sim": 0.775}, {"task_id": "r0093-0022:t03", "sim": 0.7653}, {"task_id": "r0052-0002:t02", "sim": 0.7537}, {"task_id": "r0093-0022:t02", "sim": 0.7491}, {"task_id": "r0052-0002:t05", "sim": 0.7408}, {"task_id": "r0052-0002:t03", "sim": 0.7385}]}, {"task_id": "r0052-0013:t03", "body": "What notation is commonly used to represent different ways of grouping words, such as single words or pairs of words?", "answer": "N-gram notation.", "statement": "N-gram notation represents contiguous sequences of n items from a text, with unigrams for single words and bigrams for pairs.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0071-0076", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.2642, "y": 0.1768, "neighbors": [{"task_id": "r0052-0013:t01", "sim": 0.9068}, {"task_id": "r0052-0002:t01", "sim": 0.7082}, {"task_id": "r0052-0002:t02", "sim": 0.6941}, {"task_id": "r0052-0011:t02", "sim": 0.6909}, {"task_id": "r0093-0022:t03", "sim": 0.6842}, {"task_id": "r0052-0006:t06", "sim": 0.6782}, {"task_id": "r0093-0014:t02", "sim": 0.675}, {"task_id": "r0093-0022:t02", "sim": 0.6698}]}, {"task_id": "r0052-0013:t04", "body": "Name a ready-made framework or class mentioned that can do Bag of Words processing for you without writing your own code.", "answer": "CountVectorizer from scikit-learn (sklearn.feature_extraction.text).", "statement": "CountVectorizer from scikit-learn (sklearn.feature_extraction.text) is a ready-made class that performs Bag of Words processing.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0071-0076", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0332, "y": 0.0331, "neighbors": [{"task_id": "r0052-0013:t05", "sim": 0.799}, {"task_id": "r0052-0006:t06", "sim": 0.7642}, {"task_id": "r0052-0002:t01", "sim": 0.7627}, {"task_id": "r0052-0002:t03", "sim": 0.7581}, {"task_id": "r0052-0002:t05", "sim": 0.756}, {"task_id": "r0052-0002:t02", "sim": 0.7544}, {"task_id": "r0052-0006:t05", "sim": 0.7527}, {"task_id": "r0052-0004:t04", "sim": 0.7402}]}, {"task_id": "r0052-0013:t05", "body": "Write the code snippet shown to replace the custom BOW implementation with scikit-learn's CountVectorizer.", "answer": "from sklearn.feature_extraction.text import CountVectorizer\nvectorizer = CountVectorizer()\nX = vectorizer.fit_transform(allsentences)\nprint(X.toarray())", "statement": "scikit-learn's CountVectorizer converts a collection of text documents to a matrix of token counts through its fit_transform method, producing a sparse array accessible via toarray().", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0071-0076", "modality": "do", "knowledge": "procedure", "grain": "procedure-do", "axis_split": false, "x": 0.0049, "y": -0.1252, "neighbors": [{"task_id": "r0052-0013:t04", "sim": 0.799}, {"task_id": "r0052-0006:t06", "sim": 0.7494}, {"task_id": "r0052-0006:t08", "sim": 0.708}, {"task_id": "r0052-0006:t05", "sim": 0.7044}, {"task_id": "r0052-0004:t04", "sim": 0.7034}, {"task_id": "r0052-0002:t02", "sim": 0.7015}, {"task_id": "r0052-0002:t01", "sim": 0.7006}, {"task_id": "r0093-0011:t01", "sim": 0.6925}]}, {"task_id": "r0093-0008:t02", "body": "Why is the combined frequency of 'likes' 3 across both example sentences?", "answer": "Because 'likes' appears twice in the first sentence (\"John likes to watch movies. Mary likes movies too.\") and once in the second sentence (\"John also likes to watch football games.\"), giving a combined total of 3.", "statement": "The combined frequency of a word across multiple texts is the sum of its counts in each individual text.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": true, "x": -0.0619, "y": -0.0019, "neighbors": [{"task_id": "r0052-0006:t06", "sim": 0.7394}, {"task_id": "r0052-0006:t08", "sim": 0.7324}, {"task_id": "r0052-0010:t03", "sim": 0.7276}, {"task_id": "r0052-0002:t01", "sim": 0.7241}, {"task_id": "r0052-0004:t04", "sim": 0.7204}, {"task_id": "r0052-0004:t01", "sim": 0.6967}, {"task_id": "r0052-0002:t06", "sim": 0.6946}, {"task_id": "r0093-0022:t02", "sim": 0.6741}]}, {"task_id": "r0093-0011:t01", "body": "What is a sparse vector?", "answer": "A sparse vector is a vector with lots of zero values, which happens when the vocabulary is very large.", "statement": "A sparse vector is a vector containing mostly zero values, often arising from a large vocabulary where only a few terms are present in any given instance.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1559, "y": -0.3454, "neighbors": [{"task_id": "r0093-0011:t02", "sim": 0.8272}, {"task_id": "r0093-0012:t02", "sim": 0.788}, {"task_id": "r0052-0004:t04", "sim": 0.7657}, {"task_id": "r0052-0006:t06", "sim": 0.7641}, {"task_id": "r0052-0011:t03", "sim": 0.7533}, {"task_id": "r0052-0006:t05", "sim": 0.7502}, {"task_id": "r0052-0004:t03", "sim": 0.7496}, {"task_id": "r0093-0024:t02", "sim": 0.7147}]}, {"task_id": "r0093-0011:t02", "body": "Why is a sparse vector a problem?", "answer": "Sparse vectors require more memory and computational resources during modeling, and the vast number of dimensions can make the modeling process very challenging for traditional algorithms.", "statement": "Sparse vectors are problematic because their high dimensionality and predominantly zero-valued entries demand excessive memory and computational resources while challenging the effectiveness of traditional modeling algorithms.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0989, "y": -0.3639, "neighbors": [{"task_id": "r0093-0011:t01", "sim": 0.8272}, {"task_id": "r0052-0011:t03", "sim": 0.7656}, {"task_id": "r0093-0024:t02", "sim": 0.7503}, {"task_id": "r0052-0004:t03", "sim": 0.7251}, {"task_id": "r0093-0012:t02", "sim": 0.6943}, {"task_id": "r0052-0006:t06", "sim": 0.6814}, {"task_id": "r0052-0004:t04", "sim": 0.6707}, {"task_id": "r0052-0002:t05", "sim": 0.6683}]}, {"task_id": "r0093-0012:t02", "body": "Why does the vector for sentence 2 have zeros in some positions?", "answer": "It has zeros at positions 5, 6, and 7 because those correspond to vocabulary words ('movies', 'Mary', 'too') that do not appear in sentence 2.", "statement": "In a bag-of-words sentence vector, a position contains zero when the vocabulary word assigned to that position does not appear in the sentence.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0013-0033", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1782, "y": -0.0404, "neighbors": [{"task_id": "r0052-0006:t05", "sim": 0.8681}, {"task_id": "r0052-0004:t04", "sim": 0.8623}, {"task_id": "r0052-0006:t06", "sim": 0.8176}, {"task_id": "r0052-0006:t08", "sim": 0.809}, {"task_id": "r0052-0004:t03", "sim": 0.809}, {"task_id": "r0052-0002:t06", "sim": 0.8013}, {"task_id": "r0052-0002:t01", "sim": 0.7954}, {"task_id": "r0093-0022:t03", "sim": 0.7901}]}, {"task_id": "r0093-0013:t01", "body": "What are stopwords?", "answer": "Stopwords are words that do not carry enough significance for the algorithm (like 'a', 'the', 'is').", "statement": "Stopwords are common words such as \"a\", \"the\", and \"is\" that carry too little significance to be retained by text-processing algorithms.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.3446, "y": -0.1664, "neighbors": [{"task_id": "r0093-0013:t02", "sim": 0.8456}, {"task_id": "r0052-0006:t03", "sim": 0.7326}, {"task_id": "r0052-0006:t07", "sim": 0.6969}, {"task_id": "r0093-0012:t02", "sim": 0.6689}, {"task_id": "r0052-0011:t02", "sim": 0.6662}, {"task_id": "r0093-0022:t02", "sim": 0.6651}, {"task_id": "r0052-0002:t01", "sim": 0.6633}, {"task_id": "r0093-0022:t03", "sim": 0.6628}]}, {"task_id": "r0093-0013:t02", "body": "Why are stopwords removed during text preprocessing?", "answer": "They are removed so they do not waste database space or processing time.", "statement": "Stopwords are common words of little semantic value whose removal during text preprocessing conserves database space and processing time.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.3239, "y": -0.2135, "neighbors": [{"task_id": "r0093-0013:t01", "sim": 0.8456}, {"task_id": "r0052-0006:t03", "sim": 0.7414}, {"task_id": "r0052-0006:t07", "sim": 0.7331}, {"task_id": "r0052-0011:t02", "sim": 0.6789}, {"task_id": "r0052-0002:t03", "sim": 0.678}, {"task_id": "r0052-0011:t03", "sim": 0.6756}, {"task_id": "r0093-0024:t02", "sim": 0.674}, {"task_id": "r0052-0002:t04", "sim": 0.6723}]}, {"task_id": "r0093-0014:t01", "body": "Define tokenization in the context of NLP.", "answer": "Tokenization is breaking a sequence of strings into pieces such as words, keywords, phrases, symbols, and other elements called tokens.", "statement": "Tokenization is the process of breaking a sequence of strings into pieces \u2014 words, keywords, phrases, symbols, and other elements \u2014 called tokens.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.3822, "y": -0.0201, "neighbors": [{"task_id": "r0093-0014:t02", "sim": 0.7874}, {"task_id": "r0052-0006:t03", "sim": 0.712}, {"task_id": "r0052-0002:t04", "sim": 0.6937}, {"task_id": "r0052-0013:t01", "sim": 0.6878}, {"task_id": "r0093-0016:t02", "sim": 0.6855}, {"task_id": "r0052-0011:t02", "sim": 0.6673}, {"task_id": "r0052-0013:t03", "sim": 0.6633}, {"task_id": "r0052-0006:t06", "sim": 0.6585}]}, {"task_id": "r0093-0014:t02", "body": "Give an example of what counts as a token in NLP.", "answer": "Tokens can be individual words, phrases, or even whole sentences. For instance, in the sentence \"I love NLP!\", tokens might include \"I\", \"love\", and \"NLP\", while punctuation marks like the exclamation point are often discarded during tokenization.", "statement": "In NLP, a token is a unit of text \u2014 such as a word, phrase, or sentence \u2014 produced by splitting input text during tokenization.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.3382, "y": 0.017, "neighbors": [{"task_id": "r0093-0014:t01", "sim": 0.7874}, {"task_id": "r0093-0016:t02", "sim": 0.7224}, {"task_id": "r0052-0011:t02", "sim": 0.7114}, {"task_id": "r0052-0013:t01", "sim": 0.7056}, {"task_id": "r0052-0006:t03", "sim": 0.6984}, {"task_id": "r0052-0002:t04", "sim": 0.6826}, {"task_id": "r0052-0013:t03", "sim": 0.675}, {"task_id": "r0052-0004:t03", "sim": 0.6657}]}, {"task_id": "r0093-0016:t02", "body": "How is the output of the `tokenize` function used?", "answer": "This list becomes the vocabulary of the document, and its length determines the size of each sentence's vector.", "statement": "The list output by the `tokenize` function becomes the document's vocabulary, and its length determines the dimensionality of each sentence's vector.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0034-0063", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": -0.0116, "y": -0.1676, "neighbors": [{"task_id": "r0052-0004:t03", "sim": 0.8154}, {"task_id": "r0052-0002:t04", "sim": 0.772}, {"task_id": "r0052-0004:t04", "sim": 0.77}, {"task_id": "r0052-0011:t03", "sim": 0.7604}, {"task_id": "r0052-0006:t06", "sim": 0.7584}, {"task_id": "r0052-0006:t05", "sim": 0.7549}, {"task_id": "r0052-0002:t06", "sim": 0.7431}, {"task_id": "r0093-0012:t02", "sim": 0.743}]}, {"task_id": "r0093-0022:t02", "body": "What aspect of language related to the surrounding situation or text does the BOW model disregard?", "answer": "Context", "statement": "The Bag of Words (BOW) model disregards context, treating words independently of their surrounding situation or text.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0064-0067", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0299, "y": 0.2676, "neighbors": [{"task_id": "r0052-0011:t02", "sim": 0.8926}, {"task_id": "r0093-0022:t03", "sim": 0.8867}, {"task_id": "r0052-0002:t01", "sim": 0.8528}, {"task_id": "r0052-0002:t03", "sim": 0.7827}, {"task_id": "r0052-0010:t03", "sim": 0.7816}, {"task_id": "r0052-0002:t05", "sim": 0.7773}, {"task_id": "r0093-0012:t02", "sim": 0.7706}, {"task_id": "r0052-0006:t08", "sim": 0.7687}]}, {"task_id": "r0093-0022:t03", "body": "What aspect of language related to how words are sequenced does the BOW model disregard?", "answer": "The order in which words appear", "statement": "The Bag of Words (BOW) model disregards the order in which words appear in a text.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0064-0067", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.0447, "y": 0.2904, "neighbors": [{"task_id": "r0052-0002:t01", "sim": 0.907}, {"task_id": "r0093-0022:t02", "sim": 0.8867}, {"task_id": "r0052-0011:t02", "sim": 0.8798}, {"task_id": "r0052-0010:t03", "sim": 0.7921}, {"task_id": "r0093-0012:t02", "sim": 0.7901}, {"task_id": "r0052-0006:t08", "sim": 0.7804}, {"task_id": "r0052-0002:t03", "sim": 0.778}, {"task_id": "r0052-0002:t02", "sim": 0.7726}]}, {"task_id": "r0093-0024:t02", "body": "Name the second main limitation of the Bag of Words approach discussed in the passage.", "answer": "Vector size \u2014 for a large document, the vector can become huge, which leads to heavy computation and long processing time; you may need to drop words based on relevance to your use case.", "statement": "The Bag of Words approach has a limitation that, for large documents, the vector becomes huge, leading to heavy computation and long processing time.", "passage_id": "si-mod6-0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp:snap:9586263be420:markdown:b2:p0068-0070", "modality": "explain", "knowledge": "concept", "grain": "concept-explain", "axis_split": false, "x": 0.1613, "y": -0.105, "neighbors": [{"task_id": "r0052-0011:t03", "sim": 0.941}, {"task_id": "r0052-0002:t03", "sim": 0.7718}, {"task_id": "r0052-0004:t03", "sim": 0.7672}, {"task_id": "r0052-0006:t08", "sim": 0.763}, {"task_id": "r0052-0010:t03", "sim": 0.7611}, {"task_id": "r0052-0002:t06", "sim": 0.7512}, {"task_id": "r0093-0011:t02", "sim": 0.7503}, {"task_id": "r0052-0002:t01", "sim": 0.7489}]}], "sims": [[1.0, 0.8324, 0.8021, 0.7578, 0.7889, 0.7865, 0.7289, 0.7177, 0.8007, 0.7482, 0.8025, 0.83, 0.6079, 0.8544, 0.8101, 0.8246, 0.7624, 0.775, 0.7082, 0.7627, 0.7006, 0.7241, 0.7044, 0.6436, 0.7954, 0.6633, 0.6609, 0.6498, 0.6476, 0.6899, 0.8528, 0.907, 0.7489], [0.8324, 1.0, 0.8148, 0.7581, 0.8448, 0.8278, 0.6694, 0.7096, 0.7506, 0.7476, 0.7749, 0.7833, 0.6153, 0.7974, 0.7748, 0.7695, 0.7609, 0.7537, 0.6941, 0.7544, 0.7015, 0.67, 0.6882, 0.6486, 0.7524, 0.6396, 0.6478, 0.6249, 0.6417, 0.7119, 0.7623, 0.7726, 0.7382], [0.8021, 0.8148, 1.0, 0.7447, 0.8029, 0.7815, 0.6454, 0.705, 0.7224, 0.7538, 0.7463, 0.7398, 0.6412, 0.7916, 0.804, 0.783, 0.7593, 0.7385, 0.6536, 0.7581, 0.6856, 0.6672, 0.6698, 0.6376, 0.7519, 0.6517, 0.678, 0.642, 0.6465, 0.682, 0.7827, 0.778, 0.7718], [0.7578, 0.7581, 0.7447, 1.0, 0.7704, 0.77, 0.6351, 0.7256, 0.771, 0.8195, 0.86, 0.7831, 0.6193, 0.7347, 0.7368, 0.7334, 0.7458, 0.7314, 0.6463, 0.7305, 0.6775, 0.6496, 0.6786, 0.6175, 0.7643, 0.6575, 0.6723, 0.6937, 0.6826, 0.772, 0.7199, 0.7296, 0.7213], [0.7889, 0.8448, 0.8029, 0.7704, 1.0, 0.7804, 0.6255, 0.7274, 0.7495, 0.7347, 0.7831, 0.748, 0.6155, 0.7575, 0.7708, 0.7603, 0.7527, 0.7408, 0.6584, 0.756, 0.6803, 0.6371, 0.6792, 0.6683, 0.7795, 0.6534, 0.6355, 0.618, 0.6483, 0.6964, 0.7773, 0.7623, 0.7408], [0.7865, 0.8278, 0.7815, 0.77, 0.7804, 1.0, 0.666, 0.759, 0.7949, 0.7499, 0.7922, 0.7805, 0.6269, 0.8001, 0.7739, 0.7421, 0.786, 0.7181, 0.641, 0.7368, 0.6886, 0.6946, 0.6972, 0.621, 0.8013, 0.6544, 0.6605, 0.6051, 0.6186, 0.7431, 0.7431, 0.7562, 0.7512], [0.7289, 0.6694, 0.6454, 0.6351, 0.6255, 0.666, 1.0, 0.6698, 0.7725, 0.6399, 0.7204, 0.7515, 0.5872, 0.7385, 0.7099, 0.6514, 0.6529, 0.6543, 0.6407, 0.6404, 0.6286, 0.6967, 0.6398, 0.5918, 0.6858, 0.613, 0.6304, 0.5981, 0.6106, 0.6574, 0.6402, 0.6466, 0.6362], [0.7177, 0.7096, 0.705, 0.7256, 0.7274, 0.759, 0.6698, 1.0, 0.827, 0.6722, 0.7742, 0.7865, 0.5902, 0.7392, 0.7439, 0.715, 0.8319, 0.6744, 0.6275, 0.6788, 0.6728, 0.6637, 0.7496, 0.7251, 0.809, 0.6208, 0.6603, 0.6017, 0.6657, 0.8154, 0.7152, 0.7166, 0.7672], [0.8007, 0.7506, 0.7224, 0.771, 0.7495, 0.7949, 0.7725, 0.827, 1.0, 0.6959, 0.8764, 0.8932, 0.5912, 0.8165, 0.7764, 0.7222, 0.758, 0.6947, 0.6503, 0.7402, 0.7034, 0.7204, 0.7657, 0.6707, 0.8623, 0.6353, 0.6457, 0.6264, 0.6624, 0.77, 0.7116, 0.7216, 0.7167], [0.7482, 0.7476, 0.7538, 0.8195, 0.7347, 0.7499, 0.6399, 0.6722, 0.6959, 1.0, 0.7524, 0.7292, 0.6859, 0.7295, 0.7237, 0.7406, 0.708, 0.7233, 0.6516, 0.7314, 0.6804, 0.6531, 0.6364, 0.5989, 0.7465, 0.7326, 0.7414, 0.712, 0.6984, 0.7079, 0.7327, 0.7359, 0.6925], [0.8025, 0.7749, 0.7463, 0.86, 0.7831, 0.7922, 0.7204, 0.7742, 0.8764, 0.7524, 1.0, 0.8499, 0.6293, 0.8098, 0.7752, 0.74, 0.7548, 0.7348, 0.6593, 0.7527, 0.7044, 0.6699, 0.7502, 0.6659, 0.8681, 0.6567, 0.665, 0.6506, 0.6566, 0.7549, 0.7403, 0.7476, 0.7189], [0.83, 0.7833, 0.7398, 0.7831, 0.748, 0.7805, 0.7515, 0.7865, 0.8932, 0.7292, 0.8499, 1.0, 0.6096, 0.8465, 0.7801, 0.739, 0.7542, 0.719, 0.6782, 0.7642, 0.7494, 0.7394, 0.7641, 0.6814, 0.8176, 0.6539, 0.6598, 0.6585, 0.6644, 0.7584, 0.7348, 0.765, 0.7094], [0.6079, 0.6153, 0.6412, 0.6193, 0.6155, 0.6269, 0.5872, 0.5902, 0.5912, 0.6859, 0.6293, 0.6096, 1.0, 0.5991, 0.6037, 0.6071, 0.6253, 0.6111, 0.5915, 0.6524, 0.6071, 0.6075, 0.5583, 0.5475, 0.6183, 0.6969, 0.7331, 0.5735, 0.5846, 0.6242, 0.6128, 0.6067, 0.6026], [0.8544, 0.7974, 0.7916, 0.7347, 0.7575, 0.8001, 0.7385, 0.7392, 0.8165, 0.7295, 0.8098, 0.8465, 0.5991, 1.0, 0.8282, 0.7626, 0.7862, 0.729, 0.6662, 0.7316, 0.708, 0.7324, 0.7064, 0.638, 0.809, 0.6372, 0.6428, 0.6099, 0.6169, 0.6923, 0.7687, 0.7804, 0.763], [0.8101, 0.7748, 0.804, 0.7368, 0.7708, 0.7739, 0.7099, 0.7439, 0.7764, 0.7237, 0.7752, 0.7801, 0.6037, 0.8282, 1.0, 0.801, 0.7649, 0.7243, 0.6503, 0.737, 0.689, 0.7276, 0.6819, 0.6482, 0.7675, 0.6324, 0.6572, 0.6163, 0.6188, 0.7065, 0.7816, 0.7921, 0.7611], [0.8246, 0.7695, 0.783, 0.7334, 0.7603, 0.7421, 0.6514, 0.715, 0.7222, 0.7406, 0.74, 0.739, 0.6071, 0.7626, 0.801, 1.0, 0.7376, 0.7774, 0.6909, 0.7091, 0.6384, 0.6725, 0.6422, 0.6529, 0.7704, 0.6662, 0.6789, 0.6673, 0.7114, 0.7088, 0.8926, 0.8798, 0.7466], [0.7624, 0.7609, 0.7593, 0.7458, 0.7527, 0.786, 0.6529, 0.8319, 0.758, 0.708, 0.7548, 0.7542, 0.6253, 0.7862, 0.7649, 0.7376, 1.0, 0.6941, 0.6258, 0.7169, 0.6789, 0.6576, 0.7533, 0.7656, 0.7699, 0.6401, 0.6756, 0.5981, 0.5904, 0.7604, 0.7333, 0.7273, 0.941], [0.775, 0.7537, 0.7385, 0.7314, 0.7408, 0.7181, 0.6543, 0.6744, 0.6947, 0.7233, 0.7348, 0.719, 0.6111, 0.729, 0.7243, 0.7774, 0.6941, 1.0, 0.9068, 0.6969, 0.6641, 0.6538, 0.6199, 0.5927, 0.7175, 0.6408, 0.6539, 0.6878, 0.7056, 0.6715, 0.7491, 0.7653, 0.6998], [0.7082, 0.6941, 0.6536, 0.6463, 0.6584, 0.641, 0.6407, 0.6275, 0.6503, 0.6516, 0.6593, 0.6782, 0.5915, 0.6662, 0.6503, 0.6909, 0.6258, 0.9068, 1.0, 0.6304, 0.6109, 0.6522, 0.5913, 0.5773, 0.6398, 0.6279, 0.625, 0.6633, 0.675, 0.6104, 0.6698, 0.6842, 0.6252], [0.7627, 0.7544, 0.7581, 0.7305, 0.756, 0.7368, 0.6404, 0.6788, 0.7402, 0.7314, 0.7527, 0.7642, 0.6524, 0.7316, 0.737, 0.7091, 0.7169, 0.6969, 0.6304, 1.0, 0.799, 0.6514, 0.654, 0.6142, 0.7178, 0.627, 0.6342, 0.6159, 0.6187, 0.6833, 0.7158, 0.7077, 0.7035], [0.7006, 0.7015, 0.6856, 0.6775, 0.6803, 0.6886, 0.6286, 0.6728, 0.7034, 0.6804, 0.7044, 0.7494, 0.6071, 0.708, 0.689, 0.6384, 0.6789, 0.6641, 0.6109, 0.799, 1.0, 0.644, 0.6925, 0.6546, 0.666, 0.596, 0.6181, 0.6172, 0.6125, 0.6911, 0.6405, 0.6465, 0.6576], [0.7241, 0.67, 0.6672, 0.6496, 0.6371, 0.6946, 0.6967, 0.6637, 0.7204, 0.6531, 0.6699, 0.7394, 0.6075, 0.7324, 0.7276, 0.6725, 0.6576, 0.6538, 0.6522, 0.6514, 0.644, 1.0, 0.6284, 0.5905, 0.645, 0.6252, 0.6408, 0.6058, 0.6237, 0.6332, 0.6741, 0.6739, 0.6439], [0.7044, 0.6882, 0.6698, 0.6786, 0.6792, 0.6972, 0.6398, 0.7496, 0.7657, 0.6364, 0.7502, 0.7641, 0.5583, 0.7064, 0.6819, 0.6422, 0.7533, 0.6199, 0.5913, 0.654, 0.6925, 0.6284, 1.0, 0.8272, 0.788, 0.6314, 0.6642, 0.5924, 0.5891, 0.6852, 0.6476, 0.6414, 0.7147], [0.6436, 0.6486, 0.6376, 0.6175, 0.6683, 0.621, 0.5918, 0.7251, 0.6707, 0.5989, 0.6659, 0.6814, 0.5475, 0.638, 0.6482, 0.6529, 0.7656, 0.5927, 0.5773, 0.6142, 0.6546, 0.5905, 0.8272, 1.0, 0.6943, 0.6253, 0.6365, 0.5794, 0.5571, 0.6359, 0.6408, 0.6336, 0.7503], [0.7954, 0.7524, 0.7519, 0.7643, 0.7795, 0.8013, 0.6858, 0.809, 0.8623, 0.7465, 0.8681, 0.8176, 0.6183, 0.809, 0.7675, 0.7704, 0.7699, 0.7175, 0.6398, 0.7178, 0.666, 0.645, 0.788, 0.6943, 1.0, 0.6689, 0.6686, 0.6161, 0.6568, 0.743, 0.7706, 0.7901, 0.7372], [0.6633, 0.6396, 0.6517, 0.6575, 0.6534, 0.6544, 0.613, 0.6208, 0.6353, 0.7326, 0.6567, 0.6539, 0.6969, 0.6372, 0.6324, 0.6662, 0.6401, 0.6408, 0.6279, 0.627, 0.596, 0.6252, 0.6314, 0.6253, 0.6689, 1.0, 0.8456, 0.6482, 0.6283, 0.6414, 0.6651, 0.6628, 0.6357], [0.6609, 0.6478, 0.678, 0.6723, 0.6355, 0.6605, 0.6304, 0.6603, 0.6457, 0.7414, 0.665, 0.6598, 0.7331, 0.6428, 0.6572, 0.6789, 0.6756, 0.6539, 0.625, 0.6342, 0.6181, 0.6408, 0.6642, 0.6365, 0.6686, 0.8456, 1.0, 0.6546, 0.6214, 0.6541, 0.6533, 0.6587, 0.674], [0.6498, 0.6249, 0.642, 0.6937, 0.618, 0.6051, 0.5981, 0.6017, 0.6264, 0.712, 0.6506, 0.6585, 0.5735, 0.6099, 0.6163, 0.6673, 0.5981, 0.6878, 0.6633, 0.6159, 0.6172, 0.6058, 0.5924, 0.5794, 0.6161, 0.6482, 0.6546, 1.0, 0.7874, 0.6855, 0.6367, 0.6453, 0.5981], [0.6476, 0.6417, 0.6465, 0.6826, 0.6483, 0.6186, 0.6106, 0.6657, 0.6624, 0.6984, 0.6566, 0.6644, 0.5846, 0.6169, 0.6188, 0.7114, 0.5904, 0.7056, 0.675, 0.6187, 0.6125, 0.6237, 0.5891, 0.5571, 0.6568, 0.6283, 0.6214, 0.7874, 1.0, 0.7224, 0.661, 0.6462, 0.5897], [0.6899, 0.7119, 0.682, 0.772, 0.6964, 0.7431, 0.6574, 0.8154, 0.77, 0.7079, 0.7549, 0.7584, 0.6242, 0.6923, 0.7065, 0.7088, 0.7604, 0.6715, 0.6104, 0.6833, 0.6911, 0.6332, 0.6852, 0.6359, 0.743, 0.6414, 0.6541, 0.6855, 0.7224, 1.0, 0.6753, 0.6806, 0.7123], [0.8528, 0.7623, 0.7827, 0.7199, 0.7773, 0.7431, 0.6402, 0.7152, 0.7116, 0.7327, 0.7403, 0.7348, 0.6128, 0.7687, 0.7816, 0.8926, 0.7333, 0.7491, 0.6698, 0.7158, 0.6405, 0.6741, 0.6476, 0.6408, 0.7706, 0.6651, 0.6533, 0.6367, 0.661, 0.6753, 1.0, 0.8867, 0.7324], [0.907, 0.7726, 0.778, 0.7296, 0.7623, 0.7562, 0.6466, 0.7166, 0.7216, 0.7359, 0.7476, 0.765, 0.6067, 0.7804, 0.7921, 0.8798, 0.7273, 0.7653, 0.6842, 0.7077, 0.6465, 0.6739, 0.6414, 0.6336, 0.7901, 0.6628, 0.6587, 0.6453, 0.6462, 0.6806, 0.8867, 1.0, 0.7278], [0.7489, 0.7382, 0.7718, 0.7213, 0.7408, 0.7512, 0.6362, 0.7672, 0.7167, 0.6925, 0.7189, 0.7094, 0.6026, 0.763, 0.7611, 0.7466, 0.941, 0.6998, 0.6252, 0.7035, 0.6576, 0.6439, 0.7147, 0.7503, 0.7372, 0.6357, 0.674, 0.5981, 0.5897, 0.7123, 0.7324, 0.7278, 1.0]], "task_order": ["r0052-0002:t01", "r0052-0002:t02", "r0052-0002:t03", "r0052-0002:t04", "r0052-0002:t05", "r0052-0002:t06", "r0052-0004:t01", "r0052-0004:t03", "r0052-0004:t04", "r0052-0006:t03", "r0052-0006:t05", "r0052-0006:t06", "r0052-0006:t07", "r0052-0006:t08", "r0052-0010:t03", "r0052-0011:t02", "r0052-0011:t03", "r0052-0013:t01", "r0052-0013:t03", "r0052-0013:t04", "r0052-0013:t05", "r0093-0008:t02", "r0093-0011:t01", "r0093-0011:t02", "r0093-0012:t02", "r0093-0013:t01", "r0093-0013:t02", "r0093-0014:t01", "r0093-0014:t02", "r0093-0016:t02", "r0093-0022:t02", "r0093-0022:t03", "r0093-0024:t02"]};
-const MODEL = {
- "judge": "anthropic/claude-opus-5",
- "params": {
-  "reasoning_effort": "high",
-  "knn": 5,
-  "workers": 8,
-  "passages_from": "r0130",
-  "embedding": "google/gemini-embedding-001",
-  "convencao": "A->B = dominar A implica dominar B; ab = menor_indice -> maior_indice"
- },
- "prompt": {
-  "system": "You are one judge inside a knowledge-mapping pipeline. Each call puts before you two knowledge items, A and B, extracted from the same source material. An item is the knowledge behind one assessment task and carries three fields: the knowledge statement, the task that tests it, and the task's answer.\n\nYou judge exactly one directional question per call: would a learner who has genuinely mastered A — able to answer any fair question of the kind A's task represents — necessarily, through that mastery alone, also answer fair questions of the kind B's task represents?\n\nGround the judgment in transfer, the learning-science criterion: a piece of knowledge is identified by the pool of fair test questions that probe it, and mastery of A covers B only when B's whole demand already lives inside what mastering A requires. When B requires any fact, distinction or step that mastering A does not carry, the answer is no, however close the two topics are.\n\nYour verdict becomes one directed edge in a knowledge graph: yes draws the arrow A→B, meaning mastery of A implies mastery of B. The opposite direction is judged in a separate call by a judge who does not see your answer; disagreement between the two directions is legitimate and expected when one item is broader than the other. Judge only the direction in front of you.\n\nRecord the verdict with the tool, with a one-sentence reason.",
-  "tool": {
-   "type": "function",
-   "function": {
-    "name": "record_verdict",
-    "description": "Record the directional mastery verdict for this pair.",
-    "parameters": {
-     "type": "object",
-     "properties": {
-      "verdict": {
-       "type": "string",
-       "enum": [
-        "yes",
-        "no"
-       ],
-       "description": "yes = mastery of A necessarily brings mastery of B"
-      },
-      "reason": {
-       "type": "string",
-       "description": "One sentence."
-      }
-     },
-     "required": [
-      "verdict",
-      "reason"
-     ],
-     "additionalProperties": false
-    }
-   }
-  },
-  "user_template": "<item_a>\n<statement>{statement_a}</statement>\n<task>{task_a}</task>\n<answer>{answer_a}</answer>\n</item_a>\n\n<item_b>\n<statement>{statement_b}</statement>\n<task>{task_b}</task>\n<answer>{answer_b}</answer>\n</item_b>\n\nQuestion: would a learner who has mastered A necessarily, through that mastery alone, also master B?"
- },
- "order": [
-  "16|32",
-  "0|31",
-  "17|18",
-  "8|11",
-  "15|30",
-  "30|31",
-  "15|31",
-  "8|10",
-  "10|24",
-  "8|24",
-  "3|10",
-  "0|13",
-  "0|30",
-  "10|11",
-  "11|13",
-  "25|26",
-  "1|4",
-  "0|1",
-  "7|16",
-  "0|11",
-  "13|14",
-  "1|5",
-  "22|23",
-  "7|8",
-  "0|15",
-  "3|9",
-  "11|24",
-  "8|13",
-  "7|29",
-  "1|2",
-  "0|14",
-  "10|13",
-  "7|24",
-  "13|24",
-  "2|14",
-  "2|4",
-  "0|2",
-  "5|24",
-  "14|15",
-  "5|13",
-  "19|20",
-  "1|13",
-  "5|8",
-  "5|10",
-  "14|31",
-  "2|13",
-  "24|31",
-  "0|4",
-  "22|24",
-  "27|28",
-  "7|11",
-  "13|16",
-  "5|16",
-  "4|10",
-  "3|11",
-  "2|15",
-  "2|30",
-  "14|30",
-  "4|5",
-  "15|17",
-  "0|17",
-  "6|8",
-  "3|29",
-  "2|32",
-  "3|8",
-  "8|29",
-  "16|24",
-  "7|32",
-  "8|22",
-  "16|23",
-  "17|31",
-  "11|19",
-  "11|22",
-  "13|32",
-  "0|19",
-  "14|32",
-  "16|29",
-  "11|29",
-  "2|19",
-  "4|19",
-  "2|9",
-  "1|17",
-  "16|22",
-  "9|10",
-  "6|11",
-  "23|32",
-  "5|9",
-  "11|20",
-  "0|9",
-  "9|26",
-  "11|21",
-  "6|13",
-  "12|26",
-  "9|25",
-  "13|21",
-  "0|6",
-  "14|21",
-  "7|23",
-  "0|21",
-  "28|29",
-  "8|21",
-  "6|10",
-  "9|27",
-  "15|28",
-  "0|18",
-  "13|20",
-  "17|28",
-  "10|20",
-  "8|20",
-  "9|28",
-  "12|25",
-  "23|24",
-  "1|18",
-  "3|27",
-  "15|18",
-  "17|27",
-  "9|12",
-  "27|29",
-  "18|31",
-  "15|26",
-  "2|26",
-  "24|25",
-  "15|25",
-  "12|19",
-  "2|12",
-  "0|24",
-  "13|15",
-  "21|24"
- ],
- "verdicts": {
-  "15|30": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's explanation of why BOW fails semantically already contains the fact that BOW ignores context, which is all B asks for."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Knowing that BOW disregards context is essentially the whole content of B's explanation, since the semantic-meaning limitation follows directly from treating words independently of context."
-   }
-  },
-  "30|31": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores context does not by itself entail knowing the distinct fact that it also discards word order/sequence, which is a separate property a learner must be told."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores word order does not by itself carry the separate fact that BOW also disregards context, treating words independently of surrounding text."
-   }
-  },
-  "0|31": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's definition explicitly includes that BOW ignores word order, so B's demand is entirely contained within A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only requires knowing that BOW ignores word order, whereas B additionally requires the positive definitional component that BOW represents text by counting word occurrences."
-   }
-  },
-  "17|18": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery entails knowing the n-gram terminology and that unigrams/bigrams are its instances, which is exactly all B asks for."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's statement already encompasses that n-grams are contiguous sequences of n items with unigrams as single words and bigrams as word pairs, which is exactly what B asks to distinguish."
-   }
-  },
-  "15|31": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery explicitly includes the fact that BOW discards word order and context, so identifying word order as the disregarded aspect is fully contained within it."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only requires knowing that BOW ignores word order, whereas B additionally requires understanding that BOW ignores context and thus fails to capture context-dependent semantic meaning — an explanatory step not carried by A."
-   }
-  },
-  "16|32": {
-   "ab": {
-    "v": "sim",
-    "reason": "Both items encode the identical fact—that BOW vectors grow huge for large documents causing heavy computation, mitigated by dropping irrelevant words—so mastery of A fully covers B's demand, the only added element being the trivial label \"second limitation.\""
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Both items probe the identical fact — that BOW vectors grow huge for large documents causing heavy computation, mitigated by dropping irrelevant words — so mastery of A fully covers B."
-   }
-  },
-  "8|10": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery is exactly the bag-of-words vector construction procedure (zero vector, count at vocabulary index), which is all B asks about, with B merely naming the function that implements it."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Both items describe the same bag-of-words vector construction (zero-initialized vector, counts placed at vocabulary indices), differing only in whether the loop is over sentence words or vocabulary words, so mastery of A carries the whole demand of B."
-   }
-  },
-  "8|11": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery of the counting-per-vocabulary-position procedure is exactly what B requires, since B is just applying that procedure to a concrete vocabulary and sentence with no extra concept needed."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A learner who can correctly construct count vectors against an ordered vocabulary and explain each index's value already possesses the full procedural knowledge B asks to be described (zero-initialize, count each vocabulary word's occurrences, place at its position)."
-   }
-  },
-  "0|13": {
-   "ab": {
-    "v": "sim",
-    "reason": "Knowing that BOW represents text by counting each word's occurrences directly entails explaining why a repeated word like 'train' yields a value of 2 at its index, since B only applies the counting principle to a concrete example."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that a BOW vector's entries are word occurrence counts, as A requires, entails the general definition of BOW as counting words while ignoring order that B asks for."
-   }
-  },
-  "10|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding that the vector starts as zeros and is incremented only for words present in the sentence directly entails that positions for absent vocabulary words remain zero."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only requires understanding why absent words yield zeros, whereas B requires knowing the full construction algorithm—initializing a zero vector, looking up each cleaned word's vocabulary index, and incrementing counts—steps not entailed by A's narrower fact."
-   }
-  },
-  "8|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "Knowing that vectors start at zero and counts are only incremented for vocabulary words present in the sentence directly entails that absent words leave zeros at their positions."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only covers why absent words yield zeros, whereas B requires describing the full construction procedure including initialization and incrementing positions by each word's occurrence count, which mastery of the zero case does not guarantee."
-   }
-  },
-  "3|10": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four-step outline of the BoW pipeline does not carry the mechanical detail of vector construction—initializing a zero vector of vocabulary length and incrementing counts at each word's vocabulary index—which B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of A covers only the final vectorization step's mechanics and does not necessarily carry knowledge of the full four-stage pipeline sequence (cleaning, tokenizing, vocabulary building, vectorizing) as an enumerated framework."
-   }
-  },
-  "0|30": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding that BOW is just word counts ignoring order inherently entails knowing it discards context, so B's demand is contained in A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores context does not by itself supply BOW's positive definition — representing text by word counts while disregarding word order — which B requires."
-   }
-  },
-  "25|26": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the definition of stopwords as low-significance common words does not by itself carry the rationale for their removal (saving database space and processing time), which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Knowing why stopwords are removed (they are common, low-value words wasting space and time) entails knowing what stopwords are, including canonical examples like \"a\", \"the\", \"is\"."
-   }
-  },
-  "11|13": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery of placing counts at vocabulary indices inherently includes understanding that a word occurring twice yields a value of 2, which is exactly B's demand."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's mastery is exactly the counting-by-index principle of bag-of-words, and B only asks to apply that same principle across a given ordered vocabulary, adding no new fact or step beyond mechanical index lookup."
-   }
-  },
-  "10|11": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery is exactly the algorithm of incrementing counts at vocabulary indices, which is all that B's task requires—applying it to a concrete sentence and vocabulary."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A learner who can construct count vectors against an ordered vocabulary already understands the zero-vector-plus-increment procedure that B asks to describe, since B adds no fact beyond restating that same algorithm."
-   }
-  },
-  "1|4": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's statement of BoW's purpose already includes that the produced numerical representations are used to train machine learning algorithms, which is exactly what B asks."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only establishes what the resulting vectors are used for (input to ML), whereas B additionally requires knowing that BoW is a feature-extraction method representing documents as unordered multisets of words, a characterization not carried by A's downstream-use knowledge."
-   }
-  },
-  "0|1": {
-   "ab": {
-    "v": "nao",
-    "reason": "A covers only the mechanics of BOW (word counts, order ignored), while B requires knowing its purpose as a feature-extraction technique producing numerical inputs for training machine learning algorithms, which A's mastery does not carry."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's statement already contains B's whole demand — representing a document as an unordered multiset (i.e., word counts ignoring order) — so a learner who masters A's account of BOW can also explain BOW in simple terms."
-   }
-  },
-  "0|11": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the conceptual definition of BOW as word counts ignoring order does not by itself carry the procedural skill of mapping counts onto fixed vocabulary indices to produce a positional vector."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Someone who can correctly build count vectors against a fixed vocabulary already understands that text is represented by word counts irrespective of order, which is exactly the conceptual definition B asks for."
-   }
-  },
-  "7|8": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that vector length equals vocabulary size does not entail knowing the counting/indexing procedure that fills the vector's entries, which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Knowing that a vector holds one counted slot per vocabulary word inherently entails that its length equals the vocabulary size, so B's question is answered by A's mastery."
-   }
-  },
-  "7|16": {
-   "ab": {
-    "v": "nao",
-    "reason": "A only establishes the numeric fact that vector length equals vocabulary size, whereas B additionally requires knowing the practical consequence (huge vectors causing heavy computation/time) and mitigation by pruning irrelevant words, which mastery of A does not carry."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's statement explicitly encodes that vector dimensionality equals vocabulary size, so applying it to a stated vocabulary of 11 requires no additional fact or step."
-   }
-  },
-  "1|5": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the general purpose of Bag of Words (feature extraction for ML) does not itself entail the specific procedural fact that the vocabulary is built from all unique words across the training documents."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the mechanical detail of how the vocabulary is assembled does not by itself carry the broader understanding of BoW's purpose as a feature-extraction technique producing numerical representations for training ML algorithms."
-   }
-  },
-  "13|14": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering how counts are placed in a BOW vector does not by itself carry the further inferential claim that similarity of these count vectors indicates document similarity, which is an added interpretive principle of the model."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Mastering A's claim that documents are compared via word-frequency vectors presupposes understanding that each vector entry is the count of that word's occurrences, which is all B asks."
-   }
-  },
-  "22|23": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the definition of a sparse vector does not by itself carry the additional knowledge of its computational consequences — memory/resource costs and the difficulty high dimensionality poses for traditional modeling algorithms."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Explaining why sparse vectors are problematic (high dimensionality, mostly zero entries straining memory and algorithms) presupposes and contains the definition of a sparse vector, so the definitional question is already covered."
-   }
-  },
-  "8|13": {
-   "ab": {
-    "v": "sim",
-    "reason": "B is a direct instance of the counting rule A describes—knowing that each vector position holds the word's occurrence count in the sentence immediately explains the value 2 for a doubled 'train'."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's mastery — understanding that each vector index holds the count of the corresponding word, as produced by incrementing per occurrence — already contains the whole procedure B asks to be described (zero-initialized vector, count per vocabulary word placed at its index)."
-   }
-  },
-  "1|2": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing BoW's purpose as a feature-extraction technique does not by itself supply the specific list of application fields (NLP, information retrieval, document classification) that B requires recalling."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the application fields where Bag of Words is used does not entail understanding its purpose as a feature-extraction technique producing numerical representations for machine learning."
-   }
-  },
-  "7|29": {
-   "ab": {
-    "v": "nao",
-    "reason": "A only carries the general vocabulary-size-equals-vector-dimension rule, whereas B additionally requires knowing that the specific `tokenize` function's output list is what constitutes the document's vocabulary, a pipeline-specific fact not entailed by A."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's mastery includes knowing that vocabulary length determines sentence vector size, which directly yields B's trivial application that a vocabulary of 11 gives 11-element vectors."
-   }
-  },
-  "0|15": {
-   "ab": {
-    "v": "sim",
-    "reason": "Knowing that BOW is just word counts with order disregarded directly entails the limitation that context-dependent meaning cannot be captured, so B's demand lives inside A's mastery."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Explaining why BOW fails at semantics presupposes knowing what BOW is—a word-count representation that ignores order—so the definitional demand of B is already contained in mastery of A."
-   }
-  },
-  "0|14": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW represents text as unordered word counts does not by itself carry the further inferential step that comparing these count vectors is a measure of document similarity, which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Knowing that BOW judges document similarity by comparing word-frequency vectors presupposes understanding that BOW represents text as word counts ignoring order, so the definitional question in B is already contained in A's mastery."
-   }
-  },
-  "10|13": {
-   "ab": {
-    "v": "sim",
-    "reason": "Knowing that the vector is built by incrementing the index for each occurrence of a word directly entails that a word appearing twice yields a value of 2, so B's demand is fully contained in A."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's answer already articulates the full procedure — a vocabulary-indexed vector whose positions are incremented once per occurrence of each cleaned word — so explaining how generate_bow builds a sentence vector demands nothing beyond what mastering A requires."
-   }
-  },
-  "3|9": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four high-level pipeline steps does not carry the specific implementation details of the tokenization function (regex replacement of non-word characters, lowercasing, stopword filtering) that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastering the word_extraction (clean/tokenize) step does not by itself carry knowledge of the full four-step BOW pipeline, which additionally requires knowing the vocabulary-building and vector-generation stages and their ordering."
-   }
-  },
-  "11|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery of building count vectors against an ordered vocabulary explicitly includes knowing that absent vocabulary words leave zeros at their positions, which is all B demands."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that a zero marks an absent vocabulary word entails grasping the index-to-word mapping and count semantics of bag-of-words encoding, so the learner can construct the full vector for a given vocabulary, with counts of 1 for present words being the trivial complement of the zero rule."
-   }
-  },
-  "7|24": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that a sentence vector's length equals the vocabulary size does not by itself entail understanding the position-to-word mapping and the count/zero semantics of bag-of-words entries that B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that each vocabulary word has an assigned position that is zero when absent presupposes the one-position-per-vocabulary-word mapping, which directly entails that vector length equals vocabulary size."
-   }
-  },
-  "13|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding that each index holds the count of the corresponding vocabulary word in the document inherently entails that a count of zero means the word is absent, so B's demand is fully contained in A's mastery."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that a BoW position holds zero because the word is absent presupposes the counting semantics of positions, so the learner can equally explain a count of 2 for a word appearing twice."
-   }
-  },
-  "0|2": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing BOW's definition (word counts, order ignored) does not by itself supply the separate factual list of application domains—NLP, information retrieval, document classification—that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the application domains where BOW is used does not itself convey the definitional mechanics of BOW (counting word occurrences while ignoring word order), which B requires."
-   }
-  },
-  "2|14": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application fields of Bag of Words carries no information about how the model represents documents as word-frequency vectors or how similarity is inferred from comparable word counts."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself supply the separate factual list of application fields (NLP, information retrieval, document classification) that B requires."
-   }
-  },
-  "5|24": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how the vocabulary is built from unique words does not by itself entail understanding the vector encoding step, where each position records a word's count/presence and is zero when that vocabulary word is absent from the sentence."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that each vector position maps to a vocabulary word and is zero when that word is absent from the sentence presupposes knowing the vocabulary is the collection of unique words drawn from all the documents, so B's demand is contained within A's mastery."
-   }
-  },
-  "2|4": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application fields where BoW is used does not itself carry the specific fact that BoW output vectors serve as input features to machine learning algorithms."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors feed machine learning algorithms does not entail knowing the specific list of application fields (NLP, information retrieval, document classification) that B requires naming."
-   }
-  },
-  "5|13": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how the vocabulary is built from unique words across documents does not itself entail understanding that vector entries are word frequency counts incremented per occurrence."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastering A concerns how counts are placed at indices for a given document, which does not necessarily carry the separate fact that the index set (vocabulary) is built from the unique words across all training documents."
-   }
-  },
-  "14|15": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself entail understanding its limitation—that discarding word order and context prevents capturing semantics—which is an additional distinction B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of A concerns BOW's limitation in ignoring word order and context, which does not by itself carry the positive insight that BOW measures document similarity through comparison of word-frequency vectors."
-   }
-  },
-  "19|20": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that CountVectorizer exists as a ready-made BOW tool does not entail knowing its API usage (instantiation, fit_transform, toarray) required to write the working code snippet."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Writing the CountVectorizer code, including its import path and purpose, entails knowing that CountVectorizer from sklearn.feature_extraction.text is the ready-made class for Bag of Words, which is all B asks."
-   }
-  },
-  "5|10": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that the vocabulary is the set of unique words across training documents does not entail the separate vectorization procedure—initializing a zero vector of vocabulary length and incrementing counts at each word's index—which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Mastering how the BoW vector is built by indexing each cleaned word into a vocabulary-length zero vector presupposes understanding that the vocabulary is the set of unique words collected across the training documents, so B's demand is contained in A."
-   }
-  },
-  "1|13": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing BoW's general purpose (feature extraction for ML) does not entail knowing the specific counting mechanic that each vector index holds the word's occurrence frequency, which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Understanding that BoW encodes word counts into a numeric vector inherently entails knowing its purpose is to turn text into numerical features for machine learning, so B's demand lives within A's mastery."
-   }
-  },
-  "14|31": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding that BOW judges similarity purely by word-frequency vectors inherently entails knowing that word order/sequence is discarded, so B's demand lives inside A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores word order does not itself entail understanding how BOW represents documents as word-frequency vectors and uses count similarity to judge document similarity."
-   }
-  },
-  "0|4": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW represents text as word counts ignoring order does not by itself convey the downstream purpose that these vectors serve as input features to machine learning algorithms."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW vectors feed into machine learning algorithms does not itself entail knowing the definition of BOW as word-count representation that ignores word order."
-   }
-  },
-  "24|31": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering why zeros appear for absent vocabulary words concerns count/presence encoding and does not itself require knowing the separate fact that BOW discards word order."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores word order does not entail understanding the vector encoding scheme where each position maps to a vocabulary word and zero marks its absence in the sentence."
-   }
-  },
-  "5|8": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how the vocabulary is assembled from unique words says nothing about the subsequent counting/encoding step that produces a sentence's count vector, which is an additional procedure."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A concerns the vectorization step given an existing vocabulary and does not itself require knowing how the vocabulary is constructed (the set of unique words across all training documents), which is B's distinct demand."
-   }
-  },
-  "2|13": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application domains of Bag of Words says nothing about how the representation encodes word frequency counts, which B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Understanding how BoW counts word occurrences does not entail knowing the specific list of application fields (NLP, information retrieval, document classification), which is separate factual knowledge."
-   }
-  },
-  "7|11": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that vector length equals vocabulary size does not entail knowing the count-encoding procedure of placing word frequencies at the correct vocabulary indices, which B requires."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Producing a count vector indexed by an ordered vocabulary inherently requires knowing that the vector has one slot per vocabulary word, so the learner directly infers that a vocabulary of 11 yields 11-element vectors."
-   }
-  },
-  "22|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's definition already encodes that zeros arise because vocabulary terms are absent from the instance, which is exactly the explanation B's task demands for specific zero positions in a bag-of-words sentence vector."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Understanding why individual positions are zero in a bag-of-words vector does not by itself supply the term \"sparse vector\" or the generalization that large vocabularies yield mostly-zero vectors."
-   }
-  },
-  "13|16": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering how counts fill a BOW vector does not itself carry the knowledge that vector dimensionality equals vocabulary size and the resulting computational-cost drawback (and mitigation by filtering words)."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A concerns the dimensionality/computational cost issue of BOW vectors and does not itself require knowing that each vector entry stores the word's occurrence count, which B's task demands."
-   }
-  },
-  "3|11": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four named steps of the BoW pipeline does not carry the procedural skill of mapping words to vocabulary indices and filling in counts to produce a concrete vector."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of the vectorization step alone does not entail knowing and naming the four-stage BoW pipeline (cleaning, tokenizing, vocabulary building, vectorizing), which requires additional procedural overview knowledge."
-   }
-  },
-  "27|28": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's definition already names the pieces (words, phrases, symbols) produced by tokenization as tokens, so giving an example of a token follows directly from that mastery."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's statement already defines tokens as the units produced by splitting text during tokenization, so a learner who can exemplify tokens necessarily carries the definition of tokenization as breaking text into such pieces."
-   }
-  },
-  "5|16": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how the vocabulary is built does not by itself carry the further knowledge that vector dimensionality equals vocabulary size and that this causes computational/time costs (and mitigation by filtering irrelevant words)."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "A's knowledge that BOW vector dimensionality equals the vocabulary size presupposes understanding what the vocabulary is — the set of unique words across the training documents — so B's demand is already contained in mastering A."
-   }
-  },
-  "2|15": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application domains of Bag of Words carries no understanding of its internal mechanics — that it discards word order and context — which is what B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Understanding BOW's semantic limitation from ignoring word order does not supply the separate factual knowledge of the application domains (NLP, information retrieval, document classification) where BOW is widely used."
-   }
-  },
-  "4|10": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors feed into machine learning algorithms says nothing about the construction procedure (zero vector of vocabulary length, index lookup, count incrementing) that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastering the mechanics of constructing a count vector does not by itself carry the purpose-level knowledge that such vectors serve as feature input to machine learning algorithms."
-   }
-  },
-  "2|30": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application fields of Bag of Words does not entail knowing the model's defining limitation that it disregards context, which is a separate conceptual fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores context says nothing about the application domains (NLP, information retrieval, document classification) where BOW is used, which is separate factual knowledge."
-   }
-  },
-  "14|30": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW judges similarity by comparing word-frequency vectors does not by itself carry the distinct fact that BOW ignores context/word order, which is a separate limitation of the model."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores context says nothing about how BOW positively measures document similarity through comparison of word-frequency vectors, which is an additional fact B requires."
-   }
-  },
-  "15|17": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing why BOW fails to capture semantics does not itself supply the definitional fact of what n-grams are and how unigrams differ from bigrams in tokenizing text."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definitional difference between unigrams and bigrams does not by itself supply the conceptual insight that BOW discards word order and context and therefore fails to capture semantics."
-   }
-  },
-  "0|17": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW counts words while ignoring order does not carry the additional n-gram terminology and the unigram/bigram distinction, which is a separate fact beyond A's demand."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the n-gram distinction (unigram vs bi-gram tokenization) does not by itself carry the core definition of BOW as counting word occurrences while disregarding word order, which B requires."
-   }
-  },
-  "4|5": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors feed into machine learning algorithms says nothing about how the vocabulary is constructed from unique words across the training documents, which is a separate procedural fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how the BoW vocabulary is constructed from unique words in the training corpus does not itself convey the downstream purpose of the resulting vectors as feature inputs to machine learning algorithms."
-   }
-  },
-  "2|32": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application fields of Bag of Words carries no information about its limitations, such as the vector-size/computation problem, which is a separate fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing a limitation of Bag of Words (vector size/computation cost) does not carry the separate factual knowledge of its application fields (NLP, information retrieval, document classification)."
-   }
-  },
-  "3|29": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four-step sequence of the BoW pipeline does not entail the specific implementation detail that the tokenize function's output list serves as the vocabulary whose length fixes each sentence vector's dimensionality."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only covers the role of the tokenize output (vocabulary and vector dimensionality) and does not require knowing the full four-step Bag of Words pipeline, notably the initial text-cleaning step."
-   }
-  },
-  "6|8": {
-   "ab": {
-    "v": "nao",
-    "reason": "Building a word-count dictionary for a single sentence does not require knowing the vocabulary-indexed vector construction (fixed ordering, zero-initialization, positional placement across a shared vocabulary), which B demands."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Building a count vector requires knowing each word's frequency in the sentence, so the learner can trivially produce the word-count mapping that B asks for."
-   }
-  },
-  "8|29": {
-   "ab": {
-    "v": "nao",
-    "reason": "A covers how counts fill vector positions given a vocabulary, but B requires knowing that the `tokenize` function's output list is the vocabulary and sets the vector's dimensionality — a specific pipeline fact not entailed by A's counting procedure."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that the tokenized list is the vocabulary and sets vector length does not entail knowing the count-based filling procedure (zero initialization, per-word occurrence counting at each index) that B requires."
-   }
-  },
-  "16|24": {
-   "ab": {
-    "v": "nao",
-    "reason": "A concerns the computational cost implied by vocabulary-sized vectors, while B requires knowing the encoding mechanics—that each position maps to a vocabulary word and holds zero when that word is absent from the sentence—a step A's mastery does not necessarily carry."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Understanding why absent vocabulary words yield zeros in a BoW vector does not by itself carry the knowledge that vector dimensionality equals vocabulary size and thus creates computational/time costs for large corpora (nor the mitigation of dropping irrelevant words)."
-   }
-  },
-  "8|22": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the count-based construction procedure does not itself supply the term \"sparse vector\" or its definition as a vector dominated by zeros arising from large vocabularies."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of a sparse vector does not carry the procedural knowledge of constructing a bag-of-words count vector by indexing vocabulary positions and incrementing counts."
-   }
-  },
-  "7|32": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that vector length equals vocabulary size does not carry the specific knowledge of the Bag of Words limitations enumerated in the passage (nor which one is \"second,\" nor the computational-cost consequence and word-dropping remedy)."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors grow large for big documents does not by itself establish the precise rule that vector dimensionality equals vocabulary size, which B's task requires applying to a specific number."
-   }
-  },
-  "17|31": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the definitional distinction between unigrams and bigrams does not by itself entail knowing the BOW model's core limitation that word order is disregarded, which is a separate property of the representation."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores word order does not supply the definition of n-grams or the specific distinction between unigrams and bi-grams, which is additional factual content."
-   }
-  },
-  "16|23": {
-   "ab": {
-    "v": "nao",
-    "reason": "A covers only the size/computation cost of vocabulary-sized BOW vectors, whereas B additionally requires understanding sparsity (predominantly zero entries) and its specific difficulty for traditional modeling algorithms, which mastery of A does not carry."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A conveys the general computational/memory cost of sparse high-dimensional vectors, but B additionally requires knowing the specific BOW mechanism (dimensionality equals vocabulary size) and the mitigation of dropping irrelevant words, which mastery of A alone does not supply."
-   }
-  },
-  "11|19": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering the manual counting/vectorization procedure does not entail knowing the specific library fact that scikit-learn's CountVectorizer implements Bag of Words."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that CountVectorizer is a ready-made Bag of Words tool is a recall fact that does not itself carry the procedural skill of mapping words to vocabulary indices and constructing the count vector by hand."
-   }
-  },
-  "3|8": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four-step sequence names \"generate vectors\" but does not carry the mechanics of counting word occurrences and placing counts at vocabulary positions, which B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of the vector-generation step alone does not guarantee knowledge of the full four-step Bag of Words pipeline (cleaning, tokenizing, vocabulary building), which A never requires."
-   }
-  },
-  "11|22": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering the mechanical procedure of counting vocabulary words into indexed positions does not necessarily carry the definitional term \"sparse vector\" and its characterization as a mostly-zero vector arising from large vocabularies."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of a sparse vector does not itself supply the procedure of mapping words to vocabulary indices and filling in counts to construct a bag-of-words vector."
-   }
-  },
-  "13|32": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding how BoW counts word occurrences does not entail knowing the passage's enumerated limitations of BoW, such as vector size causing heavy computation."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors grow unwieldy for large documents does not by itself entail understanding the counting mechanism whereby each index stores the word's occurrence frequency."
-   }
-  },
-  "14|32": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW judges similarity via comparable word-frequency vectors does not entail knowing the model's specific limitations, such as vector size explosion causing heavy computation for large documents."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing BOW's vector-size limitation does not by itself entail understanding the model's positive insight that similar word-count vectors indicate similar documents, which is a distinct piece of knowledge."
-   }
-  },
-  "11|29": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastering how to build a count vector against an ordered vocabulary inherently entails knowing that the vocabulary list defines the index positions and that its length fixes the vector's dimensionality, which is all B asks."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only states that the tokenized list serves as the vocabulary and sets vector length, whereas B requires the additional procedure of filling each index with the count of the corresponding vocabulary word in the sentence."
-   }
-  },
-  "0|19": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the conceptual definition of Bag of Words does not entail knowing the specific scikit-learn implementation (CountVectorizer in sklearn.feature_extraction.text), which is a separate tooling fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that CountVectorizer is a ready-made BOW implementation is a tool-recall fact that does not itself guarantee the conceptual definition of BOW as word counts ignoring order."
-   }
-  },
-  "2|19": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application domains of Bag of Words carries no knowledge of the specific scikit-learn CountVectorizer implementation, which is a separate factual item."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that CountVectorizer implements Bag of Words does not entail knowing the application domains (NLP, information retrieval, document classification) where the approach is widely used."
-   }
-  },
-  "4|19": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors feed into machine learning algorithms carries no information about the specific scikit-learn CountVectorizer class and its module, which is a separate factual item."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that CountVectorizer is a ready-made tool implementing Bag of Words does not by itself carry the separate fact about the purpose of the resulting vectors as input features for machine learning algorithms."
-   }
-  },
-  "2|9": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application domains of Bag of Words carries no knowledge of the tokenization/preprocessing steps implemented in a word_extraction function."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of the tokenization/preprocessing step in a BOW implementation does not carry the separate factual knowledge of the application domains (NLP, information retrieval, document classification) where BOW is used."
-   }
-  },
-  "16|29": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery already entails knowing that the vocabulary list determines vector dimensionality in BOW, which is exactly what B asks about the tokenize output serving as vocabulary and setting vector size."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only establishes that vocabulary length sets vector dimensionality, whereas B additionally requires knowing the computational/time cost consequence for large corpora and the mitigation of filtering irrelevant words, which A's mastery does not carry."
-   }
-  },
-  "1|17": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the general purpose of Bag of Words as a feature-extraction method does not carry the specific n-gram terminology and the unigram/bigram distinction that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definitional distinction between 1-grams and bi-grams within BoW tokenization does not by itself entail knowing BoW's overall purpose of converting text into numerical features for training machine learning algorithms."
-   }
-  },
-  "16|22": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering A concerns the computational cost of high-dimensional BOW vectors and does not necessarily carry the distinct concept and definition of sparsity (vectors mostly filled with zeros)."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of a sparse vector does not carry the BOW-specific fact that dimensionality equals vocabulary size nor the computational-cost consequence and mitigation (filtering irrelevant words) that B requires."
-   }
-  },
-  "9|10": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastery of the tokenization/cleaning step does not itself supply the vocabulary-indexed zero-vector construction and count-incrementing logic that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A covers vector construction from already-\"cleaned\" words and does not require knowing the specific tokenization steps (non-word character replacement, splitting, lowercasing, stopword filtering) that B demands."
-   }
-  },
-  "6|11": {
-   "ab": {
-    "v": "nao",
-    "reason": "Building a word-count dictionary does not itself require the extra step of aligning counts to a fixed ordered vocabulary and filling absent words with zeros at the correct indices."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Producing a count vector against a vocabulary already requires counting occurrences of each distinct word in a text, so building a word→count dictionary demands nothing beyond what mastery of A carries (only a simpler, unordered representation)."
-   }
-  },
-  "23|32": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering the general reasons sparse vectors are costly does not carry the specific knowledge of which limitations the passage enumerates for Bag of Words or that vector size is the \"second\" one (nor the remedy of dropping words by relevance)."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A covers only the vector-size/computation limitation of Bag of Words, whereas B requires understanding sparsity itself — mostly zero entries and the resulting difficulty for traditional modeling algorithms — which A's mastery does not supply."
-   }
-  },
-  "9|26": {
-   "ab": {
-    "v": "nao",
-    "reason": "A only requires describing the mechanics of tokenizing and filtering an ignore list, whereas B demands the rationale for stopword removal (low semantic value, saving space and processing time), which mastery of A's procedural description does not necessarily carry."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing why stopwords are removed does not carry the full tokenization pipeline steps (non-word character replacement, whitespace splitting, lowercasing) that B's task requires explaining."
-   }
-  },
-  "11|20": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding how to build a count vector by hand does not supply the specific scikit-learn API knowledge (import path, CountVectorizer, fit_transform, toarray) that B's task requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the CountVectorizer API calls does not itself require the ability to manually construct a count vector by indexing words against an ordered vocabulary, which is B's conceptual demand."
-   }
-  },
-  "0|9": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the conceptual definition of BOW does not carry the specific preprocessing steps of the word_extraction implementation (punctuation replacement, splitting, lowercasing, stopword filtering)."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastering the tokenization/preprocessing step of a BOW pipeline does not by itself carry the conceptual definition of BOW as word-count representation that disregards word order, which is a separate fact."
-   }
-  },
-  "11|21": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastery of counting word occurrences to build a vector inherently includes tallying a word's occurrences, and summing those tallies across two texts is a trivial arithmetic extension already implicit in the counting skill."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only requires summing a word's counts across texts, whereas B requires knowing how to build a positionally aligned count vector against an ordered vocabulary (index mapping, zeros for absent words), a step A's mastery does not carry."
-   }
-  },
-  "6|13": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastering the word-count mapping (each distinct word paired with its occurrence count) directly supplies the reasoning that a repeated word like 'train' yields a count/vector value of 2, since B only asks to explain that same counting principle in vector-index form."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Mastery of A — understanding that each position/entry holds the occurrence count of its word — directly supplies the counting operation needed to build a word-count dictionary, which is just the same tallying expressed as word→count pairs."
-   }
-  },
-  "5|9": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that the vocabulary is the set of unique words across training documents does not entail knowledge of the specific tokenization preprocessing steps (regex replacement of non-word characters, lowercasing, stopword filtering) performed by the word_extraction function."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A covers only the tokenization/cleaning step for a single sentence, whereas B requires the additional notion of aggregating unique words across all training documents to form a vocabulary, a step not entailed by A's mastery."
-   }
-  },
-  "12|26": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how to import NLTK's stopword corpus is a procedural/API fact that does not itself carry the conceptual rationale for why stopwords—low-semantic-value common words—are removed to save space and processing time."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the conceptual rationale for removing stopwords does not convey the specific NLTK implementation detail (importing nltk.corpus stopwords and calling stopwords.words('english')) that B requires."
-   }
-  },
-  "9|25": {
-   "ab": {
-    "v": "sim",
-    "reason": "A's mastery already includes knowing that the ignore list consists of low-significance common words like \"a\", \"the\", \"is\" that are filtered out, which is exactly what B asks."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of stopwords does not convey the full word_extraction pipeline steps (non-word character replacement, whitespace splitting, lowercasing) required by B."
-   }
-  },
-  "13|21": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastery of counting word occurrences to fill BoW vector positions trivially extends to summing those counts across two texts, which requires no new concept beyond addition of the same per-document counts."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Mastery of A — understanding that word frequency is a count of occurrences summed across texts — already contains the simpler idea that a bag-of-words vector entry equals the number of occurrences of that word in the document."
-   }
-  },
-  "14|21": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastering the BOW similarity insight presupposes understanding word-count vectors, so tallying and summing a word's occurrences across texts is a trivially contained sub-skill."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how to sum word counts across texts is a counting operation and does not entail the conceptual claim that BOW judges document similarity by comparing frequency vectors."
-   }
-  },
-  "0|21": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastery of BOW as counting word occurrences ignoring order directly entails being able to count a word's occurrences across sentences and add them, which is all B's task requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how to sum word counts across texts does not by itself carry the conceptual definition of Bag of Words as a text representation that disregards word order."
-   }
-  },
-  "28|29": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing what a token is does not entail knowing that the tokenize function's output list serves as the vocabulary whose length sets the vector dimensionality, which is an additional implementation/vectorization fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that tokenize's output list serves as the vocabulary defining vector dimensionality does not itself supply the definition of a token or examples of what units (words, phrases, sentences, punctuation handling) count as tokens."
-   }
-  },
-  "7|23": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that vector length equals vocabulary size does not itself supply the knowledge of why sparse, high-dimensional vectors burden memory, computation, and traditional modeling algorithms."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing why sparsity is computationally problematic does not itself supply the specific representational fact that a sentence vector's length equals the vocabulary size."
-   }
-  },
-  "9|27": {
-   "ab": {
-    "v": "sim",
-    "reason": "Explaining that word_extraction splits text into cleaned word tokens entails understanding the general notion of tokenization as breaking a string into token pieces, so B's definitional demand is contained within A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the general definition of tokenization does not carry the specific preprocessing steps of the BOW word_extraction function (non-word character replacement, lowercasing, stopword filtering against an ignore list)."
-   }
-  },
-  "0|6": {
-   "ab": {
-    "v": "sim",
-    "reason": "Genuinely understanding BOW as counting each word's occurrences while ignoring order directly entails being able to produce the word-count dictionary for a given sentence, which is just the mechanical application of that definition."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Being able to construct a word-count dictionary from a sentence entails understanding that text is represented by word counts without regard to order, which is exactly what B's definitional question asks."
-   }
-  },
-  "8|21": {
-   "ab": {
-    "v": "sim",
-    "reason": "Mastering the counting-based construction of sentence vectors entails knowing how to count word occurrences per sentence and aggregate them, so summing 'likes' counts across two sentences is already within that mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A only requires summing a word's counts across texts, whereas B requires knowing the vector-construction procedure — zero-initialization, vocabulary ordering, and placing counts at each word's index — which mastery of A does not supply."
-   }
-  },
-  "15|28": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding why BOW loses context does not by itself carry the definition of a token and the tokenization granularities (word, phrase, sentence, punctuation handling) that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing what a token is does not carry the specific knowledge of the Bag of Words model and its limitation in ignoring word order and context."
-   }
-  },
-  "0|18": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BOW counts words while ignoring order does not supply the separate n-gram terminology (unigram/bigram, contiguous sequences of n items) that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing n-gram notation for grouping words does not entail knowing the Bag of Words representation, which requires the distinct facts of word counting and order-insensitivity."
-   }
-  },
-  "6|10": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastery of A only requires tallying words into a per-sentence dictionary, whereas B demands knowledge of a fixed shared vocabulary, index alignment, zero-vector initialization and the algorithmic procedure of generate_bow — steps not entailed by A."
-   },
-   "ba": {
-    "v": "sim",
-    "reason": "Mastery of building count vectors by incrementing per-word counts entails the simpler ability to tally each distinct word's occurrences into a word-count dictionary, which is the same counting operation in an unindexed representation."
-   }
-  },
-  "13|20": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding that BOW values are word counts does not supply the specific scikit-learn API knowledge (CountVectorizer, fit_transform, toarray) required to write B's code."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A tests knowing the API calls for CountVectorizer, which can be memorized without understanding the underlying counting semantics that B requires explaining (why a repeated word yields a value of 2 in the vector)."
-   }
-  },
-  "10|20": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding the manual counting algorithm does not supply knowledge of scikit-learn's CountVectorizer API (import path, fit_transform, toarray), which is a separate library-specific fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how to call scikit-learn's CountVectorizer API does not entail understanding or being able to describe the internal zero-vector-and-increment algorithm of the custom generate_bow implementation."
-   }
-  },
-  "17|28": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding n-grams as contiguous sequences of n tokens (words vs. word pairs) presupposes knowing what a token is and being able to give examples such as individual words from a split sentence, so B's demand is already contained in A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing what a token is does not entail the n-gram concept or the unigram/bigram distinction within the Bag of Words approach, which requires additional facts about contiguous sequences of n tokens."
-   }
-  },
-  "9|28": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding the word_extraction pipeline (splitting text into words, discarding punctuation/non-word characters) inherently entails knowing what a token is and being able to give examples, which is the whole of B's demand."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing what a token is does not entail knowing the specific word_extraction preprocessing steps (non-word character replacement, lowercasing, stopword filtering) in the BOW pipeline."
-   }
-  },
-  "8|20": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding the conceptual counting procedure for building sentence vectors does not supply the specific scikit-learn API knowledge (import path, CountVectorizer, fit_transform, toarray) that B's task requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the CountVectorizer API calls is a library-usage skill that does not by itself require understanding or being able to articulate the underlying zero-initialized, per-vocabulary-word counting procedure that builds a sentence vector."
-   }
-  },
-  "1|18": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the purpose of Bag of Words as a feature-extraction method does not itself supply the n-gram terminology and the unigram/bigram distinction that B tests."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing n-gram notation for grouping words does not entail knowing the Bag of Words method's purpose of extracting numerical features for training machine learning algorithms."
-   }
-  },
-  "12|25": {
-   "ab": {
-    "v": "sim",
-    "reason": "Knowing how to obtain and apply NLTK's stopword corpus presupposes understanding what stopwords are — the common, low-significance words the list contains — so the conceptual definition in B is already contained in A's mastery."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the conceptual definition of stopwords does not supply the specific NLTK library knowledge (importing `from nltk.corpus import stopwords` and calling `stopwords.words('english')`) that B requires."
-   }
-  },
-  "17|27": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the unigram/bigram distinction presupposes tokens exist but does not itself supply the definition of tokenization as breaking strings into words, keywords, phrases, symbols and other elements."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of tokenization does not carry the n-gram concept or the specific unigram/bigram distinction in the Bag of Words approach, which is additional knowledge."
-   }
-  },
-  "23|24": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing why sparsity is computationally problematic does not entail understanding the bag-of-words encoding scheme in which each position maps to a vocabulary word and holds zero when that word is absent from the sentence."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing why zeros appear in a bag-of-words vector does not carry the separate knowledge of the computational/memory costs and modeling difficulties that sparse high-dimensional representations impose."
-   }
-  },
-  "15|18": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding why Bag of Words fails to capture context does not by itself supply the terminology of n-grams (unigrams, bigrams) that B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that n-gram notation names word groupings does not entail understanding the Bag of Words model's specific limitation of discarding order and context, which is a separate conceptual fact."
-   }
-  },
-  "3|27": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the four-step sequence of the BoW pipeline (which merely names tokenization) does not entail the definitional knowledge of what tokenization is — breaking strings into words, phrases, symbols and other tokens."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of tokenization does not supply the additional steps and ordering of the Bag of Words pipeline (cleaning, vocabulary building, vector generation)."
-   }
-  },
-  "18|31": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing n-gram notation for grouping words does not itself entail knowing the Bag of Words model or its specific property of ignoring word order."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that BOW ignores word order does not carry the separate terminology and definitions of n-grams (unigrams, bigrams), which B requires."
-   }
-  },
-  "27|29": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the general definition of tokenization does not carry the specific implementation knowledge that the tokenize function's output list serves as the vocabulary whose length sets the vector dimensionality."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how the tokenize function's output feeds vocabulary and vector dimensionality does not by itself supply the definition of tokenization as breaking strings into tokens (words, phrases, symbols, etc.)."
-   }
-  },
-  "9|12": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding what the tokenizing/stopword-filtering function does does not carry the specific library knowledge of NLTK's stopwords corpus and its import/API usage."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how to import NLTK's stopword corpus does not carry the full tokenization pipeline steps (regex replacement of non-word characters, splitting, lowercasing, filtering) that explaining the word_extraction function requires."
-   }
-  },
-  "15|26": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding why Bag of Words loses semantic/contextual meaning does not entail knowing the separate preprocessing concept of stopwords and the space/time efficiency rationale for removing them."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing why stopwords are removed says nothing about the Bag of Words model's structure or its loss of word order and context, which B requires."
-   }
-  },
-  "2|26": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application fields of Bag of Words carries no information about stopwords or the space/time rationale for removing them, which is a separate preprocessing fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing why stopwords are removed carries no information about the application domains of the Bag of Words approach, which is a separate factual recall."
-   }
-  },
-  "24|25": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding why bag-of-words vector positions hold zeros involves only vocabulary-to-position mapping and word absence, and carries no knowledge of the separate concept and definition of stopwords."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of stopwords says nothing about how bag-of-words vectors index vocabulary positions or why absent words yield zeros."
-   }
-  },
-  "15|25": {
-   "ab": {
-    "v": "nao",
-    "reason": "Understanding why Bag of Words loses semantic/contextual meaning does not entail knowing the separate definition of stopwords as low-significance common words removed in preprocessing."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing the definition of stopwords carries no knowledge of the Bag of Words model's disregard for word order and context, which B requires."
-   }
-  },
-  "2|12": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing the application domains of Bag of Words carries no knowledge of NLTK's stopwords corpus or its import syntax, which B requires."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing how to import NLTK's stopword corpus carries no information about the application domains of the Bag of Words approach, which is a separate factual recall."
-   }
-  },
-  "12|19": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing how to load NLTK's stopword corpus carries no information about scikit-learn's CountVectorizer class for Bag of Words, which is a separate library fact."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that sklearn's CountVectorizer implements Bag of Words carries no information about NLTK's stopwords corpus and its import/usage syntax, which B requires."
-   }
-  },
-  "21|24": {
-   "ab": {
-    "v": "nao",
-    "reason": "Mastering how counts sum across texts does not itself entail understanding the bag-of-words vector representation, its fixed vocabulary-to-position mapping, and why absent words yield zeros in a sentence's vector."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Mastery of A concerns interpreting zero entries as words absent from a sentence, which does not by itself require the counting/summing of a word's occurrences across multiple texts that B demands."
-   },
-   "closure": 1
-  },
-  "0|24": {
-   "ab": {
-    "v": "sim",
-    "reason": "Understanding that BOW represents a sentence by counting each vocabulary word's occurrences directly entails that a word absent from the sentence has a count of zero at its vocabulary position."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "Knowing that a zero marks an absent vocabulary word does not by itself carry the general definition of BOW as counting word occurrences while disregarding word order, which B requires."
-   },
-   "closure": 1
-  },
-  "13|15": {
-   "ab": {
-    "v": "nao",
-    "reason": "Knowing that BoW vectors store word counts does not by itself entail understanding the model's conceptual limitation—that discarding word order and context prevents capturing semantic meaning—which is a separate insight about what the representation loses."
-   },
-   "ba": {
-    "v": "nao",
-    "reason": "A concerns BOW's conceptual limitation regarding context and semantics, whereas B requires knowing the mechanics of the count-based vector encoding (index positions incremented per occurrence), a procedural fact not entailed by understanding the limitation."
-   },
-   "closure": 1
-  }
- },
- "usage": {
-  "calls": 256,
-  "prompt_tokens": 344968,
-  "completion_tokens": 29484,
-  "cost_usd": 0
- }
-};   // vereditos do juiz-modelo; null = modo manual
+/* =========================================================================
+   A maquete do juiz — grafo direcionado de precedência
+   Dados NAO sao embutidos: o corpus e as runs do juiz sao carregados de
+   arquivos JSON (fetch, ?runs=, judge-runs.json, arrastar-e-soltar).
+   ========================================================================= */
 
-/* ================= base ================= */
-const K = 5;
-const REVIEW = !!MODEL;
-const LS_KEY = REVIEW ? 'grouping-simulator-review-v1' : 'grouping-simulator-v1';
-const N = DATA.items.length;
-const IT = DATA.items;
-const S = DATA.sims;
+const $ = id => document.getElementById(id);
+const esc = s => { const d=document.createElement('span'); d.textContent=s==null?'':s; return d.innerHTML; };
+
+/* ---------- escala de 4 niveis (memo §9 item 3) ----------
+   colapso binario para TODA a estrutura; peso 2 = claro, 1 = intermediario.
+   'sim'/'nao' sao o formato legado (runs binarias) e pesam 2.            */
+const NIVEIS = {
+  clear_yes: {bin:'sim', peso:2, rot:'Sim, claro',   curto:'claro',      btn:'nv1'},
+  likely:    {bin:'sim', peso:1, rot:'Provável',     curto:'provável',   btn:'nv2'},
+  unlikely:  {bin:'nao', peso:1, rot:'Improvável',   curto:'improvável', btn:'nv3'},
+  clear_no:  {bin:'nao', peso:2, rot:'Não, claro',   curto:'claro',      btn:'nv4'},
+  sim:       {bin:'sim', peso:2, rot:'Sim',          curto:'claro',      btn:'nv1'},
+  nao:       {bin:'nao', peso:2, rot:'Não',          curto:'claro',      btn:'nv4'}
+};
+const ehSim  = v => !!NIVEIS[v] && NIVEIS[v].bin==='sim';
+const pesoDe = v => NIVEIS[v] ? NIVEIS[v].peso : 2;
+/* forma canonica: o legado binario equivale aos niveis "claro" */
+const canon  = v => v==='sim' ? 'clear_yes' : (v==='nao' ? 'clear_no' : v);
+const GERADORES = ['semantico','lexico','fechamento'];
+const GEN_ROT = {semantico:'semântico', lexico:'léxico', fechamento:'fechamento', desconhecido:'sem etiqueta'};
+const FLOOR_SEM = 0.70, TETO_SEM = 15, TOP_LEX = 5;
+
+/* ================= estado global de dados ================= */
+let CORPUS = null;                 // {kind, run_id, items, sims, ...}
+let RUNS = [];                     // [{nome, data}]
+let activeIdx = -1;                // -1 = modo manual
+let MODEL = null, REVIEW = false;
+let IT = [], S = [], N = 0, pos = [];
+let PGEN = new Map();              // "i|j" -> Set(geradores)
+let GEN_FONTE = '';
+let basePairs = [], ordem = [];
+let pronto = false;
+
 const shortId = t => t.replace(/^r00/, '');
 const cls = i => IT[i].grain;
 const key = (i,j) => i<j ? i+'|'+j : j+'|'+i;
 const unkey = k => k.split('|').map(Number);
-const simOf = k => { const [i,j]=unkey(k); return S[i][j]; };
-const $ = id => document.getElementById(id);
+const simOf = k => { const [i,j]=unkey(k); return (S[i] && S[i][j] != null) ? S[i][j] : 0; };
 
-let st = { verdicts:{}, skipped:[], history:[], forced:[] };   // manual: seus vereditos | review: apenas overrides
-try { const raw = localStorage.getItem(LS_KEY); if (raw) st = Object.assign(st, JSON.parse(raw)); } catch(e){}
-const save = () => { try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); }catch(e){} };
+let st = { verdicts:{}, skipped:[], history:[], forced:[] };
+const LS_V = 'v2';
+const lsKey = () => REVIEW ? ('cu-maquete-'+LS_V+':review:'+RUNS[activeIdx].nome) : ('cu-maquete-'+LS_V+':manual');
+const save = () => { try{ localStorage.setItem(lsKey(), JSON.stringify(st)); }catch(e){} };
+function carregaEstado(){
+  st = { verdicts:{}, skipped:[], history:[], forced:[] };
+  try { const raw = localStorage.getItem(lsKey()); if (raw) st = Object.assign(st, JSON.parse(raw)); } catch(e){}
+}
 
-const basePairs = (() => {
-  const set = new Set();
-  for (let i=0;i<N;i++){
-    const nb = [...Array(N).keys()].filter(j=>j!==i).sort((a,b)=>S[i][b]-S[i][a]).slice(0,K);
-    nb.forEach(j=>set.add(key(i,j)));
+/* ================= carga de arquivos ================= */
+function ehCorpus(j){ return j && (j.kind==='grouping-corpus' || (Array.isArray(j.items) && Array.isArray(j.sims))); }
+function ehRun(j){ return j && j.verdicts && typeof j.verdicts==='object'; }
+
+let avisos = [];
+function mostraAvisos(){
+  const el = $('aviso');
+  if (!avisos.length){ el.style.display='none'; return; }
+  el.style.display=''; el.innerHTML = avisos.map(esc).join(' · ');
+}
+
+/* devolve 'corpus' | 'run' | null */
+function aceitaArquivo(nome, json){
+  if (ehCorpus(json)){ CORPUS = json; CORPUS._nome = nome; return 'corpus'; }
+  if (ehRun(json)){
+    const i = RUNS.findIndex(r=>r.nome===nome);
+    if (i>=0) RUNS[i] = {nome, data:json}; else RUNS.push({nome, data:json});
+    return 'run';
   }
-  return [...set].sort((a,b)=>simOf(b)-simOf(a));
-})();
+  avisos.push('arquivo ignorado (formato não reconhecido): '+nome);
+  return null;
+}
 
-/* ordem de navegacao no modo revisao: a ordem em que o modelo julgou */
-const ordem = REVIEW ? MODEL.order : basePairs;
+async function boot(){
+  try {
+    const r = await fetch('grouping-data.json', {cache:'no-store'});
+    if (r.ok) aceitaArquivo('grouping-data.json', await r.json());
+  } catch(e){ /* file:// ou ausente */ }
 
-/* veredito efetivo: override humano > modelo (review) | proprio (manual) */
+  const params = new URLSearchParams(location.search);
+  let nomes = [];
+  if (params.get('runs')){
+    nomes = params.get('runs').split(',').map(s=>s.trim()).filter(Boolean);
+  } else {
+    try {
+      const r = await fetch('judge-runs.json', {cache:'no-store'});
+      if (r.ok){ const m = await r.json(); if (Array.isArray(m)) nomes = m.filter(x=>typeof x==='string'); }
+    } catch(e){ /* manifesto opcional: 404 em silencio */ }
+  }
+  for (const nome of nomes){
+    try {
+      const r = await fetch(nome, {cache:'no-store'});
+      if (r.ok) aceitaArquivo(nome, await r.json()); else avisos.push('não foi possível ler '+nome+' ('+r.status+')');
+    } catch(e){ avisos.push('não foi possível ler '+nome); }
+  }
+  iniciar(true);
+}
+
+function iniciar(primeira){
+  if (!CORPUS){
+    $('zona-vazia').style.display='';
+    $('zona-fonte').style.display='none';
+    $('zona-app').style.display='none';
+    return;
+  }
+  $('zona-vazia').style.display='none';
+  $('zona-fonte').style.display='';
+  $('zona-app').style.display='';
+
+  IT = CORPUS.items; S = CORPUS.sims; N = IT.length;
+  pos = (() => {
+    const xs=IT.map(d=>d.x||0), ys=IT.map(d=>d.y||0);
+    const mx=[Math.min(...xs),Math.max(...xs)], my=[Math.min(...ys),Math.max(...ys)];
+    const PAD=46, W=980, H=640;
+    return IT.map(d=>({ x: PAD+((d.x||0)-mx[0])/(mx[1]-mx[0]||1)*(W-2*PAD), y: PAD+((d.y||0)-my[0])/(my[1]-my[0]||1)*(H-2*PAD) }));
+  })();
+
+  if (primeira) setActive(RUNS.length ? 0 : -1);
+  else setActive(Math.min(activeIdx, RUNS.length-1));
+  pronto = true;
+}
+
+function setActive(idx){
+  activeIdx = (idx>=0 && idx<RUNS.length) ? idx : -1;
+  REVIEW = activeIdx >= 0;
+  MODEL = REVIEW ? RUNS[activeIdx].data : null;
+
+  avisos = avisos.filter(a=>!a.startsWith('corpus divergente'));
+  if (REVIEW && MODEL.corpus && MODEL.corpus.run_id && CORPUS.run_id && MODEL.corpus.run_id !== CORPUS.run_id)
+    avisos.push('corpus divergente: a run diz '+MODEL.corpus.run_id+', o corpus carregado é '+CORPUS.run_id);
+
+  carregaEstado();
+  construaGeradores();
+  ordem = REVIEW ? (MODEL.order && MODEL.order.length ? MODEL.order.slice() : Object.keys(MODEL.verdicts)) : basePairs;
+  idxRev = 0; atual = null; filtro = 'todas';
+  document.querySelectorAll('#filtros button').forEach(x=>x.classList.toggle('on', x.dataset.f==='todas'));
+  ajustaModo();
+  renderFonte(); mostraAvisos(); renderHist(); mostraPar();
+}
+
+/* ================= geradores de candidatos (memo §6) ================= */
+function addGen(k, g){ let s=PGEN.get(k); if(!s){ s=new Set(); PGEN.set(k,s);} s.add(g); }
+
+function geradorSemantico(){
+  for (let i=0;i<N;i++){
+    const viz = [];
+    for (let j=0;j<N;j++){ if (j===i) continue; if (S[i][j] >= FLOOR_SEM) viz.push(j); }
+    viz.sort((a,b)=>S[i][b]-S[i][a]);
+    viz.slice(0, TETO_SEM).forEach(j=>addGen(key(i,j),'semantico'));
+  }
+}
+
+/* BM25 sobre os statements, tokens = [a-z0-9_]+ minusculos; k1=1.2, b=0.75 */
+function geradorLexico(){
+  const k1=1.2, b=0.75;
+  const docs = IT.map(d => ((d.statement||'').toLowerCase().match(/[a-z0-9_]+/g)) || []);
+  const tf = docs.map(ts => { const m=new Map(); ts.forEach(t=>m.set(t,(m.get(t)||0)+1)); return m; });
+  const df = new Map();
+  tf.forEach(m => { for (const t of m.keys()) df.set(t,(df.get(t)||0)+1); });
+  const dl = docs.map(d=>d.length);
+  const avgdl = dl.reduce((a,c)=>a+c,0)/(N||1);
+  const idf = t => { const n = df.get(t)||0; return Math.log(1 + (N - n + 0.5)/(n + 0.5)); };
+  for (let i=0;i<N;i++){
+    const q = [...tf[i].keys()];
+    const notas = [];
+    for (let j=0;j<N;j++){
+      if (j===i) continue;
+      let s = 0;
+      for (const t of q){
+        const f = tf[j].get(t)||0; if (!f) continue;
+        s += idf(t) * (f*(k1+1)) / (f + k1*(1 - b + b*dl[j]/(avgdl||1)));
+      }
+      if (s>0) notas.push([j,s]);
+    }
+    notas.sort((a,b)=>b[1]-a[1]);
+    notas.slice(0, TOP_LEX).forEach(x=>addGen(key(i,x[0]),'lexico'));
+  }
+}
+
+function construaGeradores(){
+  PGEN = new Map();
+  if (REVIEW && MODEL.pairs && Object.keys(MODEL.pairs).length){
+    for (const k in MODEL.pairs){
+      const gs = MODEL.pairs[k].generators || [];
+      if (gs.length) gs.forEach(g=>addGen(k,g)); else addGen(k,'desconhecido');
+    }
+    GEN_FONTE = 'etiquetas vindas da própria run';
+  } else {
+    geradorSemantico(); geradorLexico();
+    GEN_FONTE = REVIEW
+      ? 'a run não traz etiquetas de gerador — semântico e léxico recomputados sobre o corpus, fechamento lido dos carimbos da run'
+      : 'semântico (sim ≥ 0,70, teto 15/item) + léxico (BM25 top-5/item) + fechamento (surge durante o julgamento)';
+    if (REVIEW) for (const k of Object.keys(MODEL.verdicts)) if (MODEL.verdicts[k] && MODEL.verdicts[k].closure) addGen(k,'fechamento');
+  }
+  if (!REVIEW) (st.forced||[]).forEach(k=>addGen(k,'fechamento'));
+  basePairs = [...PGEN.keys()]
+    .filter(k => { const [i,j]=unkey(k); return i>=0 && j<N; })
+    .sort((a,b)=>simOf(b)-simOf(a));
+}
+
+const gensDe = k => [...(PGEN.get(k)||[])];
+const GEN_CURTO = {semantico:'sem', lexico:'léx', fechamento:'fech', desconhecido:'—'};
+function gensHtml(k, curto){
+  const gs = gensDe(k);
+  if (!gs.length) return '';
+  return gs.map(g=>'<span class="gchip g-'+g+'"'+(curto?' title="'+(GEN_ROT[g]||g)+'"':'')+'>'+((curto?GEN_CURTO[g]:GEN_ROT[g])||g)+'</span>').join(curto?' ':'');
+}
+
+/* ================= vereditos ================= */
 function verdictOf(k){
   if (REVIEW){
     const o = st.verdicts[k] || {};
-    const m = MODEL.verdicts[k] || {};
+    const m = (MODEL.verdicts && MODEL.verdicts[k]) || {};
     return { ab: o.ab || (m.ab && m.ab.v), ba: o.ba || (m.ba && m.ba.v) };
   }
   return st.verdicts[k] || {};
@@ -1833,16 +644,27 @@ const isSkipped = k => st.skipped.includes(k);
 const alterado = k => {
   if (!REVIEW) return false;
   const o = st.verdicts[k]; if (!o) return false;
-  const m = MODEL.verdicts[k] || {};
-  return (o.ab && o.ab !== (m.ab&&m.ab.v)) || (o.ba && o.ba !== (m.ba&&m.ba.v));
+  const m = (MODEL.verdicts && MODEL.verdicts[k]) || {};
+  return (o.ab && canon(o.ab)!==canon(m.ab&&m.ab.v)) || (o.ba && canon(o.ba)!==canon(m.ba&&m.ba.v));
 };
 
 function edgeType(k){
   const v = verdictOf(k); if (!v.ab || !v.ba) return null;
-  if (v.ab==='sim' && v.ba==='sim') return 'dupla';
-  if (v.ab==='sim') return 'ab';
-  if (v.ba==='sim') return 'ba';
+  const a = ehSim(v.ab), b = ehSim(v.ba);
+  if (a && b) return 'dupla';
+  if (a) return 'ab';
+  if (b) return 'ba';
   return 'nada';
+}
+/* nivel da aresta = minimo dos pesos das duas direcoes */
+function edgePeso(k){
+  const v = verdictOf(k); if (!v.ab || !v.ba) return 0;
+  return Math.min(pesoDe(v.ab), pesoDe(v.ba));
+}
+function nivelTexto(k){
+  const v = verdictOf(k); if (!v.ab || !v.ba) return '';
+  const c = x => (NIVEIS[x] ? NIVEIS[x].curto : x);
+  return c(v.ab)+' + '+c(v.ba);
 }
 
 /* fechamento de triangulo (so no modo manual — no review o runner ja fechou) */
@@ -1852,8 +674,9 @@ function closureFor(k){
   const [u,v] = unkey(k);
   if (cls(u)!==cls(v)) return;
   const doublesOf = x => { const out=[]; for (const kk in st.verdicts){ if (edgeType(kk)!=='dupla') continue; const [a,b]=unkey(kk); if (a===x&&cls(b)===cls(x)) out.push(b); else if (b===x&&cls(a)===cls(x)) out.push(a);} return out; };
-  for (const w of doublesOf(u)) if (w!==v){ const t=key(v,w); if (!judged(t)&&!isSkipped(t)&&!st.forced.includes(t)) st.forced.push(t); }
-  for (const w of doublesOf(v)) if (w!==u){ const t=key(u,w); if (!judged(t)&&!isSkipped(t)&&!st.forced.includes(t)) st.forced.push(t); }
+  const marca = t => { if (!judged(t)&&!isSkipped(t)&&!st.forced.includes(t)){ st.forced.push(t); addGen(t,'fechamento'); } };
+  for (const w of doublesOf(u)) if (w!==v) marca(key(v,w));
+  for (const w of doublesOf(v)) if (w!==u) marca(key(u,w));
 }
 
 function nextPair(){
@@ -1864,30 +687,40 @@ function nextPair(){
 
 /* ================= vista derivada ================= */
 function derive(){
-  const doubles = {}, negs = {};
+  const doubles = {}, negs = {}, pesoD = {}, pesoN = {};
+  const fracasDe = new Array(N).fill(0), clarasDe = new Array(N).fill(0);
   for (let i=0;i<N;i++){ doubles[i]=new Set(); negs[i]=new Set(); }
   const crossRel = [], singlesList = [];
   const allKeys = REVIEW ? ordem : Object.keys(st.verdicts);
   for (const k of allKeys){
     const t = edgeType(k); if (!t) continue;
     const [i,j] = unkey(k);
+    if (i>=N || j>=N) continue;
     const same = cls(i)===cls(j);
-    if (t==='dupla'){ if (same){ doubles[i].add(j); doubles[j].add(i); } else crossRel.push({k, tipo:'dupla'}); }
-    else if (t==='nada'){ if (same){ negs[i].add(j); negs[j].add(i); } }
-    else { singlesList.push({k, de: t==='ab'?unkey(k)[0]:unkey(k)[1], para: t==='ab'?unkey(k)[1]:unkey(k)[0]}); if (!same) crossRel.push({k, tipo:'simples'}); }
+    const w = edgePeso(k);
+    if (t==='dupla'){
+      if (w===1){ fracasDe[i]++; fracasDe[j]++; } else { clarasDe[i]++; clarasDe[j]++; }
+      if (same){ doubles[i].add(j); doubles[j].add(i); pesoD[k]=w; } else crossRel.push({k, tipo:'dupla'});
+    }
+    else if (t==='nada'){ if (same){ negs[i].add(j); negs[j].add(i); pesoN[k]=w; } }
+    else { singlesList.push({k, de: t==='ab'?i:j, para: t==='ab'?j:i}); if (!same) crossRel.push({k, tipo:'simples'}); }
   }
 
-  /* --- formacao de KC por minimizacao de desacordo (correlation clustering, §4) ---
-     Estrutura decide sozinha: nenhuma escolha usa cosseno. Empate estrutural
-     genuino nao e desempatado — vira pendencia + sinalizacao para diagnostico. */
+  /* assinatura de vagueza (memo §9 item 3b): >=2 duplas fracas e 0 duplas claras */
+  const vago = new Array(N).fill(false);
+  for (let i=0;i<N;i++) if (fracasDe[i]>=2 && clarasDe[i]===0) vago[i]=true;
+
+  /* --- formacao de KC por minimizacao PONDERADA de desacordo (§4 + §9 item 3a) ---
+     custo = Σ peso(duplas cortadas) + Σ peso(negativas testadas internas).
+     Numa run binaria todos os pesos valem 2 => o argmin e identico ao antigo. */
 
   const kcOf = new Array(N).fill(-1);
   const kcs = [];
   const empate = new Array(N).fill(false);
 
-  /* predicado v1 de bloco: 1 sempre vale; 2-3 exige clique perfeito de duplas;
-     >=4 exige 2-plex (cada membro com duplas para >= tamanho-2 dos outros)
-     e no maximo uma negativa testada interna por membro. */
+  /* predicado v1 de bloco (sobre o colapso binario): 1 sempre vale;
+     2-3 exige clique perfeito de duplas; >=4 exige 2-plex (cada membro com
+     duplas para >= tamanho-2 dos outros) e no maximo uma negativa interna. */
   const blocoValido = b => {
     const n = b.length;
     if (n <= 1) return true;
@@ -1919,8 +752,8 @@ function derive(){
         P.delete(v); X.add(v);
       }
     })(new Set(), new Set(M), new Set());
-    const sumSim = c => { let s=0; for (let x=0;x<c.length;x++) for (let y=x+1;y<c.length;y++) s+=S[c[x]][c[y]]; return s; };
-    cliques.sort((a,b)=> b.length-a.length || sumSim(b)-sumSim(a));
+    const somaPeso = c => { let s=0; for (let x=0;x<c.length;x++) for (let y=x+1;y<c.length;y++) s+=(pesoD[key(c[x],c[y])]||0); return s; };
+    cliques.sort((a,b)=> b.length-a.length || somaPeso(b)-somaPeso(a));
     const criados = [];
     for (const c of cliques){
       const avail = c.filter(i=>kcOf[i]<0);
@@ -1969,8 +802,9 @@ function derive(){
     const n = M.length;
     const dEdges = [], nEdges = [];
     for (let x=0;x<n;x++) for (let y=x+1;y<n;y++){
-      if (doubles[M[x]].has(M[y])) dEdges.push([x,y]);
-      if (negs[M[x]].has(M[y])) nEdges.push([x,y]);
+      const kk = key(M[x],M[y]);
+      if (doubles[M[x]].has(M[y])) dEdges.push([x,y,pesoD[kk]||2]);
+      if (negs[M[x]].has(M[y])) nEdges.push([x,y,pesoN[kk]||2]);
     }
 
     /* enumeracao de todas as particoes (restricted growth strings) */
@@ -1986,8 +820,8 @@ function derive(){
         for (let x=0;x<n;x++) blocos[a[x]].push(M[x]);
         for (const b of blocos) if (!blocoValido(b)) return;
         let custo = 0;
-        for (const [x,y] of dEdges) if (a[x]!==a[y]) custo++;   // duplas cortadas
-        for (const [x,y] of nEdges) if (a[x]===a[y]) custo++;   // negativas testadas internas
+        for (const [x,y,w] of dEdges) if (a[x]!==a[y]) custo+=w;   // duplas cortadas, ponderadas
+        for (const [x,y,w] of nEdges) if (a[x]===a[y]) custo+=w;   // negativas testadas internas, ponderadas
         if (custo > melhor) return;
         if (custo < melhor){ melhor = custo; nMin = 0; contaBloco.clear(); for (const s of assinDoNo.values()) s.clear(); }
         nMin++;
@@ -2017,7 +851,7 @@ function derive(){
   const pend = [];
   for (const k of allKeys){
     if (edgeType(k)!=='dupla') continue;
-    const [i,j]=unkey(k); if (cls(i)!==cls(j)) continue;
+    const [i,j]=unkey(k); if (i>=N||j>=N||cls(i)!==cls(j)) continue;
     if (kcOf[i]<0 || kcOf[j]<0 || kcOf[i]!==kcOf[j]) pend.push(k);
   }
 
@@ -2025,9 +859,10 @@ function derive(){
   for (let i=0;i<N;i++){
     const interno = kcOf[i]>=0 ? kcs[kcOf[i]].membros.filter(m=>m!==i && doubles[i].has(m)).length : 0;
     const externo = [...doubles[i]].filter(j=> kcOf[i]<0 || kcOf[j]!==kcOf[i]).length;
-    if (externo>=2 || (interno>=1 && externo>=interno) || empate[i]) flags.push({i, interno, externo, empate:empate[i]});
+    if (externo>=2 || (interno>=1 && externo>=interno) || empate[i] || vago[i])
+      flags.push({i, interno, externo, empate:empate[i], vago:vago[i], fracas:fracasDe[i], claras:clarasDe[i]});
   }
-  return {doubles, negs, kcs, kcOf, pend, flags, crossRel, singlesList};
+  return {doubles, negs, pesoD, pesoN, kcs, kcOf, pend, flags, crossRel, singlesList, vago, fracasDe, clarasDe};
 }
 
 /* ================= painel do par ================= */
@@ -2040,6 +875,7 @@ function preenchePar(k, titulo, forcadoHtml){
   $('par-titulo').textContent = titulo;
   $('par-sim').textContent = simOf(k).toFixed(3);
   $('par-forcado').innerHTML = forcadoHtml || '';
+  $('par-gens').innerHTML = gensHtml(k);
   const A=IT[i], B=IT[j];
   $('a-stmt').textContent=A.statement; $('b-stmt').textContent=B.statement;
   $('a-eixo').textContent=A.grain; $('b-eixo').textContent=B.grain;
@@ -2050,31 +886,41 @@ function preenchePar(k, titulo, forcadoHtml){
   const v = verdictOf(k);
   pinta('q1', v.ab); pinta('q2', v.ba);
   if (REVIEW){
-    const m = MODEL.verdicts[k] || {};
+    const m = (MODEL.verdicts && MODEL.verdicts[k]) || {};
     mostraRazao('q1-razao', m.ab); mostraRazao('q2-razao', m.ba);
     mostraOrigem(k);
+  } else {
+    $('q1-razao').style.display='none'; $('q2-razao').style.display='none';
+    $('origem').className='origem';
   }
   mostraVeredito();
 }
+const juizNome = () => REVIEW ? String(MODEL.judge||'modelo').split('/').pop() : 'humano';
 function mostraRazao(id, mdir){
   const el = $(id);
-  if (mdir && mdir.reason){ el.style.display=''; el.innerHTML='<b>Opus 5 ('+(mdir.v==='sim'?'sim':'não')+'):</b> '+esc(mdir.reason); }
+  if (mdir && mdir.reason){
+    const rot = NIVEIS[mdir.v] ? NIVEIS[mdir.v].rot.toLowerCase() : String(mdir.v);
+    el.style.display=''; el.innerHTML='<b>'+esc(juizNome())+' ('+esc(rot)+'):</b> '+esc(mdir.reason);
+  }
   else { el.style.display='none'; }
 }
 function mostraOrigem(k){
   const el = $('origem'); el.className='origem';
   if (!REVIEW) return;
+  const legado = MODEL.verdicts && MODEL.verdicts[k] && MODEL.verdicts[k].ab && (MODEL.verdicts[k].ab.v==='sim'||MODEL.verdicts[k].ab.v==='nao');
   if (alterado(k)){
     el.classList.add('humano');
     el.innerHTML='Alterado por você <button id="btn-restaura">restaurar veredito do modelo</button>';
     $('btn-restaura').onclick = ()=>{ delete st.verdicts[k]; save(); preenchePar(k, $('par-titulo').textContent); desenha(); renderHist(); };
   } else {
     el.classList.add('modelo');
-    el.textContent='Veredito do Opus 5 — clique em Sim/Não para alterar';
+    el.textContent='Veredito de '+juizNome()+(legado?' (escala binária — o override usa os 4 níveis)':'')+' — clique num nível para alterar';
   }
 }
 function mostraPar(){
+  if (!pronto && !CORPUS) return;
   if (REVIEW){
+    if (!ordem.length){ $('painel-par').style.display='none'; $('painel-fim').style.display=''; desenha(); return; }
     idxRev = Math.max(0, Math.min(idxRev, ordem.length-1));
     const k = ordem[idxRev];
     atual = {k};
@@ -2092,7 +938,6 @@ function mostraPar(){
   preenchePar(nx.k, 'Par '+(done+1), nx.forced ? '<span class="forcado">teste forçado — fechamento de triângulo</span>' : '');
   desenha();
 }
-function esc(s){ const d=document.createElement('span'); d.textContent=s; return d.innerHTML; }
 
 /* ================= modal de inspecao ================= */
 const modalEl = $('modal-fundo');
@@ -2114,20 +959,21 @@ document.addEventListener('click', e=>{
   const el = e.target.closest && e.target.closest('.link-id');
   if (el && el.dataset.i !== undefined) abreModal(+el.dataset.i);
 });
+
 function pinta(q, val){
-  $(q+'-sim').classList.toggle('on', val==='sim');
-  $(q+'-nao').classList.toggle('on', val==='nao');
+  const c = canon(val);
+  document.querySelectorAll('.botoes[data-q="'+q+'"] button').forEach(b=>b.classList.toggle('on', b.dataset.v===c));
 }
 function responder(dir, val){
   if (!atual) return;
   const k = atual.k;
   if (REVIEW){
-    const m = MODEL.verdicts[k] || {};
+    const m = (MODEL.verdicts && MODEL.verdicts[k]) || {};
     if (!st.verdicts[k]) st.verdicts[k] = {};
     st.verdicts[k][dir] = val;
     /* se voltou a coincidir com o modelo nas duas direcoes, o override some */
     const o = st.verdicts[k];
-    const igual = (!o.ab || o.ab===(m.ab&&m.ab.v)) && (!o.ba || o.ba===(m.ba&&m.ba.v));
+    const igual = (!o.ab || canon(o.ab)===canon(m.ab&&m.ab.v)) && (!o.ba || canon(o.ba)===canon(m.ba&&m.ba.v));
     if (igual) delete st.verdicts[k];
     save();
     pinta(dir==='ab'?'q1':'q2', val);
@@ -2151,21 +997,26 @@ function mostraVeredito(){
   if (!t) return;
   const [i,j]=unkey(k);
   const cross = cls(i)!==cls(j);
+  const w = edgePeso(k), niv = nivelTexto(k);
   if (!REVIEW) $('btn-next').disabled = false;
-  if (t==='dupla' && cross){ el.classList.add('cross'); el.innerHTML='Dupla entre eixos diferentes<small>relaciona os dois KCs, mas classes diferentes nunca fundem — registrada no painel de relações entre eixos</small>'; }
-  else if (t==='dupla'){ el.classList.add('dupla'); el.innerHTML='⇄ Seta dupla — candidatos ao mesmo KC<small>entra na formação de cliques</small>'; }
-  else if (t==='nada'){ el.classList.add('nada'); el.innerHTML='Sem relação registrada'; }
-  else { const de = t==='ab'?'A':'B', para = t==='ab'?'B':'A'; el.classList.add('simples'); el.innerHTML='→ Seta simples: '+de+' implica '+para+'<small>'+de+' é o mais avançado; vira relação no mapa, nunca ameaça pertencimento</small>'; }
+  if (t==='dupla' && cross){ el.classList.add('cross'); el.innerHTML='Dupla entre eixos diferentes ('+esc(niv)+')<small>relaciona os dois KCs, mas classes diferentes nunca fundem — registrada no painel de relações entre eixos</small>'; }
+  else if (t==='dupla'){ el.classList.add('dupla'); el.innerHTML='⇄ Seta dupla ('+esc(niv)+') — candidatos ao mesmo KC<small>entra na formação de blocos; cortá-la custa '+w+' na minimização de desacordo</small>'; }
+  else if (t==='nada'){ el.classList.add('nada'); el.innerHTML='Sem relação registrada ('+esc(niv)+')<small>negativa testada; dentro de um KC 4+ custaria '+w+' como tensão</small>'; }
+  else { const de = t==='ab'?'A':'B', para = t==='ab'?'B':'A'; el.classList.add('simples'); el.innerHTML='→ Seta simples: '+de+' implica '+para+' ('+esc(niv)+')<small>'+de+' é o mais avançado; vira relação no mapa, nunca ameaça pertencimento</small>'; }
 }
-$('q1-sim').onclick=()=>responder('ab','sim'); $('q1-nao').onclick=()=>responder('ab','nao');
-$('q2-sim').onclick=()=>responder('ba','sim'); $('q2-nao').onclick=()=>responder('ba','nao');
+
+document.querySelectorAll('.botoes.niveis').forEach(g=>{
+  g.querySelectorAll('button').forEach(b=>{ b.onclick = () => responder(g.dataset.dir, b.dataset.v); });
+});
 $('btn-next').onclick=()=>{ if (REVIEW){ idxRev++; mostraPar(); } else mostraPar(); };
 $('btn-pular').onclick=()=>{ if (REVIEW){ idxRev++; mostraPar(); } else if (atual){ st.skipped.push(atual.k); save(); mostraPar(); } };
 $('btn-prev').onclick=()=>{ idxRev--; mostraPar(); };
 $('btn-nextnav').onclick=()=>{ idxRev++; mostraPar(); };
+const TECLA_NIVEL = {'1':'clear_yes','2':'likely','3':'unlikely','4':'clear_no'};
 document.addEventListener('keydown', e=>{
   if (e.target.tagName==='INPUT') return;
   if (modalAberto()){ if (e.key==='Escape'){ e.preventDefault(); fechaModal(); } return; }
+  if (!pronto) return;
   if (REVIEW){
     if (e.key==='ArrowLeft'){ e.preventDefault(); idxRev--; mostraPar(); return; }
     if (e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); idxRev++; mostraPar(); return; }
@@ -2174,9 +1025,11 @@ document.addEventListener('keydown', e=>{
   if (!atual) return;
   const v = st.verdicts[atual.k]||{};
   if (e.key===' '){ e.preventDefault(); if (judged(atual.k)) mostraPar(); else { st.skipped.push(atual.k); save(); mostraPar(); } return; }
-  if (e.key!=='s' && e.key!=='n') return;
-  const val = e.key==='s'?'sim':'nao';
-  if (!v.ab) responder('ab', val); else if (!v.ba) responder('ba', val);
+  if (e.key==='ArrowRight'){ e.preventDefault(); if (judged(atual.k)) mostraPar(); return; }
+  const nivel = TECLA_NIVEL[e.key];
+  if (!nivel) return;
+  e.preventDefault();
+  if (!v.ab) responder('ab', nivel); else if (!v.ba) responder('ba', nivel);
   else if (judged(atual.k)) mostraPar();
 });
 
@@ -2191,11 +1044,13 @@ function renderHist(){
       if (filtro==='dupla') return t==='dupla';
       if (filtro==='simples') return t==='ab'||t==='ba';
       if (filtro==='nada') return t==='nada';
+      if (filtro==='fracas') return edgePeso(k)===1;
       if (filtro==='alteradas') return alterado(k);
       return true;
     });
   } else {
     keys = st.history.filter(k=>judged(k)).slice().reverse();
+    if (filtro==='fracas') keys = keys.filter(k=>edgePeso(k)===1);
   }
   if (!keys.length){ el.innerHTML='<div class="vazio" style="padding:6px 20px 14px">'+(REVIEW?'nada neste filtro':'nenhum veredito ainda')+'</div>'; return; }
   let html='<table>';
@@ -2204,13 +1059,27 @@ function renderHist(){
     const simb = t==='dupla'?'⇄':(t==='nada'?'✕':(t==='ab'?'→':'←'));
     const cl = t==='dupla'?'e-dupla':(t==='nada'?'e-nada':'e-simples');
     const cur = REVIEW && ordem[idxRev]===k;
-    html+='<tr data-k="'+k+'"'+(cur?' class="atual"':'')+'><td class="mono">'+shortId(IT[i].task_id)+'</td><td class="'+cl+'">'+simb+'</td><td class="mono">'+shortId(IT[j].task_id)+'</td><td class="num" style="color:var(--tinta-3)">'+simOf(k).toFixed(3)+'</td><td>'+(alterado(k)?'<span class="alt">alterada</span>':'')+'</td></tr>';
+    const fraca = edgePeso(k)===1;
+    html+='<tr data-k="'+k+'"'+(cur?' class="atual"':'')+'>'+
+      '<td class="mono">'+shortId(IT[i].task_id)+'</td>'+
+      '<td class="'+cl+'">'+simb+'</td>'+
+      '<td class="mono">'+shortId(IT[j].task_id)+'</td>'+
+      '<td class="nivel'+(fraca?' fraca':'')+'">'+esc(nivelTexto(k))+'</td>'+
+      '<td class="num" style="color:var(--tinta-3)">'+simOf(k).toFixed(3)+'</td>'+
+      '<td>'+gensHtml(k, true)+'</td>'+
+      '<td>'+(alterado(k)?'<span class="alt">alterada</span>':'')+'</td></tr>';
   }
   el.innerHTML=html+'</table>';
-  el.querySelectorAll('tr').forEach(tr=>tr.onclick=()=>{
-    if (REVIEW){ idxRev = ordem.indexOf(tr.dataset.k); mostraPar(); }
-    else { atual={k:tr.dataset.k, forced:false}; preenchePar(atual.k, 'Revendo par'); desenha(); }
-  });
+  el.querySelectorAll('tr').forEach(tr=>tr.onclick=()=>abrePar(tr.dataset.k));
+}
+function abrePar(k){
+  if (REVIEW){
+    const idx = ordem.indexOf(k);
+    if (idx>=0){ idxRev = idx; mostraPar(); return; }
+    atual = {k}; preenchePar(k, 'Par fora da ordem da run'); desenha();
+  } else {
+    atual={k, forced:false}; preenchePar(k, 'Revendo par'); desenha();
+  }
 }
 document.querySelectorAll('#filtros button').forEach(b=>b.onclick=()=>{
   filtro = b.dataset.f;
@@ -2221,15 +1090,10 @@ document.querySelectorAll('#filtros button').forEach(b=>b.onclick=()=>{
 /* ================= mapa ================= */
 const svg = $('mapa');
 const KC_CORES = ['#2f7d63','#2f5f8f','#7a5aa8','#b3761d','#3f8f8a','#a84a6e','#6f9a2e','#8a5a3f','#4a6ab0','#9a7a1d','#5f8f4f','#b05a8f','#3f7ab0','#8f6f2e','#6e4aa8'];
-const pos = (() => {
-  const xs=IT.map(d=>d.x), ys=IT.map(d=>d.y);
-  const mx=[Math.min(...xs),Math.max(...xs)], my=[Math.min(...ys),Math.max(...ys)];
-  const PAD=46, W=980, H=640;
-  return IT.map(d=>({ x: PAD+(d.x-mx[0])/(mx[1]-mx[0]||1)*(W-2*PAD), y: PAD+(d.y-my[0])/(my[1]-my[0]||1)*(H-2*PAD) }));
-})();
 const tip = $('tip');
 
 function desenha(){
+  if (!CORPUS) return;
   const D = derive();
   let g='';
   g+='<defs><marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2f5f8f"/></marker></defs>';
@@ -2237,23 +1101,26 @@ function desenha(){
   const allKeys = REVIEW ? ordem : Object.keys(st.verdicts);
   for (const k of allKeys){
     const t = edgeType(k); if (!t) continue;
-    const [i,j]=unkey(k); const p=pos[i], q=pos[j];
-    if (t==='nada'){ if (mostraNeg) g+=lin(p,q,'#c9c2b4',1.5,'2 3'); continue; }
+    const [i,j]=unkey(k); if (i>=N||j>=N) continue;
+    const p=pos[i], q=pos[j];
+    if (t==='nada'){ if (mostraNeg) g+=lin(p,q,'#c9c2b4',1.5,'2 3',.85); continue; }
     if (t==='dupla'){
       const cross = cls(i)!==cls(j);
       const pende = !cross && D.pend.includes(k);
+      const fraca = edgePeso(k)===1;
       const cor = cross ? '#7a5aa8' : (pende ? '#b3761d' : '#2f7d63');
-      g+=lin(p,q,cor,2.5, pende?'6 4':(cross?'2 3':null));
+      g+=lin(p,q,cor, fraca?1.5:2.8, pende?'6 4':(cross?'2 3':null), fraca?.45:.9);
       continue;
     }
     const [de,para] = t==='ab'?[i,j]:[j,i];
     const a=pos[de], b=pos[para];
     const dx=b.x-a.x, dy=b.y-a.y, L=Math.hypot(dx,dy)||1, r=13;
     const b2={x:b.x-dx/L*r, y:b.y-dy/L*r};
-    g+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b2.x+'" y2="'+b2.y+'" stroke="#2f5f8f" stroke-width="1.8" marker-end="url(#seta)" opacity=".85"/>';
+    const op = edgePeso(k)===1 ? .45 : .85;
+    g+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b2.x+'" y2="'+b2.y+'" stroke="#2f5f8f" stroke-width="1.8" marker-end="url(#seta)" opacity="'+op+'"/>';
   }
-  if (atual){ const [i,j]=unkey(atual.k); const p=pos[i],q=pos[j];
-    g+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+q.x+'" y2="'+q.y+'" stroke="#f0b429" stroke-width="1.5" stroke-dasharray="4 4" opacity=".8"/>';
+  if (atual){ const [i,j]=unkey(atual.k); if (i<N&&j<N){ const p=pos[i],q=pos[j];
+    g+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+q.x+'" y2="'+q.y+'" stroke="#f0b429" stroke-width="1.5" stroke-dasharray="4 4" opacity=".8"/>'; }
   }
   const atuais = atual ? unkey(atual.k) : [];
   for (let i=0;i<N;i++){
@@ -2267,6 +1134,7 @@ function desenha(){
     if (atuais.includes(i)) g+='<circle class="halo" cx="'+p.x+'" cy="'+p.y+'" r="14"/>';
     g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="9" fill="'+fill+'" fill-opacity="'+(multi?'.9':'1')+'" stroke="'+stroke+'" stroke-width="1.8"/>';
     if (flagged) g+='<circle class="flag-ring" cx="'+p.x+'" cy="'+p.y+'" r="13.5"/>';
+    if (D.vago[i]) g+='<text class="vago-marca" x="'+(p.x+11)+'" y="'+(p.y-8)+'">vago?</text>';
     if (mostraLb) g+='<text x="'+p.x+'" y="'+(p.y+21)+'" text-anchor="middle">'+shortId(IT[i].task_id)+'</text>';
     g+='</g>';
   }
@@ -2281,8 +1149,8 @@ function desenha(){
     n.addEventListener('mouseleave', ()=>tip.style.display='none');
     n.addEventListener('click', ()=>abreModal(+n.dataset.i));
   });
-  function lin(p,q,cor,w,dash){ return '<line x1="'+p.x+'" y1="'+p.y+'" x2="'+q.x+'" y2="'+q.y+'" stroke="'+cor+'" stroke-width="'+w+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+' opacity=".85"/>'; }
-  renderPaineis(D); renderStats(D);
+  function lin(p,q,cor,w,dash,op){ return '<line x1="'+p.x+'" y1="'+p.y+'" x2="'+q.x+'" y2="'+q.y+'" stroke="'+cor+'" stroke-width="'+w+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+' opacity="'+(op==null?.85:op)+'"/>'; }
+  renderPaineis(D); renderStats(D); renderComp();
 }
 
 /* ================= paineis ================= */
@@ -2298,13 +1166,14 @@ function renderPaineis(D){
 
   const pendEl=$('lista-pend');
   const linhas=[];
-  for (const k of D.pend){ const [i,j]=unkey(k); linhas.push('<div class="item pend-linha"><b>pendência</b> · dupla <span class="mono">'+shortId(IT[i].task_id)+' ⇄ '+shortId(IT[j].task_id)+'</span> não fecha clique — fica aguardando evidência nova</div>'); }
-  for (const kc of D.kcs) for (const t of kc.tensoes){ const [i,j]=unkey(t); linhas.push('<div class="item pend-linha"><span class="tensao">tensão</span> · negativa tolerada dentro do KC: <span class="mono">'+shortId(IT[i].task_id)+' ✕ '+shortId(IT[j].task_id)+'</span></div>'); }
+  for (const k of D.pend){ const [i,j]=unkey(k); linhas.push('<div class="item pend-linha"><b>pendência</b> · dupla <span class="mono">'+shortId(IT[i].task_id)+' ⇄ '+shortId(IT[j].task_id)+'</span> <span class="nivel" style="color:var(--tinta-3);font-size:12px">('+esc(nivelTexto(k))+')</span> não fecha clique — fica aguardando evidência nova</div>'); }
+  for (const kc of D.kcs) for (const t of kc.tensoes){ const [i,j]=unkey(t); linhas.push('<div class="item pend-linha"><span class="tensao">tensão</span> · negativa tolerada dentro do KC: <span class="mono">'+shortId(IT[i].task_id)+' ✕ '+shortId(IT[j].task_id)+'</span> <span style="color:var(--tinta-3);font-size:12px">(peso '+(D.pesoN[t]||2)+')</span></div>'); }
   pendEl.innerHTML = linhas.length?linhas.join(''):'<div class="vazio">nenhuma</div>';
 
   const flagsEl=$('lista-flags');
   flagsEl.innerHTML = D.flags.length ? D.flags.map(f=>'<div class="item flag-item"><b class="mono">'+shortId(IT[f.i].task_id)+'</b> · '+f.interno+' dupla(s) interna(s), '+f.externo+' externa(s)'+
     (f.empate?'<div class="empate">empate estrutural — diagnóstico</div>':'')+
+    (f.vago?'<div class="vago">assinatura de vagueza — '+f.fracas+' duplas fracas e nenhuma dupla clara</div>':'')+
     '<div class="menu">menu de diagnóstico: <li>preencher arestas não testadas da região</li><li>composto? (statement com 2 afirmações → dividir)</li><li>vago? (→ reescrever)</li><li>rebaixar dupla→simples (era aninhamento)</li><li>defeito na outra ponta?</li><li>escalar para modelo mais forte</li></div></div>').join('') : '<div class="vazio">nenhum</div>';
 
   const crossEl=$('lista-cross');
@@ -2313,49 +1182,217 @@ function renderPaineis(D){
     const simb = t==='dupla'?'⇄':(t==='ab'?'→':'←');
     return '<div class="item"><span class="mono">'+shortId(IT[i].task_id)+' '+simb+' '+shortId(IT[j].task_id)+'</span> · <span style="color:var(--tinta-3)">'+cls(i)+' / '+cls(j)+'</span></div>';
   }).join('') : '<div class="vazio">nenhuma</div>';
+
+  renderAudit();
+}
+
+function renderAudit(){
+  $('audit-subt').textContent = 'um par conta para todo gerador que o propôs · '+GEN_FONTE;
+  const usados = new Set();
+  PGEN.forEach(s=>s.forEach(g=>usados.add(g)));
+  const lista = GERADORES.filter(g=>usados.has(g)).concat([...usados].filter(g=>!GERADORES.includes(g)));
+  if (!lista.length){ $('lista-audit').innerHTML='<div class="vazio">nenhum gerador ativo</div>'; return; }
+  let html = '<table class="audit"><tr><th>gerador</th><th>propostos</th><th>julgados</th><th>duplas</th><th>simples</th><th>duplas/julgado</th></tr>';
+  for (const g of lista){
+    let prop=0, jul=0, dup=0, sim=0;
+    PGEN.forEach((s,k)=>{
+      if (!s.has(g)) return;
+      prop++;
+      if (!judged(k)) return;
+      jul++;
+      const t = edgeType(k);
+      if (t==='dupla') dup++; else if (t==='ab'||t==='ba') sim++;
+    });
+    const taxa = jul ? (dup/jul*100).toFixed(0)+'%' : '—';
+    html += '<tr><td><span class="gchip g-'+g+'">'+(GEN_ROT[g]||g)+'</span></td><td class="n">'+prop+'</td><td class="n">'+jul+'</td><td class="n">'+dup+'</td><td class="n">'+sim+'</td><td class="n">'+taxa+'</td></tr>';
+  }
+  html += '</table>';
+  $('lista-audit').innerHTML = html;
+}
+
+/* ---- comparacao entre runs (colapso binario) ---- */
+function renderComp(){
+  const card = $('card-comp');
+  if (!REVIEW || RUNS.length < 2){ card.style.display='none'; return; }
+  card.style.display='';
+  const outras = RUNS.filter((r,i)=>i!==activeIdx);
+  const reais = [], niveis = [];
+  const tipoDe = (v) => {
+    if (!v || !v.ab || !v.ba) return null;
+    const a = ehSim(v.ab.v!==undefined?v.ab.v:v.ab), b = ehSim(v.ba.v!==undefined?v.ba.v:v.ba);
+    return a&&b ? 'dupla' : (a ? 'ab' : (b ? 'ba' : 'nada'));
+  };
+  const nivDe = v => {
+    const a = v.ab.v!==undefined?v.ab.v:v.ab, b = v.ba.v!==undefined?v.ba.v:v.ba;
+    return canon(a)+'/'+canon(b);
+  };
+  for (const r of outras){
+    for (const k in r.data.verdicts){
+      const meu = edgeType(k); if (!meu) continue;
+      const dele = tipoDe(r.data.verdicts[k]); if (!dele) continue;
+      const v = verdictOf(k);
+      const meuNiv = canon(v.ab)+'/'+canon(v.ba), deleNiv = nivDe(r.data.verdicts[k]);
+      if (meu !== dele) reais.push({k, run:r.nome, meu, dele});
+      else if (meuNiv !== deleNiv) niveis.push({k, run:r.nome, meuNiv, deleNiv});
+    }
+  }
+  const simb = t => t==='dupla'?'⇄':(t==='nada'?'✕':(t==='ab'?'→':'←'));
+  const par = k => { const [i,j]=unkey(k); return shortId(IT[i].task_id)+' · '+shortId(IT[j].task_id); };
+  let html = '';
+  html += '<div class="item"><b>'+reais.length+' desacordo(s) real(is)</b> <span class="subt">— o tipo de aresta muda depois do colapso</span></div>';
+  html += reais.slice(0,60).map(d=>'<div class="item comp-linha" data-k="'+d.k+'"><span class="comp-tag real">real</span> <span class="mono">'+par(d.k)+'</span> · esta run <b>'+simb(d.meu)+'</b> · <span class="mono">'+esc(d.run)+'</span> <b>'+simb(d.dele)+'</b></div>').join('');
+  html += '<div class="item"><b>'+niveis.length+' diferença(s) só de nível</b> <span class="subt">— mesma aresta, confiança diferente</span></div>';
+  html += niveis.slice(0,60).map(d=>'<div class="item comp-linha" data-k="'+d.k+'"><span class="comp-tag nivel">nível</span> <span class="mono">'+par(d.k)+'</span> · esta run <span class="mono">'+esc(d.meuNiv)+'</span> · <span class="mono">'+esc(d.run)+'</span> <span class="mono">'+esc(d.deleNiv)+'</span></div>').join('');
+  $('lista-comp').innerHTML = html;
+  $('comp-subt').textContent = 'run ativa vs '+outras.map(r=>r.nome).join(', ')+' — comparação feita sobre o colapso binário';
+  $('lista-comp').querySelectorAll('.comp-linha').forEach(el=>el.onclick=()=>abrePar(el.dataset.k));
 }
 
 function renderStats(D){
-  let duplas=0, simples=0, negativas=0;
+  let duplas=0, simples=0, negativas=0, fracas=0;
+  const cont = {clear_yes:0, likely:0, unlikely:0, clear_no:0};
   const allKeys = REVIEW ? ordem : Object.keys(st.verdicts);
-  for (const k of allKeys){ const t=edgeType(k); if (t==='dupla') duplas++; else if (t==='nada') negativas++; else if (t) simples++; }
+  for (const k of allKeys){
+    const t=edgeType(k); if (!t) continue;
+    if (t==='dupla'){ duplas++; if (edgePeso(k)===1) fracas++; }
+    else if (t==='nada') negativas++;
+    else simples++;
+    const v = verdictOf(k);
+    cont[canon(v.ab)] = (cont[canon(v.ab)]||0)+1;
+    cont[canon(v.ba)] = (cont[canon(v.ba)]||0)+1;
+  }
   if (REVIEW){
     const alteradas = ordem.filter(alterado).length;
-    $('st-julgados').textContent=ordem.length; $('st-julgados-rot').textContent='comparações do Opus 5';
+    $('st-julgados').textContent=ordem.length; $('st-julgados-rot').textContent='pares julgados';
     $('st-fila').textContent=alteradas; $('st-fila-rot').textContent='alteradas por você';
   } else {
     const total = basePairs.length + st.forced.filter(k=>!basePairs.includes(k)).length;
     const feitos = Object.keys(st.verdicts).filter(k=>judged(k)).length;
-    $('st-julgados').textContent=feitos;
-    $('st-fila').textContent=Math.max(0, total - feitos - st.skipped.length);
+    $('st-julgados').textContent=feitos; $('st-julgados-rot').textContent='pares julgados';
+    $('st-fila').textContent=Math.max(0, total - feitos - st.skipped.length); $('st-fila-rot').textContent='na fila';
   }
   $('st-duplas').textContent=duplas; $('st-simples').textContent=simples; $('st-negativas').textContent=negativas;
+  $('st-fracas').textContent=fracas;
   $('st-kcs').textContent=D.kcs.filter(k=>k.membros.length>=2).length;
   $('st-pend').textContent=D.pend.length;
+  $('st-niveis').innerHTML = 'direções por nível: <b>'+cont.clear_yes+'</b> sim-claro · <b>'+cont.likely+'</b> provável · <b>'+cont.unlikely+'</b> improvável · <b>'+cont.clear_no+'</b> não-claro';
+}
+
+/* ================= fonte de dados (UI) ================= */
+function renderFonte(){
+  $('fonte-corpus').textContent = CORPUS ? ((CORPUS._nome||'corpus')+' · '+(CORPUS.run_id||'?')+' · '+IT.length+' KCs unitários · '+((CORPUS.embedding_model||CORPUS.model||'embedding ?'))) : '—';
+  const el = $('chips-runs');
+  let html = RUNS.map((r,i)=>'<button class="chip'+(i===activeIdx?' on':'')+'" data-i="'+i+'">'+esc(r.nome)+'</button>').join('');
+  html += '<button class="chip manual'+(activeIdx<0?' on':'')+'" data-i="-1">modo manual (você julga)</button>';
+  el.innerHTML = html;
+  el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>setActive(+b.dataset.i));
+}
+
+function ajustaModo(){
+  if (REVIEW){
+    $('eyebrow').textContent='Concept Universe · maquete interativa · vereditos de '+juizNome()+', revisáveis · dados carregados de arquivos';
+    $('lede').innerHTML='O fluxo inteiro em uma página: <b>3 geradores de candidatos</b> (semântico, léxico, fechamento) → <b>união + dedupe + teto</b> de ~15 pares por KC unitário → <b>juiz direcional em 4 níveis</b> (duas chamadas por par) → <b>ledger de arestas</b> → <b>resolvedor</b> (KCs, pendências, sinais). Esta vista mostra a run <b class="mono">'+esc(RUNS[activeIdx].nome)+'</b>: navegue com as setas (‹ › ou ← →), leia as razões e <b>clique num dos 4 níveis para corrigir</b> — o mapa e os KCs se recomputam com o veredito efetivo.';
+    $('navsetas').style.display='';
+    $('filtros').style.display='';
+    $('btn-next').textContent='Próxima comparação';
+    $('btn-next').disabled=false;
+    $('btn-pular').style.display='none';
+    $('hist-titulo').textContent='Todas as comparações';
+    $('hist-subt').textContent='clique numa linha para ir direto a ela';
+  } else {
+    $('eyebrow').textContent='Concept Universe · maquete interativa · nenhum modelo é chamado · dados carregados de arquivos';
+    $('lede').innerHTML='O fluxo inteiro em uma página: <b>3 geradores de candidatos</b> (semântico sim ≥ 0,70 com teto 15/item, léxico BM25 top-5/item, fechamento de triângulo) → <b>união + dedupe</b> → <b>juiz direcional em 4 níveis</b> (duas perguntas por par) → <b>ledger de arestas</b> → <b>resolvedor</b> que devolve KCs compostos, pendências e sinais. Aqui <b>você é o juiz</b>. Tudo fica salvo no navegador; exporte quando quiser.';
+    $('navsetas').style.display='none';
+    $('filtros').style.display='';
+    $('btn-next').textContent='Próximo par';
+    $('btn-next').disabled=true;
+    $('btn-pular').style.display='';
+    $('hist-titulo').textContent='Histórico';
+    $('hist-subt').textContent='clique numa linha para rever e corrigir um veredito';
+  }
 }
 
 /* ================= acoes ================= */
 $('btn-export').onclick=()=>{
-  const eff = {}; (REVIEW?ordem:Object.keys(st.verdicts)).forEach(k=>{ eff[k]=verdictOf(k); });
-  const blob=new Blob([JSON.stringify({fonte:DATA.run_id, embedding:DATA.model, juiz: REVIEW?MODEL.judge:'humano', convencao:'A->B = dominar A implica dominar B', vereditos_efetivos:eff, overrides_humanos: REVIEW?st.verdicts:undefined, alteradas: REVIEW?ordem.filter(alterado):undefined}, null, 1)], {type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='vereditos-juiz.json'; a.click();
+  const chaves = REVIEW ? ordem : st.history.filter(k=>judged(k));
+  const verdicts = {}, pairs = {};
+  let legado = false;
+  for (const k of chaves){
+    const v = verdictOf(k); if (!v.ab || !v.ba) continue;
+    const m = (REVIEW && MODEL.verdicts && MODEL.verdicts[k]) || {};
+    const ov = st.verdicts[k] || {};
+    if (v.ab!==canon(v.ab) || v.ba!==canon(v.ba)) legado = true;
+    /* o arquivo declara escala de 4 niveis: o legado binario e traduzido para
+       os niveis "claro" equivalentes (mesmo colapso, mesmo peso). */
+    verdicts[k] = {
+      ab: {v: canon(v.ab), reason: ov.ab ? 'override humano na maquete' : ((m.ab&&m.ab.reason)||'')},
+      ba: {v: canon(v.ba), reason: ov.ba ? 'override humano na maquete' : ((m.ba&&m.ba.reason)||'')}
+    };
+    if (REVIEW && m.closure) verdicts[k].closure = m.closure;
+    pairs[k] = {sim: +simOf(k).toFixed(4), generators: gensDe(k)};
+  }
+  const doc = {
+    kind: 'judge-run',
+    gerado_em: new Date().toISOString(),
+    judge: REVIEW ? (String(MODEL.judge||'modelo')+' + revisão humana na maquete') : 'humano (maquete do juiz)',
+    scale: '4-level',
+    escala_fonte: legado ? 'binária (sim/não) traduzida para os níveis claros' : '4-level',
+    corpus: {run_id: CORPUS.run_id, embedding_model: CORPUS.embedding_model||CORPUS.model||null},
+    convencao: 'A->B = dominar A implica dominar B',
+    params: REVIEW ? MODEL.params : {generators: GERADORES, semantic_floor: FLOOR_SEM, semantic_cap: TETO_SEM, lexical_top: TOP_LEX, bm25: {k1:1.2, b:0.75}},
+    order: chaves.filter(k=>verdicts[k]),
+    pairs, verdicts,
+    overrides_humanos: REVIEW ? st.verdicts : undefined,
+    alteradas: REVIEW ? ordem.filter(alterado) : undefined
+  };
+  const blob=new Blob([JSON.stringify(doc, null, 1)], {type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download = (REVIEW ? 'run-revisada-'+RUNS[activeIdx].nome.replace(/\.json$/,'') : 'run-manual-'+(CORPUS.run_id||'corpus'))+'.json';
+  a.click();
 };
-$('btn-reset').onclick=()=>{ if (confirm(REVIEW?'Apagar suas alterações e voltar aos vereditos do modelo?':'Apagar todos os vereditos?')){ st={verdicts:{},skipped:[],history:[],forced:[]}; save(); idxRev=0; mostraPar(); renderHist(); } };
+$('btn-reset').onclick=()=>{ if (confirm(REVIEW?'Apagar suas alterações e voltar aos vereditos do modelo?':'Apagar todos os vereditos?')){ st={verdicts:{},skipped:[],history:[],forced:[]}; save(); idxRev=0; construaGeradores(); if(!REVIEW) ordem=basePairs; mostraPar(); renderHist(); } };
 $('ck-neg').onchange=desenha; $('ck-labels').onchange=desenha;
 
-/* boot */
-if (REVIEW){
-  $('eyebrow').textContent='Concept Universe · maquete interativa · vereditos do Opus 5, revisáveis';
-  $('lede').innerHTML='Os <b>33 KCs unitários</b> reais do corpus Bag-of-Words. Cada comparação foi julgada às cegas pelo <b>Opus 5</b> — uma chamada por direção, sem ver as outras respostas. Navegue com as setas (‹ › ou ← →), confira as razões dele, e <b>clique em Sim/Não para corrigir o que discordar</b>: o mapa e os KCs se recomputam na hora com o veredito efetivo (o seu, onde houver; o dele, no resto).';
-  $('navsetas').style.display='';
-  $('filtros').style.display='';
-  $('btn-next').textContent='Próxima comparação';
-  $('btn-next').disabled=false;
-  $('btn-pular').style.display='none';
-  $('hist-titulo').textContent='Todas as comparações';
-  $('hist-subt').textContent='clique numa linha para ir direto a ela';
+/* ================= entrada de arquivos ================= */
+function processaArquivos(files){
+  const lista = [...files].filter(f=>/\.json$/i.test(f.name) || f.type==='application/json');
+  if (!lista.length){ avisos.push('nenhum arquivo .json na seleção'); mostraAvisos(); return; }
+  let restantes = lista.length, novoRun = -1;
+  lista.forEach(f=>{
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const j = JSON.parse(fr.result);
+        const tipo = aceitaArquivo(f.name, j);
+        if (tipo==='run') novoRun = RUNS.findIndex(r=>r.nome===f.name);
+      } catch(e){ avisos.push('JSON inválido: '+f.name); }
+      if (--restantes===0) finaliza();
+    };
+    fr.onerror = () => { avisos.push('falha ao ler '+f.name); if (--restantes===0) finaliza(); };
+    fr.readAsText(f);
+  });
+  function finaliza(){
+    const primeira = !pronto;
+    iniciar(primeira);
+    if (!primeira && novoRun>=0) setActive(novoRun);
+    mostraAvisos();
+  }
 }
-renderHist(); mostraPar();
+$('btn-carregar').onclick=()=>$('file-in').click();
+$('btn-carregar-2').onclick=()=>$('file-in').click();
+$('file-in').onchange=e=>{ processaArquivos(e.target.files); e.target.value=''; };
+
+let dragDepth = 0;
+window.addEventListener('dragenter', e=>{ e.preventDefault(); dragDepth++; $('drop-alvo').classList.add('on'); });
+window.addEventListener('dragover', e=>{ e.preventDefault(); });
+window.addEventListener('dragleave', e=>{ e.preventDefault(); if (--dragDepth<=0){ dragDepth=0; $('drop-alvo').classList.remove('on'); } });
+window.addEventListener('drop', e=>{
+  e.preventDefault(); dragDepth=0; $('drop-alvo').classList.remove('on');
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) processaArquivos(e.dataTransfer.files);
+});
+
+/* boot */
+boot();
 </script>
 </body>
 </html>
