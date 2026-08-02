@@ -15,7 +15,10 @@ implementation are in Deferred. Future readers: do not treat open or deferred
 items as settled.
 
 Formally closed decisions are also recorded, with their context and
-consequences, as ADRs in `docs/adr/`.
+consequences, as ADRs in `docs/adr/`. The v1 simplification of 2026-08-01/02
+— this document's current shape — is ADR 0011: the system was deliberately
+reduced to what the founder can fully own, with the deeper graph design
+(`docs/research/directed-precedence-graph.md`) kept as deferred ambition.
 
 ## The founding principle
 
@@ -25,8 +28,8 @@ A fact is something that happened and is true forever: "this source said this,
 on these lines", "this student demonstrated this, on this date". Facts are
 stored permanently, are never edited, and never require an AI to be right.
 
-An interpretation is a judgment built on top of facts: "these two grains
-are the same idea", "this student has mastered this component".
+An interpretation is a judgment built on top of facts: "these two units
+are the same knowledge", "this student has mastered this component".
 Interpretations are computed, versioned, and can always be recomputed when our
 models, prompts, or understanding improve.
 
@@ -80,8 +83,8 @@ The path a source travels, recorded as five kinds of permanent facts:
    artifact records which tool version produced it, and improved tooling
    produces new artifacts beside old ones.
 4. **Model Reading**: one particular model, with one particular prompt,
-   reading one artifact and reporting what it found (the passages and
-   grains below). A reading is a fact about what that extractor said, even
+   reading one artifact and reporting what it found (the passages, tasks and
+   statements below). A reading is a fact about what that extractor said, even
    if the extractor was imperfect; better readings are added later, never
    substituted destructively.
 5. **Syllabus**: the teacher's real input, and where sources enter the system:
@@ -101,135 +104,130 @@ plan version"), the student evidence records described below, and human
 curation decisions, all permanent.
 
 A source the pipeline cannot acquire produces no snapshot and therefore no
-grains: there is no metadata-only or top-down extraction path, because
-fact-layer grains require passage provenance (ADR 0006). The teacher
+extracted knowledge: there is no metadata-only or top-down extraction path,
+because fact-layer units require passage provenance (ADR 0006). The teacher
 signal is not lost; the Syllabus permanently records the assignment, and a
 syllabus reference with no ingested source surfaces in the dashboard as a
 visible coverage gap rather than a synthetic extraction.
 
-## Extraction: passages and grains
+## Extraction: from artifact to unitary KCs
 
-From an artifact, a Model Reading extracts two kinds of units.
+Vocabulary, fixed by founder decision 2026-07-31: "grain" is retired. The
+per-task unit is the **unitary KC**; the record backing it (task, answer,
+statement, axes, provenance) is its **evidence**. Older documents and run
+ledgers keep the historical term.
 
-**Passages** are the source cut into its natural teaching pieces, each tagged
-by function: definition, motivation, worked example, procedure, limitation.
-They stay faithful to the source and carry provenance. Non-textual content (a
-diagram, a chart) currently simply belongs to its passage; how such assets are
-represented and used is left for future implementation (see Deferred).
+Extraction runs as a chain of stamped, single-question model calls (ADR
+0009; ADR 0010 as amended; operational defaults per stage in
+`docs/pipeline-defaults.md`), in a fixed order, each stage exactly once:
 
-**KC Grains** (short form: grains) are the Companion's base learning unit:
-source-local observations of a skill, statements of what a student could walk
-away with, expressed as capabilities. A vocabulary note, because it is easy
-to trip on: in the literature's terms a candidate grain, a grain, and a
-grouping of grains are all Knowledge Components — the same kind of unit at
-different points in the process. We reserve the plain name KC for the grouped
-unit because that is what the running system will generally refer to; the
-finer names exist only because the process necessarily produces duplicates
-(a single source generates identical KCs from different passages, and
-multiple sources generate identical KCs about the same skill), so the
-pipeline needs names for the stages of resolving them. Once the universe is
-running, candidates and grains fade into pipeline detail.
-Each grain points at the evidence in the source that supports it. How
-grains are sized (open, see Open Questions) and how exactly they are
-extracted, including their precise relationship to passages, is still being
-designed (open, see Open Questions). What is decided: passages may suggest
-grains but must never constrain them. Also decided: grains are extracted only
-for what a source teaches, never for what it assumes; assumed background is
-not evidence (a source that assumes dot products has taught us nothing about
-dot products).
+1. **Blocks** (deterministic code, no model): the artifact split into the
+   units markdown already delimits. The atomic address unit; the only
+   segmentation that is a fact.
+2. **Passages**: a model groups adjacent blocks into the source's natural
+   teaching pieces, as block ranges, never copied text. A passage cannot be
+   factually wrong, only better or worse. A triage gate marks filler;
+   silence is not a verdict — an unjudged passage stops the run.
+3. **Tasks**: per teaching passage, with the whole source in context, a
+   model writes assessment tasks — each a task plus a short answer in the
+   model's own words, answerable from the source alone. Tasks are the
+   extraction probe: knowledge is defined by what can test it (the KLI
+   knowledge-component definition, adopted in ADR 0010).
+4. **Gates**: a granularity stage splits packed tasks into parts; one blind
+   revision pass repairs tasks that lean on text they cannot show; a
+   triage with the source in hand catches invented referents; a substance
+   gate discards pairs that are no evidence of learning. Everything
+   generative happens before the gates. Discarded means discarded: volume
+   is free, and the cure for a bad task is its absence.
+5. **Statement**: each surviving task yields one class-neutral knowledge
+   statement — the claim behind the task, worded free of the task's
+   phrasing. The statement is the unit's handle and its embedding key.
 
-## The grain and KC objects
+The unitary KC born from one task is permanent and insert-only, and bears
+the frozen id (ADR 0008). Extraction happens only for what a source
+teaches, never for what it assumes; assumed background is not evidence (a
+source that assumes dot products has taught us nothing about dot products).
+Passages may suggest knowledge but never constrain it.
 
-Grains and KCs are structured objects, not phrasings; a phrase is one field
-among few. Every grain and KC carries three axes drawn from the
-tutoring-systems literature: its condition→response form (when given X, the
-student does or produces Y), its knowledge type (fact, category, or rule),
-and its modality (do versus explain). Axis mismatches are hard boundaries: a
-"do" grain never merges into an "explain" KC, and a fact never joins a rule.
+Non-textual content (a diagram, a chart) currently simply belongs to its
+passage; representation and use of such assets is future work (see
+Deferred).
 
-A grain carries: its statement, its axes, and provenance to the passages and
-Model Reading that produced it.
+## The axes
 
-A KC carries: its frozen id (ADR 0008), its canonical phrasing (the human
-handle and the embedding anchor), its axes, two or three exemplar checking
-questions (born with the KC, refreshed alongside the canonical; they are
-identity substance and the anchor material admission judging reads), its
-membership log, and its versioned digests.
+Every unitary KC carries two axes, each written by a single model call
+(majority-of-3 voting retired 2026-08-02, ADR 0011):
 
-The axes will eventually supersede the Companion's older
-fact/procedure/applied/conceptual labels (through the compiler, later) and
-enable future instructional-form selection (guivalenca/companion#74).
+- **Modality**: explain (put into words) versus do (apply to a case).
+- **Knowledge type**: concept versus procedure. Fact was dropped as a class
+  on 2026-07-28: no prompt detected it reliably, and any fact is learnable
+  phrased as a concept.
 
-## From grains to Knowledge Components
+The axes are drawn from the tutoring-systems literature, where they mark
+boundaries across which knowledge does not transfer. They no longer guard
+identity directly — the judge below tests transfer itself, which is what
+the axes proxied. Their v1 jobs are two: pairs with different axes never
+reach the judge (a "do" and an "explain" are never merge candidates, so
+they are never judged), and the axes carry the instructional signal the
+tutor consumes downstream, eventually superseding the Companion's older
+fact/procedure/applied/conceptual teaching labels. An axis error therefore
+costs a missed merge candidate or a teaching-style hint, never corrupted
+identity — and axes, like every interpretation, are recomputable.
 
-Different sources often teach the same content and therefore produce similar
-grains. We resolve this by grouping equivalent grains into a
-**Knowledge Component (KC)**: a discrete, measurable unit of cognitive skill
-or understanding. The KC is the key teachable and assessable unit of the
-system. The exact test that decides whether two grains belong to the same
-KC has not been formally defined (open, see Open Questions).
+## From unitary KCs to Knowledge Components
 
-The grouping runs as semantic entity resolution under the canonical-anchor
-policy (ADR 0007):
+Different sources teach the same content and produce equivalent unitary
+KCs; a single source often does it twice. Equivalents resolve into one
+**Knowledge Component (KC)**: the discrete, measurable unit of skill or
+understanding that the whole system teaches against and measures against.
+The v1 identity process (ADR 0011), whole and entire:
 
-1. **Blocking** (cheap, recall-oriented): embed the new grain into a
-   vector and search it, via pgvector, against the canonical phrasing vectors
-   of existing KCs. This collapses the unaffordable "compare everything
-   against everything" space into a short candidate list.
-2. **Judging** (careful, precision-oriented): an LLM compares the new
-   grain against each candidate KC's canonical phrasing and exemplar
-   questions only, never against individual member grains, and issues one of
-   five verdicts: match, no-match, contains, contained-by, or uncertain.
-   Uncertain routes to a human; an axis mismatch is an automatic no-match. We
-   avoid binary verdicts because they convert model hesitation into silent
-   errors.
-3. **Committing**: exactly one match joins the grain to that KC, after a
-   whole-set gate in which a judge reads the entire resulting KC and confirms
-   it is still one skill. No matches create a new KC. Multiple matches
-   quarantine the grain for human review: membership is identity and
-   identity is transitive, so a real double match means the grain is too
-   coarse and must split into two grains, or the two KCs are duplicates
-   and must merge, or a verdict is wrong. The human decides which.
+1. **Candidates.** Each statement is embedded (pgvector); its candidates
+   are its semantic neighbors above cosine 0.70 (top 6) plus its top-5
+   word-overlap neighbors. The union is deduplicated pairwise; candidates
+   whose axes differ are dropped and never judged.
+2. **Judging.** One model call per pair asks, in both directions, the
+   surmise question: *does a learner who has genuinely mastered A
+   necessarily master B?* — answered on four levels (clear yes / likely /
+   unlikely / clear no), each direction on its own merits. Every verdict is
+   a stamped permanent fact, judged once per pair and never re-asked.
+3. **Committing.** Two unitary KCs are the same knowledge only when both
+   directions are clear yes. A composite KC commits only when every pair
+   inside it is such a double — a perfect clique, at any size. Anything
+   weaker stays unmerged, and no human adjudicates content disputes.
 
-A grain belongs to exactly one KC. Judging only against the canonical
-makes match chains structurally impossible, which is the documented failure
-mode of naive transitive merging. Occasional bad joins are accepted: they cost
-optimization, not corruption, and recurring conflicts are a signal to improve
-the system. Every time a KC gains a grain, an LLM refreshes its canonical
-phrasing, which triggers a cheap re-embedding of its vector. A triggered local
-repair pass over messy neighborhoods is deferred (guivalenca/companion#72).
+The governing asymmetry: an uncommitted duplicate costs a redundant entry
+on a dashboard; a wrong merge corrupts measurement. When in doubt, nothing
+merges. The measured behavior (bench 2026-08-02): the judge's confident
+core is stable across models and prompt forms, disagreement concentrates on
+compound statements, and the clique rule automatically quarantines exactly
+those regions by leaving them unmerged.
 
-Containment verdicts (one question pool sitting strictly inside the other)
-are recorded as stamped KC-to-KC edges and consumed by nothing in v1. They
-are an opportunistic byproduct, captured only when blocking happens to
-surface the pair, never a sought-after prerequisite mapper. The edges are
-concept-blind, and genuine "needed before, not part of" prerequisites remain
-future work (see Deferred).
+KCs are **derived snapshots**, recomputed from the verdict ledger; unitary
+KCs bear the permanent ids (ADR 0008), and composite snapshot ids are
+derived and re-mintable. Ingesting a new source is the same process run
+incrementally: extract, state, embed, judge only the new candidate pairs,
+recompute snapshots. Nothing global re-runs; the same KC surfacing from a
+new source merges by the same rule that dedups a single source. Improving a
+prompt or a model likewise never loses progress: verdicts are facts, and
+every interpretation above them recomputes.
 
-Intake runs as decomposed focused calls (ADR 0009): the Model Reading, a
-sizing gate that passes, splits, or drops each candidate grain while writing
-its axes, deterministic blocking, the membership judge, and the whole-set
-gate, each a separate call whose output is a stamped fact. This is what makes
-per-stage auditing in the dashboard and per-stage comparison in the harness
-possible; stages may be subdivided further during execution.
-
-KC identity is durable (ADR 0008): the id is minted once when the KC is born,
-as a readable slug plus a short suffix derived from the initial canonical
-phrasing, and never changes afterwards. Membership changes append to a
-permanent membership log. A merge retires one id with a permanent redirect to
-the survivor; a split keeps the id on the descendant retaining the most
-grains and mints new ids, with pointers, for the rest. Merges are expected
-in normal operation, because blocking is recall-oriented and the same skill
-occasionally enters twice under different vocabulary until a bridging
-grain exposes the duplicate.
+One-way implications (mastery of A carries B but not the reverse) and the
+graded verdict levels are stored with everything else and consumed by
+nothing in v1. They are the raw material of the future precedence map and
+of the graph machinery designed in
+`docs/research/directed-precedence-graph.md` — all deferred, all buildable
+later from the ledger without re-spending a judge call. Learning order in
+v1 comes from the syllabus, the teacher's honest signal, not from the
+graph.
 
 Every KC also has a **digest**: a compact compiled teaching text built from
-its backing grains' evidence. Digests are self-contained, versioned, and
-recompile when the KC's grains change. They are what the tutor reads.
+its members' evidence. Digests are self-contained, versioned, and recompile
+when the KC's members change. They are what the tutor reads.
 
-Every automated decision in this loop (verdicts, phrasings, vectors) is
-stamped with the model and prompt version that produced it. Text is the only
-canonical data; vectors and verdicts are derived and replayable.
+Every automated decision in this loop (verdicts, statements, vectors) is
+stamped with the model and prompt version that produced it. Text is the
+only canonical data; vectors and verdicts are derived and replayable.
 
 ## From Knowledge Components to Concepts
 
@@ -247,30 +245,34 @@ A concept is made of three moving pieces, each changing at its own pace:
    contents materially change, and versioned.
 
 A concept owns no content of its own and has no teaching authority: lessons
-select KCs through the chain syllabus → sources → grains → KCs, never through
-concepts. The concept is the shelf a KC is displayed on; its teaching material
-is its KCs' digests, its assessment plan comes from its KCs, its mastery is
-computed from its KCs' evidence, and a misfiled KC costs readability, not
-learning. The process for aggregating KCs into Concepts is undefined
-(open, see Open Questions).
+select KCs through the chain syllabus → sources → unitary KCs → KCs, never
+through concepts. The concept is the shelf a KC is displayed on; its teaching
+material is its KCs' digests, its assessment plan comes from its KCs, its
+mastery is computed from its KCs' evidence, and a misfiled KC costs
+readability, not learning. The process for aggregating KCs into Concepts is
+undefined (open, see Open Questions).
 
 ## From Syllabus to lessons and sessions
 
-Because the Syllabus maps sources to days, and sources yield grains, and
-grains resolve into KCs, the system can determine which Knowledge
+Because the Syllabus maps sources to days, and sources yield unitary KCs,
+and unitary KCs resolve into KCs, the system can determine which Knowledge
 Components each class needs to teach. An LLM then assembles the **lesson
 plan**: dividing the day's KCs into segments and ordering those segments. The
 plan is an interpretation: computed, versioned, and recomputable as our
 pipeline improves. When a session actually teaches, its session record pins
 the plan version and KC digest versions it used, so taught plans are retained
 as context for the evidence they produced; untaught drafts are disposable. The
-rules for how segments may combine concepts and KCs are not yet designed
-(open, see Open Questions).
+rules for how segments are composed are not yet designed (open, see Open
+Questions), but the consumption ladder is decided in principle: the KC is
+the unit of measurement, not the unit of instruction. The tutor is never
+handed a source's full KC list; it teaches a segment at a time, and the
+fine-grained KC resolution exists for the evaluator, the ledger, and the
+teacher's dashboard.
 
 A session's teaching context is assembled by curated injection: the Companion
-decides what enters the prompt, drawing on the selected KCs' canonical
-phrasings and digests and their concept's name. This control is what
-guarantees curricular coverage and instructional focus.
+decides what enters the prompt, drawing on the selected KCs and digests and
+their concept's name. This control is what guarantees curricular coverage and
+instructional focus.
 
 ## The student ledger and mastery
 
@@ -315,28 +317,41 @@ The system runs on infrastructure we already operate: **Postgres** stores both
 ledgers and every interpretation layer, and **pgvector**, an extension inside
 it, handles the embedding search, keeping vectors and rows in the same
 database under the same transactions. The universe is a deployed web service
-operated through the admin dashboard (ADR 0005), not a local pipeline.
+operated through the admin dashboard (ADR 0005), not a local pipeline. Model
+calls go through one OpenRouter-compatible client, provider-stamped per
+call, routed throughput-first with low-bit quantized providers excluded.
 
 ## Working method
 
-The system is built through the harness: prompts are versioned, every run is
-recorded with its model and prompt stamps, and a run-comparison view (same
-fixture, two prompt versions, side by side, with a push action to adopt the
-preferred result) is how prompt changes are evaluated and adopted.
-cg_pipeline's transcribed corpora serve as fixtures.
+The system is built through the harness: prompts are versioned files hashed
+into each run, every run is recorded with its model and prompt stamps, and
+prompt changes are evaluated by benched A/B comparison over the reference
+corpus before adoption. Costs are measured per run, never estimated in
+place of measurement.
 
-The harness's first act is the perceptron hand experiment for the KC
-membership and sizing rules: a multi-rater card sort, a blind question-swap
-test, and a structural audit over the axes, with adoption thresholds agreed
-in advance (about .7 kappa agreement on membership pairs, and question-swap
-verdicts matching the piles on about 80% of pairs). Below those thresholds
-the rule under test, not the raters, is revised before extraction scales.
+On judgment quality (founder decision 2026-08-01): there is no human gold
+standard. The founder does not adjudicate individual verdicts; a reference
+model's verdicts are trusted until a concrete problem implicates specific
+edges. Disagreement between judges locates pairs worth examining; it scores
+neither judge. Flags and behavioral differences between models are treated
+as information about the corpus, not noise to be optimized away (founder
+decision 2026-08-02).
 
 ## Deferred to future implementation
 
 Decided as out of scope for the initial system; the architecture keeps each
 one cheap to add later because interpretations are recomputable:
 
+- **The precedence map**: consumption of the stored one-way implications
+  (learning-order structure, foundational/advanced reading of the graph).
+  V1 stores the arrows and reads order from the syllabus.
+- **Graph health machinery** from the directed-precedence-graph memo:
+  k-plex tolerance and tension, node-health flags, the diagnostic exam
+  menu, the whole-set veto gate, pendência objects, weighted disagreement
+  tiebreaks, floor recalibration. Deferred whole by ADR 0011.
+- **A remedy for contested "likely" verdicts** (the judge's known weak
+  level); the second-model escalation tier was considered and dropped
+  (founder decision 2026-08-01).
 - **Concept links**: mastery flowing between related concepts (e.g. Perceptron
   feeding Neural Networks).
 - **Non-textual assets**: the format, representation, and any retrieval of
@@ -346,10 +361,6 @@ one cheap to add later because interpretations are recomputable:
 - **The observer agent** for impartial evidence extraction.
 - **Forgetting and retention modeling** over timestamped evidence.
 - **Mastery model upgrades** beyond counting (BKT, IRT).
-- **Triggered local repair** of messy KC neighborhoods, re-solving one small
-  region with all stored verdicts at once and surfacing the result as a
-  dashboard proposal. Tracked as guivalenca/companion#72, label
-  `post-concept-universe`.
 - **Full-rerun id reconciliation**: matching recomputed KCs back to existing
   ids when the whole interpretation layer is rebuilt with a new model or
   prompt.
@@ -357,47 +368,34 @@ one cheap to add later because interpretations are recomputable:
 ## Open Questions
 
 Each entry describes the problem, not just the question, so it can be picked
-up without the original conversation.
+up without the original conversation. (The former open questions on the KC
+membership test, unit sizing, and extraction method were closed by the
+as-built pipeline and ADR 0011.)
 
-1. **KC membership test.** What rule decides that two grains are "the same
-   skill" and belong in one KC? The decision is scheduled for the KC-stage
-   build and will be made empirically via the perceptron hand experiment (see
-   Working method), not in the abstract. The leading candidate is
-   question-pool interchangeability (two grains are one KC iff any fair
-   checking question for one is a fair checking question for the other),
-   proposed by the research memo
-   (`docs/research/kc-granularity-membership.md`), which found our original
-   "same checking question" candidate validated as a sizing gate but weak as
-   an identity test. Regardless of the outcome, KCs carry exemplar questions
-   (see the object section), so the material the decision needs accumulates
-   either way.
-2. **Grain sizing rule.** Adopted as a working rule: one focused question
-   could test it (too big splits; nothing worth asking drops). Final
-   confirmation waits until real extraction outputs are inspected in the
-   harness; the rule is one prompt edit away from revision if outputs look
-   wrong.
-3. **Grain extraction method.** How exactly are grains derived during
-   a Model Reading? Passages may suggest grains but must never constrain
-   them (decided); whether extraction works from passages plus a
-   contextualization of the source, from the source directly, or another
-   arrangement, is unresolved.
-4. **KC-to-Concept aggregation.** How are KCs assigned to concepts, and where
+1. **KC-to-Concept aggregation.** How are KCs assigned to concepts, and where
    do concept boundaries come from? Sketch under discussion: human vocabulary
    anchors boundaries, machines propose, curation confirms. Nothing decided.
-5. **Segment composition rules.** How segments may combine concepts and KCs
-   (one concept per segment, several, several segments of one concept) is
-   deliberately parked.
-6. **Digest source weighting.** Whether a KC digest should ever emphasize the
+2. **Segment composition.** Segments are the intermediary the tutor will
+   consume — a per-lesson plan chunking the day's KCs into teachable groups.
+   Sketch under discussion (2026-08-02): group by topic coherence, not by
+   axis; the axes of a segment's KCs shape its phases (concept-explain
+   opens, procedure-do closes in practice); one planning level only, no
+   sub-segments. Nothing decided.
+3. **Digest source weighting.** Whether a KC digest should ever emphasize the
    current lesson's own sources over other backing sources. Instinct: no for
    v1.
+4. **Naming of composite KCs.** Grouping no longer produces a merged
+   phrasing; what a composite KC's human handle is (beyond its members'
+   statements) attaches to the snapshot layer and is undesigned.
 
 Phase 2 questions, parked with the student ledger (ADR 0003):
 
-7. **Expected answers on grains.** Should a grain carry a description
-   of what a satisfactory demonstration looks like? Raised, unexplored.
-8. **Evaluation flow.** When and how evidence is extracted at segment close,
+5. **Expected answers on unitary KCs.** Should the evidence carry a
+   description of what a satisfactory demonstration looks like? Raised,
+   unexplored.
+6. **Evaluation flow.** When and how evidence is extracted at segment close,
    and by which agent.
-9. **"Seen" trigger.** Leaning toward "a segment the student finished", but
+7. **"Seen" trigger.** Leaning toward "a segment the student finished", but
    not decided.
-10. **Rank-to-weight conversion.** Teachers rank KC importance; the curve
-    converting rank into weight is undecided.
+8. **Rank-to-weight conversion.** Teachers rank KC importance; the curve
+   converting rank into weight is undecided.

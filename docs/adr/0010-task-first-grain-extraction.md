@@ -1,7 +1,9 @@
 # 0010: Task-first grain extraction over deterministic blocks
 
 Date: 2026-07-26
-Status: accepted, amended 2026-07-26 (see Amendments)
+Status: accepted, amended 2026-07-26 (see Amendments); stages 4–5 redefined
+by 0011 (2026-08-02): grouping is directional pair judging + clique
+snapshots, not embed-cluster-merge
 
 ## Context
 

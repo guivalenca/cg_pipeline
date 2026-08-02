@@ -1,7 +1,9 @@
 # 0007: KC grouping by canonical anchor with a whole-set gate
 
 Date: 2026-07-23
-Status: accepted
+Status: superseded by 0011 (2026-08-02) — membership is now mutual clear
+surmise over perfect cliques; the multi-match quarantine became simple
+non-merging, and the whole-set gate was dropped for v1
 
 ## Context
 
