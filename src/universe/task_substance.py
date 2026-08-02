@@ -1,7 +1,7 @@
 """Judge whether a task-and-answer pair can show learning.
 
-    python -m universe.task_substance run --prompt v003 --model deepseek/deepseek-v4-pro \
-        --gen-runs r0052 --tool prompts/task-substance/tool-v003.json
+    python -m universe.task_substance run --prompt v004 --model deepseek/deepseek-v4-pro \
+        --gen-runs r0052 --tool prompts/task-substance/tool-v004.json
 
 One call per task, carrying only the task and its expected answer. A pair may
 work as-is, be repairable, or be beyond repair. Silence remains an error,

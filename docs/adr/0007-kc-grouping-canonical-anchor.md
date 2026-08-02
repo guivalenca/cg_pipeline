@@ -12,7 +12,7 @@ LLM verdicts. Pairwise verdicts chain: naive transitive merging is the
 worst-precision clustering policy in standard benchmarks (0.101 versus ~0.6
 for chain-guarding policies at equal cost), and one vague grain can weld
 two distinct skills into one KC. Survey and citations:
-`docs/research/entity-resolution-grouping.md`.
+`entity-resolution-grouping.md` in `~/Desktop/concept-universe-research/`.
 
 ## Decision
 

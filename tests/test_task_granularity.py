@@ -88,7 +88,7 @@ def test_a_non_json_response_is_unparseable():
 
 
 def test_the_prompt_reads_task_and_answer_and_no_source():
-    prompt = load_prompt("task-granularity", "v001", require_body=False)
+    prompt = load_prompt("task-granularity", "v004", require_body=False)
     assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
     assert "{{body}}" not in prompt.template
 

@@ -18,7 +18,8 @@ Formally closed decisions are also recorded, with their context and
 consequences, as ADRs in `docs/adr/`. The v1 simplification of 2026-08-01/02
 — this document's current shape — is ADR 0011: the system was deliberately
 reduced to what the founder can fully own, with the deeper graph design
-(`docs/research/directed-precedence-graph.md`) kept as deferred ambition.
+(`directed-precedence-graph.md` in the research archive at
+`~/Desktop/concept-universe-research/`) kept as deferred ambition.
 
 ## The founding principle
 
@@ -215,8 +216,9 @@ every interpretation above them recomputes.
 One-way implications (mastery of A carries B but not the reverse) and the
 graded verdict levels are stored with everything else and consumed by
 nothing in v1. They are the raw material of the future precedence map and
-of the graph machinery designed in
-`docs/research/directed-precedence-graph.md` — all deferred, all buildable
+of the graph machinery designed in `directed-precedence-graph.md`
+(research archive, `~/Desktop/concept-universe-research/`) — all deferred,
+all buildable
 later from the ledger without re-spending a judge call. Learning order in
 v1 comes from the syllabus, the teacher's honest signal, not from the
 graph.

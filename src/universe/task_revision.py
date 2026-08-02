@@ -1,7 +1,7 @@
 """Judge each task alone, the way the learner will meet it: no source in the call.
 
-    python -m universe.task_revision run --prompt v001 --model deepseek-v4-pro \
-        --gen-runs r0052 --tool prompts/task-revision/tool-v001.json
+    python -m universe.task_revision run --prompt v004 --model deepseek-v4-pro \
+        --gen-runs r0052 --tool prompts/task-revision/tool-v003.json
 
 One call per task, carrying only the task and its expected answer. A task
 that points at a text it cannot show fails that reading; the model rewrites

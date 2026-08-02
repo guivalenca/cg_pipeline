@@ -39,19 +39,16 @@ model and resist auditing, so constraints should describe the destination
 of the statement and stay mechanically checkable; informativeness tests
 push the model to import content from outside the pair.
 
-Looking ahead: the precedence graph now gives this stage a second audit
-signal beyond the defect scoreboard. Connection patterns — a statement
-hubbing doubles across an incoherent neighborhood, pervasive weak mutual
-arrows, structural ties freezing a region — are the symptoms of compound,
-over-general or vague statements, and the plan is to watch those patterns
-after each judge run and drive dedicated prompts (compound exam, vagueness
-exam) from them, per the diagnostic menu in
-docs/research/directed-precedence-graph.md §5. v006 was the first prompt
-revision motivated by a graph symptom, and its retirement sharpened the
-division of labor: this stage's prompt owns wording defects; connection
-patterns belong to the graph-side machinery (4-level weighted tiebreak,
-triggered exams), because a graph symptom is not always a statement defect
-— t08's hub status turned out to be legitimate foundational knowledge.
-Accepted residual: the double-demand flicker (~1-2 per 33) stays in the
-pipeline; majority-of-N remains the known remedy if it ever blocks
-grouping.
+Looking ahead (revised by the v1 simplification, ADR 0011): the
+graph-driven audit plan that once lived here — watching connection
+patterns after each judge run and driving dedicated compound/vagueness
+exam prompts from them, per the diagnostic menu in
+`directed-precedence-graph.md` §5 (research archive,
+`~/Desktop/concept-universe-research/`) — is deferred along with all
+graph machinery. What survived from that episode is the division of
+labor it settled: this stage's prompt owns wording defects; connection
+patterns belong to the deferred graph side, because a graph symptom is
+not always a statement defect — t08's hub status turned out to be
+legitimate foundational knowledge. Accepted residual: the double-demand
+flicker (~1-2 per 33) stays in the pipeline; majority-of-N remains the
+known remedy if it ever blocks grouping.

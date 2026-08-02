@@ -1,10 +1,9 @@
 """Post-run analysis for judge bench runs and legacy judge runs.
 
     python -m universe.kc_judge_report \\
-        --runs reports/judge-v001.json reports/judge-surmise.json \\
-        --legacy reports/opus5-judge-r0130.json \\
+        --runs reports/judge-v002-pro.json reports/judge-v002-flash.json \\
         --data reports/grouping-data.json \\
-        --out reports/kc-judge-bench-v001.md
+        --out reports/kc-judge-bench-v002.md
 
 Reads new-format judge runs (kind: judge-run, verdicts with v in
 clear_yes/likely/unlikely/clear_no), optionally legacy runs (v in sim/nao),

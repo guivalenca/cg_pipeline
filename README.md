@@ -12,7 +12,7 @@ extracted Markdown). Rows are inserted, never updated or deleted.
 On top of it, the extraction pipeline as built so far, one module per
 stage under `src/universe/`:
 
-    blocks → passages (cuts) → passage-triage → task-generation → task-granularity → task-revision → task-triage → task-substance → kc-statement → task-axes → task-embedding → kc-judge (mutual-mastery pair calls) → clique grouping into KCs (ADR 0011)
+    blocks → passages (cuts) → passage-triage → task-generation → task-granularity → task-revision → task-triage → task-substance → kc-statement → task-modality + task-knowledge (axes) → task-embedding → kc-judge (mutual-mastery pair calls) → clique grouping into KCs (ADR 0011)
 
 Orientation for a new session:
 
@@ -21,7 +21,9 @@ Orientation for a new session:
 - **Which model and prompt each stage uses, and the current reference
   chain of runs**: `docs/pipeline-defaults.md`.
 - **What the experiments taught us** (prompt lessons, model temperaments,
-  why stages exist): `docs/lab/experiments.md`.
+  why stages exist): `experiments.md` in the research archive at
+  `~/Desktop/concept-universe-research/` (kept outside the repo with the
+  research memos; consult when needed).
 
 Every model call is stamped in the run ledger (`run`, `run_item`); prompts
 are versioned files under `prompts/<stage>/`, hashed into each run.
@@ -83,7 +85,9 @@ run ...`; run them with `--help` for the exact flags, and see
 `docs/pipeline-defaults.md` for the presets that are known to work.
 
 `report` and `compare` write self-contained HTML into `reports/`, which is
-git-ignored because it is regenerable from the database. The model endpoint is
+git-ignored because it is regenerable from the database. One exception is
+force-added and tracked: `reports/kc-judge-bench-v002.md`, the bench record
+behind the current kc-judge default (cited by ADR 0011). The model endpoint is
 any OpenAI-chat-completions-compatible API, set by `MODEL_API_BASE` and
 `MODEL_API_KEY`, defaulting to OpenRouter with `OPEN_ROUTER_API_KEY` from
 `.env`; the model id is per run, because switching models is the point. A failed call does not end the run: the error lands on the item, and

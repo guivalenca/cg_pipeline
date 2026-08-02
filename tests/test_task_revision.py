@@ -7,7 +7,7 @@ import pytest
 from universe.harness import load_prompt, load_tool
 from universe.task_revision import revision_of
 
-TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-revision" / "tool-v001.json"
+TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-revision" / "tool-v003.json"
 
 
 # --- reading revisions back -------------------------------------------------
@@ -78,7 +78,7 @@ def test_a_task_the_revision_run_never_saw_is_unjudged():
 
 
 def test_the_prompt_reads_task_and_answer_and_no_source():
-    prompt = load_prompt("task-revision", "v001", require_body=False)
+    prompt = load_prompt("task-revision", "v004", require_body=False)
     assert "Use the report_revision tool" in prompt.template
     assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
     assert "{{body}}" not in prompt.template
@@ -86,7 +86,7 @@ def test_the_prompt_reads_task_and_answer_and_no_source():
 
 def test_a_bodyless_prompt_still_fails_where_a_body_is_required():
     with pytest.raises(SystemExit):
-        load_prompt("task-revision", "v001")
+        load_prompt("task-revision", "v004")
 
 
 def test_the_tool_definition_loads_and_forces_report_revision():

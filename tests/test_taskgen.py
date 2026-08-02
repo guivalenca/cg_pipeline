@@ -86,7 +86,7 @@ def test_tasks_of_names_what_it_cannot_use(item):
 
 
 def test_the_prompt_declares_the_tool_and_both_fields():
-    prompt = load_prompt("task-generation", "v001")
+    prompt = load_prompt("task-generation", "v004")
     assert "Use the report_tasks tool" in prompt.template
     assert "{{body}}" in prompt.template and "{{passage}}" in prompt.template
 

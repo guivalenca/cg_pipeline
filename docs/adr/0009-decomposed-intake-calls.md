@@ -1,7 +1,10 @@
 # 0009: Grain intake runs as decomposed focused calls
 
 Date: 2026-07-24
-Status: accepted
+Status: accepted; steps 4–5 superseded by 0011 (2026-08-02): the membership
+judge became the pairwise mutual-surmise judge (both directions in one call,
+4-level scale) and the whole-set gate was dropped for v1. The
+one-judgment-per-call principle and steps 1–3 stand.
 
 ## Context
 

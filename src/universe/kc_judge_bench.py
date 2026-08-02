@@ -1,10 +1,10 @@
-"""Bench runner for the directional mastery judge (precedence-graph stage).
+"""Bench runner for the directional mastery judge (ADR 0011).
 
     python -m universe.kc_judge_bench \\
-        --prompt prompts/kc-judge/v001-transfer.md \\
-        --tool prompts/kc-judge/tool-v001.json \\
+        --prompt prompts/kc-judge/v002-surmise-pair.md \\
+        --tool prompts/kc-judge/tool-v002.json \\
         --model deepseek/deepseek-v4-pro \\
-        --out reports/judge-v001-r0130.json
+        --out reports/judge-v002-r0130.json
 
 Reads a corpus JSON from reports/, calls a model via ModelClient, and writes
 a run JSON back to reports/. No database, no ledger.

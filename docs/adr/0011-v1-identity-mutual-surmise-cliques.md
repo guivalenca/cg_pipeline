@@ -6,7 +6,8 @@ Status: accepted
 ## Context
 
 The directed precedence graph design
-(`docs/research/directed-precedence-graph.md`) replaced similarity-threshold
+(`directed-precedence-graph.md`, kept in the research archive at
+`~/Desktop/concept-universe-research/`) replaced similarity-threshold
 grouping after the blind review of r0130 showed statement-wording proximity
 cannot define knowledge identity. Its identity core — two units are the same
 knowledge exactly when mastery of each implies mastery of the other — was

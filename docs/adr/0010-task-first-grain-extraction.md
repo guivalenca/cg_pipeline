@@ -10,7 +10,8 @@ snapshots, not embed-cluster-merge
 The passage-segmentation experiment (runs r0003 to r0010) showed that no
 model configuration reproduces its own cuts, and that the v001 prompt asked
 for interpretation (title, teaches) inside what was meant to be the primary
-fact unit. Literature research (docs/lab/research/) then showed the classical
+fact unit. Literature research (now in the research archive at
+`~/Desktop/concept-universe-research/`) then showed the classical
 tradition never derives knowledge units from text segmentation: KC models are
 defined as mappings from assessment tasks to knowledge, tasks-first beat
 text-first when measured directly (Matsuda et al. 2022), grouping before
@@ -71,7 +72,9 @@ F1, which measured cut positions before any definition existed.
 - Stage 1 of ADR 0009 ("Model Reading extracts passages and candidate
   grains") is superseded by stages 1 to 5 above. The one-judgment-per-call
   principle and ADR 0009's downstream stages (sizing, blocking, membership,
-  whole-set gate) are unchanged.
+  whole-set gate) are unchanged. (2026-08-02: no longer true of the last
+  two — ADR 0011 replaced the membership judge and dropped the whole-set
+  gate; see 0009's status note.)
 - prompts/passage-segmentation/v001 is retired; the first real prompt to
   design is task generation.
 - The fact ledger of ingestion (source, snapshot, artifact, blocks) contains
@@ -99,8 +102,8 @@ blocks → passages → **passage-triage** → task generation →
    block(s) that answer it; in practice provenance is taken at the passage
    level only (the run item already records it), and block-level citation
    stays in reserve. The "answerable from the source alone" guardrail
-   survived as prompt wording, iterated empirically (see
-   docs/lab/experiments.md).
+   survived as prompt wording, iterated empirically (see `experiments.md`
+   in `~/Desktop/concept-universe-research/`).
 4. **Two per-task stages exist between generation and grouping.**
    Task-revision judges each task blind, seeing only the task and its
    answer, the way the learner will meet it: a task that leans on a text
