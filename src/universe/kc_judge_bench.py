@@ -26,9 +26,20 @@ from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient, ModelError
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 FIELD = re.compile(r"\{\{(\w+)\}\}")
-DEFAULT_WORKERS = 8
+DEFAULT_WORKERS = 16
 DEFAULT_MODEL = "deepseek/deepseek-v4-pro"
-DEFAULT_EXTRA = {"thinking": {"type": "enabled"}, "tool_choice": "auto", "reasoning_effort": "high"}
+DEFAULT_EXTRA = {
+    "thinking": {"type": "enabled"},
+    "tool_choice": "auto",
+    "reasoning_effort": "high",
+    # Routing decision 2026-08-01 (docs/pipeline-defaults.md): no low-bit
+    # quantization, fastest acceptable provider. Allowlist because OpenRouter
+    # has no quantization denylist; "unknown" admits undeclared providers.
+    "provider": {
+        "sort": "throughput",
+        "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
+    },
+}
 
 
 def load_prompt_text(path: str) -> str:
@@ -84,14 +95,21 @@ def bm25_score(query_tokens, doc_tokens, all_docs, k1=1.2, b=0.75):
     return score
 
 
-def generate_pairs(corpus, floor=0.70, cap=15, lexical_k=5, legacy_knn=5, dense_min=0.75):
+def generate_pairs(corpus, floor=0.70, cap=6, lexical_k=5, legacy_knn=0, dense_min=None):
     items = corpus["items"]
     sims = corpus["sims"]
     n = len(items)
     pairs_by_key = {}
     pair_generators = defaultdict(set)
+    axis_filtered = defaultdict(int)
+
+    def compatible(i, j):
+        return items[i]["modality"] == items[j]["modality"] and items[i]["knowledge"] == items[j]["knowledge"]
 
     def add_pair(i, j, gen):
+        if not compatible(i, j):
+            axis_filtered[gen] += 1
+            return
         if i > j:
             i, j = j, i
         key = f"{i}|{j}"
@@ -120,25 +138,26 @@ def generate_pairs(corpus, floor=0.70, cap=15, lexical_k=5, legacy_knn=5, dense_
                 scores.append((score, j))
         scores.sort(reverse=True)
         for _, j in scores[:lexical_k]:
-            if j != -1 and i != j:
+            if j != i:
                 add_pair(i, j, "lexical")
 
-    for i in range(n):
-        neighbors = [(j, sims[i][j]) for j in range(n) if i != j]
-        neighbors.sort(key=lambda x: x[1], reverse=True)
-        for j, _ in neighbors[:legacy_knn]:
-            add_pair(i, j, "legacy")
+    if legacy_knn > 0:
+        for i in range(n):
+            neighbors = [(j, sims[i][j]) for j in range(n) if i != j]
+            neighbors.sort(key=lambda x: x[1], reverse=True)
+            for j, _ in neighbors[:legacy_knn]:
+                add_pair(i, j, "legacy")
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            if sims[i][j] >= dense_min:
-                add_pair(i, j, "dense")
+    if dense_min is not None:
+        for i in range(n):
+            for j in range(i + 1, n):
+                if sims[i][j] >= dense_min:
+                    add_pair(i, j, "dense")
 
     for key in pairs_by_key:
         pairs_by_key[key]["generators"] = sorted(list(pair_generators[key]))
 
-    return pairs_by_key
-
+    return pairs_by_key, axis_filtered
 
 def call_model_for_pair(client, prompt_template, item_a, item_b, ab):
     fields = {
@@ -186,6 +205,57 @@ def call_model_for_pair(client, prompt_template, item_a, item_b, ab):
                 return None, f"ModelError: {str(e)}"
     return None, "exhausted retries"
 
+def call_model_for_pair_both(client, prompt_template, item_a, item_b):
+    fields = {
+        "a_statement": item_a["statement"],
+        "a_task": item_a["body"],
+        "a_answer": item_a["answer"],
+        "b_statement": item_b["statement"],
+        "b_task": item_b["body"],
+        "b_answer": item_b["answer"],
+    }
+    rendered = render_template(prompt_template, fields)
+    backoff = [1, 4, 16]
+    for attempt in range(3):
+        try:
+            text, usage, duration_ms = client.complete(rendered)
+            try:
+                parsed = json.loads(text)
+            except json.JSONDecodeError:
+                if attempt < 2:
+                    time.sleep(backoff[attempt])
+                    continue
+                return None, f"unparseable JSON: {text[:200]}"
+            if not isinstance(parsed, dict):
+                if attempt < 2:
+                    time.sleep(backoff[attempt])
+                    continue
+                return None, f"parsed result not a dict"
+            verdict_a_to_b = parsed.get("verdict_a_to_b")
+            reason_a_to_b = parsed.get("reason_a_to_b")
+            verdict_b_to_a = parsed.get("verdict_b_to_a")
+            reason_b_to_a = parsed.get("reason_b_to_a")
+            if verdict_a_to_b not in ("clear_yes", "likely", "unlikely", "clear_no") or verdict_b_to_a not in ("clear_yes", "likely", "unlikely", "clear_no"):
+                if attempt < 2:
+                    time.sleep(backoff[attempt])
+                    continue
+                return None, f"invalid verdicts: {verdict_a_to_b}, {verdict_b_to_a}"
+            if not isinstance(reason_a_to_b, str) or not reason_a_to_b.strip() or not isinstance(reason_b_to_a, str) or not reason_b_to_a.strip():
+                if attempt < 2:
+                    time.sleep(backoff[attempt])
+                    continue
+                return None, f"missing or empty reason"
+            return {
+                "ab": {"v": verdict_a_to_b, "reason": reason_a_to_b, "usage": usage, "duration_ms": duration_ms},
+                "ba": {"v": verdict_b_to_a, "reason": reason_b_to_a},
+            }, None
+        except ModelError as e:
+            if attempt < 2:
+                time.sleep(backoff[attempt])
+            else:
+                return None, f"ModelError: {str(e)}"
+    return None, "exhausted retries"
+
 
 def load_progress(progress_path):
     verdicts = {}
@@ -215,10 +285,10 @@ def main(argv=None):
     parser.add_argument("--out", required=True)
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
     parser.add_argument("--floor", type=float, default=0.70)
-    parser.add_argument("--cap", type=int, default=15)
+    parser.add_argument("--cap", type=int, default=6)
     parser.add_argument("--lexical-k", type=int, default=5)
-    parser.add_argument("--dense-min", type=float, default=0.75)
-    parser.add_argument("--legacy-knn", type=int, default=5)
+    parser.add_argument("--dense-min", type=float, default=None)
+    parser.add_argument("--legacy-knn", type=int, default=0)
     parser.add_argument("--closure-rounds", type=int, default=5)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--extra", type=lambda s: json.loads(s) if s else {})
@@ -234,8 +304,9 @@ def main(argv=None):
     prompt_text = load_prompt_text(args.prompt)
     tool_payload = load_tool(args.tool)
     tool_obj = tool_payload["tools"][0]["function"]
+    pair_mode = "verdict_a_to_b" in tool_obj["parameters"]["properties"]
 
-    base_pairs_by_key = generate_pairs(
+    base_pairs_by_key, axis_filtered = generate_pairs(
         corpus,
         floor=args.floor,
         cap=args.cap,
@@ -251,10 +322,11 @@ def main(argv=None):
             gen_counts[gen] += 1
 
     print(f"semantic={gen_counts['semantic']} lexical={gen_counts['lexical']} " +
-          f"legacy={gen_counts['legacy']} dense={gen_counts['dense']} union={base_pair_count}")
-    print(f"calls={base_pair_count * 2}")
+          f"legacy={gen_counts['legacy']} dense={gen_counts['dense']} union={base_pair_count} axis_filtered={sum(axis_filtered.values())}")
+    print(f"calls={base_pair_count * (1 if pair_mode else 2)}")
 
     if args.dry_run:
+        print(f"call mode: {'pair' if pair_mode else 'direction'}")
         if base_pairs_by_key:
             first_key = sorted(base_pairs_by_key.keys(), key=lambda k: base_pairs_by_key[k]["sim"], reverse=True)[0]
             i, j = map(int, first_key.split("|"))
@@ -306,15 +378,24 @@ def main(argv=None):
         i, j = map(int, key.split("|"))
         item_a, item_b = corpus["items"][i], corpus["items"][j]
         results = {}
-        for ab in [True, False]:
-            a, b = (item_a, item_b) if ab else (item_b, item_a)
-            call_result, error = call_model_for_pair(client, prompt_text, a, b, ab)
+        if pair_mode:
+            call_result, error = call_model_for_pair_both(client, prompt_text, item_a, item_b)
             if error:
                 with progress_lock:
-                    failed_calls.append((key, "ab" if ab else "ba", error))
+                    failed_calls.append((key, "pair", error))
                 return None
-            results["ab" if ab else "ba"] = call_result
+            results = call_result
+        else:
+            for ab in [True, False]:
+                a, b = (item_a, item_b) if ab else (item_b, item_a)
+                call_result, error = call_model_for_pair(client, prompt_text, a, b, ab)
+                if error:
+                    with progress_lock:
+                        failed_calls.append((key, "ab" if ab else "ba", error))
+                    return None
+                results["ab" if ab else "ba"] = call_result
         return (key, results)
+
 
     pairs_to_judge = [k for k in ordered_keys if k not in verdicts]
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
@@ -354,7 +435,7 @@ def main(argv=None):
             ba = verdicts[key].get("ba", {}).get("v")
             if not ab or not ba:
                 return False
-            return (ab in ("clear_yes", "likely")) and (ba in ("clear_yes", "likely"))
+            return ab == "clear_yes" and ba == "clear_yes"
 
         for key in verdicts:
             if not is_double(key):
@@ -421,13 +502,15 @@ def main(argv=None):
         "dense_min": args.dense_min,
         "legacy_knn": args.legacy_knn,
         "closure_rounds": args.closure_rounds,
+        "call_mode": "pair" if pair_mode else "direction",
+        "axis_filtered": axis_filtered,
         "passages_from": corpus["run_id"],
         "convencao": "A->B = dominar A implica dominar B; ab = menor_indice -> maior_indice",
     }
     params.update(extra)
 
     total_usage = {
-        "calls": len(verdicts) * 2,
+        "calls": len(verdicts) * (1 if pair_mode else 2),
         "prompt_tokens": 0,
         "completion_tokens": 0,
         "cost_usd": 0.0,

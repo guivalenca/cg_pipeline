@@ -1,0 +1,29 @@
+{
+  "name": "record_verdicts",
+  "description": "Record the directional mastery verdicts for this pair, one judgment per direction.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict_a_to_b": {
+        "type": "string",
+        "enum": ["clear_yes", "likely", "unlikely", "clear_no"],
+        "description": "Direction A to B. clear_yes = transfer is demonstrable: B's whole demand lives inside what mastering A requires, and the reason can point to where. likely = transfer is expected: no concrete fact, distinction or step of B's demand is missing from A, but the coverage rests on reading rather than demonstration. unlikely = transfer is doubtful: part of B's demand appears to sit outside mastering A, though no single decisive missing piece can be named. clear_no = transfer fails: the reason can name a fact, distinction or step B requires that mastering A does not carry. The middle levels record genuine uncertainty about this direction, not caution."
+      },
+      "reason_a_to_b": {
+        "type": "string",
+        "description": "One sentence on the A-to-B judgment. At the clear levels it points at the demonstration; at the middle levels, at the uncertainty."
+      },
+      "verdict_b_to_a": {
+        "type": "string",
+        "enum": ["clear_yes", "likely", "unlikely", "clear_no"],
+        "description": "Direction B to A, judged on its own merits with the roles reversed. clear_yes = transfer is demonstrable: A's whole demand lives inside what mastering B requires, and the reason can point to where. likely = transfer is expected: no concrete fact, distinction or step of A's demand is missing from B, but the coverage rests on reading rather than demonstration. unlikely = transfer is doubtful: part of A's demand appears to sit outside mastering B, though no single decisive missing piece can be named. clear_no = transfer fails: the reason can name a fact, distinction or step A requires that mastering B does not carry. The middle levels record genuine uncertainty about this direction, not caution."
+      },
+      "reason_b_to_a": {
+        "type": "string",
+        "description": "One sentence on the B-to-A judgment. At the clear levels it points at the demonstration; at the middle levels, at the uncertainty."
+      }
+    },
+    "required": ["verdict_a_to_b", "reason_a_to_b", "verdict_b_to_a", "reason_b_to_a"],
+    "additionalProperties": false
+  }
+}
