@@ -2,7 +2,11 @@
 
 import pytest
 
-from universe.task_modality import modality_of
+from universe.task_modality import DEFAULT_WORKERS, modality_of
+
+
+def test_task_modality_keeps_two_workers():
+    assert DEFAULT_WORKERS == 2
 
 
 def test_an_errored_item_is_an_error():

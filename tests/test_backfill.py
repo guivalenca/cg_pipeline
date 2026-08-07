@@ -19,25 +19,43 @@ def test_first_run_inserts_the_whole_fixture(first_run):
 
 
 def test_row_counts(db, first_run):
-    assert db.execute("SELECT count(*) FROM source").fetchone()[0] == 69
-    assert db.execute("SELECT count(*) FROM source_snapshot").fetchone()[0] == 69
-    assert db.execute("SELECT count(*) FROM artifact").fetchone()[0] == 67
+    assert db.execute(
+        "SELECT count(*) FROM source WHERE id NOT LIKE 'acqx-%'"
+    ).fetchone()[0] == 69
+    assert db.execute(
+        "SELECT count(*) FROM source_snapshot sn"
+        " JOIN source s ON s.id = sn.source_id"
+        " WHERE s.id NOT LIKE 'acqx-%'"
+    ).fetchone()[0] == 69
+    assert db.execute(
+        "SELECT count(*) FROM artifact a"
+        " JOIN source_snapshot sn ON sn.id = a.snapshot_id"
+        " JOIN source s ON s.id = sn.source_id"
+        " WHERE s.id NOT LIKE 'acqx-%'"
+    ).fetchone()[0] == 67
 
     by_status = dict(
-        db.execute("SELECT status, count(*) FROM source_snapshot GROUP BY status").fetchall()
+        db.execute(
+            "SELECT sn.status, count(*) FROM source_snapshot sn"
+            " JOIN source s ON s.id = sn.source_id"
+            " WHERE s.id NOT LIKE 'acqx-%' GROUP BY sn.status"
+        ).fetchall()
     )
     assert by_status == {"ok": 67, "failed": 2}
 
 
 def test_failed_snapshots_carry_a_reason_and_no_hash(db, first_run):
     failed = db.execute(
-        "SELECT content_hash, failure_note FROM source_snapshot WHERE status = 'failed'"
+        "SELECT sn.content_hash, sn.failure_note FROM source_snapshot sn"
+        " JOIN source s ON s.id = sn.source_id"
+        " WHERE sn.status = 'failed' AND s.id NOT LIKE 'acqx-%'"
     ).fetchall()
     assert len(failed) == 2
     assert all(content_hash is None and note for content_hash, note in failed)
     assert not db.execute(
         "SELECT 1 FROM artifact a JOIN source_snapshot s ON s.id = a.snapshot_id"
-        " WHERE s.status = 'failed'"
+        " JOIN source src ON src.id = s.source_id"
+        " WHERE s.status = 'failed' AND src.id NOT LIKE 'acqx-%'"
     ).fetchall()
 
 
@@ -46,6 +64,7 @@ def test_every_artifact_reaches_its_source(db, first_run):
         "SELECT count(*), count(DISTINCT src.id) FROM artifact a"
         " JOIN source_snapshot s ON s.id = a.snapshot_id"
         " JOIN source src ON src.id = s.source_id"
+        " WHERE src.id NOT LIKE 'acqx-%'"
     ).fetchone()
     assert reached == (67, 67)
 
@@ -59,4 +78,8 @@ def test_second_run_inserts_nothing(db, first_run, fixture_dir):
         "artifacts": 0,
         "skipped": 69,
     }
-    assert db.execute("SELECT count(*) FROM source_snapshot").fetchone()[0] == 69
+    assert db.execute(
+        "SELECT count(*) FROM source_snapshot sn"
+        " JOIN source s ON s.id = sn.source_id"
+        " WHERE s.id NOT LIKE 'acqx-%'"
+    ).fetchone()[0] == 69

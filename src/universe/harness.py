@@ -24,8 +24,10 @@ reuse `execute` instead of growing their own runner.
 import argparse
 import hashlib
 import json
+import random
 import re
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,13 +38,35 @@ from psycopg.types.json import Jsonb
 from universe import report
 from universe.blocks import BLOCKER_VERSION, fetch_blocks
 from universe.db import connect
-from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
+from universe.model_client import (
+    DEFAULT_MAX_TOKENS,
+    ModelClient,
+    is_transient_failure,
+)
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
-MAX_WORKERS = 4
+MAX_WORKERS = 16
+MAX_ATTEMPTS = 4
+RETRY_BACKOFF_SECONDS = (2.0, 6.0, 18.0, 54.0)
 PLACEHOLDER = "{{body}}"
 FIELD = re.compile(r"\{\{(\w+)\}\}")
+
+
+def retry_backoff_seconds(retry_number: int, *, jitter: float | None = None) -> float:
+    """Return a jittered retry delay, capped at the final 54-second step.
+
+    ``retry_number`` is one-based: the first retry uses the two-second step.
+    Jitter only shortens a step (by at most 20%), keeping 54 seconds a hard
+    cap while avoiding synchronized retries across workers.
+    """
+    if retry_number < 1:
+        raise ValueError("retry_number must be 1 or more")
+    base = RETRY_BACKOFF_SECONDS[min(retry_number - 1, len(RETRY_BACKOFF_SECONDS) - 1)]
+    random_value = random.random() if jitter is None else jitter
+    if not 0 <= random_value <= 1:
+        raise ValueError("jitter must be between 0 and 1")
+    return base * (0.8 + 0.2 * random_value)
 
 
 @dataclass(frozen=True)
@@ -179,6 +203,7 @@ def load_tool(path: str) -> dict:
 def next_run_id(conn: psycopg.Connection) -> str:
     number = conn.execute(
         "SELECT coalesce(max(substring(id from 2)::int), 0) + 1 FROM run"
+        " WHERE id ~ '^r[0-9]+$'"
     ).fetchone()[0]
     return f"r{number:04d}"
 
@@ -235,18 +260,29 @@ def execute(
         params,
     )
 
-    def call(work: tuple[int, Target, str]) -> tuple[int, Target, tuple | None, str | None]:
+    def call(
+        work: tuple[int, Target, str],
+    ) -> tuple[int, Target, tuple | None, str | None, int]:
         index, target, rendered = work
-        try:
-            return index, target, client.complete(rendered), None
-        except Exception as exc:  # one bad call must not end the run
-            return index, target, None, f"{type(exc).__name__}: {exc}"
+        retry_count = 0
+        while True:
+            try:
+                return index, target, client.complete(rendered), None, retry_count
+            except Exception as exc:  # one bad call must not end the run
+                if not is_transient_failure(exc) or retry_count >= MAX_ATTEMPTS - 1:
+                    return index, target, None, f"{type(exc).__name__}: {exc}", retry_count
+                retry_count += 1
+                time.sleep(retry_backoff_seconds(retry_count))
 
-    work = [(index, target, text) for index, (target, text) in enumerate(zip(targets, prompts), 1)]
+    work = [
+        (index, target, text)
+        for index, (target, text) in enumerate(zip(targets, prompts), 1)
+    ]
     ok = failed = 0
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(targets) or 1))) as pool:
-        for index, target, result, error in pool.map(call, work):
+        for index, target, result, error, retry_count in pool.map(call, work):
             text, usage, duration_ms = result if result else (None, None, None)
+            usage = {**(usage or {}), "retry_count": retry_count}
             conn.execute(
                 "INSERT INTO run_item"
                 " (id, run_id, artifact_id, passage_id, task_id,"
@@ -259,7 +295,7 @@ def execute(
                     target.passage_id,
                     target.task_id,
                     text,
-                    Jsonb(usage) if usage is not None else None,
+                    Jsonb(usage),
                     duration_ms,
                     error,
                 ),

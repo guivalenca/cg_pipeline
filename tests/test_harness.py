@@ -5,7 +5,14 @@ import hashlib
 import pytest
 
 from universe import harness
-from universe.model_client import DEFAULT_API_BASE, EmbeddingClient, ModelClient, ModelError
+from universe.model_client import (
+    DEFAULT_API_BASE,
+    DEFAULT_ROUTING,
+    EmbeddingClient,
+    ModelClient,
+    ModelError,
+    is_transient_failure,
+)
 
 STAGE = "passage-cuts"
 VERSION = "v001"
@@ -19,7 +26,7 @@ def fake_transport(reply: str = "one passage", fail_on: str | None = None, calls
         if calls is not None:
             calls.append(payload)
         if fail_on and fail_on in prompt:
-            raise ModelError("HTTP 502: upstream said no")
+            raise ModelError("upstream said no")
         return {
             "choices": [{"message": {"content": reply}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120},
@@ -136,6 +143,70 @@ def test_a_failing_item_is_recorded_without_killing_the_run(db, prompt, targets)
     assert "upstream said no" in failed[0]["error"]
     assert failed[0]["response"] is None
     assert failed[0]["source_id"] == "harness-src-2"
+    assert failed[0]["usage"]["retry_count"] == 0
+
+
+def test_transient_failure_is_retried_inside_the_item_worker(
+    db, prompt, targets, monkeypatch
+):
+    calls = 0
+    sleeps = []
+
+    def flaky(url, headers, payload, timeout):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise ModelError("upstream unavailable", status_code=503)
+        return fake_transport()(url, headers, payload, timeout)
+
+    monkeypatch.setattr(harness.random, "random", lambda: 1.0)
+    monkeypatch.setattr(harness.time, "sleep", sleeps.append)
+    summary = harness.execute(db, prompt, client(transport=flaky), targets[:1])
+
+    assert summary["ok"] == 1
+    assert calls == 3
+    assert sleeps == [2.0, 6.0]
+    item = harness.fetch_items(db, summary["run_id"])[0]
+    assert item["usage"]["retry_count"] == 2
+
+
+def test_transient_failure_stops_after_four_total_attempts(
+    db, prompt, targets, monkeypatch
+):
+    calls = 0
+    sleeps = []
+
+    def rate_limited(url, headers, payload, timeout):
+        nonlocal calls
+        calls += 1
+        raise ModelError("rate limited", status_code=429)
+
+    monkeypatch.setattr(harness.random, "random", lambda: 1.0)
+    monkeypatch.setattr(harness.time, "sleep", sleeps.append)
+    summary = harness.execute(db, prompt, client(transport=rate_limited), targets[:1])
+
+    assert summary["failed"] == 1
+    assert calls == 4
+    assert sleeps == [2.0, 6.0, 18.0]
+    item = harness.fetch_items(db, summary["run_id"])[0]
+    assert item["usage"]["retry_count"] == 3
+
+
+def test_non_transient_failure_is_not_retried(db, prompt, targets, monkeypatch):
+    calls = 0
+    sleeps = []
+
+    def malformed(url, headers, payload, timeout):
+        nonlocal calls
+        calls += 1
+        return {"choices": []}
+
+    monkeypatch.setattr(harness.time, "sleep", sleeps.append)
+    summary = harness.execute(db, prompt, client(transport=malformed), targets[:1])
+
+    assert summary["failed"] == 1
+    assert calls == 1
+    assert sleeps == []
 
 
 def test_a_response_that_is_not_text_fails_its_item_only(db, prompt, targets):
@@ -219,14 +290,17 @@ def test_compare_puts_shared_items_side_by_side_and_names_the_rest(db, prompt, t
 
 
 def test_list_shows_each_run_with_its_item_counts(db, prompt, targets, monkeypatch, capsys):
-    harness.execute(db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets)
+    summary = harness.execute(
+        db, prompt, client(transport=fake_transport(fail_on="SOURCE 2")), targets
+    )
     monkeypatch.setattr(harness, "connect", lambda *a, **k: KeepOpen(db))
     harness.main(["list"])
 
     out = capsys.readouterr().out
     lines = [line for line in out.splitlines() if line.startswith("r")]
     assert lines, out
-    assert STAGE in lines[-1] and "fake/model" in lines[-1] and "1/2" in lines[-1]
+    own_line = next(line for line in lines if line.split()[0] == summary["run_id"])
+    assert STAGE in own_line and "fake/model" in own_line and "1/2" in own_line
 
 
 def test_report_via_the_cli(db, prompt, targets, monkeypatch, capsys, tmp_path):
@@ -254,6 +328,65 @@ def test_extra_payload_is_sent_and_stamped():
     assert calls[0]["reasoning_effort"] == "high"
     assert c.params["thinking"] == {"type": "enabled"}
     assert c.params["reasoning_effort"] == "high"
+
+
+def test_routing_defaults_are_sent_and_stamped():
+    calls = []
+    c = client(transport=fake_transport(calls=calls))
+    c.complete("hello")
+
+    assert calls[0]["provider"] == DEFAULT_ROUTING["provider"]
+    assert c.params["provider"] == DEFAULT_ROUTING["provider"]
+
+
+def test_explicit_extra_overrides_fields_inside_routing_defaults():
+    calls = []
+    extra = {"provider": {"ignore": ["OtherProvider"], "sort": "price"}}
+    c = client(transport=fake_transport(calls=calls), extra=extra)
+    c.complete("hello")
+
+    assert calls[0]["provider"] == {
+        "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
+        "ignore": ["OtherProvider"],
+        "sort": "price",
+    }
+    assert DEFAULT_ROUTING["provider"]["ignore"] == ["SiliconFlow"]
+
+
+@pytest.mark.parametrize(
+    ("error", "transient"),
+    [
+        (ModelError("rate limited", status_code=429), True),
+        (ModelError("server failure", status_code=500), True),
+        (ModelError("server failure", status_code=599), True),
+        (ModelError("HTTP 502: bad gateway"), True),
+        (TimeoutError("timed out"), True),
+        (ConnectionResetError("reset"), True),
+        (ModelError("bad request", status_code=400), False),
+        (ModelError("not found", status_code=404), False),
+        (ModelError("unexpected response shape"), False),
+    ],
+)
+def test_transient_failure_classification(error, transient):
+    assert is_transient_failure(error) is transient
+
+
+def test_api_error_status_is_available_to_the_transient_classifier():
+    def transport(url, headers, payload, timeout):
+        return {"error": {"code": 429, "message": "rate limited"}}
+
+    with pytest.raises(ModelError) as raised:
+        client(transport=transport).complete("hello")
+
+    assert is_transient_failure(raised.value)
+
+
+def test_retry_backoff_schedule_is_exponential_and_capped():
+    assert [
+        harness.retry_backoff_seconds(retry_number, jitter=1.0)
+        for retry_number in range(1, 6)
+    ] == [2.0, 6.0, 18.0, 54.0, 54.0]
+    assert harness.retry_backoff_seconds(1, jitter=0.0) == 1.6
 
 
 def test_model_client_api_base_fallback_order(monkeypatch):

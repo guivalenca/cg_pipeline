@@ -18,6 +18,7 @@ from universe.harness import (
     Target,
     execute,
     fetch_items,
+    fetch_run,
     fetch_sources,
     id_list,
     json_object,
@@ -35,7 +36,7 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 STAGE = "kc-statement"
 VERDICTS = {"stated", "unsure"}
 TRIAGE_VERDICTS = {"supported", "unsupported", "unsure"}
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def statement_of(item: dict) -> dict | str:
@@ -59,6 +60,36 @@ def statement_of(item: dict) -> dict | str:
         if reason := reason.strip():
             result["reason"] = reason
     return result
+
+
+def fetch_usable_statements(
+    conn: psycopg.Connection, run_ids: list[str]
+) -> dict[str, str]:
+    """Newest usable stated text per task across the named statement runs."""
+    for run_id in run_ids:
+        run = fetch_run(conn, run_id)
+        if run["stage"] != STAGE:
+            raise SystemExit(f"{run_id} is a {run['stage']} run, not {STAGE}")
+
+    rows = conn.execute(
+        "SELECT i.id, i.task_id, i.response, i.error"
+        " FROM run_item i JOIN run r ON r.id = i.run_id"
+        " WHERE r.id = ANY(%s)"
+        " ORDER BY r.started_at DESC, i.created_at DESC, i.id DESC",
+        (run_ids,),
+    ).fetchall()
+    statements: dict[str, str] = {}
+    for item_id, task_id, response, error in rows:
+        if task_id is None:
+            raise SystemExit(f"{item_id} is not about a task")
+        parsed = statement_of({"response": response, "error": error})
+        if (
+            task_id not in statements
+            and isinstance(parsed, dict)
+            and parsed["verdict"] == "stated"
+        ):
+            statements[task_id] = parsed["statement"]
+    return statements
 
 
 def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:

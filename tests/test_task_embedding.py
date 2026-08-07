@@ -7,12 +7,18 @@ import pytest
 
 from universe import harness
 from universe.harness import load_prompt
-from universe.task_embedding import STAGE, build_parser, cmd_run
+from universe.task_embedding import (
+    STAGE,
+    build_parser,
+    cmd_run,
+    statement_embedding_inputs,
+)
 from universe.task_embedding_report import components, percentile
 
 PROMPT_PATH = (
     Path(__file__).resolve().parents[1] / "prompts" / "task-embedding" / "v001.md"
 )
+STATEMENT_PROMPT_PATH = PROMPT_PATH.with_name("v002.md")
 
 
 # --- the stage's files ------------------------------------------------------
@@ -27,6 +33,72 @@ def test_the_prompt_is_only_the_task_and_answer():
     assert prompt.render_fields({"task": "Question?", "answer": "Answer."}) == (
         "Question?\n\nAnswer.\n"
     )
+
+
+def test_statement_scope_keeps_only_stated_task_and_renders_statement_text(db):
+    prefix = "task-embedding-statements"
+    source_id = f"{prefix}-source"
+    snapshot_id = f"{source_id}:snapshot"
+    artifact_id = f"{snapshot_id}:markdown"
+    passage_id = f"{artifact_id}:p01"
+    generation_run = harness.claim_run(
+        db, "task-generation", "fake/model", "task/test", "abc", {}
+    )
+    generation_item = f"{generation_run}-0001"
+    task_ids = [f"{prefix}-t01", f"{prefix}-t02"]
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, '{\"kind\": \"test\"}', 'Statement embedding', 'article')",
+        (source_id,),
+    )
+    db.execute(
+        "INSERT INTO source_snapshot (id, source_id, content_hash, status)"
+        " VALUES (%s, %s, %s, 'ok')",
+        (snapshot_id, source_id, f"{prefix}-hash"),
+    )
+    db.execute(
+        "INSERT INTO artifact (id, snapshot_id, kind, tool, body)"
+        " VALUES (%s, %s, 'markdown', 'test', 'Body')",
+        (artifact_id, snapshot_id),
+    )
+    db.execute(
+        "INSERT INTO run_item (id, run_id, artifact_id, response)"
+        " VALUES (%s, %s, %s, '{}')",
+        (generation_item, generation_run, artifact_id),
+    )
+    db.execute(
+        "INSERT INTO passage (id, artifact_id, blocker_version, first_seq, last_seq)"
+        " VALUES (%s, %s, 'test', 1, 1)",
+        (passage_id, artifact_id),
+    )
+    for seq, task_id in enumerate(task_ids, 1):
+        db.execute(
+            "INSERT INTO task (id, run_item_id, passage_id, seq, body, answer)"
+            " VALUES (%s, %s, %s, %s, %s, %s)",
+            (task_id, generation_item, passage_id, seq, f"Task {seq}", f"Answer {seq}"),
+        )
+
+    statement_run = harness.claim_run(
+        db, "kc-statement", "fake/model", "kc-statement/test", "def", {}
+    )
+    responses = [
+        '{"verdict":"stated","statement":"Learner can identify the invariant."}',
+        '{"verdict":"unsure","reason":"Task is ambiguous."}',
+    ]
+    for index, (task_id, response) in enumerate(zip(task_ids, responses), 1):
+        db.execute(
+            "INSERT INTO run_item (id, run_id, artifact_id, task_id, response)"
+            " VALUES (%s, %s, %s, %s, %s)",
+            (f"{statement_run}-{index:04d}", statement_run, artifact_id, task_id, response),
+        )
+    db.commit()
+
+    assert STATEMENT_PROMPT_PATH.read_bytes() == b"{{statement}}\n"
+    prompt = load_prompt(STAGE, "v002", require_body=False)
+    tasks, rendered = statement_embedding_inputs(db, [statement_run], prompt)
+
+    assert [task["id"] for task in tasks] == [task_ids[0]]
+    assert rendered == ["Learner can identify the invariant.\n"]
 
 
 # --- stored vectors --------------------------------------------------------
@@ -163,4 +235,27 @@ def test_post_split_overlay_flags_are_available_and_require_granularity():
 
     args.granularity_run = None
     with pytest.raises(SystemExit, match="--parts-revision-run requires --granularity-run"):
+        cmd_run(args)
+
+
+def test_embedding_parser_accepts_statement_runs_without_generation_runs():
+    args = build_parser().parse_args(
+        [
+            "run", "--prompt", "v002", "--model", "fake/embedding",
+            "--statements-from", "r0001,r0002",
+        ]
+    )
+
+    assert args.gen_runs is None
+    assert args.statements_from == ["r0001", "r0002"]
+
+
+def test_embedding_run_requires_generation_or_statement_runs():
+    args = build_parser().parse_args(
+        ["run", "--prompt", "v002", "--model", "fake/embedding"]
+    )
+
+    with pytest.raises(
+        SystemExit, match="one of --gen-runs or --statements-from is required"
+    ):
         cmd_run(args)

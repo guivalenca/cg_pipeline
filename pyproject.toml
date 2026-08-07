@@ -3,10 +3,17 @@ name = "universe"
 version = "0.1.0"
 description = "Concept Universe content ledger: permanent fact records for ingested sources"
 requires-python = ">=3.12"
-dependencies = ["psycopg[binary]>=3.2"]
+dependencies = [
+    "psycopg[binary]>=3.2",
+    "openpyxl>=3.1",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "httpx>=0.27"]
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -54,19 +54,24 @@ student data they accumulate is left as-is until it is reprocessed when
 phase 2 lands.
 
 Phase 1 is built externally to the Companion (ADR 0004): its own system, its
-own schema, importing nothing from Companion internals. The bridge is a
-one-way, deliberately disposable compiler that emits a Concept Graph in
-today's format at the seam the Companion already consumes graphs through; the
-Companion changes zero lines, and exported concept ids embed universe identity
-so phase-1 data remains mappable later.
+own schema, importing nothing from Companion internals. The originally
+decided bridge — a disposable compiler emitting a Concept Graph in today's
+format, with the Companion changing zero lines — was retired on 2026-08-02
+(ADR 0004 as amended): making segments the unit the Companion consumes
+changes the Companion itself (tutor ingestion, student evaluation), so the
+legacy graph format will not survive as the seam. What the Companion will
+actually consume is undesigned (open, see Open Questions) and depends on
+the segment design.
 
-The universe runs as a deployed service, not a local pipeline (ADR 0005). The
-admin dashboard is its operating and curation surface: the founder drives the
-pipeline from the web, every dashboard action is recorded as a permanent
-curation fact, and every creation phase boundary starts with a hard audit
-gate, relaxed per phase as trust builds. The existing cg_pipeline repo is a
-quarry, not a foundation: rules and adapters are ported selectively with
-review, and its transcribed corpora serve as test fixtures.
+The universe is designed as a web system operated through its admin
+dashboard, built and run locally until it is wired into the Companion, then
+deployed to Railway (ADR 0005 as amended). The admin dashboard is its
+operating and curation surface: the founder drives the pipeline from it,
+every dashboard action is recorded as a permanent curation fact, and every
+creation phase boundary starts with a hard audit gate, relaxed per phase as
+trust builds. The existing cg_pipeline repo is a quarry, not a foundation:
+rules and adapters are ported selectively with review, and its transcribed
+corpora serve as test fixtures.
 
 ## The content ingestion chain
 
@@ -191,7 +196,9 @@ The v1 identity process (ADR 0011), whole and entire:
    surmise question: *does a learner who has genuinely mastered A
    necessarily master B?* — answered on four levels (clear yes / likely /
    unlikely / clear no), each direction on its own merits. Every verdict is
-   a stamped permanent fact, judged once per pair and never re-asked.
+   a stamped permanent fact, judged once per pair per judge generation
+   (ADR 0011 as amended): a new model or prompt version re-judges beside
+   the old verdicts, and consumers read the newest verdict per pair.
 3. **Committing.** Two unitary KCs are the same knowledge only when both
    directions are clear yes. A composite KC commits only when every pair
    inside it is such a double — a perfect clique, at any size. Anything
@@ -318,8 +325,9 @@ understanding survives content changes, new sources, and reorganizations.
 The system runs on infrastructure we already operate: **Postgres** stores both
 ledgers and every interpretation layer, and **pgvector**, an extension inside
 it, handles the embedding search, keeping vectors and rows in the same
-database under the same transactions. The universe is a deployed web service
-operated through the admin dashboard (ADR 0005), not a local pipeline. Model
+database under the same transactions. The universe is a web system operated
+through the admin dashboard, running locally until it is wired into the
+Companion and then deployed to Railway (ADR 0005 as amended). Model
 calls go through one OpenRouter-compatible client, provider-stamped per
 call, routed throughput-first with low-bit quantized providers excluded.
 
@@ -386,18 +394,26 @@ as-built pipeline and ADR 0011.)
 3. **Digest source weighting.** Whether a KC digest should ever emphasize the
    current lesson's own sources over other backing sources. Instinct: no for
    v1.
-4. **Naming of composite KCs.** Grouping no longer produces a merged
-   phrasing; what a composite KC's human handle is (beyond its members'
-   statements) attaches to the snapshot layer and is undesigned.
+4. **Naming of composite KCs.** A focused call after grouping writes one
+   canonical statement from the member tasks and answers. The statement
+   attaches to that composite snapshot; it does not change membership or the
+   permanent unitary KCs. An `unsure` result leaves the composite unnamed.
+5. **The Companion seam.** The disposable compiler emitting today's Concept
+   Graph format was retired as the bridge (ADR 0004 as amended, 2026-08-02):
+   segments as the consumption unit change the Companion itself — tutor
+   ingestion, student evaluation, and whatever else reads the graph today.
+   What the Companion will consume from the universe, at what boundary, and
+   how much of the Companion changes, is undesigned and depends on the
+   segment design (question 2).
 
 Phase 2 questions, parked with the student ledger (ADR 0003):
 
-5. **Expected answers on unitary KCs.** Should the evidence carry a
+6. **Expected answers on unitary KCs.** Should the evidence carry a
    description of what a satisfactory demonstration looks like? Raised,
    unexplored.
-6. **Evaluation flow.** When and how evidence is extracted at segment close,
+7. **Evaluation flow.** When and how evidence is extracted at segment close,
    and by which agent.
-7. **"Seen" trigger.** Leaning toward "a segment the student finished", but
+8. **"Seen" trigger.** Leaning toward "a segment the student finished", but
    not decided.
-8. **Rank-to-weight conversion.** Teachers rank KC importance; the curve
+9. **Rank-to-weight conversion.** Teachers rank KC importance; the curve
    converting rank into weight is undecided.

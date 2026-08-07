@@ -27,11 +27,10 @@ PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 FIELD = re.compile(r"\{\{(\w+)\}\}")
 DEFAULT_WORKERS = 16
-DEFAULT_MODEL = "deepseek/deepseek-v4-pro"
+DEFAULT_MODEL = "deepseek/deepseek-v4-flash-0731"
 DEFAULT_EXTRA = {
-    "thinking": {"type": "enabled"},
     "tool_choice": "auto",
-    "reasoning_effort": "high",
+    "reasoning_effort": "low",
     # Routing decision 2026-08-01 (docs/pipeline-defaults.md): no low-bit
     # quantization, fastest acceptable provider. Allowlist because OpenRouter
     # has no quantization denylist; "unknown" admits undeclared providers.

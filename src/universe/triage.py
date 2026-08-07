@@ -44,7 +44,7 @@ from universe.passages import (
 )
 
 STAGE = "passage-triage"
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def verdict_of(item: dict) -> str:

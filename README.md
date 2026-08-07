@@ -84,6 +84,35 @@ Each pipeline stage has its own runner on the same machinery, e.g.
 run ...`; run them with `--help` for the exact flags, and see
 `docs/pipeline-defaults.md` for the presets that are known to work.
 
+The judge stage writes its verdicts to the ledger (`kc_verdict`, one pair
+judged once per judge generation — a new model or prompt version re-judges
+beside the old verdicts, and consumers read the newest per pair) via
+`python -m universe.kc_judge run`;
+`python -m universe.kc_groups compute` derives composite KC snapshots from
+the verdict ledger by the ADR 0011 clique rule. Both are recomputable
+interpretations over permanent facts.
+
+## Syllabus
+
+Sources enter through the syllabus (ADR 0006). `python -m universe.syllabus
+import <xlsx>` reads the workbook (single 'Projetos' sheet; row order is
+meaningless), mints sources from canonical URLs, and records a new syllabus
+version beside the previous one; an unchanged workbook records nothing.
+Uploading through the dashboard does the same and stamps a curation event.
+
+## Dashboard
+
+A local web dashboard (ADR 0005 as amended: local until wired into the
+Companion, then Railway):
+
+    python serve.py
+
+serves http://127.0.0.1:8100 — overview and attention queue, syllabus
+upload/versions/diff, per-source ingestion progress (`universe.spine`),
+the universe graph (unitary KCs, verdict edges, committed composite KCs),
+and the run ledger. Static pages, no build step; design system ported from
+the Companion admin.
+
 `report` and `compare` write self-contained HTML into `reports/`, which is
 git-ignored because it is regenerable from the database. One exception is
 force-added and tracked: `reports/kc-judge-bench-v002.md`, the bench record

@@ -46,7 +46,7 @@ from universe.task_revision import revision_of
 from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-triage"
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def fetch_revisions(conn: psycopg.Connection, revision_run_id: str) -> dict[str, dict | str]:

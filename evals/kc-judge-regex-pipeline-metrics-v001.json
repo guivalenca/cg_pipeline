@@ -1,0 +1,639 @@
+{
+  "name": "Concept Universe regex shadow pipeline metrics v001",
+  "database": "universe_judge_shadow_regex_20260807",
+  "production_database_touched": false,
+  "source_counts": {
+    "si-mod6-0016-expressoes-regulares": {
+      "blocks": 248,
+      "passages": 9,
+      "tasks_materialized": 103,
+      "final_kcs": 61
+    },
+    "si-mod6-0017-regexp-expressoes-regulares-dicionario-do-programador": {
+      "blocks": 45,
+      "passages": 14,
+      "tasks_materialized": 59,
+      "final_kcs": 30
+    }
+  },
+  "runs": [
+    {
+      "run_id": "r0001",
+      "stage": "passage-cuts",
+      "model": "deepseek/deepseek-v4-flash",
+      "prompt_ref": "passage-cuts/v001",
+      "status": "done",
+      "items": 1,
+      "errors": 0,
+      "cost": 0.001936131,
+      "prompt_tokens": 9523,
+      "completion_tokens": 2203,
+      "reasoning_tokens": 2052,
+      "duration_ms_sum": 120821,
+      "providers": {
+        "Morph": 1
+      }
+    },
+    {
+      "run_id": "r0002",
+      "stage": "passage-cuts",
+      "model": "deepseek/deepseek-v4-flash",
+      "prompt_ref": "passage-cuts/v001",
+      "status": "done",
+      "items": 1,
+      "errors": 0,
+      "cost": 0.000588526,
+      "prompt_tokens": 2602,
+      "completion_tokens": 816,
+      "reasoning_tokens": 629,
+      "duration_ms_sum": 51284,
+      "providers": {
+        "Morph": 1
+      }
+    },
+    {
+      "run_id": "r0003",
+      "stage": "passage-triage",
+      "model": "deepseek/deepseek-v4-flash",
+      "prompt_ref": "passage-triage/v001",
+      "status": "done",
+      "items": 9,
+      "errors": 0,
+      "cost": 0.008945331999999999,
+      "prompt_tokens": 72260,
+      "completion_tokens": 940,
+      "reasoning_tokens": 666,
+      "duration_ms_sum": 191831,
+      "providers": {
+        "Morph": 9
+      }
+    },
+    {
+      "run_id": "r0004",
+      "stage": "passage-triage",
+      "model": "deepseek/deepseek-v4-flash",
+      "prompt_ref": "passage-triage/v001",
+      "status": "done",
+      "items": 14,
+      "errors": 0,
+      "cost": 0.00382744,
+      "prompt_tokens": 32597,
+      "completion_tokens": 1606,
+      "reasoning_tokens": 972,
+      "duration_ms_sum": 198343,
+      "providers": {
+        "Novita": 9,
+        "Morph": 5
+      }
+    },
+    {
+      "run_id": "r0005",
+      "stage": "task-generation",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-generation/v004",
+      "status": "done",
+      "items": 10,
+      "errors": 0,
+      "cost": 0.018540395807999998,
+      "prompt_tokens": 24007,
+      "completion_tokens": 3928,
+      "reasoning_tokens": 1691,
+      "duration_ms_sum": 63516,
+      "providers": {
+        "Novita": 10
+      }
+    },
+    {
+      "run_id": "r0006",
+      "stage": "task-generation",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-generation/v004",
+      "status": "done",
+      "items": 8,
+      "errors": 0,
+      "cost": 0.047355844992000004,
+      "prompt_tokens": 65292,
+      "completion_tokens": 7259,
+      "reasoning_tokens": 2955,
+      "duration_ms_sum": 107015,
+      "providers": {
+        "Novita": 8
+      }
+    },
+    {
+      "run_id": "r0007",
+      "stage": "task-granularity",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-granularity/v004",
+      "status": "done",
+      "items": 47,
+      "errors": 0,
+      "cost": 0.029073482591999995,
+      "prompt_tokens": 26155,
+      "completion_tokens": 16268,
+      "reasoning_tokens": 10275,
+      "duration_ms_sum": 282736,
+      "providers": {
+        "Novita": 47
+      }
+    },
+    {
+      "run_id": "r0008",
+      "stage": "task-granularity",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-granularity/v004",
+      "status": "done",
+      "items": 43,
+      "errors": 0,
+      "cost": 0.019570850784,
+      "prompt_tokens": 22129,
+      "completion_tokens": 9594,
+      "reasoning_tokens": 6794,
+      "duration_ms_sum": 205274,
+      "providers": {
+        "Novita": 43
+      }
+    },
+    {
+      "run_id": "r0009",
+      "stage": "task-revision",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-revision/v004",
+      "status": "done",
+      "items": 103,
+      "errors": 0,
+      "cost": 0.06401902377600002,
+      "prompt_tokens": 51371,
+      "completion_tokens": 43294,
+      "reasoning_tokens": 37992,
+      "duration_ms_sum": 715522,
+      "providers": {
+        "Novita": 103
+      }
+    },
+    {
+      "run_id": "r0010",
+      "stage": "task-revision",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-revision/v004",
+      "status": "done",
+      "items": 59,
+      "errors": 0,
+      "cost": 0.029791587648000002,
+      "prompt_tokens": 27704,
+      "completion_tokens": 19081,
+      "reasoning_tokens": 16233,
+      "duration_ms_sum": 351416,
+      "providers": {
+        "Novita": 59
+      }
+    },
+    {
+      "run_id": "r0011",
+      "stage": "task-triage",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-triage/v001",
+      "status": "done",
+      "items": 49,
+      "errors": 0,
+      "cost": 0.05514241075199998,
+      "prompt_tokens": 107700,
+      "completion_tokens": 9836,
+      "reasoning_tokens": 7342,
+      "duration_ms_sum": 177159,
+      "providers": {
+        "Novita": 49
+      }
+    },
+    {
+      "run_id": "r0012",
+      "stage": "task-triage",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-triage/v001",
+      "status": "done",
+      "items": 75,
+      "errors": 0,
+      "cost": 0.17919017308799998,
+      "prompt_tokens": 548249,
+      "completion_tokens": 27856,
+      "reasoning_tokens": 23234,
+      "duration_ms_sum": 440372,
+      "providers": {
+        "Novita": 75
+      }
+    },
+    {
+      "run_id": "r0013",
+      "stage": "task-substance",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-substance/v004",
+      "status": "done",
+      "items": 75,
+      "errors": 0,
+      "cost": 0.059223583200000006,
+      "prompt_tokens": 38519,
+      "completion_tokens": 40681,
+      "reasoning_tokens": 33215,
+      "duration_ms_sum": 642843,
+      "providers": {
+        "Novita": 75
+      }
+    },
+    {
+      "run_id": "r0014",
+      "stage": "task-substance",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-substance/v004",
+      "status": "done",
+      "items": 49,
+      "errors": 0,
+      "cost": 0.035608370496000005,
+      "prompt_tokens": 23998,
+      "completion_tokens": 24789,
+      "reasoning_tokens": 19939,
+      "duration_ms_sum": 415976,
+      "providers": {
+        "Novita": 49
+      }
+    },
+    {
+      "run_id": "r0015",
+      "stage": "kc-statement",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "kc-statement/v005",
+      "status": "done",
+      "items": 30,
+      "errors": 0,
+      "cost": 0.014393036352,
+      "prompt_tokens": 18102,
+      "completion_tokens": 6293,
+      "reasoning_tokens": 3741,
+      "duration_ms_sum": 113340,
+      "providers": {
+        "Novita": 30
+      }
+    },
+    {
+      "run_id": "r0016",
+      "stage": "kc-statement",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "kc-statement/v005",
+      "status": "done",
+      "items": 61,
+      "errors": 0,
+      "cost": 0.024560296032000006,
+      "prompt_tokens": 38121,
+      "completion_tokens": 14139,
+      "reasoning_tokens": 8619,
+      "duration_ms_sum": 257144,
+      "providers": {
+        "Novita": 61
+      }
+    },
+    {
+      "run_id": "r0017",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 30,
+      "errors": 11,
+      "cost": 0.008411700000000001,
+      "prompt_tokens": 11215,
+      "completion_tokens": 888,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 43806,
+      "providers": {
+        "Together": 19
+      }
+    },
+    {
+      "run_id": "r0018",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 61,
+      "errors": 20,
+      "cost": 0.01818278,
+      "prompt_tokens": 24977,
+      "completion_tokens": 2026,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 86323,
+      "providers": {
+        "Together": 41
+      }
+    },
+    {
+      "run_id": "r0019",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 30,
+      "errors": 12,
+      "cost": 0.0072024,
+      "prompt_tokens": 10590,
+      "completion_tokens": 853,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 31944,
+      "providers": {
+        "Together": 18
+      }
+    },
+    {
+      "run_id": "r0020",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 30,
+      "errors": 16,
+      "cost": 0.005680940000000001,
+      "prompt_tokens": 8233,
+      "completion_tokens": 688,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 23030,
+      "providers": {
+        "Together": 14
+      }
+    },
+    {
+      "run_id": "r0021",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 61,
+      "errors": 29,
+      "cost": 0.01424228,
+      "prompt_tokens": 19602,
+      "completion_tokens": 1542,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 53256,
+      "providers": {
+        "Together": 32
+      }
+    },
+    {
+      "run_id": "r0022",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "failed",
+      "items": 1,
+      "errors": 1,
+      "cost": 0.0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 0,
+      "providers": {}
+    },
+    {
+      "run_id": "r0023",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "failed",
+      "items": 1,
+      "errors": 1,
+      "cost": 0.0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 0,
+      "providers": {}
+    },
+    {
+      "run_id": "r0024",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "failed",
+      "items": 1,
+      "errors": 1,
+      "cost": 0.0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 0,
+      "providers": {}
+    },
+    {
+      "run_id": "r0025",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 1,
+      "errors": 0,
+      "cost": 0.0003982,
+      "prompt_tokens": 584,
+      "completion_tokens": 49,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 5322,
+      "providers": {
+        "Together": 1
+      }
+    },
+    {
+      "run_id": "r0026",
+      "stage": "task-modality",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-modality/v003",
+      "status": "done",
+      "items": 11,
+      "errors": 0,
+      "cost": 0.00512144,
+      "prompt_tokens": 6756,
+      "completion_tokens": 586,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 20375,
+      "providers": {
+        "Together": 11
+      }
+    },
+    {
+      "run_id": "r0027",
+      "stage": "task-knowledge",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-knowledge/v003",
+      "status": "done",
+      "items": 61,
+      "errors": 0,
+      "cost": 0.025718688575999998,
+      "prompt_tokens": 30694,
+      "completion_tokens": 13779,
+      "reasoning_tokens": 7970,
+      "duration_ms_sum": 260862,
+      "providers": {
+        "Novita": 61
+      }
+    },
+    {
+      "run_id": "r0028",
+      "stage": "task-knowledge",
+      "model": "deepseek/deepseek-v4-pro",
+      "prompt_ref": "task-knowledge/v003",
+      "status": "done",
+      "items": 30,
+      "errors": 0,
+      "cost": 0.012320255903999999,
+      "prompt_tokens": 14437,
+      "completion_tokens": 6514,
+      "reasoning_tokens": 3654,
+      "duration_ms_sum": 120963,
+      "providers": {
+        "Novita": 30
+      }
+    },
+    {
+      "run_id": "r0029",
+      "stage": "task-embedding",
+      "model": "qwen/qwen3-embedding-8b",
+      "prompt_ref": "task-embedding/v002",
+      "status": "done",
+      "items": 91,
+      "errors": 0,
+      "cost": 2.553000000000001e-05,
+      "prompt_tokens": 2553,
+      "completion_tokens": 0,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 83737,
+      "providers": {}
+    }
+  ],
+  "stages": [
+    {
+      "stage": "passage-cuts",
+      "runs": 2,
+      "items": 2,
+      "errors": 0,
+      "cost": 0.002524657,
+      "prompt_tokens": 12125,
+      "completion_tokens": 3019,
+      "reasoning_tokens": 2681,
+      "duration_ms_sum": 172105
+    },
+    {
+      "stage": "passage-triage",
+      "runs": 2,
+      "items": 23,
+      "errors": 0,
+      "cost": 0.012772771999999998,
+      "prompt_tokens": 104857,
+      "completion_tokens": 2546,
+      "reasoning_tokens": 1638,
+      "duration_ms_sum": 390174
+    },
+    {
+      "stage": "task-generation",
+      "runs": 2,
+      "items": 18,
+      "errors": 0,
+      "cost": 0.0658962408,
+      "prompt_tokens": 89299,
+      "completion_tokens": 11187,
+      "reasoning_tokens": 4646,
+      "duration_ms_sum": 170531
+    },
+    {
+      "stage": "task-granularity",
+      "runs": 2,
+      "items": 90,
+      "errors": 0,
+      "cost": 0.04864433337599999,
+      "prompt_tokens": 48284,
+      "completion_tokens": 25862,
+      "reasoning_tokens": 17069,
+      "duration_ms_sum": 488010
+    },
+    {
+      "stage": "task-revision",
+      "runs": 2,
+      "items": 162,
+      "errors": 0,
+      "cost": 0.09381061142400002,
+      "prompt_tokens": 79075,
+      "completion_tokens": 62375,
+      "reasoning_tokens": 54225,
+      "duration_ms_sum": 1066938
+    },
+    {
+      "stage": "task-triage",
+      "runs": 2,
+      "items": 124,
+      "errors": 0,
+      "cost": 0.23433258383999994,
+      "prompt_tokens": 655949,
+      "completion_tokens": 37692,
+      "reasoning_tokens": 30576,
+      "duration_ms_sum": 617531
+    },
+    {
+      "stage": "task-substance",
+      "runs": 2,
+      "items": 124,
+      "errors": 0,
+      "cost": 0.094831953696,
+      "prompt_tokens": 62517,
+      "completion_tokens": 65470,
+      "reasoning_tokens": 53154,
+      "duration_ms_sum": 1058819
+    },
+    {
+      "stage": "kc-statement",
+      "runs": 2,
+      "items": 91,
+      "errors": 0,
+      "cost": 0.038953332384000006,
+      "prompt_tokens": 56223,
+      "completion_tokens": 20432,
+      "reasoning_tokens": 12360,
+      "duration_ms_sum": 370484
+    },
+    {
+      "stage": "task-modality",
+      "runs": 10,
+      "items": 227,
+      "errors": 91,
+      "cost": 0.059239740000000006,
+      "prompt_tokens": 81957,
+      "completion_tokens": 6632,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 264056
+    },
+    {
+      "stage": "task-knowledge",
+      "runs": 2,
+      "items": 91,
+      "errors": 0,
+      "cost": 0.038038944479999996,
+      "prompt_tokens": 45131,
+      "completion_tokens": 20293,
+      "reasoning_tokens": 11624,
+      "duration_ms_sum": 381825
+    },
+    {
+      "stage": "task-embedding",
+      "runs": 1,
+      "items": 91,
+      "errors": 0,
+      "cost": 2.553000000000001e-05,
+      "prompt_tokens": 2553,
+      "completion_tokens": 0,
+      "reasoning_tokens": 0,
+      "duration_ms_sum": 83737
+    }
+  ],
+  "totals": {
+    "runs": 29,
+    "items": 1043,
+    "errors": 91,
+    "cost": 0.6890706990000001,
+    "prompt_tokens": 1237970,
+    "completion_tokens": 255508,
+    "reasoning_tokens": 187973
+  }
+}

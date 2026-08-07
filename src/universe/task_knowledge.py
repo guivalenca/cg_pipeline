@@ -35,7 +35,7 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 STAGE = "task-knowledge"
 VERDICTS = {"fact", "concept", "procedure", "unsure"}
 TRIAGE_VERDICTS = {"supported", "unsupported", "unsure"}
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def knowledge_of(item: dict) -> dict | str:

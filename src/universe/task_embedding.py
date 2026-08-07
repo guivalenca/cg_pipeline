@@ -1,9 +1,12 @@
-"""Embed every task for grouping: one call per task, vectors into task_embedding.
+"""Embed tasks for grouping: one call per task, vectors into task_embedding.
 
     python -m universe.task_embedding run --prompt v001 \
         --model qwen/qwen3-embedding-8b --gen-runs r0052 --revision-run r0065
+    python -m universe.task_embedding run --prompt v002 \
+        --model qwen/qwen3-embedding-8b --statements-from r0101,r0102
 
-The input is the task and its answer concatenated by a versioned template.
+The input is either the task and answer or its selected KC statement, rendered
+by a versioned template. Statement runs define the exact grouping scope.
 Revision and post-split overlays match task-substance: revised bodies are
 embedded, unfixable tasks are dropped, composite parents are replaced by
 parts, and part revisions can be overlaid. The vector is the call's output
@@ -22,30 +25,57 @@ from psycopg.types.json import Jsonb
 from universe import report
 from universe.db import connect
 from universe.harness import claim_run, fetch_items, id_list, load_prompt, positive_int
+from universe.kc_statement import fetch_usable_statements
 from universe.model_client import EmbeddingClient
 from universe.passages import fetch_passages_for_runs
 from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_triage import apply_revisions, fetch_revisions
-from universe.tasks import fetch_tasks_for_runs, materialize
+from universe.tasks import fetch_tasks, fetch_tasks_for_runs, materialize
 
 STAGE = "task-embedding"
-DEFAULT_WORKERS = 8
+DEFAULT_WORKERS = 16
+
+
+def statement_embedding_inputs(
+    conn, statement_runs: list[str], prompt
+) -> tuple[list[dict], list[str]]:
+    """Tasks and rendered statement-only inputs selected by statement runs."""
+    statements = fetch_usable_statements(conn, statement_runs)
+    tasks = fetch_tasks(conn, sorted(statements))
+    rendered = [
+        prompt.render_fields({"statement": statements[task["id"]]})
+        for task in tasks
+    ]
+    return tasks, rendered
 
 
 def cmd_run(args: argparse.Namespace) -> None:
-    if args.parts_revision_run and not args.granularity_run:
+    if not args.gen_runs and not args.statements_from:
+        raise SystemExit("one of --gen-runs or --statements-from is required")
+    if args.statements_from and args.gen_runs:
+        print("note: --statements-from was given; --gen-runs is ignored")
+    if (
+        not args.statements_from
+        and args.parts_revision_run
+        and not args.granularity_run
+    ):
         raise SystemExit("--parts-revision-run requires --granularity-run")
 
     prompt = load_prompt(STAGE, args.prompt, require_body=False)
     with connect() as conn:
-        for run_id in args.gen_runs:
-            counts = materialize(conn, run_id)
-            print(
-                f"{run_id}: {counts['tasks_new']} new task(s),"
-                f" {counts['tasks_existing']} already known"
+        if args.statements_from:
+            tasks, rendered = statement_embedding_inputs(
+                conn, args.statements_from, prompt
             )
-        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
-        if args.passages_from:
+        else:
+            for run_id in args.gen_runs:
+                counts = materialize(conn, run_id)
+                print(
+                    f"{run_id}: {counts['tasks_new']} new task(s),"
+                    f" {counts['tasks_existing']} already known"
+                )
+            tasks = fetch_tasks_for_runs(conn, args.gen_runs)
+        if args.passages_from and not args.statements_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
             tasks = [t for t in tasks if t["passage_id"] in drawn]
@@ -53,7 +83,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{outside} task(s) outside the passages of"
                 f" {', '.join(args.passages_from)}, skipped"
             )
-        if args.revision_run:
+        if args.revision_run and not args.statements_from:
             base_revisions = fetch_revisions(conn, args.revision_run)
             tasks, revision_dropped, unjudged = apply_revisions(tasks, base_revisions)
             if unjudged:
@@ -73,7 +103,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{args.revision_run}: {len(revision_dropped)} task(s) dropped as unfixable,"
                 f" {rewritten} task {bodies} swapped by rewrites"
             )
-        if args.granularity_run:
+        if args.granularity_run and not args.statements_from:
             granularity = {}
             for item in fetch_items(conn, args.granularity_run):
                 if not item["task_id"]:
@@ -126,12 +156,14 @@ def cmd_run(args: argparse.Namespace) -> None:
                     f" unfixable, {rewritten} task {bodies} swapped by rewrites"
                 )
         if not tasks:
-            raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
+            source_runs = args.statements_from or args.gen_runs
+            raise SystemExit(f"no tasks from {', '.join(source_runs)}")
 
-        rendered = [
-            prompt.render_fields({"task": task["body"], "answer": task["answer"]})
-            for task in tasks
-        ]
+        if not args.statements_from:
+            rendered = [
+                prompt.render_fields({"task": task["body"], "answer": task["answer"]})
+                for task in tasks
+            ]
         empty = [task["id"] for task, text in zip(tasks, rendered) if not text.strip()]
         if empty:
             # The provider rejects empty inputs; an empty rendering means a
@@ -147,6 +179,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             conn, STAGE, args.model, prompt.ref, prompt.sha,
             {
                 "gen_runs": args.gen_runs,
+                "statements_from": args.statements_from,
                 "passages_from": args.passages_from,
                 "revision_run": args.revision_run,
                 "granularity_run": args.granularity_run,
@@ -246,14 +279,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="universe.task_embedding", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    run = sub.add_parser("run", help="embed every task and answer from the generation runs")
+    run = sub.add_parser("run", help="embed task answers or selected KC statements")
     run.add_argument("--prompt", required=True, help="prompt version, e.g. v001")
     run.add_argument("--model", required=True)
     run.add_argument(
         "--gen-runs",
-        required=True,
         type=id_list,
         help="comma-separated task-generation run ids",
+    )
+    run.add_argument(
+        "--statements-from",
+        type=id_list,
+        help="comma-separated kc-statement run ids; their stated tasks are the exact scope",
     )
     run.add_argument(
         "--granularity-run",

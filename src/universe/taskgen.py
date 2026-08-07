@@ -39,7 +39,7 @@ from universe.triage import build_targets, verdict_of
 STAGE = "task-generation"
 TRIAGE_STAGE = "passage-triage"
 KEEP = "not_filler"
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def tasks_of(item: dict) -> list[dict] | str:

@@ -35,7 +35,7 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-revision"
 VERDICTS = ("stands", "rewritten", "unfixable")
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def revision_of(item: dict) -> dict | str:

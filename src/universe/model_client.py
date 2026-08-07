@@ -6,8 +6,10 @@ The transport is a plain function (url, headers, payload, timeout) -> parsed
 JSON, so tests hand in a fake one and never touch the network.
 """
 
+import copy
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -15,10 +17,86 @@ import urllib.request
 DEFAULT_TIMEOUT_SECONDS = float(os.environ.get("CONCEPT_UNIVERSE_MODEL_TIMEOUT_SECONDS", 300))
 DEFAULT_MAX_TOKENS = int(os.environ.get("CONCEPT_UNIVERSE_MODEL_MAX_TOKENS", 8000))
 DEFAULT_API_BASE = "https://openrouter.ai/api/v1"
+DEFAULT_ROUTING = {
+    "provider": {
+        "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
+        "ignore": ["SiliconFlow"],
+    }
+}
 
 
 class ModelError(RuntimeError):
     """The call did not come back with a usable completion."""
+
+    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
+def is_transient_failure(exc: BaseException) -> bool:
+    """Classify the failures for which retrying the same request may help.
+
+    Transport wrappers retain their original exception as ``__cause__``, so
+    this single classifier works for both ModelClient calls and test/client
+    transports that raise the underlying stdlib exception directly.
+    """
+    seen: set[int] = set()
+    current: BaseException | object | None = exc
+    while isinstance(current, BaseException) and id(current) not in seen:
+        seen.add(id(current))
+
+        status_code = getattr(current, "status_code", None)
+        if status_code is None and isinstance(current, urllib.error.HTTPError):
+            status_code = current.code
+        if status_code is None and isinstance(current, ModelError):
+            prefix = str(current).partition(":")[0]
+            if prefix.startswith("HTTP "):
+                try:
+                    status_code = int(prefix.removeprefix("HTTP "))
+                except ValueError:
+                    pass
+        if isinstance(status_code, int):
+            return status_code == 429 or 500 <= status_code <= 599
+
+        if isinstance(current, (TimeoutError, socket.timeout, ConnectionError)):
+            return True
+
+        if isinstance(current, urllib.error.URLError):
+            reason = current.reason
+            if isinstance(reason, BaseException):
+                current = reason
+                continue
+            normalized_reason = str(reason).lower()
+            return (
+                "timed out" in normalized_reason
+                or "connection reset" in normalized_reason
+            )
+
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def _merged_extra(extra: dict | None) -> dict:
+    """Put caller-supplied request fields over shared routing defaults."""
+    merged = copy.deepcopy(DEFAULT_ROUTING)
+    for key, value in (extra or {}).items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = {**merged[key], **value}
+        else:
+            merged[key] = value
+    return merged
+
+
+def _api_error(body: dict) -> ModelError:
+    detail = body["error"]
+    raw_code = detail.get("code") if isinstance(detail, dict) else None
+    try:
+        status_code = int(raw_code) if raw_code is not None else None
+    except (TypeError, ValueError):
+        status_code = None
+    return ModelError(
+        f"api error: {json.dumps(detail)[:500]}", status_code=status_code
+    )
 
 
 def http_transport(url: str, headers: dict[str, str], payload: dict, timeout: float) -> dict:
@@ -29,7 +107,10 @@ def http_transport(url: str, headers: dict[str, str], payload: dict, timeout: fl
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as exc:
-        raise ModelError(f"HTTP {exc.code}: {exc.read().decode(errors='replace')[:500]}") from exc
+        raise ModelError(
+            f"HTTP {exc.code}: {exc.read().decode(errors='replace')[:500]}",
+            status_code=exc.code,
+        ) from exc
     except urllib.error.URLError as exc:
         raise ModelError(f"transport failure: {exc.reason}") from exc
 
@@ -66,7 +147,7 @@ class ModelClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
-        self.extra = extra or {}
+        self.extra = _merged_extra(extra)
         self.transport = transport
 
     @property
@@ -150,7 +231,7 @@ class EmbeddingClient:
         duration_ms = int((time.monotonic() - started) * 1000)
 
         if "error" in body:
-            raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
+            raise _api_error(body)
 
         try:
             data = body["data"]
@@ -185,7 +266,7 @@ def extract_text(body: dict, require_tool: bool = False) -> str:
     answer must be a recorded failure to rerun, never accepted as if parsed.
     """
     if "error" in body:
-        raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
+        raise _api_error(body)
     try:
         message = body["choices"][0]["message"]
     except (KeyError, IndexError, TypeError) as exc:

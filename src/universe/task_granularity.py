@@ -38,7 +38,7 @@ from universe.tasks import fetch_tasks, fetch_tasks_for_runs, materialize, task_
 
 STAGE = "task-granularity"
 VERDICTS = ("single", "composite", "unsure")
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def granularity_of(item: dict) -> dict | str:

@@ -1,7 +1,8 @@
 # 0011: V1 identity by mutual clear surmise over perfect cliques
 
 Date: 2026-08-02
-Status: accepted
+Status: accepted, amended 2026-08-03 (see Amendments): verdicts are scoped
+per judge generation.
 
 ## Context
 
@@ -83,3 +84,15 @@ buildable later without re-spending a judge call.
   statements' candidate pairs are judged; nothing global re-runs.
 - Bench record: `reports/kc-judge-bench-v002.md`; stage defaults in
   `docs/pipeline-defaults.md`.
+
+## Amendments (2026-08-03)
+
+"Judged once per pair and never re-asked" is scoped to the judge
+generation — the (model, prompt version) that answered. Within a
+generation a pair is never re-asked (the database enforces it, migration
+0010); an improved prompt or a different model is a new generation whose
+verdicts land beside the old ones, exactly as every other stage versions
+its runs. Consumers (grouping, the universe view) read the newest verdict
+per pair; superseded verdicts remain as permanent history. Founder
+decision 2026-08-03, prompted by the question of how the ledger
+accommodates judge upgrades.

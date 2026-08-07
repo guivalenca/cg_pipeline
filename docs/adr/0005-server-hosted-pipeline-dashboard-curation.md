@@ -1,7 +1,9 @@
 # 0005: Server-hosted pipeline, dashboard as the curation surface
 
 Date: 2026-07-23
-Status: accepted
+Status: accepted, amended 2026-08-02 (see Amendments): deployment is
+deferred — the system is built and run locally until it is wired into the
+Companion; the deployment target is Railway.
 
 ## Context
 
@@ -37,3 +39,12 @@ minimalist.
   same design object.
 - cg_pipeline is a quarry, not a foundation: rules and adapters are ported
   selectively with review, and its transcribed corpora serve as test fixtures.
+
+## Amendments (2026-08-02)
+
+Founder correction: the universe is not deployed from the start. It is
+built and operated locally, on the founder's machine, until the moment it
+is wired into the Companion repo; deployment then goes to Railway. Nothing
+else changes: the system is still designed as a web system with the admin
+dashboard as its operating and curation surface — the dashboard simply
+runs locally until the wiring point.

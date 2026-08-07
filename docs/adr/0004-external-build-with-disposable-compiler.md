@@ -1,7 +1,9 @@
 # 0004: Build externally, bridge with a disposable compiler
 
 Date: 2026-07-23
-Status: accepted
+Status: accepted, amended 2026-08-02 (see Amendments): the
+disposable-compiler bridge is no longer the expected seam; the external
+build stands.
 
 ## Context
 
@@ -33,3 +35,19 @@ At that point the compiler is deleted, not surgically removed from eval code.
 - Throwaway code is confined to one clearly labeled formatter.
 - The running product keeps teaching from universe-authored content during the
   whole build, giving real usage feedback without integration risk.
+
+## Amendments (2026-08-02)
+
+Founder correction: the compiler emitting today's Concept Graph format is
+no longer expected to serve as the bridge. The decision to make segments
+the unit the Companion consumes means the Companion itself will change —
+tutor ingestion, student evaluation, and whatever else consumes the graph
+today — so the legacy graph format will not survive as the seam, and
+"the Companion changes zero lines" no longer holds.
+
+What stands from this ADR: the universe is a standalone external system,
+its own repo and schema, importing nothing from Companion internals, and
+the universe's fact layer never knows the Companion exists. The shape of
+the new seam — what exactly the Companion will consume, at what boundary —
+is undesigned; it is tracked as an open question in the vision document
+and depends on the segment design, itself open.

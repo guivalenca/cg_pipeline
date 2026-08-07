@@ -39,7 +39,7 @@ NEW_VERDICTS = {"works", "fixable", "does_not_work", "beyond_repair", "unsure"}
 REASON_VERDICTS = {"works", "does_not_work", "unsure"}
 KEPT = {"works", "fixable", "unsure", "substantive"}
 DROPPED = {"does_not_work", "beyond_repair", "trivial"}
-DEFAULT_WORKERS = 4
+DEFAULT_WORKERS = 16
 
 
 def substance_of(item: dict) -> dict | str:

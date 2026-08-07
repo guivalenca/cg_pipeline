@@ -36,7 +36,8 @@ from universe.tasks import fetch_tasks_for_runs, materialize
 STAGE = "task-modality"
 VERDICTS = {"do", "explain", "unsure"}
 TRIAGE_VERDICTS = {"supported", "unsupported", "unsure"}
-DEFAULT_WORKERS = 4
+# Only two providers serve its forced-tool no-thinking payload.
+DEFAULT_WORKERS = 2
 
 
 def modality_of(item: dict) -> dict | str:
