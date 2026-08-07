@@ -1,0 +1,339 @@
+{
+  "summary": {
+    "counts": {
+      "total": 40,
+      "winner": {
+        "A": 7,
+        "B": 5,
+        "tie": 28
+      },
+      "severity_if_worse": {
+        "none": 28,
+        "minor": 2,
+        "material": 10,
+        "critical": 0
+      },
+      "confidence": {
+        "low": 0,
+        "medium": 4,
+        "high": 36
+      },
+      "by_stage": {
+        "task-granularity": {
+          "A": 2,
+          "B": 4,
+          "tie": 2
+        },
+        "task-knowledge": {
+          "A": 0,
+          "B": 0,
+          "tie": 8
+        },
+        "task-revision": {
+          "A": 4,
+          "B": 1,
+          "tie": 3
+        },
+        "task-substance": {
+          "A": 1,
+          "B": 0,
+          "tie": 7
+        },
+        "task-triage": {
+          "A": 0,
+          "B": 0,
+          "tie": 8
+        }
+      }
+    },
+    "patterns": [
+      "All task-knowledge pairs are substantively equivalent and correctly classify the knowledge actually demanded.",
+      "Granularity differences turn on independently answerable demonstrations versus one integrated artifact; a composite verdict without the required split parts still loses coverage.",
+      "Revision quality turns on removing source deixis without leaking the answer or changing the demand, and a rewritten verdict without a replacement task is incomplete.",
+      "Three ties share a wrong classification rather than a shared success: task-revision:02:01 should be rewritten, task-substance:02:01 works, and task-triage:01:01 is unsupported.",
+      "Most substance and triage outputs agree; the only substantive A/B split is whether recalling a taught Keras import is valid learning evidence."
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "task-granularity:01:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "The definition of vocabulary and its determination in the example are independently answerable. B preserves both demands in valid splits; A identifies composite but omits the required parts, causing lost coverage."
+    },
+    {
+      "case_id": "task-granularity:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly treat the bag analogy as one coherent explanatory demonstration."
+    },
+    {
+      "case_id": "task-granularity:02:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "A learner can explain instances while failing to explain features or their relationship to documents. B supplies splits that preserve the answer coverage; A uses the wrong single gate."
+    },
+    {
+      "case_id": "task-granularity:02:02",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "The three vectorizer descriptions are independently answerable, so A's single gate is wrong. B has the correct composite gate, although it is incomplete because it omits the required split tasks."
+    },
+    {
+      "case_id": "task-granularity:03:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "Why labels are encoded and why that encoding is simpler are distinct demonstrations. B preserves each task and answer; A loses the splits after the composite gate."
+    },
+    {
+      "case_id": "task-granularity:03:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly classify the limited-vocabulary behavior as one coherent explanation."
+    },
+    {
+      "case_id": "task-granularity:04:01",
+      "winner": "A",
+      "severity_if_worse": "minor",
+      "confidence": "medium",
+      "reason": "The documents argument and the count mode can be known independently, and A's two splits exactly preserve the requested arguments and answers. B keeps those separable checks under a single gate."
+    },
+    {
+      "case_id": "task-granularity:04:02",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "Writing one complete working snippet is an integrated artifact rather than multiple independent demonstrations. B applies the wrong composite gate and supplies no viable splits."
+    },
+    {
+      "case_id": "task-knowledge:01:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly identify producing the ordered count vector as carrying out a procedure."
+    },
+    {
+      "case_id": "task-knowledge:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly classify explaining the meaning of the bag analogy as conceptual knowledge."
+    },
+    {
+      "case_id": "task-knowledge:02:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly treat recall of an algorithm's ordered method steps as procedural knowledge."
+    },
+    {
+      "case_id": "task-knowledge:02:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly identify the requested vectorizer definitions and distinctions as conceptual knowledge."
+    },
+    {
+      "case_id": "task-knowledge:03:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly classify explaining the encoding steps that produce an array as procedural knowledge."
+    },
+    {
+      "case_id": "task-knowledge:03:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly treat explanation of out-of-vocabulary behavior as conceptual rather than execution of a method."
+    },
+    {
+      "case_id": "task-knowledge:04:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly identify writing the sequence of API operations as procedural knowledge."
+    },
+    {
+      "case_id": "task-knowledge:04:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly classify knowledge of information discarded by BOW as conceptual."
+    },
+    {
+      "case_id": "task-revision:01:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "medium",
+      "reason": "The original source deixis needs repair. A at least supplies a self-contained replacement task, though it overexposes much of the expected answer; B's rewritten gate without any task is unusable."
+    },
+    {
+      "case_id": "task-revision:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly leave the self-contained conceptual question unchanged."
+    },
+    {
+      "case_id": "task-revision:02:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both use a wrong revision classification: the deictic example does not stand alone, but it is fixable by supplying the underlying example text, so it should be rewritten rather than marked stands or unfixable."
+    },
+    {
+      "case_id": "task-revision:02:02",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "The ordered algorithm step is answerable from study and stands. A performs an unnecessary rewrite that changes the demand from recalling sequence position to recognizing a definition."
+    },
+    {
+      "case_id": "task-revision:03:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "medium",
+      "reason": "The exact variable names depend on an absent snippet and test document trivia; making the snippet self-contained would reveal the answer. A's unfixable gate is preferable to B's wrong stands gate."
+    },
+    {
+      "case_id": "task-revision:03:02",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "A removes the unavailable-snippet premise while preserving recall of the studied architecture. B correctly signals rewriting but loses the replacement task entirely."
+    },
+    {
+      "case_id": "task-revision:04:01",
+      "winner": "A",
+      "severity_if_worse": "minor",
+      "confidence": "high",
+      "reason": "A makes the question stand without the passage by removing only the source-dependent phrase and preserves the expected strengths. B leaves the deictic dependency in place."
+    },
+    {
+      "case_id": "task-revision:04:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly leave the complete, self-contained coding task unchanged."
+    },
+    {
+      "case_id": "task-substance:01:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly reject the task because sorted() yields alphabetical order, so the expected answer is wrong."
+    },
+    {
+      "case_id": "task-substance:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly recognize that explaining loss of order through the bag analogy demonstrates conceptual learning."
+    },
+    {
+      "case_id": "task-substance:02:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both share a wrong does_not_work classification. The task and answer do demonstrate the broader learned notion of features as dimensions or attributes, which may include engineered metadata; both outputs incorrectly narrow all text features to vocabulary-derived tokens."
+    },
+    {
+      "case_id": "task-substance:02:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly accept the accurate comparison of three vectorizers as a meaningful knowledge check."
+    },
+    {
+      "case_id": "task-substance:03:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly reject a question that states the episode topic and asks the learner merely to name or paraphrase it."
+    },
+    {
+      "case_id": "task-substance:03:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly accept the explanation of limited-vocabulary and out-of-vocabulary behavior as substantive learning evidence."
+    },
+    {
+      "case_id": "task-substance:04:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "medium",
+      "reason": "The prompt does not exclude taught API recall, and producing the required Tokenizer import is relevant procedural knowledge with a correct answer. B applies the wrong does_not_work gate merely because the check is narrow and factual."
+    },
+    {
+      "case_id": "task-substance:04:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly accept the complete vocabulary-and-vector code task as a demonstration of learned procedure."
+    },
+    {
+      "case_id": "task-triage:01:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both share the same wrong supported gate. The shown code uses a set plus sorted(), not a Tokenizer, and produces ['cat', 'hat', 'in', 'sat', 'the', 'with'], contradicting the expected answer; the task is unsupported."
+    },
+    {
+      "case_id": "task-triage:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark the texts_to_matrix call with count mode as directly supported by the source."
+    },
+    {
+      "case_id": "task-triage:02:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark the three vectorizer names and descriptions as explicitly supported by the source."
+    },
+    {
+      "case_id": "task-triage:02:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark True as the source-supported default for the Lowercase parameter."
+    },
+    {
+      "case_id": "task-triage:03:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark the limited-vocabulary behavior and example as explicitly supported by the transcript."
+    },
+    {
+      "case_id": "task-triage:03:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark Yufeng Guo as supported by the transcript's named speaker and host context."
+    },
+    {
+      "case_id": "task-triage:04:01",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark the requested Keras snippet and expected implementation as directly supported by the source."
+    },
+    {
+      "case_id": "task-triage:04:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both correctly mark simplicity as a source-supported strength of Bag-of-Words."
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "cases": [
+    {
+      "case_id": "kc-statement:01:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "A states the correct, self-contained knowledge claim about counts and discarded order/position; B returns only a verdict and omits the required statement."
+    },
+    {
+      "case_id": "kc-statement:01:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both outputs give the same correct, specific, self-contained statement about texts_to_matrix with mode='count'."
+    },
+    {
+      "case_id": "kc-statement:02:01",
+      "winner": "A",
+      "severity_if_worse": "minor",
+      "confidence": "high",
+      "reason": "Both are correct, but A is more proportional to the task and answer: it preserves the hashing tradeoff and explains the corpus-level component of TF-IDF that B compresses away."
+    },
+    {
+      "case_id": "kc-statement:02:02",
+      "winner": "tie",
+      "severity_if_worse": "none",
+      "confidence": "high",
+      "reason": "Both outputs express the same correct and appropriately scoped default-value fact."
+    },
+    {
+      "case_id": "kc-statement:03:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "B supplies the required self-contained statement about retaining only in-vocabulary words; A omits the statement entirely."
+    },
+    {
+      "case_id": "kc-statement:03:02",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "B states the exact Tokenizer parameter and its role, while A provides no knowledge statement."
+    },
+    {
+      "case_id": "kc-statement:04:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "medium",
+      "reason": "B is the only output with a usable knowledge statement and correctly identifies how count vectors are produced. It under-covers fitting and vocabulary inspection from the full code task, but A omits the statement entirely."
+    },
+    {
+      "case_id": "kc-statement:04:02",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "B gives the exact, self-contained strength taught by the task; A contains only a verdict and no statement."
+    },
+    {
+      "case_id": "task-generation:01:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "A covers definition, vocabulary, a fully specified vector exercise, lost context, and fixed length. It has some redundancy and one reference to the passage, but B's vocabulary and vector tasks omit the documents/vocabulary they require, so two central tasks are not self-contained."
+    },
+    {
+      "case_id": "task-generation:01:02",
+      "winner": "B",
+      "severity_if_worse": "minor",
+      "confidence": "medium",
+      "reason": "B preserves all teachable demands, including the profanity-detection example that A loses. Its combined strengths task is somewhat less atomic, but its answer remains correct and grounded."
+    },
+    {
+      "case_id": "task-generation:02:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "B gives faithful, mostly atomic coverage of the full vectorizer and CountVectorizer parameter passage. A loses substantial coverage, omitting preprocessor, tokenizer, analyzer, max_features, vocabulary, and dtype."
+    },
+    {
+      "case_id": "task-generation:02:02",
+      "winner": "B",
+      "severity_if_worse": "minor",
+      "confidence": "medium",
+      "reason": "B decomposes the passage into clearer atomic tasks and explicitly covers the flexible definition of a document. A bundles several facts into one task and adds a broad causal explanation of vectorization that the passage only previews."
+    },
+    {
+      "case_id": "task-generation:03:01",
+      "winner": "B",
+      "severity_if_worse": "material",
+      "confidence": "medium",
+      "reason": "B's tasks are answerable on their own and cover construction, vocabulary-index order, ignored words, and the metaphor. A's concrete encoding task does not supply the vocabulary or index mapping needed to derive its answer, despite otherwise strong coverage."
+    },
+    {
+      "case_id": "task-generation:03:02",
+      "winner": "B",
+      "severity_if_worse": "minor",
+      "confidence": "medium",
+      "reason": "B separates the introduced method, its numerical purpose, and the fact that alternatives exist. A repeats essentially the same encoding-purpose demand twice and loses the passage's explicit point that bag of words is one of many methods."
+    },
+    {
+      "case_id": "task-generation:04:01",
+      "winner": "A",
+      "severity_if_worse": "material",
+      "confidence": "high",
+      "reason": "A is accurate and broadly covers definition, terminology, process, vocabulary, vector construction, and lost order. B is concise but contradicts its own definition of a vocabulary as distinct words by listing 'the' twice, creating a substantive error in a central answer."
+    },
+    {
+      "case_id": "task-generation:04:02",
+      "winner": "A",
+      "severity_if_worse": "minor",
+      "confidence": "high",
+      "reason": "A covers the four passage facts with clean atomic tasks. B combines strengths with applicability and gives away the profanity-detection answer in the task wording, making it less atomic and less useful as an assessment."
+    }
+  ],
+  "summary": {
+    "total_cases": 16,
+    "winner_counts": {
+      "A": 5,
+      "B": 9,
+      "tie": 2
+    },
+    "severity_counts": {
+      "none": 2,
+      "minor": 5,
+      "material": 9,
+      "critical": 0
+    },
+    "confidence_counts": {
+      "low": 0,
+      "medium": 5,
+      "high": 11
+    },
+    "patterns": [
+      "Several kc-statement outputs return a verdict without the required statement; these lose materially to any correct explicit statement.",
+      "For dense task-generation passages, coverage differences are decisive: omitting multiple taught parameters is material even when the retained tasks are correct.",
+      "Self-containment is a recurring discriminator: tasks that ask for a concrete vector without supplying the vocabulary or documents are not answerable as written.",
+      "More tasks are not automatically better; redundant or combined demands reduce assessment quality, while factual inconsistency in an answer outweighs concision."
+    ]
+  }
+}
