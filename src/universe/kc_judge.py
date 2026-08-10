@@ -18,9 +18,8 @@ from pathlib import Path
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import harness
+from universe import defaults, harness
 from universe.db import connect
-from universe.kc_judge_bench import DEFAULT_EXTRA, DEFAULT_MODEL
 from universe.kc_statement import fetch_usable_statements
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.task_knowledge import knowledge_of
@@ -33,6 +32,17 @@ STAGE = "kc-judge"
 PROMPT_VERSION = "v003-surmise-pair"
 TOOL_PATH = Path(__file__).resolve().parents[2] / "prompts/kc-judge/tool-v002.json"
 DEFAULT_WORKERS = 16
+DEFAULT_MODEL = defaults.STAGE_DEFAULTS[STAGE]["model"]
+DEFAULT_EXTRA = {
+    "tool_choice": "auto",
+    "reasoning_effort": "low",
+    # Routing decision 2026-08-07 (docs/pipeline-defaults.md): prefer the
+    # fastest acceptable provider without low-bit quantization.
+    "provider": {
+        "sort": "throughput",
+        "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
+    },
+}
 
 
 def universe_build_key(
@@ -283,8 +293,8 @@ def generate_candidates(
                 for other in range(len(ids))
                 if other != index
             ]
-            # Match kc_judge_bench exactly: equal BM25 scores prefer the later
-            # document in corpus order.
+            # Equal BM25 scores prefer the later document in corpus order.
+            # Keep this deterministic for rebuilds.
             scores.sort(reverse=True)
             proposed.update(
                 tuple(sorted((task_id, other_id)))

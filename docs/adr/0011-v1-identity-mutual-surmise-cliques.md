@@ -1,8 +1,7 @@
 # 0011: V1 identity by mutual clear surmise over perfect cliques
 
 Date: 2026-08-02
-Status: accepted, amended 2026-08-03 (see Amendments): verdicts are scoped
-per judge generation.
+Status: accepted, amended 2026-08-03 and 2026-08-07 (see Amendments).
 
 ## Context
 
@@ -25,10 +24,9 @@ the deadline, and hold near a $40/module model-cost ceiling.
 **Identity primitive.** One judge call per candidate pair asks the mastery
 implication in both directions ("does mastering A imply mastering B?", and
 the reverse), each answered on the 4-level scale (clear_yes / likely /
-unlikely / clear_no). Prompt `kc-judge/v002-surmise-pair` + `tool-v002`.
-Benched 2026-08-02 against the two-call v001 run: 87.5% per-direction binary
-agreement, identical clear-duplicate core, 2.7x cheaper ($0.40/source,
-measured on 100 pairs).
+unlikely / clear_no). The original accepted generation used
+`kc-judge/v002-surmise-pair` + `tool-v002`; the current generation uses
+`v003-surmise-pair` + `tool-v002` (2026-08-07 amendment below).
 
 **Merge rule, the whole of it.** Two unitary KCs are the same KC only when
 both directions are clear_yes, and a group commits only when every pair
@@ -50,10 +48,9 @@ the instructional signal downstream (segment/tutor consumption). Wrong-axis
 noise therefore costs a missed merge candidate or a teaching-style hint,
 never corrupted identity, and axes remain recomputable interpretations.
 
-**Judge default: deepseek-v4-pro, thinking high.** Founder decision
-2026-08-02, chosen over flash (5x cheaper, zero false merges in the bench,
-but only 3 of 8 mutual flags surfaced). Reasoning: flags are information
-about the corpus; a judge that surfaces more of them is worth the cost.
+**Judge default: deepseek-v4-flash-0731, reasoning low.** Adopted
+2026-08-07 after the blind comparison described below. Canonicalization
+remains on deepseek-v4-pro with thinking high.
 
 **Ledger.** Every verdict — both directions, full 4-level grade, one-way
 arrows included — is a stamped permanent fact, judged once per pair and
@@ -82,8 +79,9 @@ buildable later without re-spending a judge call.
   composite KC snapshots are derived and re-mintable.
 - Ingesting a source is incremental by construction: only the new
   statements' candidate pairs are judged; nothing global re-runs.
-- Bench record: `reports/kc-judge-bench-v002.md`; stage defaults in
-  `docs/pipeline-defaults.md`.
+- Operational stage defaults live in `docs/pipeline-defaults.md`. Retired
+  benches and raw research live in
+  `~/Desktop/concept-universe-research/judge-research-2026-08/`.
 
 ## Amendments (2026-08-03)
 
@@ -96,3 +94,13 @@ its runs. Consumers (grouping, the universe view) read the newest verdict
 per pair; superseded verdicts remain as permanent history. Founder
 decision 2026-08-03, prompted by the question of how the ledger
 accommodates judge upgrades.
+
+## Amendment (2026-08-07)
+
+Prompt `v003-surmise-pair` replaced v002, retaining the paired directional
+decision and the `tool-v002` contract. A blind 60-pair comparison found
+59/60 agreement in merge decisions between Flash-low and a valid Pro-high
+baseline, at about one sixth of the cost; the sole extra merge was accepted
+as harmless for v1. Flash-low therefore became the judge default. This
+decision changes neither the mutual-clear merge rule nor the Pro-high
+canonicalization default.

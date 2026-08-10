@@ -6,6 +6,8 @@ import pytest
 
 from universe import harness
 from universe.kc_judge import (
+    DEFAULT_EXTRA,
+    DEFAULT_MODEL,
     build_parser,
     fetch_candidate_data,
     fetch_usable_axis_verdicts,
@@ -13,7 +15,6 @@ from universe.kc_judge import (
     parse_verdicts,
     run_judge,
 )
-from universe.kc_judge_bench import DEFAULT_EXTRA, DEFAULT_MODEL
 from universe.task_modality import modality_of
 
 

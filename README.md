@@ -114,9 +114,10 @@ and the run ledger. Static pages, no build step; design system ported from
 the Companion admin.
 
 `report` and `compare` write self-contained HTML into `reports/`, which is
-git-ignored because it is regenerable from the database. One exception is
-force-added and tracked: `reports/kc-judge-bench-v002.md`, the bench record
-behind the current kc-judge default (cited by ADR 0011). The model endpoint is
+git-ignored because it is regenerable from the database. Historical judge
+benches, raw outputs, evaluations, and notebooks are isolated in
+`~/Desktop/concept-universe-research/judge-research-2026-08/`; current
+operational choices live in `docs/pipeline-defaults.md`. The model endpoint is
 any OpenAI-chat-completions-compatible API, set by `MODEL_API_BASE` and
 `MODEL_API_KEY`, defaulting to OpenRouter with `OPEN_ROUTER_API_KEY` from
 `.env`; the model id is per run, because switching models is the point. A failed call does not end the run: the error lands on the item, and
