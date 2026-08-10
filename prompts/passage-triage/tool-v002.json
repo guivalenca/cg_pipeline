@@ -1,0 +1,32 @@
+{
+  "name": "report_passage_decision",
+  "description": "Classify one passage without rewriting it.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "enum": ["keep", "drop", "refine", "unknown"],
+        "description": "unknown preserves the passage when it cannot be classified safely."
+      },
+      "reason_code": {
+        "type": "string",
+        "enum": [
+          "educational_content",
+          "supporting_context",
+          "boilerplate",
+          "navigation",
+          "promotion",
+          "related_content",
+          "duplicated_content",
+          "irrelevant_metadata",
+          "mixed_content",
+          "cannot_determine",
+          "other"
+        ]
+      }
+    },
+    "required": ["verdict", "reason_code"],
+    "additionalProperties": false
+  }
+}

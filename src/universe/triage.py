@@ -1,7 +1,7 @@
 """Judge one passage at a time, with its whole source in context.
 
-    python -m universe.triage run --prompt v001 --model deepseek-chat \
-        --cuts-runs r0017,r0034,r0029 --tool prompts/passage-triage/tool-v001.json
+    python -m universe.triage run --prompt v003 --model deepseek-v4-flash \
+        --cuts-runs r0017 --tool prompts/passage-triage/tool-v003.json
 
 The cuts runs named here are materialized first, so what this stage judges are
 passage rows rather than one run's opinion, and a range several runs agree on
@@ -45,6 +45,7 @@ from universe.passages import (
 
 STAGE = "passage-triage"
 DEFAULT_WORKERS = 16
+VERDICTS = {"keep", "drop", "refine", "unknown"}
 
 
 def verdict_of(item: dict) -> str:
@@ -58,6 +59,11 @@ def verdict_of(item: dict) -> str:
     return verdict if isinstance(verdict, str) and verdict else "unparseable"
 
 
+def cleanup_verdict_of(item: dict) -> str:
+    verdict = verdict_of(item)
+    return verdict if verdict in VERDICTS else "unparseable"
+
+
 def judged_passages(conn: psycopg.Connection, run_ids: list[str]) -> set[str]:
     """The passages these runs already answered for; errors do not count."""
     rows = conn.execute(
@@ -68,7 +74,11 @@ def judged_passages(conn: psycopg.Connection, run_ids: list[str]) -> set[str]:
     return {row[0] for row in rows}
 
 
-def build_targets(conn: psycopg.Connection, passages: list[dict]) -> list[Target]:
+def build_targets(
+    conn: psycopg.Connection,
+    passages: list[dict],
+    passage_states: dict[str, dict] | None = None,
+) -> list[Target]:
     """One target per passage: the whole source as body, the passage beside it."""
     sources = fetch_sources(conn, sorted({p["artifact_id"] for p in passages}))
     bodies: dict[str, str] = {}
@@ -78,6 +88,7 @@ def build_targets(conn: psycopg.Connection, passages: list[dict]) -> list[Target
         if artifact_id not in bodies:
             bodies[artifact_id] = source_text(conn, artifact_id, passage["blocker_version"])
         source_id, title = sources[artifact_id]
+        current = (passage_states or {}).get(passage["id"])
         targets.append(
             Target(
                 source_id,
@@ -85,7 +96,12 @@ def build_targets(conn: psycopg.Connection, passages: list[dict]) -> list[Target
                 artifact_id,
                 bodies[artifact_id],
                 passage_id=passage["id"],
-                extra_fields={"passage": passage_text(conn, passage)},
+                extra_fields={
+                    "passage": (
+                        current["body"] if current else passage_text(conn, passage)
+                    )
+                },
+                passage_revision_id=(current or {}).get("revision_id"),
             )
         )
     return targets
@@ -147,7 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="judge every passage the cuts runs produced")
-    run.add_argument("--prompt", required=True, help="prompt version, e.g. v001")
+    run.add_argument("--prompt", required=True, help="prompt version, e.g. v003")
     run.add_argument("--model", required=True)
     run.add_argument(
         "--cuts-runs", required=True, type=id_list, help="comma-separated passage-cuts run ids"

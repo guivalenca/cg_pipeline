@@ -1,10 +1,6 @@
 const PAGES = [
-  { path: '/', label: 'Overview' },
-  { path: '/structure', label: 'Structure' },
   { path: '/syllabi', label: 'Syllabi' },
-  { path: '/sources', label: 'Sources' },
-  { path: '/universe', label: 'Universe' },
-  { path: '/runs', label: 'Runs' },
+  { path: '/graph', label: 'Graph Visualization' },
 ];
 
 const mountedShells = new WeakMap();

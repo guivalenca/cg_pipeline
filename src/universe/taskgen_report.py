@@ -5,9 +5,8 @@
 
 The overview table counts tasks per passage per run, so volume differences
 between models are visible before reading anything. The body then walks the
-passages in reading order: the passage text first, then every run's tasks
-under it, so judging whether the tasks fit the passage never needs a scroll
-to somewhere else.
+passages in reading order, grouping runs by the exact raw or revised state
+their items read. Each task list therefore sits under its actual input body.
 
 `--passages-from` narrows the report to the passages certain cuts runs drew,
 which is how one generation run over a union of divisions is read back as
@@ -21,8 +20,8 @@ import psycopg
 
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run, id_list
-from universe.passage_report import thinking_label
-from universe.passages import fetch_passages, fetch_passages_for_runs, passage_text
+from universe.passage_report import passage_state_text, thinking_label
+from universe.passages import fetch_passages, fetch_passages_for_runs
 from universe.taskgen import tasks_of
 from universe.triage_report import cell, short_label
 
@@ -34,7 +33,7 @@ def count_label(tasks: list[dict] | str) -> str:
 
 
 def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], dict]:
-    """Each run with its label, and every (run, passage) task list."""
+    """Each run and every task list with the exact passage state it read."""
     runs, results = [], {}
     for run_id in run_ids:
         run = fetch_run(conn, run_id)
@@ -51,7 +50,10 @@ def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], d
                     f"{run_id} is not a task-generation run: item {item['id']} is about"
                     " a whole artifact, not a passage"
                 )
-            results[(run_id, item["passage_id"])] = tasks_of(item)
+            results[(run_id, item["passage_id"])] = {
+                "tasks": tasks_of(item),
+                "revision_id": item["passage_revision_id"],
+            }
     return runs, results
 
 
@@ -68,7 +70,16 @@ def render_runs(
                 f"no passage of {', '.join(run_ids)} was drawn by {', '.join(passages_from)}"
             )
     passages = fetch_passages(conn, passage_ids)
-    texts = {passage["id"]: passage_text(conn, passage) for passage in passages}
+    passage_by_id = {passage["id"]: passage for passage in passages}
+    states = {
+        (passage_id, result["revision_id"])
+        for (_, passage_id), result in results.items()
+        if passage_id in passage_ids
+    }
+    texts = {
+        key: passage_state_text(conn, passage_by_id[key[0]], key[1])
+        for key in states
+    }
 
     header = "| passage | " + " | ".join(run["id"] for run in runs) + " |"
     title = f"# Task generation: {', '.join(run_ids)}"
@@ -79,9 +90,22 @@ def render_runs(
     lines += ["", f"{len(passages)} passage(s), {len(runs)} run(s). Cells count tasks.", ""]
     lines += [header, "| - " * (len(runs) + 1) + "|"]
     for passage in passages:
-        row = [cell(short_label(passage, texts[passage["id"]]))]
+        available = [
+            results[(run["id"], passage["id"])]
+            for run in runs
+            if (run["id"], passage["id"]) in results
+        ]
+        opening_state = available[0]["revision_id"]
+        row = [cell(short_label(passage, texts[(passage["id"], opening_state)]))]
         row += [
-            cell(count_label(results.get((run["id"], passage["id"]), "-"))) for run in runs
+            cell(
+                count_label(
+                    results.get((run["id"], passage["id"]), {}).get(
+                        "tasks", "-"
+                    )
+                )
+            )
+            for run in runs
         ]
         lines.append("| " + " | ".join(row) + " |")
     # Totals honour the same cut as the rows: only the passages on display.
@@ -89,9 +113,11 @@ def render_runs(
     totals = [
         str(
             sum(
-                len(tasks)
-                for (run_id, passage_id), tasks in results.items()
-                if run_id == run["id"] and passage_id in shown and isinstance(tasks, list)
+                len(result["tasks"])
+                for (run_id, passage_id), result in results.items()
+                if run_id == run["id"]
+                and passage_id in shown
+                and isinstance(result["tasks"], list)
             )
         )
         for run in runs
@@ -100,28 +126,37 @@ def render_runs(
 
     lines += ["", "## The passages and their tasks", ""]
     for passage in passages:
-        counted = ", ".join(
-            f"{run['id']} {count_label(results.get((run['id'], passage['id']), '-'))}"
-            for run in runs
-        )
         span = (
             f"block {passage['first_seq']}"
             if passage["first_seq"] == passage["last_seq"]
             else f"blocks {passage['first_seq']} to {passage['last_seq']}"
         )
-        lines += [f"### {span} ({counted})", "", f"`{passage['id']}`", ""]
-        lines += [texts[passage["id"]], ""]
+        grouped: dict[str | None, list[tuple[dict, dict]]] = {}
         for run in runs:
-            tasks = results.get((run["id"], passage["id"]))
-            if tasks is None:
-                continue
-            lines += [f"#### {run['id']}: {run['label']}", ""]
-            if not isinstance(tasks, list):
-                lines += [f"({tasks})", ""]
-                continue
-            for number, entry in enumerate(tasks, 1):
-                lines += [f"{number}. {entry['task']}", f"   - {entry['answer']}"]
-            lines.append("")
+            result = results.get((run["id"], passage["id"]))
+            if result is not None:
+                grouped.setdefault(result["revision_id"], []).append((run, result))
+        for revision_id, entries in grouped.items():
+            counted = ", ".join(
+                f"{run['id']} {count_label(result['tasks'])}"
+                for run, result in entries
+            )
+            lines += [f"### {span} ({counted})", "", f"`{passage['id']}`", ""]
+            if revision_id is not None:
+                lines += [f"revision: `{revision_id}`", ""]
+            lines += [texts[(passage["id"], revision_id)], ""]
+            for run, result in entries:
+                tasks = result["tasks"]
+                lines += [f"#### {run['id']}: {run['label']}", ""]
+                if not isinstance(tasks, list):
+                    lines += [f"({tasks})", ""]
+                    continue
+                for number, entry in enumerate(tasks, 1):
+                    lines += [
+                        f"{number}. {entry['task']}",
+                        f"   - {entry['answer']}",
+                    ]
+                lines.append("")
     return "\n".join(lines)
 
 

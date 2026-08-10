@@ -87,6 +87,21 @@ def test_select_targets_returns_the_latest_artifact_per_source(targets):
     assert targets[0].body == "BODY OF SOURCE 1"
 
 
+def test_next_numeric_run_id_ignores_historical_non_numeric_ids(db):
+    db.execute(
+        "INSERT INTO run"
+        " (id, stage, model, prompt_ref, prompt_sha, status, finished_at)"
+        " VALUES ('foreign-history', 'test', 'fake/model', 'test/v1',"
+        " 'abc', 'done', now()) ON CONFLICT DO NOTHING"
+    )
+    db.commit()
+
+    identifier = harness.next_run_id(db)
+
+    assert identifier.startswith("r")
+    assert identifier[1:].isdigit()
+
+
 def test_prompt_ref_and_sha_come_from_the_file_on_disk(prompt):
     path = harness.PROMPTS_DIR / STAGE / f"{VERSION}.md"
     assert prompt.ref == f"{STAGE}/{VERSION}"
@@ -297,7 +312,10 @@ def test_list_shows_each_run_with_its_item_counts(db, prompt, targets, monkeypat
     harness.main(["list"])
 
     out = capsys.readouterr().out
-    lines = [line for line in out.splitlines() if line.startswith("r")]
+    lines = [
+        line for line in out.splitlines()
+        if line.startswith(f"{summary['run_id']} ")
+    ]
     assert lines, out
     own_line = next(line for line in lines if line.split()[0] == summary["run_id"])
     assert STAGE in own_line and "fake/model" in own_line and "1/2" in own_line
@@ -407,6 +425,7 @@ def test_model_client_api_base_fallback_order(monkeypatch):
 
 def test_model_client_api_key_fallback_order(monkeypatch):
     monkeypatch.delenv("MODEL_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.delenv("OPEN_ROUTER_API_KEY", raising=False)
     assert ModelClient("fake/model").api_key == ""
 
@@ -414,6 +433,10 @@ def test_model_client_api_key_fallback_order(monkeypatch):
     assert ModelClient("fake/model").api_key == "model-key"
 
     monkeypatch.delenv("MODEL_API_KEY")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "cg-openrouter-key")
+    assert ModelClient("fake/model").api_key == "cg-openrouter-key"
+
+    monkeypatch.delenv("OPENROUTER_API_KEY")
     monkeypatch.setenv("OPEN_ROUTER_API_KEY", "open-router-key")
     assert ModelClient("fake/model").api_key == "open-router-key"
 

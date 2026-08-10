@@ -38,15 +38,16 @@ def materialize(conn: psycopg.Connection, cuts_run_id: str) -> dict:
     if run["stage"] != CUTS_STAGE:
         raise SystemExit(f"{cuts_run_id} is a {run['stage']} run, not {CUTS_STAGE}")
 
+    version = str((run.get("params") or {}).get("blocker_version") or "2")
     counts = {"passages_new": 0, "passages_existing": 0, "origins_new": 0}
     for item in fetch_items(conn, cuts_run_id):
         if item["error"]:
             raise SystemExit(f"{item['id']} failed and has no cuts: {item['error']}")
 
-        blocks = fetch_blocks(conn, item["artifact_id"], BLOCKER_VERSION)
+        blocks = fetch_blocks(conn, item["artifact_id"], version)
         if not blocks:
             raise SystemExit(
-                f"{item['artifact_id']} has no blocks at version {BLOCKER_VERSION};"
+                f"{item['artifact_id']} has no blocks at version {version};"
                 " run universe.blocks first"
             )
         seqs = [block["seq"] for block in blocks]
@@ -58,12 +59,12 @@ def materialize(conn: psycopg.Connection, cuts_run_id: str) -> dict:
         # Deviations from the contract are repaired, not rejected: the report
         # is where a sloppy run is judged, and a range is a range either way.
         for first, last in passage_ranges(repair_cuts(cuts, seqs), seqs):
-            identifier = passage_id(item["artifact_id"], first, last)
+            identifier = passage_id(item["artifact_id"], first, last, version)
             written = conn.execute(
                 "INSERT INTO passage"
                 " (id, artifact_id, blocker_version, first_seq, last_seq)"
                 " VALUES (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
-                (identifier, item["artifact_id"], BLOCKER_VERSION, first, last),
+                (identifier, item["artifact_id"], version, first, last),
             ).rowcount
             counts["passages_new" if written else "passages_existing"] += 1
             counts["origins_new"] += conn.execute(

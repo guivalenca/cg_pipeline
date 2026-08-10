@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from psycopg.types.json import Jsonb
 
 from universe import blocks, harness, passages, task_triage, tasks
 from universe.blocks import split_blocks
@@ -51,9 +52,10 @@ def cuts_run(db, tasks_artifact) -> str:
     """A hand-written cuts run so passages exist without any model."""
     run_id = harness.next_run_id(db)
     db.execute(
-        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, status)"
-        " VALUES (%s, 'passage-cuts', 'fake/model', 'passage-cuts/v001', 'abc', 'done')",
-        (run_id,),
+        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
+        " VALUES (%s, 'passage-cuts', 'fake/model', 'passage-cuts/v001',"
+        " 'abc', %s, 'done')",
+        (run_id, Jsonb({"blocker_version": blocks.BLOCKER_VERSION})),
     )
     db.execute(
         "INSERT INTO run_item (id, run_id, artifact_id, response) VALUES (%s, %s, %s, %s)",
@@ -107,6 +109,38 @@ def test_materializing_writes_one_row_per_reported_task(db, gen_run):
 def test_materializing_again_writes_nothing(db, gen_run):
     tasks.materialize(db, gen_run)
     assert tasks.materialize(db, gen_run) == {"tasks_new": 0, "tasks_existing": 4}
+
+
+def test_materializing_an_empty_task_report_is_a_valid_zero_task_result(
+    db, cuts_run
+):
+    passages.materialize(db, cuts_run)
+    passage = passages.fetch_passages_for_runs(db, [cuts_run])[0]
+    run_id = harness.next_run_id(db)
+    db.execute(
+        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, status)"
+        " VALUES (%s, 'task-generation', 'fake/model',"
+        " 'task-generation/v005', 'abc', 'done')",
+        (run_id,),
+    )
+    db.execute(
+        "INSERT INTO run_item (id, run_id, artifact_id, passage_id, response)"
+        " VALUES (%s, %s, %s, %s, %s)",
+        (
+            f"{run_id}-0001",
+            run_id,
+            passage["artifact_id"],
+            passage["id"],
+            json.dumps({"tasks": []}),
+        ),
+    )
+    db.commit()
+
+    assert tasks.materialize(db, run_id) == {
+        "tasks_new": 0,
+        "tasks_existing": 0,
+    }
+    assert tasks.fetch_tasks_for_runs(db, [run_id]) == []
 
 
 def test_materializing_refuses_a_run_of_another_stage(db, cuts_run):

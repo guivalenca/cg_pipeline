@@ -63,15 +63,22 @@ legacy graph format will not survive as the seam. What the Companion will
 actually consume is undesigned (open, see Open Questions) and depends on
 the segment design.
 
-The universe is designed as a web system operated through its admin
-dashboard, built and run locally until it is wired into the Companion, then
-deployed to Railway (ADR 0005 as amended). The admin dashboard is its
-operating and curation surface: the founder drives the pipeline from it,
-every dashboard action is recorded as a permanent curation fact, and every
-creation phase boundary starts with a hard audit gate, relaxed per phase as
-trust builds. The existing cg_pipeline repo is a quarry, not a foundation:
-rules and adapters are ported selectively with review, and its transcribed
-corpora serve as test fixtures.
+The universe runs as a deployed service, not a local pipeline (ADR 0005). Its
+web surfaces are operating and curation surfaces, backed by the same durable
+facts and jobs available to agents and workers. In the Syllabus surface,
+uploading a workbook enqueues nothing and the founder requests acquisition for
+exactly one Source at a time. The acquisition fact stops at Markdown (ADR
+0012), while a public-article request is not presented as ready until visual
+association and passage cleanup publish its clean Markdown projection (ADR
+0015). The
+existing cg_pipeline repo is a quarry, not a foundation: rules and adapters
+are ported selectively with review, and its transcribed corpora serve as test
+fixtures. If the original URL is unusable, one PDF or an ordered set of images
+is another explicit acquisition of that same Source (ADRs 0013 and 0016), never an
+implicit Syllabus edit.
+Every dashboard action that changes authored state is recorded as a permanent
+curation fact, and every creation-phase boundary starts with a hard audit gate
+that can be relaxed only as that phase earns trust.
 
 ## The content ingestion chain
 
@@ -81,9 +88,12 @@ The path a source travels, recorded as five kinds of permanent facts:
    chapter). Its identity comes from the small set of stable metadata (video
    ID, ISBN, canonical URL). Everything else about it (content, authors,
    remaining metadata) is free to change over time.
-2. **Source Snapshot**: the source's material as it was at a moment in time.
-   When the underlying material changes, a new snapshot is created next to the
-   old one; nothing is overwritten.
+2. **Source Snapshot**: the result of an acquisition attempt at a moment in
+   time. A successful snapshot anchors acquired material; a failed snapshot
+   preserves the failure and its diagnostics. Retries and changes create new
+   snapshots next to the old ones; nothing is overwritten. Binary evidence is
+   represented by immutable Source Asset metadata and a `storage_key`, with
+   its bytes held outside Postgres.
 3. **Artifact**: a processed form of a snapshot created for model consumption,
    typically extracted Markdown, but also transcripts or OCR output. Each
    artifact records which tool version produced it, and improved tooling
@@ -95,26 +105,70 @@ The path a source travels, recorded as five kinds of permanent facts:
    substituted destructively.
 5. **Syllabus**: the teacher's real input, and where sources enter the system:
    the mapping of a module's sources into days and class topics. The
-   meaningful teacher signal is the day-level ordering of topics across the
-   module; sources within a single day carry no order. The Syllabus is
+   meaningful teacher signal includes the day-level ordering of topics across
+   the module and the curator-authored display order of sources within each
+   day. The Syllabus is
    revisioned whenever the teacher changes it, and it is the honest record of
    how the institution actually sequenced its teaching. The received syllabus
-   is the first version; when a referenced source proves unacquirable, the
-   failure is recorded on the acquisition side, signaled for curation, and the
-   fix (a corrected link, a replacement, an exclusion, any metadata
-   correction) authors the next Syllabus version as a curation act (ADR 0006).
+   is the first version. A source is acquired only through an explicit durable
+   one-Source job; upload itself creates no acquisition work. When a referenced
+   source proves unacquirable, the failed attempt is preserved and signaled for
+   curation. A retry does not alter the Syllabus; a corrected link,
+   replacement, exclusion, or metadata correction authors the next Syllabus
+   version as a curation act (ADR 0006; ADR 0012).
+
+The HTML editor authors the same complete immutable versions as XLSX upload.
+It may edit lesson/source metadata, add, remove, reorder, or mark one source
+reference hidden. Hidden is version-local curation state: it removes that
+placement from the default syllabus view without deleting its logical Source,
+snapshots, assets, Markdown, or interpretations. A generated XLSX is preserved
+with every curated version and can be imported again, including its visibility
+markers.
 
 These five are the ingestion chain, not the whole fact layer. The fact layer
 also includes session records ("this session ran on this date, against this
 plan version"), the student evidence records described below, and human
 curation decisions, all permanent.
 
-A source the pipeline cannot acquire produces no snapshot and therefore no
-extracted knowledge: there is no metadata-only or top-down extraction path,
-because fact-layer units require passage provenance (ADR 0006). The teacher
-signal is not lost; the Syllabus permanently records the assignment, and a
-syllabus reference with no ingested source surfaces in the dashboard as a
-visible coverage gap rather than a synthetic extraction.
+A Source the system cannot acquire produces a failed snapshot but no Artifact
+and therefore no extracted knowledge: there is no metadata-only or top-down
+extraction path, because fact-layer units require passage provenance (ADR
+0006). A Syllabus reference that lacks enough identity to become a Source at
+all (for example, a book without concrete scope) remains a visible coverage
+gap and cannot be queued. In both cases the teacher signal remains in the
+versioned Syllabus rather than becoming a synthetic extraction.
+
+Manual evidence does not change that rule. It creates a new acquisition
+attempt for the same Source, while the URL failure remains in the ledger. One
+PDF or 1-50 ordered PNG/JPEG/WebP screenshots, scans, or photos may be
+queued explicitly, up to 30 MB total. The immutable asset record preserves the
+hash, MIME type, safe filename, kind, ordinal, and storage key. Every PDF page
+has an ordered, hashed text-layer fact and an immutable Poppler render. A
+grouped, page-keyed visual reading retains only information the text layer does
+not express faithfully; a page without text is reconstructed from its render.
+Any unresolved page blocks publication without erasing successful siblings.
+An enriched PDF-page image remains primary evidence through cleanup: a model
+proposal to remove it is overridden by an explicit, audited structural policy.
+Ordered image uploads remain referenced in the resulting Markdown beside a
+model-stamped visual description and transcription of meaningful visible text
+(ADRs 0013 and 0016).
+
+Images discovered inside an article are not a fallback and do not gate its
+textual Markdown. They form a parallel branch from the same source response:
+collect candidates, apply a cheap filter, download only survivors, perform
+visual readings as independently claimable jobs, persist successful
+asset/readings, then
+associate them with the Source and corresponding canonical Markdown. Each
+candidate carries its own outcome. Failure becomes a per-image attention state
+with diagnostics and never invalidates, delays, or retries successful textual
+Markdown. This branch begins with source acquisition rather than as a post-hoc
+scan (ADR 0013).
+
+Acquisition has a hard Markdown boundary (ADR 0012). Exactly one Source is
+queued per explicit request. The job exists durably before an Adapter is
+called; success ends at an immutable Markdown Artifact. Blocks, Passages,
+Tasks, statements, and KCs are separate explicit operations over a selected
+Artifact, never automatic consequences of acquiring it.
 
 ## Extraction: from artifact to unitary KCs
 
@@ -155,9 +209,17 @@ teaches, never for what it assumes; assumed background is not evidence (a
 source that assumes dot products has taught us nothing about dot products).
 Passages may suggest knowledge but never constrain it.
 
-Non-textual content (a diagram, a chart) currently simply belongs to its
-passage; representation and use of such assets is future work (see
-Deferred).
+Images are evidence, not decoration to discard by default. Ordered manual
+captures are the source itself and collectively form their Markdown. PDF page
+renders preserve visual structure beside exact page text without duplicating
+ordinary text as OCR. Article
+images are independent enrichment: cheap filtering precedes download, visual
+work can run concurrently, and every candidate remains independently observable so
+one failure cannot poison the textual Artifact. A successfully processed
+relevant image is copied into immutable asset storage, associated with the
+Source and canonical Markdown, and accompanied by a structured visual
+description and visible-text transcription. The preserved image remains the
+fact; its model-generated description is stamped interpretation (ADR 0013).
 
 ## The axes
 
@@ -213,12 +275,13 @@ those regions by leaving them unmerged.
 
 KCs are **derived snapshots**, recomputed from the verdict ledger; unitary
 KCs bear the permanent ids (ADR 0008), and composite snapshot ids are
-derived and re-mintable. Ingesting a new source is the same process run
-incrementally: extract, state, embed, judge only the new candidate pairs,
-recompute snapshots. Nothing global re-runs; the same KC surfacing from a
-new source merges by the same rule that dedups a single source. Improving a
-prompt or a model likewise never loses progress: verdicts are facts, and
-every interpretation above them recomputes.
+derived and re-mintable. After a new Source has a Markdown Artifact,
+explicitly running the downstream interpretation stages is incremental:
+extract, state, embed, judge only the new candidate pairs, and recompute
+snapshots. Nothing global re-runs; the same KC surfacing from a new source
+merges by the same rule that dedups a single source. Improving a prompt or a
+model likewise never loses progress: verdicts are facts, and every
+interpretation above them recomputes.
 
 One-way implications (mastery of A carries B but not the reverse) and the
 graded verdict levels are stored with everything else and consumed by
@@ -325,11 +388,16 @@ understanding survives content changes, new sources, and reorganizations.
 The system runs on infrastructure we already operate: **Postgres** stores both
 ledgers and every interpretation layer, and **pgvector**, an extension inside
 it, handles the embedding search, keeping vectors and rows in the same
-database under the same transactions. The universe is a web system operated
-through the admin dashboard, running locally until it is wired into the
-Companion and then deployed to Railway (ADR 0005 as amended). Model
-calls go through one OpenRouter-compatible client, provider-stamped per
-call, routed throughput-first with low-bit quantized providers excluded.
+database under the same transactions. The universe is deployed as a web
+service plus independently scalable workers (ADR 0005), not a local pipeline;
+the explicit acquisition queue also lives in Postgres (ADR 0012). Binary
+PDF/image source evidence stays outside Postgres: a managed filesystem root in local
+development and Railway Buckets or another S3-compatible object store in
+deployment. Postgres keeps the immutable `storage_key`, hashes, order,
+metadata, lineage, and canonical Markdown (ADR 0013). Model calls in the
+interpretation pipeline and visual-source description go through one
+OpenRouter-compatible client, provider-stamped per call, routed
+throughput-first with low-bit quantized providers excluded.
 
 ## Working method
 
@@ -364,8 +432,6 @@ one cheap to add later because interpretations are recomputable:
   (founder decision 2026-08-01).
 - **Concept links**: mastery flowing between related concepts (e.g. Perceptron
   feeding Neural Networks).
-- **Non-textual assets**: the format, representation, and any retrieval of
-  images, diagrams, and charts. Today an asset is simply part of its passage.
 - **Dynamic KC boundary auditing** via learning-curve analysis over student
   evidence. Tracked as guivalenca/companion#73, label `post-concept-universe`.
 - **The observer agent** for impartial evidence extraction.

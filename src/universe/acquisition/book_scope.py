@@ -1,4 +1,4 @@
-"""Concrete chapter, page, and unit scope for book sources."""
+"""Concrete chapter, page, and unit scope for book source references."""
 
 import psycopg
 
@@ -13,7 +13,7 @@ def extract_scope(description: str) -> str | None:
 
 
 def get_override(conn: psycopg.Connection, source_id: str) -> str | None:
-    """Return the current source scope override, or None after it is cleared."""
+    """Return the latest operational scope override for legacy dashboards."""
     event = curation.latest_source_event(
         conn, source_id, curation.SOURCE_SCOPE_OVERRIDE_ACTIONS
     )
@@ -25,7 +25,7 @@ def get_override(conn: psycopg.Connection, source_id: str) -> str | None:
     return event["subject"].get("value")
 
 
-def is_missing_scope(source_row: dict, conn: psycopg.Connection | None = None) -> bool:
+def is_missing_scope(source_row: dict, conn=None) -> bool:
     """Say whether a book source lacks an explicit chapter, page, or unit."""
     # Keep accepting the original ``(conn, source_row)`` call shape while
     # callers migrate to the source-first API.

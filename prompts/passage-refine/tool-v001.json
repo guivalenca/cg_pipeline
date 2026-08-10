@@ -1,0 +1,37 @@
+{
+  "name": "report_line_removals",
+  "description": "Report exact local line ranges to remove; never return replacement text.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "drop_ranges": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "properties": {
+            "start_line": {"type": "integer", "minimum": 1},
+            "end_line": {"type": "integer", "minimum": 1},
+            "reason_code": {
+              "type": "string",
+              "enum": [
+                "boilerplate",
+                "navigation",
+                "promotion",
+                "related_content",
+                "duplicated_content",
+                "irrelevant_metadata",
+                "non_educational_content",
+                "other"
+              ]
+            }
+          },
+          "required": ["start_line", "end_line", "reason_code"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["drop_ranges"],
+    "additionalProperties": false
+  }
+}

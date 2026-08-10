@@ -1,14 +1,12 @@
-"""Ask what tasks each passage that survived triage supports.
+"""Ask what tasks each passage preserved by cleanup supports.
 
-    python -m universe.taskgen run --prompt v001 --model deepseek-v4-flash \
-        --cuts-runs r0017,r0031 --triage-runs r0043,r0045 \
-        --tool prompts/task-generation/tool-v001.json
+    python -m universe.taskgen run --prompt v005 --model deepseek-v4-pro \
+        --cleanup pc-... --tool prompts/task-generation/tool-v002.json
 
-Passages come from the cuts runs, materialized first so a range several runs
-agree on is one passage. The triage runs then decide who gets a call: only a
-passage every named triage run judged not_filler goes out. A passage with no
-verdict at all stops the run, because silence is not a verdict; a passage any
-run called filler or unsure is dropped and said so.
+The cleanup result supplies one terminal decision per passage. Keep and unknown
+are preserved; drop receives no generation call. A retained revision is the
+exact text sent to the model. The legacy cuts/triage gate remains available for
+old runs, and silence or a non-terminal refine verdict still stops generation.
 
 The call itself is the triage shape reused: the whole source first, byte for
 byte the same across an artifact's passages so the provider's prefix cache
@@ -33,12 +31,18 @@ from universe.harness import (
     positive_int,
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
+from universe.passage_refine import state as passage_state
 from universe.passages import fetch_passages_for_runs, materialize
 from universe.triage import build_targets, verdict_of
 
 STAGE = "task-generation"
 TRIAGE_STAGE = "passage-triage"
-KEEP = "not_filler"
+LEGACY_KEEP = "not_filler"
+# Compatibility name consumed by the existing progress dashboard. New cleanup
+# decisions use PRESERVED below; legacy triage runs still use this value.
+KEEP = LEGACY_KEEP
+PRESERVED = {"keep", "unknown"}
+UNUSABLE = {"error", "unparseable"}
 DEFAULT_WORKERS = 16
 
 
@@ -78,14 +82,16 @@ def fetch_verdicts(conn: psycopg.Connection, run_ids: list[str]) -> dict[str, se
 def split_by_verdict(
     passages: list[dict], verdicts: dict[str, set[str]]
 ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Who gets a call: only a passage every triage verdict agreed to keep."""
+    """Partition legacy triage results without discarding uncertainty."""
     kept, dropped, unjudged = [], [], []
     for passage in passages:
         seen = verdicts.get(passage["id"])
         if not seen:
             unjudged.append(passage)
-        elif seen == {KEEP}:
+        elif seen == {LEGACY_KEEP} or seen <= PRESERVED:
             kept.append(passage)
+        elif "refine" in seen or seen & UNUSABLE:
+            unjudged.append(passage)
         else:
             dropped.append(passage)
     return kept, dropped, unjudged
@@ -100,30 +106,79 @@ def cmd_run(args: argparse.Namespace) -> None:
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
     with connect() as conn:
-        for run_id in args.cuts_runs:
-            counts = materialize(conn, run_id)
-            print(
-                f"{run_id}: {counts['passages_new']} new passage(s),"
-                f" {counts['passages_existing']} already known"
-            )
-        passages = fetch_passages_for_runs(conn, args.cuts_runs)
-        if not passages:
-            raise SystemExit(f"no passages from {', '.join(args.cuts_runs)}")
-
-        verdicts = fetch_verdicts(conn, args.triage_runs)
-        kept, dropped, unjudged = split_by_verdict(passages, verdicts)
-        if unjudged:
-            spans = ", ".join(span(p) for p in unjudged)
-            raise SystemExit(
-                f"{len(unjudged)} passage(s) have no verdict in"
-                f" {', '.join(args.triage_runs)}: {spans}; triage them first"
-            )
-        for passage in dropped:
-            print(f"  {span(passage)} dropped: {', '.join(sorted(verdicts[passage['id']]))}")
+        states = None
+        run_params = None
+        if args.cleanup:
+            cleanup = conn.execute(
+                "SELECT status, cuts_run_id FROM passage_cleanup WHERE id = %s",
+                (args.cleanup,),
+            ).fetchone()
+            if cleanup is None:
+                raise SystemExit(f"no passage cleanup {args.cleanup}")
+            if cleanup[0] != "done":
+                raise SystemExit(f"passage cleanup {args.cleanup} is {cleanup[0]}")
+            passages = fetch_passages_for_runs(conn, [cleanup[1]])
+            decisions = {
+                row[0]: {"revision_id": row[1], "verdict": row[2]}
+                for row in conn.execute(
+                    "SELECT passage_id, passage_revision_id, verdict"
+                    " FROM passage_cleanup_result WHERE cleanup_id = %s",
+                    (args.cleanup,),
+                )
+            }
+            missing = [passage for passage in passages if passage["id"] not in decisions]
+            if missing:
+                raise SystemExit(
+                    f"{args.cleanup} has {len(missing)} passage(s) without a result"
+                )
+            kept = [
+                passage
+                for passage in passages
+                if decisions[passage["id"]]["verdict"] in {"keep", "unknown"}
+            ]
+            dropped = [
+                passage
+                for passage in passages
+                if decisions[passage["id"]]["verdict"] == "drop"
+            ]
+            states = {
+                passage["id"]: passage_state(
+                    conn, passage, decisions[passage["id"]]["revision_id"]
+                )
+                for passage in kept
+            }
+            run_params = {"cleanup_id": args.cleanup}
+            for passage in dropped:
+                print(f"  {span(passage)} dropped by {args.cleanup}")
+        else:
+            if not args.cuts_runs or not args.triage_runs:
+                raise SystemExit("legacy gating requires --cuts-runs and --triage-runs")
+            for run_id in args.cuts_runs:
+                counts = materialize(conn, run_id)
+                print(
+                    f"{run_id}: {counts['passages_new']} new passage(s),"
+                    f" {counts['passages_existing']} already known"
+                )
+            passages = fetch_passages_for_runs(conn, args.cuts_runs)
+            if not passages:
+                raise SystemExit(f"no passages from {', '.join(args.cuts_runs)}")
+            verdicts = fetch_verdicts(conn, args.triage_runs)
+            kept, dropped, unjudged = split_by_verdict(passages, verdicts)
+            if unjudged:
+                spans = ", ".join(span(p) for p in unjudged)
+                raise SystemExit(
+                    f"{len(unjudged)} passage(s) have no terminal verdict in"
+                    f" {', '.join(args.triage_runs)}: {spans}"
+                )
+            for passage in dropped:
+                print(
+                    f"  {span(passage)} dropped:"
+                    f" {', '.join(sorted(verdicts[passage['id']]))}"
+                )
         if not kept:
             raise SystemExit("no passage survived triage")
 
-        targets = build_targets(conn, kept)
+        targets = build_targets(conn, kept, states)
         client = ModelClient(
             args.model,
             temperature=args.temperature,
@@ -134,7 +189,14 @@ def cmd_run(args: argparse.Namespace) -> None:
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} of {len(passages)}"
             f" passage(s) via {args.model}, {args.workers} at a time"
         )
-        summary = execute(conn, prompt, client, targets, workers=args.workers)
+        summary = execute(
+            conn,
+            prompt,
+            client,
+            targets,
+            workers=args.workers,
+            run_params=run_params,
+        )
         items = fetch_items(conn, summary["run_id"])
 
     usage = report.aggregate_usage(items)
@@ -153,17 +215,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="universe.taskgen", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    run = sub.add_parser("run", help="generate tasks for every passage triage kept")
-    run.add_argument("--prompt", required=True, help="prompt version, e.g. v001")
+    run = sub.add_parser("run", help="generate tasks for every preserved passage")
+    run.add_argument("--prompt", required=True, help="prompt version, e.g. v005")
     run.add_argument("--model", required=True)
     run.add_argument(
-        "--cuts-runs", required=True, type=id_list, help="comma-separated passage-cuts run ids"
+        "--cuts-runs", type=id_list, help="comma-separated passage-cuts run ids"
     )
-    run.add_argument(
+    gate = run.add_mutually_exclusive_group(required=True)
+    gate.add_argument(
         "--triage-runs",
-        required=True,
         type=id_list,
         help="comma-separated passage-triage run ids that gate the passages",
+    )
+    gate.add_argument(
+        "--cleanup",
+        help="terminal passage cleanup id; keep and unknown passages are generated",
     )
     run.add_argument(
         "--tool",

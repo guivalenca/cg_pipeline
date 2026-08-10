@@ -19,10 +19,12 @@ The precedence of the line rules, highest first:
     blockquote    consecutive lines starting with '>'
     list_item     one marker line plus its indented continuation lines; each
                   item is its own block, never the list as a whole
-    image         a paragraph that is nothing but one image reference
-    image_summary a paragraph opening with 'Image summary:', the description
-                  our own ingestion wrote for an image; the one content that
-                  is ours, not the author's, and provenance must see that
+    image         a paragraph that is nothing but one image reference. Its
+                  adjacent visual analysis fields are part of the same atom;
+                  image_state says whether that evidence is enriched or still
+                  unresolved
+    image_summary an orphan paragraph opening with 'Image summary:'; normally
+                  the summary is folded into the image immediately before it
     paragraph     any remaining run of non-blank lines
 
 Blank lines between blocks belong to no block. Every non-whitespace character
@@ -40,7 +42,7 @@ import psycopg
 
 from universe.db import connect
 
-BLOCKER_VERSION = "2"
+BLOCKER_VERSION = "3"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 KINDS = (
@@ -64,8 +66,19 @@ LIST_ITEM = re.compile(r"^(\s*)([-*+]|\d+[.)])\s")
 # A whole paragraph that is one image reference: markdown's own form, and the
 # '[Image: caption](url)' form the archive's extractor emits.
 IMAGE_ONLY = re.compile(r"(?:!\[[^\]\n]*\]|\[Image:[^\]\n]*\])\([^)\n]*\)")
+LINKED_IMAGE_ONLY = re.compile(
+    r"\[!\[[^\]\n]*\]\([^)\n]*\)\]\([^)\n]*\)"
+)
 # The fixed prefix the ingestion pipeline puts on its own image descriptions.
 IMAGE_SUMMARY_PREFIX = "Image summary:"
+IMAGE_ANALYSIS_PREFIXES = (
+    "Image summary:",
+    "Image description:",
+    "Visible text:",
+    "OCR:",
+    "Image limitations:",
+    "Image analysis:",
+)
 
 
 @dataclass(frozen=True)
@@ -76,6 +89,7 @@ class Block:
     start_char: int
     end_char: int
     text: str
+    image_state: str | None = None
 
 
 @dataclass(frozen=True)
@@ -131,7 +145,40 @@ def starts_block(text: str) -> str | None:
         return "blockquote"
     if LIST_ITEM.match(text):
         return "list_item"
+    if IMAGE_ONLY.fullmatch(text.strip()) or LINKED_IMAGE_ONLY.fullmatch(text.strip()):
+        return "image"
     return None
+
+
+def end_of_image_block(lines: list[Line], start: int) -> tuple[int, str]:
+    """Keep one image and its derived visual fields as a single atom."""
+    stop = start + 1
+    state = "unresolved"
+    cursor = stop
+    while cursor < len(lines):
+        probe = cursor
+        while probe < len(lines) and lines[probe].blank:
+            probe += 1
+        if probe >= len(lines):
+            break
+        stripped = lines[probe].text.lstrip()
+        if not stripped.startswith(IMAGE_ANALYSIS_PREFIXES):
+            break
+
+        # A field may wrap across physical lines.  It remains one Markdown
+        # paragraph, and therefore part of the image atom, until a blank line
+        # or another Markdown structure starts.
+        field_stop = end_of_paragraph(lines, probe)
+        field_lines = [line.text.lstrip() for line in lines[probe:field_stop]]
+        if any(
+            line.startswith(IMAGE_ANALYSIS_PREFIXES)
+            and not line.startswith("Image analysis: unresolved")
+            for line in field_lines
+        ):
+            state = "enriched"
+        stop = field_stop
+        cursor = stop
+    return stop, state
 
 
 def end_of_code_block(lines: list[Line], start: int) -> int:
@@ -189,11 +236,14 @@ def split_blocks(body: str) -> list[Block]:
             index += 1
             continue
 
+        image_state = None
         kind = starts_block(lines[index].text)
         if kind == "code_block":
             stop = end_of_code_block(lines, index)
         elif kind == "heading":
             stop = index + 1
+        elif kind == "image":
+            stop, image_state = end_of_image_block(lines, index)
         elif kind == "table":
             stop = end_of_run(lines, index, TABLE)
         elif kind == "blockquote":
@@ -206,11 +256,17 @@ def split_blocks(body: str) -> list[Block]:
 
         start_char, end_char = lines[index].start, lines[stop - 1].end
         text = body[start_char:end_char]
-        if kind == "paragraph" and IMAGE_ONLY.fullmatch(text.strip()):
-            kind = "image"
-        elif kind == "paragraph" and text.lstrip().startswith(IMAGE_SUMMARY_PREFIX):
+        if kind == "paragraph" and text.lstrip().startswith(IMAGE_SUMMARY_PREFIX):
             kind = "image_summary"
-        blocks.append(Block(kind, start_char, end_char, text))
+        blocks.append(
+            Block(
+                kind,
+                start_char,
+                end_char,
+                text,
+                image_state if kind == "image" else None,
+            )
+        )
         index = stop
 
     check_invariants(body, content_start, blocks)
@@ -222,6 +278,14 @@ def check_invariants(body: str, content_start: int, blocks: list[Block]) -> None
     previous = content_start
     for block in blocks:
         assert block.kind in KINDS, f"unknown kind {block.kind!r}"
+        if block.kind == "image":
+            assert block.image_state in {"enriched", "unresolved"}, (
+                f"image at {block.start_char} has invalid state {block.image_state!r}"
+            )
+        else:
+            assert block.image_state is None, (
+                f"non-image at {block.start_char} has image state {block.image_state!r}"
+            )
         assert block.start_char >= previous, f"block at {block.start_char} overlaps or precedes"
         assert block.end_char > block.start_char, f"empty block at {block.start_char}"
         assert body[block.start_char : block.end_char] == block.text, (
@@ -276,8 +340,9 @@ def store_blocks(
         for seq, block in enumerate(blocks, start=1):
             cur.execute(
                 "INSERT INTO block"
-                " (id, artifact_id, blocker_version, seq, kind, start_char, end_char, body)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                " (id, artifact_id, blocker_version, seq, kind, start_char, end_char,"
+                "  body, image_state)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     block_id(artifact_id, seq, version),
                     artifact_id,
@@ -287,6 +352,7 @@ def store_blocks(
                     block.start_char,
                     block.end_char,
                     block.text,
+                    block.image_state,
                 ),
             )
     conn.commit()
@@ -297,11 +363,11 @@ def fetch_blocks(
     conn: psycopg.Connection, artifact_id: str, version: str = BLOCKER_VERSION
 ) -> list[dict]:
     rows = conn.execute(
-        "SELECT id, seq, kind, start_char, end_char, body FROM block"
+        "SELECT id, seq, kind, start_char, end_char, body, image_state FROM block"
         " WHERE artifact_id = %s AND blocker_version = %s ORDER BY seq",
         (artifact_id, version),
     ).fetchall()
-    keys = "id seq kind start_char end_char body".split()
+    keys = "id seq kind start_char end_char body image_state".split()
     return [dict(zip(keys, row)) for row in rows]
 
 
@@ -338,8 +404,11 @@ def render_report(artifact_id: str, version: str, blocks: list[dict]) -> str:
     ]
     for block in blocks:
         fence = fence_for(block["body"])
+        label = block["kind"]
+        if block.get("image_state"):
+            label += f" ({block['image_state']})"
         lines += [
-            f"## {block['seq']:04d} {block['kind']}"
+            f"## {block['seq']:04d} {label}"
             f" [{block['start_char']}:{block['end_char']}]",
             "",
             fence,

@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: universe
     ports:
       # 5432 on the host belongs to the Companion project's compose.
-      - "5433:5432"
+      - "${UNIVERSE_POSTGRES_PORT:-5433}:5432"
     volumes:
       - universe-pgdata:/var/lib/postgresql/data
     healthcheck:
