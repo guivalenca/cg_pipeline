@@ -4,9 +4,9 @@
 
 The point of the layout is disagreement. Every run that judged a passage sits
 on the same line, so a passage the models split over is visible without
-reading anything; the appendix then carries the passage in full, with those
-verdicts repeated in its title, so the eye that stopped on a row can settle
-the question there and then.
+reading anything. The appendix groups judgments by the exact raw or revised
+state their run items addressed; two revisions of one passage are never shown
+against one shared, misleading body.
 
 Rendered from the database, like every report here: the file is disposable and
 the run rows are what keep.
@@ -19,8 +19,8 @@ import psycopg
 
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run
-from universe.passage_report import thinking_label
-from universe.passages import fetch_passages, passage_text
+from universe.passage_report import passage_state_text, thinking_label
+from universe.passages import fetch_passages
 from universe.triage import verdict_of
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
@@ -39,8 +39,8 @@ def short_label(passage: dict, text: str) -> str:
 
 
 def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], dict]:
-    """Each run with its column label, and every (run, passage) verdict."""
-    runs, verdicts = [], {}
+    """Each run and every decision, including the exact state it judged."""
+    runs, decisions = [], {}
     for run_id in run_ids:
         run = fetch_run(conn, run_id)
         version = run["prompt_ref"].rsplit("/", 1)[-1]
@@ -56,15 +56,26 @@ def collect(conn: psycopg.Connection, run_ids: list[str]) -> tuple[list[dict], d
                     f"{run_id} is not a triage run: item {item['id']} is about a whole"
                     " artifact, not a passage"
                 )
-            verdicts[(run_id, item["passage_id"])] = verdict_of(item)
-    return runs, verdicts
+            decisions[(run_id, item["passage_id"])] = {
+                "verdict": verdict_of(item),
+                "revision_id": item["passage_revision_id"],
+            }
+    return runs, decisions
 
 
 def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
-    runs, verdicts = collect(conn, run_ids)
-    passage_ids = sorted({passage_id for _, passage_id in verdicts})
+    runs, decisions = collect(conn, run_ids)
+    passage_ids = sorted({passage_id for _, passage_id in decisions})
     passages = fetch_passages(conn, passage_ids)
-    texts = {passage["id"]: passage_text(conn, passage) for passage in passages}
+    passage_by_id = {passage["id"]: passage for passage in passages}
+    states = {
+        (passage_id, decision["revision_id"])
+        for (_, passage_id), decision in decisions.items()
+    }
+    texts = {
+        key: passage_state_text(conn, passage_by_id[key[0]], key[1])
+        for key in states
+    }
 
     header = "| passage | " + " | ".join(run["id"] for run in runs) + " |"
     lines = [f"# Passage triage: {', '.join(run_ids)}", ""]
@@ -72,32 +83,63 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
     lines += ["", f"{len(passages)} passage(s), {len(runs)} run(s).", ""]
     lines += [header, "| - " * (len(runs) + 1) + "|"]
     for passage in passages:
-        row = [cell(short_label(passage, texts[passage["id"]]))]
-        row += [cell(verdicts.get((run["id"], passage["id"]), "-")) for run in runs]
+        available = [
+            decisions[(run["id"], passage["id"])]
+            for run in runs
+            if (run["id"], passage["id"]) in decisions
+        ]
+        opening_state = available[0]["revision_id"]
+        row = [cell(short_label(passage, texts[(passage["id"], opening_state)]))]
+        row += [
+            cell(
+                decisions.get((run["id"], passage["id"]), {}).get(
+                    "verdict", "-"
+                )
+            )
+            for run in runs
+        ]
         lines.append("| " + " | ".join(row) + " |")
 
     # Every verdict any run returned, so a run that invented one is visible.
-    names = sorted({verdict for verdict in verdicts.values()})
+    names = sorted({decision["verdict"] for decision in decisions.values()})
     lines += ["", "## Verdicts per run", ""]
     lines += [header.replace("| passage |", "| verdict |"), "| - " * (len(runs) + 1) + "|"]
     for name in names:
         counts = [
-            str(sum(1 for (run_id, _), v in verdicts.items() if run_id == run["id"] and v == name))
+            str(
+                sum(
+                    1
+                    for (run_id, _), decision in decisions.items()
+                    if run_id == run["id"] and decision["verdict"] == name
+                )
+            )
             for run in runs
         ]
         lines.append("| " + " | ".join([cell(name)] + counts) + " |")
 
     lines += ["", "## The passages", ""]
     for passage in passages:
-        judged = ", ".join(
-            f"{run['id']} {verdicts.get((run['id'], passage['id']), '-')}" for run in runs
-        )
         span = (
             f"block {passage['first_seq']}"
             if passage["first_seq"] == passage["last_seq"]
             else f"blocks {passage['first_seq']} to {passage['last_seq']}"
         )
-        lines += [f"### {span} ({judged})", "", f"`{passage['id']}`", "", texts[passage["id"]], ""]
+        grouped: dict[str | None, list[tuple[dict, dict]]] = {}
+        for run in runs:
+            decision = decisions.get((run["id"], passage["id"]))
+            if decision is not None:
+                grouped.setdefault(decision["revision_id"], []).append(
+                    (run, decision)
+                )
+        for revision_id, entries in grouped.items():
+            judged = ", ".join(
+                f"{run['id']} {decision['verdict']}"
+                for run, decision in entries
+            )
+            lines += [f"### {span} ({judged})", "", f"`{passage['id']}`", ""]
+            if revision_id is not None:
+                lines += [f"revision: `{revision_id}`", ""]
+            lines += [texts[(passage["id"], revision_id)], ""]
     return "\n".join(lines)
 
 

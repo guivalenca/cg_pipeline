@@ -88,6 +88,7 @@ class Target:
     passage_id: str | None = None
     task_id: str | None = None
     extra_fields: dict | None = None
+    passage_revision_id: str | None = None
 
 
 def load_prompt(stage: str, version: str, require_body: bool = True) -> Prompt:
@@ -112,9 +113,9 @@ def select_targets(
 
     An empty selection selects nothing: only `None` means "no restriction".
     """
-    where, tail, params = "", "", []
+    where, tail, params = "WHERE a.kind = 'markdown'", "", []
     if source_ids is not None:
-        where, params = "WHERE s.id = ANY(%s)", [source_ids]
+        where, params = "WHERE a.kind = 'markdown' AND s.id = ANY(%s)", [source_ids]
     if limit is not None:
         tail, params = " LIMIT %s", params + [limit]
     rows = conn.execute(
@@ -123,7 +124,8 @@ def select_targets(
         " JOIN source_snapshot sn ON sn.source_id = s.id"
         " JOIN artifact a ON a.snapshot_id = sn.id"
         f" {where}"
-        " ORDER BY s.id, a.created_at DESC, a.id DESC"
+        " ORDER BY s.id, sn.created_at DESC, a.created_at DESC,"
+        " (a.metadata ? 'source_markdown_artifact_id') DESC, a.id DESC"
         f"{tail}",
         params,
     ).fetchall()
@@ -156,11 +158,46 @@ def blocks_body(conn: psycopg.Connection, artifact_id: str, version: str = BLOCK
     return "\n\n".join(f'<block n="{row["seq"]}">\n{row["body"]}\n</block>' for row in rows)
 
 
+def require_canonical_image_artifact(conn: psycopg.Connection, artifact_id: str) -> None:
+    """Passage cuts may not race an unfinished source-image branch."""
+    row = conn.execute(
+        "SELECT metadata FROM artifact WHERE id = %s", (artifact_id,)
+    ).fetchone()
+    if row is None:
+        raise SystemExit(f"no artifact {artifact_id}")
+    if (row[0] or {}).get("source_markdown_artifact_id"):
+        return
+    counts = conn.execute(
+        "SELECT count(*), count(*) FILTER (WHERE status IN"
+        " ('queued', 'running', 'downloaded'))"
+        " FROM source_image_candidate WHERE markdown_artifact_id = %s",
+        (artifact_id,),
+    ).fetchone()
+    if not counts or counts[0] == 0:
+        return
+    if counts[1]:
+        raise SystemExit(
+            f"{artifact_id} still has {counts[1]} image(s) awaiting enrichment;"
+            " passage cuts require the enriched Markdown"
+        )
+    raise SystemExit(
+        f"{artifact_id} has a terminal image branch but is not its enriched artifact"
+    )
+
+
 def with_blocks_bodies(conn: psycopg.Connection, targets: list[Target]) -> list[Target]:
-    return [
-        Target(t.source_id, t.source_title, t.artifact_id, blocks_body(conn, t.artifact_id))
-        for t in targets
-    ]
+    prepared = []
+    for target in targets:
+        require_canonical_image_artifact(conn, target.artifact_id)
+        prepared.append(
+            Target(
+                target.source_id,
+                target.source_title,
+                target.artifact_id,
+                blocks_body(conn, target.artifact_id),
+            )
+        )
+    return prepared
 
 
 def load_tool(path: str) -> dict:
@@ -178,7 +215,8 @@ def load_tool(path: str) -> dict:
 
 def next_run_id(conn: psycopg.Connection) -> str:
     number = conn.execute(
-        "SELECT coalesce(max(substring(id from 2)::int), 0) + 1 FROM run"
+        "SELECT coalesce(max(substring(id from '^r([0-9]+)$')::bigint), 0) + 1"
+        " FROM run WHERE id ~ '^r[0-9]+$'"
     ).fetchone()[0]
     return f"r{number:04d}"
 
@@ -249,15 +287,16 @@ def execute(
             text, usage, duration_ms = result if result else (None, None, None)
             conn.execute(
                 "INSERT INTO run_item"
-                " (id, run_id, artifact_id, passage_id, task_id,"
+                " (id, run_id, artifact_id, passage_id, task_id, passage_revision_id,"
                 "  response, usage, duration_ms, error)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     f"{run_id}-{index:04d}",
                     run_id,
                     target.artifact_id,
                     target.passage_id,
                     target.task_id,
+                    target.passage_revision_id,
                     text,
                     Jsonb(usage) if usage is not None else None,
                     duration_ms,
@@ -296,7 +335,8 @@ def fetch_run(conn: psycopg.Connection, run_id: str) -> dict:
 
 def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
-        "SELECT i.id, i.artifact_id, i.passage_id, i.task_id, s.id, s.title,"
+        "SELECT i.id, i.artifact_id, i.passage_id, i.task_id, i.passage_revision_id,"
+        " s.id, s.title,"
         " i.response, i.usage, i.duration_ms, i.error"
         " FROM run_item i"
         " JOIN artifact a ON a.id = i.artifact_id"
@@ -306,7 +346,7 @@ def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
         (run_id,),
     ).fetchall()
     keys = (
-        "id artifact_id passage_id task_id source_id source_title"
+        "id artifact_id passage_id task_id passage_revision_id source_id source_title"
         " response usage duration_ms error"
     ).split()
     return [dict(zip(keys, row)) for row in rows]
@@ -367,7 +407,10 @@ def cmd_run(args: argparse.Namespace) -> None:
             extra=extra or None,
         )
         print(f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} artifact(s) via {args.model}")
-        summary = execute(conn, prompt, client, targets, workers=args.workers)
+        run_params = {"blocker_version": BLOCKER_VERSION} if args.body_from == "blocks" else None
+        summary = execute(
+            conn, prompt, client, targets, workers=args.workers, run_params=run_params
+        )
         items = fetch_items(conn, summary["run_id"])
 
     usage = report.aggregate_usage(items)

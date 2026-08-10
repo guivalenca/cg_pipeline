@@ -1,0 +1,46 @@
+{
+  "name": "report_source_images",
+  "description": "Report the analysis of every source image.",
+  "strict": true,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "images": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "image_id": {"type": "string"},
+            "retain": {"type": "boolean"},
+            "reason_code": {
+              "type": "string",
+              "enum": [
+                "information",
+                "context",
+                "decoration",
+                "interface",
+                "advertising",
+                "no_unique_content",
+                "insufficient_evidence"
+              ]
+            },
+            "ocr": {"type": ["string", "null"]},
+            "description": {"type": ["string", "null"]},
+            "limitations": {"type": ["string", "null"]}
+          },
+          "required": [
+            "image_id",
+            "retain",
+            "reason_code",
+            "ocr",
+            "description",
+            "limitations"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["images"],
+    "additionalProperties": false
+  }
+}

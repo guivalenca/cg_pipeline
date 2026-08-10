@@ -1,6 +1,6 @@
 """A minimal OpenAI-chat-completions client, stdlib only, configured by
-MODEL_API_BASE and MODEL_API_KEY, defaulting to OpenRouter with
-OPEN_ROUTER_API_KEY.
+MODEL_API_BASE and MODEL_API_KEY, defaulting to OpenRouter with either
+OPENROUTER_API_KEY or the legacy OPEN_ROUTER_API_KEY spelling.
 
 The transport is a plain function (url, headers, payload, timeout) -> parsed
 JSON, so tests hand in a fake one and never touch the network.
@@ -19,6 +19,11 @@ DEFAULT_API_BASE = "https://openrouter.ai/api/v1"
 
 class ModelError(RuntimeError):
     """The call did not come back with a usable completion."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.usage: dict = {}
+        self.duration_ms: int = 0
 
 
 def http_transport(url: str, headers: dict[str, str], payload: dict, timeout: float) -> dict:
@@ -60,6 +65,7 @@ class ModelClient:
             api_key
             if api_key is not None
             else os.environ.get("MODEL_API_KEY")
+            or os.environ.get("OPENROUTER_API_KEY")
             or os.environ.get("OPEN_ROUTER_API_KEY")
             or ""
         )
@@ -97,11 +103,85 @@ class ModelClient:
         started = time.monotonic()
         body = self.transport(f"{self.api_base}/chat/completions", headers, payload, self.timeout)
         duration_ms = int((time.monotonic() - started) * 1000)
-        text = extract_text(body, require_tool="tools" in payload)
         usage = dict(body.get("usage") or {})
         if body.get("provider"):
             usage["provider"] = body["provider"]
+        if body.get("model"):
+            usage["response_model"] = body["model"]
+        try:
+            text = extract_text(body, require_tool="tools" in payload)
+        except ModelError as exc:
+            # A syntactically valid provider response can still violate the
+            # forced-tool contract. Preserve its billed usage for a controlled
+            # application-level failover instead of making that attempt vanish.
+            exc.usage = usage
+            exc.duration_ms = duration_ms
+            raise
         return text, usage, duration_ms
+
+    def call_tool(
+        self, messages: list[dict], tool: dict
+    ) -> tuple[dict, dict, int]:
+        """Force exactly one named tool call over arbitrary chat content.
+
+        ``messages`` may contain OpenAI-compatible multimodal content blocks.
+        The payload surface stays generic while the declared schema and the
+        parsed arguments remain caller-owned.  Provider response bodies and
+        request media are never returned as telemetry.
+        """
+        if not self.api_base:
+            raise ModelError("MODEL_API_BASE is not set")
+        try:
+            tool_name = tool["function"]["name"]
+        except (KeyError, TypeError) as exc:
+            raise ModelError("tool must declare function.name") from exc
+        if not isinstance(tool_name, str) or not tool_name:
+            raise ModelError("tool must declare function.name")
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+        }
+        if self.temperature is not None:
+            payload["temperature"] = self.temperature
+        payload.update(self.extra)
+        # These fields are intentionally written after ``extra``: callers may
+        # configure routing there, but cannot accidentally weaken the forced
+        # one-tool output contract.
+        payload.update(
+            {
+                "tools": [tool],
+                "tool_choice": {
+                    "type": "function",
+                    "function": {"name": tool_name},
+                },
+                "parallel_tool_calls": False,
+            }
+        )
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        started = time.monotonic()
+        body = self.transport(
+            f"{self.api_base}/chat/completions", headers, payload, self.timeout
+        )
+        duration_ms = int((time.monotonic() - started) * 1000)
+        raw_arguments = extract_tool_arguments(body, expected_tool=tool_name)
+        try:
+            arguments = json.loads(raw_arguments)
+        except json.JSONDecodeError as exc:
+            raise ModelError(f"tool returned invalid JSON: {exc.msg}") from exc
+        if not isinstance(arguments, dict):
+            raise ModelError("tool arguments must be a JSON object")
+
+        usage = dict(body.get("usage") or {})
+        if body.get("provider"):
+            usage["provider"] = body["provider"]
+        if body.get("model"):
+            usage["response_model"] = body["model"]
+        return arguments, usage, duration_ms
 
 
 class EmbeddingClient:
@@ -127,6 +207,7 @@ class EmbeddingClient:
             api_key
             if api_key is not None
             else os.environ.get("MODEL_API_KEY")
+            or os.environ.get("OPENROUTER_API_KEY")
             or os.environ.get("OPEN_ROUTER_API_KEY")
             or ""
         )
@@ -206,3 +287,24 @@ def extract_text(body: dict, require_tool: bool = False) -> str:
     if not isinstance(text, str):
         raise ModelError(f"content is not text: {json.dumps(text)[:500]}")
     return text
+
+
+def extract_tool_arguments(body: dict, *, expected_tool: str) -> str:
+    """Return arguments only when exactly the forced named tool was called."""
+    if "error" in body:
+        raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
+    try:
+        message = body["choices"][0]["message"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
+    calls = message.get("tool_calls")
+    if not isinstance(calls, list) or len(calls) != 1:
+        count = len(calls) if isinstance(calls, list) else 0
+        raise ModelError(f"expected one tool call, got {count}")
+    function = calls[0].get("function") if isinstance(calls[0], dict) else None
+    if not isinstance(function, dict) or function.get("name") != expected_tool:
+        raise ModelError(f"expected tool {expected_tool!r}")
+    arguments = function.get("arguments")
+    if not isinstance(arguments, str) or not arguments:
+        raise ModelError("tool call without arguments")
+    return arguments

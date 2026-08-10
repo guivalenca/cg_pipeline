@@ -66,7 +66,6 @@ def test_every_kind_appears_in_the_order_it_is_written():
         "heading",
         "image",
         "image",
-        "image_summary",
         "list_item",
         "list_item",
         "list_item",
@@ -134,17 +133,56 @@ def test_a_table_and_a_blockquote_are_each_one_block():
 def test_image_only_paragraphs_are_images_and_prose_about_images_is_not():
     assert texts(SYNTHETIC, "image") == [
         "![alt text](https://example.invalid/a.png)",
-        "[Image: A captioned figure](https://example.invalid/b.png)",
+        "[Image: A captioned figure](https://example.invalid/b.png)\n\n"
+        "Image summary: our ingestion's description of a figure, not the author's prose.",
     ]
+    images = [block for block in split_blocks(SYNTHETIC) if block.kind == "image"]
+    assert [block.image_state for block in images] == ["unresolved", "enriched"]
 
 
-def test_an_ingestion_image_summary_is_its_own_kind_not_a_paragraph():
-    summaries = texts(SYNTHETIC, "image_summary")
-    assert len(summaries) == 1 and summaries[0].startswith("Image summary:")
-    assert not any(t.startswith("Image summary:") for t in texts(SYNTHETIC, "paragraph"))
+def test_an_ingestion_image_summary_is_part_of_the_image_atom():
+    assert texts(SYNTHETIC, "image_summary") == []
+    assert "Image summary:" in texts(SYNTHETIC, "image")[1]
+
+    # A summary without an image is still addressable instead of being lost.
+    orphan = "Image summary: an orphaned legacy description.\n"
+    assert kinds(orphan) == ["image_summary"]
+    assert texts(orphan, "image_summary") == [orphan.rstrip()]
     # Prose that merely mentions the prefix mid-sentence stays a paragraph.
     body = "The words Image summary: appear here mid-thought.\n"
     assert kinds(body) == ["paragraph"]
+
+
+def test_visual_fields_and_wrapped_descriptions_stay_in_one_enriched_atom():
+    body = (
+        "![Chart](https://example.invalid/chart.png)\n\n"
+        "Image summary: A chart compares two systems across\n"
+        "three dimensions.\n\n"
+        "Visible text: System A; System B\n\n"
+        "Following prose.\n"
+    )
+
+    result = split_blocks(body)
+
+    assert [block.kind for block in result] == ["image", "paragraph"]
+    assert result[0].image_state == "enriched"
+    assert "three dimensions." in result[0].text
+    assert "Visible text:" in result[0].text
+    assert result[1].text == "Following prose."
+
+
+def test_linked_and_explicitly_unresolved_images_are_protected_atoms():
+    linked = "[![Diagram](https://example.invalid/a.png)](https://example.invalid/full)\n"
+    explicit = (
+        "![Unavailable](https://example.invalid/b.png)\n\n"
+        "Image analysis: unresolved because the source asset was unavailable.\n"
+    )
+
+    assert split_blocks(linked)[0].image_state == "unresolved"
+    unresolved = split_blocks(explicit)
+    assert len(unresolved) == 1
+    assert unresolved[0].kind == "image"
+    assert unresolved[0].image_state == "unresolved"
 
 
 def test_a_paragraph_stops_at_the_next_block_start():
@@ -251,6 +289,9 @@ def test_storing_writes_every_block_once_and_never_again(db, blocked_artifact):
     stored = blocks.fetch_blocks(db, blocked_artifact)
     assert [row["seq"] for row in stored] == list(range(1, len(expected) + 1))
     assert [row["kind"] for row in stored] == [block.kind for block in expected]
+    assert [row["image_state"] for row in stored] == [
+        block.image_state for block in expected
+    ]
     assert stored[0]["id"] == f"{blocked_artifact}:b{BLOCKER_VERSION}:0001"
     assert all(body[r["start_char"] : r["end_char"]] == r["body"] for r in stored)
 

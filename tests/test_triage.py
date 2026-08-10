@@ -1,12 +1,17 @@
 """Passages and the triage stage. The transport is faked; the database is real."""
 
 import json
+from pathlib import Path
 
 import pytest
+from psycopg.types.json import Jsonb
 
 from universe import blocks, harness, passages, triage, triage_report
 from universe.blocks import BLOCKER_VERSION, split_blocks
+from universe.harness import load_prompt, load_tool
 from universe.model_client import ModelClient
+
+PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts" / "passage-triage"
 
 BODY = """---
 title: "Triage lesson"
@@ -95,9 +100,10 @@ def fake_cuts_run(db, artifact_id: str, cut_list: list[int]) -> str:
     """A passage-cuts run written by hand, so no model is needed to have one."""
     run_id = harness.next_run_id(db)
     db.execute(
-        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, status)"
-        " VALUES (%s, 'passage-cuts', 'fake/model', 'passage-cuts/v001', 'abc', 'done')",
-        (run_id,),
+        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
+        " VALUES (%s, 'passage-cuts', 'fake/model', 'passage-cuts/v001',"
+        " 'abc', %s, 'done')",
+        (run_id, Jsonb({"blocker_version": BLOCKER_VERSION})),
     )
     db.execute(
         "INSERT INTO run_item (id, run_id, artifact_id, response)"
@@ -242,6 +248,32 @@ def test_a_field_value_that_looks_like_a_placeholder_is_content():
     assert "<source>\n{{passage}}\n</source>" in rendered
 
 
+def test_current_prompt_defines_refine_without_preselecting_removals():
+    prompt = load_prompt("passage-triage", "v003")
+    assert "content that should be removed" in prompt.template
+    assert "{{body}}" in prompt.template and "{{passage}}" in prompt.template
+    assert "at least two" not in prompt.template
+    assert "non-empty" not in prompt.template
+
+
+def test_current_triage_tools_report_only_the_verdict():
+    regular = load_tool(str(PROMPTS_DIR / "tool-v003.json"))
+    regular_function = regular["tools"][0]["function"]
+    regular_properties = regular_function["parameters"]["properties"]
+    assert set(regular_properties) == {"verdict"}
+    assert regular_properties["verdict"]["enum"] == [
+        "keep",
+        "drop",
+        "refine",
+        "unknown",
+    ]
+
+    atomic = load_tool(str(PROMPTS_DIR / "tool-v003-atomic.json"))
+    atomic_properties = atomic["tools"][0]["function"]["parameters"]["properties"]
+    assert set(atomic_properties) == {"verdict"}
+    assert atomic_properties["verdict"]["enum"] == ["keep", "drop", "unknown"]
+
+
 # --- targets ----------------------------------------------------------------
 
 
@@ -259,6 +291,25 @@ def test_every_passage_of_an_artifact_gets_the_same_body_byte_for_byte(db, cuts_
     assert targets[0].source_id == "triage-src-1"
     assert targets[0].extra_fields == {"passage": "\n\n".join(BLOCK_TEXTS[0:2])}
     assert targets[1].extra_fields == {"passage": "\n\n".join(BLOCK_TEXTS[2:5])}
+
+
+def test_a_revised_passage_target_uses_the_revision_body_and_identity(db, cuts_runs):
+    first, _ = cuts_runs
+    passages.materialize(db, first)
+    rows = passages.fetch_passages_for_runs(db, [first])
+    revised = {
+        rows[0]["id"]: {
+            "body": "Refined alpha passage.",
+            "revision_id": "revision-test-id",
+        }
+    }
+
+    targets = triage.build_targets(db, rows, revised)
+
+    assert targets[0].extra_fields == {"passage": "Refined alpha passage."}
+    assert targets[0].passage_revision_id == "revision-test-id"
+    assert targets[1].extra_fields == {"passage": "\n\n".join(BLOCK_TEXTS[2:5])}
+    assert targets[1].passage_revision_id is None
 
 
 # --- the run ----------------------------------------------------------------
@@ -342,3 +393,15 @@ def test_an_unusable_response_shows_as_itself_not_as_a_verdict():
     assert triage_report.verdict_of({"error": "boom", "response": None}) == "error"
     assert triage_report.verdict_of({"error": None, "response": "not json"}) == "unparseable"
     assert triage_report.verdict_of({"error": None, "response": '{"cuts": [1]}'}) == "unparseable"
+
+
+@pytest.mark.parametrize("verdict", ["keep", "drop", "refine", "unknown"])
+def test_cleanup_verdict_accepts_only_the_four_current_decisions(verdict):
+    item = {"error": None, "response": json.dumps({"verdict": verdict})}
+    assert triage.cleanup_verdict_of(item) == verdict
+
+
+def test_cleanup_verdict_rejects_legacy_or_unknown_values():
+    for verdict in ("not_filler", "filler", "something_else"):
+        item = {"error": None, "response": json.dumps({"verdict": verdict})}
+        assert triage.cleanup_verdict_of(item) == "unparseable"

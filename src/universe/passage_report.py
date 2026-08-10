@@ -16,10 +16,11 @@ from pathlib import Path
 
 import psycopg
 
-from universe.blocks import BLOCKER_VERSION, fetch_blocks
+from universe.blocks import fetch_blocks
 from universe.cuts import check_cuts, parse_cuts, passage_ranges, repair_cuts
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run
+from universe.passage_refine import state as passage_state
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
@@ -28,6 +29,21 @@ def thinking_label(params: dict) -> str:
     thinking = (params or {}).get("thinking", {}).get("type", "absent")
     effort = (params or {}).get("reasoning_effort")
     return f"thinking {thinking}" + (f", effort {effort}" if effort else "")
+
+
+def passage_state_text(
+    conn: psycopg.Connection, passage: dict, revision_id: str | None
+) -> str:
+    """The exact passage body one run item saw, raw or revised."""
+    if revision_id is not None:
+        return passage_state(conn, passage, revision_id)["body"]
+    return "\n\n".join(
+        block["body"]
+        for block in fetch_blocks(
+            conn, passage["artifact_id"], passage["blocker_version"]
+        )
+        if passage["first_seq"] <= block["seq"] <= passage["last_seq"]
+    )
 
 
 def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
@@ -41,6 +57,7 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
     for run_id in run_ids:
         run = fetch_run(conn, run_id)
         version = run["prompt_ref"].rsplit("/", 1)[-1]
+        blocker_version = str((run.get("params") or {}).get("blocker_version") or "2")
         for item in fetch_items(conn, run_id):
             title = f"{run_id} {run['model']} {version} ({thinking_label(run['params'])})"
             meta = f"| {run_id} | {run['model']} | {version} | {thinking_label(run['params'])}"
@@ -49,7 +66,7 @@ def render_runs(conn: psycopg.Connection, run_ids: list[str]) -> str:
                 sections += [f"## {title}", "", f"Call failed: `{item['error']}`", ""]
                 continue
 
-            blocks = fetch_blocks(conn, item["artifact_id"], BLOCKER_VERSION)
+            blocks = fetch_blocks(conn, item["artifact_id"], blocker_version)
             seqs = [block["seq"] for block in blocks]
             by_seq = {block["seq"]: block for block in blocks}
             try:
