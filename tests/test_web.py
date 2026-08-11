@@ -222,6 +222,65 @@ def test_version_query_loads_that_versions_actual_lessons(
     ]
 
 
+def test_new_workbook_is_reconciled_before_it_becomes_the_current_version(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Syllabus reconciliation web {uuid.uuid4().hex[:8]}"
+    original = _workbook(
+        tmp_path / "reconciliation-original.xlsx",
+        project="Project",
+        lesson="Aula",
+        source_description="Descrição original",
+    )
+    incoming = _workbook(
+        tmp_path / "reconciliation-incoming.xlsx",
+        project="Project",
+        lesson="Aula",
+        source_description="Descrição nova",
+    )
+    with TestClient(_app(test_database_url)) as client:
+        uploaded = _upload(client, original, name).json()
+        with incoming.open("rb") as workbook:
+            preview_response = client.post(
+                f"/api/syllabi/{uploaded['syllabus_id']}/reconciliations",
+                files={
+                    "file": (
+                        incoming.name,
+                        workbook,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                },
+            )
+        assert preview_response.status_code == 201, preview_response.text
+        preview = preview_response.json()
+        assert preview["base_version_id"] == uploaded["version_id"]
+        assert preview["summary"]["action_count"] == 1
+        changed_source = next(
+            source
+            for lesson in preview["lessons"]
+            for source in lesson["sources"]
+            if source["status"] == "changed"
+        )
+
+        still_current = client.get(
+            f"/api/syllabi/{uploaded['syllabus_id']}"
+        ).json()
+        assert still_current["version"]["id"] == uploaded["version_id"]
+        assert still_current["lessons"][0]["sources"][0]["description"] == "Descrição original"
+
+        applied = client.post(
+            f"/api/syllabi/{uploaded['syllabus_id']}/reconciliations/{preview['id']}/apply",
+            json={
+                "decisions": {changed_source["item_id"]: "transition"},
+                "drafts": {},
+            },
+        )
+        assert applied.status_code == 201, applied.text
+        assert applied.json()["version_id"] != uploaded["version_id"]
+        latest = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
+        assert latest["lessons"][0]["sources"][0]["description"] == "Descrição nova"
+
+
 def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
     test_database_url, applied_migrations, tmp_path
 ):
@@ -233,6 +292,11 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
         lesson = detail["lessons"][0]
         original = lesson["sources"][0]
+        reviewed = client.patch(
+            f"/api/syllabi/{uploaded['syllabus_id']}/sources/{original['reference_id']}/review",
+            json={"validated": True, "complexity": "complex"},
+        )
+        assert reviewed.status_code == 200, reviewed.text
         payload = {
             "base_version_id": uploaded["version_id"],
             "lessons": [
@@ -275,6 +339,10 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         refreshed = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
         assert refreshed["lessons"][0]["title"] == "Aula revisada"
         assert refreshed["lessons"][0]["hidden"] is True
+        assert refreshed["lessons"][0]["sources"][1]["review"] == {
+            "validated": False,
+            "complexity": "complex",
+        }
         assert [source["title"] for source in refreshed["lessons"][0]["sources"]] == [
             "Nova fonte",
             "Fonte",
@@ -301,19 +369,19 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         assert "versão mais nova" in stale.json()["detail"]
 
 
-def test_lesson_review_can_be_marked_validated_and_simple(
+def test_source_review_can_be_marked_validated_and_simple(
     test_database_url, applied_migrations, tmp_path
 ):
-    name = f"Lesson Review {uuid.uuid4().hex[:8]}"
-    path = _workbook(tmp_path / "lesson-review.xlsx", project="Project", lesson="Aula")
+    name = f"Source Review {uuid.uuid4().hex[:8]}"
+    path = _workbook(tmp_path / "source-review.xlsx", project="Project", lesson="Aula")
 
     with TestClient(_app(test_database_url)) as client:
         uploaded = _upload(client, path, name).json()
         detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
-        lesson = detail["lessons"][0]
+        source = detail["lessons"][0]["sources"][0]
 
         reviewed = client.patch(
-            f"/api/syllabi/{uploaded['syllabus_id']}/lessons/{lesson['id']}/review",
+            f"/api/syllabi/{uploaded['syllabus_id']}/sources/{source['reference_id']}/review",
             json={"validated": True, "complexity": "simple"},
         )
 
@@ -323,7 +391,7 @@ def test_lesson_review_can_be_marked_validated_and_simple(
             "complexity": "simple",
         }
         refreshed = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
-        assert refreshed["lessons"][0]["review"] == {
+        assert refreshed["lessons"][0]["sources"][0]["review"] == {
             "validated": True,
             "complexity": "simple",
         }
@@ -1351,6 +1419,8 @@ def test_source_actions_keep_manual_access_visible_and_adapter_gating_conservati
         / "syllabi.js"
     ).read_text()
     assert "Abrir fonte${ICON.external}" not in script
+    assert "${ICON.eye}Visualizar</button>" in script
+    assert "Upload de PDF ou Imagem" in script
     assert "original.href" in script
     assert "data-edit-syllabus" in script
     assert "data-show-hidden" in script
@@ -1365,6 +1435,58 @@ def test_source_actions_keep_manual_access_visible_and_adapter_gating_conservati
     assert (
         "O Markdown final só será publicado depois da análise visual e da limpeza."
     ) in script
+
+
+def test_reconciliation_prototype_is_absorbed_into_the_real_version_upload_flow():
+    static = Path(__file__).resolve().parents[1] / "src" / "universe" / "web" / "static"
+    script = (static / "syllabi.js").read_text()
+    reconciliation = (static / "syllabus_reconciliation.js").read_text()
+    assert "/reconciliations`" in script
+    assert "showReconciliation(body)" in script
+    assert "mountSyllabusReconciliation" in reconciliation
+    assert "data-recon-lesson" in reconciliation
+    assert "data-recon-item" in reconciliation
+    assert "data-recon-choice=\"keep\"" in reconciliation
+    assert "data-recon-choice=\"transition\"" in reconciliation
+    assert "Ordem na aula" not in reconciliation
+    assert "recon-lesson-rail__body\"><small><span>" in reconciliation
+    assert "prototypeMode" not in script
+    assert not (static / "syllabus_reconciliation_prototype.js").exists()
+
+
+def test_source_organization_controls_are_exposed_and_lessons_use_subject_colors():
+    static = Path(__file__).resolve().parents[1] / "src" / "universe" / "web" / "static"
+    script = (static / "syllabi.js").read_text()
+    styles = (static / "syllabi.css").read_text()
+
+    for contract in (
+        "data-toggle-source-validated",
+        "data-set-source-complexity",
+        "data-filter-validation",
+        "data-filter-complexity",
+        "data-filter-media",
+        "data-toggle-lesson-expanded",
+        "data-edit-lesson",
+        "data-toggle-lesson-hidden",
+        "usageMarkup(detail)",
+    ):
+        assert contract in script
+    assert ".syl-lesson.is-collapsed .syl-lesson__sources" in styles
+    assert "collapsedLessonIds: new Set()" in script
+    assert ".syl-lesson__header.syl-lesson__header--collapsed" in styles
+    assert ".syl-source--validated" in styles
+    assert "Desvalidar" in script
+    assert "targetLessonId" in script
+    assert "syl-lesson-expand" not in script
+    assert "data-toggle-lesson-expanded data-lesson-id" in script
+    assert "lessonValidationProgress" in script
+    assert "${progress.validated}/${progress.total} autoestudos validados" in script
+    assert 'aria-label="Editar somente esta aula">${ICON.edit}</button>' in script
+    assert "sourceMarkup(source, { collapsedValidated: collapsed && validated })" in script
+    assert ".syl-lesson.is-collapsed.is-validated .syl-lesson__sources" in styles
+    assert '.syl-lesson[data-subject="COM"]' in styles
+    assert '.syl-lesson[data-subject="UEX"]' in styles
+    assert ".syl-usage-strip" in styles
 
 
 def test_provider_auth_failure_is_not_described_as_target_site_refusal():

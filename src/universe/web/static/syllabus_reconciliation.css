@@ -1,0 +1,327 @@
+/* Production reconciliation workspace for an incoming Syllabus workbook. */
+
+.recon-production {
+  --recon-green: #27755d;
+  --recon-green-soft: color-mix(in srgb, var(--recon-green) 10%, var(--admin-surface));
+  --recon-amber: #9b641d;
+  --recon-amber-soft: color-mix(in srgb, #d78a24 10%, var(--admin-surface));
+  --recon-red: #a44a4a;
+  --recon-red-soft: color-mix(in srgb, var(--recon-red) 9%, var(--admin-surface));
+  --recon-blue: #4c6f91;
+  display: grid;
+  gap: 16px;
+  padding-bottom: 36px;
+}
+
+.recon-production button,
+.recon-production input,
+.recon-production textarea,
+.recon-production select { font: inherit; }
+
+.recon-production svg,
+.recon-heading-meta svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.recon-heading-meta {
+  min-width: 300px;
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 11px;
+  background: var(--admin-surface);
+}
+
+.recon-heading-meta > span,
+.recon-heading-meta > small { color: var(--admin-text-secondary); font-size: 9px; }
+.recon-heading-meta > span { font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.recon-heading-meta > strong { font-size: 12px; }
+
+.recon-cancel-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.recon-summary {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.4fr) auto;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: var(--admin-surface);
+}
+
+.recon-summary > div { display: grid; align-content: center; gap: 5px; padding: 19px 22px; }
+.recon-summary > div > span { color: var(--admin-brand); font-size: 9px; font-weight: 750; }
+.recon-summary > div > strong { font: 650 20px/1.2 var(--admin-display); }
+.recon-summary > div > p { max-width: 680px; margin: 0; color: var(--admin-text-secondary); font-size: 10px; line-height: 1.45; }
+.recon-summary dl { display: grid; grid-template-columns: repeat(4, minmax(102px, 1fr)); margin: 0; border-left: 1px solid var(--admin-border); }
+.recon-summary dl div { min-width: 102px; display: grid; align-content: center; gap: 4px; padding: 15px; border-left: 1px solid var(--admin-border); }
+.recon-summary dl div:first-child { border-left: 0; }
+.recon-summary dt { font: 650 22px/1 var(--admin-display); }
+.recon-summary dd { margin: 0; color: var(--admin-text-secondary); font-size: 9.5px; }
+
+.recon-workspace {
+  min-height: 780px;
+  display: grid;
+  grid-template-columns: 355px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: var(--admin-surface);
+}
+
+.recon-lesson-rail {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--admin-border);
+  background: color-mix(in srgb, var(--admin-bg) 63%, var(--admin-surface));
+}
+
+.recon-lesson-rail > header { padding: 18px 17px 14px; }
+.recon-lesson-rail > header > span,
+.recon-class-heading small { display: block; margin-bottom: 4px; color: var(--admin-text-secondary); font-size: 8.5px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+.recon-lesson-rail > header h2 { margin: 0; font: 650 17px/1.25 var(--admin-display); }
+.recon-lesson-rail > header p { margin: 7px 0 0; color: var(--admin-text-secondary); font-size: 9.5px; line-height: 1.4; }
+.recon-lesson-rail nav { display: grid; }
+
+.recon-lesson-tree {
+  display: grid;
+  border-top: 1px solid var(--admin-border);
+}
+
+.recon-lesson-parent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: start;
+  gap: 8px;
+  padding: 13px 13px;
+  border: 0;
+  color: var(--admin-text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.recon-lesson-parent:hover { background: color-mix(in srgb, var(--admin-surface) 70%, transparent); }
+.recon-lesson-tree.is-active > .recon-lesson-parent { background: var(--admin-surface); box-shadow: inset 3px 0 0 var(--admin-brand); }
+.recon-lesson-rail__body { min-width: 0; display: grid; gap: 3px; }
+.recon-lesson-rail__body small { display: flex; align-items: center; gap: 6px; color: var(--admin-text-secondary); font-size: 8px; font-weight: 750; text-transform: uppercase; }
+.recon-lesson-rail__body small time { display: inline-flex; align-items: center; gap: 6px; color: var(--admin-text-muted); font: inherit; }
+.recon-lesson-rail__body small time::before { content: '·'; }
+.recon-lesson-rail__body strong { font-size: 10.5px; line-height: 1.3; }
+.recon-lesson-rail__body em { color: var(--admin-text-secondary); font-size: 8px; font-style: normal; line-height: 1.35; }
+.recon-lesson-rail__progress { min-width: 28px; height: 22px; display: grid; place-items: center; margin-top: 2px; border-radius: 999px; color: var(--recon-amber); background: var(--recon-amber-soft); font-size: 8px; font-weight: 750; }
+.recon-lesson-rail__progress.is-complete { color: var(--recon-green); background: var(--recon-green-soft); }
+
+.recon-lesson-subtasks {
+  position: relative;
+  display: grid;
+  padding: 0 8px 9px 25px;
+  background: var(--admin-surface);
+}
+
+.recon-lesson-subtasks::before {
+  position: absolute;
+  top: 0;
+  bottom: 17px;
+  left: 25px;
+  width: 1px;
+  content: '';
+  background: var(--admin-border-strong);
+}
+
+.recon-lesson-subtask {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 6px 8px 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--admin-text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.recon-lesson-subtask:hover { background: var(--admin-bg); }
+.recon-lesson-subtask.is-active { background: color-mix(in srgb, var(--admin-brand) 7%, var(--admin-surface)); }
+
+.recon-lesson-subtask__line {
+  position: relative;
+  align-self: stretch;
+}
+
+.recon-lesson-subtask__line::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 12px;
+  height: 1px;
+  content: '';
+  background: var(--admin-border-strong);
+}
+
+.recon-lesson-subtask__body { min-width: 0; display: grid; gap: 2px; }
+.recon-lesson-subtask__body small { color: var(--admin-text-secondary); font-size: 7px; font-weight: 750; text-transform: uppercase; }
+.recon-lesson-subtask__body strong { overflow: hidden; font-size: 9px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.recon-lesson-subtask__body em { overflow: hidden; color: var(--admin-text-secondary); font-size: 7.5px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.recon-lesson-subtask__meta { display: grid; justify-items: end; gap: 3px; }
+
+.recon-lesson-rail > footer { display: flex; align-items: flex-start; gap: 7px; margin-top: auto; padding: 13px 14px; border-top: 1px solid var(--admin-border); color: var(--recon-green); background: var(--recon-green-soft); }
+.recon-lesson-rail > footer > div { display: grid; gap: 3px; }
+.recon-lesson-rail > footer strong { font-size: 8.5px; }
+.recon-lesson-rail > footer span { font-size: 8px; }
+.recon-lesson-rail > footer svg { width: 13px; height: 13px; }
+
+.recon-main { min-width: 0; display: grid; align-content: start; gap: 17px; padding: 24px 27px 20px; }
+.recon-class-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.recon-class-heading h2 { max-width: 720px; margin: 0; font: 650 25px/1.17 var(--admin-display); }
+.recon-class-heading p { margin: 6px 0 0; color: var(--admin-text-secondary); font-size: 10px; }
+.recon-class-heading > span { flex: none; padding: 6px 9px; border-radius: 999px; color: var(--admin-brand); background: color-mix(in srgb, var(--admin-brand) 8%, var(--admin-surface)); font-size: 8.5px; font-weight: 750; }
+
+.recon-extraction,
+.recon-change-state { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border-radius: 999px; white-space: nowrap; font-size: 7.5px; font-weight: 700; }
+.recon-extraction--ready { color: var(--recon-green); background: var(--recon-green-soft); }
+.recon-extraction--preserved { color: var(--recon-blue); background: color-mix(in srgb, var(--recon-blue) 9%, var(--admin-surface)); }
+.recon-extraction--idle { color: var(--admin-text-secondary); background: var(--admin-bg); }
+.recon-extraction--attention { color: var(--recon-amber); background: var(--recon-amber-soft); }
+.recon-change-state--changed { color: var(--recon-amber); background: var(--recon-amber-soft); }
+.recon-change-state--added { color: var(--recon-green); background: var(--recon-green-soft); }
+.recon-change-state--removed { color: var(--recon-red); background: var(--recon-red-soft); }
+.recon-change-state--unchanged { color: var(--admin-text-secondary); background: var(--admin-bg); }
+.recon-change-state svg { width: 10px; height: 10px; }
+
+.recon-item-detail { display: grid; gap: 13px; padding-top: 16px; border-top: 1px solid var(--admin-border); }
+.recon-item-detail > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.recon-item-detail__type { display: flex; align-items: center; gap: 7px; color: var(--admin-text-secondary); }
+.recon-item-detail__type > span:first-child { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: var(--admin-brand); background: color-mix(in srgb, var(--admin-brand) 8%, var(--admin-surface)); }
+.recon-item-detail__type > span:first-child svg { width: 14px; height: 14px; }
+.recon-item-detail__type > small { font-size: 8px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-item-detail__heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.recon-item-detail__heading h2 { margin: 0; font: 650 21px/1.2 var(--admin-display); }
+.recon-item-detail > p:not(.recon-outcome):not(.recon-unchanged-note) { margin: -7px 0 0; color: var(--admin-text-secondary); font-size: 9.5px; }
+
+.recon-deleted-warning { display: flex; align-items: flex-start; gap: 8px; padding: 10px 11px; border: 1px solid color-mix(in srgb, var(--recon-red) 32%, var(--admin-border)); border-radius: 9px; color: var(--recon-red); background: var(--recon-red-soft); }
+.recon-deleted-warning > div { display: grid; gap: 2px; }
+.recon-deleted-warning strong { font-size: 9.5px; }
+.recon-deleted-warning span { font-size: 8.5px; line-height: 1.4; }
+.recon-deleted-warning svg { width: 13px; height: 13px; }
+
+.recon-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.recon-comparison > article { overflow: hidden; border: 1px solid var(--admin-border); border-radius: 10px; background: var(--admin-surface); }
+.recon-comparison > article > header { display: grid; gap: 3px; padding: 10px 12px; border-bottom: 1px solid var(--admin-border); background: var(--admin-bg); }
+.recon-comparison > article > header span { color: var(--admin-text-secondary); font-size: 8px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-comparison > article > header strong { font-size: 9.5px; }
+.recon-comparison > article > div { display: grid; }
+.recon-field { display: grid; gap: 4px; min-height: 55px; padding: 9px 11px; border-top: 1px solid var(--admin-border); }
+.recon-field:first-child { border-top: 0; }
+.recon-field.is-changed { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--recon-amber) 62%, transparent); background: color-mix(in srgb, var(--recon-amber-soft) 45%, transparent); }
+.recon-field small { display: flex; align-items: center; gap: 5px; color: var(--admin-text-secondary); font-size: 7.5px; font-weight: 700; }
+.recon-field small span { padding: 2px 5px; border-radius: 999px; color: var(--recon-amber); background: var(--recon-amber-soft); font-size: 6.5px; }
+.recon-field p { margin: 0; font-size: 9px; line-height: 1.45; overflow-wrap: anywhere; }
+.recon-field a { display: inline-flex; align-items: flex-start; gap: 5px; color: var(--admin-brand); font-size: 9px; line-height: 1.45; overflow-wrap: anywhere; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--admin-brand) 35%, transparent); text-underline-offset: 2px; }
+.recon-field a svg { width: 11px; height: 11px; margin-top: 1px; }
+
+.recon-choices { display: grid; grid-template-columns: 190px minmax(0, 1fr); align-items: center; gap: 13px; padding-top: 2px; }
+.recon-choices > div:first-child > small { color: var(--admin-brand); font-size: 7.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-choices h3 { margin: 4px 0 0; font-size: 10.5px; }
+.recon-choices > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.recon-choices button { min-height: 55px; display: flex; align-items: flex-start; gap: 7px; padding: 9px 10px; border: 1px solid var(--admin-border-strong); border-radius: 9px; color: var(--admin-text); background: var(--admin-surface); cursor: pointer; text-align: left; }
+.recon-choices button:hover { border-color: var(--admin-text-muted); }
+.recon-choices button.is-selected { color: var(--recon-green); border-color: color-mix(in srgb, var(--recon-green) 50%, var(--admin-border)); background: var(--recon-green-soft); }
+.recon-choices button > span { min-width: 0; display: grid; flex: 1; gap: 3px; }
+.recon-choices button strong { font-size: 10px; }
+.recon-choices button small { color: var(--admin-text-secondary); font-size: 8px; line-height: 1.35; }
+.recon-choices button svg { width: 12px; height: 12px; margin-top: 1px; }
+
+.recon-outcome,
+.recon-unchanged-note { display: flex; align-items: flex-start; gap: 7px; margin: 0; padding: 9px 10px; border-radius: 8px; color: var(--recon-green); background: var(--recon-green-soft); font-size: 8.5px; }
+.recon-outcome > span,
+.recon-unchanged-note > span { display: grid; gap: 2px; }
+.recon-outcome strong,
+.recon-unchanged-note strong { color: var(--admin-text); }
+.recon-outcome svg,
+.recon-unchanged-note svg { width: 12px; height: 12px; }
+
+.recon-manual-shell { overflow: hidden; border: 1px dashed color-mix(in srgb, var(--admin-brand) 45%, var(--admin-border)); border-radius: 9px; }
+.recon-manual-shell > button { width: 100%; display: grid; grid-template-columns: 29px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 11px; border: 0; color: var(--admin-text); background: color-mix(in srgb, var(--admin-brand) 3%, var(--admin-surface)); cursor: pointer; text-align: left; }
+.recon-manual-shell > button > svg { width: 14px; height: 14px; color: var(--admin-brand); }
+.recon-manual-shell > button > span { display: grid; gap: 2px; }
+.recon-manual-shell > button strong { font-size: 9.5px; }
+.recon-manual-shell > button small { color: var(--admin-text-secondary); font-size: 8px; }
+.recon-manual-shell > button b { color: var(--admin-brand); font-size: 8px; }
+.recon-manual-shell form { display: grid; gap: 11px; padding: 12px; border-top: 1px dashed color-mix(in srgb, var(--admin-brand) 35%, var(--admin-border)); background: color-mix(in srgb, var(--admin-brand) 2%, var(--admin-surface)); }
+.recon-manual-shell form > p { margin: 0; color: var(--admin-text-secondary); font-size: 8px; }
+.recon-manual-shell form > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.recon-manual-field { display: grid; gap: 4px; }
+.recon-manual-field--wide { grid-column: 1 / -1; }
+.recon-manual-field > span { color: var(--admin-text-secondary); font-size: 7.5px; font-weight: 700; }
+.recon-manual-field input,
+.recon-manual-field textarea,
+.recon-manual-field select { width: 100%; box-sizing: border-box; padding: 8px 9px; border: 1px solid var(--admin-border-strong); border-radius: 7px; color: var(--admin-text); background: var(--admin-surface); font-size: 9px; resize: vertical; }
+.recon-manual-field input:focus,
+.recon-manual-field textarea:focus,
+.recon-manual-field select:focus { border-color: var(--admin-brand); outline: 2px solid color-mix(in srgb, var(--admin-brand) 14%, transparent); }
+.recon-manual-shell form footer { display: flex; justify-content: flex-end; }
+.recon-manual-shell form footer button { min-height: 32px; display: inline-flex; align-items: center; gap: 5px; padding: 7px 10px; border: 1px solid var(--admin-brand); border-radius: 7px; color: var(--admin-surface); background: var(--admin-brand); cursor: pointer; font-size: 8.5px; font-weight: 750; }
+.recon-manual-shell form footer button[disabled] { opacity: .4; cursor: not-allowed; }
+.recon-manual-shell form footer button svg { width: 11px; height: 11px; }
+
+.recon-item-detail > footer { display: flex; align-items: center; justify-content: space-between; padding-top: 11px; border-top: 1px solid var(--admin-border); }
+.recon-item-detail > footer button { border: 0; color: var(--admin-text-secondary); background: transparent; cursor: pointer; font-size: 8.5px; font-weight: 650; }
+.recon-item-detail > footer span { color: var(--admin-text-muted); font-size: 8px; }
+
+.recon-action-bar,
+.recon-success { position: sticky; z-index: 15; bottom: 18px; display: flex; align-items: center; gap: 15px; padding: 13px 15px; border: 1px solid var(--admin-border-strong); border-radius: 11px; background: color-mix(in srgb, var(--admin-surface) 94%, transparent); box-shadow: 0 12px 40px color-mix(in srgb, #000 13%, transparent); backdrop-filter: blur(14px); }
+.recon-action-bar > div,
+.recon-success > div { display: grid; gap: 3px; }
+.recon-action-bar small,
+.recon-success small { color: var(--admin-text-secondary); font-size: 8px; }
+.recon-action-bar strong,
+.recon-success strong { font-size: 11px; }
+.recon-action-bar > button,
+.recon-success > button { min-height: 36px; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 8px 13px; border: 1px solid var(--admin-brand); border-radius: 8px; color: var(--admin-surface); background: var(--admin-brand); cursor: pointer; font-size: 9px; font-weight: 750; }
+.recon-action-bar > button[disabled] { opacity: .4; cursor: not-allowed; }
+.recon-action-bar > button svg,
+.recon-success > button svg { width: 12px; height: 12px; }
+.recon-success { color: var(--recon-green); border-color: color-mix(in srgb, var(--recon-green) 38%, var(--admin-border)); }
+.recon-success > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--recon-green-soft); }
+.recon-success p { margin: 0; color: var(--admin-text-secondary); font-size: 8.5px; }
+.recon-success > button { color: var(--recon-green); border-color: color-mix(in srgb, var(--recon-green) 38%, var(--admin-border)); background: var(--recon-green-soft); }
+
+@media (max-width: 1120px) {
+  .recon-summary { grid-template-columns: 1fr; }
+  .recon-summary dl { border-top: 1px solid var(--admin-border); border-left: 0; }
+  .recon-workspace { grid-template-columns: 320px minmax(0, 1fr); }
+  .recon-main { padding-inline: 21px; }
+  .recon-choices { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .recon-heading-meta { display: none; }
+  .recon-summary dl { grid-template-columns: repeat(2, 1fr); }
+  .recon-summary dl div:nth-child(3) { border-top: 1px solid var(--admin-border); border-left: 0; }
+  .recon-summary dl div:nth-child(4) { border-top: 1px solid var(--admin-border); }
+  .recon-workspace { grid-template-columns: 1fr; }
+  .recon-lesson-rail { border-right: 0; border-bottom: 1px solid var(--admin-border); }
+  .recon-lesson-rail > footer { display: none; }
+  .recon-main { padding: 19px 14px; }
+  .recon-comparison,
+  .recon-choices > div:last-child,
+  .recon-manual-shell form > div { grid-template-columns: 1fr; }
+  .recon-manual-field--wide { grid-column: auto; }
+}

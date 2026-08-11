@@ -51,7 +51,12 @@ from universe.syllabus import (
     get_syllabus_workbook,
     import_workbook,
     list_syllabi,
-    update_lesson_review,
+    update_source_review,
+)
+from universe.syllabus_reconciliation import (
+    apply_reconciliation,
+    create_reconciliation,
+    get_reconciliation,
 )
 from universe.settings import acquisition_poll_seconds
 
@@ -747,6 +752,33 @@ def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
     return detail
 
 
+def _enrich_reconciliation(conn: psycopg.Connection, reconciliation: dict) -> dict:
+    """Attach current extraction facts without changing the comparison plan."""
+    source_ids = list(
+        dict.fromkeys(
+            source_id
+            for lesson in reconciliation.get("lessons", [])
+            for item in lesson.get("sources", [])
+            for source_id in [(item.get("current") or {}).get("source_id")]
+            if source_id
+        )
+    )
+    operational = _latest_source_state(conn, source_ids)
+    for lesson in reconciliation.get("lessons", []):
+        for item in lesson.get("sources", []):
+            source_id = (item.get("current") or {}).get("source_id")
+            item["extraction"] = operational.get(source_id, {})
+    base = get_syllabus_version(
+        conn,
+        reconciliation["syllabus_id"],
+        reconciliation["base_version_id"],
+    )
+    reconciliation["syllabus_title"] = base["title"]
+    reconciliation["current_version"] = base["version"]
+    reconciliation["next_version_seq"] = int(base["version"]["seq"]) + 1
+    return reconciliation
+
+
 def _legacy_latest_projection(conn: psycopg.Connection, version_id: str) -> dict:
     """Expose the former flat syllabus shape as a read-only compatibility key."""
     rows = conn.execute(
@@ -986,6 +1018,75 @@ def create_app(
         except Exception as exc:
             raise _workbook_error(exc) from exc
 
+    @app.post("/api/syllabi/{syllabus_id}/reconciliations", status_code=201)
+    async def preview_syllabus_reconciliation(
+        syllabus_id: str,
+        file: UploadFile = File(...),
+    ) -> dict:
+        """Store an incoming workbook without publishing a Syllabus Version."""
+        filename = Path(file.filename or "syllabus.xlsx").name
+        if Path(filename).suffix.lower() != ".xlsx":
+            raise HTTPException(status_code=415, detail="Envie uma planilha .xlsx.")
+        body = await file.read(MAX_WORKBOOK_BYTES + 1)
+        if len(body) > MAX_WORKBOOK_BYTES:
+            raise HTTPException(status_code=413, detail="A planilha excede o limite de 30 MB.")
+        if not body:
+            raise HTTPException(status_code=422, detail="A planilha enviada está vazia.")
+        try:
+            with tempfile.TemporaryDirectory(prefix="universe-reconciliation-") as directory:
+                temporary_path = Path(directory) / filename
+                temporary_path.write_bytes(body)
+                with connect_factory() as conn:
+                    reconciliation = create_reconciliation(
+                        conn, syllabus_id, temporary_path
+                    )
+                    return _enrich_reconciliation(conn, reconciliation)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise _workbook_error(exc) from exc
+
+    @app.get("/api/syllabi/{syllabus_id}/reconciliations/{reconciliation_id}")
+    def syllabus_reconciliation_detail(
+        syllabus_id: str,
+        reconciliation_id: str,
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                reconciliation = get_reconciliation(
+                    conn, syllabus_id, reconciliation_id
+                )
+                return _enrich_reconciliation(conn, reconciliation)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post(
+        "/api/syllabi/{syllabus_id}/reconciliations/{reconciliation_id}/apply",
+        status_code=201,
+    )
+    def apply_syllabus_reconciliation(
+        syllabus_id: str,
+        reconciliation_id: str,
+        payload: dict = Body(...),
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return apply_reconciliation(
+                    conn,
+                    syllabus_id,
+                    reconciliation_id,
+                    payload.get("decisions"),
+                    payload.get("drafts"),
+                )
+        except SyllabusVersionConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     @app.get("/api/syllabi/{syllabus_id}")
     def syllabus_detail(
         syllabus_id: str,
@@ -1004,15 +1105,17 @@ def create_app(
         except LookupError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    @app.patch("/api/syllabi/{syllabus_id}/lessons/{lesson_id}/review")
-    def patch_lesson_review(
+    @app.patch("/api/syllabi/{syllabus_id}/sources/{reference_id}/review")
+    def patch_source_review(
         syllabus_id: str,
-        lesson_id: str,
+        reference_id: str,
         payload: dict = Body(...),
     ) -> dict:
         try:
             with connect_factory() as conn:
-                review = update_lesson_review(conn, syllabus_id, lesson_id, payload)
+                review = update_source_review(
+                    conn, syllabus_id, reference_id, payload
+                )
                 return {"review": review}
         except LookupError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc

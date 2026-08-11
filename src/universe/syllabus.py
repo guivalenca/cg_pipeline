@@ -441,6 +441,25 @@ def _assemble_parsed(format_name: str, workbook_title: str | None, lessons: list
             for lesson in lessons
             if lesson["week"] == reference["week"] and lesson["title"].strip() == parent
         ]
+        if not candidates and not parent:
+            # Some related workbooks omit Parent class for a source but retain
+            # the same Week, Axis and Professor as its lesson. Infer only when
+            # that institutional metadata identifies exactly one lesson; an
+            # ambiguous orphan remains an explicit workbook error.
+            reference_fields = reference.get("fields") or {}
+            professor = _text(reference_fields.get("Professor"))
+            axis = _text(reference_fields.get("Axis"))
+            inferred = [
+                lesson
+                for lesson in lessons
+                if lesson["week"] == reference["week"]
+                and professor
+                and professor == _text((lesson.get("fields") or {}).get("Professor"))
+                and axis
+                and axis == _text(lesson.get("subject"))
+            ]
+            if len(inferred) == 1:
+                candidates = inferred
         if not candidates:
             raise ValueError(
                 f"row {reference['row_number']}: source {reference['title']!r} refers to "
@@ -935,10 +954,8 @@ def get_syllabus_version(
 
     lesson_rows = conn.execute(
         "SELECT sl.id, sl.week, sl.seq, sl.kind, sl.title, sl.subject, sl.lesson_date,"
-        " sl.description, sl.fields, sl.created_at, sl.is_hidden,"
-        " coalesce(lr.is_validated, false),"
-        " lr.complexity FROM syllabus_lesson sl"
-        " LEFT JOIN syllabus_lesson_review lr ON lr.lesson_id = sl.id"
+        " sl.description, sl.fields, sl.created_at, sl.is_hidden"
+        " FROM syllabus_lesson sl"
         " WHERE sl.version_id = %s ORDER BY sl.week NULLS LAST, sl.seq, sl.id",
         (version["id"],),
     ).fetchall()
@@ -946,20 +963,18 @@ def get_syllabus_version(
     for row in lesson_rows:
         lesson = dict(
             zip(
-                ("id", "week", "seq", "kind", "title", "subject", "date", "description", "fields", "created_at", "hidden", "validated", "complexity"),
+                ("id", "week", "seq", "kind", "title", "subject", "date", "description", "fields", "created_at", "hidden"),
                 row,
             )
         )
-        lesson["review"] = {
-            "validated": lesson.pop("validated"),
-            "complexity": lesson.pop("complexity"),
-        }
         reference_rows = conn.execute(
             "SELECT sr.id, sr.source_id, sr.seq, sr.title, sr.description, sr.url,"
             " sr.media_type, sr.resource_code, sr.scope_kind, sr.scope_value, sr.is_hidden,"
-            " sr.fields, sr.created_at, s.identity"
+            " sr.fields, sr.created_at, s.identity,"
+            " coalesce(rr.is_validated, false), rr.complexity"
             " FROM syllabus_source_reference sr"
             " LEFT JOIN source s ON s.id = sr.source_id"
+            " LEFT JOIN syllabus_source_review rr ON rr.reference_id = sr.id"
             " WHERE sr.lesson_id = %s ORDER BY sr.seq, sr.id",
             (lesson["id"],),
         ).fetchall()
@@ -971,10 +986,15 @@ def get_syllabus_version(
                         "reference_id", "source_id", "seq", "title", "description", "url",
                         "media_type", "resource_code", "scope_kind", "scope_value", "hidden",
                         "fields", "created_at", "identity",
+                        "validated", "complexity",
                     ),
                     reference_row,
                 )
             )
+            source["review"] = {
+                "validated": source.pop("validated"),
+                "complexity": source.pop("complexity"),
+            }
             source["scope"] = (
                 {"kind": source["scope_kind"], "value": source["scope_value"]}
                 if source["scope_kind"]
@@ -992,30 +1012,32 @@ def get_syllabus_version(
     }
 
 
-def update_lesson_review(
+def update_source_review(
     conn: psycopg.Connection,
     syllabus_id: str,
-    lesson_id: str,
+    reference_id: str,
     changes: object,
 ) -> dict:
-    """Update the small operational review state for one lesson version."""
+    """Update the small operational review state for one source reference."""
     if not isinstance(changes, dict) or not changes:
-        raise ValueError("Informe ao menos um marcador da aula.")
+        raise ValueError("Informe ao menos um marcador do autoestudo.")
     unknown = set(changes) - {"validated", "complexity"}
     if unknown:
         raise ValueError("A revisão contém campos desconhecidos.")
-    lesson = conn.execute(
-        "SELECT 1 FROM syllabus_lesson sl"
-        " JOIN syllabus_version sv ON sv.id = sl.version_id"
-        " WHERE sl.id = %s AND sv.syllabus_id = %s",
-        (lesson_id, syllabus_id),
+    reference = conn.execute(
+        "SELECT 1 FROM syllabus_source_reference sr"
+        " JOIN syllabus_version sv ON sv.id = sr.version_id"
+        " WHERE sr.id = %s AND sv.syllabus_id = %s",
+        (reference_id, syllabus_id),
     ).fetchone()
-    if lesson is None:
-        raise LookupError(f"unknown lesson {lesson_id!r} for syllabus {syllabus_id!r}")
+    if reference is None:
+        raise LookupError(
+            f"unknown source reference {reference_id!r} for syllabus {syllabus_id!r}"
+        )
 
     current = conn.execute(
-        "SELECT is_validated, complexity FROM syllabus_lesson_review WHERE lesson_id = %s",
-        (lesson_id,),
+        "SELECT is_validated, complexity FROM syllabus_source_review WHERE reference_id = %s",
+        (reference_id,),
     ).fetchone() or (False, None)
     validated, complexity = current
     if "validated" in changes:
@@ -1028,12 +1050,12 @@ def update_lesson_review(
             raise ValueError("A complexidade deve ser simples, complexa ou vazia.")
 
     conn.execute(
-        "INSERT INTO syllabus_lesson_review (lesson_id, is_validated, complexity)"
+        "INSERT INTO syllabus_source_review (reference_id, is_validated, complexity)"
         " VALUES (%s, %s, %s)"
-        " ON CONFLICT (lesson_id) DO UPDATE SET"
+        " ON CONFLICT (reference_id) DO UPDATE SET"
         " is_validated = excluded.is_validated, complexity = excluded.complexity,"
         " updated_at = now()",
-        (lesson_id, validated, complexity),
+        (reference_id, validated, complexity),
     )
     conn.commit()
     return {"validated": validated, "complexity": complexity}
@@ -1151,8 +1173,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
                 )
             if scope_value:
                 scope_value = _normalize_scope_value(scope_value)
-            lesson["source_references"].append(
-                {
+            reference = {
                     "seq": source_index,
                     "title": _clean_edit_text(
                         raw_source.get("title"),
@@ -1175,8 +1196,17 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
                     "scope_value": scope_value,
                     "is_hidden": bool(raw_source.get("hidden")),
                     "fields": _base_fields(base_source),
+                    "_base_review": dict((base_source or {}).get("review") or {}),
                 }
+            reference["_content_unchanged"] = bool(
+                base_source
+                and _projection_signature(
+                    [{"source_references": [reference]}]
+                ) == _projection_signature(
+                    [{"sources": [base_source]}]
+                )
             )
+            lesson["source_references"].append(reference)
         normalized.append(lesson)
     return normalized
 
@@ -1421,6 +1451,17 @@ def curate_syllabus(
                     reference["is_hidden"], Jsonb(reference["fields"]),
                 ),
             )
+            base_review = reference.get("_base_review") or {}
+            complexity = base_review.get("complexity")
+            validated = bool(
+                base_review.get("validated") and reference.get("_content_unchanged")
+            )
+            if complexity is not None or validated:
+                conn.execute(
+                    "INSERT INTO syllabus_source_review"
+                    " (reference_id, is_validated, complexity) VALUES (%s, %s, %s)",
+                    (reference_id, validated, complexity),
+                )
 
     diff = diff_versions(conn, base_version_id, version_id)
     event_id = next_curation_event_id(conn)

@@ -10,9 +10,14 @@ const state = {
   loading: true,
   error: null,
   selectedVersionId: null,
-  filters: { query: '', subject: '', showHidden: false },
-  editor: { active: false, busy: false, dirty: false, lessons: null },
+  filters: { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false },
+  collapsedLessonIds: new Set(),
+  expandedLessonIds: new Set(),
+  reviewBusyReferenceIds: new Set(),
+  editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null },
   upload: { mode: 'new', syllabusId: null, busy: false },
+  reconciliation: null,
+  reconciliationCleanup: null,
   manualUpload: { sourceId: null, title: '', kind: null, items: [], busy: false },
   markdownSourceId: null,
   pollingTimer: null,
@@ -34,6 +39,10 @@ const ICON = {
   search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
   document: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>',
   queue: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
+  upload: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v4h14v-4"/></svg>',
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
 };
 
 function announce(message) {
@@ -47,6 +56,17 @@ function fmtDate(value, withTime = false) {
   return new Intl.DateTimeFormat('pt-BR', withTime
     ? { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }
     : { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+}
+
+function fmtUsd(value) {
+  return `US$ ${new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(Number(value || 0))}`;
+}
+
+function fmtInteger(value) {
+  return new Intl.NumberFormat('pt-BR').format(Number(value || 0));
 }
 
 function safeUrl(value) {
@@ -71,6 +91,14 @@ function mediaLabel(source) {
   if (kind.includes('pdf')) return 'PDF';
   if (kind.includes('article') || kind.includes('artigo')) return 'Artigo';
   return source.media_type || source.type || 'Material';
+}
+
+function mediaKey(source) {
+  const kind = String(source.media_type || source.type || '').toLowerCase();
+  if (kind.includes('video') || kind.includes('vídeo')) return 'video';
+  if (kind.includes('book') || kind.includes('livro')) return 'book';
+  if (kind.includes('article') || kind.includes('artigo')) return 'article';
+  return kind;
 }
 
 function acquisitionCapability(source) {
@@ -315,7 +343,8 @@ function filterMarkup(detail) {
   const subjects = [...new Set((detail.lessons || []).map((lesson) => lesson.subject).filter(Boolean))]
     .sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
   const hiddenCount = (detail.lessons || []).reduce(
-    (count, lesson) => count + (lesson.sources || []).filter((source) => source.hidden).length, 0,
+    (count, lesson) => count + Number(Boolean(lesson.hidden))
+      + (lesson.sources || []).filter((source) => source.hidden).length, 0,
   );
   return `<section class="syl-toolbar" aria-label="Filtros do syllabus">
     <label class="syl-search">${ICON.search}<span class="sr-only">Buscar</span>
@@ -327,12 +356,57 @@ function filterMarkup(detail) {
         ${subjects.map((subject) => `<option value="${esc(subject)}"${subject === state.filters.subject ? ' selected' : ''}>${esc(subject)}</option>`).join('')}
       </select>
     </label>` : ''}
+    <label class="syl-filter syl-filter--compact"><span class="sr-only">Tipo de fonte</span>
+      <select data-filter-media>
+        <option value="">Todos os tipos</option>
+        <option value="article"${state.filters.mediaType === 'article' ? ' selected' : ''}>Artigos</option>
+        <option value="video"${state.filters.mediaType === 'video' ? ' selected' : ''}>Vídeos</option>
+        <option value="book"${state.filters.mediaType === 'book' ? ' selected' : ''}>Livros</option>
+      </select>
+    </label>
+    <label class="syl-filter syl-filter--compact"><span class="sr-only">Validação</span>
+      <select data-filter-validation>
+        <option value="">Todas</option>
+        <option value="pending"${state.filters.validation === 'pending' ? ' selected' : ''}>Pendentes</option>
+        <option value="validated"${state.filters.validation === 'validated' ? ' selected' : ''}>Validadas</option>
+      </select>
+    </label>
+    <label class="syl-filter syl-filter--compact"><span class="sr-only">Complexidade</span>
+      <select data-filter-complexity>
+        <option value="">Qualquer complexidade</option>
+        <option value="simple"${state.filters.complexity === 'simple' ? ' selected' : ''}>Simples</option>
+        <option value="complex"${state.filters.complexity === 'complex' ? ' selected' : ''}>Complexas</option>
+        <option value="untagged"${state.filters.complexity === 'untagged' ? ' selected' : ''}>Sem tag</option>
+      </select>
+    </label>
     <label class="syl-hidden-toggle">
       <input type="checkbox" data-show-hidden${state.filters.showHidden ? ' checked' : ''}>
       <span>Mostrar ocultas${hiddenCount ? ` (${hiddenCount})` : ''}</span>
     </label>
-    ${state.editor.active ? '<span class="syl-editing-stamp">Editando · salvar cria uma nova versão</span>' : ''}
+    ${state.editor.active ? `<span class="syl-editing-stamp">${state.editor.targetLessonId ? 'Editando uma aula' : 'Editando syllabus'} · salvar cria uma nova versão</span>` : ''}
     <span class="syl-version-stamp">v${esc(currentVersion(detail)?.seq ?? '—')} · registrada em ${esc(fmtDate(currentVersion(detail)?.created_at, true))}</span>
+  </section>`;
+}
+
+function usageMarkup(detail) {
+  const usage = detail.usage || {};
+  const openrouter = usage.openrouter || {};
+  const firecrawl = usage.firecrawl || {};
+  const firecrawlOutcome = [
+    Number(firecrawl.succeeded || 0) ? `${fmtInteger(firecrawl.succeeded)} concluídas` : null,
+    Number(firecrawl.failed || 0) ? `${fmtInteger(firecrawl.failed)} falharam` : null,
+  ].filter(Boolean).join(' · ');
+  return `<section class="syl-usage-strip" aria-label="Consumo das fontes desta versão">
+    <div class="syl-usage-item">
+      <span>OpenRouter</span>
+      <strong>${esc(fmtUsd(openrouter.cost_usd))}</strong>
+      <small>${esc(fmtInteger(openrouter.calls))} chamadas · ${esc(fmtInteger(openrouter.total_tokens))} tokens</small>
+    </div>
+    <div class="syl-usage-item">
+      <span>Firecrawl</span>
+      <strong>${esc(fmtInteger(firecrawl.extractions))} extrações</strong>
+      <small>${esc(fmtInteger(firecrawl.attempts))} tentativas${firecrawlOutcome ? ` · ${esc(firecrawlOutcome)}` : ''}</small>
+    </div>
   </section>`;
 }
 
@@ -345,14 +419,32 @@ function sourceMatches(source, query) {
 function filteredLessons(detail) {
   const query = state.filters.query.trim().toLocaleLowerCase('pt-BR');
   return (detail.lessons || []).flatMap((lesson, lessonIndex) => {
+    if (lesson.hidden && !state.filters.showHidden) return [];
     if (state.filters.subject && lesson.subject !== state.filters.subject) return [];
     const lessonMatches = [lesson.title, lesson.subject, lesson.description]
       .filter(Boolean).join(' ').toLocaleLowerCase('pt-BR').includes(query);
-    const visible = (lesson.sources || [])
+    const allSources = lesson.sources || [];
+    const visible = allSources
       .map((source, sourceIndex) => ({ ...source, __sourceIndex: sourceIndex }))
       .filter((source) => state.filters.showHidden || !source.hidden);
-    const sources = lessonMatches ? visible : visible.filter((source) => sourceMatches(source, query));
-    if (!query || lessonMatches || sources.length) return [{ ...lesson, __lessonIndex: lessonIndex, sources }];
+    const sources = (lessonMatches ? visible : visible.filter((source) => sourceMatches(source, query)))
+      .filter((source) => {
+        const review = source.review || {};
+        if (state.filters.mediaType && mediaKey(source) !== state.filters.mediaType) return false;
+        if (state.filters.validation === 'validated' && !review.validated) return false;
+        if (state.filters.validation === 'pending' && review.validated) return false;
+        if (state.filters.complexity === 'untagged' && review.complexity) return false;
+        if (['simple', 'complex'].includes(state.filters.complexity)
+          && review.complexity !== state.filters.complexity) return false;
+        return true;
+      });
+    const sourceFilterActive = Boolean(
+      state.filters.mediaType || state.filters.validation || state.filters.complexity
+    );
+    if (sourceFilterActive && !sources.length) return [];
+    if (!query || lessonMatches || sources.length) {
+      return [{ ...lesson, __lessonIndex: lessonIndex, __allSources: allSources, sources }];
+    }
     return [];
   });
 }
@@ -377,6 +469,7 @@ function sourceStatusMarkup(source) {
   }
   return `${source.hidden ? '<span class="syl-hidden-state">Ocultada</span>' : ''}
     <span class="syl-source-state syl-source-state--${status.key}"><i></i>${esc(status.label)}</span>
+    ${source.markdown?.is_previous_version ? '<span class="syl-knowledge-state">Último Markdown válido preservado</span>' : ''}
     ${imageLabel ? `<span class="syl-image-state syl-image-state--${esc(imageState)}">${esc(imageLabel)}</span>` : ''}
     ${knowledge ? `<span class="syl-knowledge-state syl-knowledge-state--${knowledge.key}">${esc(knowledge.label)}</span>` : ''}`;
 }
@@ -389,15 +482,15 @@ function sourceActions(source) {
   const capability = acquisitionCapability(source);
   const unavailableLabel = `Adapter de ${mediaLabel(source).toLowerCase()} indisponível`;
   return `<div class="syl-source__actions">
-    ${markdownReady ? `<button class="button button--quiet" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">Ver Markdown</button>` : ''}
-    ${source.source_id ? `<button class="button button--quiet syl-manual-button" type="button" data-manual-source="${esc(source.source_id)}" data-manual-title="${esc(source.title || 'Fonte sem título')}"${busy ? ' disabled' : ''}>Usar PDF ou imagens</button>` : ''}
+    ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
+    ${source.source_id ? `<button class="button syl-action-button syl-manual-button" type="button" data-manual-source="${esc(source.source_id)}" data-manual-title="${esc(source.title || 'Fonte sem título')}"${busy ? ' disabled' : ''}>${ICON.upload}Upload de PDF ou Imagem</button>` : ''}
     ${capability.supported
       ? `<button class="button syl-queue-button" type="button" data-queue-source="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>
           ${ICON.queue}${!sourceId ? 'Complete a fonte' : (busy ? `${esc(status.label)}…` : (markdownReady ? 'Reextrair Markdown' : 'Extrair Markdown'))}
         </button>`
       : (markdownReady
         ? ''
-        : `<button class="button syl-queue-button" type="button" disabled title="${esc(capability.reason || unavailableLabel)}">${unavailableLabel}</button>`)}
+        : `<button class="button syl-queue-button" type="button" disabled title="${esc(capability.reason || unavailableLabel)}">${ICON.queue}${unavailableLabel}</button>`)}
   </div>`;
 }
 
@@ -446,9 +539,35 @@ function sourceEditorMarkup(source, lessonIndex, sourceIndex) {
   </article>`;
 }
 
-function sourceMarkup(source) {
+function sourceReviewMarkup(source) {
+  const review = source.review || {};
+  const complexity = review.complexity || null;
+  const validated = Boolean(review.validated);
+  const referenceId = source.reference_id || '';
+  const busy = state.reviewBusyReferenceIds.has(referenceId);
+  return `<div class="syl-source__review-actions" aria-label="Organização do autoestudo">
+    <button class="syl-source-tag syl-source-tag--simple${complexity === 'simple' ? ' is-active' : ''}" type="button" data-set-source-complexity="simple" data-reference-id="${esc(referenceId)}" aria-pressed="${complexity === 'simple'}"${busy ? ' disabled' : ''}>Simples</button>
+    <button class="syl-source-tag syl-source-tag--complex${complexity === 'complex' ? ' is-active' : ''}" type="button" data-set-source-complexity="complex" data-reference-id="${esc(referenceId)}" aria-pressed="${complexity === 'complex'}"${busy ? ' disabled' : ''}>Complexa</button>
+    <button class="syl-source-validated${validated ? ' is-active' : ''}" type="button" data-toggle-source-validated data-reference-id="${esc(referenceId)}" aria-pressed="${validated}"${busy ? ' disabled' : ''}>${validated ? '✓ ' : ''}Validada</button>
+  </div>`;
+}
+
+function sourceMarkup(source, { collapsedValidated = false } = {}) {
   const original = safeUrl(source.url);
   const status = sourceStatus(source);
+  const sourceId = source.source_id || source.id || '';
+  if (source.review?.validated) {
+    const markdownReady = source.has_markdown || source.markdown?.available || status.key === 'ready';
+    const referenceId = source.reference_id || '';
+    const busy = state.reviewBusyReferenceIds.has(referenceId);
+    return `<article class="syl-source syl-source--validated${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
+      <h3>${esc(source.title || 'Fonte sem título')}</h3>
+      <div class="syl-source__actions">
+        ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
+        ${collapsedValidated ? '' : `<button class="button syl-action-button" type="button" data-toggle-source-validated data-reference-id="${esc(referenceId)}" aria-pressed="true"${busy ? ' disabled' : ''}>${ICON.check}Desvalidar</button>`}
+      </div>
+    </article>`;
+  }
   const missingInput = !source.source_id && !source.id
     ? (String(source.media_type || '').toLowerCase() === 'book'
       ? 'Este livro ainda não tem um código e escopo completos. Informe páginas, capítulos ou outra seção concreta antes de extrair.'
@@ -462,11 +581,12 @@ function sourceMarkup(source) {
   // upload action visible, but do not contradict the successful outcome.
   const adapterNotice = !markdownReady && !capability.supported ? capability.reason : null;
   const meta = [source.resource_code ? `Código ${source.resource_code}` : null, scopeLabel(source)].filter(Boolean);
-  return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(source.source_id || source.id || '')}" data-source-status="${status.key}">
+  return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
     <div class="syl-source__main">
       <div class="syl-source__topline">
         <span class="syl-media syl-media--${esc(String(source.media_type || 'material').toLowerCase())}">${esc(mediaLabel(source))}</span>
         <span class="syl-source__states">${sourceStatusMarkup(source)}</span>
+        ${source.reference_id ? sourceReviewMarkup(source) : ''}
       </div>
       <h3>${esc(source.title || 'Fonte sem título')}</h3>
       ${source.description ? `<p class="syl-source__description">${esc(source.description)}</p>` : ''}
@@ -481,13 +601,35 @@ function sourceMarkup(source) {
   </article>`;
 }
 
+function lessonValidationProgress(lesson) {
+  const allSources = lesson.__allSources || lesson.sources || [];
+  const activeSources = allSources.filter((source) => !source.hidden);
+  return {
+    total: activeSources.length,
+    validated: activeSources.filter((source) => Boolean(source.review?.validated)).length,
+  };
+}
+
+function lessonIsValidated(lesson) {
+  const progress = lessonValidationProgress(lesson);
+  return progress.total > 0 && progress.validated === progress.total;
+}
+
+function lessonIsCollapsed(lesson) {
+  const lessonId = lesson.id || '';
+  return state.collapsedLessonIds.has(lessonId)
+    || (lessonIsValidated(lesson) && !state.expandedLessonIds.has(lessonId));
+}
+
 function lessonMarkup(lesson, index) {
   const sources = lesson.sources || [];
   const when = lesson.date ? fmtDate(lesson.date) : (lesson.week ? `Semana ${lesson.week}` : 'Data não informada');
   const lessonIndex = Number.isInteger(lesson.__lessonIndex) ? lesson.__lessonIndex : index;
-  if (state.editor.active) {
+  const editingThisLesson = state.editor.active
+    && (!state.editor.targetLessonId || state.editor.targetLessonId === lesson.id);
+  if (editingThisLesson) {
     const originalSourceCount = state.editor.lessons?.[lessonIndex]?.sources?.length || 0;
-    return `<section class="syl-lesson syl-lesson--editor">
+    return `<section class="syl-lesson syl-lesson--editor${lesson.hidden ? ' is-hidden-lesson' : ''}" data-subject="${esc(String(lesson.subject || '').trim().toUpperCase())}">
       <header class="syl-lesson__header syl-lesson__header--editor">
         <div class="syl-lesson__index" aria-hidden="true">${String(lessonIndex + 1).padStart(2, '0')}</div>
         <div class="syl-editor-lesson-fields">
@@ -511,6 +653,8 @@ function lessonMarkup(lesson, index) {
         </div>
         <div class="syl-editor-lesson-actions">
           <span>${originalSourceCount} ${originalSourceCount === 1 ? 'fonte' : 'fontes'}</span>
+          ${lesson.hidden ? '<span class="syl-hidden-state">Aula ocultada</span>' : ''}
+          <button class="button button--quiet" type="button" data-toggle-lesson-hidden="${lessonIndex}">${lesson.hidden ? 'Desocultar aula' : 'Ocultar aula'}</button>
           <button class="button button--quiet" type="button" data-move-lesson-up="${lessonIndex}"${lessonIndex === 0 ? ' disabled' : ''}>↑ Aula</button>
           <button class="button button--quiet" type="button" data-move-lesson-down="${lessonIndex}"${lessonIndex >= (state.editor.lessons?.length || 0) - 1 ? ' disabled' : ''}>↓ Aula</button>
         </div>
@@ -521,21 +665,36 @@ function lessonMarkup(lesson, index) {
       </div>
     </section>`;
   }
-  return `<section class="syl-lesson">
-    <header class="syl-lesson__header">
+  const validated = lessonIsValidated(lesson);
+  const progress = lessonValidationProgress(lesson);
+  const collapsed = lessonIsCollapsed(lesson);
+  const subject = String(lesson.subject || '').trim().toUpperCase();
+  return `<section class="syl-lesson${lesson.hidden ? ' is-hidden-lesson' : ''}${validated ? ' is-validated' : ''}${collapsed ? ' is-collapsed' : ''}" data-lesson-id="${esc(lesson.id || '')}" data-subject="${esc(subject)}">
+    <header class="syl-lesson__header${collapsed ? ' syl-lesson__header--collapsed' : ''}">
+      <button class="syl-lesson__header-toggle" type="button" data-toggle-lesson-expanded data-lesson-id="${esc(lesson.id || '')}" aria-expanded="${!collapsed}" aria-label="${collapsed ? 'Expandir' : 'Recolher'} aula ${esc(lesson.title || 'sem título')}"></button>
       <div class="syl-lesson__index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</div>
       <div class="syl-lesson__identity">
-        <div class="syl-lesson__meta">
-          <time${lesson.date ? ` datetime="${esc(lesson.date)}"` : ''}>${esc(when)}</time>
-          ${lesson.subject ? `<span>${esc(lesson.subject)}</span>` : ''}
+        <div class="syl-lesson__meta">${collapsed
+          ? `<time${lesson.date ? ` datetime="${esc(lesson.date)}"` : ''}>${esc(when)}</time>
+            ${lesson.subject ? `<span>${esc(lesson.subject)}</span>` : ''}`
+          : `<time${lesson.date ? ` datetime="${esc(lesson.date)}"` : ''}>${esc(when)}</time>
+            ${lesson.subject ? `<span>${esc(lesson.subject)}</span>` : ''}
+            ${lesson.hidden ? '<span class="syl-hidden-state">Ocultada</span>' : ''}`}
         </div>
         <h2>${esc(lesson.title || 'Aula sem título')}</h2>
-        ${lesson.description ? `<p>${esc(lesson.description)}</p>` : ''}
+        ${!collapsed && lesson.description ? `<p>${esc(lesson.description)}</p>` : ''}
       </div>
-      <span class="syl-lesson__source-count">${sources.length} ${sources.length === 1 ? 'fonte' : 'fontes'}</span>
+      <div class="syl-lesson__side">
+        <div class="syl-lesson__source-tools">
+          <span class="syl-lesson__source-count">${sources.length} ${sources.length === 1 ? 'fonte' : 'fontes'}</span>
+          ${!state.editor.active && isLatestVersion() ? `<button class="syl-lesson-edit" type="button" data-edit-lesson="${esc(lesson.id || '')}" aria-label="Editar somente esta aula">${ICON.edit}</button>` : ''}
+        </div>
+        ${collapsed ? `<span class="syl-lesson__validation-progress">${progress.validated}/${progress.total} autoestudos validados</span>` : ''}
+        ${!collapsed && validated ? '<span class="syl-lesson-complete">✓ Autoestudos validados</span>' : ''}
+      </div>
     </header>
     <div class="syl-lesson__sources">
-      ${sources.length ? sources.map(sourceMarkup).join('') : '<p class="syl-lesson__empty">Nenhuma fonte registrada nesta aula.</p>'}
+      ${sources.length ? sources.map((source) => sourceMarkup(source, { collapsedValidated: collapsed && validated })).join('') : '<p class="syl-lesson__empty">Nenhuma fonte registrada nesta aula.</p>'}
     </div>
   </section>`;
 }
@@ -572,14 +731,16 @@ function renderDetail() {
   document.title = `${detail.title || detail.name} · Syllabi · Concept Universe`;
   detailHeading();
   const lessons = filteredLessons(detail);
-  viewHost.innerHTML = `${filterMarkup(detail)}
+  viewHost.innerHTML = `${usageMarkup(detail)}${filterMarkup(detail)}
     <div class="syl-lessons">
       ${lessons.length ? lessons.map(lessonMarkup).join('') : `<div class="syl-empty"><strong>Nenhuma aula encontrada</strong><span>Ajuste os filtros para voltar a visualizar o syllabus.</span></div>`}
     </div>`;
   schedulePolling();
 }
 
-const routeId = new URLSearchParams(window.location.search).get('id');
+const initialSearch = new URLSearchParams(window.location.search);
+const routeId = initialSearch.get('id');
+const initialReconciliationId = initialSearch.get('reconciliation');
 
 async function loadDetail({ versionId = state.selectedVersionId, silent = false } = {}) {
   if (!routeId) return;
@@ -610,23 +771,27 @@ function cloneLessons(lessons) {
   return JSON.parse(JSON.stringify(lessons || []));
 }
 
-function startEditing() {
+function startEditing(targetLessonId = null) {
   if (!state.detail || !isLatestVersion() || state.editor.active) return;
+  if (targetLessonId && !(state.detail.lessons || []).some((lesson) => lesson.id === targetLessonId)) return;
   state.editor = {
     active: true,
     busy: false,
     dirty: false,
     lessons: cloneLessons(state.detail.lessons),
+    targetLessonId,
   };
-  state.filters = { query: '', subject: '', showHidden: true };
-  announce('Modo de edição aberto. Nenhuma mudança foi salva ainda.');
+  state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: true };
+  announce(targetLessonId
+    ? 'Editando somente esta aula. Salvar criará uma nova versão do syllabus.'
+    : 'Modo de edição aberto. Nenhuma mudança foi salva ainda.');
   renderDetail();
 }
 
 function cancelEditing() {
   if (!state.editor.active || state.editor.busy) return;
   if (state.editor.dirty && !window.confirm('Descartar as mudanças ainda não salvas?')) return;
-  state.editor = { active: false, busy: false, dirty: false, lessons: null };
+  state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null };
   state.filters = { ...state.filters, showHidden: false };
   announce('Edição cancelada. A versão atual não foi alterada.');
   renderDetail();
@@ -693,6 +858,14 @@ function toggleEditorSourceHidden(position) {
   renderDetail();
 }
 
+function toggleEditorLessonHidden(index) {
+  const lesson = state.editor.lessons?.[Number(index)];
+  if (!lesson) return;
+  lesson.hidden = !lesson.hidden;
+  markEditorDirty();
+  renderDetail();
+}
+
 function moveEditorSource(position, offset) {
   const found = editorPosition(position);
   if (!found || !moveArrayItem(found.lesson.sources, found.sourceIndex, offset)) return;
@@ -703,6 +876,54 @@ function moveEditorSource(position, offset) {
 function moveEditorLesson(index, offset) {
   if (!moveArrayItem(state.editor.lessons, Number(index), offset)) return;
   markEditorDirty();
+  renderDetail();
+}
+
+function sourceByReferenceId(referenceId) {
+  for (const lesson of state.detail?.lessons || []) {
+    const source = (lesson.sources || []).find((candidate) => candidate.reference_id === referenceId);
+    if (source) return { lesson, source };
+  }
+  return null;
+}
+
+async function updateSourceReview(referenceId, changes) {
+  const found = sourceByReferenceId(referenceId);
+  if (!found || state.reviewBusyReferenceIds.has(referenceId)) return;
+  state.reviewBusyReferenceIds.add(referenceId);
+  renderDetail();
+  try {
+    const response = await fetch(
+      `/api/syllabi/${encodeURIComponent(routeId)}/sources/${encodeURIComponent(referenceId)}/review`,
+      {
+        method: 'PATCH',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    found.source.review = body.review;
+    if ('validated' in changes) state.expandedLessonIds.delete(found.lesson.id);
+    announce('Organização do autoestudo atualizada.');
+  } catch (error) {
+    announce(`Não foi possível atualizar o autoestudo: ${error.message}`);
+  } finally {
+    state.reviewBusyReferenceIds.delete(referenceId);
+    renderDetail();
+  }
+}
+
+function toggleLessonExpanded(lessonId) {
+  const lesson = (state.detail?.lessons || []).find((entry) => entry.id === lessonId);
+  if (!lesson) return;
+  if (lessonIsCollapsed(lesson)) {
+    state.collapsedLessonIds.delete(lessonId);
+    state.expandedLessonIds.add(lessonId);
+  } else {
+    state.collapsedLessonIds.add(lessonId);
+    state.expandedLessonIds.delete(lessonId);
+  }
   renderDetail();
 }
 
@@ -732,6 +953,7 @@ function updateEditorField(target) {
 function editorPayload() {
   return (state.editor.lessons || []).map((lesson) => ({
     id: lesson.id || null,
+    hidden: Boolean(lesson.hidden),
     week: lesson.week ?? null,
     kind: lesson.kind || 'Class',
     title: String(lesson.title || '').trim(),
@@ -781,8 +1003,8 @@ async function saveEditor() {
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
-    state.editor = { active: false, busy: false, dirty: false, lessons: null };
-    state.filters = { query: '', subject: '', showHidden: false };
+    state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null };
+    state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
     state.selectedVersionId = body.version_id;
     announce(body.unchanged
       ? 'Nenhuma mudança foi detectada; a versão atual foi mantida.'
@@ -792,6 +1014,84 @@ async function saveEditor() {
     state.editor.busy = false;
     announce(`Não foi possível salvar a nova versão: ${error.message}`);
     renderDetail();
+  }
+}
+
+function reconciliationUrl(reconciliationId = null) {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('prototype');
+  if (reconciliationId) url.searchParams.set('reconciliation', reconciliationId);
+  else url.searchParams.delete('reconciliation');
+  window.history.replaceState({}, '', url);
+}
+
+function closeReconciliation({ reload = false } = {}) {
+  state.reconciliationCleanup?.();
+  state.reconciliationCleanup = null;
+  state.reconciliation = null;
+  reconciliationUrl();
+  if (reload) loadDetail({ versionId: state.selectedVersionId });
+  else renderDetail();
+}
+
+async function applyReconciliation(payload) {
+  const reconciliation = state.reconciliation;
+  if (!reconciliation) throw new Error('A comparação não está mais disponível.');
+  const response = await fetch(
+    `/api/syllabi/${encodeURIComponent(routeId)}/reconciliations/${encodeURIComponent(reconciliation.id)}/apply`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+  );
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+  state.reconciliationCleanup?.();
+  state.reconciliationCleanup = null;
+  state.reconciliation = null;
+  state.selectedVersionId = body.version_id || state.selectedVersionId;
+  reconciliationUrl();
+  announce(body.unchanged
+    ? 'Comparação concluída; a versão atual já representa suas escolhas.'
+    : `Versão ${body.seq} criada a partir das escolhas revisadas.`);
+  await loadDetail({ versionId: state.selectedVersionId, silent: true });
+  return body;
+}
+
+async function showReconciliation(reconciliation) {
+  state.reconciliationCleanup?.();
+  state.reconciliation = reconciliation;
+  reconciliationUrl(reconciliation.id);
+  const { mountSyllabusReconciliation } = await import('/static/syllabus_reconciliation.js?v=3');
+  state.reconciliationCleanup = mountSyllabusReconciliation({
+    headingHost,
+    viewHost,
+    reconciliation,
+    announce,
+    onCancel: () => closeReconciliation(),
+    onApplied: applyReconciliation,
+  });
+}
+
+async function loadReconciliation(reconciliationId) {
+  state.loading = true;
+  viewHost.setAttribute('aria-busy', 'true');
+  try {
+    const response = await fetch(
+      `/api/syllabi/${encodeURIComponent(routeId)}/reconciliations/${encodeURIComponent(reconciliationId)}`,
+      { headers: { Accept: 'application/json' } },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    await showReconciliation(body);
+  } catch (error) {
+    reconciliationUrl();
+    state.error = error.message;
+    viewHost.innerHTML = renderError(error.message);
+  } finally {
+    state.loading = false;
+    viewHost.setAttribute('aria-busy', 'false');
   }
 }
 
@@ -808,7 +1108,7 @@ function openUpload(mode) {
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
-  $('[data-upload-submit]').textContent = isVersion ? 'Registrar nova versão' : 'Adicionar syllabus';
+  $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
   uploadDialog.showModal();
   window.setTimeout(() => (isVersion ? $('[data-upload-file]') : nameInput).focus(), 0);
 }
@@ -835,26 +1135,29 @@ async function submitUpload(event) {
   if (state.upload.syllabusId) data.set('syllabus_id', state.upload.syllabusId);
   state.upload.busy = true;
   $('[data-upload-submit]').disabled = true;
-  $('[data-upload-submit]').textContent = 'Registrando…';
+  $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparando…' : 'Registrando…';
   $('[data-upload-error]').textContent = '';
   try {
-    const response = await fetch('/api/syllabi/upload', { method: 'POST', body: data });
+    const endpoint = state.upload.mode === 'version'
+      ? `/api/syllabi/${encodeURIComponent(routeId)}/reconciliations`
+      : '/api/syllabi/upload';
+    const response = await fetch(endpoint, { method: 'POST', body: data });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
     uploadDialog.close();
-    announce(body.unchanged ? 'A planilha é igual à versão atual.' : 'Nova versão registrada. Nenhuma fonte foi processada automaticamente.');
     if (state.upload.mode === 'new') {
+      announce(body.unchanged ? 'A planilha é igual à versão atual.' : 'Syllabus adicionado. Nenhuma fonte foi processada automaticamente.');
       window.location.assign(`/syllabi?id=${encodeURIComponent(body.syllabus_id)}`);
     } else {
-      state.selectedVersionId = body.version_id || null;
-      await loadDetail({ versionId: state.selectedVersionId });
+      announce('Planilha comparada. Revise as mudanças antes de criar a nova versão.');
+      await showReconciliation(body);
     }
   } catch (error) {
     $('[data-upload-error]').textContent = `Não foi possível registrar a planilha: ${error.message}`;
   } finally {
     state.upload.busy = false;
     $('[data-upload-submit]').disabled = false;
-    $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Registrar nova versão' : 'Adicionar syllabus';
+    $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparar planilha' : 'Adicionar syllabus';
   }
 }
 
@@ -1212,7 +1515,7 @@ async function openMarkdown(sourceId, title) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
     if (state.markdownSourceId !== sourceId) return;
-    $('[data-markdown-meta]').innerHTML = `<span>${esc(body.tool || 'Ferramenta não informada')}</span><span>${esc(fmtDate(body.created_at, true))}</span>`;
+    $('[data-markdown-meta]').innerHTML = `${body.is_previous_version ? '<span>Última versão válida</span>' : ''}<span>${esc(body.tool || 'Ferramenta não informada')}</span><span>${esc(fmtDate(body.created_at, true))}</span>`;
     const renderedMarkdown = body.html || '<p>O artefato não contém conteúdo renderizável.</p>';
     $('[data-markdown-body]').innerHTML = renderedMarkdown + renderImageSidecar(body);
   } catch (error) {
@@ -1224,6 +1527,8 @@ document.querySelector('main').addEventListener('click', (event) => {
   if (event.target.closest('[data-new-syllabus]')) { openUpload('new'); return; }
   if (event.target.closest('[data-new-version]')) { openUpload('version'); return; }
   if (event.target.closest('[data-edit-syllabus]')) { startEditing(); return; }
+  const editLesson = event.target.closest('[data-edit-lesson]');
+  if (editLesson) { startEditing(editLesson.dataset.editLesson); return; }
   if (event.target.closest('[data-cancel-edit]')) { cancelEditing(); return; }
   if (event.target.closest('[data-save-syllabus]')) { saveEditor(); return; }
   const addSource = event.target.closest('[data-add-source]');
@@ -1232,6 +1537,8 @@ document.querySelector('main').addEventListener('click', (event) => {
   if (removeSource) { removeEditorSource(removeSource.dataset.removeSource); return; }
   const hideSource = event.target.closest('[data-toggle-source-hidden]');
   if (hideSource) { toggleEditorSourceHidden(hideSource.dataset.toggleSourceHidden); return; }
+  const hideLesson = event.target.closest('[data-toggle-lesson-hidden]');
+  if (hideLesson) { toggleEditorLessonHidden(hideLesson.dataset.toggleLessonHidden); return; }
   const sourceUp = event.target.closest('[data-move-source-up]');
   if (sourceUp) { moveEditorSource(sourceUp.dataset.moveSourceUp, -1); return; }
   const sourceDown = event.target.closest('[data-move-source-down]');
@@ -1240,6 +1547,25 @@ document.querySelector('main').addEventListener('click', (event) => {
   if (lessonUp) { moveEditorLesson(Number(lessonUp.dataset.moveLessonUp), -1); return; }
   const lessonDown = event.target.closest('[data-move-lesson-down]');
   if (lessonDown) { moveEditorLesson(Number(lessonDown.dataset.moveLessonDown), 1); return; }
+  const complexity = event.target.closest('[data-set-source-complexity]');
+  if (complexity) {
+    const found = sourceByReferenceId(complexity.dataset.referenceId);
+    const selected = complexity.dataset.setSourceComplexity;
+    updateSourceReview(complexity.dataset.referenceId, {
+      complexity: found?.source?.review?.complexity === selected ? null : selected,
+    });
+    return;
+  }
+  const validated = event.target.closest('[data-toggle-source-validated]');
+  if (validated) {
+    const found = sourceByReferenceId(validated.dataset.referenceId);
+    updateSourceReview(validated.dataset.referenceId, {
+      validated: !Boolean(found?.source?.review?.validated),
+    });
+    return;
+  }
+  const expanded = event.target.closest('[data-toggle-lesson-expanded]');
+  if (expanded) { toggleLessonExpanded(expanded.dataset.lessonId); return; }
   const queue = event.target.closest('[data-queue-source]');
   if (queue) { queueSource(queue.dataset.queueSource); return; }
   const manual = event.target.closest('[data-manual-source]');
@@ -1268,10 +1594,19 @@ document.querySelector('main').addEventListener('change', (event) => {
     return;
   } else if (event.target.matches('[data-version-select]')) {
     state.selectedVersionId = event.target.value;
-    state.filters = { query: '', subject: '', showHidden: false };
+    state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
     loadDetail({ versionId: state.selectedVersionId });
   } else if (event.target.matches('[data-filter-subject]')) {
     state.filters.subject = event.target.value;
+    renderDetail();
+  } else if (event.target.matches('[data-filter-media]')) {
+    state.filters.mediaType = event.target.value;
+    renderDetail();
+  } else if (event.target.matches('[data-filter-validation]')) {
+    state.filters.validation = event.target.value;
+    renderDetail();
+  } else if (event.target.matches('[data-filter-complexity]')) {
+    state.filters.complexity = event.target.value;
     renderDetail();
   } else if (event.target.matches('[data-show-hidden]')) {
     state.filters.showHidden = event.target.checked;
@@ -1322,4 +1657,10 @@ window.addEventListener('beforeunload', (event) => {
   }
 });
 
-if (routeId) loadDetail(); else loadList();
+if (routeId && initialReconciliationId) {
+  loadReconciliation(initialReconciliationId);
+} else if (routeId) {
+  loadDetail();
+} else {
+  loadList();
+}
