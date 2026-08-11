@@ -1,5 +1,6 @@
 """Durable article-image jobs never own the source Markdown lifecycle."""
 
+import base64
 import hashlib
 import io
 import json
@@ -593,6 +594,79 @@ def test_article_gif_rejects_unsafe_dimensions_and_undecodable_first_frames(body
 
     assert caught.value.code == "image_validation_failed"
     assert caught.value.category == "invalid_image"
+
+
+def test_article_path_persists_gif_and_analyzes_its_first_frame(
+    article_image_db, tmp_path
+):
+    db = article_image_db
+    ids = _parent_markdown(
+        db,
+        "preserved-gif",
+        "# Lesson\n\n![Teaching diagram](https://cdn.example/diagram.gif)\n",
+    )
+    candidate = insert_article_image_candidates(
+        db,
+        acquisition_job_id=ids["job"],
+        source_id=ids["source"],
+        snapshot_id=ids["snapshot"],
+        markdown_artifact_id=ids["artifact"],
+        markdown=ids["markdown"],
+    )[0]
+    body = _animated_gif_body()
+    downloaded = _validated_download(
+        body, "image/gif", "https://cdn.example/diagram.gif"
+    )
+    store = LocalAssetStore(tmp_path / "gif-assets")
+
+    def analyze(markdown, images):
+        assert len(images) == 1
+        header, encoded = images[0].model_image_url.split(",", 1)
+        assert header in {"data:image/png;base64", "data:image/jpeg;base64"}
+        with Image.open(io.BytesIO(base64.b64decode(encoded))) as normalized:
+            assert getattr(normalized, "n_frames", 1) == 1
+            red, green, blue = normalized.convert("RGB").getpixel((0, 0))
+        assert red > 200
+        assert green < 50
+        assert blue < 50
+        return _batch_result(
+            markdown,
+            images,
+            [
+                SourceImageAnalysis(
+                    images[0].image_id,
+                    True,
+                    "information",
+                    None,
+                    "The first frame contains a teaching diagram.",
+                    None,
+                )
+            ],
+        )
+
+    result = process_next_article_image(
+        db,
+        candidate_id=candidate["id"],
+        asset_store=store,
+        downloader=lambda _url: downloaded,
+        analyzer=analyze,
+    )
+
+    assert result["status"] == "useful"
+    assert result["diagnostics"]["source_mime_type"] == "image/gif"
+    assert result["diagnostics"]["model_input_converted"] is True
+    asset = db.execute(
+        "SELECT mime_type, sha256, storage_key FROM source_asset WHERE id = %s",
+        (result["asset_id"],),
+    ).fetchone()
+    assert asset[:2] == ("image/gif", hashlib.sha256(body).hexdigest())
+    assert store.get(asset[2]) == body
+    enriched = db.execute(
+        "SELECT body FROM artifact WHERE id = %s",
+        (f"{ids['artifact']}:images",),
+    ).fetchone()[0]
+    assert f"![Teaching diagram](/api/source-assets/{result['asset_id']})" in enriched
+    assert "The first frame contains a teaching diagram." in enriched
 
 
 def test_avif_is_preserved_as_original_and_analyzed_through_png(
