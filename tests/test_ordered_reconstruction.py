@@ -17,6 +17,7 @@ from universe.acquisition.manual_uploads import (
     create_manual_upload_job,
     list_manual_assets,
 )
+from universe.acquisition.ordered_reconstruction import build_lossless_image_pdf
 from universe.acquisition.pdfs import (
     PdfExtractionError,
     PdfFigureLocalizationResult,
@@ -373,6 +374,13 @@ def test_transient_firecrawl_failure_retries_book_without_recapturing_pages(
             )
 
     parse_calls = []
+    pdf_builds = []
+
+    def build_transport(page_pngs):
+        pdf_builds.append(1)
+        return build_lossless_image_pdf(page_pngs) + (
+            f"\n% build {len(pdf_builds)}\n".encode()
+        )
 
     def parse(*args):
         parse_calls.append(1)
@@ -394,6 +402,7 @@ def test_transient_firecrawl_failure_retries_book_without_recapturing_pages(
         book_adapter=CompleteAdapter(),
         book_document_parser=parse,
         book_figure_locator=_empty_locator([]),
+        book_pdf_builder=build_transport,
     )
 
     assert retry["status"] == "queued"
@@ -406,12 +415,14 @@ def test_transient_firecrawl_failure_retries_book_without_recapturing_pages(
         book_adapter=CompleteAdapter(),
         book_document_parser=parse,
         book_figure_locator=_empty_locator([]),
+        book_pdf_builder=build_transport,
     )
 
     assert completed["status"] == "succeeded"
     assert completed["attempt_count"] == 2
     assert completed_prefix_lengths == [0, 1]
     assert len(parse_calls) == 2
+    assert len(pdf_builds) == 1
     assert db.execute(
         "SELECT count(*), sum(attempt_count), max(status)"
         " FROM pdf_document_parse_call WHERE acquisition_job_id = %s",

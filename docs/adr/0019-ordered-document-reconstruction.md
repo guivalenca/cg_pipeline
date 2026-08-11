@@ -54,8 +54,10 @@ Firecrawl retains short bounded retries inside one parse attempt. Exhausting
 only retryable transport or provider statuses reschedules the same acquisition
 after a longer delay. The durable parse call becomes eligible for another
 attempt and Browserbase receives the already completed page prefix, so it does
-not capture those pages again. Permanent authentication, credit, input, and
-payload failures remain terminal.
+not capture those pages again. The ordered-page manifest also identifies the
+existing immutable transport PDF, whose verified stored bytes are reused rather
+than regenerated. Permanent authentication, credit, input, and payload failures
+remain terminal.
 
 The Browserbase Adapter must prove that the reader page fits on both axes. It
 checks the page root's client and scroll dimensions plus the bounds of visual

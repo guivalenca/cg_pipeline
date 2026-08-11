@@ -133,7 +133,8 @@ continues, so a transient browser failure resumes from the completed prefix.
 If Firecrawl exhausts its short request-level retries, the same acquisition is
 rescheduled with its durable parse ledger and already captured page prefix;
 the book is not recaptured merely because the document provider was temporarily
-unavailable.
+unavailable. The manifest-addressed transport PDF is reused byte-for-byte on
+that retry instead of being regenerated.
 Before committing a page, the Adapter expands the viewport until the page root,
 its scroll area, and every visual descendant fit horizontally and vertically;
 the bitmap is then checked for both dense and sparse content covered by the

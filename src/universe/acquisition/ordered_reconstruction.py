@@ -105,27 +105,34 @@ def reconstruct_ordered_document(
         )
 
     manifest_sha = _manifest_sha(normalized)
-    transport_body = (pdf_builder or build_lossless_image_pdf)(
-        [page.png_body for page in normalized]
-    )
-    if (
-        not isinstance(transport_body, bytes)
-        or not transport_body.startswith(b"%PDF-")
-        or len(transport_body) > MAX_TRANSPORT_PDF_BYTES
-    ):
-        raise PdfExtractionError(
-            "ordered_pdf_packaging_failed", "invalid_or_oversized_transport_pdf"
-        )
-    transport = _persist_transport_pdf(
+    evidence_ids = [page.evidence.asset_id for page in normalized]
+    transport = _existing_transport_pdf(
         conn,
         job=job,
         title=title,
         input_mode=input_mode,
         manifest_sha=manifest_sha,
-        body=transport_body,
-        evidence_ids=[page.evidence.asset_id for page in normalized],
+        evidence_ids=evidence_ids,
         store=asset_store,
     )
+    transport_reused = transport is not None
+    if transport is None:
+        transport_body = (pdf_builder or build_lossless_image_pdf)(
+            [page.png_body for page in normalized]
+        )
+        _validate_transport_body(transport_body)
+        transport = _persist_transport_pdf(
+            conn,
+            job=job,
+            title=title,
+            input_mode=input_mode,
+            manifest_sha=manifest_sha,
+            body=transport_body,
+            evidence_ids=evidence_ids,
+            store=asset_store,
+        )
+    else:
+        transport_body = bytes(transport["body"])
 
     pdf_pages = [
         PdfPage(
@@ -174,6 +181,7 @@ def reconstruct_ordered_document(
             "tool_version": ORDERED_RECONSTRUCTION_VERSION,
             "pdf_builder_version": ORDERED_PDF_BUILDER_VERSION,
             "transport_pdf_bytes": len(transport_body),
+            "transport_reused": transport_reused,
             "page_count": len(normalized),
             "publication_role": "implementation_transport_only",
         },
@@ -319,6 +327,101 @@ def _normalize_page(page: OrderedPageEvidence) -> tuple[bytes, int, int, bool]:
         ) from exc
 
 
+def _validate_transport_body(body: bytes) -> None:
+    if (
+        not isinstance(body, bytes)
+        or not body.startswith(b"%PDF-")
+        or len(body) > MAX_TRANSPORT_PDF_BYTES
+    ):
+        raise PdfExtractionError(
+            "ordered_pdf_packaging_failed", "invalid_or_oversized_transport_pdf"
+        )
+
+
+def _transport_asset_id(job_id: str, manifest_sha: str) -> str:
+    identity = hashlib.sha256(
+        f"{job_id}:{manifest_sha}:{ORDERED_PDF_BUILDER_VERSION}".encode("utf-8")
+    ).hexdigest()[:32]
+    return f"asset-ordered-pdf-{identity}"
+
+
+def _transport_filename(title: str) -> str:
+    filename_stem = re.sub(r"[^A-Za-z0-9._-]+", "-", title).strip("-.")[:80]
+    return f"{filename_stem or 'ordered-document'}.pdf"
+
+
+def _transport_metadata(
+    *, input_mode: str, manifest_sha: str, evidence_ids: Sequence[str]
+) -> dict[str, Any]:
+    return {
+        "derived_by": ORDERED_PDF_BUILDER_VERSION,
+        "input_mode": input_mode,
+        "input_manifest_sha256": manifest_sha,
+        "evidence_asset_ids": list(evidence_ids),
+        "publication_role": "implementation_transport_only",
+    }
+
+
+def _existing_transport_pdf(
+    conn: psycopg.Connection,
+    *,
+    job: Mapping[str, Any],
+    title: str,
+    input_mode: str,
+    manifest_sha: str,
+    evidence_ids: Sequence[str],
+    store: AssetStore,
+) -> dict[str, Any] | None:
+    row = conn.execute(
+        "SELECT id, source_id, ordinal, kind, filename, mime_type, sha256,"
+        " byte_size, storage_key, metadata FROM source_asset"
+        " WHERE acquisition_job_id = %s AND ordinal = %s",
+        (job["id"], ORDERED_PDF_ORDINAL),
+    ).fetchone()
+    if row is None:
+        return None
+    expected = (
+        _transport_asset_id(str(job["id"]), manifest_sha),
+        job["source_id"],
+        ORDERED_PDF_ORDINAL,
+        "ordered_document_pdf",
+        _transport_filename(title),
+        "application/pdf",
+    )
+    metadata = _transport_metadata(
+        input_mode=input_mode,
+        manifest_sha=manifest_sha,
+        evidence_ids=evidence_ids,
+    )
+    if row[:6] != expected or dict(row[9] or {}) != metadata:
+        raise PdfExtractionError(
+            "ordered_pdf_conflict", "immutable_transport_conflict"
+        )
+    try:
+        body = store.get(str(row[8]))
+    except Exception as exc:
+        raise PdfExtractionError(
+            "ordered_pdf_unavailable", "asset_storage_read_failed"
+        ) from exc
+    if len(body) != row[7] or hashlib.sha256(body).hexdigest() != row[6]:
+        raise PdfExtractionError(
+            "ordered_pdf_conflict", "immutable_transport_conflict"
+        )
+    _validate_transport_body(body)
+    return {
+        "id": row[0],
+        "ordinal": row[2],
+        "kind": row[3],
+        "filename": row[4],
+        "mime_type": row[5],
+        "sha256": row[6],
+        "byte_size": row[7],
+        "storage_key": row[8],
+        "metadata": row[9],
+        "body": body,
+    }
+
+
 def _persist_transport_pdf(
     conn: psycopg.Connection,
     *,
@@ -331,19 +434,13 @@ def _persist_transport_pdf(
     store: AssetStore,
 ) -> dict[str, Any]:
     body_sha = hashlib.sha256(body).hexdigest()
-    identity = hashlib.sha256(
-        f"{job['id']}:{manifest_sha}:{ORDERED_PDF_BUILDER_VERSION}".encode("utf-8")
-    ).hexdigest()[:32]
-    asset_id = f"asset-ordered-pdf-{identity}"
-    filename_stem = re.sub(r"[^A-Za-z0-9._-]+", "-", title).strip("-.")[:80]
-    filename = f"{filename_stem or 'ordered-document'}.pdf"
-    metadata = {
-        "derived_by": ORDERED_PDF_BUILDER_VERSION,
-        "input_mode": input_mode,
-        "input_manifest_sha256": manifest_sha,
-        "evidence_asset_ids": list(evidence_ids),
-        "publication_role": "implementation_transport_only",
-    }
+    asset_id = _transport_asset_id(str(job["id"]), manifest_sha)
+    filename = _transport_filename(title)
+    metadata = _transport_metadata(
+        input_mode=input_mode,
+        manifest_sha=manifest_sha,
+        evidence_ids=evidence_ids,
+    )
     existing_at_ordinal = conn.execute(
         "SELECT id, sha256 FROM source_asset"
         " WHERE acquisition_job_id = %s AND ordinal = %s",
