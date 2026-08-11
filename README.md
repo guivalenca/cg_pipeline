@@ -155,7 +155,18 @@ forced-OCR reconstruction and figure-placement path as manual screenshots.
 Exact reader text remains separate evidence: it helps page-local validation
 but cannot override OCR formulas or document structure. The Syllabus action
 names Browserbase, Firecrawl, OpenRouter/Gemini, and the exact page scope before
-queueing. Video and caption adapters remain unsupported.
+queueing.
+
+YouTube sources begin with a metadata-only preflight. Publisher captions are
+preserved exactly when available; otherwise bounded, durable OpenRouter STT
+chunks are used after the duration policy is satisfied. Every route also
+captures visual evidence: spoken videos use Summarize to select candidate
+frames for the shared grouped image analysis, while proven visual-only videos
+use one whole-video teaching-beat interpretation and materialize its selected
+frames without paying for a second semantic decision. Frames, timestamps,
+caption/STT facts and provider usage remain auditable, and only the nonempty
+canonical cleanup Artifact is exposed as ready Markdown. Workers need Node.js
+24+, the lockfile installed with `npm ci`, `yt-dlp`, `ffmpeg`, and `ffprobe`.
 
 For local use, `python serve.py` runs the web process and one in-process worker.
 In Railway, use two services backed by the same Postgres database:
