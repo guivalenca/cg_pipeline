@@ -59,11 +59,13 @@ auditable and prevent silent clean publication.
 
 Model geometry receives deterministic local validation before cropping. The
 page pixels establish stable whitespace gutters around the semantic box. An
-edge already inside a gutter is preserved; an edge crossed by ink expands only
-to the first bounded gutter in that direction. This completes tangent circles,
-arrowheads, labels, and rotated diagrams without using a global margin that can
-cross into prose. If a safe gutter cannot be established, the region becomes
-explicit attention work. On pages with multiple independent regions, Poppler's
+edge already inside a gutter is preserved. When ink crosses an edge, a nearby
+inner gutter takes precedence and removes adjacent prose mistakenly included by
+the model; otherwise the edge expands to the first bounded outer gutter to
+complete tangent circles, arrowheads, labels, and rotated diagrams. This avoids
+a global margin that can cross into prose. If a safe gutter cannot be
+established, the region becomes explicit attention work. On pages with multiple
+independent regions, Poppler's
 exact text-line boxes identify the visual gaps between prose bands; regions are
 assigned to those gaps monotonically and only Gemini's drifting vertical axis
 is replaced. Both the model and final boxes remain in the region ledger, so

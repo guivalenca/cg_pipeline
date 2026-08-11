@@ -59,3 +59,20 @@ def test_figure_without_clean_separation_is_left_for_attention():
 
     with pytest.raises(FigureCropUnresolved, match="whitespace gutter"):
         plan_figure_crop(output.getvalue(), (300, 300, 700, 700))
+
+
+def test_overwide_model_box_recedes_to_gutter_before_neighboring_prose():
+    page = Image.new("RGB", (1000, 1000), "white")
+    draw = ImageDraw.Draw(page)
+    draw.rectangle((200, 200, 700, 700), outline="black", width=5)
+    for top in (260, 300, 340, 380, 420, 460):
+        draw.rectangle((750, top, 820, top + 8), fill="black")
+    output = io.BytesIO()
+    page.save(output, format="PNG")
+
+    plan = plan_figure_crop(output.getvalue(), (190, 190, 780, 710))
+
+    assert 700 < plan.bbox[2] < 750
+    assert plan.bbox[0:2] == (190, 190)
+    assert plan.bbox[3] == 710
+    assert plan.adjusted_edges == ("right",)

@@ -124,16 +124,17 @@ def _planned_boundary(
     edge_name: str,
     threshold: int,
     max_expansion: int = 220,
+    max_recession: int = 60,
     minimum_gutter: int = 12,
 ) -> int:
     if (direction < 0 and boundary == 0) or (direction > 0 and boundary == 1000):
         return boundary
     if direction > 0:
-        scan_start = max(0, boundary - minimum_gutter + 1)
+        scan_start = max(0, boundary - max_recession)
         scan_end = min(1000, boundary + max_expansion)
     else:
         scan_start = max(0, boundary - max_expansion)
-        scan_end = min(1000, boundary + minimum_gutter)
+        scan_end = min(1000, boundary + max_recession)
     runs = _stable_blank_runs(
         pixels,
         scan_start=scan_start,
@@ -147,11 +148,27 @@ def _planned_boundary(
     if any(start <= boundary < end for start, end in runs):
         return boundary
     if direction > 0:
+        inward = [
+            (start, end)
+            for start, end in runs
+            if end <= boundary and boundary - end <= max_recession
+        ]
+        if inward:
+            start, end = max(inward, key=lambda run: run[1])
+            return min(end - 1, start + 3)
         candidates = [(start, end) for start, end in runs if start > boundary]
         if candidates:
             start, end = min(candidates, key=lambda run: run[0])
             return min(end - 1, start + 3)
     else:
+        inward = [
+            (start, end)
+            for start, end in runs
+            if start >= boundary and start - boundary <= max_recession
+        ]
+        if inward:
+            start, end = min(inward, key=lambda run: run[0])
+            return max(start, end - 3)
         candidates = [(start, end) for start, end in runs if end <= boundary]
         if candidates:
             start, end = max(candidates, key=lambda run: run[1])

@@ -137,9 +137,10 @@ reader's navigation divider. The verified empty clearance band and its chrome
 are removed together, and hover/focus controls are dismissed before capture;
 otherwise a larger viewport is tried. An unverifiable or clipped page is retried and never
 replaced by a body or viewport screenshot containing reader chrome. Figure
-crops are validated against the page pixels: a clean Gemini edge is preserved,
-while an edge crossed by ink grows only to the first stable whitespace gutter.
-This retains complete tall and rotated diagrams without crossing the verified
+crops are validated against the page pixels: a clean Gemini edge is preserved.
+When ink crosses an edge, a nearby inner gutter removes neighboring prose;
+otherwise the edge grows to the first outer gutter to complete the figure.
+This retains complete tall and rotated diagrams without crossing a verified
 gap into neighboring prose; a region with no safe gutter remains explicit
 attention work instead of becoming a contaminated crop.
 After the Browserbase session is released, those ordered pages enter the same

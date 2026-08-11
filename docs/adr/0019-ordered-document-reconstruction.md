@@ -64,12 +64,13 @@ capturing; otherwise it grows the viewport and captures again.
 
 Gemini's semantic figure box is also not trusted as a pixel-perfect crop. The
 Figure Placement Implementation validates each edge against the rendered page.
-An edge crossed by ink grows only to the first stable whitespace gutter within
-a bounded search; an edge already in clean whitespace does not move. This gives
-rotated and tall diagrams the room they actually need without a global lower
-margin that can absorb neighboring prose. Captions may remain inside a crop
-when adjacent, but a region without a safe separation becomes explicit
-attention work rather than a contaminated publication asset.
+An edge already in clean whitespace does not move. For an edge crossed by ink,
+a nearby inner gutter removes neighboring text already inside an over-broad
+model box; without one, the edge grows to the first outer gutter within a
+bounded search. This gives rotated and tall diagrams the room they actually
+need without a global lower margin that can absorb neighboring prose. Captions
+may remain inside a crop when adjacent, but a region without a safe separation
+becomes explicit attention work rather than a contaminated publication asset.
 
 There is no separate publication-quality Module. Essential invariants live at
 the reconstruction boundary: ordered pages must be contiguous and decodable,
