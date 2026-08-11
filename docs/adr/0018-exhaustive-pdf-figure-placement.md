@@ -57,13 +57,17 @@ boxes, anchor, terminal status, and asset when present. `placed`, `unanchored`,
 and `duplicate` are successful terminal outcomes; crop/provider failures remain
 auditable and prevent silent clean publication.
 
-Model geometry receives a deterministic local polish before cropping. A small
-side/bottom margin prevents tangent circles, arrowheads, and labels from being
-clipped. On pages with multiple independent regions, Poppler's exact text-line
-boxes identify the visual gaps between prose bands; regions are assigned to
-those gaps monotonically and only Gemini's drifting vertical axis is replaced.
-Both the model and final boxes remain in the region ledger, so this correction
-is inspectable and replayable without another provider call.
+Model geometry receives deterministic local validation before cropping. The
+page pixels establish stable whitespace gutters around the semantic box. An
+edge already inside a gutter is preserved; an edge crossed by ink expands only
+to the first bounded gutter in that direction. This completes tangent circles,
+arrowheads, labels, and rotated diagrams without using a global margin that can
+cross into prose. If a safe gutter cannot be established, the region becomes
+explicit attention work. On pages with multiple independent regions, Poppler's
+exact text-line boxes identify the visual gaps between prose bands; regions are
+assigned to those gaps monotonically and only Gemini's drifting vertical axis
+is replaced. Both the model and final boxes remain in the region ledger, so
+this correction is inspectable and replayable without another provider call.
 
 Firecrawl remains authoritative for headings, prose, formulas, lists, and
 tables. The Module may only rewrite remote image URLs and insert atomic image

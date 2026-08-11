@@ -22,6 +22,7 @@ from psycopg.types.json import Jsonb
 
 from universe import blocks
 from universe.acquisition.article_images import extract_markdown_images
+from universe.acquisition.figure_crop import plan_figure_crop
 from universe.acquisition.source_images import SourceImageInput, input_manifest_hash
 from universe.assets import AssetStore
 from universe.model_client import ModelClient
@@ -42,9 +43,6 @@ UNANCHORED_FIGURES_HEADING = "## Extracted figures (unanchored)"
 MAX_MULTIMODAL_REQUEST_BYTES = 18 * 1024 * 1024
 MAX_MULTIMODAL_CONTEXT_CHARS = 80_000
 MAX_FIGURE_PAGES_PER_CALL = 8
-FIGURE_BBOX_HORIZONTAL_MARGIN_1000 = 100
-FIGURE_BBOX_TOP_MARGIN_1000 = 40
-FIGURE_BBOX_BOTTOM_MARGIN_1000 = 180
 DERIVED_FIGURE_ORDINAL_BASE = 2_000_000
 
 PDF_FIGURE_TOOL = {
@@ -602,28 +600,6 @@ def _complete_figure_bbox(
     return bbox
 
 
-def _pad_figure_bbox(
-    bbox: tuple[int, int, int, int], *,
-    caption_top_1000: int | None,
-    bottom_margin_1000: int = FIGURE_BBOX_BOTTOM_MARGIN_1000,
-) -> tuple[int, int, int, int]:
-    """Give semantic boxes enough context to avoid clipping diagram strokes.
-
-    Vision models commonly return boxes tangent to circles, arrowheads, and
-    labels, and can omit the final branch of tall or rotated diagrams.  A
-    bounded asymmetric safety envelope is cheaper and more reliable than a
-    second localization call.  Captions may remain in the crop; clipping a
-    semantic node or connector is the worse failure.
-    """
-    left, top, right, bottom = bbox
-    return (
-        max(0, left - FIGURE_BBOX_HORIZONTAL_MARGIN_1000),
-        max(0, top - FIGURE_BBOX_TOP_MARGIN_1000),
-        min(1000, right + FIGURE_BBOX_HORIZONTAL_MARGIN_1000),
-        min(1000, bottom + bottom_margin_1000),
-    )
-
-
 def _multi_region_text_gap_bboxes(
     regions: Sequence[PdfFigureRegion], *, page: Mapping[str, Any]
 ) -> dict[tuple[int, int, int, int], tuple[int, int, int, int]]:
@@ -744,9 +720,9 @@ def _persist_figure_crop(
             and region.bbox[3] >= caption_target
         )
         metadata["bbox_adjustment"] = geometry_adjustment or (
-            "padded_and_extended_to_before_figure_caption"
+            "extended_to_before_figure_caption"
             if caption_extended
-            else "padded_for_crop_safety"
+            else "pixel_gutter_adaptive"
         )
         if caption_top_1000 is not None:
             metadata["caption_top_1000"] = caption_top_1000
@@ -1181,25 +1157,34 @@ def _recover_crops(
                     (region.page_id, region.bbox), region.bbox
                 )
                 geometry_adjusted = geometry_bbox != region.bbox
-                padded_bbox = _pad_figure_bbox(
-                    geometry_bbox,
-                    caption_top_1000=caption_top,
-                    bottom_margin_1000=(0 if geometry_adjusted else FIGURE_BBOX_BOTTOM_MARGIN_1000),
-                )
-                completed_bbox = _complete_figure_bbox(
-                    padded_bbox,
-                    caption_top_1000=caption_top,
-                )
-                completed_region = PdfFigureRegion(
-                    page_id=region.page_id,
-                    bbox=completed_bbox,
-                    description=region.description,
-                    visible_text=region.visible_text,
-                    anchor_id=region.anchor_id,
-                )
                 placement = _find_anchor(anchors, region.anchor_id)
                 ordinal = len(existing_figures) + len(figures) + 1
+                completed_bbox = geometry_bbox
                 try:
+                    crop_plan = plan_figure_crop(
+                        render_bodies[region.page_id], geometry_bbox
+                    )
+                    completed_bbox = _complete_figure_bbox(
+                        crop_plan.bbox,
+                        caption_top_1000=caption_top,
+                    )
+                    completed_region = PdfFigureRegion(
+                        page_id=region.page_id,
+                        bbox=completed_bbox,
+                        description=region.description,
+                        visible_text=region.visible_text,
+                        anchor_id=region.anchor_id,
+                    )
+                    if geometry_adjusted and crop_plan.adjusted_edges:
+                        bbox_adjustment = (
+                            "multi_region_text_gap_and_pixel_gutter_adaptive"
+                        )
+                    elif geometry_adjusted:
+                        bbox_adjustment = "multi_region_text_gap"
+                    elif crop_plan.adjusted_edges:
+                        bbox_adjustment = "pixel_gutter_adaptive"
+                    else:
+                        bbox_adjustment = None
                     figure = _persist_figure_crop(
                         conn,
                         job=job,
@@ -1213,11 +1198,7 @@ def _recover_crops(
                         known_sha256s=known_sha256s,
                         model_bbox=region.bbox,
                         caption_top_1000=caption_top,
-                        geometry_adjustment=(
-                            "multi_region_text_gap_with_side_margin"
-                            if geometry_adjusted
-                            else None
-                        ),
+                        geometry_adjustment=bbox_adjustment,
                     )
                     if figure["duplicate"]:
                         _record_region_outcome(
@@ -1252,8 +1233,17 @@ def _recover_crops(
                         diagnostics={
                             "placement": placement.status,
                             **(
-                                {"geometry_adjustment": "multi_region_text_gap"}
-                                if geometry_adjusted
+                                {"bbox_adjustment": bbox_adjustment}
+                                if bbox_adjustment
+                                else {}
+                            ),
+                            **(
+                                {
+                                    "pixel_adjusted_edges": list(
+                                        crop_plan.adjusted_edges
+                                    )
+                                }
+                                if crop_plan.adjusted_edges
                                 else {}
                             ),
                         },

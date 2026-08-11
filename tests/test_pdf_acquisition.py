@@ -4,7 +4,7 @@ import io
 import re
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 from psycopg.types.json import Jsonb
 
 from universe.acquisition.manual_uploads import (
@@ -35,6 +35,23 @@ def _png_bytes(width: int = 20, height: int = 10) -> bytes:
 def _real_png_bytes(width: int = 1000, height: int = 1000) -> bytes:
     output = io.BytesIO()
     Image.new("RGB", (width, height), "white").save(output, format="PNG")
+    return output.getvalue()
+
+
+def _figure_page_png_bytes() -> bytes:
+    page = Image.new("RGB", (1000, 1000), "white")
+    draw = ImageDraw.Draw(page)
+    draw.rectangle((250, 620, 750, 880), outline="black", width=4)
+    draw.line((500, 880, 500, 924), fill="black", width=4)
+    draw.rectangle((130, 960, 870, 967), fill="black")
+    output = io.BytesIO()
+    page.save(output, format="PNG")
+    return output.getvalue()
+
+
+def _black_page_png_bytes() -> bytes:
+    output = io.BytesIO()
+    Image.new("RGB", (1000, 1000), "black").save(output, format="PNG")
     return output.getvalue()
 
 
@@ -702,7 +719,7 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
             PdfPage(
                 1,
                 "Figure 1. Three-stage process-mining workflow.",
-                _real_png_bytes(),
+                _figure_page_png_bytes(),
                 1000,
                 1000,
             )
@@ -719,11 +736,11 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
     ).fetchone()
     assert figure[1] == "pdf_figure"
     assert figure[2]["page_number"] == 1
-    assert figure[2]["bbox_1000"] == [0, 560, 1000, 1000]
+    assert figure[2]["bbox_1000"] == [100, 600, 900, 928]
     assert figure[2]["model_bbox_1000"] == [100, 600, 900, 900]
-    assert figure[2]["bbox_adjustment"] == "padded_for_crop_safety"
-    assert figure[2]["width"] == 1000
-    assert figure[2]["height"] == 440
+    assert figure[2]["bbox_adjustment"] == "pixel_gutter_adaptive"
+    assert figure[2]["width"] == 800
+    assert figure[2]["height"] == 328
     assert figure[2]["placement"] == "before_markdown_block"
     markdown = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
@@ -743,6 +760,87 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
         " WHERE acquisition_job_id = %s)",
         (job["id"],),
     ).fetchone() == ("placed", figure[0])
+
+
+def test_figure_without_pixel_gutter_is_an_explicit_attention_outcome(db, tmp_path):
+    source_id = "source-pdf-no-figure-gutter"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'No figure gutter', 'article')",
+        (source_id, Jsonb({"canonical_url": "https://example.test/no-gutter"})),
+    )
+    db.commit()
+    store = LocalAssetStore(tmp_path / "assets")
+    queued = create_manual_upload_job(
+        db,
+        source_id,
+        [ManualAsset("lesson.pdf", "application/pdf", b"%PDF-1.7\nblack", "pdf")],
+        asset_store=store,
+    )
+
+    def locate_figures(_context, images):
+        return pdfs.PdfFigureLocalizationResult(
+            regions=(
+                pdfs.PdfFigureRegion(
+                    page_id=images[0].image_id,
+                    bbox=(300, 300, 700, 700),
+                    description="A figure indistinguishable from surrounding content.",
+                    visible_text="Dense content",
+                ),
+            ),
+            requested_model="fake/vision",
+            response_model="fake/vision-resolved",
+            provider="Fake Provider",
+            usage={"total_tokens": 1},
+            duration_ms=1,
+        )
+
+    job = acquire_manual_upload(
+        db,
+        queued["id"],
+        pdf_document_parser=lambda *_args: pdfs.PdfParseResult(
+            markdown="# Dense lesson\n\nDense content.\n",
+            image_urls=(),
+            attempts=1,
+            diagnostics={"category": "success", "num_pages": 1},
+        ),
+        pdf_figure_locator=locate_figures,
+        pdf_page_extractor=lambda _body: [
+            PdfPage(1, "Dense content", _black_page_png_bytes(), 1000, 1000)
+        ],
+        asset_store=store,
+    )
+
+    assert job["status"] == "succeeded"
+    assert job["diagnostics"]["visual_incomplete"] is True
+    assert job["diagnostics"]["document_parse"]["image_failures"] == [
+        {
+            "batch_ordinal": 1,
+            "region_ordinal": 1,
+            "page_id": db.execute(
+                "SELECT id FROM source_pdf_page WHERE acquisition_job_id = %s",
+                (job["id"],),
+            ).fetchone()[0],
+            "category": "figure_crop_failed",
+            "failure_code": "pdf_figure_crop_failed",
+            "exception": "FigureCropUnresolved",
+        }
+    ]
+    assert db.execute(
+        "SELECT status, diagnostics FROM pdf_figure_region_outcome"
+        " WHERE page_id = (SELECT id FROM source_pdf_page"
+        " WHERE acquisition_job_id = %s)",
+        (job["id"],),
+    ).fetchone() == ("failed", {"exception": "FigureCropUnresolved"})
+    assert db.execute(
+        "SELECT count(*) FROM source_asset"
+        " WHERE acquisition_job_id = %s AND kind = 'pdf_figure'",
+        (job["id"],),
+    ).fetchone()[0] == 0
+    assert db.execute(
+        "SELECT count(*) FROM source_cleanup_job WHERE acquisition_job_id = %s",
+        (job["id"],),
+    ).fetchone()[0] == 0
 
 
 def test_multiple_regions_are_sorted_and_unmatched_regions_use_explicit_fallback(
