@@ -227,7 +227,7 @@ def test_unresolved_image_does_not_protect_neighboring_text_from_triage(db):
     assert "Visual context." not in canonical
 
 
-def test_enriched_image_is_not_discarded_by_a_cleanup_drop_verdict(db):
+def test_enriched_image_can_be_discarded_by_a_cleanup_drop_verdict(db):
     body = """# Comparative evidence
 
 ![Table continuation](/api/source-assets/table-page-2)
@@ -251,7 +251,6 @@ OCR: Concurrent processes mapped to the applicable technique families.
         triage_client=client,
         atomic_triage_client=client,
         refine_client=client,
-        preserve_enriched_images=True,
     )
 
     assert result["status"] == "done"
@@ -259,12 +258,12 @@ OCR: Concurrent processes mapped to the applicable technique families.
         "SELECT verdict, policy_reason FROM passage_cleanup_result"
         " WHERE cleanup_id = %s",
         (result["cleanup_id"],),
-    ).fetchone() == ("keep", "primary_enriched_image_preserved")
+    ).fetchone() == ("drop", None)
     canonical = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (result["artifacts"][0],)
     ).fetchone()[0]
-    assert "![Table continuation]" in canonical
-    assert "Concurrent processes" in canonical
+    assert "![Table continuation]" not in canonical
+    assert "Concurrent processes" not in canonical
 
 
 def test_refine_that_selects_every_element_becomes_a_terminal_drop(db):

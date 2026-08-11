@@ -3,6 +3,9 @@
 Date: 2026-08-10
 Status: accepted
 
+ADR 0018 supersedes the caption-only candidate gate and the no-per-page-call
+consequence below. Firecrawl's structural role remains accepted.
+
 ## Context
 
 ADR 0016 reconstructed PDFs from Poppler text layers and full-page vision. In

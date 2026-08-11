@@ -13,9 +13,9 @@ def test_manual_upload_dialog_makes_scope_and_consent_explicit() -> None:
     assert 'data-manual-kind="pdf"' in html
     assert 'data-manual-kind="images"' in html
     assert "De 1 a 50 screenshots" in html
-    assert "descrição visual" in html
     assert "envio do arquivo à Firecrawl" in html
-    assert "página candidata ao OpenRouter/Gemini" in html
+    assert "envio de todas as páginas ao OpenRouter/Gemini" in html
+    assert "Screenshots são reunidos, na ordem escolhida, em um PDF" in html
     assert "KCs não serão gerados automaticamente" in html
     assert "Processar e criar Markdown" in html
 
@@ -30,6 +30,17 @@ def test_manual_upload_posts_ordered_files_to_one_source() -> None:
     assert "response.status !== 202" in javascript
     assert "replaceSourceState(sourceId, body)" in javascript
     assert "renderDetail()" in javascript
+
+
+def test_book_queue_requires_scope_specific_provider_consent() -> None:
+    javascript = (STATIC / "syllabi.js").read_text(encoding="utf-8")
+
+    assert "window.confirm" in javascript
+    assert "O Browserbase abrirá o leitor autenticado" in javascript
+    assert "somente essas páginas" in javascript
+    assert "Firecrawl como um PDF ordenado" in javascript
+    assert "OpenRouter/Gemini para localizar figuras" in javascript
+    assert "Tasks e KCs não serão gerados automaticamente" in javascript
 
 
 def test_manual_upload_rejects_mixed_or_unsupported_files_in_browser() -> None:

@@ -24,7 +24,9 @@ import psycopg
 from fastapi import Body, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 
 from universe import curation
 from universe.acquisition.image_jobs import (
@@ -57,6 +59,11 @@ STATIC_DIR = Path(__file__).with_name("static")
 MAX_WORKBOOK_BYTES = 30 * 1024 * 1024
 LOCAL_ASSET_URL = re.compile(r"^/api/source-assets/[A-Za-z0-9][A-Za-z0-9._:-]*$")
 LOGGER = logging.getLogger(__name__)
+MAX_RENDERED_MATH_CHARS = 20_000
+UNSAFE_LATEX_COMMAND = re.compile(
+    r"\\(?:class|href|html|includegraphics|style|url)\b",
+    re.IGNORECASE,
+)
 
 
 def _render_safe_image(renderer, tokens, idx, options, env) -> str:
@@ -93,6 +100,65 @@ def _render_safe_image(renderer, tokens, idx, options, env) -> str:
     return f'<span class="syl-remote-image">{label} — imagem não carregada</span>'
 
 
+def _has_balanced_latex_groups(source: str) -> bool:
+    """Reject truncated brace groups before passing source to the converter."""
+    depth = 0
+    for index, character in enumerate(source):
+        if character not in "{}":
+            continue
+        backslashes = 0
+        cursor = index - 1
+        while cursor >= 0 and source[cursor] == "\\":
+            backslashes += 1
+            cursor -= 1
+        if backslashes % 2:
+            continue
+        if character == "{":
+            depth += 1
+        elif depth == 0:
+            return False
+        else:
+            depth -= 1
+    return depth == 0
+
+
+def _render_math_source(source: str, *, display_mode: bool) -> str:
+    """Render safe MathML, falling back to escaped LaTeX when conversion fails."""
+    delimiter = "$$" if display_mode else "$"
+
+    def fallback() -> str:
+        original = f"{delimiter}{source}{delimiter}"
+        return f'<code class="syl-math-source">{escape(original, quote=False)}</code>'
+
+    if (
+        not source
+        or len(source) > MAX_RENDERED_MATH_CHARS
+        or "\x00" in source
+        or UNSAFE_LATEX_COMMAND.search(source)
+        or not _has_balanced_latex_groups(source)
+    ):
+        return fallback()
+
+    try:
+        mathml = latex2mathml.convert(
+            source,
+            display="block" if display_mode else "inline",
+        )
+    except Exception:  # The source is third-party extracted LaTeX.
+        return fallback()
+
+    # The converter escapes text, but some LaTeX extensions can generate
+    # navigable/style attributes. Never expose those through extracted source.
+    if re.search(r'\s(?:href|src|style|on[a-z]+)="', mathml, re.IGNORECASE):
+        return fallback()
+    css_class = "syl-math-block" if display_mode else "syl-math-inline"
+    return mathml.replace("<math ", f'<math class="{css_class}" ', 1)
+
+
+def _render_math(source: str, options: dict) -> str:
+    return _render_math_source(source, display_mode=bool(options["display_mode"]))
+
+
 def _markdown_renderer() -> MarkdownIt:
     """Build the local renderer used by the native Markdown dialog.
 
@@ -104,6 +170,12 @@ def _markdown_renderer() -> MarkdownIt:
         "commonmark",
         {"html": False, "linkify": False, "typographer": False},
     ).enable("table")
+    renderer.use(
+        dollarmath_plugin,
+        renderer=_render_math,
+        allow_labels=False,
+        allow_blank_lines=False,
+    )
     renderer.add_render_rule("image", _render_safe_image)
     return renderer
 
@@ -125,7 +197,13 @@ def _acquisition_capability(media_type: str | None) -> dict:
             "adapter": "firecrawl",
             "label": "Firecrawl",
         }
-    kind = {"video": "vídeo", "book": "livro"}.get(media_type, "fonte")
+    if media_type == "book":
+        return {
+            "supported": True,
+            "adapter": "browserbase-book",
+            "label": "Browserbase + reconstrução ordenada",
+        }
+    kind = {"video": "vídeo"}.get(media_type, "fonte")
     return {
         "supported": False,
         "adapter": None,
@@ -422,8 +500,8 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             if diagnostics.get("visual_incomplete"):
                 pipeline_status = "attention"
                 states[source_id]["job"]["error"] = (
-                    "O texto e a tabela do PDF foram preservados, mas uma ou mais "
-                    "figuras precisam de atenção antes da limpeza."
+                    "A estrutura textual foi preservada, mas uma ou mais figuras "
+                    "precisam de atenção antes da limpeza."
                 )
             elif cleanup and cleanup["status"] == "succeeded":
                 pipeline_status = "ready"
@@ -1118,7 +1196,7 @@ def create_app(
                 if diagnostics.get("visual_incomplete"):
                     raise HTTPException(
                         status_code=409,
-                        detail="Uma ou mais figuras do PDF precisam de atenção antes da publicação.",
+                        detail="Uma ou mais figuras da fonte precisam de atenção antes da publicação.",
                     )
                 if cleanup is None or cleanup[0] in {"queued", "running"}:
                     raise HTTPException(

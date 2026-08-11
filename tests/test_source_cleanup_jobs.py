@@ -12,13 +12,14 @@ from universe.model_client import ModelClient
 
 def test_default_cleanup_prompt_drops_citation_only_bibliographies():
     prompt = (
-        Path(PROMPTS_DIR) / "passage-triage" / "v004.md"
+        Path(PROMPTS_DIR) / "passage-triage" / "v005.md"
     ).read_text(encoding="utf-8")
 
-    assert source_cleanup_jobs.TRIAGE_PROMPT_VERSION == "v004"
+    assert source_cleanup_jobs.TRIAGE_PROMPT_VERSION == "v005"
     assert "bibliographic references" in prompt
     assert "without explanatory teaching" in prompt
-    assert "enriched image atom" in prompt
+    assert "Judge images by the same" in prompt
+    assert "rule as every other element" in prompt
 
 
 def _tool_response(name: str, arguments: dict) -> dict:
@@ -112,7 +113,7 @@ def test_cleanup_job_runs_blocks_cuts_triage_and_publishes_only_clean_markdown(d
     assert boundary[2]["source_markdown_artifact_id"] == artifact_id
 
 
-def test_pdf_cleanup_preserves_enriched_visuals_despite_a_drop_verdict(db):
+def test_pdf_cleanup_allows_an_enriched_visual_drop_verdict(db):
     _source_id, acquisition_job_id, artifact_id = _source_artifact(
         db, "pdf-visual", metadata={"pdf_page_pipeline": True}
     )
@@ -163,13 +164,13 @@ def test_pdf_cleanup_preserves_enriched_visuals_despite_a_drop_verdict(db):
         "SELECT body FROM artifact WHERE id = %s",
         (result["canonical_artifact_id"],),
     ).fetchone()[0]
-    assert "![Page 7 table]" in canonical
-    assert "Concurrent processes" in canonical
+    assert "![Page 7 table]" not in canonical
+    assert "Concurrent processes" not in canonical
     assert db.execute(
         "SELECT verdict, policy_reason FROM passage_cleanup_result"
         " WHERE cleanup_id = %s",
         (result["cleanup_id"],),
-    ).fetchone() == ("keep", "primary_enriched_image_preserved")
+    ).fetchone() == ("drop", None)
 
 
 def test_cleanup_queue_and_claim_are_idempotent_for_refresh_and_two_workers(db):
@@ -249,6 +250,8 @@ def test_default_cleanup_client_uses_auto_exacto_routing_and_fails_over_once():
     assert default_client.primary.params["reasoning"] == {
         "effort": "high", "exclude": True
     }
+    assert default_client.primary.timeout == 90.0
+    assert default_client.fallback.timeout == 90.0
 
 
 def test_resilient_cleanup_client_does_not_retry_a_successful_tool_call():

@@ -132,13 +132,7 @@ def test_plan_validation_enforces_application_invariants(db, refinement_passage)
     with pytest.raises(passage_refine.RefinementError, match="unresolved image"):
         passage_refine.validate_plan(elements, [4])
     enriched = [*elements[:-1], {**elements[-1], "image_state": "enriched"}]
-    with pytest.raises(
-        passage_refine.RefinementRemovesEnrichedImage,
-        match="enriched image",
-    ):
-        passage_refine.validate_plan(
-            enriched, [4], preserve_enriched_images=True
-        )
+    assert passage_refine.validate_plan(enriched, [4]) == [enriched[3]]
     with pytest.raises(passage_refine.RefinementError, match="atomic passage"):
         passage_refine.validate_plan(elements[:1], [1])
 

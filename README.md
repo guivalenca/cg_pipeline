@@ -107,9 +107,12 @@ beside its OCR, visual description and any limitation as one atomic document
 element; model prose never replaces the asset. This lets image meaning affect
 passage boundaries without making one failed image retry the source.
 
-This differs from manual screenshots: there, the ordered images are the source
-material itself. A failed reading preserves the evidence and puts the source
-in attention instead of silently deleting it.
+Manual screenshots are reconstructed document-wide. Their visible order is
+preserved, the images are packaged losslessly into an audit-only PDF transport,
+and Firecrawl runs in forced OCR mode. The same PDF Figure Placement Module then
+inventories every page and inserts only local figure crops beside the Blocks
+that explain them. Whole-page screenshots remain immutable evidence and are
+never published as Markdown images.
 
 PDF extraction is structural (ADR 0017). An explicitly consented private PDF is
 uploaded to Firecrawl `/v2/parse`, which returns reading-order Markdown,
@@ -124,11 +127,19 @@ document processing is approved; `FIRECRAWL_API_KEY` is also required.
 Install Poppler locally before processing PDFs (`brew install poppler` on
 macOS; the Railway worker image needs the equivalent `poppler-utils` package).
 
-Video, book/Sophia, Browserbase, and caption adapters have not been ported yet.
-Queueing an otherwise valid Source whose media type has no Adapter ends with
-the explicit `unsupported_media_kind` failure; it is not reported as a
-successful extraction. The manual PDF/image path remains available for that
-existing Source when the operator has the material.
+Concretely scoped book pages use the Browserbase/Sophia Adapter. Each captured
+page and its reader accessibility text is committed before navigation
+continues, so a transient browser failure resumes from the completed prefix.
+Before committing a page, the Adapter expands the viewport until the page root,
+its scroll area, and every visual descendant fit horizontally and vertically;
+an unverifiable or clipped page is retried and never replaced by a body or
+viewport screenshot containing reader chrome.
+After the Browserbase session is released, those ordered pages enter the same
+forced-OCR reconstruction and figure-placement path as manual screenshots.
+Exact reader text remains separate evidence: it helps page-local validation
+but cannot override OCR formulas or document structure. The Syllabus action
+names Browserbase, Firecrawl, OpenRouter/Gemini, and the exact page scope before
+queueing. Video and caption adapters remain unsupported.
 
 For local use, `python serve.py` runs the web process and one in-process worker.
 In Railway, use two services backed by the same Postgres database:

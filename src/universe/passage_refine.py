@@ -19,10 +19,6 @@ class RefinementDropsPassage(RefinementError):
     """The refiner selected every remaining element, so the passage is empty."""
 
 
-class RefinementRemovesEnrichedImage(RefinementError):
-    """A protected primary visual was selected for removal."""
-
-
 def raw_elements(conn: psycopg.Connection, passage: dict) -> list[dict]:
     elements = [
         block
@@ -126,8 +122,6 @@ def parse_drop_elements(response: str) -> list[int]:
 def validate_plan(
     elements: list[dict],
     numbers: list[int],
-    *,
-    preserve_enriched_images: bool = False,
 ) -> list[dict]:
     if not numbers:
         return []
@@ -140,12 +134,6 @@ def validate_plan(
     selected = [
         element for number, element in enumerate(elements, 1) if number in wanted
     ]
-    if preserve_enriched_images and any(
-        element.get("image_state") == "enriched" for element in selected
-    ):
-        raise RefinementRemovesEnrichedImage(
-            "a protected enriched image cannot be removed"
-        )
     if len(numbers) == len(elements):
         raise RefinementDropsPassage("refinement removes every passage element")
     if any(element.get("image_state") == "unresolved" for element in selected):
@@ -186,7 +174,6 @@ def materialize_revision(
     passage: dict,
     refine_item: dict,
     parent_revision_id: str | None,
-    preserve_enriched_images: bool = False,
 ) -> dict | None:
     """Apply one tool plan. Empty plans are explicit no-progress outcomes."""
     run_item_id = refine_item.get("id")
@@ -216,11 +203,7 @@ def materialize_revision(
 
     numbers = parse_drop_elements(stored_item["response"])
     elements = effective_elements(conn, passage, parent_revision_id)
-    selected = validate_plan(
-        elements,
-        numbers,
-        preserve_enriched_images=preserve_enriched_images,
-    )
+    selected = validate_plan(elements, numbers)
     if not selected:
         return None
 

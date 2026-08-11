@@ -21,7 +21,7 @@ def firecrawl_api_key() -> str | None:
 
 
 def private_pdf_figure_localization_enabled() -> bool:
-    """Require an independent opt-in before exporting candidate page renders."""
+    """Require an independent opt-in before exporting rendered PDF pages."""
     return (
         os.environ.get("OPENROUTER_ALLOW_PRIVATE_PDF_PAGE_UPLOADS", "").strip()
         == "1"
@@ -78,6 +78,17 @@ def source_cleanup_fallback_model() -> str:
         os.environ.get("CONCEPT_UNIVERSE_SOURCE_CLEANUP_FALLBACK_MODEL", "").strip()
         or "google/gemini-2.5-flash"
     )
+
+
+def source_cleanup_timeout_seconds() -> float:
+    """Bound each cleanup attempt so the independent fallback starts promptly."""
+    try:
+        value = float(
+            os.environ.get("CONCEPT_UNIVERSE_SOURCE_CLEANUP_TIMEOUT_SECONDS", "90")
+        )
+    except ValueError:
+        return 90.0
+    return min(300.0, max(15.0, value))
 
 
 def openrouter_tool_provider_routing() -> dict[str, object]:

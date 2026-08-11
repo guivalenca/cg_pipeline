@@ -1,6 +1,7 @@
 """Page-aware PDF acquisition contracts. External tools and models are faked."""
 
 import io
+import re
 from pathlib import Path
 
 from PIL import Image
@@ -13,12 +14,8 @@ from universe.acquisition.manual_uploads import (
     list_manual_assets,
 )
 from universe.acquisition import pdfs
-from universe.acquisition.pdfs import PdfPage, text_layer_markdown
-from universe.acquisition.source_images import (
-    SourceImageAnalysis,
-    SourceImageBatchResult,
-    input_manifest_hash,
-)
+from universe.acquisition import pdf_figure_recovery as pdf_figures
+from universe.acquisition.pdfs import PdfPage
 from universe.assets import LocalAssetStore
 from universe.blocks import split_blocks
 
@@ -41,50 +38,106 @@ def _real_png_bytes(width: int = 1000, height: int = 1000) -> bytes:
     return output.getvalue()
 
 
-def _batch(context, images, analyses):
-    return SourceImageBatchResult(
-        analyses=analyses,
-        unresolved={},
-        requested_model="fake/pdf-vision",
-        response_model="fake/pdf-vision-resolved",
+def _empty_figure_result(_context, _images):
+    return pdfs.PdfFigureLocalizationResult(
+        regions=(),
+        requested_model="fake/vision",
+        response_model="fake/vision-resolved",
         provider="Fake Provider",
-        usage={"prompt_tokens": 20, "completion_tokens": 5, "total_tokens": 25},
-        duration_ms=7,
-        prompt_ref="pdf-page-analysis/v001",
-        prompt_sha="a" * 64,
-        input_manifest_hash=input_manifest_hash(context, images),
+        usage={"total_tokens": 1},
+        duration_ms=1,
     )
 
 
-def test_pdf_text_layer_splits_attached_section_heading_from_its_paragraph():
-    markdown = text_layer_markdown(
-        "5.     Conclusions\n"
-        "This paper compares commercial tools and their capabilities.\n"
-        "It then identifies future research directions.\n\n"
-        "References\n"
-        "Agrawal, R. et al. (1998), Mining process models."
-    )
-
-    assert markdown == (
-        "### 5. Conclusions\n\n"
-        "This paper compares commercial tools and their capabilities. "
-        "It then identifies future research directions.\n\n"
-        "### References\n\n"
-        "Agrawal, R. et al. (1998), Mining process models."
-    )
-
-
-def test_pdf_visual_prompt_requires_visible_support_for_table_structure_claims():
+def test_pdf_figure_prompt_requires_exhaustive_page_accounting_and_anchors():
     prompt = (
         Path(__file__).resolve().parents[1]
         / "prompts"
-        / "pdf-page-analysis"
-        / "v002.md"
+        / "pdf-figure-localization"
+        / "v004.md"
     ).read_text(encoding="utf-8")
 
-    assert pdfs.PDF_PROMPT_REF == "pdf-page-analysis/v002"
-    assert "verify every named header or category" in prompt
-    assert "omit it rather than infer it" in prompt
+    assert pdfs.PDF_FIGURE_PROMPT_REF == "pdf-figure-localization/v004"
+    assert "every supplied page" in prompt
+    assert "zero, one, or multiple" in prompt
+    assert "anchor_id" in prompt
+
+
+def test_figure_batches_cap_multi_page_localization_for_coordinate_reliability():
+    pages = [
+        {"id": f"page-{number}", "text_body": f"Page {number}"}
+        for number in range(1, 18)
+    ]
+    bodies = {str(page["id"]): b"render" for page in pages}
+
+    assert [
+        len(batch) for batch in pdf_figures._page_batches(pages, bodies)
+    ] == [8, 8, 1]
+
+
+def test_region_page_guard_rejects_strong_cross_page_ocr_evidence():
+    pages = [
+        {
+            "id": "page-1",
+            "text_body": "General methodology discussion without diagram labels.",
+            "text_layer_status": "usable",
+        },
+        {
+            "id": "page-2",
+            "text_body": (
+                "Start phase discovery decision commercial software criteria output end"
+            ),
+            "text_layer_status": "usable",
+        },
+    ]
+    region = pdfs.PdfFigureRegion(
+        page_id="page-1",
+        bbox=(100, 100, 900, 500),
+        description="A workflow.",
+        visible_text=(
+            "Start phase discovery decision commercial software criteria output end"
+        ),
+    )
+
+    mismatch = pdf_figures._region_page_mismatch(region, pages)
+
+    assert mismatch["reason"] == "visible_text_matches_another_page"
+    assert mismatch["best_page_id"] == "page-2"
+
+
+def test_multi_region_geometry_assigns_ordered_whitespace_between_prose_lines():
+    first = pdfs.PdfFigureRegion(
+        page_id="page-1",
+        bbox=(350, 110, 650, 190),
+        description="A stacked diagram.",
+        visible_text="p1 t1 p2",
+        anchor_id="anchor-1",
+    )
+    second = pdfs.PdfFigureRegion(
+        page_id="page-1",
+        bbox=(350, 250, 650, 320),
+        description="A second stacked diagram.",
+        visible_text="p3 t2 p4",
+        anchor_id="anchor-2",
+    )
+    page = {
+        "text_lines_1000": (
+            ("The first paragraph introduces the first diagram clearly.", 100, 100, 850, 120),
+            ("p1 t1 p2", 400, 160, 600, 175),
+            ("The middle paragraph explains the first result and introduces another.", 100, 240, 850, 260),
+            ("p3 t2 p4", 400, 300, 600, 315),
+            ("The final paragraph explains the second result in detail.", 100, 380, 850, 400),
+        )
+    }
+
+    assigned = pdf_figures._multi_region_text_gap_bboxes(
+        [first, second], page=page
+    )
+
+    assert assigned == {
+        first.bbox: (350, 126, 650, 234),
+        second.bbox: (350, 266, 650, 374),
+    }
 
 
 def test_figure_locator_uses_named_coordinates_and_requires_complete_visual(
@@ -112,6 +165,7 @@ def test_figure_locator_uses_named_coordinates_and_requires_complete_visual(
                             },
                             "description": "A complete connected workflow.",
                             "visible_text": "Start, Phase 1, Phase 2, Phase 3, End",
+                            "anchor_id": "md-block-0002-abc123",
                         }
                     ]
                 },
@@ -123,7 +177,7 @@ def test_figure_locator_uses_named_coordinates_and_requires_complete_visual(
                 4,
             )
 
-    monkeypatch.setattr(pdfs, "ModelClient", FakeModelClient)
+    monkeypatch.setattr(pdf_figures, "ModelClient", FakeModelClient)
     image = pdfs.SourceImageInput(
         image_id="page-8",
         alt_text="PDF page 8",
@@ -136,13 +190,15 @@ def test_figure_locator_uses_named_coordinates_and_requires_complete_visual(
     result = pdfs.default_pdf_figure_locator("Figure 1. Workflow.", [image])
 
     assert result.regions[0].bbox == (230, 85, 685, 535)
+    assert result.regions[0].anchor_id == "md-block-0002-abc123"
     bbox_schema = captured["tool"]["function"]["parameters"]["properties"][
         "regions"
     ]["items"]["properties"]["bbox"]
     assert bbox_schema["type"] == "object"
     assert list(bbox_schema["properties"]) == ["left", "top", "right", "bottom"]
     prompt_text = captured["messages"][0]["content"][0]["text"]
-    assert "entire connected visual" in prompt_text
+    assert "complete connected" in prompt_text
+    assert "structure with a small margin" in prompt_text
     assert "top-left corner" in prompt_text
 
 
@@ -159,13 +215,15 @@ def test_caption_position_extends_a_partial_figure_box_without_publishing_captio
     </doc></body></html>"""
 
     caption_tops = pdfs._figure_caption_tops_from_bbox_xml(bbox_xml, 1)
-    completed = pdfs._complete_figure_bbox(
+    text_lines = pdfs._text_lines_from_bbox_xml(bbox_xml, 1)
+    completed = pdf_figures._complete_figure_bbox(
         (268, 89, 730, 399), caption_top_1000=caption_tops[0]
     )
 
     assert caption_tops == [549]
+    assert text_lines == [(("Figure 1: Methodology", 140, 549, 860, 562),)]
     assert completed == (268, 89, 730, 539)
-    assert pdfs._complete_figure_bbox(
+    assert pdf_figures._complete_figure_bbox(
         (268, 89, 730, 560), caption_top_1000=caption_tops[0]
     ) == (268, 89, 730, 560)
 
@@ -186,6 +244,7 @@ def test_firecrawl_markdown_is_canonical_and_page_renders_are_audit_only(db, tmp
         asset_store=store,
     )
     parse_calls = []
+    locator_calls = []
 
     def parse_document(body, filename, mime_type):
         parse_calls.append((body, filename, mime_type))
@@ -201,10 +260,15 @@ def test_firecrawl_markdown_is_canonical_and_page_renders_are_audit_only(db, tmp
             diagnostics={"category": "success", "num_pages": 1},
         )
 
+    def locate_figures(context, images):
+        locator_calls.append((context, images))
+        return _empty_figure_result(context, images)
+
     job = acquire_manual_upload(
         db,
         queued["id"],
         pdf_document_parser=parse_document,
+        pdf_figure_locator=locate_figures,
         pdf_page_extractor=lambda _body: [
             PdfPage(
                 1,
@@ -222,7 +286,9 @@ def test_firecrawl_markdown_is_canonical_and_page_renders_are_audit_only(db, tmp
         (b"%PDF-1.7\nfixture", "lesson.pdf", "application/pdf")
     ]
     assert job["diagnostics"]["extractor"]["document_tool"] == "firecrawl-parse"
-    assert job["diagnostics"]["visual_calls"] == []
+    assert len(locator_calls) == 1
+    assert len(job["diagnostics"]["visual_calls"]) == 1
+    assert job["diagnostics"]["visual_calls"][0]["region_count"] == 0
     markdown = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
     ).fetchone()[0]
@@ -233,6 +299,55 @@ def test_firecrawl_markdown_is_canonical_and_page_renders_are_audit_only(db, tmp
         "SELECT count(*) FROM source_asset_analysis a"
         " JOIN source_pdf_page p ON p.id = a.pdf_page_id"
         " WHERE p.acquisition_job_id = %s",
+        (job["id"],),
+    ).fetchone()[0] == 0
+
+
+def test_disabled_all_page_localization_is_an_explicit_attention_outcome(
+    db, tmp_path, monkeypatch
+):
+    monkeypatch.delenv("OPENROUTER_ALLOW_PRIVATE_PDF_PAGE_UPLOADS", raising=False)
+    source_id = "source-pdf-localization-disabled"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Disabled PDF localization', 'article')",
+        (source_id, Jsonb({"canonical_url": "https://example.test/disabled-vision"})),
+    )
+    db.commit()
+    store = LocalAssetStore(tmp_path / "assets")
+    queued = create_manual_upload_job(
+        db,
+        source_id,
+        [ManualAsset("lesson.pdf", "application/pdf", b"%PDF-1.7\noff", "pdf")],
+        asset_store=store,
+    )
+
+    job = acquire_manual_upload(
+        db,
+        queued["id"],
+        pdf_document_parser=lambda *_args: pdfs.PdfParseResult(
+            markdown="# Lesson\n\nUseful text.\n",
+            image_urls=(),
+            attempts=1,
+            diagnostics={"category": "success", "num_pages": 1},
+        ),
+        pdf_page_extractor=lambda _body: [
+            PdfPage(1, "Useful text.", _png_bytes(), 20, 10)
+        ],
+        asset_store=store,
+    )
+
+    assert job["status"] == "succeeded"
+    assert job["diagnostics"]["visual_incomplete"] is True
+    assert job["diagnostics"]["document_parse"]["image_failures"] == [
+        {
+            "category": "figure_localization_disabled",
+            "failure_code": "pdf_figure_localization_disabled",
+            "page_count": 1,
+        }
+    ]
+    assert db.execute(
+        "SELECT count(*) FROM source_cleanup_job WHERE acquisition_job_id = %s",
         (job["id"],),
     ).fetchone()[0] == 0
 
@@ -274,6 +389,7 @@ def test_firecrawl_parse_result_is_reused_for_the_same_durable_job(db, tmp_path)
         pdf_asset=pdf_asset,
         asset_store=store,
         document_parser=parse_document,
+        figure_locator=_empty_figure_result,
         page_extractor=extract_pages,
     )
     second = pdfs.acquire_pdf_document(
@@ -284,6 +400,9 @@ def test_firecrawl_parse_result_is_reused_for_the_same_durable_job(db, tmp_path)
         asset_store=store,
         document_parser=lambda *_args: (_ for _ in ()).throw(
             AssertionError("a paid parse must not be repeated")
+        ),
+        figure_locator=lambda *_args: (_ for _ in ()).throw(
+            AssertionError("a paid localization must not be repeated")
         ),
         page_extractor=extract_pages,
     )
@@ -296,6 +415,7 @@ def test_firecrawl_parse_result_is_reused_for_the_same_durable_job(db, tmp_path)
         (queued["id"],),
     ).fetchone() == (1, 1, "succeeded")
     assert second.diagnostics["document_parse"]["reused"] is True
+    assert second.diagnostics["visual_calls"][0]["reused"] is True
 
 
 def test_firecrawl_figure_is_localized_as_an_atomic_asset(db, tmp_path):
@@ -315,6 +435,7 @@ def test_firecrawl_figure_is_localized_as_an_atomic_asset(db, tmp_path):
     )
     figure_url = "https://firecrawl.example/figure-1.png"
     figure_body = _png_bytes(400, 240)
+    locator_calls = []
 
     def parse_document(_body, _filename, _mime_type):
         return pdfs.PdfParseResult(
@@ -341,35 +462,70 @@ def test_firecrawl_figure_is_localized_as_an_atomic_asset(db, tmp_path):
             sha256=__import__("hashlib").sha256(figure_body).hexdigest(),
         )
 
+    def locate_remaining_figures(context, images):
+        locator_calls.append((context, images))
+        anchor_id = re.search(
+            r"## anchor_id: (md-block-[^\n]+)\nkind: paragraph\n\n"
+            r"The workflow separates discovery, conformance, and extension\.",
+            context,
+        ).group(1)
+        return pdfs.PdfFigureLocalizationResult(
+            regions=(
+                pdfs.PdfFigureRegion(
+                    page_id=images[0].image_id,
+                    bbox=(100, 600, 900, 900),
+                    description="A second informative diagram missed by Firecrawl.",
+                    visible_text="A → B",
+                    anchor_id=anchor_id,
+                ),
+            ),
+            requested_model="fake/vision",
+            response_model="fake/vision-resolved",
+            provider="Fake Provider",
+            usage={"total_tokens": 5},
+            duration_ms=2,
+        )
+
     job = acquire_manual_upload(
         db,
         queued["id"],
         pdf_document_parser=parse_document,
         pdf_image_downloader=download_figure,
+        pdf_figure_locator=locate_remaining_figures,
         pdf_page_extractor=lambda _body: [
-            PdfPage(1, "Method workflow", _png_bytes(), 20, 10)
+            PdfPage(1, "Method workflow", _real_png_bytes(), 1000, 1000)
         ],
         asset_store=store,
     )
 
     assert job["status"] == "succeeded"
+    assert len(locator_calls) == 1
     markdown = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
     ).fetchone()[0]
     assert figure_url not in markdown
     figure = db.execute(
         "SELECT id, kind, mime_type, original_url, metadata"
-        " FROM source_asset WHERE acquisition_job_id = %s AND kind = 'pdf_figure'",
+        " FROM source_asset WHERE acquisition_job_id = %s AND kind = 'pdf_figure'"
+        " AND original_url IS NOT NULL",
         (job["id"],),
     ).fetchone()
     assert figure[1:4] == ("pdf_figure", "image/png", figure_url)
     assert figure[4]["width"] == 400
     assert f"![Three-stage process-mining workflow](/api/source-assets/{figure[0]})" in markdown
     image_blocks = [block for block in split_blocks(markdown) if block.kind == "image"]
-    assert len(image_blocks) == 1
+    assert len(image_blocks) == 2
     assert image_blocks[0].image_state == "enriched"
     assert "Image description: Three-stage process-mining workflow" in image_blocks[0].text
-    assert job["diagnostics"]["document_parse"]["extracted_image_count"] == 1
+    assert job["diagnostics"]["document_parse"]["extracted_image_count"] == 2
+    recovered_id = db.execute(
+        "SELECT id FROM source_asset WHERE acquisition_job_id = %s"
+        " AND kind = 'pdf_figure' AND original_url IS NULL",
+        (job["id"],),
+    ).fetchone()[0]
+    assert markdown.index(f"![PDF figure 2](/api/source-assets/{recovered_id})") < (
+        markdown.index("The workflow separates discovery, conformance, and extension.")
+    )
     assert "![PDF page" not in markdown
 
 
@@ -417,6 +573,13 @@ def test_firecrawl_parse_upload_uses_structural_formats_and_auto_pdf_mode(monkey
     assert result.image_urls == ("https://cdn.example/figure.png",)
     assert result.diagnostics["estimated_credits"] == 3
 
+    calls.clear()
+    pdfs.parse_pdf_with_firecrawl(
+        b"%PDF-1.7\nordered", "ordered.pdf", "application/pdf", mode="ocr"
+    )
+    ordered_options = __import__("json").loads(calls[0][3]["options"])
+    assert ordered_options["parsers"] == [{"type": "pdf", "mode": "ocr"}]
+
 
 def test_failed_firecrawl_figure_requires_attention_without_publishing_a_page(db, tmp_path):
     source_id = "source-pdf-firecrawl-image-failure"
@@ -451,6 +614,7 @@ def test_failed_firecrawl_figure_requires_attention_without_publishing_a_page(db
         pdf_image_downloader=lambda _url: (_ for _ in ()).throw(
             pdfs.PdfExtractionError("pdf_image_download_failed", "image_http_error")
         ),
+        pdf_figure_locator=_empty_figure_result,
         pdf_page_extractor=lambda _body: [
             PdfPage(1, "Content survives", _png_bytes(), 20, 10)
         ],
@@ -494,6 +658,11 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
         locator_calls.append((context, images))
         assert "| Capability | Tool A | Tool B |" in context
         assert [image.alt_text for image in images] == ["PDF page 1"]
+        anchor_id = re.search(
+            r"## anchor_id: (md-block-[^\n]+)\nkind: paragraph\n\n"
+            r"Figure 1\. Three-stage process-mining workflow\.",
+            context,
+        ).group(1)
         return pdfs.PdfFigureLocalizationResult(
             regions=(
                 pdfs.PdfFigureRegion(
@@ -503,6 +672,7 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
                         "A workflow connects Discovery to Conformance and Extension."
                     ),
                     visible_text="Discovery → Conformance → Extension",
+                    anchor_id=anchor_id,
                 ),
             ),
             requested_model="fake/vision",
@@ -549,9 +719,12 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
     ).fetchone()
     assert figure[1] == "pdf_figure"
     assert figure[2]["page_number"] == 1
-    assert figure[2]["bbox_1000"] == [100, 600, 900, 900]
-    assert figure[2]["width"] == 800
-    assert figure[2]["height"] == 300
+    assert figure[2]["bbox_1000"] == [76, 600, 924, 916]
+    assert figure[2]["model_bbox_1000"] == [100, 600, 900, 900]
+    assert figure[2]["bbox_adjustment"] == "padded_for_crop_safety"
+    assert figure[2]["width"] == 848
+    assert figure[2]["height"] == 316
+    assert figure[2]["placement"] == "before_markdown_block"
     markdown = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
     ).fetchone()[0]
@@ -559,7 +732,99 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
     assert "A workflow connects Discovery to Conformance and Extension." in markdown
     assert "OCR: Discovery → Conformance → Extension" in markdown
     assert "![PDF page" not in markdown
+    assert "## Extracted figures" not in markdown
+    assert markdown.index(f"![PDF figure 1](/api/source-assets/{figure[0]})") < (
+        markdown.index("Figure 1. Three-stage process-mining workflow.")
+    )
     assert job["diagnostics"]["visual_calls"][0]["usage"]["cost"] == 0.001
+    assert db.execute(
+        "SELECT status, source_asset_id FROM pdf_figure_region_outcome"
+        " WHERE page_id = (SELECT id FROM source_pdf_page"
+        " WHERE acquisition_job_id = %s)",
+        (job["id"],),
+    ).fetchone() == ("placed", figure[0])
+
+
+def test_multiple_regions_are_sorted_and_unmatched_regions_use_explicit_fallback(
+    db, tmp_path
+):
+    source_id = "source-pdf-multiple-figure-regions"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Multiple PDF figures', 'article')",
+        (source_id, Jsonb({"canonical_url": "https://example.test/multiple-figures"})),
+    )
+    db.commit()
+    store = LocalAssetStore(tmp_path / "assets")
+    queued = create_manual_upload_job(
+        db,
+        source_id,
+        [ManualAsset("lesson.pdf", "application/pdf", b"%PDF-1.7\nmulti", "pdf")],
+        asset_store=store,
+    )
+
+    def locator(context, images):
+        anchor_id = re.search(
+            r"## anchor_id: (md-block-[^\n]+)\nkind: paragraph\n\n"
+            r"Diagram A is explained here\.",
+            context,
+        ).group(1)
+        return pdfs.PdfFigureLocalizationResult(
+            regions=(
+                pdfs.PdfFigureRegion(
+                    page_id=images[0].image_id,
+                    bbox=(100, 650, 700, 900),
+                    description="An informative diagram without a text anchor.",
+                    visible_text="C → D",
+                ),
+                pdfs.PdfFigureRegion(
+                    page_id=images[0].image_id,
+                    bbox=(100, 100, 500, 300),
+                    description="The first informative diagram on the page.",
+                    visible_text="A → B",
+                    anchor_id=anchor_id,
+                ),
+            ),
+            requested_model="fake/vision",
+            response_model="fake/vision-resolved",
+            provider="Fake Provider",
+            usage={"total_tokens": 8},
+            duration_ms=3,
+        )
+
+    job = acquire_manual_upload(
+        db,
+        queued["id"],
+        pdf_document_parser=lambda *_args: pdfs.PdfParseResult(
+            markdown="# Lesson\n\nDiagram A is explained here.\n\nClosing.\n",
+            image_urls=(),
+            attempts=1,
+            diagnostics={"category": "success", "num_pages": 1},
+        ),
+        pdf_figure_locator=locator,
+        pdf_page_extractor=lambda _body: [
+            PdfPage(1, "Diagram A is explained here.", _real_png_bytes(), 1000, 1000)
+        ],
+        asset_store=store,
+    )
+
+    markdown = db.execute(
+        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
+    ).fetchone()[0]
+    assert markdown.index("![PDF figure 1]") < markdown.index(
+        "Diagram A is explained here."
+    )
+    assert "## Extracted figures (unanchored)" in markdown
+    assert markdown.index("## Extracted figures (unanchored)") < markdown.index(
+        "![PDF figure 2]"
+    )
+    assert db.execute(
+        "SELECT array_agg(status ORDER BY region_ordinal)"
+        " FROM pdf_figure_region_outcome"
+        " WHERE localization_call_id = (SELECT id"
+        " FROM pdf_figure_localization_call WHERE acquisition_job_id = %s)",
+        (job["id"],),
+    ).fetchone()[0] == ["placed", "unanchored"]
 
 
 def test_vector_figure_localization_is_reused_for_the_same_job(db, tmp_path):
@@ -582,6 +847,11 @@ def test_vector_figure_localization_is_reused_for_the_same_job(db, tmp_path):
 
     def locator(_context, images):
         locator_calls.append(images)
+        anchor_id = re.search(
+            r"## anchor_id: (md-block-[^\n]+)\nkind: paragraph\n\n"
+            r"Figure 1\. Durable workflow\.",
+            _context,
+        ).group(1)
         return pdfs.PdfFigureLocalizationResult(
             regions=(
                 pdfs.PdfFigureRegion(
@@ -589,6 +859,7 @@ def test_vector_figure_localization_is_reused_for_the_same_job(db, tmp_path):
                     bbox=(100, 600, 900, 900),
                     description="A durable workflow crop.",
                     visible_text="A → B",
+                    anchor_id=anchor_id,
                 ),
             ),
             requested_model="fake/vision",
@@ -638,399 +909,3 @@ def test_vector_figure_localization_is_reused_for_the_same_job(db, tmp_path):
         " FROM pdf_figure_localization_call WHERE acquisition_job_id = %s",
         (queued["id"],),
     ).fetchone() == (1, 1, "succeeded")
-
-
-def obsolete_textual_pdf_builds_page_aware_artifacts_and_queues_cleanup(db, tmp_path):
-    source_id = "source-pdf-textual"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, 'Textual PDF', 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.test/textual-pdf"})),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("lesson.pdf", "application/pdf", b"%PDF-1.7\nfixture", "pdf")],
-        asset_store=store,
-    )
-    calls = []
-
-    def extract_pages(body):
-        assert body == b"%PDF-1.7\nfixture"
-        return [
-            PdfPage(
-                page_number=1,
-                text="1. Introduction\n\nFirst wrapped\nparagraph.",
-                render_body=_png_bytes(),
-                width=20,
-                height=10,
-            )
-        ]
-
-    def analyze_pages(context, images):
-        calls.append((context, images))
-        image = images[0]
-        return _batch(
-            context,
-            images,
-            {
-                image.image_id: SourceImageAnalysis(
-                    image_id=image.image_id,
-                    retain=False,
-                    reason_code="no_unique_content",
-                    ocr=None,
-                    description=None,
-                    limitations=None,
-                )
-            },
-        )
-
-    job = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=extract_pages,
-        pdf_page_analyzer=analyze_pages,
-        asset_store=store,
-    )
-
-    assert job["status"] == "succeeded"
-    assert job["diagnostics"]["pipeline_requires_cleanup"] is True
-    assert job["diagnostics"]["visual_incomplete"] is False
-    assert job["diagnostics"]["page_count"] == 1
-    assert len(calls) == 1
-    assert calls[0][0].count("First wrapped") == 1
-    assert len(calls[0][1]) == 1
-
-    artifacts = db.execute(
-        "SELECT id, kind, tool, body, metadata FROM artifact"
-        " WHERE snapshot_id = (SELECT snapshot_id FROM artifact WHERE id = %s)"
-        " ORDER BY kind, id",
-        (job["artifact_id"],),
-    ).fetchall()
-    raw = next(row for row in artifacts if row[1] == "raw-markdown")
-    enriched = next(row for row in artifacts if row[0] == job["artifact_id"])
-    assert raw[2] == "pdftotext-page-layer"
-    assert "<!-- pdf-page:" in raw[3]
-    assert enriched[2] == "pdf-page-association"
-    assert "## Page 1" in enriched[3]
-    assert "First wrapped paragraph." in enriched[3]
-    assert "![" not in enriched[3]
-    assert "\f" not in enriched[3]
-    assert enriched[4]["raw_artifact_id"] == raw[0]
-
-    page = db.execute(
-        "SELECT page_number, text_body, text_layer_status, render_asset_id"
-        " FROM source_pdf_page WHERE acquisition_job_id = %s",
-        (job["id"],),
-    ).fetchone()
-    assert page[0:3] == (1, "1. Introduction\n\nFirst wrapped\nparagraph.", "usable")
-    assert db.execute(
-        "SELECT kind, mime_type, metadata->>'page_number' FROM source_asset WHERE id = %s",
-        (page[3],),
-    ).fetchone() == ("pdf_page", "image/png", "1")
-    assert db.execute(
-        "SELECT status, result->>'reason_code' FROM source_asset_analysis"
-        " WHERE source_asset_id = %s",
-        (page[3],),
-    ).fetchone() == ("succeeded", "no_unique_content")
-
-    cleanup = db.execute(
-        "SELECT status, source_artifact_id FROM source_cleanup_job"
-        " WHERE acquisition_job_id = %s",
-        (job["id"],),
-    ).fetchone()
-    assert cleanup == ("queued", job["artifact_id"])
-
-
-def obsolete_mixed_pdf_keeps_page_order_and_attaches_one_diagram_atom(db, tmp_path):
-    source_id = "source-pdf-mixed"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, 'Mixed PDF', 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.test/mixed-pdf"})),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("mixed.pdf", "application/pdf", b"%PDF-1.7\nmixed", "pdf")],
-        asset_store=store,
-    )
-    calls = []
-
-    def extract_pages(_body):
-        return [
-            PdfPage(1, "1. First section\n\nText on page one.", _png_bytes(20, 10), 20, 10),
-            PdfPage(2, "2. Method\n\nThe method has three phases.", _png_bytes(30, 15), 30, 15),
-        ]
-
-    def analyze_pages(context, images):
-        calls.append((context, images))
-        first, second = images
-        return _batch(
-            context,
-            images,
-            {
-                second.image_id: SourceImageAnalysis(
-                    image_id=second.image_id,
-                    retain=True,
-                    reason_code="information",
-                    ocr=None,
-                    description=(
-                        "A flowchart links Phase 1 to Phase 2 and Phase 3, "
-                        "with decision loops returning to earlier phases."
-                    ),
-                    limitations=None,
-                ),
-                first.image_id: SourceImageAnalysis(
-                    image_id=first.image_id,
-                    retain=False,
-                    reason_code="no_unique_content",
-                    ocr=None,
-                    description=None,
-                    limitations=None,
-                ),
-            },
-        )
-
-    job = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=extract_pages,
-        pdf_page_analyzer=analyze_pages,
-        asset_store=store,
-    )
-
-    assert job["status"] == "succeeded"
-    assert len(calls) == 1
-    context, images = calls[0]
-    assert context.index("## Page 1") < context.index("## Page 2")
-    assert [image.alt_text for image in images] == ["PDF page 1", "PDF page 2"]
-    markdown = db.execute(
-        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
-    ).fetchone()[0]
-    assert markdown.index("## Page 1") < markdown.index("## Page 2")
-    assert "A flowchart links Phase 1 to Phase 2 and Phase 3" in markdown
-    image_blocks = [block for block in split_blocks(markdown) if block.kind == "image"]
-    assert len(image_blocks) == 1
-    assert image_blocks[0].image_state == "enriched"
-    assert "PDF page 2" in image_blocks[0].text
-    assert "PDF page 1" not in image_blocks[0].text
-    assert db.execute(
-        "SELECT count(*) FROM source_asset_analysis a"
-        " JOIN source_pdf_page p ON p.id = a.pdf_page_id"
-        " WHERE p.acquisition_job_id = %s",
-        (job["id"],),
-    ).fetchone()[0] == 2
-
-
-def obsolete_scanned_pdf_page_uses_render_as_primary_ocr_evidence(db, tmp_path):
-    source_id = "source-pdf-scanned"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, 'Scanned PDF', 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.test/scanned-pdf"})),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("scan.pdf", "application/pdf", b"%PDF-1.7\nscan", "pdf")],
-        asset_store=store,
-    )
-
-    def analyze_pages(context, images):
-        assert "(no extractable text layer)" in context
-        image = images[0]
-        return _batch(
-            context,
-            images,
-            {
-                image.image_id: SourceImageAnalysis(
-                    image_id=image.image_id,
-                    retain=True,
-                    reason_code="information",
-                    ocr="Discovery → Conformance checking → Extension",
-                    description="A scanned diagram presents three process-mining types in sequence.",
-                    limitations="The smallest footer is illegible.",
-                )
-            },
-        )
-
-    job = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=lambda _body: [PdfPage(1, "", _png_bytes(), 20, 10)],
-        pdf_page_analyzer=analyze_pages,
-        asset_store=store,
-    )
-
-    assert job["status"] == "succeeded"
-    assert job["diagnostics"]["scanned_pages"] == 1
-    assert job["diagnostics"]["visual_incomplete"] is False
-    markdown = db.execute(
-        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
-    ).fetchone()[0]
-    assert "OCR: Discovery → Conformance checking → Extension" in markdown
-    assert "A scanned diagram presents three process-mining types" in markdown
-    assert "Image limitations: The smallest footer is illegible." in markdown
-    image = next(block for block in split_blocks(markdown) if block.kind == "image")
-    assert image.image_state == "enriched"
-    assert db.execute(
-        "SELECT status FROM source_cleanup_job WHERE acquisition_job_id = %s",
-        (job["id"],),
-    ).fetchone() == ("queued",)
-
-
-def obsolete_pdf_visual_calls_batch_only_for_request_limits_and_refresh_is_idempotent(
-    db, tmp_path, monkeypatch
-):
-    source_id = "source-pdf-batched"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, 'Batched PDF', 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.test/batched-pdf"})),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("batch.pdf", "application/pdf", b"%PDF-1.7\nbatch", "pdf")],
-        asset_store=store,
-    )
-    monkeypatch.setattr(pdfs, "MAX_MULTIMODAL_REQUEST_BYTES", 100)
-    calls = []
-
-    def extract_pages(_body):
-        return [
-            PdfPage(number, f"Page {number} text.", _png_bytes(), 20, 10)
-            for number in range(1, 4)
-        ]
-
-    def analyze_pages(context, images):
-        calls.append((context, [image.image_id for image in images]))
-        return _batch(
-            context,
-            images,
-            {
-                image.image_id: SourceImageAnalysis(
-                    image_id=image.image_id,
-                    retain=False,
-                    reason_code="no_unique_content",
-                    ocr=None,
-                    description=None,
-                    limitations=None,
-                )
-                for image in reversed(images)
-            },
-        )
-
-    first = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=extract_pages,
-        pdf_page_analyzer=analyze_pages,
-        asset_store=store,
-    )
-    second = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=lambda _body: (_ for _ in ()).throw(AssertionError()),
-        pdf_page_analyzer=lambda _context, _images: (_ for _ in ()).throw(AssertionError()),
-        asset_store=store,
-    )
-
-    assert second["id"] == first["id"]
-    assert len(calls) == 2
-    assert [len(ids) for _context, ids in calls] == [2, 1]
-    assert "Page 3 text." not in calls[0][0]
-    assert "Page 1 text." not in calls[1][0]
-    assert db.execute(
-        "SELECT count(*), sum(attempt_count) FROM pdf_page_analysis_call"
-        " WHERE acquisition_job_id = %s",
-        (first["id"],),
-    ).fetchone() == (2, 2)
-    assert db.execute(
-        "SELECT count(*) FROM source_asset WHERE acquisition_job_id = %s",
-        (first["id"],),
-    ).fetchone()[0] == 4
-
-
-def obsolete_one_missing_page_result_preserves_siblings_and_requires_attention(db, tmp_path):
-    source_id = "source-pdf-page-attention"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, 'Incomplete PDF', 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.test/incomplete-pdf"})),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("incomplete.pdf", "application/pdf", b"%PDF-1.7\nincomplete", "pdf")],
-        asset_store=store,
-    )
-
-    def analyze_pages(context, images):
-        first, second = images
-        result = _batch(
-            context,
-            images,
-            {
-                first.image_id: SourceImageAnalysis(
-                    image_id=first.image_id,
-                    retain=True,
-                    reason_code="information",
-                    ocr=None,
-                    description="A complete pedagogical diagram.",
-                    limitations=None,
-                )
-            },
-        )
-        return SourceImageBatchResult(
-            **{
-                **result.__dict__,
-                "unresolved": {second.image_id: "missing_result"},
-            }
-        )
-
-    job = acquire_manual_upload(
-        db,
-        queued["id"],
-        pdf_page_extractor=lambda _body: [
-            PdfPage(1, "Page one text.", _png_bytes(20, 10), 20, 10),
-            PdfPage(2, "Page two text.", _png_bytes(30, 15), 30, 15),
-        ],
-        pdf_page_analyzer=analyze_pages,
-        asset_store=store,
-    )
-
-    assert job["status"] == "succeeded"
-    assert job["diagnostics"]["visual_incomplete"] is True
-    assert db.execute(
-        "SELECT count(*) FROM source_cleanup_job WHERE acquisition_job_id = %s",
-        (job["id"],),
-    ).fetchone()[0] == 0
-    outcomes = db.execute(
-        "SELECT p.page_number, a.status, a.failure_code, a.diagnostics->>'reason'"
-        " FROM source_pdf_page p JOIN source_asset_analysis a ON a.pdf_page_id = p.id"
-        " WHERE p.acquisition_job_id = %s ORDER BY p.page_number",
-        (job["id"],),
-    ).fetchall()
-    assert outcomes == [
-        (1, "succeeded", None, None),
-        (2, "failed", "pdf_page_analysis_unresolved", "missing_result"),
-    ]
-    markdown = db.execute(
-        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
-    ).fetchone()[0]
-    image_blocks = [block for block in split_blocks(markdown) if block.kind == "image"]
-    assert [block.image_state for block in image_blocks] == ["enriched", "unresolved"]
-    assert "A complete pedagogical diagram." in image_blocks[0].text
-    assert "PDF page 2" in image_blocks[1].text

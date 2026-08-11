@@ -15,12 +15,64 @@ from psycopg.types.json import Jsonb
 from universe.assets import LocalAssetStore
 from universe.syllabus import PROJECT_COLUMNS
 from universe.web import app as web_app
+from universe.web.acquisition_app import _markdown_renderer
 from universe.web.app import (
     _diagnostic_message,
     _image_failure_message,
     _summarize_image_counts,
     create_app,
 )
+
+
+def test_markdown_renderer_typesets_inline_math_as_mathml():
+    html = _markdown_renderer().render(r"Energy is $E = mc^2$.")
+
+    assert "<math" in html
+    assert 'xmlns="http://www.w3.org/1998/Math/MathML"' in html
+    assert 'display="inline"' in html
+    assert "<msup>" in html
+    assert "$E = mc^2$" not in html
+
+
+def test_markdown_renderer_typesets_block_math_as_mathml():
+    html = _markdown_renderer().render("$$\n\\frac{a}{b} = c\n$$")
+
+    assert "<math" in html
+    assert 'xmlns="http://www.w3.org/1998/Math/MathML"' in html
+    assert 'display="block"' in html
+    assert "<mfrac>" in html
+    assert "syl-math-block" in html
+
+
+def test_markdown_renderer_keeps_malformed_math_readable():
+    html = _markdown_renderer().render(r"Bad formula: $\frac{1}{2$ after text.")
+
+    assert "syl-math-source" in html
+    assert r"\frac{1}{2" in html
+    assert "after text" in html
+    assert "<math" not in html
+
+
+def test_math_support_preserves_markdown_table_and_image_safety():
+    html = _markdown_renderer().render(
+        "| Formula | Value |\n"
+        "| --- | --- |\n"
+        "| Inline | $x^2$ |\n\n"
+        "<script>alert('x')</script>\n\n"
+        r"Unsafe $\href{javascript:alert(1)}{x}$" "\n\n"
+        "![Tracker](https://tracker.example/pixel.png)\n\n"
+        "![Local](/api/source-assets/asset-safe)"
+    )
+
+    assert "<table>" in html
+    assert "<math" in html
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
+    assert 'href="javascript:' not in html
+    assert "syl-math-source" in html
+    assert '<img src="https://tracker.example' not in html
+    assert "imagem remota não carregada" in html
+    assert '<img src="/api/source-assets/asset-safe"' in html
 
 
 def _app(database_url: str, asset_store=None):
@@ -385,12 +437,6 @@ def test_queue_endpoint_enqueues_only_the_clicked_source(
             "video",
             "vídeo",
         ),
-        (
-            "https://integrada.minhabiblioteca.com.br/#/books/9788557170322",
-            "Leia as páginas 27-55.",
-            "book",
-            "livro",
-        ),
     ],
 )
 def test_web_refuses_to_queue_media_without_an_acquisition_adapter(
@@ -430,6 +476,38 @@ def test_web_refuses_to_queue_media_without_an_acquisition_adapter(
             "SELECT count(*) FROM acquisition_job WHERE source_id = %s",
             (source_id,),
         ).fetchone()[0] == 0
+
+
+def test_web_queues_a_concretely_scoped_book_through_browserbase(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "browserbase-book.xlsx",
+        project="Project",
+        lesson="Aula",
+        source_url="https://integrada.minhabiblioteca.com.br/#/books/9788557170322",
+        source_description="Leia as páginas 27-28.",
+    )
+
+    with TestClient(_app(test_database_url)) as client:
+        uploaded = _upload(
+            client, path, f"Browserbase book {uuid.uuid4().hex[:8]}"
+        ).json()
+        detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
+        source = detail["lessons"][0]["sources"][0]
+
+        assert source["media_type"] == "book"
+        assert source["source_id"]
+        assert source["scope"] == {"kind": "pages", "value": "27-28"}
+        assert source["acquisition_capability"] == {
+            "supported": True,
+            "adapter": "browserbase-book",
+            "label": "Browserbase + reconstrução ordenada",
+        }
+
+        queued = client.post(f"/api/sources/{source['source_id']}/queue")
+        assert queued.status_code == 202, queued.text
+        assert queued.json()["job"]["provider"] == "browserbase-book/v1"
 
 
 def test_markdown_endpoint_renders_and_escapes_source_html(

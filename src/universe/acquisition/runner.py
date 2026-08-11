@@ -22,6 +22,11 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from universe.acquisition.articles import ArticleFetch, fetch_article_detailed
+from universe.acquisition.book_acquisition import (
+    BOOK_PROVIDER,
+    BookCaptureAdapter,
+    book_capture_outcome,
+)
 from universe.acquisition.gates import GATE_CODES
 from universe.acquisition.image_jobs import (
     insert_article_image_candidates,
@@ -32,7 +37,6 @@ from universe.acquisition.image_jobs import (
 from universe.acquisition.manual_uploads import (
     MANUAL_PROVIDER,
     manual_upload_outcome,
-    persist_manual_image_analyses,
 )
 from universe.acquisition.pdfs import (
     PDF_PAGE_TOOL_VERSION,
@@ -62,6 +66,8 @@ class Outcome:
     content_hash: str | None = None
     raw_markdown: str | None = None
     image_urls: tuple[str, ...] = ()
+    retryable: bool = False
+    retry_after_seconds: int = 0
 
     @property
     def succeeded(self) -> bool:
@@ -89,7 +95,11 @@ def _job_dict(row: tuple | None) -> dict | None:
 
 
 def _provider_for(media_type: str | None) -> str:
-    return ARTICLE_PROVIDER if media_type == "article" else "none"
+    if media_type == "article":
+        return ARTICLE_PROVIDER
+    if media_type == "book":
+        return BOOK_PROVIDER
+    return "none"
 
 
 def _one_source_id(value: str) -> str:
@@ -330,7 +340,12 @@ def _record_success(
             **(
                 {"image_branch": "nonblocking"}
                 if outcome.provider == ARTICLE_PROVIDER
-                else {"pdf_page_pipeline": PDF_PAGE_TOOL_VERSION}
+                else {
+                    "pdf_page_pipeline": PDF_PAGE_TOOL_VERSION,
+                    "reconstruction_pipeline": outcome.diagnostics.get(
+                        "tool_version", PDF_PAGE_TOOL_VERSION
+                    )
+                }
             ),
         }
     conn.execute(
@@ -354,10 +369,10 @@ def _record_success(
         ),
     )
     if raw_artifact_id is not None:
+        extractor = outcome.diagnostics.get("extractor") or {}
         raw_tool = (
             PDF_TEXT_TOOL
-            if outcome.provider == MANUAL_PROVIDER
-            and outcome.diagnostics.get("input_mode") == "pdf"
+            if extractor.get("document_tool") == PDF_TEXT_TOOL
             else outcome.tool
         )
         raw_tool_version = (
@@ -395,8 +410,6 @@ def _record_success(
                 ),
             )
             has_image_candidates = bool(image_candidates)
-    if outcome.provider == MANUAL_PROVIDER:
-        persist_manual_image_analyses(conn, job, outcome.diagnostics)
     requires_cleanup = bool(
         outcome.provider == ARTICLE_PROVIDER
         or outcome.diagnostics.get("pipeline_requires_cleanup")
@@ -487,11 +500,48 @@ def _record_failure(
     return result
 
 
+def _record_retry(
+    conn: psycopg.Connection, job: dict, outcome: Outcome
+) -> dict:
+    """Release a transient claim while retaining durable partial evidence."""
+    updated = conn.execute(
+        "UPDATE acquisition_job SET status = 'queued',"
+        " available_at = now() + (%s * interval '1 second'),"
+        " diagnostics = %s, claimed_at = NULL, lease_expires_at = NULL,"
+        " claim_token = NULL, updated_at = now()"
+        " WHERE id = %s AND status = 'running' AND claim_token = %s",
+        (
+            max(0, int(outcome.retry_after_seconds)),
+            Jsonb(
+                {
+                    **outcome.diagnostics,
+                    "retry_scheduled": True,
+                    "attempt_count": job["attempt_count"],
+                }
+            ),
+            job["id"],
+            job["claim_token"],
+        ),
+    )
+    if updated.rowcount != 1:
+        conn.rollback()
+    else:
+        conn.commit()
+    result = get_job(conn, job["id"])
+    assert result is not None
+    return result
+
+
 def process_next_job(
     conn: psycopg.Connection,
     *,
     job_id: str | None = None,
     asset_store: AssetStore | None = None,
+    book_adapter: BookCaptureAdapter | None = None,
+    book_document_parser=None,
+    book_image_downloader=None,
+    book_figure_locator=None,
+    book_pdf_builder=None,
 ) -> dict | None:
     """Claim one acquisition and queue its required downstream Markdown work."""
     job = claim_next_job(conn, job_id=job_id)
@@ -500,6 +550,35 @@ def process_next_job(
     try:
         if job["provider"] == MANUAL_PROVIDER:
             outcome = _manual_outcome(conn, job, asset_store=asset_store)
+        elif job["provider"] == BOOK_PROVIDER:
+            book_kwargs = {}
+            if book_document_parser is not None:
+                book_kwargs["document_parser"] = book_document_parser
+            if book_image_downloader is not None:
+                book_kwargs["image_downloader"] = book_image_downloader
+            if book_figure_locator is not None:
+                book_kwargs["figure_locator"] = book_figure_locator
+            if book_pdf_builder is not None:
+                book_kwargs["pdf_builder"] = book_pdf_builder
+            result = book_capture_outcome(
+                conn,
+                job,
+                adapter=book_adapter,
+                asset_store=asset_store,
+                **book_kwargs,
+            )
+            outcome = Outcome(
+                result.markdown,
+                result.failure_code,
+                result.provider,
+                result.tool,
+                result.diagnostics,
+                tool_version=result.tool_version,
+                content_hash=result.content_hash,
+                raw_markdown=result.raw_markdown,
+                retryable=result.retryable,
+                retry_after_seconds=result.retry_after_seconds,
+            )
         else:
             source = _source(conn, job["source_id"])
             # Do not leave a read transaction open during a potentially slow
@@ -514,11 +593,21 @@ def process_next_job(
             "none",
             {"category": "worker_error", "exception": type(exc).__name__},
         )
-    return (
-        _record_success(conn, job, outcome)
-        if outcome.succeeded
-        else _record_failure(conn, job, outcome)
-    )
+    if outcome.succeeded:
+        return _record_success(conn, job, outcome)
+    if outcome.retryable and job["attempt_count"] < 3:
+        return _record_retry(conn, job, outcome)
+    if outcome.retryable:
+        outcome = Outcome(
+            outcome.markdown,
+            outcome.failure_code,
+            outcome.provider,
+            outcome.tool,
+            {**outcome.diagnostics, "retry_exhausted": True},
+            tool_version=outcome.tool_version,
+            content_hash=outcome.content_hash,
+        )
+    return _record_failure(conn, job, outcome)
 
 
 def _oldest_ready_work_kind(conn: psycopg.Connection) -> str | None:

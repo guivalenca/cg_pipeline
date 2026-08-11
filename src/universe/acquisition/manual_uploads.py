@@ -8,9 +8,7 @@ at an immutable Markdown artifact and never starts KC extraction.
 
 from __future__ import annotations
 
-import base64
 import hashlib
-import os
 import re
 import subprocess
 import uuid
@@ -29,11 +27,14 @@ from universe.acquisition.pdfs import (
     extract_pdf_pages_with_poppler,
     parse_pdf_with_firecrawl,
 )
-from universe.model_client import ModelClient, ModelError
-from universe.settings import (
-    acquisition_lease_minutes,
-    openrouter_multimodal_provider_routing,
+from universe.acquisition.ordered_reconstruction import (
+    ORDERED_RECONSTRUCTION_TOOL,
+    ORDERED_RECONSTRUCTION_VERSION,
+    PdfBuilder,
+    ordered_page_from_asset,
+    reconstruct_ordered_document,
 )
+from universe.settings import acquisition_lease_minutes
 
 
 MAX_TOTAL_BYTES = 30 * 1024 * 1024
@@ -41,8 +42,6 @@ MAX_IMAGE_COUNT = 50
 MAX_IMAGE_PIXELS = 40_000_000
 IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 MANUAL_PROVIDER = "manual-upload/v1"
-DEFAULT_IMAGE_MODEL = "google/gemini-2.5-flash"
-PDF_TOOL_VERSION = "manual-pdf-text.v1"
 SAFE_METADATA_KEYS = {
     "caption",
     "captured_at",
@@ -51,36 +50,6 @@ SAFE_METADATA_KEYS = {
     "notes",
     "page_number",
     "width",
-}
-IMAGE_DESCRIPTION_PROMPT_VERSION = "manual-source-image-description.v1"
-IMAGE_DESCRIPTION_TOOL = {
-    "type": "function",
-    "function": {
-        "name": "describe_source_image",
-        "description": (
-            "Describe one source image for a faithful educational Markdown reconstruction."
-        ),
-        "strict": True,
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "description": (
-                        "Faithful explanation of the visual content, relationships, and educational meaning."
-                    ),
-                },
-                "visible_text": {
-                    "type": "string",
-                    "description": (
-                        "Verbatim transcription of meaningful legible text, preserving reading order; blank if none."
-                    ),
-                },
-            },
-            "required": ["description", "visible_text"],
-            "additionalProperties": False,
-        },
-    },
 }
 
 
@@ -95,17 +64,6 @@ class ManualAsset:
     metadata: Mapping[str, Any] = field(default_factory=dict)
     ordinal: int | None = None
     sha256: str | None = None
-
-
-@dataclass(frozen=True)
-class ImageDescription:
-    description: str
-    visible_text: str
-    requested_model: str
-    response_model: str | None
-    provider: str
-    usage: dict[str, Any]
-    duration_ms: int
 
 
 class ManualAcquisitionError(RuntimeError):
@@ -128,83 +86,6 @@ class ManualOutcome:
     @property
     def succeeded(self) -> bool:
         return self.markdown is not None and self.failure_code is None
-
-
-class OpenRouterImageDescriber:
-    """Describe one ordered image through a forced structured tool call."""
-
-    def __init__(
-        self,
-        *,
-        model: str | None = None,
-        client: ModelClient | None = None,
-    ) -> None:
-        resolved_model = (
-            model
-            or os.environ.get("CONCEPT_UNIVERSE_MANUAL_IMAGE_MODEL", "").strip()
-            or DEFAULT_IMAGE_MODEL
-        )
-        self.client = client or ModelClient(
-            resolved_model,
-            temperature=0,
-            max_tokens=2500,
-            extra={
-                "provider": openrouter_multimodal_provider_routing()
-            },
-        )
-
-    def describe(self, asset: ManualAsset) -> ImageDescription:
-        if asset.mime_type not in IMAGE_MIME_TYPES:
-            raise ValueError("image describer requires a validated raster asset")
-        encoded = base64.b64encode(asset.body).decode("ascii")
-        prompt = (
-            "Reconstruct this uploaded educational source image faithfully. "
-            "Write the visual description in the principal language visible in the image. "
-            "Explain diagrams, charts, spatial relationships, labels and pedagogically relevant visuals; "
-            "do not invent obscured details. Transcribe all meaningful legible text verbatim in reading "
-            "order. Use the forced tool exactly once."
-        )
-        arguments, raw_usage, duration_ms = self.client.call_tool(
-            [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{asset.mime_type};base64,{encoded}",
-                                "detail": "high",
-                            },
-                        },
-                    ],
-                }
-            ],
-            IMAGE_DESCRIPTION_TOOL,
-        )
-        unexpected = set(arguments) - {"description", "visible_text"}
-        description = arguments.get("description")
-        visible_text = arguments.get("visible_text")
-        if unexpected or not isinstance(description, str) or not description.strip():
-            raise ModelError("describe_source_image returned an invalid description")
-        if not isinstance(visible_text, str):
-            raise ModelError("describe_source_image returned invalid visible_text")
-        response_model = raw_usage.get("response_model")
-        provider = raw_usage.get("provider") or "openrouter"
-        usage = {
-            key: value
-            for key, value in raw_usage.items()
-            if key not in {"provider", "response_model"}
-        }
-        return ImageDescription(
-            description=description.strip(),
-            visible_text=visible_text.strip(),
-            requested_model=self.client.model,
-            response_model=(str(response_model) if response_model else None),
-            provider=str(provider),
-            usage=usage,
-            duration_ms=duration_ms,
-        )
 
 
 ASSET_COLUMNS = (
@@ -349,7 +230,8 @@ def list_manual_assets(
         "SELECT id, acquisition_job_id, source_id, ordinal, kind, filename,"
         " mime_type, sha256, byte_size, storage_key, metadata, created_at"
         " FROM source_asset"
-        " WHERE acquisition_job_id = %s AND kind NOT IN ('pdf_page', 'pdf_figure')"
+        " WHERE acquisition_job_id = %s"
+        " AND kind IN ('pdf', 'screenshot', 'image')"
         " ORDER BY ordinal, id",
         (job_id,),
     ).fetchall()
@@ -418,7 +300,7 @@ def acquire_manual_upload(
     pdf_image_downloader=None,
     pdf_figure_locator=None,
     pdf_page_extractor=extract_pdf_pages_with_poppler,
-    image_describer: Any | None = None,
+    ordered_pdf_builder: PdfBuilder | None = None,
     asset_store: AssetStore | None = None,
 ) -> dict:
     """Process one manual-upload job and stop at an immutable Markdown artifact."""
@@ -439,7 +321,7 @@ def acquire_manual_upload(
         pdf_image_downloader=pdf_image_downloader,
         pdf_figure_locator=pdf_figure_locator,
         pdf_page_extractor=pdf_page_extractor,
-        image_describer=image_describer,
+        ordered_pdf_builder=ordered_pdf_builder,
         asset_store=asset_store,
     )
     if not outcome.succeeded:
@@ -483,7 +365,7 @@ def manual_upload_outcome(
     pdf_image_downloader=None,
     pdf_figure_locator=None,
     pdf_page_extractor=extract_pdf_pages_with_poppler,
-    image_describer: Any | None = None,
+    ordered_pdf_builder: PdfBuilder | None = None,
     asset_store: AssetStore | None = None,
 ) -> ManualOutcome:
     """Build an Outcome for a job already claimed by the shared worker.
@@ -535,12 +417,27 @@ def manual_upload_outcome(
             tool = PDF_PAGE_TOOL
             tool_version = PDF_PAGE_TOOL_VERSION
         else:
-            markdown, diagnostics, tool, tool_version = _acquire_images(
-                source[0] if source else None,
-                assets,
-                image_describer or OpenRouterImageDescriber(),
+            result = reconstruct_ordered_document(
+                conn,
+                job=claimed_job,
+                title=source[0] if source else "Fonte reconstruída por imagens",
+                pages=[ordered_page_from_asset(asset) for asset in assets],
+                input_mode="ordered_images",
+                asset_store=store,
+                document_parser=pdf_document_parser,
+                **(
+                    {"image_downloader": pdf_image_downloader}
+                    if pdf_image_downloader is not None
+                    else {}
+                ),
+                figure_locator=pdf_figure_locator,
+                pdf_builder=ordered_pdf_builder,
             )
-            raw_markdown = None
+            markdown = result.enriched_markdown
+            raw_markdown = result.raw_markdown
+            diagnostics = result.diagnostics
+            tool = ORDERED_RECONSTRUCTION_TOOL
+            tool_version = ORDERED_RECONSTRUCTION_VERSION
         diagnostics.update(
             {
                 "input_manifest_sha256": manifest_sha,
@@ -617,323 +514,6 @@ def _claim_manual_job(conn: psycopg.Connection, job_id: str) -> dict | None:
     return dict(zip(columns, row))
 
 
-def _acquire_pdf(title: str | None, asset: dict, extractor) -> tuple[str, dict, str, str]:
-    extracted = extractor(bytes(asset["body"]))
-    if not isinstance(extracted, str):
-        raise ManualAcquisitionError(
-            "manual_pdf_extraction_failed", "invalid_pdf_extractor_result"
-        )
-    text = extracted.replace("\r\n", "\n").replace("\r", "\n").strip()
-    if not text:
-        raise ManualAcquisitionError("manual_pdf_no_text", "pdf_has_no_extractable_text")
-    heading = _markdown_inline(title or asset["filename"])
-    markdown = (
-        f"# {heading}\n\n"
-        f"[Abrir PDF original](/api/source-assets/{asset['id']})\n\n"
-        f"{text}\n"
-    )
-    diagnostics = {
-        "asset_count": 1,
-        "asset_ids": [asset["id"]],
-        "input_mode": "pdf",
-        "total_bytes": asset["byte_size"],
-        "extractor": {"tool": "pdftotext", "tool_version": PDF_TOOL_VERSION},
-    }
-    return markdown, diagnostics, "pdftotext", PDF_TOOL_VERSION
-
-
-def _acquire_images(
-    title: str | None, assets: list[dict], describer: Any
-) -> tuple[str, dict, str, str]:
-    sections = [f"# {_markdown_inline(title or 'Fonte reconstruída por imagens')}"]
-    descriptions: list[ImageDescription] = []
-    image_diagnostics: list[dict[str, Any]] = []
-    for asset in assets:
-        manual_asset = ManualAsset(
-            filename=asset["filename"],
-            mime_type=asset["mime_type"],
-            body=bytes(asset["body"]),
-            kind=asset["kind"],
-            metadata=asset["metadata"],
-            ordinal=asset["ordinal"],
-            sha256=asset["sha256"],
-        )
-        label_kind = "Screenshot" if asset["kind"] == "screenshot" else "Image"
-        label = f"{label_kind} {asset['ordinal']} — {_markdown_inline(asset['filename'])}"
-        image_line = f"![{_markdown_alt(label)}](/api/source-assets/{asset['id']})"
-        try:
-            description = describer.describe(manual_asset)
-        except Exception as exc:
-            sections.append(
-                "\n".join(
-                    [
-                        f"## {label}",
-                        "",
-                        image_line,
-                        "",
-                        "Image analysis: unresolved.",
-                    ]
-                )
-            )
-            image_diagnostics.append(
-                {
-                    "asset_id": asset["id"],
-                    "ordinal": asset["ordinal"],
-                    "kind": asset["kind"],
-                    "status": "failed",
-                    "failure_code": "manual_image_description_failed",
-                    "diagnostics": {
-                        "category": "image_description_failed",
-                        "exception": type(exc).__name__,
-                    },
-                }
-            )
-            continue
-        if not isinstance(description, ImageDescription):
-            sections.append(
-                "\n".join(
-                    [
-                        f"## {label}",
-                        "",
-                        image_line,
-                        "",
-                        "Image analysis: unresolved.",
-                    ]
-                )
-            )
-            image_diagnostics.append(
-                {
-                    "asset_id": asset["id"],
-                    "ordinal": asset["ordinal"],
-                    "kind": asset["kind"],
-                    "status": "failed",
-                    "failure_code": "manual_image_description_failed",
-                    "diagnostics": {"category": "invalid_image_description"},
-                }
-            )
-            continue
-        descriptions.append(description)
-        visible_text = _markdown_visual_field(description.visible_text) or "No legible text."
-        sections.append(
-            "\n".join(
-                [
-                    f"## {label}",
-                    "",
-                    image_line,
-                    "",
-                    f"Image summary: {_markdown_visual_field(description.description)}",
-                    "",
-                    f"Visible text: {visible_text}",
-                ]
-            )
-        )
-        image_diagnostics.append(
-            {
-                "asset_id": asset["id"],
-                "ordinal": asset["ordinal"],
-                "kind": asset["kind"],
-                "status": "succeeded",
-                "requested_model": description.requested_model,
-                "response_model": description.response_model,
-                "provider": description.provider,
-                "usage": description.usage,
-                "duration_ms": description.duration_ms,
-                "result": {
-                    "description": description.description,
-                    "visible_text": description.visible_text,
-                },
-            }
-        )
-    markdown = "\n\n".join(sections).rstrip() + "\n"
-    diagnostics = {
-        "asset_count": len(assets),
-        "asset_ids": [asset["id"] for asset in assets],
-        "input_mode": "images",
-        "total_bytes": sum(asset["byte_size"] for asset in assets),
-        "model": _single_or_list([item.requested_model for item in descriptions]),
-        "prompt_version": IMAGE_DESCRIPTION_PROMPT_VERSION,
-        "provider": _single_or_list([item.provider for item in descriptions]),
-        "usage": _sum_usage([item.usage for item in descriptions]),
-        "images": image_diagnostics,
-    }
-    return (
-        markdown,
-        diagnostics,
-        "openrouter-vision",
-        IMAGE_DESCRIPTION_PROMPT_VERSION,
-    )
-
-
-def _record_manual_success(
-    conn: psycopg.Connection,
-    job: dict,
-    assets: list[dict],
-    markdown: str,
-    diagnostics: dict,
-    *,
-    tool: str,
-    tool_version: str,
-) -> dict:
-    snapshot_id = f"{job['source_id']}:snap:{job['id']}:{job['attempt_count']:02d}"
-    artifact_id = f"{snapshot_id}:markdown"
-    content_hash = _input_manifest_sha(assets)
-    conn.execute(
-        "INSERT INTO source_snapshot"
-        " (id, source_id, captured_at, content_hash, status, failure_note)"
-        " VALUES (%s, %s, now(), %s, 'ok', NULL)",
-        (snapshot_id, job["source_id"], content_hash),
-    )
-    conn.execute(
-        "INSERT INTO artifact (id, snapshot_id, kind, tool, tool_version, body)"
-        " VALUES (%s, %s, 'markdown', %s, %s, %s)",
-        (artifact_id, snapshot_id, tool, tool_version, markdown),
-    )
-    persist_manual_image_analyses(conn, job, diagnostics)
-    updated = conn.execute(
-        "UPDATE acquisition_job SET status = 'succeeded', artifact_id = %s,"
-        " diagnostics = %s, finished_at = now(), lease_expires_at = NULL,"
-        " claim_token = NULL, updated_at = now()"
-        " WHERE id = %s AND status = 'running' AND claim_token = %s",
-        (artifact_id, Jsonb(diagnostics), job["id"], job["claim_token"]),
-    )
-    if updated.rowcount != 1:
-        conn.rollback()
-    else:
-        conn.commit()
-    from universe.acquisition.runner import get_job
-
-    result = get_job(conn, job["id"])
-    assert result is not None
-    return result
-
-
-def persist_manual_image_analyses(
-    conn: psycopg.Connection,
-    job: Mapping[str, Any],
-    diagnostics: Mapping[str, Any],
-) -> list[str]:
-    """Persist per-image vision outcomes inside the caller's claim transaction."""
-    if diagnostics.get("input_mode") != "images":
-        return []
-    prompt_version = diagnostics.get("prompt_version")
-    images = diagnostics.get("images")
-    if not isinstance(prompt_version, str) or not prompt_version:
-        raise ValueError("manual image diagnostics require a prompt version")
-    if not isinstance(images, list) or not images:
-        raise ValueError("manual image diagnostics require per-image results")
-
-    inserted_ids: list[str] = []
-    for item in images:
-        if not isinstance(item, Mapping):
-            raise ValueError("manual image analysis must be an object")
-        asset_id = item.get("asset_id")
-        ordinal = item.get("ordinal")
-        status = item.get("status", "succeeded")
-        result = item.get("result") or {}
-        failure_code = item.get("failure_code")
-        analysis_diagnostics = item.get("diagnostics") or {}
-        if (
-            not isinstance(asset_id, str)
-            or not asset_id
-            or not isinstance(ordinal, int)
-            or ordinal < 1
-            or not isinstance(result, Mapping)
-            or not isinstance(analysis_diagnostics, Mapping)
-            or status not in {"succeeded", "failed"}
-        ):
-            raise ValueError("manual image diagnostics contain an invalid result")
-        if status == "succeeded" and (
-            failure_code is not None
-            or not isinstance(result.get("description"), str)
-            or not result["description"].strip()
-            or not isinstance(result.get("visible_text"), str)
-        ):
-            raise ValueError("manual image diagnostics contain an invalid result")
-        if status == "failed" and (
-            not isinstance(failure_code, str) or not failure_code
-        ):
-            raise ValueError("manual image diagnostics contain an invalid failure")
-        identity = hashlib.sha256(
-            f"{job['id']}:{asset_id}:{prompt_version}".encode("utf-8")
-        ).hexdigest()[:32]
-        analysis_id = f"analysis-manual-{identity}"
-        inserted = conn.execute(
-            "INSERT INTO source_asset_analysis"
-            " (id, source_asset_id, purpose, status, prompt_version,"
-            "  requested_model, response_model, provider, result, usage,"
-            "  duration_ms, failure_code, diagnostics)"
-            " SELECT %s, a.id, 'manual_image_description', %s, %s,"
-            "  %s, %s, %s, %s, %s, %s, %s, %s"
-            " FROM source_asset a"
-            " WHERE a.id = %s AND a.acquisition_job_id = %s AND a.source_id = %s"
-            " ON CONFLICT (id) DO NOTHING RETURNING id",
-            (
-                analysis_id,
-                status,
-                prompt_version,
-                item.get("requested_model"),
-                item.get("response_model"),
-                item.get("provider"),
-                Jsonb(dict(result)),
-                Jsonb(dict(item.get("usage") or {})),
-                item.get("duration_ms"),
-                failure_code,
-                Jsonb(
-                    {
-                        "ordinal": ordinal,
-                        "kind": item.get("kind"),
-                        **dict(analysis_diagnostics),
-                    }
-                ),
-                asset_id,
-                job["id"],
-                job["source_id"],
-            ),
-        ).fetchone()
-        if inserted is None:
-            existing = conn.execute(
-                "SELECT source_asset_id FROM source_asset_analysis WHERE id = %s",
-                (analysis_id,),
-            ).fetchone()
-            if existing != (asset_id,):
-                raise ValueError("manual image analysis asset lineage mismatch")
-        inserted_ids.append(analysis_id)
-    return inserted_ids
-
-
-def _record_manual_failure(
-    conn: psycopg.Connection,
-    job: dict,
-    failure_code: str,
-    diagnostics: dict,
-) -> dict:
-    snapshot_id = (
-        f"{job['source_id']}:snap:failed:{job['id']}:{job['attempt_count']:02d}"
-    )
-    conn.execute(
-        "INSERT INTO source_snapshot"
-        " (id, source_id, captured_at, content_hash, status, failure_note)"
-        " VALUES (%s, %s, NULL, NULL, 'failed', %s)",
-        (snapshot_id, job["source_id"], failure_code),
-    )
-    updated = conn.execute(
-        "UPDATE acquisition_job SET status = 'failed', failure_code = %s,"
-        " diagnostics = %s, finished_at = now(), lease_expires_at = NULL,"
-        " claim_token = NULL, updated_at = now()"
-        " WHERE id = %s AND status = 'running' AND claim_token = %s",
-        (failure_code, Jsonb(diagnostics), job["id"], job["claim_token"]),
-    )
-    if updated.rowcount != 1:
-        conn.rollback()
-    else:
-        conn.commit()
-    from universe.acquisition.runner import get_job
-
-    result = get_job(conn, job["id"])
-    assert result is not None
-    return result
-
-
 def _input_mode(assets: Sequence[dict]) -> str | None:
     if not assets:
         return None
@@ -956,28 +536,6 @@ def _asset_field(asset: Mapping[str, Any] | ManualAsset, key: str) -> Any:
 
 def _markdown_inline(value: str) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().replace("#", "\\#")
-
-
-def _markdown_alt(value: str) -> str:
-    return value.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
-
-
-def _markdown_visual_field(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
-
-
-def _single_or_list(values: Sequence[str]) -> str | list[str]:
-    unique = list(dict.fromkeys(values))
-    return unique[0] if len(unique) == 1 else unique
-
-
-def _sum_usage(items: Sequence[Mapping[str, Any]]) -> dict[str, int | float]:
-    totals: dict[str, int | float] = {}
-    for item in items:
-        for key, value in item.items():
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                totals[key] = totals.get(key, 0) + value
-    return totals
 
 
 def validate_manual_assets(

@@ -17,6 +17,7 @@ from universe.settings import (
     openrouter_tool_provider_routing,
     source_cleanup_fallback_model,
     source_cleanup_model,
+    source_cleanup_timeout_seconds,
 )
 
 
@@ -29,7 +30,7 @@ JOB_COLUMNS = (
 
 MAIN_CONTENT_TOOL = "article-main-content-boundary"
 MAIN_CONTENT_VERSION = "v1"
-TRIAGE_PROMPT_VERSION = "v004"
+TRIAGE_PROMPT_VERSION = "v005"
 
 
 def _job(row: tuple | None) -> dict[str, Any] | None:
@@ -263,7 +264,12 @@ def _model_client(tool_path: Path, model: str, *, fallback: bool = False) -> Mod
         extra.update({
             "reasoning": {"effort": "high", "exclude": True},
         })
-    return ModelClient(model, temperature=0, extra=extra)
+    return ModelClient(
+        model,
+        temperature=0,
+        timeout=source_cleanup_timeout_seconds(),
+        extra=extra,
+    )
 
 
 def _client(tool_path: Path) -> ResilientToolClient:
@@ -328,16 +334,13 @@ def process_next_source_cleanup(
         refine_client = refine_client or defaults[3]
 
         artifact = conn.execute(
-            "SELECT body, metadata FROM artifact WHERE id = %s",
+            "SELECT body FROM artifact WHERE id = %s",
             (job["source_artifact_id"],),
         ).fetchone()
         if artifact is None:
             raise ValueError("cleanup source artifact is missing")
         cleanup_artifact_id, cleanup_body = _main_content_artifact(
             conn, job["source_artifact_id"], artifact[0]
-        )
-        preserve_enriched_images = bool(
-            (artifact[1] or {}).get("pdf_page_pipeline")
         )
         blocks.store_blocks(
             conn, cleanup_artifact_id, blocks.split_blocks(cleanup_body)
@@ -384,7 +387,6 @@ def process_next_source_cleanup(
             triage_client=triage_client,
             atomic_triage_client=atomic_triage_client,
             refine_client=refine_client,
-            preserve_enriched_images=preserve_enriched_images,
         )
         if cleanup["status"] != "done" or len(cleanup.get("artifacts", [])) != 1:
             raise RuntimeError("passage cleanup failed")

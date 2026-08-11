@@ -706,7 +706,7 @@ def test_worker_records_a_failed_article_with_actionable_diagnostics(
     ).fetchone()[0] == 0
 
 
-@pytest.mark.parametrize("media_type", ["video", "book"])
+@pytest.mark.parametrize("media_type", ["video"])
 def test_worker_records_unsupported_media_as_a_source_local_failure(
     acquisition_db, fake_firecrawl, media_type
 ):
