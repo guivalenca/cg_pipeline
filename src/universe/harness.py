@@ -28,7 +28,7 @@ import random
 import re
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -317,7 +317,9 @@ def execute(
     ]
     ok = failed = 0
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(targets) or 1))) as pool:
-        for index, target, result, error, retry_count in pool.map(call, work):
+        futures = [pool.submit(call, item) for item in work]
+        for future in as_completed(futures):
+            index, target, result, error, retry_count = future.result()
             text, usage, duration_ms = result if result else (None, None, None)
             usage = {**(usage or {}), "retry_count": retry_count}
             conn.execute(
