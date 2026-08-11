@@ -85,14 +85,39 @@ class PdfParseResult:
 
 
 class PdfExtractionError(RuntimeError):
-    def __init__(self, code: str, category: str):
+    def __init__(
+        self,
+        code: str,
+        category: str,
+        diagnostics: Mapping[str, Any] | None = None,
+    ):
         self.code = code
         self.category = category
+        self.diagnostics = dict(diagnostics or {})
         super().__init__(code)
 
 
 def _private_pdf_export_enabled() -> bool:
     return os.environ.get("FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS", "").strip() == "1"
+
+
+def _firecrawl_failure_diagnostics(response: httpx.Response) -> dict[str, Any]:
+    diagnostics: dict[str, Any] = {"http_status": response.status_code}
+    try:
+        payload = response.json()
+    except (TypeError, ValueError):
+        return diagnostics
+    if not isinstance(payload, dict):
+        return diagnostics
+    for source_key, target_key in (
+        ("code", "provider_code"),
+        ("error", "provider_error"),
+        ("message", "provider_error"),
+    ):
+        value = payload.get(source_key)
+        if isinstance(value, str) and value.strip() and target_key not in diagnostics:
+            diagnostics[target_key] = value.strip()[:500]
+    return diagnostics
 
 
 def _ordered_image_urls(value: Any) -> tuple[str, ...]:
@@ -153,7 +178,11 @@ def parse_pdf_with_firecrawl(
             raise PdfExtractionError(
                 "pdf_parse_failed", "firecrawl_transport_error"
             ) from exc
-        if response.status_code in FIRECRAWL_PARSE_RETRYABLE_STATUSES:
+        transient_bad_request = response.status_code == 400 and attempt == 0
+        if (
+            response.status_code in FIRECRAWL_PARSE_RETRYABLE_STATUSES
+            or transient_bad_request
+        ):
             if attempt < len(FIRECRAWL_PARSE_RETRY_SECONDS):
                 time.sleep(FIRECRAWL_PARSE_RETRY_SECONDS[attempt])
                 continue
@@ -168,6 +197,7 @@ def parse_pdf_with_firecrawl(
             raise PdfExtractionError(
                 "pdf_parse_failed",
                 categories.get(response.status_code, "firecrawl_provider_error"),
+                _firecrawl_failure_diagnostics(response),
             )
         try:
             payload = response.json()
@@ -856,7 +886,11 @@ def _parse_document_once(
             "UPDATE pdf_document_parse_call SET status = 'failed',"
             " failure_code = %s, diagnostics = %s, finished_at = now(),"
             " updated_at = now() WHERE id = %s AND status = 'running'",
-            (exc.code, Jsonb({"category": exc.category}), call_id),
+            (
+                exc.code,
+                Jsonb({"category": exc.category, **exc.diagnostics}),
+                call_id,
+            ),
         )
         conn.commit()
         raise

@@ -4,6 +4,7 @@ import io
 import re
 from pathlib import Path
 
+import pytest
 from PIL import Image, ImageDraw
 from psycopg.types.json import Jsonb
 
@@ -596,6 +597,80 @@ def test_firecrawl_parse_upload_uses_structural_formats_and_auto_pdf_mode(monkey
     )
     ordered_options = __import__("json").loads(calls[0][3]["options"])
     assert ordered_options["parsers"] == [{"type": "pdf", "mode": "ocr"}]
+
+
+def test_firecrawl_parse_retries_one_transient_bad_request(monkeypatch):
+    calls = []
+    sleeps = []
+
+    class Response:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self._payload = payload
+
+        def json(self):
+            return self._payload
+
+    responses = [
+        Response(400, {"success": False, "error": "Document processing failed"}),
+        Response(
+            200,
+            {
+                "success": True,
+                "data": {
+                    "markdown": "# Reconstructed after retry",
+                    "metadata": {"numPages": 1},
+                },
+            },
+        ),
+    ]
+
+    def post(*_args, **_kwargs):
+        calls.append(1)
+        return responses.pop(0)
+
+    monkeypatch.setenv("FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS", "1")
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "test-key")
+    monkeypatch.setattr(pdfs.httpx, "post", post)
+    monkeypatch.setattr(pdfs.time, "sleep", sleeps.append)
+
+    result = pdfs.parse_pdf_with_firecrawl(
+        b"%PDF-1.7\nordered", "ordered.pdf", "application/pdf", mode="ocr"
+    )
+
+    assert result.markdown == "# Reconstructed after retry\n"
+    assert len(calls) == 2
+    assert sleeps == [2.0]
+
+
+def test_firecrawl_parse_preserves_final_http_failure_diagnostics(monkeypatch):
+    class Response:
+        status_code = 400
+
+        @staticmethod
+        def json():
+            return {
+                "success": False,
+                "error": "Document processing failed",
+                "code": "DOCUMENT_PARSE_FAILED",
+            }
+
+    monkeypatch.setenv("FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS", "1")
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "test-key")
+    monkeypatch.setattr(pdfs.httpx, "post", lambda *_args, **_kwargs: Response())
+    monkeypatch.setattr(pdfs.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(pdfs.PdfExtractionError) as raised:
+        pdfs.parse_pdf_with_firecrawl(
+            b"%PDF-1.7\nordered", "ordered.pdf", "application/pdf", mode="ocr"
+        )
+
+    assert raised.value.category == "firecrawl_provider_error"
+    assert raised.value.diagnostics == {
+        "http_status": 400,
+        "provider_code": "DOCUMENT_PARSE_FAILED",
+        "provider_error": "Document processing failed",
+    }
 
 
 def test_failed_firecrawl_figure_requires_attention_without_publishing_a_page(db, tmp_path):
