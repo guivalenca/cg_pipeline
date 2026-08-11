@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import psycopg
@@ -13,11 +14,13 @@ from psycopg import sql
 from psycopg.conninfo import make_conninfo
 from psycopg.types.json import Jsonb
 
+from universe.acquisition import image_jobs, job_lease
 from universe.acquisition.image_jobs import (
     DownloadedImage,
     ImageJobError,
     _analysis_failure_diagnostics,
     _validated_download,
+    claim_next_article_image,
     claim_next_source_image_analysis,
     download_public_image,
     finalize_article_image_association,
@@ -159,6 +162,79 @@ def test_article_asset_ordinal_above_50_persists(article_image_db, tmp_path):
     ).fetchone() == (51, 51, "article_image")
 
 
+def test_a_slow_image_download_renews_its_claim_before_a_second_download(
+    article_image_db, test_database_url, tmp_path, monkeypatch
+):
+    db = article_image_db
+    ids = _parent_markdown(
+        db,
+        "heartbeat-download",
+        "# Lesson\n\n![Diagram](https://cdn.example/heartbeat.png)\n",
+    )
+    candidate = insert_article_image_candidates(
+        db,
+        acquisition_job_id=ids["job"],
+        source_id=ids["source"],
+        snapshot_id=ids["snapshot"],
+        markdown_artifact_id=ids["artifact"],
+        markdown=ids["markdown"],
+    )[0]
+    db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    body = _png_body("blue")
+    results = []
+    errors = []
+
+    def slow_download(url):
+        started.set()
+        assert release.wait(timeout=5)
+        return DownloadedImage(
+            body,
+            "image/png",
+            "heartbeat.png",
+            url,
+            120,
+            80,
+            hashlib.sha256(body).hexdigest(),
+        )
+
+    monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+    worker_url = make_conninfo(
+        test_database_url, options="-csearch_path=article_image_test,public"
+    )
+
+    def work():
+        try:
+            with psycopg.connect(worker_url) as worker:
+                results.append(
+                    process_next_article_image(
+                        worker,
+                        candidate_id=candidate["id"],
+                        asset_store=LocalAssetStore(tmp_path / "heartbeat-assets"),
+                        downloader=slow_download,
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = claim_next_article_image(db, candidate_id=candidate["id"])
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "downloaded"
+
+
 def test_competing_workers_claim_one_source_call_once(
     article_image_db, test_database_url, tmp_path
 ):
@@ -214,6 +290,208 @@ def test_competing_workers_claim_one_source_call_once(
         " WHERE markdown_artifact_id = %s",
         (ids["artifact"],),
     ).fetchone()[0] == 1
+
+
+def test_a_slow_grouped_image_analysis_renews_before_a_second_model_call(
+    article_image_db, test_database_url, tmp_path, monkeypatch
+):
+    db = article_image_db
+    ids = _parent_markdown(
+        db,
+        "heartbeat-analysis",
+        "# Lesson\n\n![Diagram](https://cdn.example/analysis.png)\n",
+    )
+    candidate = insert_article_image_candidates(
+        db,
+        acquisition_job_id=ids["job"],
+        source_id=ids["source"],
+        snapshot_id=ids["snapshot"],
+        markdown_artifact_id=ids["artifact"],
+        markdown=ids["markdown"],
+    )[0]
+    db.commit()
+    body = _png_body("green")
+    store = LocalAssetStore(tmp_path / "heartbeat-analysis-assets")
+    process_next_article_image(
+        db,
+        candidate_id=candidate["id"],
+        asset_store=store,
+        downloader=lambda url: DownloadedImage(
+            body,
+            "image/png",
+            "analysis.png",
+            url,
+            120,
+            80,
+            hashlib.sha256(body).hexdigest(),
+        ),
+    )
+    call_id = db.execute(
+        "SELECT id FROM source_image_analysis_call"
+        " WHERE markdown_artifact_id = %s",
+        (ids["artifact"],),
+    ).fetchone()[0]
+    db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    def slow_analysis(markdown, images):
+        started.set()
+        assert release.wait(timeout=5)
+        return _batch_result(
+            markdown,
+            images,
+            [
+                SourceImageAnalysis(
+                    images[0].image_id,
+                    True,
+                    "information",
+                    None,
+                    "A lesson diagram.",
+                    None,
+                )
+            ],
+        )
+
+    monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+    worker_url = make_conninfo(
+        test_database_url, options="-csearch_path=article_image_test,public"
+    )
+
+    def work():
+        try:
+            with psycopg.connect(worker_url) as worker:
+                results.append(
+                    process_next_source_image_analysis(
+                        worker,
+                        call_id=call_id,
+                        asset_store=store,
+                        analyzer=slow_analysis,
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = claim_next_source_image_analysis(db, call_id=call_id)
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
+
+
+def test_grouped_image_analysis_renews_while_preparing_stored_images(
+    article_image_db, test_database_url, tmp_path, monkeypatch
+):
+    db = article_image_db
+    ids = _parent_markdown(
+        db,
+        "heartbeat-analysis-preparation",
+        "# Lesson\n\n![Diagram](https://cdn.example/preparation.png)\n",
+    )
+    candidate = insert_article_image_candidates(
+        db,
+        acquisition_job_id=ids["job"],
+        source_id=ids["source"],
+        snapshot_id=ids["snapshot"],
+        markdown_artifact_id=ids["artifact"],
+        markdown=ids["markdown"],
+    )[0]
+    db.commit()
+    body = _png_body("orange")
+    stored_assets = LocalAssetStore(tmp_path / "heartbeat-preparation-assets")
+    process_next_article_image(
+        db,
+        candidate_id=candidate["id"],
+        asset_store=stored_assets,
+        downloader=lambda url: DownloadedImage(
+            body,
+            "image/png",
+            "preparation.png",
+            url,
+            120,
+            80,
+            hashlib.sha256(body).hexdigest(),
+        ),
+    )
+    call_id = db.execute(
+        "SELECT id FROM source_image_analysis_call"
+        " WHERE markdown_artifact_id = %s",
+        (ids["artifact"],),
+    ).fetchone()[0]
+    db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    class SlowStore:
+        def get(self, key):
+            started.set()
+            assert release.wait(timeout=5)
+            return stored_assets.get(key)
+
+    def analyze(markdown, images):
+        return _batch_result(
+            markdown,
+            images,
+            [
+                SourceImageAnalysis(
+                    images[0].image_id,
+                    True,
+                    "information",
+                    None,
+                    "A prepared lesson diagram.",
+                    None,
+                )
+            ],
+        )
+
+    monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+    worker_url = make_conninfo(
+        test_database_url, options="-csearch_path=article_image_test,public"
+    )
+
+    def work():
+        try:
+            with psycopg.connect(worker_url) as worker:
+                results.append(
+                    process_next_source_image_analysis(
+                        worker,
+                        call_id=call_id,
+                        asset_store=SlowStore(),
+                        analyzer=analyze,
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = claim_next_source_image_analysis(db, call_id=call_id)
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
 
 
 def test_interface_filenames_are_left_for_the_source_level_model():

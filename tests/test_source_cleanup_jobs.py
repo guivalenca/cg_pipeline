@@ -1,11 +1,15 @@
 """Durable orchestration from one enriched source artifact to clean Markdown."""
 
 import json
+import threading
+import time
 from pathlib import Path
 
+import psycopg
 from psycopg.types.json import Jsonb
 
 from universe.acquisition import source_cleanup_jobs
+from universe.acquisition import job_lease
 from universe.harness import PROMPTS_DIR, load_tool
 from universe.model_client import ModelClient
 
@@ -111,6 +115,78 @@ def test_cleanup_job_runs_blocks_cuts_triage_and_publishes_only_clean_markdown(d
     assert boundary[0].startswith("# Real lesson")
     assert boundary[1] == "article-main-content-boundary"
     assert boundary[2]["source_markdown_artifact_id"] == artifact_id
+
+
+def test_a_slow_cleanup_renews_before_a_second_worker_repeats_model_calls(
+    db, test_database_url, monkeypatch
+):
+    _source_id, acquisition_job_id, artifact_id = _source_artifact(
+        db, "heartbeat"
+    )
+    queued = source_cleanup_jobs.enqueue_source_cleanup(
+        db,
+        acquisition_job_id=acquisition_job_id,
+        source_artifact_id=artifact_id,
+    )
+    db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    def slow_cuts(_name, _prompt):
+        started.set()
+        assert release.wait(timeout=5)
+        return {"cuts": []}
+
+    keep = lambda _name, _prompt: {"verdict": "keep"}
+    monkeypatch.setattr(
+        source_cleanup_jobs, "acquisition_lease_minutes", lambda: 0.002
+    )
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+
+    def work():
+        try:
+            with psycopg.connect(test_database_url) as worker:
+                results.append(
+                    source_cleanup_jobs.process_next_source_cleanup(
+                        worker,
+                        job_id=queued["id"],
+                        cuts_client=_client(
+                            slow_cuts, "passage-cuts", "tool-v001.json"
+                        ),
+                        triage_client=_client(
+                            keep, "passage-triage", "tool-v003.json"
+                        ),
+                        atomic_triage_client=_client(
+                            keep, "passage-triage", "tool-v003-atomic.json"
+                        ),
+                        refine_client=_client(
+                            lambda _name, _prompt: {"drop_elements": []},
+                            "passage-refine",
+                            "tool-v002.json",
+                        ),
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = source_cleanup_jobs.claim_next_source_cleanup(
+            db, job_id=queued["id"]
+        )
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
 
 
 def test_cleanup_does_not_publish_when_every_passage_is_dropped(db):

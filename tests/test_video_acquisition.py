@@ -16,7 +16,13 @@ from openpyxl import Workbook
 from PIL import Image
 from psycopg.types.json import Jsonb
 
-from universe.acquisition import image_jobs, runner, source_cleanup_jobs, videos
+from universe.acquisition import (
+    image_jobs,
+    job_lease,
+    runner,
+    source_cleanup_jobs,
+    videos,
+)
 from universe.acquisition.source_images import (
     SourceImageAnalysis,
     SourceImageBatchResult,
@@ -1314,6 +1320,156 @@ def test_two_workers_cannot_pay_for_the_same_stt_chunk(
         "SELECT count(*) FROM video_stt_attempt WHERE chunk_id = %s",
         (chunk_id,),
     ).fetchone()[0] == 1
+
+
+def test_stt_resolves_its_lease_connection_before_claiming(
+    db, tmp_path, monkeypatch
+):
+    source_id = "source-video-stt-lease-factory"
+    chunk_id = "vsc-" + "3" * 64
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'STT lease factory', 'video')",
+        (
+            source_id,
+            Jsonb(
+                {
+                    "kind": "video",
+                    "provider": "youtube",
+                    "video_id": "lease123",
+                }
+            ),
+        ),
+    )
+    db.execute(
+        "INSERT INTO video_stt_chunk"
+        " (id, source_id, audio_sha256, chunk_sha256, window_start_ms,"
+        " window_end_ms, requested_model, operation_version, model_route_hash)"
+        " VALUES (%s, %s, %s, %s, 0, 60000, %s, %s, %s)",
+        (
+            chunk_id,
+            source_id,
+            "a" * 64,
+            "b" * 64,
+            "openai/whisper-large-v3",
+            videos.STT_OPERATION_VERSION,
+            "c" * 64,
+        ),
+    )
+    db.commit()
+    path = tmp_path / "lease-factory.mp3"
+    path.write_bytes(b"not-used")
+
+    def unavailable_factory(_conn):
+        raise RuntimeError("lease connection configuration is unavailable")
+
+    monkeypatch.setattr(videos, "separate_connection_factory", unavailable_factory)
+
+    with pytest.raises(RuntimeError, match="lease connection configuration"):
+        videos._process_stt_chunk(
+            db,
+            adapter=object(),
+            audio_chunk=videos.AudioChunk(1, 0, 60_000, "b" * 64, path),
+            chunk_id=chunk_id,
+            language="en",
+            primary_model="openai/whisper-large-v3",
+            fallback_model=None,
+            operation_version=videos.STT_OPERATION_VERSION,
+        )
+
+    assert db.execute(
+        "SELECT status, attempt_count, claim_token FROM video_stt_chunk WHERE id = %s",
+        (chunk_id,),
+    ).fetchone() == ("queued", 0, None)
+
+
+def test_a_slow_stt_call_renews_its_chunk_before_another_worker_can_pay(
+    db, test_database_url, tmp_path, monkeypatch
+):
+    source_id = "source-video-stt-heartbeat"
+    chunk_id = "vsc-" + "2" * 64
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'STT heartbeat', 'video')",
+        (
+            source_id,
+            Jsonb({"kind": "video", "provider": "youtube", "video_id": "heart123"}),
+        ),
+    )
+    db.execute(
+        "INSERT INTO video_stt_chunk"
+        " (id, source_id, audio_sha256, chunk_sha256, window_start_ms,"
+        " window_end_ms, requested_model, operation_version, model_route_hash)"
+        " VALUES (%s, %s, %s, %s, 0, 60000, %s, %s, %s)",
+        (
+            chunk_id,
+            source_id,
+            "d" * 64,
+            "e" * 64,
+            "openai/whisper-large-v3",
+            videos.STT_OPERATION_VERSION,
+            "f" * 64,
+        ),
+    )
+    db.commit()
+    path = tmp_path / "heartbeat.mp3"
+    path.write_bytes(b"heartbeat-audio")
+    audio_chunk = videos.AudioChunk(1, 0, 60_000, "e" * 64, path)
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    class Adapter:
+        def transcribe_chunk(self, _chunk, *, model, language):
+            started.set()
+            assert release.wait(timeout=5)
+            return videos.SttResponse(
+                text="Renewed once.",
+                language="en",
+                segments=(),
+                response_model=model,
+                provider="openrouter",
+                usage={"cost": 0.001},
+                duration_ms=50,
+            )
+
+    monkeypatch.setattr(videos, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+
+    def work():
+        try:
+            with psycopg.connect(test_database_url) as worker:
+                results.append(
+                    videos._process_stt_chunk(
+                        worker,
+                        adapter=Adapter(),
+                        audio_chunk=audio_chunk,
+                        chunk_id=chunk_id,
+                        language="en",
+                        primary_model="openai/whisper-large-v3",
+                        fallback_model="openai/whisper-1",
+                        operation_version=videos.STT_OPERATION_VERSION,
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        with psycopg.connect(test_database_url) as contender_connection:
+            contender = videos._claim_stt_chunk(contender_connection, chunk_id)
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
 
 
 @pytest.mark.parametrize(

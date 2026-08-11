@@ -35,6 +35,11 @@ from universe.acquisition.article_images import (
     extract_markdown_images,
 )
 from universe.acquisition.manual_uploads import ManualAsset, validate_manual_assets
+from universe.acquisition.job_lease import (
+    ConnectionFactory,
+    JobLease,
+    separate_connection_factory,
+)
 from universe.acquisition.source_images import (
     SourceImageAnalysis,
     SourceImageBatchResult,
@@ -595,6 +600,7 @@ def process_next_article_image(
     downloader: Callable[[str], DownloadedImage] | None = None,
     analyzer: Callable[[str, list[SourceImageInput]], SourceImageBatchResult]
     | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict[str, Any] | None:
     """Download and preserve one candidate, without making a semantic call.
 
@@ -603,6 +609,9 @@ def process_next_article_image(
     tests: when supplied, the newly-ready group is processed immediately.
     Production workers leave it to the durable analysis-call queue.
     """
+    heartbeat_connection = (
+        lease_connection_factory or separate_connection_factory(conn)
+    )
     job = claim_next_article_image(conn, candidate_id=candidate_id)
     if job is None:
         return None
@@ -610,22 +619,28 @@ def process_next_article_image(
     download = downloader or download_public_image
     asset: dict[str, Any] | None = None
     try:
-        asset = _existing_asset(conn, job)
-        if asset is None:
-            downloaded = download(job["original_url"])
-            try:
-                stored = store.put(downloaded.body, sha256=downloaded.sha256)
-            except Exception as exc:
-                raise ImageJobError(
-                    "image_asset_storage_failed",
-                    "asset_storage_write_failed",
-                    {"exception": type(exc).__name__},
-                ) from exc
-            asset = _insert_article_asset(conn, job, downloaded, stored.key)
+        with JobLease(
+            heartbeat_connection,
+            table="source_image_candidate",
+            row_id=job["id"],
+            claim_token=job["claim_token"],
+        ):
+            asset = _existing_asset(conn, job)
             if asset is None:
-                conn.rollback()
-                return _current_candidate(conn, str(job["id"]))
-            conn.commit()
+                downloaded = download(job["original_url"])
+                try:
+                    stored = store.put(downloaded.body, sha256=downloaded.sha256)
+                except Exception as exc:
+                    raise ImageJobError(
+                        "image_asset_storage_failed",
+                        "asset_storage_write_failed",
+                        {"exception": type(exc).__name__},
+                    ) from exc
+                asset = _insert_article_asset(conn, job, downloaded, stored.key)
+                if asset is None:
+                    conn.rollback()
+                    return _current_candidate(conn, str(job["id"]))
+                conn.commit()
 
         if not _claim_is_owned(conn, job):
             conn.rollback()
@@ -651,6 +666,7 @@ def process_next_article_image(
                 call_id=call["id"],
                 asset_store=store,
                 analyzer=analyzer,
+                lease_connection_factory=heartbeat_connection,
             )
             result = _current_candidate(conn, str(job["id"]))
         return result
@@ -836,89 +852,104 @@ def process_next_source_image_analysis(
     asset_store: AssetStore | None = None,
     analyzer: Callable[[str, list[SourceImageInput]], SourceImageBatchResult]
     | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict[str, Any] | None:
     """Run one grouped multimodal call and reconcile every image fail-open."""
+    heartbeat_connection = (
+        lease_connection_factory or separate_connection_factory(conn)
+    )
     call = claim_next_source_image_analysis(conn, call_id=call_id)
     if call is None:
         return None
-    store = asset_store or asset_store_from_env()
-    artifact = conn.execute(
-        "SELECT body FROM artifact WHERE id = %s",
-        (call["markdown_artifact_id"],),
-    ).fetchone()
-    markdown = artifact[0] if artifact and isinstance(artifact[0], str) else ""
-    candidates = _source_analysis_candidates(conn, call["markdown_artifact_id"])
-    conn.commit()
-
+    markdown = ""
+    candidates: list[dict[str, Any]] = []
     prepared: list[SourceImageInput] = []
     input_diagnostics: dict[str, dict[str, Any]] = {}
-    for candidate in candidates:
-        try:
-            body = store.get(candidate["storage_key"])
-            model_body, model_mime, diagnostics = _prepare_model_image(
-                body, candidate["mime_type"]
-            )
-            if model_body is None or model_mime is None:
-                raise ImageJobError(
-                    "image_analysis_unsupported_type",
-                    "unsupported_model_image_type",
-                    {"mime_type": candidate["mime_type"]},
-                )
-        except ImageJobError as exc:
-            _mark_downloaded_candidate_unresolved(
-                conn,
-                candidate["id"],
-                failure_code=exc.code,
-                diagnostics={"category": exc.category, **exc.diagnostics},
-            )
-            continue
-        except Exception as exc:
-            _mark_downloaded_candidate_unresolved(
-                conn,
-                candidate["id"],
-                failure_code="image_asset_unavailable",
-                diagnostics={
-                    "category": "asset_storage_read_failed",
-                    "exception": type(exc).__name__,
-                },
-            )
-            continue
-        model_hash = hashlib.sha256(model_body).hexdigest()
-        input_diagnostics[candidate["id"]] = {
-            **diagnostics,
-            "model_input_sha256": model_hash,
-        }
-        prepared.append(
-            SourceImageInput(
-                image_id=candidate["id"],
-                alt_text=str(candidate.get("alt_text") or ""),
-                source_url=str(candidate["original_url"]),
-                model_image_url=(
-                    f"data:{model_mime};base64,{base64.b64encode(model_body).decode('ascii')}"
-                ),
-                asset_sha256=str(candidate["sha256"]),
-                model_input_sha256=model_hash,
-            )
-        )
-    conn.commit()
-
-    if not prepared:
-        _finish_source_image_call(
-            conn,
-            call,
-            status="skipped",
-            failure_code=None,
-            diagnostics={"category": "no_model_compatible_images"},
-        )
-        _finalize_article_images_safely(conn, call["markdown_artifact_id"])
-        result = get_source_image_analysis_call(conn, call["id"])
-        assert result is not None
-        return result
-
+    batch: SourceImageBatchResult | None = None
     try:
-        batch = (analyzer or default_source_image_analyzer)(markdown, prepared)
-        if not isinstance(batch, SourceImageBatchResult):
-            raise ModelError("source image analyzer returned an invalid batch")
+        with JobLease(
+            heartbeat_connection,
+            table="source_image_analysis_call",
+            row_id=call["id"],
+            claim_token=call["claim_token"],
+        ):
+            store = asset_store or asset_store_from_env()
+            artifact = conn.execute(
+                "SELECT body FROM artifact WHERE id = %s",
+                (call["markdown_artifact_id"],),
+            ).fetchone()
+            markdown = (
+                artifact[0]
+                if artifact and isinstance(artifact[0], str)
+                else ""
+            )
+            candidates = _source_analysis_candidates(
+                conn, call["markdown_artifact_id"]
+            )
+            conn.commit()
+
+            for candidate in candidates:
+                try:
+                    body = store.get(candidate["storage_key"])
+                    model_body, model_mime, diagnostics = _prepare_model_image(
+                        body, candidate["mime_type"]
+                    )
+                    if model_body is None or model_mime is None:
+                        raise ImageJobError(
+                            "image_analysis_unsupported_type",
+                            "unsupported_model_image_type",
+                            {"mime_type": candidate["mime_type"]},
+                        )
+                except ImageJobError as exc:
+                    _mark_downloaded_candidate_unresolved(
+                        conn,
+                        candidate["id"],
+                        failure_code=exc.code,
+                        diagnostics={
+                            "category": exc.category,
+                            **exc.diagnostics,
+                        },
+                    )
+                    continue
+                except Exception as exc:
+                    _mark_downloaded_candidate_unresolved(
+                        conn,
+                        candidate["id"],
+                        failure_code="image_asset_unavailable",
+                        diagnostics={
+                            "category": "asset_storage_read_failed",
+                            "exception": type(exc).__name__,
+                        },
+                    )
+                    continue
+                model_hash = hashlib.sha256(model_body).hexdigest()
+                input_diagnostics[candidate["id"]] = {
+                    **diagnostics,
+                    "model_input_sha256": model_hash,
+                }
+                prepared.append(
+                    SourceImageInput(
+                        image_id=candidate["id"],
+                        alt_text=str(candidate.get("alt_text") or ""),
+                        source_url=str(candidate["original_url"]),
+                        model_image_url=(
+                            f"data:{model_mime};base64,"
+                            f"{base64.b64encode(model_body).decode('ascii')}"
+                        ),
+                        asset_sha256=str(candidate["sha256"]),
+                        model_input_sha256=model_hash,
+                    )
+                )
+            conn.commit()
+
+            if prepared:
+                batch = (analyzer or default_source_image_analyzer)(
+                    markdown, prepared
+                )
+                if not isinstance(batch, SourceImageBatchResult):
+                    raise ModelError(
+                        "source image analyzer returned an invalid batch"
+                    )
     except Exception as exc:
         diagnostics = _source_analysis_failure_diagnostics(exc)
         if _source_image_call_is_owned(conn, call):
@@ -949,6 +980,21 @@ def process_next_source_image_analysis(
         result = get_source_image_analysis_call(conn, call["id"])
         assert result is not None
         return result
+
+    if not prepared:
+        _finish_source_image_call(
+            conn,
+            call,
+            status="skipped",
+            failure_code=None,
+            diagnostics={"category": "no_model_compatible_images"},
+        )
+        _finalize_article_images_safely(conn, call["markdown_artifact_id"])
+        result = get_source_image_analysis_call(conn, call["id"])
+        assert result is not None
+        return result
+
+    assert batch is not None
 
     if not _source_image_call_is_owned(conn, call):
         conn.rollback()

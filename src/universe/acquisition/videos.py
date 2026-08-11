@@ -34,6 +34,12 @@ import httpx
 import psycopg
 from psycopg.types.json import Jsonb
 
+from universe.acquisition.job_lease import (
+    ConnectionFactory,
+    JobLease,
+    JobLeaseLost,
+    separate_connection_factory,
+)
 from universe.settings import (
     acquisition_lease_minutes,
     openrouter_api_key,
@@ -933,6 +939,7 @@ def _process_stt_chunk(
     fallback_model: str | None,
     operation_version: str,
     db_lock: threading.Lock | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict[str, Any]:
     def locked():
         return db_lock if db_lock is not None else nullcontext()
@@ -941,6 +948,9 @@ def _process_stt_chunk(
         existing = _get_stt_chunk(conn, chunk_id)
         if existing["status"] == "succeeded":
             return existing
+        heartbeat_connection = (
+            lease_connection_factory or separate_connection_factory(conn)
+        )
         claimed = _claim_stt_chunk(conn, chunk_id)
     if claimed is None:
         raise VideoAdapterError(
@@ -954,9 +964,22 @@ def _process_stt_chunk(
     models = tuple(item for item in (primary_model, fallback_model) if item)
     for model in models:
         try:
-            response = _call_stt(
-                adapter, audio_chunk, model=model, language=language
-            )
+            with JobLease(
+                heartbeat_connection,
+                table="video_stt_chunk",
+                row_id=claimed["id"],
+                claim_token=claimed["claim_token"],
+            ):
+                response = _call_stt(
+                    adapter, audio_chunk, model=model, language=language
+                )
+        except JobLeaseLost as exc:
+            raise VideoAdapterError(
+                "video_stt_chunk_failed",
+                category="claim_lost",
+                retriable=True,
+                diagnostics={"chunk_id": chunk_id},
+            ) from exc
         except SttError as exc:
             last_error = exc
             with locked():
@@ -973,6 +996,18 @@ def _process_stt_chunk(
                 continue
             with locked():
                 _finish_stt_failure(conn, claimed, exc)
+                return _get_stt_chunk(conn, chunk_id)
+        except Exception as exc:
+            lease_error = SttError(
+                "video_stt_chunk_failed",
+                fallback_allowed=False,
+                diagnostics={
+                    "category": "lease_heartbeat_unavailable",
+                    "exception": type(exc).__name__,
+                },
+            )
+            with locked():
+                _finish_stt_failure(conn, claimed, lease_error)
                 return _get_stt_chunk(conn, chunk_id)
         with locked():
             _record_stt_attempt(
@@ -1038,6 +1073,7 @@ def _acquire_stt(
     source: dict[str, Any],
     preflight: dict[str, Any],
     adapter: VideoAdapter,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> VideoAcquisition:
     source_url = youtube_url(source["identity"])
     video_id = str(source["identity"]["video_id"]).strip()
@@ -1087,6 +1123,7 @@ def _acquire_stt(
                     fallback_model=fallback_model,
                     operation_version=operation_version,
                     db_lock=db_lock,
+                    lease_connection_factory=lease_connection_factory,
                 )
 
             if workers == 1:
@@ -1246,6 +1283,7 @@ def acquire_video(
     adapter: VideoAdapter | None = None,
     conn: psycopg.Connection | None = None,
     job: dict[str, Any] | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> VideoAcquisition:
     adapter = adapter or YtDlpYouTubeAdapter()
     route = preflight.get("route")
@@ -1297,6 +1335,7 @@ def acquire_video(
             source=source,
             preflight=preflight,
             adapter=adapter,
+            lease_connection_factory=lease_connection_factory,
         )
     if route != "uploaded_caption":
         raise VideoAdapterError(

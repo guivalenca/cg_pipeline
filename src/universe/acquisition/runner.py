@@ -37,6 +37,11 @@ from universe.acquisition.image_jobs import (
     process_next_source_image_analysis,
     queue_source_image_analysis_if_ready,
 )
+from universe.acquisition.job_lease import (
+    ConnectionFactory,
+    JobLease,
+    separate_connection_factory,
+)
 from universe.acquisition.video_teaching_beats import persist_teaching_beat_reading
 from universe.acquisition.manual_uploads import (
     MANUAL_PROVIDER,
@@ -303,6 +308,7 @@ def _fetch(
     video_adapter: VideoAdapter | None = None,
     video_job: dict[str, Any] | None = None,
     conn: psycopg.Connection | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> Outcome:
     if source["media_type"] == "video":
         if video_preflight is None:
@@ -320,6 +326,7 @@ def _fetch(
                 adapter=video_adapter,
                 conn=conn,
                 job=video_job,
+                lease_connection_factory=lease_connection_factory,
             )
         except VideoAdapterError as exc:
             retry_after = exc.diagnostics.get("retry_after_seconds", 0)
@@ -760,64 +767,75 @@ def process_next_job(
     book_figure_locator=None,
     book_pdf_builder=None,
     video_adapter: VideoAdapter | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict | None:
     """Claim one acquisition and queue its required downstream Markdown work."""
+    heartbeat_connection = (
+        lease_connection_factory or separate_connection_factory(conn)
+    )
     job = claim_next_job(conn, job_id=job_id)
     if job is None:
         return None
     try:
-        if job["provider"] == MANUAL_PROVIDER:
-            outcome = _manual_outcome(conn, job, asset_store=asset_store)
-        elif job["provider"] == BOOK_PROVIDER:
-            book_kwargs = {}
-            if book_document_parser is not None:
-                book_kwargs["document_parser"] = book_document_parser
-            if book_image_downloader is not None:
-                book_kwargs["image_downloader"] = book_image_downloader
-            if book_figure_locator is not None:
-                book_kwargs["figure_locator"] = book_figure_locator
-            if book_pdf_builder is not None:
-                book_kwargs["pdf_builder"] = book_pdf_builder
-            result = book_capture_outcome(
-                conn,
-                job,
-                adapter=book_adapter,
-                asset_store=asset_store,
-                **book_kwargs,
-            )
-            outcome = Outcome(
-                result.markdown,
-                result.failure_code,
-                result.provider,
-                result.tool,
-                result.diagnostics,
-                tool_version=result.tool_version,
-                content_hash=result.content_hash,
-                raw_markdown=result.raw_markdown,
-                retryable=result.retryable,
-                retry_after_seconds=result.retry_after_seconds,
-            )
-        else:
-            source = _source(conn, job["source_id"])
-            video_preflight = (
-                get_preflight(conn, job["video_preflight_id"])
-                if job["provider"] == YOUTUBE_PROVIDER
-                and job.get("video_preflight_id")
-                else None
-            )
-            # Do not leave a read transaction open during a potentially slow
-            # provider request.  The running job was already committed by claim.
-            conn.commit()
-            if job["provider"] == YOUTUBE_PROVIDER:
-                outcome = _fetch(
-                    source,
-                    video_preflight=video_preflight,
-                    video_adapter=video_adapter,
-                    video_job=job,
-                    conn=conn,
+        with JobLease(
+            heartbeat_connection,
+            table="acquisition_job",
+            row_id=job["id"],
+            claim_token=job["claim_token"],
+        ):
+            if job["provider"] == MANUAL_PROVIDER:
+                outcome = _manual_outcome(conn, job, asset_store=asset_store)
+            elif job["provider"] == BOOK_PROVIDER:
+                book_kwargs = {}
+                if book_document_parser is not None:
+                    book_kwargs["document_parser"] = book_document_parser
+                if book_image_downloader is not None:
+                    book_kwargs["image_downloader"] = book_image_downloader
+                if book_figure_locator is not None:
+                    book_kwargs["figure_locator"] = book_figure_locator
+                if book_pdf_builder is not None:
+                    book_kwargs["pdf_builder"] = book_pdf_builder
+                result = book_capture_outcome(
+                    conn,
+                    job,
+                    adapter=book_adapter,
+                    asset_store=asset_store,
+                    **book_kwargs,
+                )
+                outcome = Outcome(
+                    result.markdown,
+                    result.failure_code,
+                    result.provider,
+                    result.tool,
+                    result.diagnostics,
+                    tool_version=result.tool_version,
+                    content_hash=result.content_hash,
+                    raw_markdown=result.raw_markdown,
+                    retryable=result.retryable,
+                    retry_after_seconds=result.retry_after_seconds,
                 )
             else:
-                outcome = _fetch(source)
+                source = _source(conn, job["source_id"])
+                video_preflight = (
+                    get_preflight(conn, job["video_preflight_id"])
+                    if job["provider"] == YOUTUBE_PROVIDER
+                    and job.get("video_preflight_id")
+                    else None
+                )
+                # Do not leave a read transaction open during a potentially slow
+                # provider request. The running job was already committed by claim.
+                conn.commit()
+                if job["provider"] == YOUTUBE_PROVIDER:
+                    outcome = _fetch(
+                        source,
+                        video_preflight=video_preflight,
+                        video_adapter=video_adapter,
+                        video_job=job,
+                        conn=conn,
+                        lease_connection_factory=heartbeat_connection,
+                    )
+                else:
+                    outcome = _fetch(source)
     except Exception as exc:
         outcome = Outcome(
             None,
@@ -877,13 +895,20 @@ def process_next_work_item(
     *,
     asset_store: AssetStore | None = None,
     video_adapter: VideoAdapter | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> tuple[str, dict] | None:
     """Process the oldest acquisition, visual or canonical-cleanup work item."""
     preferred = _oldest_ready_work_kind(conn)
     if preferred is None:
         return None
+    lease_kwargs = (
+        {"lease_connection_factory": lease_connection_factory}
+        if lease_connection_factory is not None
+        else {}
+    )
+
     def process_acquisition() -> dict | None:
-        kwargs: dict[str, Any] = {"asset_store": asset_store}
+        kwargs: dict[str, Any] = {"asset_store": asset_store, **lease_kwargs}
         if video_adapter is not None:
             kwargs["video_adapter"] = video_adapter
         return process_next_job(conn, **kwargs)
@@ -891,12 +916,14 @@ def process_next_work_item(
     processors = {
         "acquisition": process_acquisition,
         "article_image": lambda: process_next_article_image(
-            conn, asset_store=asset_store
+            conn, asset_store=asset_store, **lease_kwargs
         ),
         "source_image_analysis": lambda: process_next_source_image_analysis(
-            conn, asset_store=asset_store
+            conn, asset_store=asset_store, **lease_kwargs
         ),
-        "source_cleanup": lambda: process_next_source_cleanup(conn),
+        "source_cleanup": lambda: process_next_source_cleanup(
+            conn, **lease_kwargs
+        ),
     }
     for kind in (
         preferred,
@@ -945,9 +972,15 @@ def cmd_work(args: argparse.Namespace) -> None:
             work_payload = None
             if args.job_id is not None:
                 # An explicit --job means exactly that parent acquisition.
-                job = process_next_job(conn, job_id=args.job_id)
+                job = process_next_job(
+                    conn,
+                    job_id=args.job_id,
+                    lease_connection_factory=connect,
+                )
             else:
-                work_item = process_next_work_item(conn)
+                work_item = process_next_work_item(
+                    conn, lease_connection_factory=connect
+                )
                 if work_item is not None:
                     work_kind, work_payload = work_item
                     if work_kind == "acquisition":

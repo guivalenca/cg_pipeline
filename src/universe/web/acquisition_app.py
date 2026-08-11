@@ -1053,6 +1053,7 @@ def _work_one(
             conn,
             asset_store=store,
             video_adapter=video_adapter_factory(),
+            lease_connection_factory=connect_factory,
         ) is not None
 
 
