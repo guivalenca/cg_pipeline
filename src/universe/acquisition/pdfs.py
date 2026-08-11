@@ -90,10 +90,15 @@ class PdfExtractionError(RuntimeError):
         code: str,
         category: str,
         diagnostics: Mapping[str, Any] | None = None,
+        *,
+        retriable: bool = False,
+        retry_after_seconds: int = 0,
     ):
         self.code = code
         self.category = category
         self.diagnostics = dict(diagnostics or {})
+        self.retriable = retriable
+        self.retry_after_seconds = max(0, int(retry_after_seconds))
         super().__init__(code)
 
 
@@ -186,7 +191,13 @@ def parse_pdf_with_firecrawl(
             if attempt < len(FIRECRAWL_PARSE_RETRY_SECONDS):
                 time.sleep(FIRECRAWL_PARSE_RETRY_SECONDS[attempt])
                 continue
-            raise PdfExtractionError("pdf_parse_failed", "firecrawl_retries_exhausted")
+            raise PdfExtractionError(
+                "pdf_parse_failed",
+                "firecrawl_retries_exhausted",
+                _firecrawl_failure_diagnostics(response),
+                retriable=True,
+                retry_after_seconds=60,
+            )
         if response.status_code != 200:
             categories = {
                 401: "provider_authentication",
@@ -836,10 +847,26 @@ def _parse_document_once(
             "reused": True,
         }
     if status == "failed":
-        raise PdfExtractionError(
-            str(failure_code or "pdf_parse_failed"),
-            str((diagnostics or {}).get("category") or "pdf_parse_failed"),
-        )
+        failure_diagnostics = dict(diagnostics or {})
+        if failure_diagnostics.get("retriable") is True:
+            conn.execute(
+                "UPDATE pdf_document_parse_call SET status = 'queued',"
+                " failure_code = NULL, finished_at = NULL, updated_at = now()"
+                " WHERE id = %s AND status = 'failed'",
+                (call_id,),
+            )
+            conn.commit()
+            status = "queued"
+        else:
+            raise PdfExtractionError(
+                str(failure_code or "pdf_parse_failed"),
+                str(failure_diagnostics.get("category") or "pdf_parse_failed"),
+                {
+                    key: value
+                    for key, value in failure_diagnostics.items()
+                    if key not in {"category", "retriable", "retry_after_seconds"}
+                },
+            )
     claimed = conn.execute(
         "UPDATE pdf_document_parse_call SET status = 'running',"
         " attempt_count = attempt_count + 1, updated_at = now()"
@@ -882,13 +909,19 @@ def _parse_document_once(
         }
     except PdfExtractionError as exc:
         conn.rollback()
+        failure_diagnostics = {
+            "category": exc.category,
+            **exc.diagnostics,
+            "retriable": exc.retriable,
+            "retry_after_seconds": exc.retry_after_seconds,
+        }
         conn.execute(
             "UPDATE pdf_document_parse_call SET status = 'failed',"
             " failure_code = %s, diagnostics = %s, finished_at = now(),"
             " updated_at = now() WHERE id = %s AND status = 'running'",
             (
                 exc.code,
-                Jsonb({"category": exc.category, **exc.diagnostics}),
+                Jsonb(failure_diagnostics),
                 call_id,
             ),
         )

@@ -17,7 +17,11 @@ from universe.acquisition.manual_uploads import (
     create_manual_upload_job,
     list_manual_assets,
 )
-from universe.acquisition.pdfs import PdfFigureLocalizationResult, PdfParseResult
+from universe.acquisition.pdfs import (
+    PdfExtractionError,
+    PdfFigureLocalizationResult,
+    PdfParseResult,
+)
 from universe.acquisition.runner import enqueue_source, process_next_job
 from universe.assets import LocalAssetStore
 
@@ -323,3 +327,93 @@ def test_transient_book_capture_resumes_the_committed_page_prefix(db, tmp_path):
         " WHERE acquisition_job_id = %s AND kind = 'book_page'",
         (queued["id"],),
     ).fetchone()[0] == [1, 2]
+
+
+def test_transient_firecrawl_failure_retries_book_without_recapturing_pages(
+    db, tmp_path
+):
+    source_id = "source-ordered-book-firecrawl-retry"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Retryable reconstruction', 'book')",
+        (
+            source_id,
+            Jsonb(
+                {
+                    "kind": "book",
+                    "resource_code": "book-retry",
+                    "scope": {"kind": "pages", "value": "10"},
+                }
+            ),
+        ),
+    )
+    db.commit()
+    store = LocalAssetStore(tmp_path / "retryable-reconstruction-assets")
+    completed_prefix_lengths = []
+
+    class CompleteAdapter:
+        def capture(self, request, *, completed_pages, persist_page):
+            completed_prefix_lengths.append(len(completed_pages))
+            if not completed_pages:
+                persist_page(
+                    CapturedBookPage(
+                        1,
+                        "10",
+                        "110",
+                        _png("page 10"),
+                        "image/png",
+                        "Page ten text.",
+                    )
+                )
+            return BookCaptureSummary(
+                final_url="https://reader.example/books/book-retry/pageid/110",
+                original_library_url="https://library.example/catalog",
+                capture_version="fake-browserbase-v1",
+                diagnostics={},
+            )
+
+    parse_calls = []
+
+    def parse(*args):
+        parse_calls.append(1)
+        if len(parse_calls) == 1:
+            raise PdfExtractionError(
+                "pdf_parse_failed",
+                "firecrawl_retries_exhausted",
+                {"http_status": 503},
+                retriable=True,
+                retry_after_seconds=0,
+            )
+        return _parser([], markdown="# Reconstructed\n")(*args)
+
+    queued = enqueue_source(db, source_id)
+    retry = process_next_job(
+        db,
+        job_id=queued["id"],
+        asset_store=store,
+        book_adapter=CompleteAdapter(),
+        book_document_parser=parse,
+        book_figure_locator=_empty_locator([]),
+    )
+
+    assert retry["status"] == "queued"
+    assert retry["diagnostics"]["retry_scheduled"] is True
+
+    completed = process_next_job(
+        db,
+        job_id=queued["id"],
+        asset_store=store,
+        book_adapter=CompleteAdapter(),
+        book_document_parser=parse,
+        book_figure_locator=_empty_locator([]),
+    )
+
+    assert completed["status"] == "succeeded"
+    assert completed["attempt_count"] == 2
+    assert completed_prefix_lengths == [0, 1]
+    assert len(parse_calls) == 2
+    assert db.execute(
+        "SELECT count(*), sum(attempt_count), max(status)"
+        " FROM pdf_document_parse_call WHERE acquisition_job_id = %s",
+        (queued["id"],),
+    ).fetchone() == (1, 2, "succeeded")

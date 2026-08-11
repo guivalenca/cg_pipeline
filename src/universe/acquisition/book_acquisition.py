@@ -197,7 +197,13 @@ def book_capture_outcome(
         )
     except PdfExtractionError as exc:
         conn.rollback()
-        return _failure(exc.code, exc.category)
+        return _failure(
+            exc.code,
+            exc.category,
+            diagnostics=exc.diagnostics,
+            retryable=exc.retriable,
+            retry_after_seconds=exc.retry_after_seconds,
+        )
     except Exception as exc:
         conn.rollback()
         return BookOutcome(
@@ -232,7 +238,13 @@ def book_capture_outcome(
             pdf_builder=pdf_builder,
         )
     except PdfExtractionError as exc:
-        return _failure(exc.code, exc.category)
+        return _failure(
+            exc.code,
+            exc.category,
+            diagnostics=exc.diagnostics,
+            retryable=exc.retriable,
+            retry_after_seconds=exc.retry_after_seconds,
+        )
     except Exception as exc:
         conn.rollback()
         return BookOutcome(
@@ -515,6 +527,7 @@ def _failure(
     code: str,
     category: str,
     *,
+    diagnostics: Mapping[str, Any] | None = None,
     retryable: bool = False,
     retry_after_seconds: int = 0,
 ) -> BookOutcome:
@@ -524,7 +537,7 @@ def _failure(
         BOOK_PROVIDER,
         BOOK_CAPTURE_TOOL,
         None,
-        {"category": category},
+        {"category": category, **dict(diagnostics or {})},
         retryable=retryable,
         retry_after_seconds=retry_after_seconds,
     )

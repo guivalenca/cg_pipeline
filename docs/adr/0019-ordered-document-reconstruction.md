@@ -50,6 +50,13 @@ fact and is available to page-local validation; it does not override OCR
 structure or formulas because reader accessibility layers can themselves be
 wrong.
 
+Firecrawl retains short bounded retries inside one parse attempt. Exhausting
+only retryable transport or provider statuses reschedules the same acquisition
+after a longer delay. The durable parse call becomes eligible for another
+attempt and Browserbase receives the already completed page prefix, so it does
+not capture those pages again. Permanent authentication, credit, input, and
+payload failures remain terminal.
+
 The Browserbase Adapter must prove that the reader page fits on both axes. It
 checks the page root's client and scroll dimensions plus the bounds of visual
 descendants, grows the viewport through a bounded sequence, and fails

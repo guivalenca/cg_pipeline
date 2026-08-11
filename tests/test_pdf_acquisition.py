@@ -436,6 +436,70 @@ def test_firecrawl_parse_result_is_reused_for_the_same_durable_job(db, tmp_path)
     assert second.diagnostics["visual_calls"][0]["reused"] is True
 
 
+def test_retryable_durable_parse_can_resume_the_same_job(db, tmp_path):
+    source_id = "source-pdf-firecrawl-resume"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Retryable PDF', 'article')",
+        (source_id, Jsonb({"canonical_url": "https://example.test/retryable-pdf"})),
+    )
+    db.commit()
+    store = LocalAssetStore(tmp_path / "assets")
+    queued = create_manual_upload_job(
+        db,
+        source_id,
+        [ManualAsset("lesson.pdf", "application/pdf", b"%PDF-1.7\nretry", "pdf")],
+        asset_store=store,
+    )
+    pdf_asset = list_manual_assets(
+        db, queued["id"], include_body=True, asset_store=store
+    )[0]
+    parser_calls = []
+
+    def parse_document(_body, _filename, _mime_type):
+        parser_calls.append(1)
+        if len(parser_calls) == 1:
+            raise pdfs.PdfExtractionError(
+                "pdf_parse_failed",
+                "firecrawl_retries_exhausted",
+                {"http_status": 503},
+                retriable=True,
+                retry_after_seconds=60,
+            )
+        return pdfs.PdfParseResult(
+            markdown="# Resumed parse\n",
+            image_urls=(),
+            attempts=1,
+            diagnostics={"category": "success", "num_pages": 1},
+        )
+
+    acquire = lambda: pdfs.acquire_pdf_document(
+        db,
+        job=queued,
+        title="Retryable PDF",
+        pdf_asset=pdf_asset,
+        asset_store=store,
+        document_parser=parse_document,
+        figure_locator=_empty_figure_result,
+        page_extractor=lambda _body: [
+            PdfPage(1, "Resumed parse", _png_bytes(), 20, 10)
+        ],
+    )
+
+    with pytest.raises(pdfs.PdfExtractionError) as raised:
+        acquire()
+    resumed = acquire()
+
+    assert raised.value.retriable is True
+    assert resumed.raw_markdown.startswith("# Retryable PDF")
+    assert len(parser_calls) == 2
+    assert db.execute(
+        "SELECT count(*), sum(attempt_count), max(status)"
+        " FROM pdf_document_parse_call WHERE acquisition_job_id = %s",
+        (queued["id"],),
+    ).fetchone() == (1, 2, "succeeded")
+
+
 def test_firecrawl_figure_is_localized_as_an_atomic_asset(db, tmp_path):
     source_id = "source-pdf-firecrawl-figure"
     db.execute(
@@ -670,6 +734,33 @@ def test_firecrawl_parse_preserves_final_http_failure_diagnostics(monkeypatch):
         "http_status": 400,
         "provider_code": "DOCUMENT_PARSE_FAILED",
         "provider_error": "Document processing failed",
+    }
+
+
+def test_firecrawl_retryable_exhaustion_requests_a_later_job_retry(monkeypatch):
+    class Response:
+        status_code = 503
+
+        @staticmethod
+        def json():
+            return {"success": False, "error": "Temporarily unavailable"}
+
+    monkeypatch.setenv("FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS", "1")
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "test-key")
+    monkeypatch.setattr(pdfs.httpx, "post", lambda *_args, **_kwargs: Response())
+    monkeypatch.setattr(pdfs.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(pdfs.PdfExtractionError) as raised:
+        pdfs.parse_pdf_with_firecrawl(
+            b"%PDF-1.7\nordered", "ordered.pdf", "application/pdf", mode="ocr"
+        )
+
+    assert raised.value.category == "firecrawl_retries_exhausted"
+    assert raised.value.retriable is True
+    assert raised.value.retry_after_seconds == 60
+    assert raised.value.diagnostics == {
+        "http_status": 503,
+        "provider_error": "Temporarily unavailable",
     }
 
 
