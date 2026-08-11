@@ -42,8 +42,9 @@ UNANCHORED_FIGURES_HEADING = "## Extracted figures (unanchored)"
 MAX_MULTIMODAL_REQUEST_BYTES = 18 * 1024 * 1024
 MAX_MULTIMODAL_CONTEXT_CHARS = 80_000
 MAX_FIGURE_PAGES_PER_CALL = 8
-FIGURE_BBOX_HORIZONTAL_MARGIN_1000 = 24
-FIGURE_BBOX_BOTTOM_MARGIN_1000 = 16
+FIGURE_BBOX_HORIZONTAL_MARGIN_1000 = 100
+FIGURE_BBOX_TOP_MARGIN_1000 = 40
+FIGURE_BBOX_BOTTOM_MARGIN_1000 = 180
 DERIVED_FIGURE_ORDINAL_BASE = 2_000_000
 
 PDF_FIGURE_TOOL = {
@@ -609,19 +610,17 @@ def _pad_figure_bbox(
     """Give semantic boxes enough context to avoid clipping diagram strokes.
 
     Vision models commonly return boxes tangent to circles, arrowheads, and
-    labels.  A small deterministic margin is cheaper and more reliable than a
-    second localization call.  When a single known caption follows the figure,
-    the lower margin stops before it so the crop does not absorb prose.
+    labels, and can omit the final branch of tall or rotated diagrams.  A
+    bounded asymmetric safety envelope is cheaper and more reliable than a
+    second localization call.  Captions may remain in the crop; clipping a
+    semantic node or connector is the worse failure.
     """
     left, top, right, bottom = bbox
-    bottom_limit = 1000
-    if caption_top_1000 is not None and bottom < caption_top_1000:
-        bottom_limit = max(top + 1, caption_top_1000 - 10)
     return (
         max(0, left - FIGURE_BBOX_HORIZONTAL_MARGIN_1000),
-        top,
+        max(0, top - FIGURE_BBOX_TOP_MARGIN_1000),
         min(1000, right + FIGURE_BBOX_HORIZONTAL_MARGIN_1000),
-        min(bottom_limit, bottom + bottom_margin_1000),
+        min(1000, bottom + bottom_margin_1000),
     )
 
 

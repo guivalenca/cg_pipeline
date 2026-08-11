@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
@@ -11,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import urlsplit, urlunsplit
+
+from PIL import Image, UnidentifiedImageError
 
 from universe.acquisition.book_acquisition import (
     BookAcquisitionError,
@@ -32,7 +35,7 @@ from universe.acquisition.browserbase_session import (
 )
 
 
-CAPTURE_VERSION = "browserbase-book-capture.v1"
+CAPTURE_VERSION = "browserbase-book-capture.v2"
 DEFAULT_TERMINAL_URL = "https://philos.sophia.com.br/terminal/9418"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONTEXT_FILE = PROJECT_ROOT / ".data" / "browserbase_context.json"
@@ -310,7 +313,9 @@ class _PlaywrightBookReader:
             frame = _wait_for_reader_frame(
                 self.page, self.request.resource_code, printed_page_label
             )
-        frame = _ensure_not_clipped(self.page, frame, printed_page_label)
+        frame, image_body = _capture_complete_page(
+            self.page, frame, printed_page_label
+        )
         exact_text = _reader_text(frame)
         if _word_count(exact_text) < 20 and not _intentional_blank(exact_text):
             raise BookAcquisitionError(
@@ -324,7 +329,6 @@ class _PlaywrightBookReader:
             raise BookAcquisitionError(
                 "book_reader_page_id_missing", "invalid_reader_state"
             )
-        image_body = _screenshot_frame(frame)
         return BrowserbasePageCapture(reader_id, image_body, exact_text)
 
 
@@ -500,7 +504,7 @@ def _screenshot_frame(frame: Any) -> bytes:
     return payload
 
 
-def _ensure_not_clipped(page: Any, frame: Any, label: str) -> Any:
+def _fitted_reader_frames(page: Any, frame: Any, label: str):
     size = getattr(page, "viewport_size", None) or {}
     current_width = int(size.get("width") or 2200)
     current_height = int(size.get("height") or 1800)
@@ -525,13 +529,93 @@ def _ensure_not_clipped(page: Any, frame: Any, label: str) -> Any:
             current_height = height
         metrics = _overflow_metrics(frame)
         if metrics and _layout_fits(metrics):
-            return frame
+            yield frame
+
+
+def _ensure_not_clipped(page: Any, frame: Any, label: str) -> Any:
+    for fitted in _fitted_reader_frames(page, frame, label):
+        return fitted
     raise BookAcquisitionError(
         "book_page_clipped",
         "invalid_reader_state",
         retriable=True,
         retry_after_seconds=5,
     )
+
+
+def _capture_complete_page(
+    page: Any, frame: Any, label: str
+) -> tuple[Any, bytes]:
+    """Capture page pixels only after both DOM and bitmap checks pass.
+
+    The reader can report a fitting ``#pbk-page`` while a rotated or unusually
+    tall page is still covered by its navigation strip.  A screenshot-level
+    check removes the strip when content has safe clearance and otherwise
+    advances to the next larger viewport candidate.
+    """
+    for fitted in _fitted_reader_frames(page, frame, label):
+        sanitized = _sanitize_reader_screenshot(_screenshot_frame(fitted))
+        if sanitized is not None:
+            return fitted, sanitized
+    raise BookAcquisitionError(
+        "book_page_clipped",
+        "invalid_reader_state",
+        retriable=True,
+        retry_after_seconds=5,
+    )
+
+
+def _sanitize_reader_screenshot(payload: bytes) -> bytes | None:
+    """Remove Minha Biblioteca navigation chrome or reject covered content."""
+    try:
+        with Image.open(io.BytesIO(payload)) as source:
+            source.load()
+            image = source.convert("RGB")
+    except (UnidentifiedImageError, OSError):
+        return None
+    width, height = image.size
+    if width < 40 or height < 40:
+        return None
+    gray = image.convert("L")
+    boundary = _reader_chrome_boundary(gray)
+    if boundary is None:
+        margin = max(8, min(width, height) // 100)
+        bottom = gray.crop((0, height - margin, width, height))
+        if sum(bottom.histogram()[:210]) > width * 2:
+            return None
+        return payload
+
+    guard_top = max(0, boundary - max(48, height // 35))
+    guard_bottom = max(guard_top + 1, boundary - 6)
+    guard = gray.crop((0, guard_top, width, guard_bottom))
+    row_counts = [
+        sum(guard.getpixel((x, y)) < 210 for x in range(width))
+        for y in range(guard.height)
+    ]
+    if row_counts and max(row_counts) > width * 0.12:
+        return None
+
+    cleaned = image.crop((0, 0, width, max(1, boundary - 4)))
+    output = io.BytesIO()
+    cleaned.save(output, format="PNG", optimize=True)
+    return output.getvalue()
+
+
+def _reader_chrome_boundary(gray: Image.Image) -> int | None:
+    """Locate the reader's near-full-width lower navigation divider."""
+    width, height = gray.size
+    start = int(height * 0.62)
+    stop = int(height * 0.9)
+    threshold = int(width * 0.75)
+    previous = False
+    boundary = None
+    for y in range(start, stop):
+        dark = sum(gray.getpixel((x, y)) < 210 for x in range(width))
+        current = dark >= threshold
+        if current and previous:
+            boundary = y - 1
+        previous = current
+    return boundary
 
 
 def _layout_fits(metrics: Mapping[str, Any]) -> bool:

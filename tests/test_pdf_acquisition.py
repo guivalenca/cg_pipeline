@@ -719,11 +719,11 @@ def test_vector_diagram_fallback_publishes_only_the_located_crop(db, tmp_path):
     ).fetchone()
     assert figure[1] == "pdf_figure"
     assert figure[2]["page_number"] == 1
-    assert figure[2]["bbox_1000"] == [76, 600, 924, 916]
+    assert figure[2]["bbox_1000"] == [0, 560, 1000, 1000]
     assert figure[2]["model_bbox_1000"] == [100, 600, 900, 900]
     assert figure[2]["bbox_adjustment"] == "padded_for_crop_safety"
-    assert figure[2]["width"] == 848
-    assert figure[2]["height"] == 316
+    assert figure[2]["width"] == 1000
+    assert figure[2]["height"] == 440
     assert figure[2]["placement"] == "before_markdown_block"
     markdown = db.execute(
         "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)

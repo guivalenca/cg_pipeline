@@ -55,7 +55,16 @@ checks the page root's client and scroll dimensions plus the bounds of visual
 descendants, grows the viewport through a bounded sequence, and fails
 retriably if any content still overflows. Only the reader page element may be
 captured; falling back to a viewport or body screenshot would reintroduce
-reader chrome and silent vertical clipping.
+reader chrome and silent vertical clipping. DOM geometry is necessary but not
+sufficient: the captured bitmap must also expose the reader's lower navigation
+divider with safe visual clearance. The Adapter removes that chrome only when
+the page is clear of it; otherwise it grows the viewport and captures again.
+
+Gemini's semantic figure box is also not trusted as a pixel-perfect crop. The
+Figure Placement Implementation applies a bounded asymmetric safety envelope,
+with extra horizontal and lower-page room for rotated and tall diagrams.
+Captions may remain inside a crop; losing a node, label, arrow, or connector is
+the higher-severity failure.
 
 There is no separate publication-quality Module. Essential invariants live at
 the reconstruction boundary: ordered pages must be contiguous and decodable,

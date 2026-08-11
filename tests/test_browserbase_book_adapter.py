@@ -1,8 +1,10 @@
 """Browserbase book Adapter lifecycle and provider-boundary contracts."""
 
+import io
 from contextlib import contextmanager
 
 import pytest
+from PIL import Image, ImageDraw
 
 from universe.acquisition.book_acquisition import (
     BookAcquisitionError,
@@ -12,8 +14,10 @@ from universe.acquisition.book_acquisition import (
 from universe.acquisition.browserbase_book_adapter import (
     BrowserbaseBookAdapter,
     BrowserbasePageCapture,
+    _capture_complete_page,
     _ensure_not_clipped,
     _layout_fits,
+    _sanitize_reader_screenshot,
     _screenshot_frame,
     safe_browser_error,
 )
@@ -241,3 +245,88 @@ def test_page_screenshot_never_falls_back_to_a_clipped_body_or_viewport():
 
     assert raised.value.code == "book_page_screenshot_failed"
     assert raised.value.retriable is True
+
+
+def _reader_capture_png(*, covered: bool) -> bytes:
+    image = Image.new("RGB", (200, 300), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((50, 30, 150, 90), outline="black", width=3)
+    if covered:
+        draw.line((20, 224, 180, 224), fill="black", width=4)
+    draw.line((0, 240, 199, 240), fill="black", width=3)
+    draw.rectangle((160, 250, 190, 270), outline="black", width=2)
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    return output.getvalue()
+
+
+def test_reader_screenshot_removes_navigation_chrome_when_page_has_clearance():
+    sanitized = _sanitize_reader_screenshot(_reader_capture_png(covered=False))
+
+    assert sanitized is not None
+    with Image.open(io.BytesIO(sanitized)) as image:
+        assert image.size == (200, 236)
+
+
+def test_reader_screenshot_rejects_page_content_covered_by_navigation_chrome():
+    assert _sanitize_reader_screenshot(_reader_capture_png(covered=True)) is None
+
+
+def test_capture_grows_viewport_when_bitmap_guard_finds_covered_content(monkeypatch):
+    class Page:
+        viewport_size = {"width": 2200, "height": 1800}
+
+        def __init__(self):
+            self.sizes = []
+
+        def set_viewport_size(self, size):
+            self.viewport_size = dict(size)
+            self.sizes.append(dict(size))
+
+        def wait_for_timeout(self, _milliseconds):
+            pass
+
+    page = Page()
+
+    class ImageLocator:
+        first = None
+
+        def __init__(self):
+            self.first = self
+
+        def bounding_box(self, **_kwargs):
+            return {"width": 1200, "height": page.viewport_size["height"]}
+
+        def screenshot(self, **_kwargs):
+            return _reader_capture_png(covered=page.viewport_size["height"] < 2800)
+
+    class Frame:
+        def evaluate(self, _script):
+            return {
+                "clientWidth": page.viewport_size["width"],
+                "clientHeight": page.viewport_size["height"],
+                "scrollWidth": page.viewport_size["width"],
+                "scrollHeight": page.viewport_size["height"],
+                "visualRight": page.viewport_size["width"],
+                "visualBottom": page.viewport_size["height"],
+            }
+
+        def locator(self, selector):
+            assert selector == "#pbk-page"
+            return ImageLocator()
+
+    frame = Frame()
+    monkeypatch.setattr(
+        "universe.acquisition.browserbase_book_adapter._fit_height",
+        lambda _page: True,
+    )
+    monkeypatch.setattr(
+        "universe.acquisition.browserbase_book_adapter._wait_for_reader_frame",
+        lambda _page, _resource_code, _label: frame,
+    )
+
+    resolved, payload = _capture_complete_page(page, frame, "68")
+
+    assert resolved is frame
+    assert page.sizes[-1]["height"] >= 2800
+    assert _sanitize_reader_screenshot(payload) == payload
