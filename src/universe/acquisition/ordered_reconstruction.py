@@ -37,11 +37,13 @@ from universe.settings import private_pdf_figure_localization_enabled
 
 ORDERED_RECONSTRUCTION_TOOL = "ordered-document-reconstruction"
 ORDERED_RECONSTRUCTION_VERSION = "ordered-document-reconstruction.v1"
-ORDERED_PDF_BUILDER_VERSION = "img2pdf-lossless.v1"
+ORDERED_PDF_BUILDER_VERSION = "img2pdf-adaptive-ocr.v2"
 ORDERED_PDF_ORDINAL = 3_000_000
 MAX_ORDERED_PAGES = 50
 MAX_PAGE_PIXELS = 40_000_000
 MAX_TRANSPORT_PDF_BYTES = 50 * 1024 * 1024
+MAX_LOSSLESS_TRANSPORT_PDF_BYTES = 24 * 1024 * 1024
+OCR_TRANSPORT_JPEG_QUALITY = 94
 ORDERED_IMAGE_KINDS = {"screenshot", "image", "book_page"}
 ORDERED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 
@@ -117,7 +119,7 @@ def reconstruct_ordered_document(
     )
     transport_reused = transport is not None
     if transport is None:
-        transport_body = (pdf_builder or build_lossless_image_pdf)(
+        transport_body = (pdf_builder or build_ocr_transport_pdf)(
             [page.png_body for page in normalized]
         )
         _validate_transport_body(transport_body)
@@ -226,6 +228,42 @@ def build_lossless_image_pdf(page_pngs: Sequence[bytes]) -> bytes:
             "ordered_pdf_packaging_failed", "image_pdf_conversion_failed"
         ) from exc
     return bytes(body)
+
+
+def build_ocr_transport_pdf(
+    page_pngs: Sequence[bytes],
+    *,
+    max_lossless_bytes: int = MAX_LOSSLESS_TRANSPORT_PDF_BYTES,
+) -> bytes:
+    """Keep small transports lossless and compress only provider-risky PDFs."""
+
+    lossless = build_lossless_image_pdf(page_pngs)
+    if len(lossless) <= max_lossless_bytes:
+        return lossless
+    jpeg_pages: list[bytes] = []
+    try:
+        for body in page_pngs:
+            with Image.open(io.BytesIO(body)) as source:
+                source.load()
+                output = io.BytesIO()
+                source.convert("RGB").save(
+                    output,
+                    format="JPEG",
+                    quality=OCR_TRANSPORT_JPEG_QUALITY,
+                    subsampling=0,
+                    optimize=True,
+                )
+                jpeg_pages.append(output.getvalue())
+        import img2pdf
+
+        compressed = img2pdf.convert(
+            *jpeg_pages, rotation=img2pdf.Rotation.ifvalid
+        )
+    except Exception as exc:
+        raise PdfExtractionError(
+            "ordered_pdf_packaging_failed", "ocr_transport_compression_failed"
+        ) from exc
+    return bytes(compressed)
 
 
 def _validate_claim(conn: psycopg.Connection, job: Mapping[str, Any]) -> None:

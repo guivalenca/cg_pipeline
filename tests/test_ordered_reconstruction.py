@@ -17,7 +17,10 @@ from universe.acquisition.manual_uploads import (
     create_manual_upload_job,
     list_manual_assets,
 )
-from universe.acquisition.ordered_reconstruction import build_lossless_image_pdf
+from universe.acquisition.ordered_reconstruction import (
+    build_lossless_image_pdf,
+    build_ocr_transport_pdf,
+)
 from universe.acquisition.pdfs import (
     PdfExtractionError,
     PdfFigureLocalizationResult,
@@ -68,6 +71,26 @@ def _parser(calls, *, markdown=None):
         )
 
     return parse
+
+
+def test_large_ocr_transport_uses_high_quality_jpeg_without_changing_page_count():
+    page = Image.effect_noise((800, 600), 80).convert("RGB")
+    page_bytes = io.BytesIO()
+    page.save(page_bytes, format="PNG")
+    lossless = build_lossless_image_pdf([page_bytes.getvalue()])
+
+    adaptive = build_ocr_transport_pdf(
+        [page_bytes.getvalue()], max_lossless_bytes=1
+    )
+
+    assert adaptive.startswith(b"%PDF-")
+    assert len(adaptive) < len(lossless)
+    with pikepdf.open(io.BytesIO(adaptive)) as document:
+        assert len(document.pages) == 1
+        image = next(
+            iter(document.pages[0].obj["/Resources"]["/XObject"].values())
+        )
+        assert str(image["/Filter"]) == "/DCTDecode"
 
 
 def test_manual_ordered_images_use_one_ocr_document_and_original_page_evidence(

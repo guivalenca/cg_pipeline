@@ -24,9 +24,13 @@ for screenshots or books would create a shallow parallel pipeline.
 Create one deep Ordered Reconstruction Module. Its Interface accepts a title
 and ordered page evidence. A page carries its immutable raster asset and may
 carry exact reader accessibility text. The Implementation validates contiguous
-order, decodes each page, normalizes it losslessly to PNG, derives one
-image-only transport PDF, and calls the existing PDF document acquisition
-Interface in forced OCR mode.
+order and decodes each page into a lossless normalized PNG. It derives one
+image-only transport PDF and calls the existing PDF document acquisition
+Interface in forced OCR mode. Transports no larger than 24 MB preserve those
+PNGs losslessly. Larger transports use JPEG quality 94 without chroma
+subsampling because repeated Firecrawl engine failures were observed well below
+its nominal 50 MB upload limit. Original page evidence and Gemini crop sources
+remain lossless; only the private OCR transport is compressed.
 
 The transport PDF is an immutable `ordered_document_pdf` asset, but it is an
 Implementation detail and is never presented as the original source. Firecrawl
@@ -95,7 +99,8 @@ Components are not started.
 ## Consequences
 
 - Ordered reconstruction has Depth: callers provide evidence and do not know
-  PDF packaging, provider options, durable call ledgers, crops, or anchoring.
+  PDF packaging, adaptive transport compression, provider options, durable call
+  ledgers, crops, or anchoring.
 - The PDF pipeline gains Leverage because three input modes share one
   structural and visual Implementation.
 - Figure/text Locality and the cleanup Seam are identical for native PDFs,

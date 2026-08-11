@@ -108,8 +108,10 @@ element; model prose never replaces the asset. This lets image meaning affect
 passage boundaries without making one failed image retry the source.
 
 Manual screenshots are reconstructed document-wide. Their visible order is
-preserved, the images are packaged losslessly into an audit-only PDF transport,
-and Firecrawl runs in forced OCR mode. The same PDF Figure Placement Module then
+preserved and the original normalized PNGs remain immutable evidence. The
+audit-only PDF transport stays lossless up to 24 MB; above that provider-risk
+threshold it uses JPEG quality 94 without chroma subsampling, while Firecrawl
+runs in forced OCR mode. The same PDF Figure Placement Module then
 inventories every page and inserts only local figure crops beside the Blocks
 that explain them. Whole-page screenshots remain immutable evidence and are
 never published as Markdown images.
