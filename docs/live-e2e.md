@@ -1,5 +1,8 @@
 # Bounded live extraction tracer
 
+The first consolidated acceptance results are recorded in
+[`source-publication-acceptance-2026-08-11.md`](source-publication-acceptance-2026-08-11.md).
+
 `tests/live_e2e` is a deliberately opt-in tracer for the source-publication
 pipeline. It is not part of the ordinary test suite and it never downloads a
 fixture automatically. Its first purpose is to prove one trustworthy vertical
