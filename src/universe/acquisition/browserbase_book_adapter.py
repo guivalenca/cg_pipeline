@@ -605,7 +605,7 @@ def _reader_chrome_boundary(gray: Image.Image) -> int | None:
     """Locate the reader's near-full-width lower navigation divider."""
     width, height = gray.size
     start = int(height * 0.62)
-    stop = int(height * 0.9)
+    stop = int(height * 0.98)
     threshold = int(width * 0.75)
     previous = False
     boundary = None

@@ -247,14 +247,15 @@ def test_page_screenshot_never_falls_back_to_a_clipped_body_or_viewport():
     assert raised.value.retriable is True
 
 
-def _reader_capture_png(*, covered: bool) -> bytes:
+def _reader_capture_png(*, covered: bool, chrome_y: int = 240) -> bytes:
     image = Image.new("RGB", (200, 300), "white")
     draw = ImageDraw.Draw(image)
     draw.rectangle((50, 30, 150, 90), outline="black", width=3)
     if covered:
         draw.line((20, 224, 180, 224), fill="black", width=4)
-    draw.line((0, 240, 199, 240), fill="black", width=3)
-    draw.rectangle((160, 250, 190, 270), outline="black", width=2)
+    draw.line((0, chrome_y, 199, chrome_y), fill="black", width=3)
+    control_top = min(292, chrome_y + 8)
+    draw.rectangle((160, control_top, 190, min(298, control_top + 18)), outline="black", width=2)
     output = io.BytesIO()
     image.save(output, format="PNG")
     return output.getvalue()
@@ -270,6 +271,16 @@ def test_reader_screenshot_removes_navigation_chrome_when_page_has_clearance():
 
 def test_reader_screenshot_rejects_page_content_covered_by_navigation_chrome():
     assert _sanitize_reader_screenshot(_reader_capture_png(covered=True)) is None
+
+
+def test_reader_screenshot_finds_chrome_below_ninety_percent_of_tall_viewport():
+    sanitized = _sanitize_reader_screenshot(
+        _reader_capture_png(covered=False, chrome_y=280)
+    )
+
+    assert sanitized is not None
+    with Image.open(io.BytesIO(sanitized)) as image:
+        assert 250 < image.height < 280
 
 
 def test_capture_grows_viewport_when_bitmap_guard_finds_covered_content(monkeypatch):
