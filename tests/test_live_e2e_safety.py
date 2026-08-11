@@ -136,6 +136,27 @@ def test_usage_summary_never_hides_prior_retries_behind_latest_cost() -> None:
     assert summary["observed_cost_usd"] == "0.02"
 
 
+def test_usage_summary_does_not_invent_a_paid_attempt_for_skipped_visual_input() -> None:
+    summary = LIVE._summarize_usage_observations(
+        [
+            {
+                "stage": "source_visual",
+                "status": "skipped",
+                "attempt_count": 1,
+                "usage": {},
+            }
+        ]
+    )
+
+    assert summary == {
+        "observable_attempts": 0,
+        "priced_attempts": 0,
+        "unpriced_attempts": 0,
+        "observed_cost_usd": "0",
+        "by_stage": {},
+    }
+
+
 def test_terminal_work_summary_covers_every_runnable_child_queue() -> None:
     components = {
         "acquisition": {"running": 1},

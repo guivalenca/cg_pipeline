@@ -467,6 +467,12 @@ def _summarize_usage_observations(
         stage = str(observation["stage"])
         status = str(observation["status"])
         usage = dict(observation.get("usage") or {})
+        # Claiming the grouped visual job increments its durable attempt count
+        # before input preparation. If every downloaded asset is incompatible,
+        # the job finishes ``skipped`` without reaching a provider; that queue
+        # claim is observable work, but it is not a provider attempt or cost.
+        if stage == "source_visual" and status == "skipped" and not usage:
+            continue
         try:
             minimum_attempts = max(0, int(observation.get("attempt_count") or 0))
         except (TypeError, ValueError):

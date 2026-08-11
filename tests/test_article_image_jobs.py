@@ -19,6 +19,7 @@ from universe.acquisition.image_jobs import (
     DownloadedImage,
     ImageJobError,
     _analysis_failure_diagnostics,
+    _prepare_model_image,
     _validated_download,
     claim_next_article_image,
     claim_next_source_image_analysis,
@@ -62,6 +63,19 @@ def _batch_result(markdown, images, analyses, *, unresolved=None):
 def _png_body(color="white"):
     buffer = io.BytesIO()
     Image.new("RGB", (120, 80), color).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _animated_gif_body():
+    buffer = io.BytesIO()
+    Image.new("RGB", (12, 8), "red").save(
+        buffer,
+        format="GIF",
+        save_all=True,
+        append_images=[Image.new("RGB", (12, 8), "green")],
+        duration=100,
+        loop=0,
+    )
     return buffer.getvalue()
 
 
@@ -538,6 +552,47 @@ def test_avif_and_svg_are_preserved_even_when_not_model_inputs(
 
     assert downloaded.mime_type == expected_mime
     assert downloaded.sha256 == hashlib.sha256(body).hexdigest()
+
+
+def test_article_gif_preserves_original_and_models_only_its_first_frame():
+    body = _animated_gif_body()
+
+    downloaded = _validated_download(
+        body, "image/gif", "https://cdn.example/teaching-diagram.gif"
+    )
+    model_body, model_mime, diagnostics = _prepare_model_image(
+        downloaded.body, downloaded.mime_type
+    )
+
+    assert downloaded.body == body
+    assert downloaded.mime_type == "image/gif"
+    assert downloaded.filename == "teaching-diagram.gif"
+    assert (downloaded.width, downloaded.height) == (12, 8)
+    assert downloaded.sha256 == hashlib.sha256(body).hexdigest()
+    assert model_body is not None
+    assert model_mime in {"image/png", "image/jpeg"}
+    assert diagnostics["source_mime_type"] == "image/gif"
+    with Image.open(io.BytesIO(model_body)) as normalized:
+        assert getattr(normalized, "n_frames", 1) == 1
+        red, green, blue = normalized.convert("RGB").getpixel((0, 0))
+    assert red > 200
+    assert green < 50
+    assert blue < 50
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        b"GIF89a" + (65_535).to_bytes(2, "little") * 2 + b"\x00\x00\x00",
+        b"GIF89a\x01\x00\x01\x00\x00\x00\x00",
+    ],
+)
+def test_article_gif_rejects_unsafe_dimensions_and_undecodable_first_frames(body):
+    with pytest.raises(ImageJobError) as caught:
+        _validated_download(body, "image/gif", "https://cdn.example/broken.gif")
+
+    assert caught.value.code == "image_validation_failed"
+    assert caught.value.category == "invalid_image"
 
 
 def test_avif_is_preserved_as_original_and_analyzed_through_png(

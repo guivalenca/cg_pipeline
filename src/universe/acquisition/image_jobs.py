@@ -60,8 +60,11 @@ from universe.settings import (
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_REDIRECTS = 4
 MODEL_IMAGE_MIMES = {"image/png", "image/jpeg", "image/webp"}
-CONVERTIBLE_MODEL_IMAGE_MIMES = {"image/avif"}
-PRESERVABLE_IMAGE_MIMES = MODEL_IMAGE_MIMES | {"image/avif", "image/svg+xml"}
+CONVERTIBLE_MODEL_IMAGE_MIMES = {"image/avif", "image/gif"}
+PRESERVABLE_IMAGE_MIMES = MODEL_IMAGE_MIMES | CONVERTIBLE_MODEL_IMAGE_MIMES | {
+    "image/svg+xml"
+}
+MAX_IMAGE_PIXELS = 40_000_000
 MAX_MODEL_IMAGE_EDGE = 2048
 MAX_MODEL_IMAGE_BYTES = 1536 * 1024
 IMAGE_USER_AGENT = "ConceptUniverseImageAcquisition/1.0"
@@ -1454,29 +1457,63 @@ def _validated_download(
             height=0,
             sha256=hashlib.sha256(body).hexdigest(),
         )
-    try:
-        validated = validate_manual_assets(
-            [ManualAsset(filename, mime_type, body, "image")],
-            max_total_bytes=MAX_IMAGE_BYTES,
-        )[0]
-    except ValueError as exc:
-        raise ImageJobError(
-            "image_validation_failed",
-            "invalid_image",
-            {"reason": str(exc)[:300]},
-        ) from exc
-    width = int(validated.metadata["width"])
-    height = int(validated.metadata["height"])
-    assert validated.sha256 is not None
+    if mime_type == "image/gif":
+        width, height = _validated_gif_dimensions(body)
+        sha256 = hashlib.sha256(body).hexdigest()
+        validated_filename = filename
+    else:
+        try:
+            validated = validate_manual_assets(
+                [ManualAsset(filename, mime_type, body, "image")],
+                max_total_bytes=MAX_IMAGE_BYTES,
+            )[0]
+        except ValueError as exc:
+            raise ImageJobError(
+                "image_validation_failed",
+                "invalid_image",
+                {"reason": str(exc)[:300]},
+            ) from exc
+        width = int(validated.metadata["width"])
+        height = int(validated.metadata["height"])
+        assert validated.sha256 is not None
+        sha256 = validated.sha256
+        validated_filename = validated.filename
     return DownloadedImage(
         body=body,
         mime_type=mime_type,
-        filename=validated.filename,
+        filename=validated_filename,
         final_url=final_url,
         width=width,
         height=height,
-        sha256=validated.sha256,
+        sha256=sha256,
     )
+
+
+def _validated_gif_dimensions(body: bytes) -> tuple[int, int]:
+    """Validate one bounded article GIF without admitting GIF manual uploads."""
+    if len(body) < 13 or body[:6] not in {b"GIF87a", b"GIF89a"}:
+        raise ImageJobError("image_validation_failed", "invalid_image")
+    width = int.from_bytes(body[6:8], "little")
+    height = int.from_bytes(body[8:10], "little")
+    if width <= 0 or height <= 0 or width * height > MAX_IMAGE_PIXELS:
+        raise ImageJobError(
+            "image_validation_failed",
+            "invalid_image",
+            {"reason": "image dimensions exceed the pixel limit"},
+        )
+    try:
+        with Image.open(io.BytesIO(body)) as image:
+            if image.format != "GIF" or image.size != (width, height):
+                raise ValueError("GIF header does not match decoded image")
+            image.seek(0)
+            image.load()
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ImageJobError(
+            "image_validation_failed",
+            "invalid_image",
+            {"reason": "GIF first frame is not decodable"},
+        ) from exc
+    return width, height
 
 
 def _sniff_image_mime(body: bytes) -> str | None:
@@ -1486,6 +1523,8 @@ def _sniff_image_mime(body: bytes) -> str | None:
         return "image/jpeg"
     if len(body) >= 12 and body[:4] == b"RIFF" and body[8:12] == b"WEBP":
         return "image/webp"
+    if body.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
     if len(body) >= 16 and body[4:8] == b"ftyp" and body[8:12] in {b"avif", b"avis"}:
         return "image/avif"
     head = body[:4096].lstrip(b"\xef\xbb\xbf\x00\t\r\n ").lower()
@@ -1502,6 +1541,7 @@ def _filename_for_url(url: str, mime_type: str) -> str:
         "image/jpeg": ".jpg",
         "image/webp": ".webp",
         "image/avif": ".avif",
+        "image/gif": ".gif",
         "image/svg+xml": ".svg",
     }[mime_type]
     if not raw or raw in {".", ".."}:

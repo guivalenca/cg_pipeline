@@ -128,6 +128,20 @@ def test_raster_inputs_keep_the_explicit_order_and_image_kind():
     ]
 
 
+def test_article_gif_support_does_not_expand_ordered_manual_upload_formats():
+    with pytest.raises(ValueError, match="PNG, JPEG or WEBP"):
+        validate_manual_assets(
+            [
+                ManualAsset(
+                    "animated.gif",
+                    "image/gif",
+                    b"GIF89a\x01\x00\x01\x00\x00\x00\x00",
+                    "image",
+                )
+            ]
+        )
+
+
 def test_manual_upload_is_durable_and_ordered_before_processing(db, tmp_path):
     source_id = "source-manual-upload-ordered"
     db.execute(
