@@ -11,7 +11,7 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from PIL import Image, UnidentifiedImageError
 
@@ -35,7 +35,7 @@ from universe.acquisition.browserbase_session import (
 )
 
 
-CAPTURE_VERSION = "browserbase-book-capture.v4"
+CAPTURE_VERSION = "browserbase-book-capture.v5"
 DEFAULT_TERMINAL_URL = "https://philos.sophia.com.br/terminal/9418"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONTEXT_FILE = PROJECT_ROOT / ".data" / "browserbase_context.json"
@@ -554,6 +554,9 @@ def _capture_complete_page(
     advances to the next larger viewport candidate.
     """
     for fitted in _fitted_reader_frames(page, frame, label):
+        source = _reader_page_image(fitted)
+        if source is not None:
+            return fitted, source
         _settle_reader_controls(page)
         sanitized = _sanitize_reader_screenshot(_screenshot_frame(fitted))
         if sanitized is not None:
@@ -563,6 +566,73 @@ def _capture_complete_page(
         "invalid_reader_state",
         retriable=True,
         retry_after_seconds=5,
+    )
+
+
+def _reader_page_image(frame: Any) -> bytes | None:
+    """Acquire the reader's page resource without parent-frame compositor UI."""
+    try:
+        image = frame.locator("#pbk-page").first
+        metadata = image.evaluate(
+            """node => ({
+              currentSrc: node.currentSrc || node.src || '',
+              naturalWidth: node.naturalWidth || 0,
+              naturalHeight: node.naturalHeight || 0,
+            })"""
+        )
+        if not isinstance(metadata, Mapping):
+            return None
+        natural_width = int(metadata.get("naturalWidth") or 0)
+        natural_height = int(metadata.get("naturalHeight") or 0)
+        if (
+            natural_width < 40
+            or natural_height < 40
+            or natural_width * natural_height > 40_000_000
+        ):
+            return None
+        frame_url = str(getattr(frame, "url", "") or "")
+        source_url = urljoin(frame_url, str(metadata.get("currentSrc") or ""))
+        if not _allowed_reader_page_image(source_url, frame_url):
+            return None
+        timeout = int(os.getenv("BOOK_SCREENSHOT_TIMEOUT_MS", "15000"))
+        response = frame.page.context.request.get(
+            source_url,
+            headers={"Referer": frame_url},
+            timeout=timeout,
+        )
+        if not bool(getattr(response, "ok", False)):
+            return None
+        body = response.body()
+        if not isinstance(body, bytes) or not body or len(body) > 32 * 1024 * 1024:
+            return None
+        with Image.open(io.BytesIO(body)) as source:
+            source.load()
+            if source.size != (natural_width, natural_height):
+                return None
+            normalized = source.convert("RGB")
+        output = io.BytesIO()
+        normalized.save(output, format="PNG", optimize=True)
+        return output.getvalue()
+    except (AttributeError, OSError, TypeError, ValueError, UnidentifiedImageError):
+        return None
+
+
+def _allowed_reader_page_image(source_url: str, frame_url: str) -> bool:
+    source = urlsplit(source_url)
+    frame = urlsplit(frame_url)
+    if (
+        source.scheme != "https"
+        or source.hostname != "jigsaw.minhabiblioteca.com.br"
+        or frame.scheme != "https"
+        or frame.hostname != "jigsaw.minhabiblioteca.com.br"
+    ):
+        return False
+    source_match = re.match(r"^/books/([^/]+)/images/", source.path)
+    frame_match = re.match(r"^/books/([^/]+)/pages/[^/]+/content$", frame.path)
+    return bool(
+        source_match
+        and frame_match
+        and source_match.group(1) == frame_match.group(1)
     )
 
 

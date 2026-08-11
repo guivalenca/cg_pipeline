@@ -272,6 +272,17 @@ def _reader_capture_png(
     return output.getvalue()
 
 
+def _complete_reader_source_jpeg() -> bytes:
+    image = Image.new("RGB", (200, 300), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((30, 30, 170, 270), outline="black", width=4)
+    draw.line((0, 240, 199, 240), fill="black", width=3)
+    draw.rectangle((80, 275, 120, 290), fill="black")
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=95)
+    return output.getvalue()
+
+
 def test_reader_screenshot_removes_navigation_chrome_when_page_has_clearance():
     sanitized = _sanitize_reader_screenshot(_reader_capture_png(covered=False))
 
@@ -391,3 +402,85 @@ def test_capture_grows_viewport_when_bitmap_guard_finds_covered_content(monkeypa
     assert resolved is frame
     assert page.sizes[-1]["height"] >= 2800
     assert _sanitize_reader_screenshot(payload) == payload
+
+
+def test_book_capture_uses_complete_reader_image_response_instead_of_chrome_composited_pixels(
+    monkeypatch,
+):
+    clean_source = _complete_reader_source_jpeg()
+
+    class Response:
+        status = 200
+        ok = True
+        headers = {"content-type": "image/jpeg"}
+
+        def body(self):
+            return clean_source
+
+    class Request:
+        def get(self, url, *, headers, timeout):
+            assert url == "https://jigsaw.minhabiblioteca.com.br/books/isbn/images/page"
+            assert headers == {
+                "Referer": "https://jigsaw.minhabiblioteca.com.br/books/isbn/pages/200/content"
+            }
+            assert timeout == 15_000
+            return Response()
+
+    class Context:
+        request = Request()
+
+    class Page:
+        viewport_size = {"width": 2200, "height": 1800}
+        context = Context()
+
+        def set_viewport_size(self, _size):
+            raise AssertionError("the complete reader resource should avoid viewport retries")
+
+    class ImageLocator:
+        first = None
+
+        def __init__(self):
+            self.first = self
+
+        def evaluate(self, _script):
+            return {
+                "currentSrc": "/books/isbn/images/page",
+                "naturalWidth": 200,
+                "naturalHeight": 300,
+            }
+
+        def bounding_box(self, **_kwargs):
+            return {"width": 200, "height": 300}
+
+        def screenshot(self, **_kwargs):
+            return _reader_capture_png(covered=True)
+
+    class Frame:
+        page = Page()
+        url = "https://jigsaw.minhabiblioteca.com.br/books/isbn/pages/200/content"
+
+        def evaluate(self, _script):
+            return {
+                "clientWidth": 200,
+                "clientHeight": 300,
+                "scrollWidth": 200,
+                "scrollHeight": 300,
+                "visualRight": 200,
+                "visualBottom": 300,
+            }
+
+        def locator(self, selector):
+            assert selector == "#pbk-page"
+            return ImageLocator()
+
+    monkeypatch.setattr(
+        "universe.acquisition.browserbase_book_adapter._fit_height",
+        lambda _page: True,
+    )
+
+    _, payload = _capture_complete_page(Page(), Frame(), "200")
+
+    with Image.open(io.BytesIO(payload)) as captured:
+        assert captured.format == "PNG"
+        assert captured.size == (200, 300)
+        assert captured.convert("L").getpixel((100, 282)) < 40
