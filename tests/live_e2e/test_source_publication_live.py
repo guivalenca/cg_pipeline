@@ -1019,7 +1019,7 @@ def _run_book(live: LiveRun) -> tuple[str, dict[str, Any]]:
         (queued["id"],),
     ).fetchone()
     assert parse is not None and parse[0] == "succeeded"
-    assert parse[1]["parsers"] == [{"type": "pdf", "mode": "ocr"}]
+    assert parse[1]["pdf_mode"] == "ocr"
     figures = live.conn.execute(
         "SELECT count(*) FROM source_asset"
         " WHERE acquisition_job_id = %s AND kind = 'pdf_figure'",
