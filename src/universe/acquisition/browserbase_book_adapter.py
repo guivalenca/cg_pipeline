@@ -35,7 +35,7 @@ from universe.acquisition.browserbase_session import (
 )
 
 
-CAPTURE_VERSION = "browserbase-book-capture.v3"
+CAPTURE_VERSION = "browserbase-book-capture.v4"
 DEFAULT_TERMINAL_URL = "https://philos.sophia.com.br/terminal/9418"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONTEXT_FILE = PROJECT_ROOT / ".data" / "browserbase_context.json"
@@ -554,6 +554,7 @@ def _capture_complete_page(
     advances to the next larger viewport candidate.
     """
     for fitted in _fitted_reader_frames(page, frame, label):
+        _settle_reader_controls(page)
         sanitized = _sanitize_reader_screenshot(_screenshot_frame(fitted))
         if sanitized is not None:
             return fitted, sanitized
@@ -563,6 +564,19 @@ def _capture_complete_page(
         retriable=True,
         retry_after_seconds=5,
     )
+
+
+def _settle_reader_controls(page: Any) -> None:
+    """Clear focus and hover UI that can otherwise leak into page pixels."""
+    try:
+        page.keyboard.press("Escape")
+    except Exception:
+        pass
+    try:
+        page.mouse.move(1, 1)
+        page.wait_for_timeout(250)
+    except Exception:
+        pass
 
 
 def _sanitize_reader_screenshot(payload: bytes) -> bytes | None:

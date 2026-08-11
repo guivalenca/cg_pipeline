@@ -18,6 +18,7 @@ from universe.acquisition.browserbase_book_adapter import (
     _ensure_not_clipped,
     _layout_fits,
     _sanitize_reader_screenshot,
+    _settle_reader_controls,
     _screenshot_frame,
     safe_browser_error,
 )
@@ -300,6 +301,36 @@ def test_reader_screenshot_finds_chrome_below_ninety_percent_of_tall_viewport():
     assert sanitized is not None
     with Image.open(io.BytesIO(sanitized)) as image:
         assert image.size == (200, 232)
+
+
+def test_reader_capture_clears_hover_and_focus_before_screenshot():
+    class Keyboard:
+        presses = []
+
+        def press(self, key):
+            self.presses.append(key)
+
+    class Mouse:
+        moves = []
+
+        def move(self, x, y):
+            self.moves.append((x, y))
+
+    class Page:
+        keyboard = Keyboard()
+        mouse = Mouse()
+        waits = []
+
+        def wait_for_timeout(self, milliseconds):
+            self.waits.append(milliseconds)
+
+    page = Page()
+
+    _settle_reader_controls(page)
+
+    assert page.keyboard.presses == ["Escape"]
+    assert page.mouse.moves == [(1, 1)]
+    assert page.waits == [250]
 
 
 def test_capture_grows_viewport_when_bitmap_guard_finds_covered_content(monkeypatch):

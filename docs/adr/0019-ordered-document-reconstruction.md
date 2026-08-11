@@ -59,8 +59,8 @@ reader chrome and silent vertical clipping. DOM geometry is necessary but not
 sufficient: the captured bitmap must also expose the reader's lower navigation
 divider with safe visual clearance. Both row density and aggregate ink detect
 sparse rotated captions in that clearance band. The Adapter removes the entire
-verified-empty band with the chrome; otherwise it grows the viewport and
-captures again.
+verified-empty band with the chrome and clears reader hover/focus state before
+capturing; otherwise it grows the viewport and captures again.
 
 Gemini's semantic figure box is also not trusted as a pixel-perfect crop. The
 Figure Placement Implementation applies a bounded asymmetric safety envelope,

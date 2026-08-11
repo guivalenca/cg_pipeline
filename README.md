@@ -134,7 +134,8 @@ Before committing a page, the Adapter expands the viewport until the page root,
 its scroll area, and every visual descendant fit horizontally and vertically;
 the bitmap is then checked for both dense and sparse content covered by the
 reader's navigation divider. The verified empty clearance band and its chrome
-are removed together; otherwise a larger viewport is tried. An unverifiable or clipped page is retried and never
+are removed together, and hover/focus controls are dismissed before capture;
+otherwise a larger viewport is tried. An unverifiable or clipped page is retried and never
 replaced by a body or viewport screenshot containing reader chrome. Figure
 crops receive a bounded safety envelope so tall and rotated diagrams retain
 their complete nodes and connectors even when the vision bbox is too tight.
