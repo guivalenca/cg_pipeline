@@ -111,6 +111,9 @@ function acquisitionCapability(source) {
   if (kind === 'article' || kind === 'artigo') {
     return { supported: true, adapter: 'firecrawl', label: 'Firecrawl' };
   }
+  if (kind === 'video' || kind === 'vídeo') {
+    return { supported: true, adapter: 'youtube', label: 'YouTube' };
+  }
   if (kind === 'book' || kind === 'livro') {
     return {
       supported: true,
@@ -132,6 +135,19 @@ function sourceStatus(source) {
       ? { key: 'attention', label: 'Informe o escopo' }
       : { key: 'attention', label: 'Fonte incompleta' };
   }
+  const videoStage = String(source.video_progress?.stage || '').toLowerCase();
+  const videoStages = {
+    queued: { key: 'queued', label: 'Na fila' },
+    visual_understanding: { key: 'running', label: 'Compreendendo o vídeo' },
+    frame_extraction: { key: 'running', label: 'Extraindo quadros' },
+    speech_and_frames: { key: 'running', label: 'Lendo fala e extraindo quadros' },
+    frame_analysis: { key: 'running', label: 'Analisando quadros' },
+    evidence_composition: { key: 'running', label: 'Compondo fonte' },
+    canonical_cleanup: { key: 'running', label: 'Selecionando passagens' },
+    ready: { key: 'ready', label: 'Fonte pronta' },
+    attention: { key: 'failed', label: 'Precisa de atenção' },
+  };
+  if (videoStages[videoStage]) return videoStages[videoStage];
   const pipeline = String(source.pipeline?.status || '').toLowerCase();
   const pipelineStates = {
     queued: { key: 'queued', label: 'Na fila' },
@@ -453,18 +469,22 @@ function sourceStatusMarkup(source) {
   const status = sourceStatus(source);
   const knowledge = knowledgeState(source);
   const images = source.image_branch || {};
+  const isVideo = String(source.media_type || source.type || '').toLowerCase().includes('video');
+  const visualNoun = isVideo ? 'quadro' : 'imagem';
+  const visualNounPlural = isVideo ? 'quadros' : 'imagens';
+  const analyzedAdjective = isVideo ? 'analisados' : 'analisadas';
   let imageLabel = null;
   let imageState = String(images.state || 'none');
   if (images.active) {
     const completed = Number(images.useful || 0) + Number(images.not_important || 0)
       + Number(images.filtered || 0) + Number(images.failed || 0);
-    imageLabel = `${completed}/${Number(images.total || 0)} imagens analisadas`;
+    imageLabel = `${completed}/${Number(images.total || 0)} ${visualNounPlural} ${analyzedAdjective}`;
     imageState = 'processing';
   } else if (Number(images.failed || 0)) {
     imageLabel = `${Number(images.useful || 0)} úteis · ${Number(images.failed)} com atenção`;
     imageState = 'attention';
   } else if (Number(images.total || 0)) {
-    imageLabel = `${Number(images.useful || 0)} ${Number(images.useful || 0) === 1 ? 'imagem útil' : 'imagens úteis'}`;
+    imageLabel = `${Number(images.useful || 0)} ${Number(images.useful || 0) === 1 ? `${visualNoun} útil` : `${visualNounPlural} úteis`}`;
     imageState = 'ready';
   }
   return `${source.hidden ? '<span class="syl-hidden-state">Ocultada</span>' : ''}
@@ -481,17 +501,50 @@ function sourceActions(source) {
   const sourceId = source.source_id || source.id;
   const capability = acquisitionCapability(source);
   const unavailableLabel = `Adapter de ${mediaLabel(source).toLowerCase()} indisponível`;
+  const isVideo = String(source.media_type || source.type || '').toLowerCase().includes('video');
+  const preflight = source.video_preflight || null;
+  const needsPreflight = isVideo && (!preflight || preflight.status === 'failed');
+  const needsAuthorization = isVideo && preflight?.route === 'approval_required';
   return `<div class="syl-source__actions">
     ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
     ${source.source_id ? `<button class="button syl-action-button syl-manual-button" type="button" data-manual-source="${esc(source.source_id)}" data-manual-title="${esc(source.title || 'Fonte sem título')}"${busy ? ' disabled' : ''}>${ICON.upload}Upload de PDF ou Imagem</button>` : ''}
-    ${capability.supported
+    ${needsPreflight
+      ? `<button class="button syl-queue-button" type="button" data-video-preflight="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>${ICON.queue}${preflight ? 'Atualizar dados do vídeo' : 'Verificar vídeo'}</button>`
+      : (needsAuthorization
+        ? `<button class="button syl-queue-button" type="button" data-authorize-video="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>${ICON.queue}Processar vídeo longo</button>`
+        : (capability.supported
       ? `<button class="button syl-queue-button" type="button" data-queue-source="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>
-          ${ICON.queue}${!sourceId ? 'Complete a fonte' : (busy ? `${esc(status.label)}…` : (markdownReady ? 'Reextrair Markdown' : 'Extrair Markdown'))}
+          ${ICON.queue}${!sourceId ? 'Complete a fonte' : (busy ? `${esc(status.label)}…` : (markdownReady ? 'Reprocessar fonte' : (isVideo ? 'Processar vídeo' : 'Extrair Markdown')))}
         </button>`
       : (markdownReady
         ? ''
-        : `<button class="button syl-queue-button" type="button" disabled title="${esc(capability.reason || unavailableLabel)}">${ICON.queue}${unavailableLabel}</button>`)}
+        : `<button class="button syl-queue-button" type="button" disabled title="${esc(capability.reason || unavailableLabel)}">${ICON.queue}${unavailableLabel}</button>`)))}
   </div>`;
+}
+
+function videoReadinessMarkup(source) {
+  const kind = String(source.media_type || source.type || '').toLowerCase();
+  if (!kind.includes('video')) return '';
+  const preflight = source.video_preflight;
+  if (!preflight) return '<div class="syl-video-readiness">Metadados do vídeo ainda não verificados.</div>';
+  if (preflight.status === 'failed') {
+    return '<div class="syl-video-readiness syl-video-readiness--attention">Metadados indisponíveis · Tente verificar novamente</div>';
+  }
+  const seconds = Number(preflight.duration_seconds);
+  const duration = Number.isFinite(seconds) ? `${Math.max(1, Math.round(seconds / 60))} min` : null;
+  if (preflight.route === 'uploaded_caption') {
+    return `<div class="syl-video-readiness">Vídeo verificado${duration ? ` · ${duration}` : ''} · Legendas do autor · Quadros serão analisados</div>`;
+  }
+  if (preflight.route === 'visual_only') {
+    return `<div class="syl-video-readiness">Vídeo verificado${duration ? ` · ${duration}` : ''} · Conteúdo visual será compreendido</div>`;
+  }
+  if (preflight.route === 'automatic_stt') {
+    return `<div class="syl-video-readiness">Vídeo verificado${duration ? ` · ${duration}` : ''} · Fala será transcrita · Quadros serão analisados</div>`;
+  }
+  if (!duration) {
+    return '<div class="syl-video-readiness syl-video-readiness--attention">Duração desconhecida · Confirme antes de processar o vídeo</div>';
+  }
+  return `<div class="syl-video-readiness syl-video-readiness--attention">Vídeo longo · ${duration} · Confirmação necessária para analisar os quadros</div>`;
 }
 
 function sourceEditorMarkup(source, lessonIndex, sourceIndex) {
@@ -590,6 +643,7 @@ function sourceMarkup(source, { collapsedValidated = false } = {}) {
       </div>
       <h3>${esc(source.title || 'Fonte sem título')}</h3>
       ${source.description ? `<p class="syl-source__description">${esc(source.description)}</p>` : ''}
+      ${videoReadinessMarkup(source)}
       <div class="syl-source__footer">
         ${original ? `<a class="syl-original-link" href="${esc(original.href)}" target="_blank" rel="noopener noreferrer" title="${esc(original.href)}">${esc(original.href)}${ICON.external}</a>` : '<span class="syl-no-link">Sem link público</span>'}
         ${meta.map((entry) => `<span class="syl-source__meta">${esc(entry)}</span>`).join('')}
@@ -1169,6 +1223,13 @@ function replaceSourceState(sourceId, payload) {
     const jobStatus = String(source.job?.status || '').toLowerCase();
     if (['queued', 'running'].includes(jobStatus)) {
       source.pipeline = { status: jobStatus === 'queued' ? 'queued' : 'extracting' };
+      if (String(source.media_type || source.type || '').toLowerCase().includes('video')) {
+        source.video_progress = {
+          stage: jobStatus,
+          speech: source.video_progress?.speech || null,
+        };
+      }
+      delete source.image_branch;
       source.has_markdown = false;
       delete source.markdown;
     }
@@ -1209,6 +1270,53 @@ async function queueSource(sourceId) {
   } catch (error) {
     announce(`Não foi possível enfileirar a fonte: ${error.message}`);
     if (button) button.disabled = false;
+  }
+}
+
+function sourceById(sourceId) {
+  for (const lesson of state.detail?.lessons || []) {
+    const source = (lesson.sources || []).find(
+      (entry) => (entry.source_id || entry.id) === sourceId,
+    );
+    if (source) return source;
+  }
+  return null;
+}
+
+async function preflightVideo(sourceId) {
+  if (!sourceId) return;
+  announce('Verificando o vídeo…');
+  try {
+    const response = await fetch(
+      `/api/sources/${encodeURIComponent(sourceId)}/video-preflight`,
+      { method: 'POST', headers: { Accept: 'application/json' } },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    const source = sourceById(sourceId);
+    if (source) source.video_preflight = body.video_preflight;
+    announce('Vídeo verificado.');
+    renderDetail();
+  } catch (error) {
+    announce(`Não foi possível verificar o vídeo: ${error.message}`);
+  }
+}
+
+async function authorizeVideo(sourceId) {
+  if (!sourceId) return;
+  announce('Confirmando e adicionando o vídeo à fila…');
+  try {
+    const response = await fetch(
+      `/api/sources/${encodeURIComponent(sourceId)}/authorize-transcription`,
+      { method: 'POST', headers: { Accept: 'application/json' } },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    replaceSourceState(sourceId, body);
+    announce('Vídeo confirmado e adicionado à fila.');
+    renderDetail();
+  } catch (error) {
+    announce(`Não foi possível confirmar o processamento: ${error.message}`);
   }
 }
 
@@ -1449,6 +1557,15 @@ async function submitManualUpload(event) {
 }
 
 function originalImageLink(image) {
+  if (image.asset_kind === 'video_frame') {
+    const metadata = image.asset_metadata && typeof image.asset_metadata === 'object'
+      ? image.asset_metadata : {};
+    const videoId = String(metadata.video_id || '').trim();
+    const seconds = Math.max(0, Math.floor(Number(metadata.timestamp_ms || 0) / 1000));
+    if (/^[A-Za-z0-9_-]{6,}$/.test(videoId)) {
+      return `<a href="https://www.youtube.com/watch?v=${esc(videoId)}&t=${seconds}s" target="_blank" rel="noopener noreferrer">Abrir vídeo neste ponto${ICON.external}</a>`;
+    }
+  }
   const original = safeUrl(image.original_url);
   return original
     ? `<a href="${esc(original.href)}" target="_blank" rel="noopener noreferrer">Abrir imagem original${ICON.external}</a>`
@@ -1459,6 +1576,9 @@ function renderImageSidecar(payload) {
   const images = Array.isArray(payload.images) ? payload.images : [];
   if (!images.length) return '';
   const branch = payload.image_branch || {};
+  const videoFrames = images.some((image) => image.asset_kind === 'video_frame');
+  const singular = videoFrames ? 'quadro' : 'imagem';
+  const plural = videoFrames ? 'quadros' : 'imagens';
   const useful = images.filter((image) => image.status === 'useful' && safeAssetUrl(image.asset_url));
   const attention = images.filter((image) => image.status === 'failed');
   const active = images.filter((image) => ['queued', 'running', 'downloaded'].includes(image.status));
@@ -1470,36 +1590,47 @@ function renderImageSidecar(payload) {
     const description = String(analysis.description || '').trim();
     const visibleText = String(analysis.ocr || analysis.visible_text || '').trim();
     const limitations = String(analysis.limitations || '').trim();
-    const alt = String(image.alt_text || description || `Imagem ${image.ordinal || ''}`).trim();
+    const alt = String(
+      image.alt_text
+      || description
+      || `${videoFrames ? 'Quadro' : 'Imagem'} ${image.ordinal || ''}`,
+    ).trim();
+    const timestampMs = Number(image.asset_metadata?.timestamp_ms);
+    const timestamp = Number.isFinite(timestampMs)
+      ? new Date(Math.max(0, timestampMs)).toISOString().slice(14, 19)
+      : null;
     return `<article class="syl-image-card">
       <img src="${esc(assetUrl)}" alt="${esc(alt)}" loading="lazy">
       <div class="syl-image-card__body">
-        <div class="syl-image-card__top"><strong>Imagem útil ${esc(image.ordinal || '')}</strong>${originalImageLink(image)}</div>
+        <div class="syl-image-card__top"><strong>${videoFrames ? 'Quadro útil' : 'Imagem útil'}${timestamp ? ` · ${esc(timestamp)}` : ` ${esc(image.ordinal || '')}`}</strong>${originalImageLink(image)}</div>
         ${description ? `<p>${esc(description)}</p>` : '<p>Descrição visual não disponível.</p>'}
         ${visibleText ? `<details><summary>Texto visível transcrito</summary><pre>${esc(visibleText)}</pre></details>` : ''}
         ${limitations ? `<p class="syl-image-card__limitation"><strong>Limitação:</strong> ${esc(limitations)}</p>` : ''}
       </div>
     </article>`;
   }).join('');
+  const preservedLabel = videoFrames ? 'Quadro preservado' : 'Imagem preservada';
   const attentionMarkup = attention.map((image) => {
     const assetUrl = safeAssetUrl(image.asset_url);
-    const alt = String(image.alt_text || `Imagem ${image.ordinal || ''}`).trim();
+    const alt = String(
+      image.alt_text || `${videoFrames ? 'Quadro' : 'Imagem'} ${image.ordinal || ''}`,
+    ).trim();
     return `<li>
       ${assetUrl ? `<img src="${esc(assetUrl)}" alt="${esc(alt)}" loading="lazy">` : ''}
-      <div><strong>${assetUrl ? 'Imagem preservada' : 'Imagem'} ${esc(image.ordinal || '')}</strong><span>${esc(image.error || image.failure_code || 'A imagem precisa de atenção.')}</span></div>
+      <div><strong>${assetUrl ? preservedLabel : (videoFrames ? 'Quadro' : 'Imagem')} ${esc(image.ordinal || '')}</strong><span>${esc(image.error || image.failure_code || `O ${singular} precisa de atenção.`)}</span></div>
       ${originalImageLink(image)}
     </li>`;
   }).join('');
   return `<section class="syl-image-sidecar" aria-labelledby="source-images-title">
     <header>
-      <div><p class="syl-eyebrow">Imagens da fonte</p><h2 id="source-images-title">Evidências visuais</h2></div>
+      <div><p class="syl-eyebrow">${videoFrames ? 'Quadros do vídeo' : 'Imagens da fonte'}</p><h2 id="source-images-title">Evidências visuais</h2></div>
       <span>${esc(Number(branch.useful || 0))} úteis · ${esc(Number(branch.total || images.length))} candidatas</span>
     </header>
-    ${active.length ? `<p class="syl-image-sidecar__progress">${active.length} ${active.length === 1 ? 'imagem ainda está sendo preparada' : 'imagens ainda estão sendo preparadas'}. O Markdown final só será publicado depois da análise visual e da limpeza.</p>` : ''}
+    ${active.length ? `<p class="syl-image-sidecar__progress">${active.length} ${active.length === 1 ? `${singular} ainda está sendo preparado` : `${plural} ainda estão sendo preparados`}. O Markdown final só será publicado depois da análise visual e da limpeza.</p>` : ''}
     ${usefulMarkup ? `<div class="syl-image-grid">${usefulMarkup}</div>` : ''}
-    ${attentionMarkup ? `<div class="syl-image-attention"><strong>${attention.length} ${attention.length === 1 ? 'imagem precisa' : 'imagens precisam'} de atenção</strong><ul>${attentionMarkup}</ul></div>` : ''}
+    ${attentionMarkup ? `<div class="syl-image-attention"><strong>${attention.length} ${attention.length === 1 ? `${singular} precisa` : `${plural} precisam`} de atenção</strong><ul>${attentionMarkup}</ul></div>` : ''}
     ${filtered ? `<p class="syl-image-sidecar__note">${filtered} ${filtered === 1 ? 'candidata permanece com uma classificação legada' : 'candidatas permanecem com classificações legadas'} e pode ser reavaliada pelo fluxo visual atual.</p>` : ''}
-    ${notImportant ? `<p class="syl-image-sidecar__note">${notImportant} ${notImportant === 1 ? 'candidata foi classificada' : 'candidatas foram classificadas'} como irrelevante e foi omitida do Markdown; o resultado permanece no ledger.</p>` : ''}
+    ${notImportant ? `<p class="syl-image-sidecar__note">${notImportant} ${notImportant === 1 ? 'candidata foi classificada como irrelevante e foi omitida' : 'candidatas foram classificadas como irrelevantes e foram omitidas'} do Markdown; o resultado permanece no ledger.</p>` : ''}
   </section>`;
 }
 
@@ -1568,6 +1699,10 @@ document.querySelector('main').addEventListener('click', (event) => {
   if (expanded) { toggleLessonExpanded(expanded.dataset.lessonId); return; }
   const queue = event.target.closest('[data-queue-source]');
   if (queue) { queueSource(queue.dataset.queueSource); return; }
+  const videoPreflight = event.target.closest('[data-video-preflight]');
+  if (videoPreflight) { preflightVideo(videoPreflight.dataset.videoPreflight); return; }
+  const authorize = event.target.closest('[data-authorize-video]');
+  if (authorize) { authorizeVideo(authorize.dataset.authorizeVideo); return; }
   const manual = event.target.closest('[data-manual-source]');
   if (manual) { openManualUpload(manual.dataset.manualSource, manual.dataset.manualTitle); return; }
   const markdown = event.target.closest('[data-markdown-source]');

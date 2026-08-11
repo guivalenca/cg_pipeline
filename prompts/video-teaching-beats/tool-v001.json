@@ -1,0 +1,40 @@
+{
+  "name": "report_visual_teaching_beats",
+  "description": "Report every major idea taught through the video's visual timeline.",
+  "strict": true,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "beats": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "properties": {
+            "start_s": {"type": "integer", "minimum": 0},
+            "end_s": {"type": "integer", "minimum": 0},
+            "frame_s": {"type": "integer", "minimum": 0},
+            "heading": {"type": "string", "minLength": 1},
+            "explanation": {"type": "string", "minLength": 1},
+            "visible_text": {"type": ["string", "null"]},
+            "visual_description": {"type": "string", "minLength": 1},
+            "limitations": {"type": ["string", "null"]}
+          },
+          "required": [
+            "start_s",
+            "end_s",
+            "frame_s",
+            "heading",
+            "explanation",
+            "visible_text",
+            "visual_description",
+            "limitations"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["beats"],
+    "additionalProperties": false
+  }
+}

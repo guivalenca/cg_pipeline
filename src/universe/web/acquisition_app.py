@@ -41,6 +41,11 @@ from universe.acquisition.manual_uploads import (
     get_manual_asset,
 )
 from universe.acquisition.runner import enqueue_source, process_next_work_item
+from universe.acquisition.videos import (
+    VideoAdapter,
+    YtDlpYouTubeAdapter,
+    refresh_preflight,
+)
 from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect
 from universe.syllabus import (
@@ -208,7 +213,13 @@ def _acquisition_capability(media_type: str | None) -> dict:
             "adapter": "browserbase-book",
             "label": "Browserbase + reconstrução ordenada",
         }
-    kind = {"video": "vídeo"}.get(media_type, "fonte")
+    if media_type == "video":
+        return {
+            "supported": True,
+            "adapter": "youtube",
+            "label": "YouTube",
+        }
+    kind = {"video": "vídeo", "book": "livro"}.get(media_type, "fonte")
     return {
         "supported": False,
         "adapter": None,
@@ -266,6 +277,19 @@ def _diagnostic_message(diagnostics: dict, failure_code: str) -> str:
         "transport_error": "A conexão terminou antes de a página ser obtida.",
         "invalid_source_url": "O link da fonte não é uma URL pública válida.",
         "unsupported_media_kind": "Esse tipo de fonte ainda não possui Adapter de aquisição.",
+        "video_metadata_unavailable": "Os metadados do YouTube estão temporariamente indisponíveis.",
+        "video_caption_download_failed": "A legenda enviada foi listada, mas não pôde ser baixada.",
+        "video_caption_parse_failed": "A legenda enviada não contém trechos temporizados utilizáveis.",
+        "video_audio_download_failed": "O áudio do vídeo não pôde ser baixado.",
+        "video_ffmpeg_unavailable": "O preparador de áudio ffmpeg/ffprobe não está disponível.",
+        "video_ffmpeg_failed": "O áudio não pôde ser dividido em trechos para transcrição.",
+        "video_stt_authentication_failed": "O OpenRouter recusou a autenticação da transcrição.",
+        "video_stt_rate_limited": "O OpenRouter limitou temporariamente a transcrição.",
+        "video_stt_provider_failure": "O OpenRouter não concluiu um trecho da transcrição.",
+        "video_stt_chunk_failed": "Um trecho da transcrição falhou; os demais foram preservados para a tentativa seletiva.",
+        "video_stt_empty_transcript": "A transcrição retornou sem texto utilizável.",
+        "video_stt_language_mismatch": "Um trecho da transcrição veio em outro idioma.",
+        "video_transcript_assembly_failed": "A transcrição temporizada não pôde ser montada em Markdown.",
         "pdf_extractor_unavailable": "O leitor de PDF não está disponível no servidor.",
         "pdf_extraction_timeout": "A leitura do PDF excedeu o tempo limite.",
         "pdf_extraction_failed": "O PDF não pôde ser lido.",
@@ -397,7 +421,7 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
     jobs = conn.execute(
         "SELECT DISTINCT ON (source_id) source_id, id, status, provider,"
         " attempt_count, artifact_id, failure_code, diagnostics, created_at,"
-        " claimed_at, finished_at"
+        " claimed_at, finished_at, request_input"
         " FROM acquisition_job WHERE source_id = ANY(%s)"
         " ORDER BY source_id, created_at DESC, id DESC",
         (source_ids,),
@@ -405,6 +429,7 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
     job_keys = (
         "id", "status", "provider", "attempt_count", "artifact_id",
         "failure_code", "diagnostics", "created_at", "claimed_at", "finished_at",
+        "request_input",
     )
     for row in jobs:
         job = dict(zip(job_keys, row[1:]))
@@ -414,11 +439,48 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             )
         states[row[0]]["job"] = job
 
+    preflight_rows = conn.execute(
+        "SELECT DISTINCT ON (source_id) source_id, id, status, title, channel,"
+        " duration_seconds, uploaded_caption_languages,"
+        " selected_caption_language, route, failure_code, diagnostics, created_at"
+        " FROM video_preflight WHERE source_id = ANY(%s)"
+        " ORDER BY source_id, created_at DESC, id DESC",
+        (source_ids,),
+    ).fetchall()
+    preflight_keys = (
+        "id status title channel duration_seconds uploaded_caption_languages"
+        " selected_caption_language route failure_code diagnostics created_at"
+    ).split()
+    for row in preflight_rows:
+        states[row[0]]["video_preflight"] = dict(zip(preflight_keys, row[1:]))
+
     latest_job_by_source = {
         source_id: state["job"]
         for source_id, state in states.items()
         if state.get("job")
     }
+    stt_counts_by_job: dict[str, dict[str, int]] = {}
+    if latest_job_by_source:
+        stt_rows = conn.execute(
+            "SELECT jc.acquisition_job_id, count(*),"
+            " count(*) FILTER (WHERE c.status = 'succeeded'),"
+            " count(*) FILTER (WHERE c.status = 'failed'),"
+            " count(*) FILTER (WHERE c.status = 'running')"
+            " FROM video_stt_job_chunk jc"
+            " JOIN video_stt_chunk c ON c.id = jc.chunk_id"
+            " WHERE jc.acquisition_job_id = ANY(%s)"
+            " GROUP BY jc.acquisition_job_id",
+            ([job["id"] for job in latest_job_by_source.values()],),
+        ).fetchall()
+        stt_counts_by_job = {
+            row[0]: {
+                "chunks_total": row[1],
+                "chunks_succeeded": row[2],
+                "chunks_failed": row[3],
+                "chunks_running": row[4],
+            }
+            for row in stt_rows
+        }
     cleanup_by_job: dict[str, dict] = {}
     if latest_job_by_source:
         cleanup_rows = conn.execute(
@@ -469,14 +531,42 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             "tool": tool,
             "tool_version": tool_version,
             "created_at": created_at,
+            "is_previous_version": False,
         }
+
+    # A failed or unfinished refresh never hides the last canonical publication.
+    unpublished_sources = [
+        source_id
+        for source_id in source_ids
+        if not states[source_id].get("has_markdown")
+    ]
+    if unpublished_sources:
+        previous_rows = conn.execute(
+            "SELECT DISTINCT ON (c.source_id) c.source_id, a.id, a.tool,"
+            " a.tool_version, a.created_at"
+            " FROM source_cleanup_job c"
+            " JOIN artifact a ON a.id = c.canonical_artifact_id"
+            " WHERE c.source_id = ANY(%s) AND c.status = 'succeeded'"
+            " AND c.canonical_artifact_id IS NOT NULL"
+            " ORDER BY c.source_id, c.finished_at DESC, c.id DESC",
+            (unpublished_sources,),
+        ).fetchall()
+        for source_id, artifact_id, tool, tool_version, created_at in previous_rows:
+            states[source_id]["has_markdown"] = True
+            states[source_id]["markdown"] = {
+                "available": True,
+                "artifact_id": artifact_id,
+                "tool": tool,
+                "tool_version": tool_version,
+                "created_at": created_at,
+                "is_previous_version": True,
+            }
 
     # Keep image progress visible while the intermediate Markdown itself is
     # withheld. Candidates are keyed to the base acquisition artifact.
     for source_id, job in latest_job_by_source.items():
         if (
-            job.get("provider") == "firecrawl/v2"
-            and (job.get("diagnostics") or {}).get("pipeline_requires_cleanup")
+            (job.get("diagnostics") or {}).get("pipeline_requires_cleanup")
             and job.get("artifact_id")
         ):
             image_artifact_sources[job["artifact_id"]] = source_id
@@ -487,16 +577,8 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             diagnostics.get("pipeline_requires_cleanup")
         )
         if job["status"] == "queued":
-            markdown = states[source_id].get("markdown")
-            if not markdown or markdown["created_at"] <= job["created_at"]:
-                states[source_id].pop("markdown", None)
-                states[source_id]["has_markdown"] = False
             pipeline_status = "queued"
         elif job["status"] == "running":
-            markdown = states[source_id].get("markdown")
-            if not markdown or markdown["created_at"] <= job["created_at"]:
-                states[source_id].pop("markdown", None)
-                states[source_id]["has_markdown"] = False
             pipeline_status = "extracting"
         elif job["status"] == "failed":
             pipeline_status = "failed"
@@ -512,14 +594,22 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
                 pipeline_status = "ready"
             elif cleanup and cleanup["status"] == "failed":
                 pipeline_status = "failed"
-                states[source_id]["job"]["error"] = (
-                    "A limpeza do Markdown falhou; o resultado intermediário não foi publicado."
-                )
+                if cleanup.get("failure_code") == "no_teachable_content_preserved":
+                    states[source_id]["job"]["error"] = (
+                        "A limpeza terminou sem preservar nenhum conteúdo ensinável; "
+                        "o resultado não foi publicado."
+                    )
+                else:
+                    states[source_id]["job"]["error"] = (
+                        "A limpeza do Markdown falhou; o resultado intermediário não foi publicado."
+                    )
             elif cleanup:
                 pipeline_status = "cleaning"
             else:
                 pipeline_status = (
-                    "images" if job.get("provider") == "firecrawl/v2" else "cleaning"
+                    "images"
+                    if job.get("provider") in {"firecrawl/v2", "youtube/v1"}
+                    else "cleaning"
                 )
         elif job.get("provider") == "manual-upload/v1":
             image_diagnostics = diagnostics.get("images") or []
@@ -550,6 +640,62 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             counts_by_source.setdefault(source_id, {})[status] = count
         for source_id, counts in counts_by_source.items():
             states[source_id]["image_branch"] = _summarize_image_counts(counts)
+
+    for source_id, job in latest_job_by_source.items():
+        if job.get("provider") != "youtube/v1":
+            continue
+        diagnostics = job.get("diagnostics") or {}
+        request_input = job.get("request_input") or {}
+        route = diagnostics.get("transcript_route") or request_input.get(
+            "transcript_route"
+        )
+        branch = states[source_id].get("image_branch") or _empty_image_branch()
+        cleanup = cleanup_by_job.get(job["id"])
+        if job["status"] == "queued":
+            stage = "queued"
+        elif job["status"] == "running":
+            stage = (
+                "speech_and_frames"
+                if route in {"automatic_stt", "openrouter_stt"}
+                else (
+                    "visual_understanding"
+                    if route == "visual_only"
+                    else "frame_extraction"
+                )
+            )
+        elif job["status"] == "failed":
+            stage = "attention"
+        elif cleanup and cleanup["status"] in {"queued", "running"}:
+            stage = "canonical_cleanup"
+        elif cleanup and cleanup["status"] == "succeeded":
+            stage = "ready"
+        elif cleanup and cleanup["status"] == "failed":
+            stage = "attention"
+        elif branch.get("active"):
+            stage = "frame_analysis"
+        else:
+            stage = "evidence_composition"
+        analyzed = sum(
+            int(branch.get(status) or 0)
+            for status in ("useful", "not_important", "filtered", "failed")
+        )
+        states[source_id]["video_progress"] = {
+            "stage": stage,
+            "speech": (
+                "creator_captions"
+                if route == "uploaded_caption"
+                else (
+                    "stt"
+                    if route in {"automatic_stt", "openrouter_stt"}
+                    else "absent"
+                )
+            ),
+            "frames_total": int(branch.get("total") or 0),
+            "frames_analyzed": analyzed,
+            "frames_useful": int(branch.get("useful") or 0),
+            "frames_failed": int(branch.get("failed") or 0),
+            "speech_diagnostics": stt_counts_by_job.get(job["id"], {}),
+        }
 
     # Knowledge Components are an optional downstream interpretation.  Merely
     # acquiring Markdown never creates or queues them; this read only reflects
@@ -898,25 +1044,32 @@ async def _manual_assets_from_uploads(
 def _work_one(
     connect_factory: Callable[[], psycopg.Connection],
     asset_store_factory: Callable[[], AssetStore],
+    video_adapter_factory: Callable[[], VideoAdapter] = YtDlpYouTubeAdapter,
 ) -> bool:
     """Process the oldest ready parent or image job without queue starvation."""
     store = asset_store_factory()
     with connect_factory() as conn:
-        return process_next_work_item(conn, asset_store=store) is not None
+        return process_next_work_item(
+            conn,
+            asset_store=store,
+            video_adapter=video_adapter_factory(),
+        ) is not None
 
 
 async def _worker_loop(
     connect_factory: Callable[[], psycopg.Connection],
     asset_store_factory: Callable[[], AssetStore],
     stop: asyncio.Event,
+    video_adapter_factory: Callable[[], VideoAdapter] | None = None,
 ) -> None:
     """Continuously consume durable jobs without blocking the ASGI loop."""
     while not stop.is_set():
         worked = False
         try:
-            worked = await asyncio.to_thread(
-                _work_one, connect_factory, asset_store_factory
-            )
+            args = (connect_factory, asset_store_factory)
+            if video_adapter_factory is not None:
+                args = (*args, video_adapter_factory)
+            worked = await asyncio.to_thread(_work_one, *args)
         except psycopg.Error:
             LOGGER.exception("acquisition worker could not reach PostgreSQL")
         except Exception:
@@ -940,13 +1093,19 @@ def create_app(
     *,
     start_worker: bool = False,
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
+    video_adapter_factory: Callable[[], VideoAdapter] = YtDlpYouTubeAdapter,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         stop = asyncio.Event()
         task = (
             asyncio.create_task(
-                _worker_loop(connect_factory, asset_store_factory, stop)
+                _worker_loop(
+                    connect_factory,
+                    asset_store_factory,
+                    stop,
+                    video_adapter_factory,
+                )
             )
             if start_worker
             else None
@@ -1183,8 +1342,57 @@ def create_app(
                 return {"job": job}
         except HTTPException:
             raise
+        except PermissionError as exc:
+            raise HTTPException(
+                status_code=409,
+                detail="Autorize explicitamente a transcrição deste vídeo antes de enfileirar.",
+            ) from exc
         except ValueError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            status = 404 if "unknown source" in str(exc) else 409
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+    @app.post("/api/sources/{source_id}/video-preflight")
+    def preflight_video_source(
+        source_id: str,
+        refresh: bool = Query(default=False),
+    ) -> dict:
+        """Run or reuse metadata-only YouTube readiness before any paid call."""
+        try:
+            with connect_factory() as conn:
+                result = refresh_preflight(
+                    conn,
+                    source_id,
+                    adapter=video_adapter_factory(),
+                    force=refresh,
+                )
+        except ValueError as exc:
+            status = 404 if "unknown source" in str(exc) else 422
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
+        public_keys = (
+            "id", "status", "title", "channel", "duration_seconds",
+            "uploaded_caption_languages", "selected_caption_language", "route",
+            "failure_code", "diagnostics", "deduplicated",
+        )
+        return {"video_preflight": {key: result.get(key) for key in public_keys}}
+
+    @app.post(
+        "/api/sources/{source_id}/authorize-transcription", status_code=202
+    )
+    def authorize_video_transcription(source_id: str) -> dict:
+        """Persist explicit paid-STT authorization as the queued job input."""
+        try:
+            with connect_factory() as conn:
+                job = enqueue_source(
+                    conn,
+                    source_id,
+                    authorize_paid_transcription=True,
+                )
+                return {"job": job}
+        except PermissionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            status = 404 if "unknown source" in str(exc) else 409
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
 
     @app.post("/api/sources/{source_id}/manual-upload", status_code=202)
     async def manual_upload_source(

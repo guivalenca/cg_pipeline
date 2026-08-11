@@ -208,9 +208,10 @@ def _write_canonical_artifacts(conn: psycopg.Connection, cleanup_id: str) -> lis
             if result["verdict"] == "unknown":
                 unknown.append(result["id"])
         body = "\n\n".join(element["body"] for element in elements).rstrip() + "\n"
-        snapshot_id = conn.execute(
-            "SELECT snapshot_id FROM artifact WHERE id = %s", (source_artifact_id,)
-        ).fetchone()[0]
+        snapshot_id, source_metadata = conn.execute(
+            "SELECT snapshot_id, metadata FROM artifact WHERE id = %s",
+            (source_artifact_id,),
+        ).fetchone()
         artifact_id = f"{source_artifact_id}:clean:{cleanup_id}"
         conn.execute(
             "INSERT INTO artifact"
@@ -221,14 +222,17 @@ def _write_canonical_artifacts(conn: psycopg.Connection, cleanup_id: str) -> lis
                 artifact_id,
                 snapshot_id,
                 body,
-                Jsonb(
-                    {
-                        "source_markdown_artifact_id": source_artifact_id,
-                        "cleanup_id": cleanup_id,
-                        "unknown_passage_ids": unknown,
-                        "body_sha256": hashlib.sha256(body.encode()).hexdigest(),
-                    }
-                ),
+                Jsonb({
+                    "source_markdown_artifact_id": source_artifact_id,
+                    "cleanup_id": cleanup_id,
+                    "unknown_passage_ids": unknown,
+                    "body_sha256": hashlib.sha256(body.encode()).hexdigest(),
+                    **(
+                        {"visual_analysis": source_metadata["visual_analysis"]}
+                        if (source_metadata or {}).get("visual_analysis")
+                        else {}
+                    ),
+                }),
             ),
         )
         conn.execute(

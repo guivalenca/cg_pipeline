@@ -48,6 +48,66 @@ GATE_CODES = {
         "description": "The source could not be fetched after the available attempts.",
         "blocking": True,
     },
+    "video_metadata_unavailable": {
+        "description": "YouTube metadata could not be read; retry preflight.",
+        "blocking": True,
+    },
+    "video_caption_download_failed": {
+        "description": "The listed publisher caption track could not be downloaded.",
+        "blocking": True,
+    },
+    "video_caption_parse_failed": {
+        "description": "The publisher caption track contained no usable timed cues.",
+        "blocking": True,
+    },
+    "video_duration_approval_required": {
+        "description": "Paid transcription requires explicit operator authorization.",
+        "blocking": True,
+    },
+    "video_duration_unknown": {
+        "description": "The video duration is unknown and requires operator review.",
+        "blocking": True,
+    },
+    "video_audio_download_failed": {
+        "description": "The YouTube audio-only download failed.",
+        "blocking": True,
+    },
+    "video_ffmpeg_unavailable": {
+        "description": "ffmpeg and ffprobe are required for bounded audio chunks.",
+        "blocking": True,
+    },
+    "video_ffmpeg_failed": {
+        "description": "ffmpeg could not normalize and split the source audio.",
+        "blocking": True,
+    },
+    "video_stt_authentication_failed": {
+        "description": "OpenRouter rejected or lacks transcription credentials.",
+        "blocking": True,
+    },
+    "video_stt_rate_limited": {
+        "description": "OpenRouter rate-limited a speech-to-text chunk.",
+        "blocking": True,
+    },
+    "video_stt_provider_failure": {
+        "description": "OpenRouter could not route or complete a speech-to-text chunk.",
+        "blocking": True,
+    },
+    "video_stt_chunk_failed": {
+        "description": "One or more independently retryable transcript chunks failed.",
+        "blocking": True,
+    },
+    "video_stt_empty_transcript": {
+        "description": "Speech-to-text returned no usable transcript text.",
+        "blocking": True,
+    },
+    "video_stt_language_mismatch": {
+        "description": "A transcript chunk did not preserve the expected language.",
+        "blocking": True,
+    },
+    "video_transcript_assembly_failed": {
+        "description": "Timed transcript facts could not be assembled into Markdown.",
+        "blocking": True,
+    },
 }
 
 PAYWALL_HEURISTICS = [

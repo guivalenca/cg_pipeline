@@ -58,7 +58,7 @@ def enqueue_source_cleanup(
     """Queue one artifact exactly once; safe from refreshes and worker races."""
     context = conn.execute(
         "SELECT j.source_id, j.status, j.provider, j.artifact_id, j.diagnostics,"
-        " a.snapshot_id, parent.snapshot_id"
+        " a.snapshot_id, a.tool, a.metadata, parent.snapshot_id"
         " FROM acquisition_job j"
         " JOIN artifact a ON a.id = %s"
         " JOIN artifact parent ON parent.id = j.artifact_id"
@@ -70,17 +70,24 @@ def enqueue_source_cleanup(
     (
         source_id,
         status,
-        provider,
+        _provider,
         _parent_id,
-        diagnostics,
+        acquisition_diagnostics,
         snapshot_id,
+        artifact_tool,
+        artifact_metadata,
         parent_snapshot_id,
     ) = context
-    if status != "succeeded" or not (
-        provider == "firecrawl/v2"
-        or (diagnostics or {}).get("pipeline_requires_cleanup")
-    ):
-        raise ValueError("automatic cleanup requires a successful canonical pipeline")
+    requires_cleanup = bool(
+        (acquisition_diagnostics or {}).get("pipeline_requires_cleanup")
+        or (artifact_metadata or {}).get("pipeline_requires_cleanup")
+        or artifact_tool == "article-image-association"
+    )
+    if status != "succeeded" or not requires_cleanup:
+        raise ValueError(
+            "automatic cleanup requires a successful acquisition artifact"
+            " with the canonical-publication contract"
+        )
     if snapshot_id != parent_snapshot_id:
         raise ValueError("cleanup artifact does not belong to the acquisition snapshot")
 
@@ -311,6 +318,37 @@ def _finish_failed(
     return result
 
 
+def _finish_without_teachable_content(
+    conn: psycopg.Connection,
+    job: dict[str, Any],
+    *,
+    cleanup_id: str,
+    candidate_artifact_id: str,
+    passages: int,
+) -> dict[str, Any]:
+    """Keep an empty cleanup candidate auditable without publishing it."""
+    diagnostics = {
+        "category": "no_teachable_content_preserved",
+        "cleanup_id": cleanup_id,
+        "candidate_artifact_id": candidate_artifact_id,
+        "passages": passages,
+    }
+    updated = conn.execute(
+        "UPDATE source_cleanup_job SET status = 'failed', cleanup_id = %s,"
+        " failure_code = 'no_teachable_content_preserved', diagnostics = %s,"
+        " finished_at = now(), lease_expires_at = NULL, claim_token = NULL,"
+        " updated_at = now() WHERE id = %s AND status = 'running' AND claim_token = %s",
+        (cleanup_id, Jsonb(diagnostics), job["id"], job["claim_token"]),
+    )
+    if updated.rowcount != 1:
+        conn.rollback()
+    else:
+        conn.commit()
+    result = get_source_cleanup_job(conn, job["id"])
+    assert result is not None
+    return result
+
+
 def process_next_source_cleanup(
     conn: psycopg.Connection,
     *,
@@ -391,6 +429,19 @@ def process_next_source_cleanup(
         if cleanup["status"] != "done" or len(cleanup.get("artifacts", [])) != 1:
             raise RuntimeError("passage cleanup failed")
         canonical_id = cleanup["artifacts"][0]
+        canonical = conn.execute(
+            "SELECT body FROM artifact WHERE id = %s", (canonical_id,)
+        ).fetchone()
+        if canonical is None:
+            raise RuntimeError("passage cleanup artifact is missing")
+        if not canonical[0].strip():
+            return _finish_without_teachable_content(
+                conn,
+                job,
+                cleanup_id=cleanup["cleanup_id"],
+                candidate_artifact_id=canonical_id,
+                passages=cleanup["passages"],
+            )
         updated = conn.execute(
             "UPDATE source_cleanup_job SET status = 'succeeded', cleanup_id = %s,"
             " canonical_artifact_id = %s, diagnostics = %s, finished_at = now(),"

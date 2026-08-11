@@ -11,9 +11,9 @@ from typing import Any, Mapping
 from universe.model_client import ModelClient, ModelError
 
 PROMPTS_DIR = Path(__file__).resolve().parents[3] / "prompts"
-PROMPT_PATH = PROMPTS_DIR / "source-image-analysis" / "v002.md"
+PROMPT_PATH = PROMPTS_DIR / "source-image-analysis" / "v003.md"
 TOOL_PATH = PROMPTS_DIR / "source-image-analysis" / "tool-v001.json"
-PROMPT_REF = "source-image-analysis/v002"
+PROMPT_REF = "source-image-analysis/v003"
 
 RETAIN_REASONS = {"information", "context", "insufficient_evidence"}
 DROP_REASONS = {"decoration", "interface", "advertising", "no_unique_content"}

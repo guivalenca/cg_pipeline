@@ -112,6 +112,21 @@ def test_gate_catalog_and_report_shape_are_stable():
         "manual_access_required",
         "empty_content",
         "fetch_failed",
+        "video_metadata_unavailable",
+        "video_caption_download_failed",
+        "video_caption_parse_failed",
+        "video_duration_approval_required",
+        "video_duration_unknown",
+        "video_audio_download_failed",
+        "video_ffmpeg_unavailable",
+        "video_ffmpeg_failed",
+        "video_stt_authentication_failed",
+        "video_stt_rate_limited",
+        "video_stt_provider_failure",
+        "video_stt_chunk_failed",
+        "video_stt_empty_transcript",
+        "video_stt_language_mismatch",
+        "video_transcript_assembly_failed",
     }
     assert set(GATE_CODES) == required
     assert all(
@@ -706,24 +721,19 @@ def test_worker_records_a_failed_article_with_actionable_diagnostics(
     ).fetchone()[0] == 0
 
 
-@pytest.mark.parametrize("media_type", ["video"])
-def test_worker_records_unsupported_media_as_a_source_local_failure(
-    acquisition_db, fake_firecrawl, media_type
+def test_video_queue_requires_durable_metadata_preflight(
+    acquisition_db, fake_firecrawl
 ):
-    source_id = f"acqx-acquisition-{media_type}"
-    add_source(acquisition_db, source_id, media_type=media_type)
+    source_id = "acqx-acquisition-video-without-preflight"
+    add_source(acquisition_db, source_id, media_type="video")
     calls, _ = fake_firecrawl()
-    queued = enqueue_source(acquisition_db, source_id)
 
-    job = process_next_job(acquisition_db, job_id=queued["id"])
-
+    with pytest.raises(ValueError, match="metadata preflight is required"):
+        enqueue_source(acquisition_db, source_id)
     assert calls == []
-    assert job["status"] == "failed"
-    assert job["failure_code"] == "unsupported_media_kind"
-    snapshot_id = f"{source_id}:snap:failed:{job['id']}:01"
     assert acquisition_db.execute(
-        "SELECT status, failure_note FROM source_snapshot WHERE id = %s", (snapshot_id,)
-    ).fetchone() == ("failed", "unsupported_media_kind")
+        "SELECT count(*) FROM acquisition_job WHERE source_id = %s", (source_id,)
+    ).fetchone()[0] == 0
 
 
 def test_each_failed_queue_attempt_gets_a_unique_snapshot(

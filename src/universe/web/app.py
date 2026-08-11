@@ -27,12 +27,20 @@ _work_one = acquisition_app._work_one
 acquisition_poll_seconds = acquisition_app.acquisition_poll_seconds
 
 
-async def _worker_loop(connect_factory, asset_store_factory, stop):
+async def _worker_loop(
+    connect_factory,
+    asset_store_factory,
+    stop,
+    video_adapter_factory=None,
+):
     """Run the acquisition loop while honoring wrapper-level test hooks."""
     acquisition_app._work_one = _work_one
     acquisition_app.acquisition_poll_seconds = acquisition_poll_seconds
     return await acquisition_app._worker_loop(
-        connect_factory, asset_store_factory, stop
+        connect_factory,
+        asset_store_factory,
+        stop,
+        video_adapter_factory,
     )
 
 
@@ -41,6 +49,7 @@ def create_app(
     *,
     start_worker: bool = False,
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
+    video_adapter_factory=acquisition_app.YtDlpYouTubeAdapter,
 ) -> FastAPI:
     """Create one application containing acquisition and KC-review surfaces."""
     connect_factory = connect_factory or connect
@@ -48,6 +57,7 @@ def create_app(
         connect_factory,
         start_worker=start_worker,
         asset_store_factory=asset_store_factory,
+        video_adapter_factory=video_adapter_factory,
     )
     # The older dashboard was written against a module-level connection
     # helper. Point it at the same factory so the composed app has one DB.

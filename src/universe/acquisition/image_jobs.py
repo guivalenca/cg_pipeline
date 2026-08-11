@@ -42,6 +42,7 @@ from universe.acquisition.source_images import (
     analyze_source_images,
     prompt_stamp,
 )
+from universe.acquisition.video_teaching_beats import TeachingBeatDocument, validate_document
 from universe.assets import AssetStore, asset_store_from_env
 from universe.model_client import ModelClient, ModelError
 from universe.settings import (
@@ -268,6 +269,277 @@ def insert_article_image_candidates(
                 article_image_model(),
             ),
         )
+    return inserted
+
+
+def insert_video_frame_candidates(
+    conn: psycopg.Connection,
+    *,
+    acquisition_job_id: str,
+    source_id: str,
+    snapshot_id: str,
+    markdown_artifact_id: str,
+    markdown: str,
+    video_id: str,
+    frames: Sequence[Any],
+    asset_store: AssetStore,
+    extractor_ref: str,
+) -> list[dict[str, Any]]:
+    return _insert_video_frame_candidates(
+        conn,
+        acquisition_job_id=acquisition_job_id,
+        source_id=source_id,
+        snapshot_id=snapshot_id,
+        markdown_artifact_id=markdown_artifact_id,
+        markdown=markdown,
+        video_id=video_id,
+        frames=frames,
+        asset_store=asset_store,
+        extractor_ref=extractor_ref,
+        teaching_document=None,
+        teaching_beat_call_id=None,
+    )
+
+
+def insert_teaching_beat_candidates(
+    conn: psycopg.Connection,
+    *,
+    acquisition_job_id: str,
+    source_id: str,
+    snapshot_id: str,
+    markdown_artifact_id: str,
+    markdown: str,
+    video_id: str,
+    document: TeachingBeatDocument,
+    analysis_call_id: str,
+    asset_store: AssetStore,
+    extractor_ref: str,
+) -> list[dict[str, Any]]:
+    """Project one whole-video reading into terminal atomic visual evidence."""
+    document = validate_document(document)
+    return _insert_video_frame_candidates(
+        conn,
+        acquisition_job_id=acquisition_job_id,
+        source_id=source_id,
+        snapshot_id=snapshot_id,
+        markdown_artifact_id=markdown_artifact_id,
+        markdown=markdown,
+        video_id=video_id,
+        frames=document.frames,
+        asset_store=asset_store,
+        extractor_ref=extractor_ref,
+        teaching_document=document,
+        teaching_beat_call_id=analysis_call_id,
+    )
+
+
+def _insert_video_frame_candidates(
+    conn: psycopg.Connection,
+    *,
+    acquisition_job_id: str,
+    source_id: str,
+    snapshot_id: str,
+    markdown_artifact_id: str,
+    markdown: str,
+    video_id: str,
+    frames: Sequence[Any],
+    asset_store: AssetStore,
+    extractor_ref: str,
+    teaching_document: TeachingBeatDocument | None,
+    teaching_beat_call_id: str | None,
+) -> list[dict[str, Any]]:
+    """Persist locally extracted frames directly into the visual-analysis Seam.
+
+    Frames already have immutable bytes, so they intentionally bypass the
+    public-URL download queue. Their ordinary Markdown occurrences let the
+    existing association Implementation localize retained frames in place.
+    """
+    references_by_url: dict[str, list[ArticleImageReference]] = {}
+    for reference in extract_markdown_images(markdown):
+        references_by_url.setdefault(reference.source_url, []).append(reference)
+    document_hash = hashlib.sha256(markdown.encode("utf-8")).hexdigest()
+    inserted: list[dict[str, Any]] = []
+    for ordinal, frame in enumerate(frames, 1):
+        timestamp_ms = int(frame.timestamp_ms)
+        locator = f"video-frame://{video_id}/{timestamp_ms}"
+        occurrences = references_by_url.get(locator, [])
+        if len(occurrences) != 1:
+            raise ImageJobError(
+                "video_frame_reference_invalid",
+                "frame_markdown_reference_mismatch",
+                {"locator": locator, "occurrence_count": len(occurrences)},
+            )
+        body = bytes(frame.body)
+        if not body or len(body) > MAX_IMAGE_BYTES:
+            raise ImageJobError(
+                "video_frame_invalid", "invalid_frame_size", {"byte_size": len(body)}
+            )
+        try:
+            with Image.open(io.BytesIO(body)) as decoded:
+                width, height = decoded.size
+                decoded.verify()
+        except (UnidentifiedImageError, OSError, ValueError) as exc:
+            raise ImageJobError(
+                "video_frame_invalid", "unreadable_frame"
+            ) from exc
+        if width <= 0 or height <= 0:
+            raise ImageJobError("video_frame_invalid", "invalid_frame_dimensions")
+        digest = hashlib.sha256(body).hexdigest()
+        if digest != str(frame.sha256):
+            raise ImageJobError("video_frame_invalid", "frame_hash_mismatch")
+        stored = asset_store.put(body, sha256=digest)
+        candidate_id = f"{acquisition_job_id}:image:{ordinal:04d}"
+        asset_id = f"{candidate_id}:asset"
+        filename = Path(str(frame.filename or f"frame-{ordinal:04d}.png")).name
+        conn.execute(
+            "INSERT INTO source_asset"
+            " (id, acquisition_job_id, source_id, ordinal, kind, filename, mime_type,"
+            " sha256, byte_size, storage_key, metadata, original_url)"
+            " VALUES (%s, %s, %s, %s, 'video_frame', %s, %s, %s, %s, %s, %s, %s)"
+            " ON CONFLICT (id) DO NOTHING",
+            (
+                asset_id,
+                acquisition_job_id,
+                source_id,
+                ordinal,
+                filename,
+                str(frame.mime_type),
+                digest,
+                len(body),
+                stored.key,
+                Jsonb(
+                    {
+                        "timestamp_ms": timestamp_ms,
+                        "width": width,
+                        "height": height,
+                        "extractor_ref": extractor_ref,
+                        "video_id": video_id,
+                    }
+                ),
+                locator,
+            ),
+        )
+        reference = occurrences[0]
+        placement = {
+            "timestamp_ms": timestamp_ms,
+            "document_sha256": document_hash,
+            "discovered_by": ["video_frame_extraction"],
+            "occurrences": [
+                {
+                    "ordinal": reference.ordinal,
+                    "start_char": reference.start_char,
+                    "end_char": reference.end_char,
+                    "link_url": reference.link_url,
+                    "reference_id": reference.reference_id,
+                    "reference_sha256": reference.raw_sha256,
+                    "original_markdown": reference.original_markdown,
+                    "alt_text": reference.alt_text,
+                }
+            ],
+        }
+        analysis_id = None
+        candidate_status = "downloaded"
+        candidate_diagnostics = {
+            "category": "downloaded",
+            "asset_sha256": digest,
+            "source_mime_type": str(frame.mime_type),
+            "timestamp_ms": timestamp_ms,
+        }
+        if teaching_document is not None:
+            beat = teaching_document.beats[ordinal - 1]
+            if beat.frame_ms != timestamp_ms or teaching_beat_call_id is None:
+                raise ImageJobError(
+                    "video_teaching_beat_invalid",
+                    "teaching_beat_frame_mismatch",
+                    {"ordinal": ordinal, "timestamp_ms": timestamp_ms},
+                )
+            analysis_id = f"{candidate_id}:teaching-beat-analysis"
+            description = beat.explanation.strip()
+            if beat.visual_description.strip():
+                description += (
+                    " Visual organization: " + beat.visual_description.strip()
+                )
+            conn.execute(
+                "INSERT INTO source_asset_analysis"
+                " (id, source_asset_id, purpose, status, prompt_version,"
+                " requested_model, response_model, provider, result, usage,"
+                " duration_ms, diagnostics, analysis_call_id)"
+                " VALUES (%s, %s, 'video_teaching_beat', 'succeeded', %s, %s,"
+                " %s, %s, %s, '{}', NULL, %s, %s) ON CONFLICT (id) DO NOTHING",
+                (
+                    analysis_id,
+                    asset_id,
+                    teaching_document.prompt_ref,
+                    teaching_document.requested_model,
+                    teaching_document.response_model,
+                    teaching_document.provider,
+                    Jsonb(
+                        {
+                            "image_id": candidate_id,
+                            "retain": True,
+                            "reason_code": "teaching_beat",
+                            "ocr": beat.visible_text,
+                            "description": description,
+                            "limitations": beat.limitations,
+                        }
+                    ),
+                    Jsonb(
+                        {
+                            "analysis_call_id": teaching_beat_call_id,
+                            "beat_ordinal": ordinal,
+                            "timestamp_ms": timestamp_ms,
+                            "asset_sha256": digest,
+                            "input_manifest_hash": teaching_document.input_manifest_hash,
+                            "result_hash": teaching_document.result_hash,
+                        }
+                    ),
+                    teaching_beat_call_id,
+                ),
+            )
+            candidate_status = "useful"
+            candidate_diagnostics = {
+                "category": "teaching_beat",
+                "asset_sha256": digest,
+                "source_mime_type": str(frame.mime_type),
+                "timestamp_ms": timestamp_ms,
+                "analysis_call_id": teaching_beat_call_id,
+                "beat_ordinal": ordinal,
+                "result_hash": teaching_document.result_hash,
+            }
+        conn.execute(
+            "INSERT INTO source_image_candidate"
+            " (id, acquisition_job_id, source_id, snapshot_id, markdown_artifact_id,"
+            " ordinal, original_url, alt_text, placement, status, diagnostics,"
+            " asset_id, analysis_id, finished_at)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
+            " ON CONFLICT (id) DO NOTHING",
+            (
+                candidate_id,
+                acquisition_job_id,
+                source_id,
+                snapshot_id,
+                markdown_artifact_id,
+                ordinal,
+                locator,
+                reference.alt_text,
+                Jsonb(placement),
+                candidate_status,
+                Jsonb(candidate_diagnostics),
+                asset_id,
+                analysis_id,
+            ),
+        )
+        inserted.append(
+            {
+                "id": candidate_id,
+                "asset_id": asset_id,
+                "ordinal": ordinal,
+                "original_url": locator,
+                "timestamp_ms": timestamp_ms,
+            }
+        )
+    if inserted and teaching_document is None:
+        _ensure_source_image_analysis_call(conn, markdown_artifact_id)
     return inserted
 
 
@@ -1564,12 +1836,14 @@ def finalize_article_image_association(
         conn.rollback()
         return None
     artifact_row = conn.execute(
-        "SELECT snapshot_id, body FROM artifact WHERE id = %s",
+        "SELECT snapshot_id, body, metadata FROM artifact WHERE id = %s",
         (markdown_artifact_id,),
     ).fetchone()
     if artifact_row is None:
         raise ValueError("article image candidate references missing Markdown")
-    snapshot_id, raw_markdown = artifact_row
+    snapshot_id, raw_markdown, source_metadata = artifact_row
+    source_metadata = dict(source_metadata or {})
+    is_video = source_metadata.get("source_media_type") == "video"
     candidates = _association_candidates(conn, markdown_artifact_id)
     analyses: dict[int, ArticleImageAnalysis] = {}
     local_assets: dict[int, str] = {}
@@ -1577,7 +1851,22 @@ def finalize_article_image_association(
     for candidate in candidates:
         occurrences = (candidate.get("placement") or {}).get("occurrences") or []
         analysis = _analysis_from_json(candidate.get("analysis"))
-        if candidate["status"] in {"failed", "filtered"}:
+        if (
+            is_video
+            and candidate["status"] == "failed"
+            and candidate.get("asset_id")
+        ):
+            # A stored video frame is primary source evidence. If interpretation
+            # fails, preserve the frame visibly instead of classifying the
+            # unknown pixels as irrelevant article chrome.
+            analysis = ArticleImageAnalysis(
+                pedagogical_importance="unavailable",
+                description="",
+                visible_text="",
+                reason=str(candidate.get("failure_code") or "analysis unavailable"),
+                confidence="low",
+            )
+        elif candidate["status"] in {"failed", "filtered"}:
             # An incidental article image that could not be resolved remains a
             # durable candidate/asset outcome, but is not source evidence.  Its
             # Markdown reference must disappear without shielding neighboring
@@ -1664,6 +1953,22 @@ def finalize_article_image_association(
             for item in candidates
         ],
     }
+    if is_video:
+        manifest.update(
+            {
+                "schema_version": "video-frame-association.v1",
+                "source_media_type": "video",
+                "frame_extractor": source_metadata.get("frame_extractor"),
+                "frame_count": source_metadata.get("frame_count", len(candidates)),
+                "speech_evidence": source_metadata.get("speech_evidence", "absent"),
+                "visual_analysis": (
+                    "attention"
+                    if any(item["status"] == "failed" for item in candidates)
+                    else "complete"
+                ),
+                "pipeline_requires_cleanup": True,
+            }
+        )
     existing = conn.execute(
         "SELECT body, metadata FROM artifact WHERE id = %s",
         (base_enriched_id,),
@@ -1679,15 +1984,20 @@ def finalize_article_image_association(
         revision = hashlib.sha256(revision_payload.encode("utf-8")).hexdigest()[:16]
         enriched_id = f"{base_enriched_id}:{revision}"
 
+    association_tool = "video-frame-association" if is_video else "article-image-association"
+    association_version = (
+        "video-frame-association.v1" if is_video else ARTICLE_IMAGE_ASSOCIATION_VERSION
+    )
     conn.execute(
         "INSERT INTO artifact"
         " (id, snapshot_id, kind, tool, tool_version, body, metadata)"
-        " VALUES (%s, %s, 'markdown', 'article-image-association', %s, %s, %s)"
+        " VALUES (%s, %s, 'markdown', %s, %s, %s, %s)"
         " ON CONFLICT (id) DO NOTHING",
         (
             enriched_id,
             snapshot_id,
-            ARTICLE_IMAGE_ASSOCIATION_VERSION,
+            association_tool,
+            association_version,
             canonical_markdown,
             Jsonb(manifest),
         ),
@@ -1792,7 +2102,8 @@ def list_article_images_for_artifact(
         " WHERE a.metadata ? 'source_markdown_artifact_id'"
         ")"
         "SELECT c.id, c.ordinal, c.original_url, c.alt_text, c.status,"
-        " c.failure_code, c.diagnostics, c.asset_id, a.mime_type, a.filename,"
+        " c.failure_code, c.diagnostics, c.asset_id, a.kind, a.mime_type, a.filename,"
+        " a.metadata,"
         " sa.result, sa.provider, sa.requested_model, sa.response_model,"
         " sa.diagnostics"
         " FROM source_image_candidate c"
@@ -1804,7 +2115,8 @@ def list_article_images_for_artifact(
     ).fetchall()
     keys = (
         "id", "ordinal", "original_url", "alt_text", "status", "failure_code",
-        "diagnostics", "asset_id", "mime_type", "filename", "analysis",
+        "diagnostics", "asset_id", "asset_kind", "mime_type", "filename",
+        "asset_metadata", "analysis",
         "provider", "requested_model", "response_model", "analysis_diagnostics",
     )
     result = [dict(zip(keys, row)) for row in rows]

@@ -113,19 +113,13 @@ def test_cleanup_job_runs_blocks_cuts_triage_and_publishes_only_clean_markdown(d
     assert boundary[2]["source_markdown_artifact_id"] == artifact_id
 
 
-def test_pdf_cleanup_allows_an_enriched_visual_drop_verdict(db):
+def test_cleanup_does_not_publish_when_every_passage_is_dropped(db):
     _source_id, acquisition_job_id, artifact_id = _source_artifact(
-        db, "pdf-visual", metadata={"pdf_page_pipeline": True}
+        db, "all-dropped"
     )
     db.execute(
         "UPDATE artifact SET body = %s WHERE id = %s",
-        (
-            "# Table continuation\n\n"
-            "![Page 7 table](/api/source-assets/page-7)\n\n"
-            "Image summary: The table continues.\n\n"
-            "OCR: Concurrent processes.\n",
-            artifact_id,
-        ),
+        ("Cookie settings and tracking controls.\n", artifact_id),
     )
     db.commit()
     queued = source_cleanup_jobs.enqueue_source_cleanup(
@@ -159,18 +153,78 @@ def test_pdf_cleanup_allows_an_enriched_visual_drop_verdict(db):
         ),
     )
 
+    assert result["status"] == "failed"
+    assert result["failure_code"] == "no_teachable_content_preserved"
+    assert result["canonical_artifact_id"] is None
+    assert result["cleanup_id"] is not None
+    assert result["diagnostics"]["category"] == "no_teachable_content_preserved"
+
+
+def test_pdf_cleanup_allows_an_enriched_visual_drop_verdict(db):
+    _source_id, acquisition_job_id, artifact_id = _source_artifact(
+        db, "pdf-visual", metadata={"pdf_page_pipeline": True}
+    )
+    db.execute(
+        "UPDATE artifact SET body = %s WHERE id = %s",
+        (
+            "# Synchronization\n\n"
+            "Concurrent processes coordinate shared state.\n\n"
+            "# Table continuation\n\n"
+            "![Page 7 table](/api/source-assets/page-7)\n\n"
+            "Image summary: The table continues.\n\n"
+            "OCR: Semaphore acquisition order.\n",
+            artifact_id,
+        ),
+    )
+    db.commit()
+    queued = source_cleanup_jobs.enqueue_source_cleanup(
+        db,
+        acquisition_job_id=acquisition_job_id,
+        source_artifact_id=artifact_id,
+    )
+
+    def triage(_name, prompt):
+        passage = prompt.rsplit("<passage>", 1)[1].split("</passage>", 1)[0]
+        return {"verdict": "drop" if "Table continuation" in passage else "keep"}
+
+    result = source_cleanup_jobs.process_next_source_cleanup(
+        db,
+        job_id=queued["id"],
+        cuts_client=_client(
+            lambda _name, _prompt: {"cuts": [3]},
+            "passage-cuts",
+            "tool-v001.json",
+        ),
+        triage_client=_client(
+            triage,
+            "passage-triage",
+            "tool-v003.json",
+        ),
+        atomic_triage_client=_client(
+            triage,
+            "passage-triage",
+            "tool-v003-atomic.json",
+        ),
+        refine_client=_client(
+            lambda _name, _prompt: {"drop_elements": []},
+            "passage-refine",
+            "tool-v002.json",
+        ),
+    )
+
     assert result["status"] == "succeeded", result
     canonical = db.execute(
         "SELECT body FROM artifact WHERE id = %s",
         (result["canonical_artifact_id"],),
     ).fetchone()[0]
     assert "![Page 7 table]" not in canonical
-    assert "Concurrent processes" not in canonical
+    assert "Semaphore acquisition order" not in canonical
+    assert "Concurrent processes coordinate shared state" in canonical
     assert db.execute(
         "SELECT verdict, policy_reason FROM passage_cleanup_result"
         " WHERE cleanup_id = %s",
         (result["cleanup_id"],),
-    ).fetchone() == ("drop", None)
+    ).fetchall() == [("keep", None), ("drop", None)]
 
 
 def test_cleanup_queue_and_claim_are_idempotent_for_refresh_and_two_workers(db):

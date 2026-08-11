@@ -472,7 +472,12 @@ def test_queue_endpoint_enqueues_only_the_clicked_source(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Queue Web {uuid.uuid4().hex[:8]}"
-    path = _workbook(tmp_path / "queue.xlsx", project="Project", lesson="Aula")
+    path = _workbook(
+        tmp_path / "queue.xlsx",
+        project="Project",
+        lesson="Aula",
+        source_url=f"https://example.com/queue-{uuid.uuid4().hex}",
+    )
 
     with TestClient(_app(test_database_url)) as client:
         uploaded = _upload(client, path, name).json()
@@ -507,7 +512,7 @@ def test_queue_endpoint_enqueues_only_the_clicked_source(
         ),
     ],
 )
-def test_web_refuses_to_queue_media_without_an_acquisition_adapter(
+def test_web_exposes_video_adapter_but_requires_preflight_before_queueing(
     test_database_url,
     applied_migrations,
     tmp_path,
@@ -531,13 +536,15 @@ def test_web_refuses_to_queue_media_without_an_acquisition_adapter(
         source_id = source["source_id"]
 
         assert source["media_type"] == media_type
-        assert source["acquisition_capability"]["supported"] is False
-        assert source["acquisition_capability"]["adapter"] is None
-        assert adapter_name in source["acquisition_capability"]["reason"].lower()
+        assert source["acquisition_capability"] == {
+            "supported": True,
+            "adapter": "youtube",
+            "label": "YouTube",
+        }
 
         rejected = client.post(f"/api/sources/{source_id}/queue")
         assert rejected.status_code == 409
-        assert adapter_name in rejected.json()["detail"].lower()
+        assert "preflight" in rejected.json()["detail"].lower()
 
     with psycopg.connect(test_database_url) as conn:
         assert conn.execute(
