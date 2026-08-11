@@ -132,9 +132,9 @@ page and its reader accessibility text is committed before navigation
 continues, so a transient browser failure resumes from the completed prefix.
 Before committing a page, the Adapter expands the viewport until the page root,
 its scroll area, and every visual descendant fit horizontally and vertically;
-the bitmap is then checked for content covered by the reader's navigation
-divider. Chrome is removed only when the page has safe clearance; otherwise a
-larger viewport is tried. An unverifiable or clipped page is retried and never
+the bitmap is then checked for both dense and sparse content covered by the
+reader's navigation divider. The verified empty clearance band and its chrome
+are removed together; otherwise a larger viewport is tried. An unverifiable or clipped page is retried and never
 replaced by a body or viewport screenshot containing reader chrome. Figure
 crops receive a bounded safety envelope so tall and rotated diagrams retain
 their complete nodes and connectors even when the vision bbox is too tight.

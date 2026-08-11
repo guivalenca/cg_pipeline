@@ -35,7 +35,7 @@ from universe.acquisition.browserbase_session import (
 )
 
 
-CAPTURE_VERSION = "browserbase-book-capture.v2"
+CAPTURE_VERSION = "browserbase-book-capture.v3"
 DEFAULT_TERMINAL_URL = "https://philos.sophia.com.br/terminal/9418"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONTEXT_FILE = PROJECT_ROOT / ".data" / "browserbase_context.json"
@@ -592,10 +592,12 @@ def _sanitize_reader_screenshot(payload: bytes) -> bytes | None:
         sum(guard.getpixel((x, y)) < 210 for x in range(width))
         for y in range(guard.height)
     ]
-    if row_counts and max(row_counts) > width * 0.12:
+    if row_counts and (
+        max(row_counts) > width * 0.12 or sum(row_counts) > width * 0.25
+    ):
         return None
 
-    cleaned = image.crop((0, 0, width, max(1, boundary - 4)))
+    cleaned = image.crop((0, 0, width, max(1, guard_top)))
     output = io.BytesIO()
     cleaned.save(output, format="PNG", optimize=True)
     return output.getvalue()

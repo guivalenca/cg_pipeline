@@ -57,8 +57,10 @@ retriably if any content still overflows. Only the reader page element may be
 captured; falling back to a viewport or body screenshot would reintroduce
 reader chrome and silent vertical clipping. DOM geometry is necessary but not
 sufficient: the captured bitmap must also expose the reader's lower navigation
-divider with safe visual clearance. The Adapter removes that chrome only when
-the page is clear of it; otherwise it grows the viewport and captures again.
+divider with safe visual clearance. Both row density and aggregate ink detect
+sparse rotated captions in that clearance band. The Adapter removes the entire
+verified-empty band with the chrome; otherwise it grows the viewport and
+captures again.
 
 Gemini's semantic figure box is also not trusted as a pixel-perfect crop. The
 Figure Placement Implementation applies a bounded asymmetric safety envelope,
