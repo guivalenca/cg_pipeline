@@ -64,6 +64,8 @@ from universe.syllabus_reconciliation import (
     get_reconciliation,
 )
 from universe.settings import acquisition_poll_seconds
+from universe.source_publication import current as current_source_publication
+from universe.source_publication import current_many as current_source_publications
 
 STATIC_DIR = Path(__file__).with_name("static")
 MAX_WORKBOOK_BYTES = 30 * 1024 * 1024
@@ -498,69 +500,32 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             row[0]: dict(zip(cleanup_keys, row[1:])) for row in cleanup_rows
         }
 
-    markdown_rows = conn.execute(
-        "SELECT DISTINCT ON (sn.source_id) sn.source_id, a.id, a.tool,"
-        " a.tool_version, a.created_at, a.metadata"
-        " FROM source_snapshot sn JOIN artifact a ON a.snapshot_id = sn.id"
-        " WHERE sn.source_id = ANY(%s) AND sn.status = 'ok' AND a.kind = 'markdown'"
-        " ORDER BY sn.source_id, sn.created_at DESC,"
-        " (a.metadata ? 'source_markdown_artifact_id') DESC,"
-        " a.created_at DESC, a.id DESC",
-        (source_ids,),
-    ).fetchall()
     image_artifact_sources: dict[str, str] = {}
-    for source_id, artifact_id, tool, tool_version, created_at, metadata in markdown_rows:
+    for source_id, publication in current_source_publications(
+        conn, source_ids
+    ).items():
         job = latest_job_by_source.get(source_id)
-        strict = bool(
+        baseline_id = (
+            publication.metadata.get("source_markdown_artifact_id")
+            or publication.artifact_id
+        )
+        if (
             job
             and (job.get("diagnostics") or {}).get("pipeline_requires_cleanup")
-        )
-        cleanup = cleanup_by_job.get(job["id"]) if strict else None
-        if strict and (not cleanup or cleanup["status"] != "succeeded"):
-            continue
-        if strict and artifact_id != cleanup["canonical_artifact_id"]:
-            continue
-        baseline_id = (metadata or {}).get("source_markdown_artifact_id") or artifact_id
-        if strict and job.get("artifact_id"):
+            and job.get("artifact_id")
+            and not publication.is_previous_attempt
+        ):
             baseline_id = job["artifact_id"]
         image_artifact_sources[baseline_id] = source_id
         states[source_id]["has_markdown"] = True
         states[source_id]["markdown"] = {
             "available": True,
-            "artifact_id": artifact_id,
-            "tool": tool,
-            "tool_version": tool_version,
-            "created_at": created_at,
-            "is_previous_version": False,
+            "artifact_id": publication.artifact_id,
+            "tool": publication.tool,
+            "tool_version": publication.tool_version,
+            "created_at": publication.created_at,
+            "is_previous_version": publication.is_previous_attempt,
         }
-
-    # A failed or unfinished refresh never hides the last canonical publication.
-    unpublished_sources = [
-        source_id
-        for source_id in source_ids
-        if not states[source_id].get("has_markdown")
-    ]
-    if unpublished_sources:
-        previous_rows = conn.execute(
-            "SELECT DISTINCT ON (c.source_id) c.source_id, a.id, a.tool,"
-            " a.tool_version, a.created_at"
-            " FROM source_cleanup_job c"
-            " JOIN artifact a ON a.id = c.canonical_artifact_id"
-            " WHERE c.source_id = ANY(%s) AND c.status = 'succeeded'"
-            " AND c.canonical_artifact_id IS NOT NULL"
-            " ORDER BY c.source_id, c.finished_at DESC, c.id DESC",
-            (unpublished_sources,),
-        ).fetchall()
-        for source_id, artifact_id, tool, tool_version, created_at in previous_rows:
-            states[source_id]["has_markdown"] = True
-            states[source_id]["markdown"] = {
-                "available": True,
-                "artifact_id": artifact_id,
-                "tool": tool,
-                "tool_version": tool_version,
-                "created_at": created_at,
-                "is_previous_version": True,
-            }
 
     # Keep image progress visible while the intermediate Markdown itself is
     # withheld. Candidates are keyed to the base acquisition artifact.
@@ -1489,56 +1454,52 @@ def create_app(
     @app.get("/api/sources/{source_id}/markdown")
     def source_markdown(source_id: str) -> dict:
         with connect_factory() as conn:
-            latest_job = conn.execute(
-                "SELECT id, provider, diagnostics FROM acquisition_job"
-                " WHERE source_id = %s ORDER BY created_at DESC, id DESC LIMIT 1",
-                (source_id,),
-            ).fetchone()
-            strict = bool(
-                latest_job
-                and (latest_job[2] or {}).get("pipeline_requires_cleanup")
-            )
-            if strict:
-                diagnostics = latest_job[2] or {}
-                cleanup = conn.execute(
-                    "SELECT status, canonical_artifact_id FROM source_cleanup_job"
-                    " WHERE acquisition_job_id = %s",
-                    (latest_job[0],),
-                ).fetchone()
-                if diagnostics.get("visual_incomplete"):
-                    raise HTTPException(
-                        status_code=409,
-                        detail="Uma ou mais figuras da fonte precisam de atenção antes da publicação.",
-                    )
-                if cleanup is None or cleanup[0] in {"queued", "running"}:
-                    raise HTTPException(
-                        status_code=409,
-                        detail="O Markdown estruturado ainda está passando pela limpeza.",
-                    )
-                if cleanup[0] != "succeeded" or not cleanup[1]:
-                    raise HTTPException(
-                        status_code=409,
-                        detail="A limpeza do Markdown precisa de atenção antes da publicação.",
-                    )
-                row = conn.execute(
-                    "SELECT id, body, tool, tool_version, created_at FROM artifact"
-                    " WHERE id = %s",
-                    (cleanup[1],),
-                ).fetchone()
-            else:
-                row = conn.execute(
-                    "SELECT a.id, a.body, a.tool, a.tool_version, a.created_at"
-                    " FROM source_snapshot sn JOIN artifact a ON a.snapshot_id = sn.id"
-                    " WHERE sn.source_id = %s AND sn.status = 'ok' AND a.kind = 'markdown'"
-                    " ORDER BY sn.created_at DESC,"
-                    " (a.metadata ? 'source_markdown_artifact_id') DESC,"
-                    " a.created_at DESC, a.id DESC LIMIT 1",
+            publication = current_source_publication(conn, source_id)
+            latest_job = None
+            cleanup = None
+            if publication is None:
+                latest_job = conn.execute(
+                    "SELECT id, diagnostics FROM acquisition_job"
+                    " WHERE source_id = %s"
+                    " ORDER BY created_at DESC, id DESC LIMIT 1",
                     (source_id,),
                 ).fetchone()
-            images = list_article_images_for_artifact(conn, row[0]) if row else []
-        if row is None:
+                if latest_job and (latest_job[1] or {}).get(
+                    "pipeline_requires_cleanup"
+                ):
+                    cleanup = conn.execute(
+                        "SELECT status FROM source_cleanup_job"
+                        " WHERE acquisition_job_id = %s",
+                        (latest_job[0],),
+                    ).fetchone()
+            images = (
+                list_article_images_for_artifact(conn, publication.artifact_id)
+                if publication
+                else []
+            )
+        if publication is None:
+            diagnostics = (latest_job[1] or {}) if latest_job else {}
+            if diagnostics.get("visual_incomplete"):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Uma ou mais figuras da fonte precisam de atenção antes da publicação.",
+                )
+            if cleanup is not None and cleanup[0] in {"queued", "running"}:
+                raise HTTPException(
+                    status_code=409,
+                    detail="O Markdown estruturado ainda está passando pela limpeza.",
+                )
+            if cleanup is not None:
+                raise HTTPException(
+                    status_code=409,
+                    detail="A limpeza do Markdown precisa de atenção antes da publicação.",
+                )
             raise HTTPException(status_code=404, detail="Esta fonte ainda não tem Markdown extraído.")
-        artifact_id, body, tool, tool_version, created_at = row
+        artifact_id = publication.artifact_id
+        body = publication.body
+        tool = publication.tool
+        tool_version = publication.tool_version
+        created_at = publication.created_at
         for image in images:
             image["asset_url"] = (
                 f"/api/source-assets/{image['asset_id']}"
@@ -1562,6 +1523,7 @@ def create_app(
             "tool": tool,
             "tool_version": tool_version,
             "created_at": created_at,
+            "is_previous_version": publication.is_previous_attempt,
             "markdown": body,
             "html": MARKDOWN.render(body),
             "images": images,
