@@ -1489,7 +1489,8 @@ def test_source_organization_controls_are_exposed_and_lessons_use_subject_colors
     assert "lessonValidationProgress" in script
     assert "${progress.validated}/${progress.total} autoestudos validados" in script
     assert 'aria-label="Editar somente esta aula">${ICON.edit}</button>' in script
-    assert "sourceMarkup(source, { collapsedValidated: collapsed && validated })" in script
+    assert "sources.map((source) => sourceMarkup(source))" in script
+    assert "collapsedValidated" not in script
     assert ".syl-lesson.is-collapsed.is-validated .syl-lesson__sources" in styles
     assert '.syl-lesson[data-subject="COM"]' in styles
     assert '.syl-lesson[data-subject="UEX"]' in styles

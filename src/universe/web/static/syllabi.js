@@ -605,7 +605,7 @@ function sourceReviewMarkup(source) {
   </div>`;
 }
 
-function sourceMarkup(source, { collapsedValidated = false } = {}) {
+function sourceMarkup(source) {
   const original = safeUrl(source.url);
   const status = sourceStatus(source);
   const sourceId = source.source_id || source.id || '';
@@ -617,7 +617,7 @@ function sourceMarkup(source, { collapsedValidated = false } = {}) {
       <h3>${esc(source.title || 'Fonte sem título')}</h3>
       <div class="syl-source__actions">
         ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
-        ${collapsedValidated ? '' : `<button class="button syl-action-button" type="button" data-toggle-source-validated data-reference-id="${esc(referenceId)}" aria-pressed="true"${busy ? ' disabled' : ''}>${ICON.check}Desvalidar</button>`}
+        <button class="button syl-action-button" type="button" data-toggle-source-validated data-reference-id="${esc(referenceId)}" aria-pressed="true"${busy ? ' disabled' : ''}>${ICON.check}Desvalidar</button>
       </div>
     </article>`;
   }
@@ -750,7 +750,7 @@ function lessonMarkup(lesson, index) {
       </div>
     </header>
     <div class="syl-lesson__sources">
-      ${sources.length ? sources.map((source) => sourceMarkup(source, { collapsedValidated: collapsed && validated })).join('') : '<p class="syl-lesson__empty">Nenhuma fonte registrada nesta aula.</p>'}
+      ${sources.length ? sources.map((source) => sourceMarkup(source)).join('') : '<p class="syl-lesson__empty">Nenhuma fonte registrada nesta aula.</p>'}
     </div>
   </section>`;
 }

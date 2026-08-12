@@ -195,6 +195,35 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
         browser.close()
 
 
+def test_a_fully_validated_lesson_can_be_unvalidated_from_its_compact_row(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser unvalidate {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "unvalidate.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        first_lesson = page.locator(".syl-lesson").first
+        first_lesson.get_by_role("button", name="Validada").click()
+
+        expect(first_lesson).to_have_class(
+            "syl-lesson is-validated is-collapsed"
+        )
+        unvalidate = first_lesson.get_by_role("button", name="Desvalidar")
+        expect(unvalidate).to_be_visible()
+        unvalidate.click()
+
+        expect(first_lesson.get_by_role("button", name="Validada")).to_be_visible()
+        browser.close()
+
+
 def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
     test_database_url, applied_migrations, tmp_path
 ):
