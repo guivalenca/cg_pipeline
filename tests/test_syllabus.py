@@ -251,14 +251,37 @@ class TestSourceIdentity:
         assert source_identity(invalid_url) is None
 
     def test_youtube_identity_ignores_timestamp_and_url_form(self):
-        watch = source_identity("https://www.youtube.com/watch?v=abc123&t=273s")
-        short = source_identity("https://youtu.be/abc123?t=4")
+        watch = source_identity("https://www.youtube.com/watch?v=h4gw6gCP5ls&t=273s")
+        short = source_identity("https://youtu.be/h4gw6gCP5ls?t=4")
 
         assert watch == short == {
             "kind": "video",
             "provider": "youtube",
-            "video_id": "abc123",
+            "video_id": "h4gw6gCP5ls",
         }
+
+    def test_youtube_identity_repairs_textual_query_separators_from_xlsx(self):
+        identity = source_identity(
+            "https://www.youtube.com/watch?v=h4gw6gCP5ls%20e%20"
+            "list=PL9iw99lS3Prg0hPSCiOz9AXeEmj8W8fL8%20e%20index=14%20e%20t=49s"
+        )
+
+        assert identity == {
+            "kind": "video",
+            "provider": "youtube",
+            "video_id": "h4gw6gCP5ls",
+        }
+
+    @pytest.mark.parametrize(
+        "url",
+        (
+            "https://www.youtube.com/watch?v=not-a-real-id",
+            "https://youtu.be/too-short",
+            "https://www.youtube.com/watch?v=h4gw6gCP5ls%20unexpected",
+        ),
+    )
+    def test_youtube_identity_rejects_invalid_provider_ids(self, url):
+        assert source_identity(url) is None
 
     def test_books_are_resource_code_plus_scope_not_gateway_url(self):
         gateway = "https://philos.sophia.com.br/terminal/9418"

@@ -60,6 +60,7 @@ from universe.acquisition.video_teaching_beats import (
     validate_document as validate_teaching_beat_document,
 )
 from universe.model_client import ModelClient
+from universe.syllabus import youtube_video_id as normalize_youtube_video_id
 
 
 YOUTUBE_PROVIDER = "youtube/v1"
@@ -230,15 +231,27 @@ def _preflight(row: tuple | None) -> dict[str, Any] | None:
     return dict(zip(PREFLIGHT_COLUMNS, row)) if row else None
 
 
-def youtube_url(identity: object) -> str:
+def _identity_video_id(identity: object) -> str:
     if not isinstance(identity, dict):
         raise ValueError("video Source has no stable identity")
     if identity.get("kind") != "video" or identity.get("provider") != "youtube":
         raise ValueError("YouTube Adapter requires a YouTube Source identity")
-    video_id = identity.get("video_id")
-    if not isinstance(video_id, str) or not video_id.strip():
+    raw_video_id = identity.get("video_id")
+    if not isinstance(raw_video_id, str) or not raw_video_id.strip():
         raise ValueError("YouTube Source identity has no video id")
-    return f"https://www.youtube.com/watch?v={video_id.strip()}"
+    normalized = normalize_youtube_video_id(raw_video_id)
+    if normalized:
+        return normalized
+    # Historical test/dev ledgers used short synthetic ids. Preserve those plain
+    # tokens, but never forward whitespace or query-like content to a provider.
+    legacy = raw_video_id.strip()
+    if re.fullmatch(r"[A-Za-z0-9_-]+", legacy):
+        return legacy
+    raise ValueError("YouTube Source identity has an invalid video id")
+
+
+def youtube_url(identity: object) -> str:
+    return f"https://www.youtube.com/watch?v={_identity_video_id(identity)}"
 
 
 def _source(conn: psycopg.Connection, source_id: str) -> dict[str, Any]:
@@ -1076,7 +1089,7 @@ def _acquire_stt(
     lease_connection_factory: ConnectionFactory | None = None,
 ) -> VideoAcquisition:
     source_url = youtube_url(source["identity"])
-    video_id = str(source["identity"]["video_id"]).strip()
+    video_id = _identity_video_id(source["identity"])
     detected = (preflight.get("diagnostics") or {}).get("detected_language")
     language = _base_language(detected if isinstance(detected, str) else None)
     request_input = job.get("request_input") or {}
@@ -1289,7 +1302,7 @@ def acquire_video(
     route = preflight.get("route")
     requested_route = (job or {}).get("request_input", {}).get("transcript_route")
     source_url = youtube_url(source["identity"])
-    video_id = str(source["identity"]["video_id"]).strip()
+    video_id = _identity_video_id(source["identity"])
     if route == "visual_only" or requested_route == "visual_only":
         acquire_beats = getattr(adapter, "acquire_visual_teaching_beats", None)
         if not callable(acquire_beats):

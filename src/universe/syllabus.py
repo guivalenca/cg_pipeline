@@ -92,6 +92,12 @@ RESOURCE_CODE = re.compile(
 )
 ISBN = re.compile(r"\bISBN\s*[:#]?\s*([0-9Xx\-\s]{10,22})", re.IGNORECASE)
 PAGE_ID = re.compile(r"/pageid/(\d+)", re.IGNORECASE)
+YOUTUBE_VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
+YOUTUBE_TEXTUAL_QUERY = re.compile(
+    r"^(?P<video_id>[A-Za-z0-9_-]{11})"
+    r"(?:\s+e\s+(?:list|index|t)=[^\s]+)+$",
+    re.IGNORECASE,
+)
 
 
 def slugify(text: str) -> str:
@@ -209,18 +215,27 @@ def source_identity(
     return {"kind": "article", "canonical_url": canonical} if canonical else None
 
 
+def youtube_video_id(value: object) -> str | None:
+    """Return one real YouTube id, repairing the XLSX textual-query form."""
+    candidate = unquote_plus(str(value or "")).strip()
+    if YOUTUBE_VIDEO_ID.fullmatch(candidate):
+        return candidate
+    textual_query = YOUTUBE_TEXTUAL_QUERY.fullmatch(candidate)
+    return textual_query.group("video_id") if textual_query else None
+
+
 def _video_identity(url: str) -> tuple[str, str | None]:
     parsed = urlparse((url or "").strip())
     host = (parsed.hostname or "").lower().removeprefix("www.")
     parts = [part for part in parsed.path.split("/") if part]
     if host == "youtu.be":
-        return "youtube", parts[0] if parts else None
+        return "youtube", youtube_video_id(parts[0]) if parts else None
     if host.endswith("youtube.com"):
         query = dict(parse_qsl(parsed.query))
         if query.get("v"):
-            return "youtube", query["v"]
+            return "youtube", youtube_video_id(query["v"])
         if len(parts) >= 2 and parts[0] in {"embed", "shorts", "live"}:
-            return "youtube", parts[1]
+            return "youtube", youtube_video_id(parts[1])
         return "youtube", None
     if host.endswith("vimeo.com"):
         video_id = next((part for part in reversed(parts) if part.isdigit()), None)

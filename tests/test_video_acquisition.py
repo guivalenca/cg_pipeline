@@ -52,6 +52,21 @@ Later segment.
 """
 
 
+def test_adapter_url_repairs_a_legacy_textual_query_identity():
+    identity = {
+        "kind": "video",
+        "provider": "youtube",
+        "video_id": (
+            "h4gw6gCP5ls e list=PL9iw99lS3Prg0hPSCiOz9AXeEmj8W8fL8 "
+            "e index=14 e t=49s"
+        ),
+    }
+
+    assert videos.youtube_url(identity) == (
+        "https://www.youtube.com/watch?v=h4gw6gCP5ls"
+    )
+
+
 class FakeYouTubeAdapter:
     def __init__(self) -> None:
         self.stt_calls = 0
@@ -1021,7 +1036,7 @@ def test_syllabus_card_projects_video_route_and_exposes_matching_actions(
     test_database_url, applied_migrations, tmp_path
 ):
     path = tmp_path / "video-syllabus.xlsx"
-    _video_workbook(path, url="https://youtu.be/card123?t=30")
+    _video_workbook(path, url="https://youtu.be/h4gw6gCP5ls?t=30")
     app = create_app(
         lambda: psycopg.connect(test_database_url),
         video_adapter_factory=lambda: FakeMetadataAdapter(74 * 60),
