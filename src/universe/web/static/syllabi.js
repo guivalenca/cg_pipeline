@@ -633,7 +633,8 @@ function sourceMarkup(source, { collapsedValidated = false } = {}) {
   // is no longer an actionable problem for this source. Keep the fallback
   // upload action visible, but do not contradict the successful outcome.
   const adapterNotice = !markdownReady && !capability.supported ? capability.reason : null;
-  const meta = [source.resource_code ? `Código ${source.resource_code}` : null, scopeLabel(source)].filter(Boolean);
+  const meta = [scopeLabel(source)].filter(Boolean);
+  const bookCode = source.resource_code ? String(source.resource_code) : '';
   return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
     <div class="syl-source__main">
       <div class="syl-source__topline">
@@ -646,6 +647,7 @@ function sourceMarkup(source, { collapsedValidated = false } = {}) {
       ${videoReadinessMarkup(source)}
       <div class="syl-source__footer">
         ${original ? `<a class="syl-original-link" href="${esc(original.href)}" target="_blank" rel="noopener noreferrer" title="${esc(original.href)}">${esc(original.href)}${ICON.external}</a>` : '<span class="syl-no-link">Sem link público</span>'}
+        ${bookCode ? `<button class="syl-source__meta syl-copy-code" type="button" data-copy-book-code="${esc(bookCode)}" aria-label="Copiar código do livro ${esc(bookCode)}" title="Copiar código do livro"><span>Código</span><code>${esc(bookCode)}</code><span class="syl-copy-code__action" aria-hidden="true">Copiar</span></button>` : ''}
         ${meta.map((entry) => `<span class="syl-source__meta">${esc(entry)}</span>`).join('')}
       </div>
       ${failure ? `<div class="syl-source__failure"><strong>A extração precisa de atenção.</strong><span>${esc(failure)}</span></div>` : ''}
@@ -741,7 +743,7 @@ function lessonMarkup(lesson, index) {
       <div class="syl-lesson__side">
         <div class="syl-lesson__source-tools">
           <span class="syl-lesson__source-count">${sources.length} ${sources.length === 1 ? 'fonte' : 'fontes'}</span>
-          ${!state.editor.active && isLatestVersion() ? `<button class="syl-lesson-edit" type="button" data-edit-lesson="${esc(lesson.id || '')}" aria-label="Editar somente esta aula">${ICON.edit}</button>` : ''}
+          ${isLatestVersion() && (!state.editor.active || state.editor.targetLessonId) ? `<button class="syl-lesson-edit" type="button" data-edit-lesson="${esc(lesson.id || '')}" aria-label="Editar somente esta aula">${ICON.edit}</button>` : ''}
         </div>
         ${collapsed ? `<span class="syl-lesson__validation-progress">${progress.validated}/${progress.total} autoestudos validados</span>` : ''}
         ${!collapsed && validated ? '<span class="syl-lesson-complete">✓ Autoestudos validados</span>' : ''}
@@ -789,7 +791,20 @@ function renderDetail() {
     <div class="syl-lessons">
       ${lessons.length ? lessons.map(lessonMarkup).join('') : `<div class="syl-empty"><strong>Nenhuma aula encontrada</strong><span>Ajuste os filtros para voltar a visualizar o syllabus.</span></div>`}
     </div>`;
+  autosizeEditorTextareas();
   schedulePolling();
+}
+
+function autosizeEditorTextarea(textarea) {
+  if (!(textarea instanceof HTMLTextAreaElement)) return;
+  const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+  textarea.style.height = 'auto';
+  textarea.style.height = `${textarea.scrollHeight + borderHeight}px`;
+}
+
+function autosizeEditorTextareas() {
+  viewHost.querySelectorAll('.syl-lesson--editor textarea.field')
+    .forEach(autosizeEditorTextarea);
 }
 
 const initialSearch = new URLSearchParams(window.location.search);
@@ -826,8 +841,15 @@ function cloneLessons(lessons) {
 }
 
 function startEditing(targetLessonId = null) {
-  if (!state.detail || !isLatestVersion() || state.editor.active) return;
+  if (!state.detail || !isLatestVersion() || state.editor.busy) return;
   if (targetLessonId && !(state.detail.lessons || []).some((lesson) => lesson.id === targetLessonId)) return;
+  if (state.editor.active) {
+    if (!targetLessonId || !state.editor.targetLessonId) return;
+    state.editor.targetLessonId = targetLessonId;
+    announce('Alterações mantidas. Agora editando somente a aula selecionada.');
+    renderDetail();
+    return;
+  }
   state.editor = {
     active: true,
     busy: false,
@@ -965,6 +987,17 @@ async function updateSourceReview(referenceId, changes) {
   } finally {
     state.reviewBusyReferenceIds.delete(referenceId);
     renderDetail();
+  }
+}
+
+async function copyBookCode(code) {
+  const value = String(code || '').trim();
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    announce(`Código do livro copiado: ${value}`);
+  } catch (_error) {
+    announce('Não foi possível copiar o código do livro. Selecione o código e tente novamente.');
   }
 }
 
@@ -1697,6 +1730,8 @@ document.querySelector('main').addEventListener('click', (event) => {
   }
   const expanded = event.target.closest('[data-toggle-lesson-expanded]');
   if (expanded) { toggleLessonExpanded(expanded.dataset.lessonId); return; }
+  const copyCode = event.target.closest('[data-copy-book-code]');
+  if (copyCode) { copyBookCode(copyCode.dataset.copyBookCode); return; }
   const queue = event.target.closest('[data-queue-source]');
   if (queue) { queueSource(queue.dataset.queueSource); return; }
   const videoPreflight = event.target.closest('[data-video-preflight]');
@@ -1713,7 +1748,10 @@ document.querySelector('main').addEventListener('click', (event) => {
 });
 
 document.querySelector('main').addEventListener('input', (event) => {
-  if (updateEditorField(event.target)) return;
+  if (updateEditorField(event.target)) {
+    autosizeEditorTextarea(event.target);
+    return;
+  }
   if (event.target.matches('[data-filter-query]')) {
     state.filters.query = event.target.value;
     renderDetail();

@@ -745,6 +745,24 @@
   font: 550 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+.syl-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  appearance: none;
+  cursor: copy;
+  background: var(--admin-surface);
+}
+
+.syl-copy-code:hover,
+.syl-copy-code:focus-visible {
+  border-color: var(--admin-brand);
+  color: var(--admin-brand);
+}
+
+.syl-copy-code code { font: inherit; }
+.syl-copy-code__action { color: var(--admin-brand); font-weight: 700; }
+
 .syl-source__failure {
   max-width: 760px;
   display: grid;
@@ -835,6 +853,10 @@
   align-items: start;
 }
 
+.syl-lesson__header--editor > :not(.syl-lesson__header-toggle) {
+  pointer-events: auto;
+}
+
 .syl-editor-lesson-fields { min-width: 0; }
 
 .syl-editor-grid {
@@ -852,6 +874,7 @@
 .syl-editor-grid textarea.field {
   min-height: 74px;
   padding-top: 9px;
+  overflow-y: hidden;
   resize: vertical;
   font: 500 12px/1.5 var(--admin-font);
 }
