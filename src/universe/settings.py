@@ -21,7 +21,7 @@ def firecrawl_api_key() -> str | None:
 
 
 def private_pdf_figure_localization_enabled() -> bool:
-    """Require an independent opt-in before exporting candidate page renders."""
+    """Require an independent opt-in before exporting rendered PDF pages."""
     return (
         os.environ.get("OPENROUTER_ALLOW_PRIVATE_PDF_PAGE_UPLOADS", "").strip()
         == "1"
@@ -64,6 +64,14 @@ def article_image_model() -> str:
     )
 
 
+def video_teaching_beat_model() -> str:
+    """Gemini route used only when visual evidence is the whole lesson."""
+    return (
+        os.environ.get("CONCEPT_UNIVERSE_VIDEO_TEACHING_BEAT_MODEL", "").strip()
+        or "google/gemini-2.5-flash"
+    )
+
+
 def source_cleanup_model() -> str:
     """OpenRouter model used for cuts and passage cleanup after acquisition."""
     return (
@@ -78,6 +86,68 @@ def source_cleanup_fallback_model() -> str:
         os.environ.get("CONCEPT_UNIVERSE_SOURCE_CLEANUP_FALLBACK_MODEL", "").strip()
         or "google/gemini-2.5-flash"
     )
+
+
+def source_cleanup_timeout_seconds() -> float:
+    """Bound each cleanup attempt so the independent fallback starts promptly."""
+    try:
+        value = float(
+            os.environ.get("CONCEPT_UNIVERSE_SOURCE_CLEANUP_TIMEOUT_SECONDS", "90")
+        )
+    except ValueError:
+        return 90.0
+    return min(300.0, max(15.0, value))
+
+
+def video_caption_languages() -> tuple[str, ...]:
+    """Deterministic preference order for publisher-uploaded caption tracks."""
+    configured = os.environ.get(
+        "CONCEPT_UNIVERSE_VIDEO_CAPTION_LANGUAGES", "pt-BR,pt,en-US,en"
+    )
+    values = tuple(
+        dict.fromkeys(item.strip() for item in configured.split(",") if item.strip())
+    )
+    return values or ("pt-BR", "pt", "en-US", "en")
+
+
+def video_stt_model() -> str:
+    return (
+        os.environ.get("CONCEPT_UNIVERSE_VIDEO_STT_MODEL", "").strip()
+        or "openai/whisper-large-v3"
+    )
+
+
+def video_stt_fallback_model() -> str:
+    return (
+        os.environ.get("CONCEPT_UNIVERSE_VIDEO_STT_FALLBACK_MODEL", "").strip()
+        or "openai/whisper-1"
+    )
+
+
+def video_stt_chunk_seconds() -> int:
+    try:
+        value = int(os.environ.get("CONCEPT_UNIVERSE_VIDEO_STT_CHUNK_SECONDS", "60"))
+    except ValueError:
+        return 60
+    return min(300, max(30, value))
+
+
+def video_stt_workers() -> int:
+    try:
+        value = int(os.environ.get("CONCEPT_UNIVERSE_VIDEO_STT_WORKERS", "2"))
+    except ValueError:
+        return 2
+    return min(8, max(1, value))
+
+
+def video_stt_timeout_seconds() -> int:
+    try:
+        value = int(
+            os.environ.get("CONCEPT_UNIVERSE_VIDEO_STT_TIMEOUT_SECONDS", "300")
+        )
+    except ValueError:
+        return 300
+    return min(1800, max(30, value))
 
 
 def openrouter_tool_provider_routing() -> dict[str, object]:
@@ -104,5 +174,14 @@ def openrouter_multimodal_provider_routing() -> dict[str, object]:
     """
     return {
         "allow_fallbacks": True,
+        "data_collection": "deny",
+    }
+
+
+def openrouter_video_provider_routing() -> dict[str, object]:
+    """Route YouTube URLs only to Gemini's compatible AI Studio provider."""
+    return {
+        "only": ["google-ai-studio"],
+        "allow_fallbacks": False,
         "data_collection": "deny",
     }

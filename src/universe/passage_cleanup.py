@@ -31,7 +31,6 @@ from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passage_refine import (
     RefinementDropsPassage,
     RefinementError,
-    RefinementRemovesEnrichedImage,
     materialize_revision,
     numbered_elements,
     state,
@@ -209,9 +208,10 @@ def _write_canonical_artifacts(conn: psycopg.Connection, cleanup_id: str) -> lis
             if result["verdict"] == "unknown":
                 unknown.append(result["id"])
         body = "\n\n".join(element["body"] for element in elements).rstrip() + "\n"
-        snapshot_id = conn.execute(
-            "SELECT snapshot_id FROM artifact WHERE id = %s", (source_artifact_id,)
-        ).fetchone()[0]
+        snapshot_id, source_metadata = conn.execute(
+            "SELECT snapshot_id, metadata FROM artifact WHERE id = %s",
+            (source_artifact_id,),
+        ).fetchone()
         artifact_id = f"{source_artifact_id}:clean:{cleanup_id}"
         conn.execute(
             "INSERT INTO artifact"
@@ -222,14 +222,17 @@ def _write_canonical_artifacts(conn: psycopg.Connection, cleanup_id: str) -> lis
                 artifact_id,
                 snapshot_id,
                 body,
-                Jsonb(
-                    {
-                        "source_markdown_artifact_id": source_artifact_id,
-                        "cleanup_id": cleanup_id,
-                        "unknown_passage_ids": unknown,
-                        "body_sha256": hashlib.sha256(body.encode()).hexdigest(),
-                    }
-                ),
+                Jsonb({
+                    "source_markdown_artifact_id": source_artifact_id,
+                    "cleanup_id": cleanup_id,
+                    "unknown_passage_ids": unknown,
+                    "body_sha256": hashlib.sha256(body.encode()).hexdigest(),
+                    **(
+                        {"visual_analysis": source_metadata["visual_analysis"]}
+                        if (source_metadata or {}).get("visual_analysis")
+                        else {}
+                    ),
+                }),
             ),
         )
         conn.execute(
@@ -254,7 +257,6 @@ def run_cleanup(
     atomic_triage_client: ModelClient,
     refine_client: ModelClient,
     workers: int = DEFAULT_WORKERS,
-    preserve_enriched_images: bool = False,
 ) -> dict:
     cuts_run = fetch_run(conn, cuts_run_id)
     if cuts_run["stage"] != "passage-cuts":
@@ -326,21 +328,12 @@ def run_cleanup(
                 else:
                     refinements.append(current)
             else:
-                protected = preserve_enriched_images and any(
-                    element.get("image_state") == "enriched"
-                    for element in current["elements"]
-                )
                 _insert_result(
                     conn,
                     cleanup_id,
                     current,
-                    "keep" if protected and verdict == "drop" else verdict,
+                    verdict,
                     item["id"],
-                    (
-                        "primary_enriched_image_preserved"
-                        if protected and verdict == "drop"
-                        else None
-                    ),
                 )
         conn.commit()
         if errors:
@@ -368,18 +361,7 @@ def run_cleanup(
                     passage=current["passage"],
                     refine_item=item,
                     parent_revision_id=current["revision_id"],
-                    preserve_enriched_images=preserve_enriched_images,
                 )
-            except RefinementRemovesEnrichedImage:
-                _insert_result(
-                    conn,
-                    cleanup_id,
-                    current,
-                    "keep",
-                    item["id"],
-                    "primary_enriched_image_preserved",
-                )
-                continue
             except RefinementDropsPassage:
                 # A valid element-addressed plan may reveal that no teachable
                 # content remains. That is the precise terminal meaning of

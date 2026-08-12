@@ -1,24 +1,29 @@
 """Durable orchestration from one enriched source artifact to clean Markdown."""
 
 import json
+import threading
+import time
 from pathlib import Path
 
+import psycopg
 from psycopg.types.json import Jsonb
 
 from universe.acquisition import source_cleanup_jobs
+from universe.acquisition import job_lease
 from universe.harness import PROMPTS_DIR, load_tool
 from universe.model_client import ModelClient
 
 
 def test_default_cleanup_prompt_drops_citation_only_bibliographies():
     prompt = (
-        Path(PROMPTS_DIR) / "passage-triage" / "v004.md"
+        Path(PROMPTS_DIR) / "passage-triage" / "v005.md"
     ).read_text(encoding="utf-8")
 
-    assert source_cleanup_jobs.TRIAGE_PROMPT_VERSION == "v004"
+    assert source_cleanup_jobs.TRIAGE_PROMPT_VERSION == "v005"
     assert "bibliographic references" in prompt
     assert "without explanatory teaching" in prompt
-    assert "enriched image atom" in prompt
+    assert "Judge images by the same" in prompt
+    assert "rule as every other element" in prompt
 
 
 def _tool_response(name: str, arguments: dict) -> dict:
@@ -112,19 +117,85 @@ def test_cleanup_job_runs_blocks_cuts_triage_and_publishes_only_clean_markdown(d
     assert boundary[2]["source_markdown_artifact_id"] == artifact_id
 
 
-def test_pdf_cleanup_preserves_enriched_visuals_despite_a_drop_verdict(db):
+def test_a_slow_cleanup_renews_before_a_second_worker_repeats_model_calls(
+    db, test_database_url, monkeypatch
+):
     _source_id, acquisition_job_id, artifact_id = _source_artifact(
-        db, "pdf-visual", metadata={"pdf_page_pipeline": True}
+        db, "heartbeat"
+    )
+    queued = source_cleanup_jobs.enqueue_source_cleanup(
+        db,
+        acquisition_job_id=acquisition_job_id,
+        source_artifact_id=artifact_id,
+    )
+    db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    def slow_cuts(_name, _prompt):
+        started.set()
+        assert release.wait(timeout=5)
+        return {"cuts": []}
+
+    keep = lambda _name, _prompt: {"verdict": "keep"}
+    monkeypatch.setattr(
+        source_cleanup_jobs, "acquisition_lease_minutes", lambda: 0.002
+    )
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+
+    def work():
+        try:
+            with psycopg.connect(test_database_url) as worker:
+                results.append(
+                    source_cleanup_jobs.process_next_source_cleanup(
+                        worker,
+                        job_id=queued["id"],
+                        cuts_client=_client(
+                            slow_cuts, "passage-cuts", "tool-v001.json"
+                        ),
+                        triage_client=_client(
+                            keep, "passage-triage", "tool-v003.json"
+                        ),
+                        atomic_triage_client=_client(
+                            keep, "passage-triage", "tool-v003-atomic.json"
+                        ),
+                        refine_client=_client(
+                            lambda _name, _prompt: {"drop_elements": []},
+                            "passage-refine",
+                            "tool-v002.json",
+                        ),
+                    )
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = source_cleanup_jobs.claim_next_source_cleanup(
+            db, job_id=queued["id"]
+        )
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
+
+
+def test_cleanup_does_not_publish_when_every_passage_is_dropped(db):
+    _source_id, acquisition_job_id, artifact_id = _source_artifact(
+        db, "all-dropped"
     )
     db.execute(
         "UPDATE artifact SET body = %s WHERE id = %s",
-        (
-            "# Table continuation\n\n"
-            "![Page 7 table](/api/source-assets/page-7)\n\n"
-            "Image summary: The table continues.\n\n"
-            "OCR: Concurrent processes.\n",
-            artifact_id,
-        ),
+        ("Cookie settings and tracking controls.\n", artifact_id),
     )
     db.commit()
     queued = source_cleanup_jobs.enqueue_source_cleanup(
@@ -158,18 +229,78 @@ def test_pdf_cleanup_preserves_enriched_visuals_despite_a_drop_verdict(db):
         ),
     )
 
+    assert result["status"] == "failed"
+    assert result["failure_code"] == "no_teachable_content_preserved"
+    assert result["canonical_artifact_id"] is None
+    assert result["cleanup_id"] is not None
+    assert result["diagnostics"]["category"] == "no_teachable_content_preserved"
+
+
+def test_pdf_cleanup_allows_an_enriched_visual_drop_verdict(db):
+    _source_id, acquisition_job_id, artifact_id = _source_artifact(
+        db, "pdf-visual", metadata={"pdf_page_pipeline": True}
+    )
+    db.execute(
+        "UPDATE artifact SET body = %s WHERE id = %s",
+        (
+            "# Synchronization\n\n"
+            "Concurrent processes coordinate shared state.\n\n"
+            "# Table continuation\n\n"
+            "![Page 7 table](/api/source-assets/page-7)\n\n"
+            "Image summary: The table continues.\n\n"
+            "OCR: Semaphore acquisition order.\n",
+            artifact_id,
+        ),
+    )
+    db.commit()
+    queued = source_cleanup_jobs.enqueue_source_cleanup(
+        db,
+        acquisition_job_id=acquisition_job_id,
+        source_artifact_id=artifact_id,
+    )
+
+    def triage(_name, prompt):
+        passage = prompt.rsplit("<passage>", 1)[1].split("</passage>", 1)[0]
+        return {"verdict": "drop" if "Table continuation" in passage else "keep"}
+
+    result = source_cleanup_jobs.process_next_source_cleanup(
+        db,
+        job_id=queued["id"],
+        cuts_client=_client(
+            lambda _name, _prompt: {"cuts": [3]},
+            "passage-cuts",
+            "tool-v001.json",
+        ),
+        triage_client=_client(
+            triage,
+            "passage-triage",
+            "tool-v003.json",
+        ),
+        atomic_triage_client=_client(
+            triage,
+            "passage-triage",
+            "tool-v003-atomic.json",
+        ),
+        refine_client=_client(
+            lambda _name, _prompt: {"drop_elements": []},
+            "passage-refine",
+            "tool-v002.json",
+        ),
+    )
+
     assert result["status"] == "succeeded", result
     canonical = db.execute(
         "SELECT body FROM artifact WHERE id = %s",
         (result["canonical_artifact_id"],),
     ).fetchone()[0]
-    assert "![Page 7 table]" in canonical
-    assert "Concurrent processes" in canonical
+    assert "![Page 7 table]" not in canonical
+    assert "Semaphore acquisition order" not in canonical
+    assert "Concurrent processes coordinate shared state" in canonical
     assert db.execute(
         "SELECT verdict, policy_reason FROM passage_cleanup_result"
         " WHERE cleanup_id = %s",
         (result["cleanup_id"],),
-    ).fetchone() == ("keep", "primary_enriched_image_preserved")
+    ).fetchall() == [("keep", None), ("drop", None)]
 
 
 def test_cleanup_queue_and_claim_are_idempotent_for_refresh_and_two_workers(db):
@@ -249,6 +380,8 @@ def test_default_cleanup_client_uses_auto_exacto_routing_and_fails_over_once():
     assert default_client.primary.params["reasoning"] == {
         "effort": "high", "exclude": True
     }
+    assert default_client.primary.timeout == 90.0
+    assert default_client.fallback.timeout == 90.0
 
 
 def test_resilient_cleanup_client_does_not_retry_a_successful_tool_call():

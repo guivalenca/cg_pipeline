@@ -3,6 +3,9 @@
 Date: 2026-08-10
 Status: accepted
 
+ADR 0018 supersedes the enriched-PDF-image cleanup immunity below. Immutable
+Poppler page evidence remains accepted.
+
 ## Context
 
 ADR 0013 treated a PDF as either a textual document for `pdftotext` or an

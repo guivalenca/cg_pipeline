@@ -3,6 +3,9 @@
 Date: 2026-08-07
 Status: accepted
 
+PDF-specific cleanup immunity was superseded by ADR 0018. The unresolved-image
+safety rule and atomic image Block rules remain accepted.
+
 ## Context
 
 An acquired page is not faithfully represented when its images are appended

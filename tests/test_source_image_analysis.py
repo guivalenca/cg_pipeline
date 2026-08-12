@@ -101,14 +101,16 @@ def test_one_forced_tool_call_analyzes_every_source_image():
     assert len(result.input_manifest_hash) == 64
 
 
-def test_active_prompt_requires_teachable_content_not_represented_by_source_text():
+def test_active_prompt_keeps_unique_visual_evidence_and_rejects_repetition():
     prompt_ref, _prompt_sha, template = prompt_stamp()
 
-    assert prompt_ref == "source-image-analysis/v002"
+    assert prompt_ref == "source-image-analysis/v003"
     assert (
-        "Retain an image only when it adds teachable content that is not "
-        "adequately represented by the source text."
+        "Source prose mentioning the same topic does not make that visual "
+        "evidence redundant."
     ) in template
+    assert "retain only the clearest representative" in template
+    assert "no_unique_content" in template
 
 
 def test_reconciliation_is_fail_open_per_missing_duplicate_or_invalid_image():

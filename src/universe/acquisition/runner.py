@@ -22,17 +22,30 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from universe.acquisition.articles import ArticleFetch, fetch_article_detailed
+from universe.acquisition.book_acquisition import (
+    BOOK_PROVIDER,
+    BookCaptureAdapter,
+    book_capture_outcome,
+)
 from universe.acquisition.gates import GATE_CODES
 from universe.acquisition.image_jobs import (
+    finalize_article_image_association,
     insert_article_image_candidates,
+    insert_teaching_beat_candidates,
+    insert_video_frame_candidates,
     process_next_article_image,
     process_next_source_image_analysis,
     queue_source_image_analysis_if_ready,
 )
+from universe.acquisition.job_lease import (
+    ConnectionFactory,
+    JobLease,
+    separate_connection_factory,
+)
+from universe.acquisition.video_teaching_beats import persist_teaching_beat_reading
 from universe.acquisition.manual_uploads import (
     MANUAL_PROVIDER,
     manual_upload_outcome,
-    persist_manual_image_analyses,
 )
 from universe.acquisition.pdfs import (
     PDF_PAGE_TOOL_VERSION,
@@ -43,7 +56,18 @@ from universe.acquisition.source_cleanup_jobs import (
     enqueue_source_cleanup,
     process_next_source_cleanup,
 )
-from universe.assets import AssetStore
+from universe.acquisition.videos import (
+    YOUTUBE_PROVIDER,
+    VideoAcquisition,
+    VideoAdapter,
+    VideoAdapterError,
+    acquire_video,
+    acquisition_input,
+    get_preflight,
+    persist_video_transcript,
+    youtube_video_id,
+)
+from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect
 from universe.settings import acquisition_lease_minutes, acquisition_poll_seconds
 
@@ -62,6 +86,9 @@ class Outcome:
     content_hash: str | None = None
     raw_markdown: str | None = None
     image_urls: tuple[str, ...] = ()
+    retryable: bool = False
+    retry_after_seconds: int = 0
+    video_acquisition: VideoAcquisition | None = None
 
     @property
     def succeeded(self) -> bool:
@@ -81,6 +108,9 @@ JOB_COLUMNS = (
     "claimed_at",
     "claim_token",
     "finished_at",
+    "video_preflight_id",
+    "request_input",
+    "input_fingerprint",
 )
 
 
@@ -89,7 +119,13 @@ def _job_dict(row: tuple | None) -> dict | None:
 
 
 def _provider_for(media_type: str | None) -> str:
-    return ARTICLE_PROVIDER if media_type == "article" else "none"
+    if media_type == "article":
+        return ARTICLE_PROVIDER
+    if media_type == "book":
+        return BOOK_PROVIDER
+    if media_type == "video":
+        return YOUTUBE_PROVIDER
+    return "none"
 
 
 def _one_source_id(value: str) -> str:
@@ -103,7 +139,8 @@ def get_job(conn: psycopg.Connection, job_id: str) -> dict | None:
     """Return one queue job in a JSON-friendly shape."""
     row = conn.execute(
         "SELECT id, source_id, status, provider, attempt_count, artifact_id,"
-        " failure_code, diagnostics, created_at, claimed_at, claim_token, finished_at"
+        " failure_code, diagnostics, created_at, claimed_at, claim_token, finished_at,"
+        " video_preflight_id, request_input, input_fingerprint"
         " FROM acquisition_job WHERE id = %s",
         (job_id,),
     ).fetchone()
@@ -111,7 +148,11 @@ def get_job(conn: psycopg.Connection, job_id: str) -> dict | None:
 
 
 def enqueue_source(
-    conn: psycopg.Connection, source_id: str, *, actor: str = "founder"
+    conn: psycopg.Connection,
+    source_id: str,
+    *,
+    actor: str = "founder",
+    authorize_paid_transcription: bool = False,
 ) -> dict:
     """Queue exactly one source, deduplicating a queued/running double-click.
 
@@ -151,11 +192,30 @@ def enqueue_source(
         job["deduplicated"] = True
         return job
 
+    request_input: dict[str, Any] = {}
+    input_fingerprint = None
+    video_preflight_id = None
+    if source[0] == "video":
+        request_input, input_fingerprint, video_preflight_id = acquisition_input(
+            conn,
+            source_id,
+            authorize_paid_transcription=authorize_paid_transcription,
+        )
+
     job_id = f"acq-{uuid.uuid4().hex}"
     inserted = conn.execute(
-        "INSERT INTO acquisition_job (id, source_id, provider)"
-        " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING RETURNING id",
-        (job_id, source_id, _provider_for(source[0])),
+        "INSERT INTO acquisition_job"
+        " (id, source_id, provider, video_preflight_id, request_input, input_fingerprint)"
+        " VALUES (%s, %s, %s, %s, %s, %s)"
+        " ON CONFLICT DO NOTHING RETURNING id",
+        (
+            job_id,
+            source_id,
+            _provider_for(source[0]),
+            video_preflight_id,
+            Jsonb(request_input),
+            input_fingerprint,
+        ),
     ).fetchone()
     if inserted is None:
         existing = conn.execute(
@@ -166,7 +226,12 @@ def enqueue_source(
         ).fetchone()
         if existing is None:  # a terminal transition raced the insert
             conn.rollback()
-            return enqueue_source(conn, source_id)
+            return enqueue_source(
+                conn,
+                source_id,
+                actor=actor,
+                authorize_paid_transcription=authorize_paid_transcription,
+            )
         job_id = existing[0]
         deduplicated = True
     else:
@@ -219,7 +284,8 @@ def claim_next_job(
         " FROM candidate WHERE j.id = candidate.id"
         " RETURNING j.id, j.source_id, j.status, j.provider, j.attempt_count,"
         " j.artifact_id, j.failure_code, j.diagnostics, j.created_at,"
-        " j.claimed_at, j.claim_token, j.finished_at",
+        " j.claimed_at, j.claim_token, j.finished_at, j.video_preflight_id,"
+        " j.request_input, j.input_fingerprint",
         (job_id, job_id, claim_token, acquisition_lease_minutes()),
     ).fetchone()
     conn.commit()
@@ -236,7 +302,88 @@ def _source(conn: psycopg.Connection, source_id: str) -> dict:
     return dict(zip(("id", "identity", "title", "media_type"), row))
 
 
-def _fetch(source: dict) -> Outcome:
+def _fetch(
+    source: dict,
+    *,
+    video_preflight: dict[str, Any] | None = None,
+    video_adapter: VideoAdapter | None = None,
+    video_job: dict[str, Any] | None = None,
+    conn: psycopg.Connection | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
+) -> Outcome:
+    if source["media_type"] == "video":
+        if video_preflight is None:
+            return Outcome(
+                None,
+                "video_metadata_unavailable",
+                YOUTUBE_PROVIDER,
+                "youtube-evidence",
+                {"category": "video_preflight_missing"},
+            )
+        try:
+            acquired = acquire_video(
+                source,
+                video_preflight,
+                adapter=video_adapter,
+                conn=conn,
+                job=video_job,
+                lease_connection_factory=lease_connection_factory,
+            )
+        except VideoAdapterError as exc:
+            retry_after = exc.diagnostics.get("retry_after_seconds", 0)
+            return Outcome(
+                None,
+                exc.code,
+                YOUTUBE_PROVIDER,
+                "youtube-evidence",
+                {
+                    "category": exc.category,
+                    "retriable": exc.retriable,
+                    "video_preflight_id": video_preflight["id"],
+                    **exc.diagnostics,
+                },
+                tool_version="youtube-evidence/v1",
+                retryable=exc.retriable,
+                retry_after_seconds=(
+                    int(retry_after)
+                    if isinstance(retry_after, (int, float)) and not isinstance(retry_after, bool)
+                    else 0
+                ),
+            )
+        except Exception as exc:
+            return Outcome(
+                None,
+                "video_transcript_assembly_failed",
+                YOUTUBE_PROVIDER,
+                "youtube-evidence",
+                {
+                    "category": type(exc).__name__,
+                    "video_preflight_id": video_preflight["id"],
+                },
+                tool_version="youtube-evidence/v1",
+            )
+        return Outcome(
+            acquired.markdown,
+            None,
+            YOUTUBE_PROVIDER,
+            "youtube-evidence",
+            {
+                "category": "success",
+                "video_preflight_id": video_preflight["id"],
+                "transcript_route": acquired.route,
+                "caption_language": acquired.language,
+                "segment_count": len(acquired.segments),
+                "frame_count": len(acquired.frames),
+                "speech_evidence": "present" if acquired.segments else "absent",
+                "visual_analysis": "pending" if acquired.frames else "absent",
+                "source_media_type": "video",
+                "pipeline_requires_cleanup": True,
+            },
+            tool_version="youtube-evidence/v1",
+            content_hash=acquired.content_hash,
+            video_acquisition=acquired,
+        )
+
     if source["media_type"] != "article":
         code = "unsupported_media_kind"
         return Outcome(
@@ -263,6 +410,8 @@ def _fetch(source: dict) -> Outcome:
         )
     diagnostics = dict(result.diagnostics)
     diagnostics["provider_attempts"] = result.attempts
+    if result.failure_code is None and result.markdown:
+        diagnostics["pipeline_requires_cleanup"] = True
     return Outcome(
         result.markdown,
         result.failure_code,
@@ -300,7 +449,11 @@ def _manual_outcome(
 
 
 def _record_success(
-    conn: psycopg.Connection, job: dict, outcome: Outcome
+    conn: psycopg.Connection,
+    job: dict,
+    outcome: Outcome,
+    *,
+    asset_store: AssetStore | None = None,
 ) -> dict:
     assert outcome.markdown is not None
     captured_body = outcome.raw_markdown or outcome.markdown
@@ -321,17 +474,49 @@ def _record_success(
         else None
     )
     has_image_candidates = False
+    has_preanalyzed_video_candidates = False
 
     # Existing good artifacts remain untouched on every later failure.
-    artifact_metadata = {}
+    artifact_metadata: dict[str, Any] = {}
     if raw_artifact_id is not None:
         artifact_metadata = {
             "raw_artifact_id": raw_artifact_id,
             **(
                 {"image_branch": "nonblocking"}
                 if outcome.provider == ARTICLE_PROVIDER
-                else {"pdf_page_pipeline": PDF_PAGE_TOOL_VERSION}
+                else {
+                    "pdf_page_pipeline": PDF_PAGE_TOOL_VERSION,
+                    "reconstruction_pipeline": outcome.diagnostics.get(
+                        "tool_version", PDF_PAGE_TOOL_VERSION
+                    )
+                }
             ),
+        }
+    if outcome.video_acquisition is not None:
+        teaching_beats = outcome.video_acquisition.teaching_beats
+        artifact_metadata = {
+            "transcript_route": outcome.video_acquisition.route,
+            "caption_language": outcome.video_acquisition.language,
+            "transcript_content_hash": outcome.video_acquisition.content_hash,
+            "grouping_version": "timestamp-groups/v1",
+            "frame_extractor": outcome.video_acquisition.frame_extractor,
+            "frame_count": len(outcome.video_acquisition.frames),
+            "speech_evidence": (
+                "present" if outcome.video_acquisition.segments else "absent"
+            ),
+            "visual_analysis": (
+                "complete"
+                if teaching_beats is not None
+                else ("pending" if outcome.video_acquisition.frames else "absent")
+            ),
+            "visual_interpretation": (
+                "video_teaching_beats.v1" if teaching_beats is not None else None
+            ),
+            "teaching_beat_count": (
+                len(teaching_beats.beats) if teaching_beats is not None else 0
+            ),
+            "source_media_type": "video",
+            "pipeline_requires_cleanup": True,
         }
     conn.execute(
         "INSERT INTO source_snapshot"
@@ -354,10 +539,10 @@ def _record_success(
         ),
     )
     if raw_artifact_id is not None:
+        extractor = outcome.diagnostics.get("extractor") or {}
         raw_tool = (
             PDF_TEXT_TOOL
-            if outcome.provider == MANUAL_PROVIDER
-            and outcome.diagnostics.get("input_mode") == "pdf"
+            if extractor.get("document_tool") == PDF_TEXT_TOOL
             else outcome.tool
         )
         raw_tool_version = (
@@ -395,8 +580,59 @@ def _record_success(
                 ),
             )
             has_image_candidates = bool(image_candidates)
-    if outcome.provider == MANUAL_PROVIDER:
-        persist_manual_image_analyses(conn, job, outcome.diagnostics)
+    if outcome.video_acquisition is not None:
+        if outcome.video_acquisition.frames:
+            store = asset_store or asset_store_from_env()
+            video_id = youtube_video_id(
+                _source(conn, job["source_id"])["identity"]
+            )
+            if outcome.video_acquisition.teaching_beats is not None:
+                reading_call_id = persist_teaching_beat_reading(
+                    conn,
+                    markdown_artifact_id=artifact_id,
+                    document=outcome.video_acquisition.teaching_beats,
+                )
+                frame_candidates = insert_teaching_beat_candidates(
+                    conn,
+                    acquisition_job_id=job["id"],
+                    source_id=job["source_id"],
+                    snapshot_id=snapshot_id,
+                    markdown_artifact_id=artifact_id,
+                    markdown=outcome.markdown,
+                    video_id=video_id,
+                    document=outcome.video_acquisition.teaching_beats,
+                    analysis_call_id=reading_call_id,
+                    asset_store=store,
+                    extractor_ref=(
+                        outcome.video_acquisition.frame_extractor
+                        or "gemini-teaching-beats/v1"
+                    ),
+                )
+                has_preanalyzed_video_candidates = bool(frame_candidates)
+            else:
+                frame_candidates = insert_video_frame_candidates(
+                    conn,
+                    acquisition_job_id=job["id"],
+                    source_id=job["source_id"],
+                    snapshot_id=snapshot_id,
+                    markdown_artifact_id=artifact_id,
+                    markdown=outcome.markdown,
+                    video_id=video_id,
+                    frames=outcome.video_acquisition.frames,
+                    asset_store=store,
+                    extractor_ref=(
+                        outcome.video_acquisition.frame_extractor
+                        or "video-frame-extraction/unknown"
+                    ),
+                )
+            has_image_candidates = bool(frame_candidates)
+        persist_video_transcript(
+            conn,
+            job=job,
+            snapshot_id=snapshot_id,
+            artifact_id=artifact_id,
+            acquisition=outcome.video_acquisition,
+        )
     requires_cleanup = bool(
         outcome.provider == ARTICLE_PROVIDER
         or outcome.diagnostics.get("pipeline_requires_cleanup")
@@ -442,7 +678,9 @@ def _record_success(
             commit=False,
         )
     conn.commit()
-    if has_image_candidates:
+    if has_preanalyzed_video_candidates:
+        finalize_article_image_association(conn, artifact_id)
+    elif has_image_candidates:
         queue_source_image_analysis_if_ready(conn, artifact_id)
     result = get_job(conn, job["id"])
     assert result is not None
@@ -487,25 +725,118 @@ def _record_failure(
     return result
 
 
+def _record_retry(
+    conn: psycopg.Connection, job: dict, outcome: Outcome
+) -> dict:
+    """Release a transient claim while retaining durable partial evidence."""
+    updated = conn.execute(
+        "UPDATE acquisition_job SET status = 'queued',"
+        " available_at = now() + (%s * interval '1 second'),"
+        " diagnostics = %s, claimed_at = NULL, lease_expires_at = NULL,"
+        " claim_token = NULL, updated_at = now()"
+        " WHERE id = %s AND status = 'running' AND claim_token = %s",
+        (
+            max(0, int(outcome.retry_after_seconds)),
+            Jsonb(
+                {
+                    **outcome.diagnostics,
+                    "retry_scheduled": True,
+                    "attempt_count": job["attempt_count"],
+                }
+            ),
+            job["id"],
+            job["claim_token"],
+        ),
+    )
+    if updated.rowcount != 1:
+        conn.rollback()
+    else:
+        conn.commit()
+    result = get_job(conn, job["id"])
+    assert result is not None
+    return result
+
+
 def process_next_job(
     conn: psycopg.Connection,
     *,
     job_id: str | None = None,
     asset_store: AssetStore | None = None,
+    book_adapter: BookCaptureAdapter | None = None,
+    book_document_parser=None,
+    book_image_downloader=None,
+    book_figure_locator=None,
+    book_pdf_builder=None,
+    video_adapter: VideoAdapter | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict | None:
     """Claim one acquisition and queue its required downstream Markdown work."""
+    heartbeat_connection = (
+        lease_connection_factory or separate_connection_factory(conn)
+    )
     job = claim_next_job(conn, job_id=job_id)
     if job is None:
         return None
     try:
-        if job["provider"] == MANUAL_PROVIDER:
-            outcome = _manual_outcome(conn, job, asset_store=asset_store)
-        else:
-            source = _source(conn, job["source_id"])
-            # Do not leave a read transaction open during a potentially slow
-            # provider request.  The running job was already committed by claim.
-            conn.commit()
-            outcome = _fetch(source)
+        with JobLease(
+            heartbeat_connection,
+            table="acquisition_job",
+            row_id=job["id"],
+            claim_token=job["claim_token"],
+        ):
+            if job["provider"] == MANUAL_PROVIDER:
+                outcome = _manual_outcome(conn, job, asset_store=asset_store)
+            elif job["provider"] == BOOK_PROVIDER:
+                book_kwargs = {}
+                if book_document_parser is not None:
+                    book_kwargs["document_parser"] = book_document_parser
+                if book_image_downloader is not None:
+                    book_kwargs["image_downloader"] = book_image_downloader
+                if book_figure_locator is not None:
+                    book_kwargs["figure_locator"] = book_figure_locator
+                if book_pdf_builder is not None:
+                    book_kwargs["pdf_builder"] = book_pdf_builder
+                result = book_capture_outcome(
+                    conn,
+                    job,
+                    adapter=book_adapter,
+                    asset_store=asset_store,
+                    **book_kwargs,
+                )
+                outcome = Outcome(
+                    result.markdown,
+                    result.failure_code,
+                    result.provider,
+                    result.tool,
+                    result.diagnostics,
+                    tool_version=result.tool_version,
+                    content_hash=result.content_hash,
+                    raw_markdown=result.raw_markdown,
+                    retryable=result.retryable,
+                    retry_after_seconds=result.retry_after_seconds,
+                )
+            else:
+                source = _source(conn, job["source_id"])
+                video_preflight = (
+                    get_preflight(conn, job["video_preflight_id"])
+                    if job["provider"] == YOUTUBE_PROVIDER
+                    and job.get("video_preflight_id")
+                    else None
+                )
+                # Do not leave a read transaction open during a potentially slow
+                # provider request. The running job was already committed by claim.
+                conn.commit()
+                if job["provider"] == YOUTUBE_PROVIDER:
+                    outcome = _fetch(
+                        source,
+                        video_preflight=video_preflight,
+                        video_adapter=video_adapter,
+                        video_job=job,
+                        conn=conn,
+                        lease_connection_factory=heartbeat_connection,
+                    )
+                else:
+                    outcome = _fetch(source)
     except Exception as exc:
         outcome = Outcome(
             None,
@@ -514,11 +845,21 @@ def process_next_job(
             "none",
             {"category": "worker_error", "exception": type(exc).__name__},
         )
-    return (
-        _record_success(conn, job, outcome)
-        if outcome.succeeded
-        else _record_failure(conn, job, outcome)
-    )
+    if outcome.succeeded:
+        return _record_success(conn, job, outcome, asset_store=asset_store)
+    if outcome.retryable and job["attempt_count"] < 3:
+        return _record_retry(conn, job, outcome)
+    if outcome.retryable:
+        outcome = Outcome(
+            outcome.markdown,
+            outcome.failure_code,
+            outcome.provider,
+            outcome.tool,
+            {**outcome.diagnostics, "retry_exhausted": True},
+            tool_version=outcome.tool_version,
+            content_hash=outcome.content_hash,
+        )
+    return _record_failure(conn, job, outcome)
 
 
 def _oldest_ready_work_kind(conn: psycopg.Connection) -> str | None:
@@ -554,20 +895,36 @@ def process_next_work_item(
     conn: psycopg.Connection,
     *,
     asset_store: AssetStore | None = None,
+    video_adapter: VideoAdapter | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> tuple[str, dict] | None:
     """Process the oldest acquisition, visual or canonical-cleanup work item."""
     preferred = _oldest_ready_work_kind(conn)
     if preferred is None:
         return None
+    lease_kwargs = (
+        {"lease_connection_factory": lease_connection_factory}
+        if lease_connection_factory is not None
+        else {}
+    )
+
+    def process_acquisition() -> dict | None:
+        kwargs: dict[str, Any] = {"asset_store": asset_store, **lease_kwargs}
+        if video_adapter is not None:
+            kwargs["video_adapter"] = video_adapter
+        return process_next_job(conn, **kwargs)
+
     processors = {
-        "acquisition": lambda: process_next_job(conn, asset_store=asset_store),
+        "acquisition": process_acquisition,
         "article_image": lambda: process_next_article_image(
-            conn, asset_store=asset_store
+            conn, asset_store=asset_store, **lease_kwargs
         ),
         "source_image_analysis": lambda: process_next_source_image_analysis(
-            conn, asset_store=asset_store
+            conn, asset_store=asset_store, **lease_kwargs
         ),
-        "source_cleanup": lambda: process_next_source_cleanup(conn),
+        "source_cleanup": lambda: process_next_source_cleanup(
+            conn, **lease_kwargs
+        ),
     }
     for kind in (
         preferred,
@@ -616,9 +973,15 @@ def cmd_work(args: argparse.Namespace) -> None:
             work_payload = None
             if args.job_id is not None:
                 # An explicit --job means exactly that parent acquisition.
-                job = process_next_job(conn, job_id=args.job_id)
+                job = process_next_job(
+                    conn,
+                    job_id=args.job_id,
+                    lease_connection_factory=connect,
+                )
             else:
-                work_item = process_next_work_item(conn)
+                work_item = process_next_work_item(
+                    conn, lease_connection_factory=connect
+                )
                 if work_item is not None:
                     work_kind, work_payload = work_item
                     if work_kind == "acquisition":

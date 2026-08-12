@@ -5,6 +5,12 @@ Worktree: `/Users/guilhermevalenca/Desktop/concept-universe`
 Branch: `main`
 Source: `src-99e0b250dab5a4ac`
 
+> Historical acceptance record. ADR 0018 supersedes the candidate-page figure
+> selector and PDF-specific cleanup immunity described below. The current path
+> sends every rendered page through figure localization, places crops beside
+> stable Markdown Blocks, records a terminal outcome per region, and lets
+> ordinary triage/refine remove enriched figures.
+
 ## Legacy diagnosis
 
 The legacy acquisition was

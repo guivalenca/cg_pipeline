@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import threading
+import time
 from dataclasses import dataclass
 from types import SimpleNamespace
 
@@ -14,7 +15,7 @@ from psycopg import sql
 from psycopg.conninfo import make_conninfo
 from psycopg.types.json import Jsonb
 
-from universe.acquisition import articles, runner
+from universe.acquisition import articles, job_lease, runner
 from universe.acquisition.articles import fetch_article, fetch_article_detailed
 from universe.acquisition.book_scope import extract_scope, is_missing_scope
 from universe.acquisition.gates import GATE_CODES, PAYWALL_HEURISTICS, build_gate_report
@@ -112,6 +113,21 @@ def test_gate_catalog_and_report_shape_are_stable():
         "manual_access_required",
         "empty_content",
         "fetch_failed",
+        "video_metadata_unavailable",
+        "video_caption_download_failed",
+        "video_caption_parse_failed",
+        "video_duration_approval_required",
+        "video_duration_unknown",
+        "video_audio_download_failed",
+        "video_ffmpeg_unavailable",
+        "video_ffmpeg_failed",
+        "video_stt_authentication_failed",
+        "video_stt_rate_limited",
+        "video_stt_provider_failure",
+        "video_stt_chunk_failed",
+        "video_stt_empty_transcript",
+        "video_stt_language_mismatch",
+        "video_transcript_assembly_failed",
     }
     assert set(GATE_CODES) == required
     assert all(
@@ -706,24 +722,19 @@ def test_worker_records_a_failed_article_with_actionable_diagnostics(
     ).fetchone()[0] == 0
 
 
-@pytest.mark.parametrize("media_type", ["video", "book"])
-def test_worker_records_unsupported_media_as_a_source_local_failure(
-    acquisition_db, fake_firecrawl, media_type
+def test_video_queue_requires_durable_metadata_preflight(
+    acquisition_db, fake_firecrawl
 ):
-    source_id = f"acqx-acquisition-{media_type}"
-    add_source(acquisition_db, source_id, media_type=media_type)
+    source_id = "acqx-acquisition-video-without-preflight"
+    add_source(acquisition_db, source_id, media_type="video")
     calls, _ = fake_firecrawl()
-    queued = enqueue_source(acquisition_db, source_id)
 
-    job = process_next_job(acquisition_db, job_id=queued["id"])
-
+    with pytest.raises(ValueError, match="metadata preflight is required"):
+        enqueue_source(acquisition_db, source_id)
     assert calls == []
-    assert job["status"] == "failed"
-    assert job["failure_code"] == "unsupported_media_kind"
-    snapshot_id = f"{source_id}:snap:failed:{job['id']}:01"
     assert acquisition_db.execute(
-        "SELECT status, failure_note FROM source_snapshot WHERE id = %s", (snapshot_id,)
-    ).fetchone() == ("failed", "unsupported_media_kind")
+        "SELECT count(*) FROM acquisition_job WHERE source_id = %s", (source_id,)
+    ).fetchone()[0] == 0
 
 
 def test_each_failed_queue_attempt_gets_a_unique_snapshot(
@@ -836,6 +847,126 @@ def test_an_expired_worker_lease_is_reclaimed_source_locally(acquisition_db):
     assert reclaimed["attempt_count"] == 2
     assert reclaimed["claim_token"]
     assert reclaimed["claim_token"] != first["claim_token"]
+
+
+def test_worker_resolves_its_lease_connection_before_claiming(
+    acquisition_db, monkeypatch
+):
+    source_id = "acqx-acquisition-lease-factory"
+    add_source(acquisition_db, source_id)
+    queued = enqueue_source(acquisition_db, source_id)
+
+    def unavailable_factory(_conn):
+        raise RuntimeError("lease connection configuration is unavailable")
+
+    monkeypatch.setattr(runner, "separate_connection_factory", unavailable_factory)
+
+    with pytest.raises(RuntimeError, match="lease connection configuration"):
+        process_next_job(acquisition_db, job_id=queued["id"])
+
+    assert acquisition_db.execute(
+        "SELECT status, attempt_count, claim_token FROM acquisition_job WHERE id = %s",
+        (queued["id"],),
+    ).fetchone() == ("queued", 0, None)
+
+
+def test_a_slow_acquisition_renews_its_claim_before_another_worker_can_pay(
+    acquisition_db, test_database_url, monkeypatch
+):
+    source_id = "acqx-acquisition-heartbeat"
+    add_source(acquisition_db, source_id)
+    queued = enqueue_source(acquisition_db, source_id)
+    acquisition_db.commit()
+    started = threading.Event()
+    release = threading.Event()
+    results = []
+    errors = []
+
+    def slow_fetch(_source):
+        started.set()
+        assert release.wait(timeout=5)
+        return runner.Outcome(
+            "# Renewed capture",
+            None,
+            runner.ARTICLE_PROVIDER,
+            "firecrawl-v2",
+            {"category": "success"},
+        )
+
+    monkeypatch.setattr(runner, "_fetch", slow_fetch)
+    # Keep this integration test fast while exercising the real database clock.
+    monkeypatch.setattr(runner, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+    worker_url = make_conninfo(
+        test_database_url, options="-csearch_path=acquisition_test,public"
+    )
+
+    def work():
+        try:
+            with psycopg.connect(worker_url) as conn:
+                results.append(process_next_job(conn, job_id=queued["id"]))
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    assert started.wait(timeout=5), errors
+    try:
+        time.sleep(0.3)
+        contender = claim_next_job(acquisition_db, job_id=queued["id"])
+    finally:
+        release.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert errors == []
+    assert contender is None
+    assert results[0]["status"] == "succeeded"
+
+
+def test_a_last_transient_heartbeat_error_does_not_discard_acquisition_success(
+    acquisition_db, test_database_url, monkeypatch
+):
+    source_id = "acqx-acquisition-heartbeat-transient"
+    add_source(acquisition_db, source_id)
+    queued = enqueue_source(acquisition_db, source_id)
+    acquisition_db.commit()
+    heartbeat_failed = threading.Event()
+    calls = 0
+    worker_url = make_conninfo(
+        test_database_url, options="-csearch_path=acquisition_test,public"
+    )
+
+    def flaky_connect():
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            heartbeat_failed.set()
+            raise psycopg.OperationalError("transient final heartbeat")
+        return psycopg.connect(worker_url)
+
+    def fetch_after_failed_tick(_source):
+        assert heartbeat_failed.wait(timeout=5)
+        return runner.Outcome(
+            "# Paid result survives",
+            None,
+            runner.ARTICLE_PROVIDER,
+            "firecrawl-v2",
+            {"category": "success"},
+        )
+
+    monkeypatch.setattr(runner, "_fetch", fetch_after_failed_tick)
+    monkeypatch.setattr(runner, "acquisition_lease_minutes", lambda: 0.002)
+    monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
+
+    result = process_next_job(
+        acquisition_db,
+        job_id=queued["id"],
+        lease_connection_factory=flaky_connect,
+    )
+
+    assert result["status"] == "succeeded"
+    assert calls >= 3
 
 
 @pytest.mark.parametrize(
@@ -1228,7 +1359,10 @@ def test_cli_worker_runs_parent_when_it_is_the_oldest_ready_item(
         runner, "_oldest_ready_work_kind", lambda _conn: "acquisition"
     )
 
-    def parent_job(_conn, *, job_id=None, asset_store=None):
+    def parent_job(
+        _conn, *, job_id=None, asset_store=None, lease_connection_factory=None
+    ):
+        assert lease_connection_factory is runner.connect
         events.append(("parent", job_id, asset_store))
         return {
             "id": "acq-parent",
@@ -1242,7 +1376,7 @@ def test_cli_worker_runs_parent_when_it_is_the_oldest_ready_item(
     monkeypatch.setattr(
         runner,
         "process_next_article_image",
-        lambda _conn, *, asset_store=None: (
+        lambda _conn, *, asset_store=None, lease_connection_factory=None: (
             events.append(("image", asset_store)) or None
         ),
     )
@@ -1272,14 +1406,16 @@ def test_cli_worker_runs_image_when_it_is_the_oldest_ready_item(
     monkeypatch.setattr(
         runner,
         "process_next_job",
-        lambda _conn, *, job_id=None, asset_store=None: (
+        lambda _conn, *, job_id=None, asset_store=None,
+        lease_connection_factory=None: (
             events.append(("parent", job_id, asset_store)) or None
         ),
     )
     monkeypatch.setattr(
         runner,
         "process_next_article_image",
-        lambda _conn, *, asset_store=None: events.append(("image", asset_store))
+        lambda _conn, *, asset_store=None,
+        lease_connection_factory=None: events.append(("image", asset_store))
         or {
             "id": "image-1",
             "source_id": "source-1",

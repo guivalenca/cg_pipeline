@@ -6,10 +6,7 @@ from psycopg.types.json import Jsonb
 
 from universe.assets import LocalAssetStore, StoredAsset
 from universe.acquisition.manual_uploads import (
-    IMAGE_DESCRIPTION_TOOL,
-    ImageDescription,
     ManualAsset,
-    OpenRouterImageDescriber,
     acquire_manual_upload,
     create_manual_upload_job,
     list_manual_assets,
@@ -17,15 +14,16 @@ from universe.acquisition.manual_uploads import (
     validate_manual_assets,
 )
 from universe.acquisition.runner import claim_next_job
-from universe.acquisition.pdfs import PdfPage, PdfParseResult
+from universe.acquisition.pdfs import (
+    PdfFigureLocalizationResult,
+    PdfPage,
+    PdfParseResult,
+)
 from universe.acquisition.source_images import (
     SourceImageAnalysis,
     SourceImageBatchResult,
     input_manifest_hash,
 )
-from universe.blocks import split_blocks
-from universe.model_client import ModelClient
-from universe.web.app import _latest_source_state
 
 
 def png_bytes(width=20, height=10):
@@ -37,6 +35,17 @@ def png_bytes(width=20, height=10):
         + height.to_bytes(4, "big")
         + b"\x08\x02\x00\x00\x00"
         + b"\x00\x00\x00\x00"
+    )
+
+
+def no_pdf_figures(_context, _images):
+    return PdfFigureLocalizationResult(
+        regions=(),
+        requested_model="fake/vision",
+        response_model="fake/vision-resolved",
+        provider="Fake Provider",
+        usage={},
+        duration_ms=1,
     )
 
 
@@ -117,6 +126,20 @@ def test_raster_inputs_keep_the_explicit_order_and_image_kind():
         "image/jpeg",
         "image/webp",
     ]
+
+
+def test_article_gif_support_does_not_expand_ordered_manual_upload_formats():
+    with pytest.raises(ValueError, match="PNG, JPEG or WEBP"):
+        validate_manual_assets(
+            [
+                ManualAsset(
+                    "animated.gif",
+                    "image/gif",
+                    b"GIF89a\x01\x00\x01\x00\x00\x00\x00",
+                    "image",
+                )
+            ]
+        )
 
 
 def test_manual_upload_is_durable_and_ordered_before_processing(db, tmp_path):
@@ -228,119 +251,6 @@ def test_failed_transaction_never_deletes_a_shared_content_addressed_object(db):
     ).fetchone()[0] == 0
 
 
-def test_model_client_forces_exactly_one_named_tool_for_multimodal_messages():
-    calls = []
-
-    def transport(url, headers, payload, timeout):
-        calls.append((url, headers, payload, timeout))
-        return {
-            "model": "provider/resolved-vision-model",
-            "provider": "Example Provider",
-            "choices": [
-                {
-                    "message": {
-                        "tool_calls": [
-                            {
-                                "function": {
-                                    "name": "describe_source_image",
-                                    "arguments": '{"description":"A chart.","visible_text":"Revenue"}',
-                                }
-                            }
-                        ]
-                    }
-                }
-            ],
-            "usage": {"prompt_tokens": 12, "completion_tokens": 4, "total_tokens": 16},
-        }
-
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Describe it"},
-                {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}},
-            ],
-        }
-    ]
-    client = ModelClient(
-        "requested/vision-model",
-        api_base="https://openrouter.example/v1",
-        api_key="test-key",
-        transport=transport,
-    )
-
-    arguments, usage, duration_ms = client.call_tool(messages, IMAGE_DESCRIPTION_TOOL)
-
-    payload = calls[0][2]
-    assert payload["messages"] == messages
-    assert payload["tools"] == [IMAGE_DESCRIPTION_TOOL]
-    assert payload["tool_choice"] == {
-        "type": "function",
-        "function": {"name": "describe_source_image"},
-    }
-    assert payload["parallel_tool_calls"] is False
-    assert arguments == {"description": "A chart.", "visible_text": "Revenue"}
-    assert usage == {
-        "prompt_tokens": 12,
-        "completion_tokens": 4,
-        "total_tokens": 16,
-        "provider": "Example Provider",
-        "response_model": "provider/resolved-vision-model",
-    }
-    assert duration_ms >= 0
-
-
-def test_openrouter_image_description_sends_the_asset_as_a_data_url():
-    payloads = []
-
-    def transport(_url, _headers, payload, _timeout):
-        payloads.append(payload)
-        return {
-            "model": "google/resolved-vision",
-            "provider": "Google",
-            "choices": [
-                {
-                    "message": {
-                        "tool_calls": [
-                            {
-                                "function": {
-                                    "name": "describe_source_image",
-                                    "arguments": (
-                                        '{"description":"Um diagrama de fluxo.",'
-                                        '"visible_text":"Início → Resultado"}'
-                                    ),
-                                }
-                            }
-                        ]
-                    }
-                }
-            ],
-            "usage": {"prompt_tokens": 20, "completion_tokens": 8, "total_tokens": 28},
-        }
-
-    client = ModelClient(
-        "google/requested-vision",
-        api_base="https://openrouter.example/v1",
-        api_key="test-key",
-        transport=transport,
-    )
-    asset = validate_manual_assets(
-        [ManualAsset("flow.png", "image/png", png_bytes(), "image")]
-    )[0]
-
-    result = OpenRouterImageDescriber(client=client).describe(asset)
-
-    content = payloads[0]["messages"][0]["content"]
-    assert content[1]["type"] == "image_url"
-    assert content[1]["image_url"]["url"].startswith("data:image/png;base64,")
-    assert result.description == "Um diagrama de fluxo."
-    assert result.visible_text == "Início → Resultado"
-    assert result.requested_model == "google/requested-vision"
-    assert result.response_model == "google/resolved-vision"
-    assert result.provider == "Google"
-    assert result.usage == {"prompt_tokens": 20, "completion_tokens": 8, "total_tokens": 28}
-
-
 def test_pdf_manual_acquisition_links_original_and_queues_canonical_cleanup(db, tmp_path):
     source_id = "source-manual-pdf-markdown"
     db.execute(
@@ -378,6 +288,7 @@ def test_pdf_manual_acquisition_links_original_and_queues_canonical_cleanup(db, 
             attempts=1,
             diagnostics={"category": "success", "num_pages": 1},
         ),
+        pdf_figure_locator=no_pdf_figures,
         pdf_page_extractor=fake_pdf_pages,
         asset_store=store,
     )
@@ -418,179 +329,6 @@ def test_pdf_manual_acquisition_links_original_and_queues_canonical_cleanup(db, 
     ).fetchone() == ("queued",)
 
 
-def test_ordered_images_become_attached_described_transcribed_markdown(db, tmp_path):
-    source_id = "source-manual-images-markdown"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type) VALUES (%s, %s, %s, 'article')",
-        (source_id, Jsonb({"canonical_url": "https://example.com/clickable"}), "Clickable lesson"),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [
-            ManualAsset("screen-2.png", "image/png", png_bytes(), "screenshot"),
-            ManualAsset("chart.jpg", "image/jpeg", jpeg_bytes(), "image"),
-        ],
-        asset_store=store,
-    )
-
-    class FakeDescriber:
-        def __init__(self):
-            self.calls = []
-
-        def describe(self, asset):
-            self.calls.append(asset.filename)
-            number = len(self.calls)
-            return ImageDescription(
-                description=f"Visual explanation {number}.",
-                visible_text=f"Visible text {number}",
-                requested_model="fake/vision",
-                response_model="fake/vision-resolved",
-                provider="Fake Provider",
-                usage={"prompt_tokens": 10 * number, "completion_tokens": number, "total_tokens": 11 * number},
-                duration_ms=number,
-            )
-
-    describer = FakeDescriber()
-    job = acquire_manual_upload(
-        db, queued["id"], image_describer=describer, asset_store=store
-    )
-
-    assert job["status"] == "succeeded"
-    assert describer.calls == ["screen-2.png", "chart.jpg"]
-    assets = list_manual_assets(db, job["id"])
-    markdown = db.execute(
-        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
-    ).fetchone()[0]
-    first_image = f"![Screenshot 1 — screen-2.png](/api/source-assets/{assets[0]['id']})"
-    second_image = f"![Image 2 — chart.jpg](/api/source-assets/{assets[1]['id']})"
-    assert markdown.index(first_image) < markdown.index(second_image)
-    assert "Image summary: Visual explanation 1." in markdown
-    assert "Visible text: Visible text 1" in markdown
-    image_blocks = [block for block in split_blocks(markdown) if block.kind == "image"]
-    assert len(image_blocks) == 2
-    assert [block.image_state for block in image_blocks] == ["enriched", "enriched"]
-    assert "Image summary: Visual explanation 1." in image_blocks[0].text
-    assert "Visible text: Visible text 1" in image_blocks[0].text
-    assert job["diagnostics"]["model"] == "fake/vision"
-    assert job["diagnostics"]["prompt_version"] == "manual-source-image-description.v1"
-    assert job["diagnostics"]["provider"] == "Fake Provider"
-    assert job["diagnostics"]["usage"] == {
-        "prompt_tokens": 30,
-        "completion_tokens": 3,
-        "total_tokens": 33,
-    }
-    assert [item["kind"] for item in job["diagnostics"]["images"]] == [
-        "screenshot",
-        "image",
-    ]
-    analyses = db.execute(
-        "SELECT sa.ordinal, a.purpose, a.status, a.prompt_version, a.result"
-        " FROM source_asset_analysis a"
-        " JOIN source_asset sa ON sa.id = a.source_asset_id"
-        " WHERE sa.acquisition_job_id = %s ORDER BY sa.ordinal",
-        (job["id"],),
-    ).fetchall()
-    assert analyses == [
-        (
-            1,
-            "manual_image_description",
-            "succeeded",
-            "manual-source-image-description.v1",
-            {
-                "description": "Visual explanation 1.",
-                "visible_text": "Visible text 1",
-            },
-        ),
-        (
-            2,
-            "manual_image_description",
-            "succeeded",
-            "manual-source-image-description.v1",
-            {
-                "description": "Visual explanation 2.",
-                "visible_text": "Visible text 2",
-            },
-        ),
-    ]
-
-
-def test_visual_failure_preserves_the_manual_image_as_unresolved(db, tmp_path):
-    source_id = "source-manual-image-unresolved"
-    db.execute(
-        "INSERT INTO source (id, identity, title, media_type)"
-        " VALUES (%s, %s, %s, 'article')",
-        (
-            source_id,
-            Jsonb({"canonical_url": "https://example.com/unresolved-image"}),
-            "Unresolved visual source",
-        ),
-    )
-    db.commit()
-    store = LocalAssetStore(tmp_path / "assets")
-    queued = create_manual_upload_job(
-        db,
-        source_id,
-        [ManualAsset("page.png", "image/png", png_bytes(), "screenshot")],
-        asset_store=store,
-    )
-
-    class FailingDescriber:
-        def describe(self, _asset):
-            raise RuntimeError("provider response must not leak into diagnostics")
-
-    job = acquire_manual_upload(
-        db,
-        queued["id"],
-        image_describer=FailingDescriber(),
-        asset_store=store,
-    )
-
-    assert job["status"] == "succeeded"
-    markdown = db.execute(
-        "SELECT body FROM artifact WHERE id = %s", (job["artifact_id"],)
-    ).fetchone()[0]
-    image_blocks = [block for block in split_blocks(markdown) if block.kind == "image"]
-    assert len(image_blocks) == 1
-    assert image_blocks[0].image_state == "unresolved"
-    assert "Image analysis: unresolved." in image_blocks[0].text
-    assert "/api/source-assets/" in image_blocks[0].text
-    assert job["diagnostics"]["images"][0] == {
-        "asset_id": list_manual_assets(db, job["id"])[0]["id"],
-        "ordinal": 1,
-        "kind": "screenshot",
-        "status": "failed",
-        "failure_code": "manual_image_description_failed",
-        "diagnostics": {
-            "category": "image_description_failed",
-            "exception": "RuntimeError",
-        },
-    }
-    assert "provider response" not in str(job["diagnostics"])
-    state = _latest_source_state(db, [source_id])[source_id]
-    assert state["pipeline"]["status"] == "attention"
-    assert state["has_markdown"] is True
-    assert state["markdown"]["artifact_id"] == job["artifact_id"]
-    assert "evidência manual" in state["job"]["error"].lower()
-    assert db.execute(
-        "SELECT status, failure_code, result, diagnostics"
-        " FROM source_asset_analysis WHERE source_asset_id = %s",
-        (list_manual_assets(db, job["id"])[0]["id"],),
-    ).fetchone() == (
-        "failed",
-        "manual_image_description_failed",
-        {},
-        {
-            "ordinal": 1,
-            "kind": "screenshot",
-            "category": "image_description_failed",
-            "exception": "RuntimeError",
-        },
-    )
-
-
 def test_claimed_job_can_build_an_outcome_without_double_claim_or_finalization(db, tmp_path):
     source_id = "source-manual-claimed-outcome"
     db.execute(
@@ -616,6 +354,7 @@ def test_claimed_job_can_build_an_outcome_without_double_claim_or_finalization(d
             attempts=1,
             diagnostics={"category": "success", "num_pages": 1},
         ),
+        pdf_figure_locator=no_pdf_figures,
         pdf_page_extractor=lambda _body: [
             PdfPage(1, "Extracted text", png_bytes(), 20, 10)
         ],

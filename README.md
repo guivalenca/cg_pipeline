@@ -107,9 +107,14 @@ beside its OCR, visual description and any limitation as one atomic document
 element; model prose never replaces the asset. This lets image meaning affect
 passage boundaries without making one failed image retry the source.
 
-This differs from manual screenshots: there, the ordered images are the source
-material itself. A failed reading preserves the evidence and puts the source
-in attention instead of silently deleting it.
+Manual screenshots are reconstructed document-wide. Their visible order is
+preserved and the original normalized PNGs remain immutable evidence. The
+audit-only PDF transport stays lossless up to 24 MB; above that provider-risk
+threshold it uses JPEG quality 94 without chroma subsampling, while Firecrawl
+runs in forced OCR mode. The same PDF Figure Placement Module then
+inventories every page and inserts only local figure crops beside the Blocks
+that explain them. Whole-page screenshots remain immutable evidence and are
+never published as Markdown images.
 
 PDF extraction is structural (ADR 0017). An explicitly consented private PDF is
 uploaded to Firecrawl `/v2/parse`, which returns reading-order Markdown,
@@ -124,11 +129,44 @@ document processing is approved; `FIRECRAWL_API_KEY` is also required.
 Install Poppler locally before processing PDFs (`brew install poppler` on
 macOS; the Railway worker image needs the equivalent `poppler-utils` package).
 
-Video, book/Sophia, Browserbase, and caption adapters have not been ported yet.
-Queueing an otherwise valid Source whose media type has no Adapter ends with
-the explicit `unsupported_media_kind` failure; it is not reported as a
-successful extraction. The manual PDF/image path remains available for that
-existing Source when the operator has the material.
+Concretely scoped book pages use the Browserbase/Sophia Adapter. Each captured
+page and its reader accessibility text is committed before navigation
+continues, so a transient browser failure resumes from the completed prefix.
+If Firecrawl exhausts its short request-level retries, the same acquisition is
+rescheduled with its durable parse ledger and already captured page prefix;
+the book is not recaptured merely because the document provider was temporarily
+unavailable. The manifest-addressed transport PDF is reused byte-for-byte on
+that retry instead of being regenerated.
+Before committing a page, the Adapter expands the viewport until the page root,
+its scroll area, and every visual descendant fit horizontally and vertically;
+the bitmap is then checked for both dense and sparse content covered by the
+reader's navigation divider. The verified empty clearance band and its chrome
+are removed together, and hover/focus controls are dismissed before capture;
+otherwise a larger viewport is tried. An unverifiable or clipped page is retried and never
+replaced by a body or viewport screenshot containing reader chrome. Figure
+crops are validated against the page pixels: a clean Gemini edge is preserved.
+When ink crosses an edge, a nearby inner gutter removes neighboring prose;
+otherwise the edge grows to the first outer gutter to complete the figure.
+This retains complete tall and rotated diagrams without crossing a verified
+gap into neighboring prose; a region with no safe gutter remains explicit
+attention work instead of becoming a contaminated crop.
+After the Browserbase session is released, those ordered pages enter the same
+forced-OCR reconstruction and figure-placement path as manual screenshots.
+Exact reader text remains separate evidence: it helps page-local validation
+but cannot override OCR formulas or document structure. The Syllabus action
+names Browserbase, Firecrawl, OpenRouter/Gemini, and the exact page scope before
+queueing.
+
+YouTube sources begin with a metadata-only preflight. Publisher captions are
+preserved exactly when available; otherwise bounded, durable OpenRouter STT
+chunks are used after the duration policy is satisfied. Every route also
+captures visual evidence: spoken videos use Summarize to select candidate
+frames for the shared grouped image analysis, while proven visual-only videos
+use one whole-video teaching-beat interpretation and materialize its selected
+frames without paying for a second semantic decision. Frames, timestamps,
+caption/STT facts and provider usage remain auditable, and only the nonempty
+canonical cleanup Artifact is exposed as ready Markdown. Workers need Node.js
+24+, the lockfile installed with `npm ci`, `yt-dlp`, `ffmpeg`, and `ffprobe`.
 
 For local use, `python serve.py` runs the web process and one in-process worker.
 In Railway, use two services backed by the same Postgres database:

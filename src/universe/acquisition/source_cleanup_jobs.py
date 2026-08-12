@@ -10,6 +10,11 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from universe import blocks, harness, passage_cleanup
+from universe.acquisition.job_lease import (
+    ConnectionFactory,
+    JobLease,
+    separate_connection_factory,
+)
 from universe.blocks import BLOCKER_VERSION
 from universe.model_client import ModelClient, ModelError
 from universe.settings import (
@@ -17,6 +22,7 @@ from universe.settings import (
     openrouter_tool_provider_routing,
     source_cleanup_fallback_model,
     source_cleanup_model,
+    source_cleanup_timeout_seconds,
 )
 
 
@@ -29,7 +35,7 @@ JOB_COLUMNS = (
 
 MAIN_CONTENT_TOOL = "article-main-content-boundary"
 MAIN_CONTENT_VERSION = "v1"
-TRIAGE_PROMPT_VERSION = "v004"
+TRIAGE_PROMPT_VERSION = "v005"
 
 
 def _job(row: tuple | None) -> dict[str, Any] | None:
@@ -57,7 +63,7 @@ def enqueue_source_cleanup(
     """Queue one artifact exactly once; safe from refreshes and worker races."""
     context = conn.execute(
         "SELECT j.source_id, j.status, j.provider, j.artifact_id, j.diagnostics,"
-        " a.snapshot_id, parent.snapshot_id"
+        " a.snapshot_id, a.tool, a.metadata, parent.snapshot_id"
         " FROM acquisition_job j"
         " JOIN artifact a ON a.id = %s"
         " JOIN artifact parent ON parent.id = j.artifact_id"
@@ -69,17 +75,24 @@ def enqueue_source_cleanup(
     (
         source_id,
         status,
-        provider,
+        _provider,
         _parent_id,
-        diagnostics,
+        acquisition_diagnostics,
         snapshot_id,
+        artifact_tool,
+        artifact_metadata,
         parent_snapshot_id,
     ) = context
-    if status != "succeeded" or not (
-        provider == "firecrawl/v2"
-        or (diagnostics or {}).get("pipeline_requires_cleanup")
-    ):
-        raise ValueError("automatic cleanup requires a successful canonical pipeline")
+    requires_cleanup = bool(
+        (acquisition_diagnostics or {}).get("pipeline_requires_cleanup")
+        or (artifact_metadata or {}).get("pipeline_requires_cleanup")
+        or artifact_tool == "article-image-association"
+    )
+    if status != "succeeded" or not requires_cleanup:
+        raise ValueError(
+            "automatic cleanup requires a successful acquisition artifact"
+            " with the canonical-publication contract"
+        )
     if snapshot_id != parent_snapshot_id:
         raise ValueError("cleanup artifact does not belong to the acquisition snapshot")
 
@@ -263,7 +276,12 @@ def _model_client(tool_path: Path, model: str, *, fallback: bool = False) -> Mod
         extra.update({
             "reasoning": {"effort": "high", "exclude": True},
         })
-    return ModelClient(model, temperature=0, extra=extra)
+    return ModelClient(
+        model,
+        temperature=0,
+        timeout=source_cleanup_timeout_seconds(),
+        extra=extra,
+    )
 
 
 def _client(tool_path: Path) -> ResilientToolClient:
@@ -305,6 +323,37 @@ def _finish_failed(
     return result
 
 
+def _finish_without_teachable_content(
+    conn: psycopg.Connection,
+    job: dict[str, Any],
+    *,
+    cleanup_id: str,
+    candidate_artifact_id: str,
+    passages: int,
+) -> dict[str, Any]:
+    """Keep an empty cleanup candidate auditable without publishing it."""
+    diagnostics = {
+        "category": "no_teachable_content_preserved",
+        "cleanup_id": cleanup_id,
+        "candidate_artifact_id": candidate_artifact_id,
+        "passages": passages,
+    }
+    updated = conn.execute(
+        "UPDATE source_cleanup_job SET status = 'failed', cleanup_id = %s,"
+        " failure_code = 'no_teachable_content_preserved', diagnostics = %s,"
+        " finished_at = now(), lease_expires_at = NULL, claim_token = NULL,"
+        " updated_at = now() WHERE id = %s AND status = 'running' AND claim_token = %s",
+        (cleanup_id, Jsonb(diagnostics), job["id"], job["claim_token"]),
+    )
+    if updated.rowcount != 1:
+        conn.rollback()
+    else:
+        conn.commit()
+    result = get_source_cleanup_job(conn, job["id"])
+    assert result is not None
+    return result
+
+
 def process_next_source_cleanup(
     conn: psycopg.Connection,
     *,
@@ -313,82 +362,106 @@ def process_next_source_cleanup(
     triage_client: ModelClient | None = None,
     atomic_triage_client: ModelClient | None = None,
     refine_client: ModelClient | None = None,
+    lease_connection_factory: ConnectionFactory | None = None,
 ) -> dict[str, Any] | None:
     """Claim and run blocks → cuts → triage/refine → canonical artifact."""
+    heartbeat_connection = (
+        lease_connection_factory or separate_connection_factory(conn)
+    )
     job = claim_next_source_cleanup(conn, job_id=job_id)
     if job is None:
         return None
     try:
-        defaults = None
-        if not all((cuts_client, triage_client, atomic_triage_client, refine_client)):
-            defaults = _default_clients()
-        cuts_client = cuts_client or defaults[0]
-        triage_client = triage_client or defaults[1]
-        atomic_triage_client = atomic_triage_client or defaults[2]
-        refine_client = refine_client or defaults[3]
+        with JobLease(
+            heartbeat_connection,
+            table="source_cleanup_job",
+            row_id=job["id"],
+            claim_token=job["claim_token"],
+        ):
+            defaults = None
+            if not all(
+                (cuts_client, triage_client, atomic_triage_client, refine_client)
+            ):
+                defaults = _default_clients()
+            cuts_client = cuts_client or defaults[0]
+            triage_client = triage_client or defaults[1]
+            atomic_triage_client = atomic_triage_client or defaults[2]
+            refine_client = refine_client or defaults[3]
 
-        artifact = conn.execute(
-            "SELECT body, metadata FROM artifact WHERE id = %s",
-            (job["source_artifact_id"],),
-        ).fetchone()
-        if artifact is None:
-            raise ValueError("cleanup source artifact is missing")
-        cleanup_artifact_id, cleanup_body = _main_content_artifact(
-            conn, job["source_artifact_id"], artifact[0]
-        )
-        preserve_enriched_images = bool(
-            (artifact[1] or {}).get("pdf_page_pipeline")
-        )
-        blocks.store_blocks(
-            conn, cleanup_artifact_id, blocks.split_blocks(cleanup_body)
-        )
-
-        cuts_run_id = job.get("cuts_run_id")
-        if cuts_run_id is None:
-            source = harness.fetch_sources(conn, [cleanup_artifact_id])[
-                cleanup_artifact_id
-            ]
-            target = harness.Target(
-                source[0], source[1], cleanup_artifact_id,
-                harness.blocks_body(conn, cleanup_artifact_id),
+            artifact = conn.execute(
+                "SELECT body FROM artifact WHERE id = %s",
+                (job["source_artifact_id"],),
+            ).fetchone()
+            if artifact is None:
+                raise ValueError("cleanup source artifact is missing")
+            cleanup_artifact_id, cleanup_body = _main_content_artifact(
+                conn, job["source_artifact_id"], artifact[0]
             )
-            cuts_summary = harness.execute(
+            blocks.store_blocks(
+                conn, cleanup_artifact_id, blocks.split_blocks(cleanup_body)
+            )
+
+            cuts_run_id = job.get("cuts_run_id")
+            if cuts_run_id is None:
+                source = harness.fetch_sources(conn, [cleanup_artifact_id])[
+                    cleanup_artifact_id
+                ]
+                target = harness.Target(
+                    source[0], source[1], cleanup_artifact_id,
+                    harness.blocks_body(conn, cleanup_artifact_id),
+                )
+                cuts_summary = harness.execute(
+                    conn,
+                    harness.load_prompt("passage-cuts", "v001"),
+                    cuts_client,
+                    [target],
+                    workers=1,
+                    run_params={
+                        "blocker_version": BLOCKER_VERSION,
+                        "source_cleanup_job_id": job["id"],
+                    },
+                )
+                if cuts_summary["status"] != "done" or cuts_summary["failed"]:
+                    raise RuntimeError("passage cuts failed")
+                cuts_run_id = cuts_summary["run_id"]
+                conn.execute(
+                    "UPDATE source_cleanup_job SET cuts_run_id = %s, updated_at = now()"
+                    " WHERE id = %s AND status = 'running' AND claim_token = %s",
+                    (cuts_run_id, job["id"], job["claim_token"]),
+                )
+                conn.commit()
+
+            cleanup = passage_cleanup.run_cleanup(
                 conn,
-                harness.load_prompt("passage-cuts", "v001"),
-                cuts_client,
-                [target],
-                workers=1,
-                run_params={
-                    "blocker_version": BLOCKER_VERSION,
-                    "source_cleanup_job_id": job["id"],
-                },
+                cuts_run_id=cuts_run_id,
+                model=source_cleanup_model(),
+                triage_prompt=harness.load_prompt(
+                    "passage-triage", TRIAGE_PROMPT_VERSION
+                ),
+                refine_prompt=harness.load_prompt(
+                    "passage-refine", "v002", require_body=False
+                ),
+                triage_client=triage_client,
+                atomic_triage_client=atomic_triage_client,
+                refine_client=refine_client,
             )
-            if cuts_summary["status"] != "done" or cuts_summary["failed"]:
-                raise RuntimeError("passage cuts failed")
-            cuts_run_id = cuts_summary["run_id"]
-            conn.execute(
-                "UPDATE source_cleanup_job SET cuts_run_id = %s, updated_at = now()"
-                " WHERE id = %s AND status = 'running' AND claim_token = %s",
-                (cuts_run_id, job["id"], job["claim_token"]),
-            )
-            conn.commit()
+            if cleanup["status"] != "done" or len(cleanup.get("artifacts", [])) != 1:
+                raise RuntimeError("passage cleanup failed")
+            canonical_id = cleanup["artifacts"][0]
+            canonical = conn.execute(
+                "SELECT body FROM artifact WHERE id = %s", (canonical_id,)
+            ).fetchone()
+            if canonical is None:
+                raise RuntimeError("passage cleanup artifact is missing")
 
-        cleanup = passage_cleanup.run_cleanup(
-            conn,
-            cuts_run_id=cuts_run_id,
-            model=source_cleanup_model(),
-            triage_prompt=harness.load_prompt(
-                "passage-triage", TRIAGE_PROMPT_VERSION
-            ),
-            refine_prompt=harness.load_prompt("passage-refine", "v002", require_body=False),
-            triage_client=triage_client,
-            atomic_triage_client=atomic_triage_client,
-            refine_client=refine_client,
-            preserve_enriched_images=preserve_enriched_images,
-        )
-        if cleanup["status"] != "done" or len(cleanup.get("artifacts", [])) != 1:
-            raise RuntimeError("passage cleanup failed")
-        canonical_id = cleanup["artifacts"][0]
+        if not canonical[0].strip():
+            return _finish_without_teachable_content(
+                conn,
+                job,
+                cleanup_id=cleanup["cleanup_id"],
+                candidate_artifact_id=canonical_id,
+                passages=cleanup["passages"],
+            )
         updated = conn.execute(
             "UPDATE source_cleanup_job SET status = 'succeeded', cleanup_id = %s,"
             " canonical_artifact_id = %s, diagnostics = %s, finished_at = now(),"

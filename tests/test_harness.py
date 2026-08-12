@@ -1,7 +1,11 @@
 """Harness tests. The transport is faked, so nothing here touches a network."""
 
 import hashlib
+import threading
+import time
+import uuid
 
+import psycopg
 import pytest
 
 from universe import harness
@@ -131,6 +135,63 @@ def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
     # The artifact body reached the model inside the template, not on its own.
     sent = calls[0]["messages"][0]["content"]
     assert "BODY OF SOURCE" in sent and "Use the report_cuts tool" in sent
+
+
+def test_parallel_run_persists_a_fast_paid_result_before_a_slow_sibling_finishes(
+    test_database_url, db, prompt, targets
+):
+    """A crash behind one slow call must not erase already-paid sibling work."""
+    slow_started = threading.Event()
+    fast_finished = threading.Event()
+    release_slow = threading.Event()
+    marker = uuid.uuid4().hex
+    result = {}
+
+    def transport(url, headers, payload, timeout):
+        rendered = payload["messages"][0]["content"]
+        if "SOURCE 1" in rendered:
+            slow_started.set()
+            assert release_slow.wait(timeout=5)
+        else:
+            fast_finished.set()
+        return fake_transport()(url, headers, payload, timeout)
+
+    def run():
+        with psycopg.connect(test_database_url) as conn:
+            result.update(
+                harness.execute(
+                    conn,
+                    prompt,
+                    client(transport=transport),
+                    targets,
+                    workers=2,
+                    run_params={"completion_order_test": marker},
+                )
+            )
+
+    worker = threading.Thread(target=run)
+    worker.start()
+    try:
+        assert slow_started.wait(timeout=5)
+        assert fast_finished.wait(timeout=5)
+        with psycopg.connect(test_database_url) as observer:
+            deadline = time.monotonic() + 2
+            while True:
+                persisted = observer.execute(
+                    "SELECT count(*) FROM run_item i JOIN run r ON r.id = i.run_id"
+                    " WHERE r.params ->> 'completion_order_test' = %s",
+                    (marker,),
+                ).fetchone()[0]
+                if persisted or time.monotonic() >= deadline:
+                    break
+                time.sleep(0.01)
+        assert persisted == 1
+    finally:
+        release_slow.set()
+        worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert result["ok"] == 2
 
 
 def test_run_records_explicit_upstream_inputs(db, prompt, targets):
