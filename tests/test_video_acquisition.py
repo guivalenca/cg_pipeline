@@ -540,12 +540,22 @@ def test_silent_youtube_video_becomes_canonical_markdown_from_useful_frames(
 
 def test_captioned_video_runs_speech_and_visual_tracks_before_cleanup(db, tmp_path):
     source_id = "source-video-caption-and-frames"
+    legacy_video_id = (
+        "h4gw6gCP5ls e list=PL9iw99lS3Prg0hPSCiOz9AXeEmj8W8fL8 "
+        "e index=14 e t=49s"
+    )
     db.execute(
         "INSERT INTO source (id, identity, title, media_type)"
         " VALUES (%s, %s, 'Caption plus frames', 'video')",
         (
             source_id,
-            Jsonb({"kind": "video", "provider": "youtube", "video_id": "both123"}),
+            Jsonb(
+                {
+                    "kind": "video",
+                    "provider": "youtube",
+                    "video_id": legacy_video_id,
+                }
+            ),
         ),
     )
     db.commit()
@@ -573,7 +583,7 @@ def test_captioned_video_runs_speech_and_visual_tracks_before_cleanup(db, tmp_pa
         "SELECT body FROM artifact WHERE id = %s", (acquired["artifact_id"],)
     ).fetchone()[0]
     assert "Hello. This lesson stays exact." in base_markdown
-    assert "video-frame://both123/4000" in base_markdown
+    assert "video-frame://h4gw6gCP5ls/4000" in base_markdown
 
     call_id = db.execute(
         "SELECT id FROM source_image_analysis_call WHERE markdown_artifact_id = %s",

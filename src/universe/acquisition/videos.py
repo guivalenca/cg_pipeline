@@ -231,7 +231,7 @@ def _preflight(row: tuple | None) -> dict[str, Any] | None:
     return dict(zip(PREFLIGHT_COLUMNS, row)) if row else None
 
 
-def _identity_video_id(identity: object) -> str:
+def youtube_video_id(identity: object) -> str:
     if not isinstance(identity, dict):
         raise ValueError("video Source has no stable identity")
     if identity.get("kind") != "video" or identity.get("provider") != "youtube":
@@ -251,7 +251,7 @@ def _identity_video_id(identity: object) -> str:
 
 
 def youtube_url(identity: object) -> str:
-    return f"https://www.youtube.com/watch?v={_identity_video_id(identity)}"
+    return f"https://www.youtube.com/watch?v={youtube_video_id(identity)}"
 
 
 def _source(conn: psycopg.Connection, source_id: str) -> dict[str, Any]:
@@ -1089,7 +1089,7 @@ def _acquire_stt(
     lease_connection_factory: ConnectionFactory | None = None,
 ) -> VideoAcquisition:
     source_url = youtube_url(source["identity"])
-    video_id = _identity_video_id(source["identity"])
+    video_id = youtube_video_id(source["identity"])
     detected = (preflight.get("diagnostics") or {}).get("detected_language")
     language = _base_language(detected if isinstance(detected, str) else None)
     request_input = job.get("request_input") or {}
@@ -1302,7 +1302,7 @@ def acquire_video(
     route = preflight.get("route")
     requested_route = (job or {}).get("request_input", {}).get("transcript_route")
     source_url = youtube_url(source["identity"])
-    video_id = _identity_video_id(source["identity"])
+    video_id = youtube_video_id(source["identity"])
     if route == "visual_only" or requested_route == "visual_only":
         acquire_beats = getattr(adapter, "acquire_visual_teaching_beats", None)
         if not callable(acquire_beats):

@@ -65,6 +65,7 @@ from universe.acquisition.videos import (
     acquisition_input,
     get_preflight,
     persist_video_transcript,
+    youtube_video_id,
 )
 from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect
@@ -582,9 +583,9 @@ def _record_success(
     if outcome.video_acquisition is not None:
         if outcome.video_acquisition.frames:
             store = asset_store or asset_store_from_env()
-            video_id = str(
-                _source(conn, job["source_id"])["identity"]["video_id"]
-            ).strip()
+            video_id = youtube_video_id(
+                _source(conn, job["source_id"])["identity"]
+            )
             if outcome.video_acquisition.teaching_beats is not None:
                 reading_call_id = persist_teaching_beat_reading(
                     conn,
