@@ -32,15 +32,13 @@ def test_manual_upload_posts_ordered_files_to_one_source() -> None:
     assert "renderDetail()" in javascript
 
 
-def test_book_queue_requires_scope_specific_provider_consent() -> None:
+def test_book_queue_starts_without_redundant_confirmation() -> None:
     javascript = (STATIC / "syllabi.js").read_text(encoding="utf-8")
 
-    assert "window.confirm" in javascript
-    assert "O Browserbase abrirá o leitor autenticado" in javascript
-    assert "somente essas páginas" in javascript
-    assert "Firecrawl como um PDF ordenado" in javascript
-    assert "OpenRouter/Gemini para localizar figuras" in javascript
-    assert "Tasks e KCs não serão gerados automaticamente" in javascript
+    assert "O Browserbase abrirá o leitor autenticado" not in javascript
+    assert "Firecrawl como um PDF ordenado" not in javascript
+    assert "OpenRouter/Gemini para localizar figuras" not in javascript
+    assert javascript.count("window.confirm") == 1
 
 
 def test_manual_upload_rejects_mixed_or_unsupported_files_in_browser() -> None:

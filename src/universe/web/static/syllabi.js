@@ -1274,19 +1274,6 @@ function replaceSourceState(sourceId, payload) {
 
 async function queueSource(sourceId) {
   if (!sourceId) return;
-  const source = (state.detail?.lessons || [])
-    .flatMap((lesson) => lesson.sources || [])
-    .find((entry) => (entry.source_id || entry.id) === sourceId);
-  if (String(source?.media_type || '').toLowerCase() === 'book') {
-    const scope = [source?.scope_kind, source?.scope_value].filter(Boolean).join(': ');
-    const approved = window.confirm(
-      `Extrair “${source?.title || 'Livro'}” (${source?.resource_code || 'recurso não informado'}, ${scope || 'escopo não informado'})?\n\n`
-      + 'O Browserbase abrirá o leitor autenticado e capturará somente essas páginas. '
-      + 'As páginas serão enviadas à Firecrawl como um PDF ordenado para reconstrução estrutural e ao OpenRouter/Gemini para localizar figuras. '
-      + 'O processo termina em Markdown; Tasks e KCs não serão gerados automaticamente.'
-    );
-    if (!approved) return;
-  }
   const sourceNode = document.querySelector(`[data-source-id="${CSS.escape(sourceId)}"]`);
   const button = sourceNode?.querySelector('[data-queue-source]');
   if (button) button.disabled = true;
