@@ -17,7 +17,7 @@ import json
 
 import psycopg
 
-from universe import report
+from universe import pipeline_lease, report
 from universe.db import connect
 from universe.harness import (
     Target,
@@ -73,21 +73,36 @@ def granularity_of(item: dict) -> dict | str:
     }
 
 
-def materialize_parts(conn: psycopg.Connection, run_id: str) -> dict:
+def materialize_parts(
+    conn: psycopg.Connection,
+    run_id: str,
+    *,
+    commit: bool = True,
+) -> dict:
     """Write the task rows implied by a task-granularity run's splits."""
     run = fetch_run(conn, run_id)
     if run["stage"] != STAGE:
         raise SystemExit(f"{run_id} is a {run['stage']} run, not {STAGE}")
 
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
+
     counts = {"tasks_new": 0, "tasks_existing": 0}
     for item in fetch_items(conn, run_id):
         if item["error"]:
-            raise SystemExit(f"{item['id']} failed and has no parts: {item['error']}")
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} failed and has no parts: {item['error']}"
+                )
+            continue
         granularity = granularity_of(item)
         if not isinstance(granularity, dict):
-            raise SystemExit(
-                f"{item['id']} did not report usable granularity: {granularity}"
-            )
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} did not report usable granularity: {granularity}"
+                )
+            continue
         if granularity["verdict"] != "composite":
             continue
 
@@ -108,7 +123,8 @@ def materialize_parts(conn: psycopg.Connection, run_id: str) -> dict:
                 ),
             ).rowcount
             counts["tasks_new" if written else "tasks_existing"] += 1
-    conn.commit()
+    if commit:
+        conn.commit()
     return counts
 
 

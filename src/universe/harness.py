@@ -24,6 +24,7 @@ reuse `execute` instead of growing their own runner.
 import argparse
 import hashlib
 import json
+import os
 import random
 import re
 import sys
@@ -35,7 +36,7 @@ from pathlib import Path
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import report
+from universe import pipeline_lease, producer_publication, report
 from universe.blocks import BLOCKER_VERSION, fetch_blocks
 from universe.db import connect
 from universe.model_client import (
@@ -253,22 +254,45 @@ def claim_run(
     prompt_sha: str,
     params: dict,
 ) -> str:
-    """Stamp a running run under the next id, retrying concurrent claims."""
-    # Concurrent harnesses race for the next id; the loser of an id simply
-    # takes the next one. Bounded so a broken insert cannot spin forever.
-    for _ in range(20):
-        run_id = next_run_id(conn)
-        try:
-            conn.execute(
-                "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
-                " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
-                (run_id, stage, model, prompt_ref, prompt_sha, Jsonb(params)),
-            )
-            conn.commit()
-            return run_id
-        except psycopg.errors.UniqueViolation:
-            conn.rollback()
-    raise SystemExit("could not claim a run id in 20 attempts")
+    """Stamp one running run under serialized id allocation and lease fence."""
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    lease = {
+        name: value
+        for name, environment in (
+            ("scope_key", "UNIVERSE_KC_LEASE_SCOPE"),
+            ("stage", "UNIVERSE_KC_LEASE_STAGE"),
+            ("token", "UNIVERSE_KC_LEASE_TOKEN"),
+            ("owner_id", "UNIVERSE_KC_LEASE_OWNER"),
+        )
+        if (value := os.environ.get(environment))
+    }
+    stamped_params = {**params, **({"pipeline_lease": lease} if lease else {})}
+    conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+        ("universe:run-id-allocation",),
+    )
+    run_id = next_run_id(conn)
+    if supervisor is not None:
+        supervisor.fence(conn)
+    conn.execute(
+        "INSERT INTO run (id, stage, model, prompt_ref, prompt_sha, params, status)"
+        " VALUES (%s, %s, %s, %s, %s, %s, 'running')",
+        (run_id, stage, model, prompt_ref, prompt_sha, Jsonb(stamped_params)),
+    )
+    conn.commit()
+    return run_id
+
+
+def supervise_lease(
+    conn: psycopg.Connection,
+    stage: str,
+    *,
+    heartbeat_interval: float = pipeline_lease.DEFAULT_HEARTBEAT_SECONDS,
+):
+    """The common child-owned supervision seam used by workers and tests."""
+    return pipeline_lease.supervise(
+        conn, stage=stage, heartbeat_interval=heartbeat_interval
+    )
 
 
 def execute(
@@ -280,6 +304,31 @@ def execute(
     run_params: dict | None = None,
 ) -> dict:
     """Call the model once per target, writing each outcome as it lands."""
+    stage = prompt.ref.split("/", 1)[0]
+    with supervise_lease(conn, stage) as supervisor:
+        return _execute(
+            conn,
+            prompt,
+            client,
+            targets,
+            workers=workers,
+            run_params=run_params,
+            supervisor=supervisor,
+        )
+
+
+def _execute(
+    conn: psycopg.Connection,
+    prompt: Prompt,
+    client: ModelClient,
+    targets: list[Target],
+    *,
+    workers: int,
+    run_params: dict | None,
+    supervisor: pipeline_lease.LeaseSupervisor,
+) -> dict:
+    """Execute one run under the worker's authoritative lease supervisor."""
+    stage = prompt.ref.split("/", 1)[0]
     # Rendered before anything is written: an unfilled placeholder must stop
     # the run, not leave a stamped run of plausible answers to a broken prompt.
     prompts = [
@@ -288,6 +337,22 @@ def execute(
     ]
 
     params = {**client.params, **(run_params or {})}
+    producer = producer_publication.is_producer(stage)
+    if producer:
+        params["target_manifest"] = producer_publication.target_manifest(
+            targets, prompts
+        )
+        recovered = producer_publication.recover(
+            conn,
+            stage=stage,
+            model=client.model,
+            prompt_ref=prompt.ref,
+            prompt_sha=prompt.sha,
+            params=params,
+            supervisor=supervisor,
+        )
+        if recovered is not None:
+            return recovered
     run_id = claim_run(
         conn,
         prompt.ref.split("/", 1)[0],
@@ -304,7 +369,10 @@ def execute(
         retry_count = 0
         while True:
             try:
+                supervisor.before_provider_call()
                 return index, target, client.complete(rendered), None, retry_count
+            except pipeline_lease.LeaseLost:
+                raise
             except Exception as exc:  # one bad call must not end the run
                 if not is_transient_failure(exc) or retry_count >= MAX_ATTEMPTS - 1:
                     return index, target, None, f"{type(exc).__name__}: {exc}", retry_count
@@ -315,13 +383,14 @@ def execute(
         (index, target, text)
         for index, (target, text) in enumerate(zip(targets, prompts), 1)
     ]
-    ok = failed = 0
+    ok = failed = completed = 0
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(targets) or 1))) as pool:
         futures = [pool.submit(call, item) for item in work]
         for future in as_completed(futures):
             index, target, result, error, retry_count = future.result()
             text, usage, duration_ms = result if result else (None, None, None)
             usage = {**(usage or {}), "retry_count": retry_count}
+            supervisor.fence(conn)
             conn.execute(
                 "INSERT INTO run_item"
                 " (id, run_id, artifact_id, passage_id, task_id, passage_revision_id,"
@@ -340,6 +409,13 @@ def execute(
                     error,
                 ),
             )
+            completed += 1
+            if producer and completed == len(work):
+                conn.execute(
+                    "UPDATE run SET status = 'publishing'"
+                    " WHERE id = %s AND status = 'running'",
+                    (run_id,),
+                )
             conn.commit()
             if error:
                 failed += 1
@@ -348,6 +424,21 @@ def execute(
                 ok += 1
 
     status = "done" if ok else "failed"
+    if producer:
+        if not work:
+            supervisor.fence(conn)
+            conn.execute(
+                "UPDATE run SET status = 'publishing'"
+                " WHERE id = %s AND status = 'running'",
+                (run_id,),
+            )
+            conn.commit()
+        producer_publication.finalize(
+            conn, stage=stage, run_id=run_id, status=status
+        )
+        return {"run_id": run_id, "status": status, "ok": ok, "failed": failed}
+
+    supervisor.fence(conn)
     conn.execute(
         "UPDATE run SET status = %s, finished_at = now() WHERE id = %s", (status, run_id)
     )

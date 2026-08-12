@@ -40,6 +40,7 @@ from pathlib import Path
 
 import psycopg
 
+from universe import pipeline_lease
 from universe.db import connect
 
 BLOCKER_VERSION = "3"
@@ -334,6 +335,9 @@ def store_blocks(
     The table is a fact ledger, so an existing set is never corrected in
     place: re-running is a no-op, and a different split is a new version.
     """
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
     if count_blocks(conn, artifact_id, version):
         return 0
     with conn.cursor() as cur:

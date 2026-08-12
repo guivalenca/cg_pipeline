@@ -23,6 +23,7 @@ TOOL_PATH = Path(__file__).resolve().parents[2] / "prompts" / STAGE / "tool-v001
 DEFAULT_MODEL = "deepseek/deepseek-v4-pro"
 DEFAULT_WORKERS = 8
 DEFAULT_MAX_TOKENS = 1000
+DEFAULT_EXTRA = defaults.KC_INFERENCE_DEFAULTS[STAGE]
 VERDICTS = {"stated", "unsure"}
 
 

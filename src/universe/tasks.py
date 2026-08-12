@@ -13,6 +13,7 @@ import argparse
 
 import psycopg
 
+from universe import pipeline_lease
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run
 from universe.taskgen import STAGE as GENERATION_STAGE
@@ -23,21 +24,38 @@ def task_id(run_item_id: str, seq: int) -> str:
     return f"{run_item_id}:t{seq:02d}"
 
 
-def materialize(conn: psycopg.Connection, gen_run_id: str) -> dict:
+def materialize(
+    conn: psycopg.Connection,
+    gen_run_id: str,
+    *,
+    commit: bool = True,
+) -> dict:
     """Write the task rows a generation run implies."""
     run = fetch_run(conn, gen_run_id)
     if run["stage"] != GENERATION_STAGE:
         raise SystemExit(f"{gen_run_id} is a {run['stage']} run, not {GENERATION_STAGE}")
 
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
+
     counts = {"tasks_new": 0, "tasks_existing": 0}
     for item in fetch_items(conn, gen_run_id):
         if item["error"]:
-            raise SystemExit(f"{item['id']} failed and has no tasks: {item['error']}")
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} failed and has no tasks: {item['error']}"
+                )
+            continue
         if not item["passage_id"]:
             raise SystemExit(f"{item['id']} is about a whole artifact, not a passage")
         tasks = tasks_of(item)
         if not isinstance(tasks, list):
-            raise SystemExit(f"{item['id']} did not report usable tasks: {tasks}")
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} did not report usable tasks: {tasks}"
+                )
+            continue
         for seq, entry in enumerate(tasks, 1):
             written = conn.execute(
                 "INSERT INTO task (id, run_item_id, passage_id, seq, body, answer)"
@@ -52,7 +70,8 @@ def materialize(conn: psycopg.Connection, gen_run_id: str) -> dict:
                 ),
             ).rowcount
             counts["tasks_new" if written else "tasks_existing"] += 1
-    conn.commit()
+    if commit:
+        conn.commit()
     return counts
 
 

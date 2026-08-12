@@ -17,6 +17,7 @@ import argparse
 
 import psycopg
 
+from universe import pipeline_lease
 from universe.blocks import BLOCKER_VERSION, fetch_blocks
 from universe.cuts import parse_cuts, passage_ranges, repair_cuts
 from universe.db import connect
@@ -32,20 +33,37 @@ def passage_id(
     return f"{artifact_id}:b{version}:p{first_seq:04d}-{last_seq:04d}"
 
 
-def materialize(conn: psycopg.Connection, cuts_run_id: str) -> dict:
+def materialize(
+    conn: psycopg.Connection,
+    cuts_run_id: str,
+    *,
+    commit: bool = True,
+) -> dict:
     """Write the passages a cuts run implies, and record it as their origin."""
     run = fetch_run(conn, cuts_run_id)
     if run["stage"] != CUTS_STAGE:
         raise SystemExit(f"{cuts_run_id} is a {run['stage']} run, not {CUTS_STAGE}")
 
-    version = str((run.get("params") or {}).get("blocker_version") or "2")
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
+
+    version = str(
+        (run.get("params") or {}).get("blocker_version") or BLOCKER_VERSION
+    )
     counts = {"passages_new": 0, "passages_existing": 0, "origins_new": 0}
     for item in fetch_items(conn, cuts_run_id):
         if item["error"]:
-            raise SystemExit(f"{item['id']} failed and has no cuts: {item['error']}")
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} failed and has no cuts: {item['error']}"
+                )
+            continue
 
         blocks = fetch_blocks(conn, item["artifact_id"], version)
         if not blocks:
+            if not commit:
+                continue
             raise SystemExit(
                 f"{item['artifact_id']} has no blocks at version {version};"
                 " run universe.blocks first"
@@ -54,7 +72,11 @@ def materialize(conn: psycopg.Connection, cuts_run_id: str) -> dict:
         try:
             cuts = parse_cuts(item["response"])
         except ValueError as exc:
-            raise SystemExit(f"{item['id']} did not report usable cuts: {exc}")
+            if commit:
+                raise SystemExit(
+                    f"{item['id']} did not report usable cuts: {exc}"
+                )
+            continue
 
         # Deviations from the contract are repaired, not rejected: the report
         # is where a sloppy run is judged, and a range is a range either way.
@@ -72,7 +94,8 @@ def materialize(conn: psycopg.Connection, cuts_run_id: str) -> dict:
                 " ON CONFLICT DO NOTHING",
                 (identifier, cuts_run_id),
             ).rowcount
-    conn.commit()
+    if commit:
+        conn.commit()
     return counts
 
 

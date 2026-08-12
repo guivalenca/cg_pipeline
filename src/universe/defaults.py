@@ -36,6 +36,21 @@ STAGE_DEFAULTS: dict[str, dict[str, str]] = {
     },
 }
 
+# Inference policy owned by the KC suffix. Keeping this beside the stage
+# recipes lets canonicalization reuse one authoritative routing contract
+# without depending on the web adapter or the orchestrator implementation.
+KC_INFERENCE_DEFAULTS: dict[str, dict] = {
+    "kc-canonical-statement": {
+        "thinking": {"type": "enabled"},
+        "reasoning_effort": "high",
+        "tool_choice": "auto",
+        "provider": {
+            "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
+            "ignore": ["SiliconFlow"],
+        },
+    },
+}
+
 # Stages that no longer exist in the pipeline at all; their runs are
 # history, not candidates for re-running.
 RETIRED_STAGES = {"passage-segmentation", "task-fact"}
