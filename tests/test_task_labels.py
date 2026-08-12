@@ -1,8 +1,99 @@
-"""Chain-relative labels for base tasks and materialized granularity parts."""
+"""Chain-relative labels for effective scopes and legacy extraction reports."""
 
 import pytest
 
 from universe import task_labels
+
+
+def test_label_map_accepts_the_effective_scope_interface_by_keyword(monkeypatch):
+    selected = [{"id": "gen:a", "run_item_id": "gen-i1", "seq": 1}]
+    monkeypatch.setattr(
+        task_labels, "fetch_tasks_for_runs", lambda _conn, _runs: selected
+    )
+
+    assert task_labels.label_map(
+        object(), tasks=selected, gen_runs=["gen"], granularity_runs=None
+    ) == {"gen:a": "T01"}
+
+
+def test_label_map_preserves_the_legacy_scope_interface_by_keyword(monkeypatch):
+    base = [{"id": "gen:a", "passage_id": "p1"}]
+    monkeypatch.setattr(
+        task_labels, "fetch_tasks_for_runs", lambda _conn, _runs: base
+    )
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_passages_for_runs",
+        lambda _conn, _runs: [{"id": "p1"}],
+    )
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_revisions",
+        lambda _conn, _run: {"gen:a": {"verdict": "stands", "task": None}},
+    )
+
+    assert task_labels.label_map(
+        object(),
+        gen_runs=["gen"],
+        passages_from=["cuts"],
+        revision_run="revision",
+    ) == {"gen:a": "T01"}
+
+
+def test_label_map_numbers_only_effective_roots_and_keeps_part_lineage(monkeypatch):
+    originals = [
+        {"id": "gen:a", "run_item_id": "gen-i1", "seq": 1},
+        {"id": "gen:b", "run_item_id": "gen-i1", "seq": 2},
+        {"id": "gen:c", "run_item_id": "gen-i1", "seq": 3},
+        {"id": "gen:dropped", "run_item_id": "gen-i1", "seq": 4},
+    ]
+    effective = [
+        {"id": "gen:a", "run_item_id": "gen-i1", "seq": 1},
+        {"id": "split-b:t01", "run_item_id": "split-b", "seq": 1},
+        {"id": "split-b:t02", "run_item_id": "split-b", "seq": 2},
+        {"id": "gen:c", "run_item_id": "gen-i1", "seq": 3},
+    ]
+    monkeypatch.setattr(
+        task_labels, "fetch_tasks_for_runs", lambda _conn, _runs: originals
+    )
+    monkeypatch.setattr(
+        task_labels,
+        "fetch_items",
+        lambda _conn, _run: [{"id": "split-b", "task_id": "gen:b"}],
+    )
+
+    assert task_labels.label_map(object(), effective, ["gen"], ["split"]) == {
+        "gen:a": "T01",
+        "split-b:t01": "T02 part 1",
+        "split-b:t02": "T02 part 2",
+        "gen:c": "T03",
+    }
+
+
+def test_label_map_does_not_reconstruct_or_add_unselected_parts(monkeypatch):
+    originals = [{"id": "gen:a", "run_item_id": "gen-i1", "seq": 1}]
+    selected = [{"id": "gen:a", "run_item_id": "gen-i1", "seq": 1}]
+    monkeypatch.setattr(
+        task_labels, "fetch_tasks_for_runs", lambda _conn, _runs: originals
+    )
+    monkeypatch.setattr(task_labels, "fetch_items", lambda *_args: [])
+
+    assert task_labels.label_map(object(), selected, ["gen"], ["split"]) == {
+        "gen:a": "T01"
+    }
+
+
+def test_label_map_rejects_effective_tasks_outside_the_named_chain(monkeypatch):
+    monkeypatch.setattr(task_labels, "fetch_tasks_for_runs", lambda *_args: [])
+    monkeypatch.setattr(task_labels, "fetch_items", lambda *_args: [])
+
+    with pytest.raises(SystemExit, match="outside the labeling chain"):
+        task_labels.label_map(
+            object(),
+            [{"id": "orphan", "run_item_id": "unknown", "seq": 1}],
+            ["gen"],
+            ["split"],
+        )
 
 
 def test_label_map_filters_revises_numbers_and_labels_parts(monkeypatch):

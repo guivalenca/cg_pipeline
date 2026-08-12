@@ -27,10 +27,8 @@ from universe.db import connect
 from universe.harness import claim_run, fetch_items, id_list, load_prompt, positive_int
 from universe.kc_statement import fetch_usable_statements
 from universe.model_client import EmbeddingClient
-from universe.passages import fetch_passages_for_runs
-from universe.task_granularity import granularity_of, materialize_parts
-from universe.task_triage import apply_revisions, fetch_revisions
-from universe.tasks import fetch_tasks, fetch_tasks_for_runs, materialize
+from universe.task_scope import effective_tasks
+from universe.tasks import fetch_tasks
 
 STAGE = "task-embedding"
 DEFAULT_WORKERS = 16
@@ -44,6 +42,25 @@ def statement_embedding_inputs(
     tasks = fetch_tasks(conn, sorted(statements))
     rendered = [
         prompt.render_fields({"statement": statements[task["id"]]})
+        for task in tasks
+    ]
+    return tasks, rendered
+
+
+def task_answer_embedding_inputs(
+    conn, args: argparse.Namespace, prompt
+) -> tuple[list[dict], list[str]]:
+    """Legacy task+answer inputs from the shared post-split task scope."""
+    tasks = effective_tasks(
+        conn,
+        generation_runs=args.gen_runs,
+        passages_from=args.passages_from,
+        granularity_run=args.granularity_run,
+        revision_run=args.revision_run,
+        parts_revision_run=args.parts_revision_run,
+    )
+    rendered = [
+        prompt.render_fields({"task": task["body"], "answer": task["answer"]})
         for task in tasks
     ]
     return tasks, rendered
@@ -68,102 +85,11 @@ def cmd_run(args: argparse.Namespace) -> None:
                 conn, args.statements_from, prompt
             )
         else:
-            for run_id in args.gen_runs:
-                counts = materialize(conn, run_id)
-                print(
-                    f"{run_id}: {counts['tasks_new']} new task(s),"
-                    f" {counts['tasks_existing']} already known"
-                )
-            tasks = fetch_tasks_for_runs(conn, args.gen_runs)
-        if args.passages_from and not args.statements_from:
-            drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
-            outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
-            tasks = [t for t in tasks if t["passage_id"] in drawn]
-            print(
-                f"{outside} task(s) outside the passages of"
-                f" {', '.join(args.passages_from)}, skipped"
-            )
-        if args.revision_run and not args.statements_from:
-            base_revisions = fetch_revisions(conn, args.revision_run)
-            tasks, revision_dropped, unjudged = apply_revisions(tasks, base_revisions)
-            if unjudged:
-                names = ", ".join(t["id"] for t in unjudged)
-                raise SystemExit(
-                    f"{len(unjudged)} task(s) have no usable revision in"
-                    f" {args.revision_run}: {names}; silence is not a verdict"
-                )
-            rewritten = sum(
-                1
-                for task in tasks
-                if isinstance(base_revisions[task["id"]], dict)
-                and base_revisions[task["id"]]["verdict"] == "rewritten"
-            )
-            bodies = "body was" if rewritten == 1 else "bodies were"
-            print(
-                f"{args.revision_run}: {len(revision_dropped)} task(s) dropped as unfixable,"
-                f" {rewritten} task {bodies} swapped by rewrites"
-            )
-        if args.granularity_run and not args.statements_from:
-            granularity = {}
-            for item in fetch_items(conn, args.granularity_run):
-                if not item["task_id"]:
-                    raise SystemExit(f"{item['id']} is not about a task")
-                granularity[item["task_id"]] = granularity_of(item)
-            unjudged = [task for task in tasks if not isinstance(granularity.get(task["id"]), dict)]
-            if unjudged:
-                names = ", ".join(task["id"] for task in unjudged)
-                raise SystemExit(
-                    f"{len(unjudged)} task(s) have no usable granularity in"
-                    f" {args.granularity_run}: {names}; silence is not a verdict"
-                )
-            surviving_task_ids = {task["id"] for task in tasks}
-            composite_count = sum(
-                granularity[task["id"]]["verdict"] == "composite" for task in tasks
-            )
-            tasks = [task for task in tasks if granularity[task["id"]]["verdict"] != "composite"]
-            materialize_parts(conn, args.granularity_run)
-            parent_by_part_run_item = {
-                item["id"]: item["task_id"] for item in fetch_items(conn, args.granularity_run)
-            }
-            part_tasks = [
-                task for task in fetch_tasks_for_runs(conn, [args.granularity_run])
-                if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
-            ]
-            parts_count = len(part_tasks)
-            tasks.extend(part_tasks)
-            print(
-                f"{args.granularity_run}: {composite_count} composite task(s)"
-                f" replaced by {parts_count} part(s)"
-            )
-            if args.parts_revision_run:
-                part_revisions = fetch_revisions(conn, args.parts_revision_run)
-                revised_parts, part_dropped, unjudged = apply_revisions(part_tasks, part_revisions)
-                if unjudged:
-                    names = ", ".join(task["id"] for task in unjudged)
-                    raise SystemExit(
-                        f"{len(unjudged)} task(s) have no usable revision in"
-                        f" {args.parts_revision_run}: {names}; silence is not a verdict"
-                    )
-                rewritten = sum(
-                    isinstance(part_revisions[task["id"]], dict)
-                    and part_revisions[task["id"]]["verdict"] == "rewritten"
-                    for task in revised_parts
-                )
-                tasks = tasks[: len(tasks) - parts_count] + revised_parts
-                bodies = "body was" if rewritten == 1 else "bodies were"
-                print(
-                    f"{args.parts_revision_run}: {len(part_dropped)} task(s) dropped as"
-                    f" unfixable, {rewritten} task {bodies} swapped by rewrites"
-                )
+            tasks, rendered = task_answer_embedding_inputs(conn, args, prompt)
         if not tasks:
             source_runs = args.statements_from or args.gen_runs
             raise SystemExit(f"no tasks from {', '.join(source_runs)}")
 
-        if not args.statements_from:
-            rendered = [
-                prompt.render_fields({"task": task["body"], "answer": task["answer"]})
-                for task in tasks
-            ]
         empty = [task["id"] for task, text in zip(tasks, rendered) if not text.strip()]
         if empty:
             # The provider rejects empty inputs; an empty rendering means a

@@ -57,13 +57,11 @@ def render_runs(
     )
     tasks = select_tasks(conn, selection_args)
     judged_task_ids = {task["id"] for task in tasks}
-    task_dict = {task["id"]: task for task in tasks}
     task_labels = (
         label_map(
             conn,
+            tasks,
             gen_runs,
-            passages_from,
-            revision_run,
             [granularity_run] if granularity_run else None,
         )
         if passages_from and revision_run

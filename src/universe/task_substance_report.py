@@ -1,12 +1,11 @@
 """Read task-substance runs side by side, comparing verdicts across runs.
 
     python -m universe.task_substance_report r0072 r0073 --gen-runs r0052 \
-        --revision-run r0065 [--passages-from r0017]
+        --revision-run r0065 --triage-run r0070 [--passages-from r0017]
 
-Reconstructs the judged texts exactly as the runner does (applying
---passages-from filter and --revision-run overlay), then lays out repairs,
-uncertain cases, and rejected pairs side by side, with working pairs listed
-compactly at the end.
+Resolves the same post-split effective task evidence as the runner, then lays
+out repairs, uncertain cases, and rejected pairs side by side, with working
+pairs listed compactly at the end.
 """
 
 import argparse
@@ -17,12 +16,9 @@ import psycopg
 
 from universe.db import connect
 from universe.harness import fetch_items, fetch_run, id_list
-from universe.passages import fetch_passages_for_runs
-from universe.task_granularity import granularity_of, materialize_parts
 from universe.task_labels import label_map
-from universe.task_substance import DROPPED, KEPT, STAGE, substance_of
-from universe.task_triage import apply_revisions, fetch_revisions
-from universe.tasks import fetch_tasks_for_runs, materialize
+from universe.task_scope import effective_tasks
+from universe.task_substance import DROPPED, STAGE, substance_of
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
@@ -51,80 +47,24 @@ def render_runs(
     passages_from: list[str] | None = None,
     granularity_run: str | None = None,
     parts_revision_run: str | None = None,
+    triage_run: str | None = None,
 ) -> str:
     """Render side-by-side report comparing verdicts across runs."""
-    # Materialize and fetch the task set to be judged
-    for run_id in gen_runs:
-        materialize(conn, run_id)
-    tasks = fetch_tasks_for_runs(conn, gen_runs)
-
-    # Apply passages filter if specified
-    if passages_from:
-        drawn = {p["id"] for p in fetch_passages_for_runs(conn, passages_from)}
-        tasks = [t for t in tasks if t["passage_id"] in drawn]
-
-    # Apply revision-run overlay if specified
-    if revision_run:
-        revisions = fetch_revisions(conn, revision_run)
-        tasks, dropped, unjudged = apply_revisions(tasks, revisions)
-        if unjudged:
-            names = ", ".join(t["id"] for t in unjudged)
-            raise SystemExit(
-                f"{len(unjudged)} task(s) have no usable revision in"
-                f" {revision_run}: {names}; silence is not a verdict"
-            )
-
-    if parts_revision_run and not granularity_run:
-        raise SystemExit("--parts-revision-run requires --granularity-run")
-
-    if granularity_run:
-        granularity = {}
-        for item in fetch_items(conn, granularity_run):
-            if not item["task_id"]:
-                raise SystemExit(f"{item['id']} is not about a task")
-            granularity[item["task_id"]] = granularity_of(item)
-        unjudged = [
-            task
-            for task in tasks
-            if not isinstance(granularity.get(task["id"]), dict)
-        ]
-        if unjudged:
-            names = ", ".join(task["id"] for task in unjudged)
-            raise SystemExit(
-                f"{len(unjudged)} task(s) have no usable granularity in"
-                f" {granularity_run}: {names}; silence is not a verdict"
-            )
-        surviving_task_ids = {task["id"] for task in tasks}
-        tasks = [
-            task
-            for task in tasks
-            if granularity[task["id"]]["verdict"] != "composite"
-        ]
-        materialize_parts(conn, granularity_run)
-        parent_by_part_run_item = {
-            item["id"]: item["task_id"] for item in fetch_items(conn, granularity_run)
-        }
-        part_tasks = [
-            task for task in fetch_tasks_for_runs(conn, [granularity_run])
-            if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
-        ]
-        if parts_revision_run:
-            revisions = fetch_revisions(conn, parts_revision_run)
-            part_tasks, dropped, unjudged = apply_revisions(part_tasks, revisions)
-            if unjudged:
-                names = ", ".join(task["id"] for task in unjudged)
-                raise SystemExit(
-                    f"{len(unjudged)} task(s) have no usable revision in"
-                    f" {parts_revision_run}: {names}; silence is not a verdict"
-                )
-        tasks.extend(part_tasks)
+    tasks = effective_tasks(
+        conn,
+        generation_runs=gen_runs,
+        passages_from=passages_from,
+        granularity_run=granularity_run,
+        revision_run=revision_run,
+        parts_revision_run=parts_revision_run,
+        triage_run=triage_run,
+    )
 
     task_labels = (
         label_map(
             conn,
+            tasks,
             gen_runs,
-            passages_from,
-            revision_run,
             [granularity_run] if granularity_run else None,
         )
         if passages_from and revision_run
@@ -307,6 +247,7 @@ def write_report(
     passages_from: list[str] | None = None,
     granularity_run: str | None = None,
     parts_revision_run: str | None = None,
+    triage_run: str | None = None,
     reports_dir: Path | None = None,
 ) -> Path:
     path = (reports_dir or REPORTS_DIR) / f"task-substance-{'-'.join(run_ids)}.md"
@@ -320,6 +261,7 @@ def write_report(
             passages_from=passages_from,
             granularity_run=granularity_run,
             parts_revision_run=parts_revision_run,
+            triage_run=triage_run,
         )
     )
     return path
@@ -339,6 +281,10 @@ def main(argv: list[str] | None = None) -> None:
         help="task-revision run id; overlay rewrites and drop unfixable parts",
     )
     parser.add_argument(
+        "--triage-run",
+        help="task-triage run id; keep only tasks it judged supported",
+    )
+    parser.add_argument(
         "--passages-from", type=id_list, help="comma-separated cuts run ids to filter by"
     )
     args = parser.parse_args(argv)
@@ -352,6 +298,7 @@ def main(argv: list[str] | None = None) -> None:
                 passages_from=args.passages_from,
                 granularity_run=args.granularity_run,
                 parts_revision_run=args.parts_revision_run,
+                triage_run=args.triage_run,
             ),
             file=sys.stderr,
         )
