@@ -91,6 +91,38 @@ def test_select_targets_returns_the_latest_artifact_per_source(targets):
     assert targets[0].body == "BODY OF SOURCE 1"
 
 
+def test_explicit_artifact_selection_accepts_only_the_current_publication(db):
+    marker = uuid.uuid4().hex
+    source_id = f"harness-publication-{marker}"
+    snapshot_id = f"{source_id}:snapshot"
+    publication_id = f"{snapshot_id}:published"
+    intermediate_id = f"{snapshot_id}:intermediate"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Pinned publication', 'article')",
+        (source_id, f'{{"kind":"test","value":"{marker}"}}'),
+    )
+    db.execute(
+        "INSERT INTO source_snapshot (id, source_id, content_hash, status)"
+        " VALUES (%s, %s, %s, 'ok')",
+        (snapshot_id, source_id, marker),
+    )
+    db.execute(
+        "INSERT INTO artifact (id, snapshot_id, kind, tool, body, created_at)"
+        " VALUES (%s, %s, 'markdown', 'legacy-import', '# Published', now()),"
+        " (%s, %s, 'markdown', 'article-main-content-boundary',"
+        " '# Intermediate', now() + interval '1 second')",
+        (publication_id, snapshot_id, intermediate_id, snapshot_id),
+    )
+    db.commit()
+
+    selected = harness.select_targets(db, artifact_ids=[publication_id])
+
+    assert [target.artifact_id for target in selected] == [publication_id]
+    with pytest.raises(SystemExit, match="not a current Source Publication"):
+        harness.select_targets(db, artifact_ids=[intermediate_id])
+
+
 def test_next_numeric_run_id_ignores_historical_non_numeric_ids(db):
     db.execute(
         "INSERT INTO run"

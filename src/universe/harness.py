@@ -44,6 +44,7 @@ from universe.model_client import (
     ModelClient,
     is_transient_failure,
 )
+from universe.source_publication import current_many as current_source_publications
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
@@ -132,29 +133,78 @@ def load_prompt(stage: str, version: str, require_body: bool = True) -> Prompt:
 
 
 def select_targets(
-    conn: psycopg.Connection, source_ids: list[str] | None = None, limit: int | None = None
+    conn: psycopg.Connection,
+    source_ids: list[str] | None = None,
+    limit: int | None = None,
+    *,
+    artifact_ids: list[str] | None = None,
 ) -> list[Target]:
-    """The latest artifact of each selected source, in source id order.
+    """Canonical Source Publications, or an explicitly pinned artifact set.
 
     An empty selection selects nothing: only `None` means "no restriction".
     """
-    where, tail, params = "WHERE a.kind = 'markdown'", "", []
-    if source_ids is not None:
-        where, params = "WHERE a.kind = 'markdown' AND s.id = ANY(%s)", [source_ids]
-    if limit is not None:
-        tail, params = " LIMIT %s", params + [limit]
-    rows = conn.execute(
-        "SELECT DISTINCT ON (s.id) s.id, s.title, a.id, a.body"
-        " FROM source s"
-        " JOIN source_snapshot sn ON sn.source_id = s.id"
-        " JOIN artifact a ON a.snapshot_id = sn.id"
-        f" {where}"
-        " ORDER BY s.id, sn.created_at DESC, a.created_at DESC,"
-        " (a.metadata ? 'source_markdown_artifact_id') DESC, a.id DESC"
-        f"{tail}",
-        params,
-    ).fetchall()
-    return [Target(*row) for row in rows]
+    if artifact_ids is not None:
+        if source_ids is not None or limit is not None:
+            raise ValueError("artifact_ids cannot be combined with source selection")
+        if not artifact_ids:
+            return []
+        rows = conn.execute(
+            "SELECT s.id, s.title, a.id, a.body FROM artifact a"
+            " JOIN source_snapshot sn ON sn.id = a.snapshot_id"
+            " JOIN source s ON s.id = sn.source_id"
+            " WHERE a.id = ANY(%s) AND sn.status = 'ok'"
+            " AND a.kind = 'markdown' AND a.body ~ '[^[:space:]]'"
+            " ORDER BY s.id, a.id",
+            (artifact_ids,),
+        ).fetchall()
+        found = {row[2] for row in rows}
+        missing = sorted(set(artifact_ids) - found)
+        if missing:
+            raise SystemExit(
+                "no usable Markdown artifact " + ", ".join(missing)
+            )
+        current = current_source_publications(
+            conn, [row[0] for row in rows]
+        )
+        current_artifacts = {
+            publication.artifact_id for publication in current.values()
+        }
+        stale = sorted(set(artifact_ids) - current_artifacts)
+        if stale:
+            raise SystemExit(
+                "not a current Source Publication " + ", ".join(stale)
+            )
+        return [Target(*row) for row in rows]
+
+    if source_ids is None:
+        source_ids = [
+            row[0]
+            for row in conn.execute(
+                "SELECT id FROM source ORDER BY id"
+                + (" LIMIT %s" if limit is not None else ""),
+                ([limit] if limit is not None else []),
+            ).fetchall()
+        ]
+    elif limit is not None:
+        source_ids = source_ids[:limit]
+    publications = current_source_publications(conn, source_ids)
+    titles = {
+        source_id: title
+        for source_id, title in conn.execute(
+            "SELECT id, title FROM source WHERE id = ANY(%s)",
+            (source_ids,),
+        ).fetchall()
+    } if source_ids else {}
+    return [
+        Target(
+            source_id,
+            titles.get(source_id),
+            publications[source_id].artifact_id,
+            publications[source_id].body,
+        )
+        for source_id in source_ids
+        if source_id in publications
+    ]
 
 
 def fetch_sources(conn: psycopg.Connection, artifact_ids: list[str]) -> dict[str, tuple]:
@@ -523,7 +573,12 @@ def cmd_run(args: argparse.Namespace) -> None:
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
     with connect() as conn:
-        targets = select_targets(conn, args.sources, args.limit)
+        targets = select_targets(
+            conn,
+            args.sources,
+            args.limit,
+            artifact_ids=getattr(args, "artifacts", None),
+        )
         if not targets:
             raise SystemExit("no artifacts selected")
         if args.body_from == "blocks":
@@ -615,6 +670,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--model", required=True)
     selection = run.add_mutually_exclusive_group(required=True)
     selection.add_argument("--sources", type=id_list, help="comma-separated source ids")
+    selection.add_argument(
+        "--artifacts",
+        type=id_list,
+        help="comma-separated publication artifact ids pinned by the caller",
+    )
     selection.add_argument("--limit", type=positive_int, help="first N sources by id")
     selection.add_argument("--all", action="store_true")
     run.add_argument("--temperature", type=float)
