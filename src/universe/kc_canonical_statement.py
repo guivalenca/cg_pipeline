@@ -12,18 +12,20 @@ from pathlib import Path
 
 import psycopg
 
-from universe import defaults, harness, report
+from universe import harness, pipeline_lease, report
 from universe.db import connect
-from universe.ingest import THINKING_EXTRA
+from universe.effective_evidence import resolve_statement_tasks
 from universe.model_client import ModelClient
+from universe.recipe_identity import launch_recipe, matches_recipe
 
 STAGE = "kc-canonical-statement"
-PROMPT_VERSION = "v001"
-TOOL_PATH = Path(__file__).resolve().parents[2] / "prompts" / STAGE / "tool-v001.json"
-DEFAULT_MODEL = "deepseek/deepseek-v4-pro"
-DEFAULT_WORKERS = 8
-DEFAULT_MAX_TOKENS = 1000
-DEFAULT_EXTRA = defaults.KC_INFERENCE_DEFAULTS[STAGE]
+_RECIPE = launch_recipe(STAGE)
+PROMPT_VERSION = _RECIPE["prompt_ref"].split("/", 1)[1]
+TOOL_PATH = Path(__file__).resolve().parents[2] / _RECIPE["tool"]
+DEFAULT_MODEL = _RECIPE["model"]
+DEFAULT_WORKERS = _RECIPE["workers"]
+DEFAULT_MAX_TOKENS = _RECIPE["max_tokens"]
+DEFAULT_EXTRA = _RECIPE["extra"]
 VERDICTS = {"stated", "unsure"}
 
 
@@ -60,25 +62,38 @@ def latest_grouping_id(conn: psycopg.Connection) -> str:
 
 def fetch_group_tasks(conn: psycopg.Connection, grouping_id: str) -> list[dict]:
     """Every composite and its immutable member task evidence."""
-    exists = conn.execute(
-        "SELECT 1 FROM kc_grouping WHERE id = %s", (grouping_id,)
+    grouping = conn.execute(
+        "SELECT params FROM kc_grouping WHERE id = %s", (grouping_id,)
     ).fetchone()
-    if exists is None:
+    if grouping is None:
         raise SystemExit(f"no grouping snapshot {grouping_id}")
+    statement_runs = list((grouping[0] or {}).get("statements_from") or [])
+    if not statement_runs:
+        raise RuntimeError(
+            f"grouping {grouping_id} has no pinned statement witness"
+        )
     rows = conn.execute(
-        "SELECT g.id, m.task_id, t.body, t.answer"
+        "SELECT g.id, m.task_id"
         " FROM kc_group g"
         " JOIN kc_group_member m"
         "   ON m.grouping_id = g.grouping_id AND m.group_id = g.id"
-        " JOIN task t ON t.id = m.task_id"
         " WHERE g.grouping_id = %s"
         " ORDER BY g.id, m.task_id",
         (grouping_id,),
     ).fetchall()
+    evidence = {
+        task["id"]: task
+        for task in resolve_statement_tasks(
+            conn,
+            statement_runs,
+            task_ids=[task_id for _, task_id in rows],
+        )
+    }
     groups: dict[str, list[dict]] = {}
-    for group_id, task_id, body, answer in rows:
+    for group_id, task_id in rows:
+        task = evidence[task_id]
         groups.setdefault(group_id, []).append(
-            {"id": task_id, "task": body, "answer": answer}
+            {"id": task_id, "task": task["body"], "answer": task["answer"]}
         )
     return [
         {"id": group_id, "tasks": tasks}
@@ -102,7 +117,8 @@ def fetch_current_canonicalizations(
 ) -> dict[str, dict]:
     """Newest usable result per group from today's canonical prompt generation."""
     rows = conn.execute(
-        "SELECT c.group_id, r.model, r.prompt_ref, i.response, i.error"
+        "SELECT c.group_id, r.model, r.prompt_ref, r.prompt_sha, r.params,"
+        " i.response, i.error"
         " FROM kc_canonicalization c"
         " JOIN run_item i ON i.id = c.run_item_id"
         " JOIN run r ON r.id = i.run_id"
@@ -111,10 +127,16 @@ def fetch_current_canonicalizations(
         (grouping_id,),
     ).fetchall()
     results = {}
-    for group_id, model, prompt_ref, response, error in rows:
+    for group_id, model, prompt_ref, prompt_sha, params, response, error in rows:
         if group_id in results:
             continue
-        if defaults.run_generation(STAGE, model, prompt_ref) != "current":
+        if not matches_recipe(
+            STAGE,
+            model=model,
+            prompt_ref=prompt_ref,
+            prompt_sha=prompt_sha,
+            params=params,
+        ):
             continue
         parsed = canonicalization_of({"response": response, "error": error})
         if isinstance(parsed, dict):
@@ -131,7 +153,8 @@ def _already_usable(
     prompt_sha: str,
 ) -> set[str]:
     rows = conn.execute(
-        "SELECT c.group_id, i.response, i.error"
+        "SELECT c.group_id, r.model, r.prompt_ref, r.prompt_sha, r.params,"
+        " i.response, i.error"
         " FROM kc_canonicalization c"
         " JOIN run_item i ON i.id = c.run_item_id"
         " JOIN run r ON r.id = i.run_id"
@@ -142,8 +165,15 @@ def _already_usable(
     ).fetchall()
     return {
         group_id
-        for group_id, response, error in rows
-        if isinstance(canonicalization_of({"response": response, "error": error}), dict)
+        for group_id, run_model, run_ref, run_sha, params, response, error in rows
+        if matches_recipe(
+            STAGE,
+            model=run_model,
+            prompt_ref=run_ref,
+            prompt_sha=run_sha,
+            params=params,
+        )
+        and isinstance(canonicalization_of({"response": response, "error": error}), dict)
     }
 
 
@@ -203,6 +233,9 @@ def run_canonicalization(
     ]
     if len(item_ids) != len(pending):
         raise RuntimeError("canonical run item count does not match its composites")
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
     for item_id, group in zip(item_ids, pending):
         conn.execute(
             "INSERT INTO kc_canonicalization (run_item_id, grouping_id, group_id)"
@@ -222,7 +255,7 @@ execute = run_canonicalization
 
 def cmd_run(args: argparse.Namespace) -> None:
     grouping_id = args.grouping
-    extra = dict(THINKING_EXTRA)
+    extra = dict(DEFAULT_EXTRA)
     # The stage requires one structured answer; this replaces the shared
     # auto choice while preserving thinking and provider routing.
     extra.update(harness.load_tool(str(TOOL_PATH)))

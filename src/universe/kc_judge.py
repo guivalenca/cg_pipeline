@@ -12,16 +12,18 @@ import math
 import re
 import sys
 from collections.abc import Callable, Iterable, Mapping
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import defaults, harness
+from universe import harness, judge_manifest, pipeline_lease
 from universe.db import connect
+from universe.effective_evidence import resolve_statement_tasks
 from universe.kc_statement import fetch_usable_statements
-from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
+from universe.model_client import ModelClient
+from universe.recipe_identity import launch_recipe
 from universe.task_knowledge import knowledge_of
 from universe.task_modality import modality_of
 from universe.tasks import fetch_tasks
@@ -29,20 +31,14 @@ from universe.tasks import fetch_tasks
 
 VERDICTS = {"clear_yes", "likely", "unlikely", "clear_no"}
 STAGE = "kc-judge"
-PROMPT_VERSION = "v003-surmise-pair"
-TOOL_PATH = Path(__file__).resolve().parents[2] / "prompts/kc-judge/tool-v002.json"
-DEFAULT_WORKERS = 16
-DEFAULT_MODEL = defaults.STAGE_DEFAULTS[STAGE]["model"]
-DEFAULT_EXTRA = {
-    "tool_choice": "auto",
-    "reasoning_effort": "low",
-    # Routing decision 2026-08-07 (docs/pipeline-defaults.md): prefer the
-    # fastest acceptable provider without low-bit quantization.
-    "provider": {
-        "sort": "throughput",
-        "quantizations": ["int8", "fp8", "fp16", "bf16", "fp32", "unknown"],
-    },
-}
+_RECIPE = launch_recipe(STAGE)
+PROMPT_VERSION = _RECIPE["prompt_ref"].split("/", 1)[1]
+TOOL_PATH = Path(__file__).resolve().parents[2] / _RECIPE["tool"]
+DEFAULT_WORKERS = _RECIPE["workers"]
+DEFAULT_MODEL = _RECIPE["model"]
+DEFAULT_MAX_TOKENS = _RECIPE["max_tokens"]
+DEFAULT_EXTRA = _RECIPE["extra"]
+CANDIDATE_POLICY = _RECIPE["input_contract"]
 
 
 def universe_build_key(
@@ -66,11 +62,7 @@ def universe_build_key(
         "embedding_run": embedding_run,
         "modality_runs": modality_runs,
         "knowledge_runs": knowledge_runs,
-        "candidate_policy": {
-            "semantic_floor": 0.70,
-            "semantic_cap": 6,
-            "lexical_k": 5,
-        },
+        "candidate_policy": CANDIDATE_POLICY,
     }
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()
@@ -117,8 +109,11 @@ def _matching_verdicts(
     return {
         (task_a, task_b, input_key): run_item_id
         for task_a, task_b, input_key, run_item_id in conn.execute(
-            "SELECT task_a_id, task_b_id, input_key, run_item_id"
-            " FROM kc_verdict WHERE input_key = ANY(%s)",
+            "SELECT DISTINCT ON (task_a_id, task_b_id, input_key)"
+            " task_a_id, task_b_id, input_key, run_item_id"
+            " FROM kc_verdict WHERE input_key = ANY(%s)"
+            " ORDER BY task_a_id, task_b_id, input_key,"
+            " created_at DESC, run_item_id DESC",
             (input_keys,),
         ).fetchall()
     }
@@ -126,6 +121,9 @@ def _matching_verdicts(
 
 _BUILD_PARAM_KEYS = {
     "build_key",
+    "candidate_count",
+    "candidate_manifest_complete",
+    "candidate_manifest_sha256",
     "statements_from",
     "embedding_run",
     "modality_runs",
@@ -253,9 +251,9 @@ def generate_candidates(
     similarities: Mapping[tuple[str, str], float],
     already_judged: Iterable[tuple[str, str]] = (),
     *,
-    floor: float = 0.70,
-    semantic_cap: int = 6,
-    lexical_k: int = 5,
+    floor: float = CANDIDATE_POLICY["semantic_floor"],
+    semantic_cap: int = CANDIDATE_POLICY["semantic_cap"],
+    lexical_k: int = CANDIDATE_POLICY["lexical_k"],
 ) -> list[tuple[str, str, float]]:
     """Return the normalized semantic/BM25 union after axis filtering."""
     ordered = sorted(items, key=lambda item: item["id"])
@@ -425,31 +423,33 @@ def fetch_candidate_data(
     statement_run_label = ", ".join(statement_runs)
     modality_run_label = ", ".join(modality_runs)
     knowledge_run_label = ", ".join(knowledge_runs)
-    missing_statements = sorted(task_ids - set(statements))
-    if missing_statements:
-        _usable_value(
-            statement_run_label,
-            missing_statements[0],
-            None,
-            "statement",
+    statement_ids = set(statements)
+    if statement_ids != task_ids:
+        missing = sorted(task_ids - statement_ids)
+        extra = sorted(statement_ids - task_ids)
+        details = []
+        if missing:
+            details.append(f"missing {', '.join(missing)}")
+        if extra:
+            details.append(f"extra {', '.join(extra)}")
+        raise SystemExit(
+            f"{statement_run_label} task mismatch: {'; '.join(details)}"
         )
     inputs = {
-        statement_run_label: set(statements),
         modality_run_label: _run_task_ids(conn, modality_runs),
         knowledge_run_label: _run_task_ids(conn, knowledge_runs),
     }
     for run_id, actual_ids in inputs.items():
-        if actual_ids != task_ids:
-            missing = sorted(task_ids - actual_ids)
-            extra = sorted(actual_ids - task_ids)
-            details = []
-            if missing:
-                details.append(f"missing {', '.join(missing)}")
-            if extra:
-                details.append(f"extra {', '.join(extra)}")
-            raise SystemExit(f"{run_id} task mismatch: {'; '.join(details)}")
+        missing = sorted(task_ids - actual_ids)
+        if missing:
+            raise SystemExit(f"{run_id} task mismatch: missing {', '.join(missing)}")
 
-    tasks = {task["id"]: task for task in fetch_tasks(conn, sorted(task_ids))}
+    tasks = {
+        task["id"]: task
+        for task in resolve_statement_tasks(
+            conn, statement_runs, task_ids=sorted(task_ids)
+        )
+    }
     items = []
     for task_id in sorted(task_ids):
         if task_id not in modalities:
@@ -483,11 +483,15 @@ def fetch_candidate_data(
         for task_a, task_b, similarity in rows
         if similarity is not None
     }
-    judged = (
-        set()
-        if include_judged
-        else judged_pairs(conn, judge_model, judge_prompt, build_key)
-    )
+    judged = set()
+    if not include_judged:
+        judged = {
+            (task_a, task_b)
+            for task_a, task_b in judged_pairs(
+                conn, judge_model, judge_prompt, build_key
+            )
+            if task_a in task_ids and task_b in task_ids
+        }
     return items, similarities, judged
 
 
@@ -504,6 +508,7 @@ def run_judge(
     dry_run: bool = False,
 ) -> dict:
     """Generate candidates, call the injected client, and write the ledger."""
+    supervisor = pipeline_lease.current_supervisor(required=True)
     prompt = harness.load_prompt(STAGE, PROMPT_VERSION, require_body=False)
     build_key = universe_build_key(
         model=client.model,
@@ -552,15 +557,23 @@ def run_judge(
         descriptors.append((candidate, text, input_key))
 
     matched = _matching_verdicts(conn, descriptors)
-    reused_count = len(matched)
+    descriptor_keys = {
+        (candidate[0], candidate[1], input_key)
+        for candidate, _, input_key in descriptors
+    }
+    # Multiple corpora may render byte-identical task pairs and therefore
+    # share an input key. The lookup intentionally returns durable rows for
+    # every matching input, but this run's reuse metric counts only its own
+    # exact pair descriptors.
+    reused_count = sum(key in matched for key in descriptor_keys)
     pending = [
-        descriptor
-        for descriptor in descriptors
+        (index, descriptor)
+        for index, descriptor in enumerate(descriptors, 1)
         if (descriptor[0][0], descriptor[0][1], descriptor[2]) not in matched
     ]
     if limit is not None:
         pending = pending[:limit]
-    candidates = [candidate for candidate, _, _ in pending]
+    candidates = [candidate for _, (candidate, _, _) in pending]
     if dry_run:
         return {
             "run_id": None,
@@ -575,9 +588,7 @@ def run_judge(
         "embedding_run": embedding_run,
         "modality_runs": modality_runs,
         "knowledge_runs": knowledge_runs,
-        "semantic_floor": 0.70,
-        "semantic_cap": 6,
-        "lexical_k": 5,
+        **CANDIDATE_POLICY,
         "build_key": build_key,
     }
     run_id = harness.claim_run(
@@ -587,9 +598,13 @@ def run_judge(
     def call(work):
         index, candidate, text, input_key = work
         try:
+            if supervisor is not None:
+                supervisor.before_provider_call()
             response, usage, duration_ms = client.complete(text)
             parsed = parse_verdicts(response)
             return index, candidate, input_key, response, usage, duration_ms, parsed, None
+        except pipeline_lease.LeaseLost:
+            raise
         except Exception as exc:
             return index, candidate, input_key, None, None, None, None, (
                 f"{type(exc).__name__}: {exc}"
@@ -597,15 +612,26 @@ def run_judge(
 
     work = [
         (index, candidate, text, input_key)
-        for index, (candidate, text, input_key) in enumerate(pending, 1)
+        for index, (candidate, text, input_key) in pending
     ]
     ok = failed = 0
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(work) or 1))) as pool:
-        for index, candidate, input_key, response, usage, duration_ms, parsed, error in pool.map(
-            call, work
-        ):
+        futures = [pool.submit(call, item) for item in work]
+        for future in as_completed(futures):
+            (
+                index,
+                candidate,
+                input_key,
+                response,
+                usage,
+                duration_ms,
+                parsed,
+                error,
+            ) = future.result()
             task_a, task_b, _ = candidate
             item_id = f"{run_id}-{index:04d}"
+            if supervisor is not None:
+                supervisor.fence(conn)
             conn.execute(
                 "INSERT INTO run_item"
                 " (id, run_id, artifact_id, task_id, response, usage, duration_ms, error)"
@@ -645,39 +671,58 @@ def run_judge(
             conn.commit()
 
     status = "done" if failed == 0 else "failed"
-    conn.execute(
-        "UPDATE run SET status = %s, finished_at = now() WHERE id = %s",
-        (status, run_id),
-    )
-    conn.commit()
-    grouping_id = None
+    candidate_manifest_complete = False
+    selected_items: list[str] = []
     if status == "done":
-        # A limited or retried run only publishes after every candidate in
-        # this exact build has a verdict.  Until then the previous coherent
-        # snapshot remains live and is reported as stale.
+        # Verdicts from earlier attempts are reusable facts. This attempt may
+        # certify their union only after every candidate in the exact build
+        # resolves to a durable verdict item.
         matched = _matching_verdicts(conn, descriptors)
-        selected_items = [
+        maybe_selected = [
             matched.get((candidate[0], candidate[1], input_key))
             for candidate, _, input_key in descriptors
         ]
-        if all(selected_items):
-            from universe.kc_groups import compute_snapshot
-
-            grouping_id, _ = compute_snapshot(
-                conn,
-                build_key=build_key,
-                verdict_run_item_ids=selected_items,
-                reuse_current=True,
-            )
+        candidate_manifest_complete = all(maybe_selected)
+        if candidate_manifest_complete:
+            selected_items = [item_id for item_id in maybe_selected if item_id]
+    if supervisor is not None:
+        supervisor.fence(conn)
+    completion = None
+    if candidate_manifest_complete:
+        manifest = judge_manifest.certify(
+            conn,
+            judge_run_id=run_id,
+            run_item_ids=selected_items,
+        )
+        completion = {
+            "candidate_manifest_complete": True,
+            "candidate_count": manifest.count,
+            "candidate_manifest_sha256": manifest.sha256,
+        }
+    if completion is None:
+        conn.execute(
+            "UPDATE run SET status = %s, finished_at = now() WHERE id = %s",
+            (status, run_id),
+        )
+    else:
+        conn.execute(
+            "UPDATE run SET status = %s, finished_at = now(),"
+            " params = params || %s WHERE id = %s",
+            (status, Jsonb(completion), run_id),
+        )
+    conn.commit()
+    # Grouping is a separate stage with its own lease. The judge records only
+    # verdict facts and, when warranted, the complete-manifest certificate.
     return {
         "run_id": run_id,
         "status": status,
         "ok": ok,
         "failed": failed,
         "candidates": candidates,
+        "candidate_count": len(descriptors),
+        "candidate_manifest_complete": candidate_manifest_complete,
         "reused": reused_count,
         "build_key": build_key,
-        "grouping_id": grouping_id,
     }
 
 

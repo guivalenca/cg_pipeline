@@ -115,6 +115,33 @@ def test_local_and_corpus_snapshots_expose_disjoint_stage_sets(db):
     assert corpus["next_stage"] == "task-embedding"
 
 
+def test_local_snapshot_exposes_stated_unitary_kc_with_source_evidence(db):
+    tag = _tag("unitary")
+    complete = seed_complete_single_task_source(db, tag)
+
+    snapshot = kc_pipeline.read_snapshot(db, complete["source_id"])
+
+    assert snapshot["grouping_id"] is None
+    assert snapshot["relationships"] == []
+    assert len(snapshot["components"]) == 1
+    component = snapshot["components"][0]
+    assert component["id"] == complete["task_id"]
+    assert component["kind"] == "singleton"
+    assert component["canonical"] == {
+        "verdict": "stated",
+        "statement": f"Statement {tag}",
+    }
+    assert component["members"] == [
+        {
+            "task_id": complete["task_id"],
+            "source_id": complete["source_id"],
+            "task": "Q raw",
+            "answer": "A",
+            "statement": f"Statement {tag}",
+        }
+    ]
+
+
 @dataclass
 class _FakeProcess:
     pid: int = 4242

@@ -2,7 +2,9 @@
 
 import hashlib
 
-from universe import harness
+import pytest
+
+from universe import harness, pipeline_lease
 from universe.kc_groups import compute_groups, compute_snapshot, fetch_latest_verdicts
 
 
@@ -93,26 +95,36 @@ def test_snapshots_persist_groups_members_and_stable_group_ids(db):
             (item_id, task_a, task_b),
         )
     db.commit()
-    verdict_count = db.execute("SELECT count(*) FROM kc_verdict").fetchone()[0]
+    # Historical rows may contain superseded generations for the same pair;
+    # a grouping pins the effective latest-verdict projection, not raw ledger
+    # cardinality.
+    verdict_count = len(fetch_latest_verdicts(db))
 
     first_id, first_groups = compute_snapshot(db)
     second_id, second_groups = compute_snapshot(db)
 
-    assert (first_id, second_id) == ("g0001", "g0002")
+    assert first_id != second_id
+    assert int(second_id[1:]) == int(first_id[1:]) + 1
     assert first_groups == second_groups
-    group_id = first_groups[0]["id"]
+    fixture_group = next(
+        group for group in first_groups if group["members"] == task_ids
+    )
+    group_id = fixture_group["id"]
     assert db.execute(
         "SELECT params->>'rule', (params->>'verdict_count')::int"
         " FROM kc_grouping WHERE id = %s",
         (first_id,),
     ).fetchone() == ("mutual_clear_yes_perfect_clique", verdict_count)
-    assert db.execute(
-        "SELECT id FROM kc_group WHERE grouping_id = %s", (first_id,)
-    ).fetchall() == [(group_id,)]
+    assert {
+        row[0]
+        for row in db.execute(
+            "SELECT id FROM kc_group WHERE grouping_id = %s", (first_id,)
+        ).fetchall()
+    } == {group["id"] for group in first_groups}
     assert [row[0] for row in db.execute(
         "SELECT task_id FROM kc_group_member"
-        " WHERE grouping_id = %s ORDER BY task_id",
-        (first_id,),
+        " WHERE grouping_id = %s AND group_id = %s ORDER BY task_id",
+        (first_id, group_id),
     ).fetchall()] == task_ids
     assert db.execute(
         "SELECT count(*) FROM kc_grouping_verdict WHERE grouping_id = %s",
@@ -153,3 +165,22 @@ def test_latest_verdict_per_pair_supersedes_older_generations(db):
     _, groups = compute_snapshot(db, dry_run=True)
     grouped_tasks = {member for group in groups for member in group["members"]}
     assert not {task_a, task_b} & grouped_tasks
+
+
+def test_lost_grouped_lease_fails_before_any_snapshot_is_published(db, monkeypatch):
+    class LostSupervisor:
+        def fence(self, conn):
+            raise pipeline_lease.LeaseLost("taken over")
+
+    monkeypatch.setattr(
+        pipeline_lease,
+        "current_supervisor",
+        lambda *, required=False: LostSupervisor(),
+    )
+    before = db.execute("SELECT count(*) FROM kc_grouping").fetchone()[0]
+
+    with pytest.raises(pipeline_lease.LeaseLost, match="taken over"):
+        compute_snapshot(db)
+
+    db.rollback()
+    assert db.execute("SELECT count(*) FROM kc_grouping").fetchone()[0] == before

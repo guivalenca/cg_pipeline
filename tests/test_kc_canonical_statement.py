@@ -2,6 +2,8 @@
 
 import json
 
+from psycopg.types.json import Jsonb
+
 from universe import defaults, harness
 from universe.kc_canonical_statement import (
     canonicalization_of,
@@ -9,11 +11,12 @@ from universe.kc_canonical_statement import (
     run_canonicalization,
     tasks_markup,
 )
+from universe.recipe_identity import recipe_identity
 
 
 class FakeClient:
     model = defaults.STAGE_DEFAULTS["kc-canonical-statement"]["model"]
-    params = {}
+    params = recipe_identity("kc-canonical-statement")["model_params"]
 
     def __init__(self, response):
         self.response = response
@@ -83,7 +86,39 @@ def _seed_group(db):
                 f"Answer {index}",
             ),
         )
-    db.execute("INSERT INTO kc_grouping (id) VALUES ('canonical-grouping')")
+    statement = harness.claim_run(
+        db,
+        "kc-statement",
+        "fake/model",
+        "kc-statement/test",
+        "sha",
+        {"gen_runs": [generation]},
+    )
+    for index in (1, 2):
+        db.execute(
+            "INSERT INTO run_item"
+            " (id, run_id, artifact_id, task_id, response)"
+            " VALUES (%s, %s, 'canonical-artifact', %s, %s)",
+            (
+                f"{statement}-{index:04d}",
+                statement,
+                f"canonical-task-{index}",
+                json.dumps(
+                    {
+                        "verdict": "stated",
+                        "statement": f"Canonical statement {index}",
+                    }
+                ),
+            ),
+        )
+    db.execute(
+        "UPDATE run SET status = 'done', finished_at = now() WHERE id = %s",
+        (statement,),
+    )
+    db.execute(
+        "INSERT INTO kc_grouping (id, params) VALUES ('canonical-grouping', %s)",
+        (Jsonb({"statements_from": [statement]}),),
+    )
     db.execute(
         "INSERT INTO kc_group (grouping_id, id)"
         " VALUES ('canonical-grouping', 'canonical-group')"

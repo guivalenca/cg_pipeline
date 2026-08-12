@@ -6,7 +6,7 @@ import hashlib
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import defaults
+from universe import defaults, judge_manifest, pipeline_lease
 from universe.db import connect
 
 
@@ -117,7 +117,7 @@ def fetch_grouping_verdicts(
 
 
 def _current_runs(conn: psycopg.Connection, stage: str) -> list[str]:
-    """Completed runs that belong to today's recipe, oldest first."""
+    """Completed runs from today's recipe for the legacy global dashboard."""
     rows = conn.execute(
         "SELECT id, model, prompt_ref FROM run"
         " WHERE stage = %s AND status = 'done' ORDER BY started_at, id",
@@ -131,22 +131,30 @@ def _current_runs(conn: psycopg.Connection, stage: str) -> list[str]:
 
 
 def current_build_inputs(conn: psycopg.Connection) -> dict:
-    """The dependency refs the reference chain would use for a build now."""
+    """Best-effort legacy-global inputs used only by the old dashboard.
+
+    Product Universe reads are manifest-pinned through ``kc_progress``.  This
+    compatibility projection must therefore never be used to authorize work.
+    """
     embeddings = _current_runs(conn, "task-embedding")
     judge_runs = _current_runs(conn, "kc-judge")
+    judge_run_id = judge_runs[-1] if judge_runs else None
+    manifest = judge_manifest.read(conn, judge_run_id) if judge_run_id else None
+    judge_params = (
+        conn.execute("SELECT params FROM run WHERE id = %s", (judge_run_id,)).fetchone()[0]
+        if judge_run_id
+        else {}
+    ) or {}
     judge = defaults.STAGE_DEFAULTS["kc-judge"]
-    latest_judge_key = None
-    if judge_runs:
-        latest_judge_key = conn.execute(
-            "SELECT params->>'build_key' FROM run WHERE id = %s",
-            (judge_runs[-1],),
-        ).fetchone()[0]
     return {
-        "build_key": latest_judge_key,
+        "build_key": manifest.build_key if manifest else judge_params.get("build_key"),
         "statements_from": _current_runs(conn, "kc-statement"),
         "embedding_run": embeddings[-1] if embeddings else None,
         "modality_runs": _current_runs(conn, "task-modality"),
         "knowledge_runs": _current_runs(conn, "task-knowledge"),
+        "judge_run_id": judge_run_id if manifest else None,
+        "candidate_count": manifest.count if manifest else None,
+        "candidate_manifest_sha256": manifest.sha256 if manifest else None,
         "judge_model": judge["model"],
         "judge_prompt": judge["prompt_ref"],
     }
@@ -165,6 +173,9 @@ def grouping_staleness(
         "embedding_run": params.get("embedding_run"),
         "modality_runs": params.get("modality_runs"),
         "knowledge_runs": params.get("knowledge_runs"),
+        "judge_run_id": params.get("judge_run_id"),
+        "candidate_count": params.get("candidate_count"),
+        "candidate_manifest_sha256": params.get("candidate_manifest_sha256"),
         "judge_model": params.get("judge_model"),
         "judge_prompt": params.get("judge_prompt"),
     }
@@ -187,6 +198,9 @@ def grouping_staleness(
         "embedding_run": "embeddings",
         "modality_runs": "modality classifications",
         "knowledge_runs": "knowledge classifications",
+        "judge_run_id": "certified judge run",
+        "candidate_count": "candidate count",
+        "candidate_manifest_sha256": "candidate manifest",
         "judge_model": "judge model",
         "judge_prompt": "judge prompt",
     }
@@ -198,19 +212,20 @@ def grouping_staleness(
     return bool(reasons), reasons
 
 
-def build_context(conn: psycopg.Connection, build_key: str) -> dict:
-    """Read the exact upstream refs stamped on the newest run of a build."""
+def build_context(conn: psycopg.Connection, judge_run_id: str) -> dict:
+    """Read one certified judge run's exact grouping inputs."""
+    manifest = judge_manifest.require(conn, judge_run_id)
     row = conn.execute(
         "SELECT model, prompt_ref, prompt_sha, params FROM run"
-        " WHERE stage = 'kc-judge' AND params->>'build_key' = %s"
-        " ORDER BY started_at DESC, id DESC LIMIT 1",
-        (build_key,),
+        " WHERE id = %s AND stage = 'kc-judge' AND status = 'done'",
+        (judge_run_id,),
     ).fetchone()
     if row is None:
-        raise LookupError(f"no judge run for Universe build {build_key}")
+        raise LookupError(f"no certified judge run {judge_run_id}")
     model, prompt_ref, prompt_sha, params = row
     return {
-        "build_key": build_key,
+        "judge_run_id": judge_run_id,
+        "build_key": manifest.build_key,
         "statements_from": params.get("statements_from") or [],
         "embedding_run": params.get("embedding_run"),
         "modality_runs": params.get("modality_runs") or [],
@@ -218,53 +233,53 @@ def build_context(conn: psycopg.Connection, build_key: str) -> dict:
         "judge_model": model,
         "judge_prompt": prompt_ref,
         "judge_prompt_sha": prompt_sha,
+        "candidate_count": manifest.count,
+        "candidate_manifest_sha256": manifest.sha256,
     }
-
-
-def latest_build_key(conn: psycopg.Connection) -> str | None:
-    """Newest completed current judge build, falling back to audit history."""
-    rows = conn.execute(
-        "SELECT model, prompt_ref, params->>'build_key' FROM run"
-        " WHERE stage = 'kc-judge' AND status = 'done'"
-        " ORDER BY started_at DESC, id DESC"
-    ).fetchall()
-    for model, prompt_ref, build_key in rows:
-        if build_key and defaults.run_generation("kc-judge", model, prompt_ref) == "current":
-            return build_key
-    return next((build_key for _, _, build_key in rows if build_key), None)
 
 
 def compute_snapshot(
     conn: psycopg.Connection,
     *,
-    build_key: str | None = None,
-    verdict_run_item_ids: list[str] | None = None,
+    judge_run_id: str | None = None,
     dry_run: bool = False,
-    reuse_current: bool = False,
 ) -> tuple[str | None, list[dict]]:
-    """Compute cliques from one coherent judge build and persist a snapshot."""
-    selected_build = build_key or latest_build_key(conn)
+    """Compute cliques from one certified manifest and persist a snapshot.
+
+    Omitting ``judge_run_id`` retains the historical audit-ledger projection
+    for direct library callers. The production CLI always requires an exact
+    certified judge run.
+    """
+    manifest = (
+        judge_manifest.require(conn, judge_run_id) if judge_run_id else None
+    )
+    context = build_context(conn, judge_run_id) if judge_run_id else {}
     records = _fetch_verdict_records(
         conn,
-        build_key=selected_build if verdict_run_item_ids is None else None,
-        run_item_ids=verdict_run_item_ids,
+        run_item_ids=list(manifest.run_item_ids) if manifest is not None else None,
     )
+    if manifest is not None and (
+        manifest.count != len(records)
+        or set(manifest.run_item_ids) != {record[4] for record in records}
+    ):
+        raise RuntimeError(
+            f"certified judge run {judge_run_id} has an invalid candidate manifest"
+        )
     verdicts = [record[:4] for record in records]
     groups = compute_groups(verdicts)
     if dry_run:
         return None, groups
-    if reuse_current and selected_build:
-        existing = conn.execute(
-            "SELECT id FROM kc_grouping WHERE params->>'build_key' = %s"
-            " AND (params->>'verdict_count')::int = %s"
-            " ORDER BY computed_at DESC, id DESC LIMIT 1",
-            (selected_build, len(verdicts)),
-        ).fetchone()
-        if existing:
-            return existing[0], groups
-
+    # Serialize the human-readable id allocation through commit. The grouped
+    # stage normally has a corpus lease; this also removes the database PK
+    # race for direct operational invocations.
+    conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+        ("universe:kc-grouping-id",),
+    )
     grouping_id = next_grouping_id(conn)
-    context = build_context(conn, selected_build) if selected_build else {}
+    supervisor = pipeline_lease.current_supervisor(required=True)
+    if supervisor is not None:
+        supervisor.fence(conn)
     conn.execute(
         "INSERT INTO kc_grouping (id, params) VALUES (%s, %s)",
         (
@@ -272,7 +287,11 @@ def compute_snapshot(
             Jsonb(
                 {
                     "rule": "mutual_clear_yes_perfect_clique",
-                    "verdict_policy": "latest_per_pair_within_build",
+                    "verdict_policy": (
+                        "exact_certified_judge_manifest"
+                        if manifest is not None
+                        else "latest_per_pair_audit_history"
+                    ),
                     "verdict_count": len(verdicts),
                     **context,
                 }
@@ -315,7 +334,9 @@ def list_groups(conn: psycopg.Connection) -> list[tuple[str, str, int]]:
 def cmd_compute(args: argparse.Namespace) -> None:
     with connect() as conn:
         grouping_id, groups = compute_snapshot(
-            conn, build_key=args.build_key, dry_run=args.dry_run
+            conn,
+            judge_run_id=args.judge_run,
+            dry_run=args.dry_run,
         )
     if args.dry_run:
         print(f"{len(groups)} group(s); no rows written")
@@ -339,7 +360,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     compute = sub.add_parser("compute", help="materialize a new clique snapshot")
     compute.add_argument(
-        "--build-key", help="exact judge build to group; defaults to latest current build"
+        "--judge-run", required=True, help="exact certified kc-judge run to group"
     )
     compute.add_argument("--dry-run", action="store_true")
     compute.set_defaults(func=cmd_compute)
