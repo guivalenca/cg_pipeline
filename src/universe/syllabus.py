@@ -1156,7 +1156,9 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
             ),
             "lesson_date": lesson_date,
             "description": _clean_edit_text(
-                raw_lesson.get("description"), field=f"lesson {lesson_index} description"
+                raw_lesson.get("description"),
+                field=f"lesson {lesson_index} description",
+                limit=4000,
             ),
             "is_hidden": bool(raw_lesson.get("hidden")),
             "fields": _base_fields(base_lesson),
@@ -1199,6 +1201,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
                     "description": _clean_edit_text(
                         raw_source.get("description"),
                         field=f"lesson {lesson_index}, source {source_index} description",
+                        limit=4000,
                     ),
                     "url": _clean_edit_text(
                         raw_source.get("url"),
@@ -1408,12 +1411,22 @@ def curate_syllabus(
             "diff": {"added": [], "removed": [], "changed": []},
         }
 
+    raw_note = str(note or "").strip()
+    if not raw_note:
+        raise ValueError("A razão da nova versão é obrigatória.")
+    if len(raw_note) > 500:
+        raise ValueError(
+            "A razão da nova versão deve ter no máximo 500 caracteres."
+        )
+
     next_seq = latest["seq"] + 1
     version_id = f"{syllabus_id}:v{next_seq:04d}"
     body = compile_syllabus_workbook(syllabus[1], latest.get("input_format"), normalized)
     file_name = f"{syllabus_id}-v{next_seq:04d}.xlsx"
     file_sha = hashlib.sha256(body).hexdigest()
-    clean_note = _clean_edit_text(note, field="curation note", limit=5000)
+    clean_note = _clean_edit_text(
+        raw_note, field="curation note", required=True, limit=500
+    )
     conn.execute(
         "INSERT INTO syllabus_version"
         " (id, syllabus_id, seq, origin, input_format, file_name, file_mime, file_sha,"

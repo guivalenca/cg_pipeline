@@ -220,6 +220,76 @@
   cursor: pointer;
 }
 
+.syl-heading-controls {
+  min-width: min(690px, 62vw);
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.syl-heading-controls .workspace__actions {
+  justify-content: flex-end;
+}
+
+.syl-version-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.syl-version-note {
+  min-width: 0;
+  max-width: 470px;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--admin-text-muted);
+  font-size: 10.5px;
+}
+
+.syl-version-note > span {
+  flex: none;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.syl-version-note p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.syl-version-reason {
+  min-width: 340px;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.syl-version-reason > span {
+  color: var(--admin-text-secondary);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.syl-version-reason .field {
+  min-height: 38px;
+  background: var(--admin-surface);
+}
+
+.syl-version-reason small {
+  color: var(--admin-text-muted);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
 .syl-toolbar {
   position: sticky;
   z-index: 10;
@@ -381,6 +451,8 @@
 .syl-lesson[data-subject="NEG"] { --lesson-accent: #7d5a3c; --lesson-accent-strong: #63462e; --lesson-accent-soft: #f2ebe2; }
 .syl-lesson[data-subject="ORIENTATION"],
 .syl-lesson[data-subject="ORIENTAÇÃO"] { --lesson-accent: #667248; --lesson-accent-strong: #505b37; --lesson-accent-soft: #eef1e6; }
+.syl-lesson[data-subject="ARTEFATOS"] { --lesson-accent: #9b642f; --lesson-accent-strong: #7b4d22; --lesson-accent-soft: #f5eee5; }
+.syl-lesson[data-subject="AVALIAÇÕES"] { --lesson-accent: #875172; --lesson-accent-strong: #6d3e5a; --lesson-accent-soft: #f4ebf1; }
 
 [data-theme="dark"] .syl-lesson[data-subject="COM"] { --lesson-accent: #6aa6c8; --lesson-accent-strong: #6aa6c8; --lesson-accent-soft: #25323b; }
 [data-theme="dark"] .syl-lesson[data-subject="UEX"],
@@ -392,6 +464,8 @@
 [data-theme="dark"] .syl-lesson[data-subject="NEG"] { --lesson-accent: #c9a075; --lesson-accent-strong: #c9a075; --lesson-accent-soft: #332a20; }
 [data-theme="dark"] .syl-lesson[data-subject="ORIENTATION"],
 [data-theme="dark"] .syl-lesson[data-subject="ORIENTAÇÃO"] { --lesson-accent: #b3bf8c; --lesson-accent-strong: #b3bf8c; --lesson-accent-soft: #303526; }
+[data-theme="dark"] .syl-lesson[data-subject="ARTEFATOS"] { --lesson-accent: #d4a36f; --lesson-accent-strong: #d4a36f; --lesson-accent-soft: #392d22; }
+[data-theme="dark"] .syl-lesson[data-subject="AVALIAÇÕES"] { --lesson-accent: #cea0be; --lesson-accent-strong: #cea0be; --lesson-accent-soft: #372a33; }
 
 .syl-lesson.is-hidden-lesson {
   border-style: dashed;
@@ -1605,6 +1679,7 @@
 
 @media (max-width: 820px) {
   .workspace__heading { align-items: flex-start; }
+  .syl-heading-controls { min-width: 0; }
   .syl-syllabus-list { grid-template-columns: 1fr; }
   .syl-toolbar { align-items: stretch; flex-wrap: wrap; }
   .syl-search { min-width: 100%; }
@@ -1633,6 +1708,12 @@
   .workspace__heading { display: grid; }
   .workspace__heading > .button { width: 100%; }
   .workspace__actions { width: 100%; align-items: end; }
+  .syl-heading-controls,
+  .syl-version-row { width: 100%; }
+  .syl-version-row { align-items: stretch; flex-direction: column; }
+  .syl-version-reason { min-width: 0; grid-template-columns: 1fr auto; }
+  .syl-version-reason > span { grid-column: 1 / -1; }
+  .syl-version-note { display: grid; }
   .syl-version-picker { width: auto; min-width: 0; flex: 1; }
   .syl-syllabus-card__facts { gap: 12px; }
   .syl-lesson__meta { align-items: flex-start; flex-direction: column; gap: 2px; }

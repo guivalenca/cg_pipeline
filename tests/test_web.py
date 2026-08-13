@@ -299,6 +299,7 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         assert reviewed.status_code == 200, reviewed.text
         payload = {
             "base_version_id": uploaded["version_id"],
+            "note": "Reorganiza a aula e inclui uma nova fonte.",
             "lessons": [
                 {
                     "id": lesson["id"],
@@ -337,6 +338,9 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         assert saved.status_code == 201, saved.text
         assert saved.json()["seq"] == 2
         refreshed = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
+        assert refreshed["version"]["note"] == (
+            "Reorganiza a aula e inclui uma nova fonte."
+        )
         assert refreshed["lessons"][0]["title"] == "Aula revisada"
         assert refreshed["lessons"][0]["hidden"] is True
         assert refreshed["lessons"][0]["sources"][1]["review"] == {
@@ -367,6 +371,57 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         )
         assert stale.status_code == 409
         assert "versão mais nova" in stale.json()["detail"]
+
+
+def test_editor_api_requires_a_bounded_reason_for_a_new_version(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "version-reason.xlsx", project="Project", lesson="Aula"
+    )
+    with TestClient(_app(test_database_url)) as client:
+        uploaded = _upload(client, path, f"Reason {uuid.uuid4().hex[:8]}").json()
+        detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
+        lessons = detail["lessons"]
+        lessons[0]["title"] = "Aula revisada"
+
+        missing = client.post(
+            f"/api/syllabi/{uploaded['syllabus_id']}/curate",
+            json={"base_version_id": uploaded["version_id"], "lessons": lessons},
+        )
+        too_long = client.post(
+            f"/api/syllabi/{uploaded['syllabus_id']}/curate",
+            json={
+                "base_version_id": uploaded["version_id"],
+                "note": "x" * 501,
+                "lessons": lessons,
+            },
+        )
+
+        assert missing.status_code == 422
+        assert missing.json()["detail"] == "A razão da nova versão é obrigatória."
+        assert too_long.status_code == 422
+        assert too_long.json()["detail"] == (
+            "A razão da nova versão deve ter no máximo 500 caracteres."
+        )
+
+        excessive_description = [dict(lesson) for lesson in lessons]
+        excessive_description[0] = {
+            **excessive_description[0],
+            "description": "d" * 4001,
+        }
+        rejected_description = client.post(
+            f"/api/syllabi/{uploaded['syllabus_id']}/curate",
+            json={
+                "base_version_id": uploaded["version_id"],
+                "note": "Atualiza a descrição.",
+                "lessons": excessive_description,
+            },
+        )
+        assert rejected_description.status_code == 422
+        assert "description exceeds 4000 characters" in (
+            rejected_description.json()["detail"]
+        )
 
 
 def test_source_review_can_be_marked_validated_and_simple(

@@ -608,7 +608,8 @@ class TestSyllabusCuration:
         ]
 
         result = curate_syllabus(
-            db, imported["syllabus_id"], imported["version_id"], payload
+            db, imported["syllabus_id"], imported["version_id"], payload,
+            note="Reorganiza fontes e revisa a aula.",
         )
 
         assert result["seq"] == 2
@@ -658,7 +659,8 @@ class TestSyllabusCuration:
             }
         ]
         curated = curate_syllabus(
-            db, imported["syllabus_id"], imported["version_id"], payload
+            db, imported["syllabus_id"], imported["version_id"], payload,
+            note="Reordena fontes e atualiza a visibilidade.",
         )
         workbook = get_syllabus_workbook(db, curated["version_id"])
         exported = tmp_path / workbook["file_name"]
@@ -684,11 +686,15 @@ class TestSyllabusCuration:
             "date": str(lesson["date"] or ""), "description": lesson["description"],
             "sources": lesson["sources"],
         }]
-        curate_syllabus(db, imported["syllabus_id"], imported["version_id"], payload)
+        curate_syllabus(
+            db, imported["syllabus_id"], imported["version_id"], payload,
+            note="Primeira mudança concorrente.",
+        )
 
         with pytest.raises(SyllabusVersionConflict, match="versão mais nova"):
             curate_syllabus(
-                db, imported["syllabus_id"], imported["version_id"], payload
+                db, imported["syllabus_id"], imported["version_id"], payload,
+                note="Tentativa sobre versão antiga.",
             )
 
     def test_saving_an_unchanged_projection_does_not_mint_noise_version(self, db, tmp_path):

@@ -170,6 +170,7 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
         imported["syllabus_id"],
         imported["version_id"],
         _manual_projection(initial, url="https://example.com/manual"),
+        note="Preserva a curadoria manual.",
     )
     current = get_syllabus_version(db, imported["syllabus_id"])
     reference_id = current["lessons"][0]["sources"][0]["reference_id"]
@@ -217,6 +218,7 @@ def test_transition_applies_only_changed_workbook_fields_over_manual_settings(
         imported["syllabus_id"],
         imported["version_id"],
         _manual_projection(initial, url="https://example.com/manual-preservado"),
+        note="Preserva a fonte manual durante a reconciliação.",
     )
     current = get_syllabus_version(db, imported["syllabus_id"])
     reference_id = current["lessons"][0]["sources"][0]["reference_id"]

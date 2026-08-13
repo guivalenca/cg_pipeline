@@ -115,6 +115,20 @@ def _subject_filter_workbook(path: Path) -> Path:
         Type="Orientation",
         Title="Sprint Planning",
     )
+    append(
+        Week=1,
+        Sort=3,
+        Type="Deliverable",
+        Title="Apresentação do artefato",
+        **{"Grade weight": 3},
+    )
+    append(
+        Week=1,
+        Sort=4,
+        Type="Evaluation",
+        Title="Avaliação em pares",
+        **{"Grade weight": 2},
+    )
     workbook.save(path)
     workbook.close()
     return path
@@ -238,8 +252,18 @@ def test_targeted_lesson_editor_stays_scoped_and_can_hide_that_lesson(
             "syl-lesson syl-lesson--editor is-hidden-lesson"
         )
         expect(page.get_by_role("button", name="Desocultar aula")).to_be_visible()
-        page.get_by_role("button", name="Salvar nova versão").click()
+        save = page.get_by_role("button", name="Salvar nova versão")
+        expect(save).to_be_disabled()
+        reason = page.get_by_label("Razão da nova versão")
+        expect(reason).to_have_attribute("maxlength", "500")
+        reason.fill("A aula não faz parte do percurso curricular desta oferta.")
+        expect(page.get_by_text("57/500", exact=True)).to_be_visible()
+        expect(save).to_be_enabled()
+        save.click()
         expect(page.locator("[data-status]")).to_contain_text("Versão 2 salva")
+        expect(page.locator(".syl-version-note")).to_contain_text(
+            "A aula não faz parte do percurso curricular desta oferta."
+        )
         browser.close()
 
     with psycopg.connect(test_database_url) as conn:
@@ -264,6 +288,7 @@ def test_lesson_description_expands_to_show_its_content_when_editing(
         page.get_by_role("button", name="Editar somente esta aula").nth(1).click()
 
         textarea = page.locator("[data-lesson-field='description']")
+        expect(textarea).to_have_attribute("maxlength", "4000")
         dimensions = textarea.evaluate(
             "element => ({"
             "clientHeight: element.clientHeight, "
@@ -365,10 +390,11 @@ def test_syllabus_costs_live_in_the_top_bar_and_heading_controls_share_one_style
         assert all(round(item["height"]) == 38 for item in appearances)
         assert {item["radius"] for item in appearances} == {"9px"}
         assert {item["border"] for item in appearances} == {"solid"}
+        assert controls[0].bounding_box()["y"] > controls[3].bounding_box()["y"]
         browser.close()
 
 
-def test_orientation_is_available_as_a_subject_filter(
+def test_subject_filter_includes_curricular_kinds_without_a_subject(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser orientation {uuid.uuid4().hex[:8]}"
@@ -385,11 +411,13 @@ def test_orientation_is_available_as_a_subject_filter(
 
         subjects = page.get_by_label("Matéria")
         expect(subjects.get_by_role("option", name="COM")).to_have_count(1)
+        expect(subjects.get_by_role("option", name="Artefatos")).to_have_count(1)
+        expect(subjects.get_by_role("option", name="Avaliações")).to_have_count(1)
         expect(subjects.get_by_role("option", name="Orientação")).to_have_count(1)
-        subjects.select_option(label="Orientação")
+        subjects.select_option(label="Artefatos")
 
         expect(page.locator(".syl-lesson")).to_have_count(1)
-        expect(page.locator(".syl-lesson h2")).to_have_text("Sprint Planning")
+        expect(page.locator(".syl-lesson h2")).to_have_text("Apresentação do artefato")
         browser.close()
 
 
@@ -495,6 +523,9 @@ def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
         expect(page.locator(".syl-lesson--editor")).to_have_count(1)
         page.locator("[data-lesson-field='title']").fill("Segunda aula revisada")
 
+        page.get_by_label("Razão da nova versão").fill(
+            "Revisa os títulos de duas aulas."
+        )
         page.get_by_role("button", name="Salvar nova versão").click()
         expect(page.locator("[data-status]")).to_contain_text("Versão 2 salva")
         browser.close()

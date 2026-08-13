@@ -14,7 +14,7 @@ const state = {
   collapsedLessonIds: new Set(),
   expandedLessonIds: new Set(),
   reviewBusyReferenceIds: new Set(),
-  editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null },
+  editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
   upload: { mode: 'new', syllabusId: null, busy: false },
   reconciliation: null,
   reconciliationCleanup: null,
@@ -390,26 +390,36 @@ function detailHeading() {
           : '<button class="button syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais de todas as fontes ativas para publicar o Universo">Universo</button>')
         : ''));
   const corpusAction = `${publishedAction}${corpusAttemptAction}`;
+  const versionNote = String(version?.note || '').trim();
+  const editorNote = String(state.editor.note || '');
+  const editorNoteLength = [...editorNote].length;
   headingHost.innerHTML = `<div>
       <a class="syl-back" href="/syllabi">${ICON.back}Syllabi</a>
       <p class="syl-eyebrow">Syllabus</p>
       <h1>${esc(detail.title || detail.name)}</h1>
       <p class="admin-page__intro">${sourceCount(detail)} fontes em ${(detail.lessons || []).length} aulas</p>
     </div>
-    <div class="workspace__actions">
-      <label class="button syl-version-picker">
-        <span class="sr-only">Versão</span>
-        <select data-version-select aria-label="Versão exibida"${editing ? ' disabled' : ''}>
-          ${versions.map((entry) => `<option value="${esc(entry.id)}"${entry.id === version?.id ? ' selected' : ''}>v${esc(entry.seq)} · ${esc(fmtDate(entry.created_at))}</option>`).join('')}
-        </select>
-      </label>
+    <div class="syl-heading-controls">
+      <div class="workspace__actions">
       ${version?.id ? `<a class="button" href="/api/syllabi/${encodeURIComponent(detail.id)}/versions/${encodeURIComponent(version.id)}/workbook">Baixar XLSX</a>` : ''}
       ${corpusAction}
       ${editing
         ? `<button class="button button--quiet" type="button" data-cancel-edit${state.editor.busy ? ' disabled' : ''}>Cancelar</button>
-          <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
+          <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy || !editorNote.trim() ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
         : `<button class="button" type="button" data-edit-syllabus${isLatestVersion(detail) ? '' : ' disabled title="Abra a versão mais recente para editar"'}>Editar syllabus</button>
           <button class="button" type="button" data-new-version>Enviar nova versão</button>`}
+      </div>
+      <div class="syl-version-row">
+        <label class="button syl-version-picker">
+          <span class="sr-only">Versão</span>
+          <select data-version-select aria-label="Versão exibida"${editing ? ' disabled' : ''}>
+            ${versions.map((entry) => `<option value="${esc(entry.id)}"${entry.id === version?.id ? ' selected' : ''}>v${esc(entry.seq)} · ${esc(fmtDate(entry.created_at))}</option>`).join('')}
+          </select>
+        </label>
+        ${editing
+          ? `<label class="syl-version-reason"><span>Razão da nova versão</span><input class="field" type="text" maxlength="500" value="${esc(editorNote)}" data-version-note required><small data-version-note-count>${editorNoteLength}/500</small></label>`
+          : `<div class="syl-version-note"><span>Comentário da versão</span><p>${versionNote ? esc(versionNote) : 'Nenhum comentário registrado.'}</p></div>`}
+      </div>
     </div>`;
 }
 
@@ -417,10 +427,15 @@ function lessonSubjectFilter(lesson) {
   const subject = String(lesson?.subject || '').trim();
   if (subject) return { value: subject, label: subject };
   const kind = String(lesson?.kind || '').trim().toLocaleLowerCase('pt-BR');
-  if (kind === 'orientation' || kind === 'orientação') {
-    return { value: 'orientation', label: 'Orientação' };
-  }
-  return null;
+  return {
+    orientation: { value: 'orientation', label: 'Orientação' },
+    'orientação': { value: 'orientation', label: 'Orientação' },
+    deliverable: { value: 'deliverable', label: 'Artefatos' },
+    artifact: { value: 'deliverable', label: 'Artefatos' },
+    artefato: { value: 'deliverable', label: 'Artefatos' },
+    evaluation: { value: 'evaluation', label: 'Avaliações' },
+    'avaliação': { value: 'evaluation', label: 'Avaliações' },
+  }[kind] || null;
 }
 
 function filterMarkup(detail) {
@@ -672,7 +687,7 @@ function sourceEditorMarkup(source, lessonIndex, sourceIndex) {
         </select>
       </label>
       <label class="syl-form-field syl-editor-field--full"><span>Descrição</span>
-        <textarea class="field" rows="3" data-source-field="description" data-lesson-index="${lessonIndex}" data-source-index="${sourceIndex}">${esc(source.description || '')}</textarea>
+        <textarea class="field" rows="3" maxlength="4000" data-source-field="description" data-lesson-index="${lessonIndex}" data-source-index="${sourceIndex}">${esc(source.description || '')}</textarea>
       </label>
       <label class="syl-form-field syl-editor-field--full"><span>Link</span>
         <input class="field" type="url" value="${esc(source.url || '')}" placeholder="https://…" data-source-field="url" data-lesson-index="${lessonIndex}" data-source-index="${sourceIndex}">
@@ -906,7 +921,7 @@ function lessonMarkup(lesson, index) {
               <input class="field" type="number" min="1" max="1000" value="${esc(lesson.week || '')}" data-lesson-field="week" data-lesson-index="${lessonIndex}">
             </label>
             <label class="syl-form-field syl-editor-field--full"><span>Descrição da aula</span>
-              <textarea class="field" rows="3" data-lesson-field="description" data-lesson-index="${lessonIndex}">${esc(lesson.description || '')}</textarea>
+              <textarea class="field" rows="3" maxlength="4000" data-lesson-field="description" data-lesson-index="${lessonIndex}">${esc(lesson.description || '')}</textarea>
             </label>
           </div>
         </div>
@@ -1172,6 +1187,7 @@ function startEditing(targetLessonId = null) {
     dirty: false,
     lessons: cloneLessons(state.detail.lessons),
     targetLessonId,
+    note: '',
   };
   state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: true };
   announce(targetLessonId
@@ -1183,7 +1199,7 @@ function startEditing(targetLessonId = null) {
 function cancelEditing() {
   if (!state.editor.active || state.editor.busy) return;
   if (state.editor.dirty && !window.confirm('Descartar as mudanças ainda não salvas?')) return;
-  state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null };
+  state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' };
   state.filters = { ...state.filters, showHidden: false };
   announce('Edição cancelada. A versão atual não foi alterada.');
   renderDetail();
@@ -1387,6 +1403,12 @@ function editorPayload() {
 async function saveEditor() {
   if (!state.editor.active || state.editor.busy || !state.detail) return;
   const lessons = editorPayload();
+  const note = String(state.editor.note || '').trim();
+  if (!note) {
+    announce('Informe a razão da nova versão antes de salvar.');
+    $('[data-version-note]')?.focus();
+    return;
+  }
   const missingLesson = lessons.findIndex((lesson) => !lesson.title);
   if (missingLesson >= 0) {
     announce(`Dê um nome à aula ${missingLesson + 1} antes de salvar.`);
@@ -1408,12 +1430,13 @@ async function saveEditor() {
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         base_version_id: currentVersion(state.detail)?.id,
+        note,
         lessons,
       }),
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
-    state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null };
+    state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' };
     state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
     state.selectedVersionId = body.version_id;
     announce(body.unchanged
@@ -2514,6 +2537,15 @@ document.querySelector('main').addEventListener('click', (event) => {
 });
 
 document.querySelector('main').addEventListener('input', (event) => {
+  if (event.target.matches('[data-version-note]')) {
+    state.editor.note = event.target.value;
+    markEditorDirty();
+    const count = $('[data-version-note-count]');
+    if (count) count.textContent = `${state.editor.note.length}/500`;
+    const save = $('[data-save-syllabus]');
+    if (save) save.disabled = state.editor.busy || !state.editor.note.trim();
+    return;
+  }
   if (updateEditorField(event.target)) {
     autosizeEditorTextarea(event.target);
     return;
