@@ -253,17 +253,26 @@ def test_targeted_lesson_editor_stays_scoped_and_can_hide_that_lesson(
         )
         expect(page.get_by_role("button", name="Desocultar aula")).to_be_visible()
         save = page.get_by_role("button", name="Salvar nova versão")
-        expect(save).to_be_disabled()
-        reason = page.get_by_label("Razão da nova versão")
-        expect(reason).to_have_attribute("maxlength", "500")
-        reason.fill("A aula não faz parte do percurso curricular desta oferta.")
-        expect(page.get_by_text("57/500", exact=True)).to_be_visible()
         expect(save).to_be_enabled()
         save.click()
+
+        version_dialog = page.get_by_role("dialog", name="Registrar nova versão")
+        expect(version_dialog).to_be_visible()
+        reason = version_dialog.get_by_label("Razão da nova versão")
+        expect(reason).to_have_attribute("maxlength", "500")
+        reason.fill("A aula não faz parte do percurso curricular desta oferta.")
+        expect(version_dialog.get_by_text("57/500", exact=True)).to_be_visible()
+        version_dialog.get_by_role("button", name="Criar versão").click()
         expect(page.locator("[data-status]")).to_contain_text("Versão 2 salva")
-        expect(page.locator(".syl-version-note")).to_contain_text(
+        page.get_by_role("button", name="Versão 2").click()
+        history_dialog = page.get_by_role("dialog", name="Versões do syllabus")
+        expect(history_dialog).to_contain_text(
             "A aula não faz parte do percurso curricular desta oferta."
         )
+        expect(history_dialog.get_by_text("Versão aberta", exact=True)).to_be_visible()
+        history_dialog.get_by_role("button", name="Abrir versão 1").click()
+        expect(page.get_by_role("button", name="Versão 1")).to_be_visible()
+        expect(page.get_by_role("button", name="Editar syllabus")).to_be_disabled()
         browser.close()
 
     with psycopg.connect(test_database_url) as conn:
@@ -371,7 +380,7 @@ def test_syllabus_costs_live_in_the_top_bar_and_heading_controls_share_one_style
         assert costs.bounding_box()["x"] < theme.bounding_box()["x"]
 
         controls = [
-            page.get_by_label("Versão exibida").locator("xpath=.."),
+            page.get_by_role("button", name="Versão 1"),
             page.get_by_role("link", name="Baixar XLSX"),
             page.get_by_role("button", name="Universo"),
             page.get_by_role("button", name="Editar syllabus"),
@@ -523,10 +532,12 @@ def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
         expect(page.locator(".syl-lesson--editor")).to_have_count(1)
         page.locator("[data-lesson-field='title']").fill("Segunda aula revisada")
 
-        page.get_by_label("Razão da nova versão").fill(
+        page.get_by_role("button", name="Salvar nova versão").click()
+        version_dialog = page.get_by_role("dialog", name="Registrar nova versão")
+        version_dialog.get_by_label("Razão da nova versão").fill(
             "Revisa os títulos de duas aulas."
         )
-        page.get_by_role("button", name="Salvar nova versão").click()
+        version_dialog.get_by_role("button", name="Criar versão").click()
         expect(page.locator("[data-status]")).to_contain_text("Versão 2 salva")
         browser.close()
 

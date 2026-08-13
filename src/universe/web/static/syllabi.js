@@ -15,6 +15,7 @@ const state = {
   expandedLessonIds: new Set(),
   reviewBusyReferenceIds: new Set(),
   editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
+  versionDialog: { mode: 'history', trigger: null, error: null },
   upload: { mode: 'new', syllabusId: null, busy: false },
   reconciliation: null,
   reconciliationCleanup: null,
@@ -45,6 +46,8 @@ const viewHost = $('[data-view]');
 const headingHost = $('[data-heading]');
 const uploadDialog = $('[data-upload-dialog]');
 const uploadForm = $('[data-upload-form]');
+const versionDialog = $('[data-version-dialog]');
+const versionForm = $('[data-version-form]');
 const markdownDialog = $('[data-markdown-dialog]');
 const manualDialog = $('[data-manual-dialog]');
 const manualForm = $('[data-manual-form]');
@@ -360,7 +363,6 @@ async function loadList() {
 function detailHeading() {
   const detail = displayDetail();
   const version = currentVersion(detail);
-  const versions = versionsOf(detail);
   const editing = state.editor.active;
   const syllabusKnowledge = detail.knowledge || null;
   const corpusBuild = syllabusKnowledge?.latest_build || null;
@@ -390,9 +392,6 @@ function detailHeading() {
           : '<button class="button syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais de todas as fontes ativas para publicar o Universo">Universo</button>')
         : ''));
   const corpusAction = `${publishedAction}${corpusAttemptAction}`;
-  const versionNote = String(version?.note || '').trim();
-  const editorNote = String(state.editor.note || '');
-  const editorNoteLength = [...editorNote].length;
   headingHost.innerHTML = `<div>
       <a class="syl-back" href="/syllabi">${ICON.back}Syllabi</a>
       <p class="syl-eyebrow">Syllabus</p>
@@ -405,20 +404,16 @@ function detailHeading() {
       ${corpusAction}
       ${editing
         ? `<button class="button button--quiet" type="button" data-cancel-edit${state.editor.busy ? ' disabled' : ''}>Cancelar</button>
-          <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy || !editorNote.trim() ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
+          <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
         : `<button class="button" type="button" data-edit-syllabus${isLatestVersion(detail) ? '' : ' disabled title="Abra a versão mais recente para editar"'}>Editar syllabus</button>
           <button class="button" type="button" data-new-version>Enviar nova versão</button>`}
       </div>
       <div class="syl-version-row">
-        <label class="button syl-version-picker">
-          <span class="sr-only">Versão</span>
-          <select data-version-select aria-label="Versão exibida"${editing ? ' disabled' : ''}>
-            ${versions.map((entry) => `<option value="${esc(entry.id)}"${entry.id === version?.id ? ' selected' : ''}>v${esc(entry.seq)} · ${esc(fmtDate(entry.created_at))}</option>`).join('')}
-          </select>
-        </label>
-        ${editing
-          ? `<label class="syl-version-reason"><span>Razão da nova versão</span><input class="field" type="text" maxlength="500" value="${esc(editorNote)}" data-version-note required><small data-version-note-count>${editorNoteLength}/500</small></label>`
-          : `<div class="syl-version-note"><span>Comentário da versão</span><p>${versionNote ? esc(versionNote) : 'Nenhum comentário registrado.'}</p></div>`}
+        <button class="button syl-version-button" type="button" data-open-versions aria-haspopup="dialog"${editing ? ' disabled title="Finalize a edição para trocar de versão"' : ''}>
+          <span>Versão ${esc(version?.seq ?? '—')}</span>
+          <small>${esc(fmtDate(version?.created_at))}</small>
+          ${ICON.arrow}
+        </button>
       </div>
     </div>`;
 }
@@ -1209,6 +1204,83 @@ function markEditorDirty() {
   if (state.editor.active) state.editor.dirty = true;
 }
 
+function versionDialogTrigger() {
+  return state.versionDialog.mode === 'save'
+    ? $('[data-save-syllabus]')
+    : $('[data-open-versions]');
+}
+
+function renderVersionDialog() {
+  const detail = displayDetail();
+  const current = currentVersion(detail);
+  const versions = versionsOf(detail);
+  const saving = state.versionDialog.mode === 'save';
+  const note = String(state.editor.note || '');
+  $('[data-version-eyebrow]').textContent = saving ? 'Checkpoint editorial' : 'Histórico do syllabus';
+  $('[data-version-title]').textContent = saving ? 'Registrar nova versão' : 'Versões do syllabus';
+  $('[data-version-body]').innerHTML = saving
+    ? `<section class="syl-version-save-summary">
+        <span>Próxima versão</span>
+        <strong>Versão ${Number(latestVersion(detail)?.seq || 0) + 1}</strong>
+        <p>As alterações serão preservadas como uma nova edição. A versão ${esc(current?.seq ?? '—')} continuará disponível no histórico.</p>
+      </section>
+      <label class="syl-form-field syl-version-reason">
+        <span>Razão da nova versão</span>
+        <textarea class="field" maxlength="500" rows="3" data-version-note required placeholder="Resuma o que mudou e por quê.">${esc(note)}</textarea>
+        <small><span>Este comentário ajuda a entender a evolução do syllabus.</span><b data-version-note-count>${[...note].length}/500</b></small>
+      </label>
+      <p class="syl-form-error" role="alert" data-version-error>${esc(state.versionDialog.error || '')}</p>`
+    : `<p class="syl-version-dialog__intro">Cada edição permanece acessível com o comentário registrado no momento da mudança.</p>
+      <ol class="syl-version-list">
+        ${versions.map((entry, index) => {
+          const selected = entry.id === current?.id;
+          const entryNote = String(entry.note || '').trim();
+          return `<li class="syl-version-card${selected ? ' is-current' : ''}">
+            <div class="syl-version-card__marker" aria-hidden="true"></div>
+            <div class="syl-version-card__content">
+              <div class="syl-version-card__heading">
+                <div><strong>Versão ${esc(entry.seq)}</strong><span>${esc(fmtDate(entry.created_at, true))}</span></div>
+                <div class="syl-version-card__badges">${index === 0 ? '<span>Mais recente</span>' : ''}${selected ? '<span class="is-open">Versão aberta</span>' : ''}</div>
+              </div>
+              <p>${entryNote ? esc(entryNote) : '<em>Nenhum comentário registrado.</em>'}</p>
+              ${selected ? '' : `<button class="button button--quiet" type="button" data-select-version="${esc(entry.id)}">Abrir versão ${esc(entry.seq)}</button>`}
+            </div>
+          </li>`;
+        }).join('')}
+      </ol>`;
+  $('[data-version-footer]').innerHTML = saving
+    ? `<button class="button button--quiet" type="button" data-version-close${state.editor.busy ? ' disabled' : ''}>Voltar</button>
+       <button class="button button--primary" type="submit" data-confirm-version${state.editor.busy || !note.trim() ? ' disabled' : ''}>${state.editor.busy ? 'Criando…' : 'Criar versão'}</button>`
+    : '<button class="button" type="button" data-version-close>Fechar</button>';
+}
+
+function openVersionDialog(mode, trigger = document.activeElement) {
+  if (!state.detail || (mode === 'save' && (!state.editor.active || state.editor.busy))) return;
+  state.versionDialog = { mode, trigger, error: null };
+  renderVersionDialog();
+  if (!versionDialog.open) versionDialog.showModal();
+  window.setTimeout(() => {
+    (mode === 'save' ? $('[data-version-note]') : $('[data-version-close]', versionDialog))?.focus();
+  }, 0);
+}
+
+function closeVersionDialog() {
+  if (state.editor.busy) return;
+  if (versionDialog.open) versionDialog.close();
+  const trigger = state.versionDialog.trigger;
+  state.versionDialog = { mode: 'history', trigger: null, error: null };
+  (trigger?.isConnected ? trigger : versionDialogTrigger())?.focus();
+}
+
+async function selectVersion(versionId) {
+  if (!versionId || versionId === state.selectedVersionId) return;
+  state.selectedVersionId = versionId;
+  state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
+  if (versionDialog.open) versionDialog.close();
+  await loadDetail({ versionId });
+  $('[data-open-versions]')?.focus();
+}
+
 function editorPosition(value) {
   const [lessonIndex, sourceIndex] = String(value || '').split(':').map(Number);
   if (!Number.isInteger(lessonIndex) || !Number.isInteger(sourceIndex)) return null;
@@ -1405,7 +1477,8 @@ async function saveEditor() {
   const lessons = editorPayload();
   const note = String(state.editor.note || '').trim();
   if (!note) {
-    announce('Informe a razão da nova versão antes de salvar.');
+    state.versionDialog.error = 'Informe a razão da nova versão antes de salvar.';
+    renderVersionDialog();
     $('[data-version-note]')?.focus();
     return;
   }
@@ -1423,6 +1496,7 @@ async function saveEditor() {
   }
   state.editor.busy = true;
   renderDetail();
+  renderVersionDialog();
   announce('Compilando a nova versão e o XLSX…');
   try {
     const response = await fetch(`/api/syllabi/${encodeURIComponent(routeId)}/curate`, {
@@ -1436,17 +1510,22 @@ async function saveEditor() {
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    if (versionDialog.open) versionDialog.close();
     state.editor = { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' };
+    state.versionDialog = { mode: 'history', trigger: null, error: null };
     state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
     state.selectedVersionId = body.version_id;
     announce(body.unchanged
       ? 'Nenhuma mudança foi detectada; a versão atual foi mantida.'
       : `Versão ${body.seq} salva. O novo XLSX já pode ser baixado.`);
     await loadDetail({ versionId: body.version_id, silent: true });
+    $('[data-open-versions]')?.focus();
   } catch (error) {
     state.editor.busy = false;
-    announce(`Não foi possível salvar a nova versão: ${error.message}`);
+    state.versionDialog.error = error.message;
     renderDetail();
+    renderVersionDialog();
+    announce(`Não foi possível salvar a nova versão: ${error.message}`);
   }
 }
 
@@ -2455,13 +2534,16 @@ function closeKnowledge() {
 document.querySelector('main').addEventListener('click', (event) => {
   if (event.target.closest('[data-new-syllabus]')) { openUpload('new'); return; }
   if (event.target.closest('[data-new-version]')) { openUpload('version'); return; }
+  const versions = event.target.closest('[data-open-versions]');
+  if (versions) { openVersionDialog('history', versions); return; }
   const syllabusKnowledge = event.target.closest('[data-open-syllabus-knowledge]');
   if (syllabusKnowledge) { openSyllabusKnowledge(syllabusKnowledge); return; }
   if (event.target.closest('[data-edit-syllabus]')) { startEditing(); return; }
   const editLesson = event.target.closest('[data-edit-lesson]');
   if (editLesson) { startEditing(editLesson.dataset.editLesson); return; }
   if (event.target.closest('[data-cancel-edit]')) { cancelEditing(); return; }
-  if (event.target.closest('[data-save-syllabus]')) { saveEditor(); return; }
+  const saveSyllabus = event.target.closest('[data-save-syllabus]');
+  if (saveSyllabus) { openVersionDialog('save', saveSyllabus); return; }
   const addSource = event.target.closest('[data-add-source]');
   if (addSource) { addEditorSource(Number(addSource.dataset.addSource)); return; }
   const removeSource = event.target.closest('[data-remove-source]');
@@ -2537,15 +2619,6 @@ document.querySelector('main').addEventListener('click', (event) => {
 });
 
 document.querySelector('main').addEventListener('input', (event) => {
-  if (event.target.matches('[data-version-note]')) {
-    state.editor.note = event.target.value;
-    markEditorDirty();
-    const count = $('[data-version-note-count]');
-    if (count) count.textContent = `${state.editor.note.length}/500`;
-    const save = $('[data-save-syllabus]');
-    if (save) save.disabled = state.editor.busy || !state.editor.note.trim();
-    return;
-  }
   if (updateEditorField(event.target)) {
     autosizeEditorTextarea(event.target);
     return;
@@ -2563,10 +2636,6 @@ document.querySelector('main').addEventListener('change', (event) => {
     renderDetail();
   } else if (editedField) {
     return;
-  } else if (event.target.matches('[data-version-select]')) {
-    state.selectedVersionId = event.target.value;
-    state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
-    loadDetail({ versionId: state.selectedVersionId });
   } else if (event.target.matches('[data-filter-subject]')) {
     state.filters.subject = event.target.value;
     renderDetail();
@@ -2592,6 +2661,30 @@ uploadDialog.addEventListener('click', (event) => {
 });
 $('[data-upload-file]').addEventListener('change', (event) => {
   $('[data-file-name]').textContent = event.target.files?.[0]?.name || 'Escolher arquivo .xlsx';
+});
+
+versionForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  saveEditor();
+});
+versionDialog.addEventListener('input', (event) => {
+  if (!event.target.matches('[data-version-note]')) return;
+  state.editor.note = event.target.value;
+  const count = $('[data-version-note-count]', versionDialog);
+  if (count) count.textContent = `${[...state.editor.note].length}/500`;
+  const confirm = $('[data-confirm-version]', versionDialog);
+  if (confirm) confirm.disabled = state.editor.busy || !state.editor.note.trim();
+  const error = $('[data-version-error]', versionDialog);
+  if (error) error.textContent = '';
+});
+versionDialog.addEventListener('click', (event) => {
+  const selected = event.target.closest('[data-select-version]');
+  if (selected) { selectVersion(selected.dataset.selectVersion); return; }
+  if (event.target.closest('[data-version-close]') || event.target === versionDialog) closeVersionDialog();
+});
+versionDialog.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeVersionDialog();
 });
 
 markdownDialog.addEventListener('click', (event) => {
