@@ -44,6 +44,7 @@ from universe.acquisition.runner import enqueue_source, process_next_work_item
 from universe.acquisition.videos import (
     VideoAdapter,
     YtDlpYouTubeAdapter,
+    latest_preflight,
     refresh_preflight,
 )
 from universe.assets import AssetStore, asset_store_from_env
@@ -1624,6 +1625,12 @@ def create_app(
                 capability = _acquisition_capability(row[0])
                 if not capability["supported"]:
                     raise HTTPException(status_code=409, detail=capability["reason"])
+                if row[0] == "video" and latest_preflight(conn, source_id) is not None:
+                    refresh_preflight(
+                        conn,
+                        source_id,
+                        adapter=video_adapter_factory(),
+                    )
                 job = enqueue_source(conn, source_id)
                 return {"job": job}
         except HTTPException:
@@ -1668,6 +1675,12 @@ def create_app(
         """Persist explicit paid-STT authorization as the queued job input."""
         try:
             with connect_factory() as conn:
+                if latest_preflight(conn, source_id) is not None:
+                    refresh_preflight(
+                        conn,
+                        source_id,
+                        adapter=video_adapter_factory(),
+                    )
                 job = enqueue_source(
                     conn,
                     source_id,

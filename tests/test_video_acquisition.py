@@ -1579,6 +1579,120 @@ def test_ytdlp_probe_uses_original_auto_caption_only_as_speech_presence(
     assert "Hello." not in json.dumps(metadata.speech_probe)
 
 
+def test_ytdlp_probe_does_not_treat_live_chat_as_an_uploaded_caption(monkeypatch):
+    payload = {
+        "title": "Archived live lesson",
+        "channel": "Publisher",
+        "duration": 75 * 60,
+        "language": "pt",
+        "subtitles": {
+            "live_chat": [
+                {
+                    "ext": "json",
+                    "protocol": "youtube_live_chat_replay",
+                    "url": "https://www.youtube.com/watch?v=lesson123",
+                }
+            ]
+        },
+        "automatic_captions": {
+            "pt-orig": [
+                {"ext": "vtt", "url": "https://signed.example/automatic"}
+            ]
+        },
+        "formats": [{"acodec": "opus", "vcodec": "none"}],
+    }
+    monkeypatch.setattr(
+        videos.subprocess,
+        "run",
+        lambda *_args, **_kwargs: type(
+            "Result", (), {"stdout": json.dumps(payload), "stderr": ""}
+        )(),
+    )
+
+    metadata = videos.YtDlpYouTubeAdapter(
+        executable="yt-dlp",
+        caption_probe_transport=lambda _url: VTT.encode(),
+    ).probe("https://www.youtube.com/watch?v=lesson123")
+
+    assert metadata.uploaded_caption_languages == ()
+    assert metadata.speech_evidence == "present"
+    assert metadata.speech_probe["language"] == "pt-orig"
+    assert videos._route(metadata) == ("automatic_stt", None)
+
+
+def test_refresh_preflight_does_not_reuse_an_obsolete_probe_version(db):
+    source_id = "source-video-obsolete-preflight"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Archived live lesson', 'video')",
+        (
+            source_id,
+            Jsonb({"kind": "video", "provider": "youtube", "video_id": "lesson123"}),
+        ),
+    )
+    db.commit()
+    db.execute(
+        "INSERT INTO video_preflight"
+        " (id, source_id, probe_version, input_fingerprint, status, title, channel,"
+        " duration_seconds, uploaded_caption_languages, selected_caption_language,"
+        " route, diagnostics)"
+        " VALUES ('obsolete-live-chat', %s, 'youtube-preflight/v2', %s,"
+        " 'succeeded', 'Archived live lesson', 'Publisher', 4500,"
+        " '[\"live_chat\"]', 'live_chat', 'uploaded_caption', '{}')",
+        (source_id, videos._input_fingerprint(videos._source(db, source_id))),
+    )
+    db.commit()
+
+    current = videos.refresh_preflight(
+        db, source_id, adapter=FakeMetadataAdapter(75 * 60)
+    )
+
+    assert current["id"] != "obsolete-live-chat"
+    assert current["probe_version"] == videos.PREFLIGHT_VERSION
+    assert current["deduplicated"] is False
+
+
+def test_queue_endpoint_refreshes_an_obsolete_video_preflight(
+    db, test_database_url
+):
+    source_id = "source-video-obsolete-queue"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, %s, 'Archived live lesson', 'video')",
+        (
+            source_id,
+            Jsonb({"kind": "video", "provider": "youtube", "video_id": "lesson123"}),
+        ),
+    )
+    db.execute(
+        "INSERT INTO video_preflight"
+        " (id, source_id, probe_version, input_fingerprint, status, title, channel,"
+        " duration_seconds, uploaded_caption_languages, selected_caption_language,"
+        " route, diagnostics)"
+        " VALUES ('obsolete-live-chat-queue', %s, 'youtube-preflight/v2', %s,"
+        " 'succeeded', 'Archived live lesson', 'Publisher', 4500,"
+        " '[\"live_chat\"]', 'live_chat', 'uploaded_caption', '{}')",
+        (source_id, "a" * 64),
+    )
+    db.commit()
+    app = create_app(
+        lambda: psycopg.connect(test_database_url),
+        video_adapter_factory=lambda: FakeMetadataAdapter(75 * 60),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(f"/api/sources/{source_id}/queue")
+
+    assert response.status_code == 202, response.text
+    job = response.json()["job"]
+    assert job["video_preflight_id"] != "obsolete-live-chat-queue"
+    assert job["request_input"]["transcript_route"] == "automatic_stt"
+    current = videos.latest_preflight(db, source_id)
+    assert current is not None
+    assert current["id"] == job["video_preflight_id"]
+    assert current["probe_version"] == videos.PREFLIGHT_VERSION
+
+
 def test_ytdlp_speech_probe_unavailable_defaults_to_openrouter(monkeypatch):
     payload = {
         "title": "Probe unavailable",

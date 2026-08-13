@@ -64,7 +64,7 @@ from universe.syllabus import youtube_video_id as normalize_youtube_video_id
 
 
 YOUTUBE_PROVIDER = "youtube/v1"
-PREFLIGHT_VERSION = "youtube-preflight/v2"
+PREFLIGHT_VERSION = "youtube-preflight/v3"
 GROUPING_VERSION = "timestamp-groups/v1"
 AUTOMATIC_STT_MAX_SECONDS = 120 * 60
 STT_OPERATION_VERSION = "openrouter-stt/v1"
@@ -358,8 +358,9 @@ def refresh_preflight(
             " channel, duration_seconds, uploaded_caption_languages,"
             " selected_caption_language, route, failure_code, diagnostics, created_at"
             " FROM video_preflight WHERE source_id = %s AND input_fingerprint = %s"
+            " AND probe_version = %s"
             " ORDER BY created_at DESC, id DESC LIMIT 1",
-            (source_id, fingerprint),
+            (source_id, fingerprint, PREFLIGHT_VERSION),
         ).fetchone()
         if existing is not None:
             result = _preflight(existing)
@@ -423,6 +424,8 @@ def acquisition_input(
     preflight = latest_preflight(conn, source_id)
     if preflight is None or preflight["status"] != "succeeded":
         raise ValueError("YouTube metadata preflight is required before queueing")
+    if preflight["probe_version"] != PREFLIGHT_VERSION:
+        raise ValueError("YouTube metadata preflight is obsolete")
     route = preflight["route"]
     if route == "approval_required" and not authorize_paid_transcription:
         raise PermissionError("video transcription requires explicit authorization")
@@ -1922,7 +1925,19 @@ class YtDlpYouTubeAdapter:
             )
         subtitles = payload.get("subtitles")
         languages = (
-            tuple(str(key) for key in subtitles if isinstance(key, str))
+            tuple(
+                str(language)
+                for language, tracks in subtitles.items()
+                if isinstance(language, str)
+                and language != "live_chat"
+                and isinstance(tracks, list)
+                and any(
+                    isinstance(track, dict)
+                    and track.get("ext") == "vtt"
+                    and track.get("protocol") != "youtube_live_chat_replay"
+                    for track in tracks
+                )
+            )
             if isinstance(subtitles, dict)
             else ()
         )
