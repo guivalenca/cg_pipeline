@@ -786,7 +786,7 @@ function lessonIsValidated(lesson) {
 function lessonIsCollapsed(lesson) {
   const lessonId = lesson.id || '';
   return state.collapsedLessonIds.has(lessonId)
-    || (lessonIsValidated(lesson) && !state.expandedLessonIds.has(lessonId));
+    || !state.expandedLessonIds.has(lessonId);
 }
 
 function knowledgeEligibility(offer) {

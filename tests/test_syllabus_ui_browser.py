@@ -328,6 +328,9 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
         page = context.new_page()
         page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
 
+        page.locator(".syl-lesson").nth(1).get_by_role(
+            "button", name="Expandir aula Segunda aula"
+        ).click()
         page.get_by_role(
             "button", name="Copiar código do livro 9788521622888"
         ).click()
@@ -446,6 +449,9 @@ def test_a_fully_validated_lesson_can_be_unvalidated_from_its_compact_row(
         page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
 
         first_lesson = page.locator(".syl-lesson").first
+        first_lesson.get_by_role(
+            "button", name="Expandir aula Primeira aula"
+        ).click()
         first_lesson.get_by_role("button", name="Validada").click()
 
         expect(first_lesson).to_have_class(
@@ -455,7 +461,42 @@ def test_a_fully_validated_lesson_can_be_unvalidated_from_its_compact_row(
         expect(unvalidate).to_be_visible()
         unvalidate.click()
 
+        expect(first_lesson).to_have_class("syl-lesson is-collapsed")
+        first_lesson.get_by_role(
+            "button", name="Expandir aula Primeira aula"
+        ).click()
         expect(first_lesson.get_by_role("button", name="Validada")).to_be_visible()
+        browser.close()
+
+
+def test_syllabus_opens_with_every_lesson_collapsed(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser collapsed default {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "collapsed-default.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        lessons = page.locator(".syl-lesson")
+        expect(lessons).to_have_count(2)
+        expect(lessons.nth(0)).to_have_class("syl-lesson is-collapsed")
+        expect(lessons.nth(1)).to_have_class("syl-lesson is-collapsed")
+        expect(
+            lessons.nth(0).get_by_role("button", name="Expandir aula Primeira aula")
+        ).to_have_attribute("aria-expanded", "false")
+
+        lessons.nth(0).get_by_role(
+            "button", name="Expandir aula Primeira aula"
+        ).click()
+        expect(lessons.nth(0)).to_have_class("syl-lesson")
+        expect(lessons.nth(1)).to_have_class("syl-lesson is-collapsed")
         browser.close()
 
 
@@ -494,6 +535,9 @@ def test_validating_the_last_source_refreshes_the_kc_offer(
         page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
 
         first_lesson = page.locator(".syl-lesson").first
+        first_lesson.get_by_role(
+            "button", name="Expandir aula Primeira aula"
+        ).click()
         expect(
             first_lesson.get_by_role("button", name="Iniciar criação")
         ).to_have_count(0)
@@ -683,6 +727,9 @@ def test_kc_entry_points_confirm_before_post_and_poll_the_active_build(
         ).to_have_count(0)
         expect(first_lesson.get_by_role("button", name="Desvalidar")).to_be_visible()
         expect(page.get_by_role("button", name="Universo")).to_be_disabled()
+        page.locator(".syl-lesson").nth(1).get_by_role(
+            "button", name="Expandir aula Segunda aula"
+        ).click()
         expect(
             page.locator(".syl-lesson").nth(1).get_by_role(
                 "button", name="Upload de PDF ou Imagem"
