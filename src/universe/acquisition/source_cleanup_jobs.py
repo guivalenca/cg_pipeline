@@ -36,6 +36,7 @@ JOB_COLUMNS = (
 MAIN_CONTENT_TOOL = "article-main-content-boundary"
 MAIN_CONTENT_VERSION = "v1"
 TRIAGE_PROMPT_VERSION = "v005"
+REFINE_PROMPT_VERSION = "v003"
 
 
 def _job(row: tuple | None) -> dict[str, Any] | None:
@@ -439,7 +440,7 @@ def process_next_source_cleanup(
                     "passage-triage", TRIAGE_PROMPT_VERSION
                 ),
                 refine_prompt=harness.load_prompt(
-                    "passage-refine", "v002", require_body=False
+                    "passage-refine", REFINE_PROMPT_VERSION, require_body=False
                 ),
                 triage_client=triage_client,
                 atomic_triage_client=atomic_triage_client,

@@ -31,6 +31,7 @@ from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passage_refine import (
     RefinementDropsPassage,
     RefinementError,
+    RefinementRemovesUnresolvedImage,
     materialize_revision,
     numbered_elements,
     state,
@@ -367,6 +368,19 @@ def run_cleanup(
                 # content remains. That is the precise terminal meaning of
                 # dropping this passage, not a pipeline failure.
                 _insert_result(conn, cleanup_id, current, "drop", item["id"])
+                continue
+            except RefinementRemovesUnresolvedImage:
+                # Unresolved visuals are protected source evidence. Preserve
+                # the exact state the refiner saw instead of letting one
+                # unsafe removal prevent publication of the whole source.
+                _insert_result(
+                    conn,
+                    cleanup_id,
+                    current,
+                    "unknown",
+                    item["id"],
+                    policy_reason="unresolved_image_preserved",
+                )
                 continue
             except RefinementError as exc:
                 errors.append(f"{item['id']}: {exc}")

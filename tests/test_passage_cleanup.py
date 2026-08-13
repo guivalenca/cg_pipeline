@@ -227,6 +227,52 @@ def test_unresolved_image_does_not_protect_neighboring_text_from_triage(db):
     assert "Visual context." not in canonical
 
 
+def test_refinement_that_selects_an_unresolved_image_preserves_passage_as_unknown(db):
+    body = """# Mixed evidence
+
+Useful explanation.
+
+![Unavailable frame](/api/source-assets/video-frame-unresolved)
+"""
+    cuts_run = source_with_cuts(db, "unresolved-refinement", body, [])
+
+    def triage_transport(url, headers, payload, timeout):
+        return response('{"verdict":"refine"}')
+
+    def refine_transport(url, headers, payload, timeout):
+        focus = passage_focus(payload)
+        assert 'n="3" kind="image" image_state="unresolved"' in focus
+        return response('{"drop_elements":[3]}')
+
+    result = passage_cleanup.run_cleanup(
+        db,
+        cuts_run_id=cuts_run,
+        model="fake/model",
+        triage_prompt=TRIAGE_PROMPT,
+        refine_prompt=REFINE_PROMPT,
+        triage_client=fake_client(triage_transport),
+        atomic_triage_client=fake_client(triage_transport),
+        refine_client=fake_client(refine_transport),
+    )
+
+    assert result["status"] == "done"
+    outcome = db.execute(
+        "SELECT verdict, passage_revision_id, decision_run_item_id, policy_reason"
+        " FROM passage_cleanup_result WHERE cleanup_id = %s",
+        (result["cleanup_id"],),
+    ).fetchone()
+    assert outcome[0:2] == ("unknown", None)
+    assert outcome[2] is not None
+    assert outcome[3] == "unresolved_image_preserved"
+    canonical = db.execute(
+        "SELECT body, metadata FROM artifact WHERE id = %s",
+        (result["artifacts"][0],),
+    ).fetchone()
+    assert "Useful explanation." in canonical[0]
+    assert "![Unavailable frame]" in canonical[0]
+    assert len(canonical[1]["unknown_passage_ids"]) == 1
+
+
 def test_enriched_image_can_be_discarded_by_a_cleanup_drop_verdict(db):
     body = """# Comparative evidence
 

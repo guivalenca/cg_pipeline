@@ -19,6 +19,10 @@ class RefinementDropsPassage(RefinementError):
     """The refiner selected every remaining element, so the passage is empty."""
 
 
+class RefinementRemovesUnresolvedImage(RefinementError):
+    """The refiner selected protected visual evidence it could not assess."""
+
+
 def raw_elements(conn: psycopg.Connection, passage: dict) -> list[dict]:
     elements = [
         block
@@ -137,7 +141,9 @@ def validate_plan(
     if len(numbers) == len(elements):
         raise RefinementDropsPassage("refinement removes every passage element")
     if any(element.get("image_state") == "unresolved" for element in selected):
-        raise RefinementError("an unresolved image cannot be removed")
+        raise RefinementRemovesUnresolvedImage(
+            "an unresolved image cannot be removed"
+        )
     return selected
 
 

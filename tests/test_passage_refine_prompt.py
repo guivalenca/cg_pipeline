@@ -8,13 +8,16 @@ from universe.harness import load_prompt, load_tool
 PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts" / "passage-refine"
 
 
-def test_refine_prompt_is_the_approved_simple_question():
-    prompt = load_prompt("passage-refine", "v002", require_body=False)
+def test_active_refine_prompt_protects_unresolved_visual_evidence():
+    prompt = load_prompt("passage-refine", "v003", require_body=False)
     assert prompt.template == (
         "You will read a passage split into numbered elements.\n\n"
         "Use the report_element_removals tool to report which elements should be "
         "removed in order to improve passage quality and retain relevant teachable "
         "content.\n\n"
+        "Never report an element marked `image_state=\"unresolved\"`. It is "
+        "protected source evidence and must remain. If no other element can be "
+        "safely removed, report an empty list.\n\n"
         "<passage>\n{{passage}}\n</passage>\n"
     )
 
