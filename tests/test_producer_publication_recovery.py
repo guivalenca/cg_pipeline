@@ -92,7 +92,10 @@ def _case(db, stage: str, tag: str):
             '<block n="1">Alpha.</block>\n\n<block n="2">Beta.</block>',
         )
         response = '{"cuts":[2]}'
-        run_params = {"body_from": "blocks"}
+        run_params = {
+            "body_from": "blocks",
+            "blocker_version": BLOCKER_VERSION,
+        }
 
         def published(run_id: str) -> int:
             return db.execute(

@@ -22,6 +22,7 @@ from universe.kc_judge import (
     run_judge,
 )
 from universe.kc_statement import fetch_usable_statements
+from universe.model_client import ModelError
 from universe.task_modality import modality_of
 
 
@@ -951,6 +952,56 @@ def test_failed_call_is_a_run_item_without_a_verdict(db):
     assert db.execute(
         "SELECT count(*) FROM kc_verdict WHERE run_item_id = %s", (item_id,)
     ).fetchone()[0] == 0
+
+
+def test_failed_model_call_preserves_billable_usage_and_duration(db):
+    _, runs = _input_runs(db, "judge-failed-billable")
+    error = ModelError("provider returned an unusable tool response")
+    error.usage = {"cost": 0.0042, "total_tokens": 37}
+    error.duration_ms = 83
+
+    summary = run_judge(
+        db,
+        runs["kc-statement"],
+        runs["task-embedding"],
+        runs["task-modality"],
+        runs["task-knowledge"],
+        FakeModelClient([error]),
+        workers=1,
+    )
+
+    assert summary["status"] == "failed"
+    assert db.execute(
+        "SELECT usage, duration_ms, error FROM run_item WHERE run_id = %s",
+        (summary["run_id"],),
+    ).fetchone() == (
+        {"cost": 0.0042, "total_tokens": 37},
+        83,
+        "ModelError: provider returned an unusable tool response",
+    )
+
+
+def test_malformed_billed_verdict_preserves_usage_and_duration(db):
+    _, runs = _input_runs(db, "judge-malformed-billable")
+
+    summary = run_judge(
+        db,
+        runs["kc-statement"],
+        runs["task-embedding"],
+        runs["task-modality"],
+        runs["task-knowledge"],
+        FakeModelClient([("not a verdict", {"cost": 0.0031}, 71)]),
+        workers=1,
+    )
+
+    assert summary["status"] == "failed"
+    usage, duration_ms, error = db.execute(
+        "SELECT usage, duration_ms, error FROM run_item WHERE run_id = %s",
+        (summary["run_id"],),
+    ).fetchone()
+    assert usage == {"cost": 0.0031}
+    assert duration_ms == 71
+    assert error.startswith("ValueError:")
 
 
 def test_lost_judge_lease_discards_a_completed_provider_result(

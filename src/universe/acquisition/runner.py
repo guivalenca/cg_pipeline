@@ -7,7 +7,9 @@ several Railway workers can share PostgreSQL without a Redis queue.
 
 The acquisition fact still stops at its ``markdown`` artifact. Public article
 jobs then enqueue image enrichment and canonical passage cleanup as separate
-durable work; Tasks and Knowledge Components remain outside this worker.
+durable work. Lesson-local Knowledge Component builds consume pinned Source
+Publications, while Syllabus Version builds consume sealed corpus manifests.
+Both join the same fair scheduler without extending acquisition.
 """
 
 import argparse
@@ -21,6 +23,7 @@ from typing import Any
 import psycopg
 from psycopg.types.json import Jsonb
 
+from universe import lesson_knowledge_worker, syllabus_knowledge
 from universe.acquisition.articles import ArticleFetch, fetch_article_detailed
 from universe.acquisition.book_acquisition import (
     BOOK_PROVIDER,
@@ -871,6 +874,16 @@ def _oldest_ready_work_kind(conn: psycopg.Connection) -> str | None:
         " WHERE available_at <= now() AND (status = 'queued'"
         "   OR (status = 'running' AND lease_expires_at < now()))"
         " UNION ALL"
+        " SELECT 'lesson_knowledge'::text AS kind, available_at, created_at, id"
+        " FROM lesson_knowledge_work"
+        " WHERE available_at <= now() AND status IN ('queued', 'running')"
+        "   AND (claim_token IS NULL OR lease_expires_at <= now())"
+        " UNION ALL"
+        " SELECT 'syllabus_knowledge'::text AS kind, available_at, created_at, id"
+        " FROM syllabus_knowledge_build"
+        " WHERE available_at <= now() AND status IN ('queued', 'running')"
+        "   AND (claim_token IS NULL OR lease_expires_at <= now())"
+        " UNION ALL"
         " SELECT 'article_image'::text AS kind, available_at, created_at, id"
         " FROM source_image_candidate"
         " WHERE available_at <= now() AND (status = 'queued'"
@@ -898,7 +911,7 @@ def process_next_work_item(
     video_adapter: VideoAdapter | None = None,
     lease_connection_factory: ConnectionFactory | None = None,
 ) -> tuple[str, dict] | None:
-    """Process the oldest acquisition, visual or canonical-cleanup work item."""
+    """Process the oldest ready item across the shared operational queues."""
     preferred = _oldest_ready_work_kind(conn)
     if preferred is None:
         return None
@@ -925,6 +938,8 @@ def process_next_work_item(
         "source_cleanup": lambda: process_next_source_cleanup(
             conn, **lease_kwargs
         ),
+        "lesson_knowledge": lambda: lesson_knowledge_worker.process_next(conn),
+        "syllabus_knowledge": lambda: syllabus_knowledge.process_next(conn),
     }
     for kind in (
         preferred,
@@ -1020,6 +1035,17 @@ def cmd_work(args: argparse.Namespace) -> None:
                             )
                         },
                     },
+                    default=str,
+                ),
+                flush=True,
+            )
+        elif work_payload is not None and work_kind in {
+            "lesson_knowledge",
+            "syllabus_knowledge",
+        }:
+            print(
+                json.dumps(
+                    {"kind": work_kind, **work_payload},
                     default=str,
                 ),
                 flush=True,

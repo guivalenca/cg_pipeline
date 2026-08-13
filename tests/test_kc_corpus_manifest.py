@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import threading
 import uuid
 
+import psycopg
 import pytest
 from psycopg.types.json import Jsonb
 
@@ -124,6 +126,75 @@ def test_create_rejects_a_publication_that_is_no_longer_current(db):
 
     with pytest.raises(ValueError, match="is not the current publication"):
         create(db, [stale])
+
+
+def test_create_rejects_the_previous_publication_during_a_refresh(db):
+    from universe.acquisition.runner import enqueue_source
+    from universe.kc_corpus_manifest import create
+    from universe.source_publication import current
+
+    previous = _publication(db, "refreshing")
+    enqueue_source(db, previous.source_id, actor="test")
+
+    resolved = current(db, previous.source_id)
+    assert resolved is not None
+    assert resolved.artifact_id == previous.artifact_id
+    assert resolved.is_previous_attempt is True
+    with pytest.raises(ValueError, match="is not the current publication"):
+        create(db, [previous])
+
+
+def test_sealing_serializes_with_a_new_acquisition_request(
+    db, test_database_url, monkeypatch
+):
+    from universe import kc_corpus_manifest
+    from universe.acquisition.runner import enqueue_source
+
+    publication = _publication(db, "seal-race")
+    db.commit()
+    lock_held = threading.Event()
+    release_seal = threading.Event()
+    request_finished = threading.Event()
+    result = {}
+    real_current_many = kc_corpus_manifest.current_many
+
+    def paused_current_many(conn, source_ids):
+        lock_held.set()
+        assert release_seal.wait(timeout=5)
+        return real_current_many(conn, source_ids)
+
+    monkeypatch.setattr(kc_corpus_manifest, "current_many", paused_current_many)
+
+    def seal():
+        with psycopg.connect(test_database_url) as conn:
+            result["manifest"] = kc_corpus_manifest.create(conn, [publication])
+
+    def refresh():
+        with psycopg.connect(test_database_url) as conn:
+            result["job"] = enqueue_source(conn, publication.source_id, actor="test")
+        request_finished.set()
+
+    sealer = threading.Thread(target=seal)
+    requester = threading.Thread(target=refresh)
+    sealer.start()
+    try:
+        assert lock_held.wait(timeout=5)
+        requester.start()
+        assert request_finished.wait(timeout=0.1) is False
+    finally:
+        release_seal.set()
+    sealer.join(timeout=5)
+    requester.join(timeout=5)
+
+    assert not sealer.is_alive()
+    assert not requester.is_alive()
+    assert result["manifest"]["publications"] == [
+        {
+            "source_id": publication.source_id,
+            "artifact_id": publication.artifact_id,
+        }
+    ]
+    assert result["job"]["source_id"] == publication.source_id
 
 
 def test_a_new_publication_creates_a_new_manifest_without_mutating_the_old(db):

@@ -597,6 +597,8 @@ def run_judge(
 
     def call(work):
         index, candidate, text, input_key = work
+        usage = None
+        duration_ms = None
         try:
             if supervisor is not None:
                 supervisor.before_provider_call()
@@ -606,8 +608,19 @@ def run_judge(
         except pipeline_lease.LeaseLost:
             raise
         except Exception as exc:
-            return index, candidate, input_key, None, None, None, None, (
-                f"{type(exc).__name__}: {exc}"
+            return (
+                index,
+                candidate,
+                input_key,
+                None,
+                usage if usage is not None else getattr(exc, "usage", None),
+                (
+                    duration_ms
+                    if duration_ms is not None
+                    else getattr(exc, "duration_ms", None)
+                ),
+                None,
+                f"{type(exc).__name__}: {exc}",
             )
 
     work = [

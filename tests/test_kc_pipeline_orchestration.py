@@ -876,7 +876,7 @@ class TestChainScoping:
         assert opt(argv, "--tool") == "prompts/kc-statement/tool-v007.json"
         assert opt(argv, "--workers") == "16"
 
-    def test_task_modality_runs_two_workers_without_thinking(self, db, chain):
+    def test_task_modality_runs_serially_without_thinking(self, db, chain):
         source_id, artifact_id, task_ids, runs = chain
         runs["statement"] = seed_run(
             db, f"r_{P}_ch_st", "kc-statement", artifact_id,
@@ -895,7 +895,7 @@ class TestChainScoping:
         step = kc_pipeline.next_step(db, source_id)
         assert step["stage"] == "task-modality"
         argv = step["argv"]
-        assert opt(argv, "--workers") == "2"
+        assert opt(argv, "--workers") == "1"
         extra = json.loads(opt(argv, "--extra"))
         assert extra["reasoning"] == {"enabled": False}
         assert "thinking" not in extra

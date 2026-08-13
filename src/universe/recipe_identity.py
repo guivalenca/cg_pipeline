@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from universe import defaults, harness
-from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
+from universe.blocks import BLOCKER_VERSION
+from universe.model_client import ModelClient
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
@@ -84,17 +85,20 @@ _SPECS = {
         )
     },
     "task-modality": _RecipeSpec(
-        _TOOLS["task-modality"], 65536, _MODALITY, 2
+        _TOOLS["task-modality"], 65536, _MODALITY, 1
     ),
     "task-embedding": _RecipeSpec(None, None, None, 8),
     "kc-judge": _RecipeSpec(
-        _TOOLS["kc-judge"], DEFAULT_MAX_TOKENS, _JUDGE, 16
+        # The corpus witness must not depend on the process-wide client
+        # override.  Both the launcher and every later reader compare this
+        # exact value when deciding whether the grouping is current.
+        _TOOLS["kc-judge"], 65536, _JUDGE, 16
     ),
     "kc-canonical-statement": _RecipeSpec(
         _TOOLS["kc-canonical-statement"],
         1000,
         defaults.KC_INFERENCE_DEFAULTS["kc-canonical-statement"],
-        8,
+        1,
     ),
 }
 
@@ -102,7 +106,10 @@ _INPUT_CONTRACTS = {
     # The accepted cut prompt sees stable numbered blocks, never the raw
     # artifact body. Same prompt/model/tool over a different rendering is a
     # different recipe even though the provider request flags are identical.
-    "passage-cuts": {"body_from": "blocks"},
+    "passage-cuts": {
+        "body_from": "blocks",
+        "blocker_version": BLOCKER_VERSION,
+    },
     "kc-judge": {
         "semantic_floor": 0.70,
         "semantic_cap": 6,
@@ -118,6 +125,7 @@ _INPUT_CONTRACTS = {
 _NON_SEMANTIC_RUN_PARAMS = {
     "workers",
     "body_from",
+    "blocker_version",
     "pipeline_lease",
     "target_manifest",
     "recipe_fingerprint",

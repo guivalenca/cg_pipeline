@@ -28,7 +28,7 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import curation
+from universe import curation, kc_pipeline, lesson_knowledge, syllabus_knowledge
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -841,6 +841,137 @@ def _syllabus_usage(conn: psycopg.Connection, source_ids: list[str]) -> dict:
     return summary
 
 
+def _reusable_source_knowledge(
+    conn: psycopg.Connection,
+    source_ids: list[str],
+) -> dict[str, dict]:
+    """Project completed local KC work by current Source Publication.
+
+    A Source Publication is immutable and may be referenced by more than one
+    lesson.  Reusing its completed interpretation is a read-model concern: it
+    must not create another lesson build or another unit of paid work.  The
+    checks below deliberately use only batch reads and require both the target
+    work and every sibling in its owning build to remain complete and pinned to
+    the exact publications that are current now.
+    """
+    source_ids = list(dict.fromkeys(source_ids))
+    publications = {
+        source_id: publication
+        for source_id, publication in current_source_publications(
+            conn, source_ids
+        ).items()
+        if not publication.is_previous_attempt
+    }
+    if not publications:
+        return {}
+
+    candidate_rows = conn.execute(
+        "SELECT build.id, build.request_seq, work.id, work.source_id,"
+        " work.snapshot_id, work.artifact_id, work.content_hash,"
+        " work.publication_is_previous_attempt, work.status, work.stage,"
+        " work.diagnostics"
+        " FROM lesson_knowledge_work work"
+        " JOIN lesson_knowledge_build build ON build.id = work.build_id"
+        " WHERE work.source_id = ANY(%s) AND work.status = 'succeeded'"
+        " ORDER BY work.source_id, build.request_seq DESC, work.seq, work.id",
+        (list(publications),),
+    ).fetchall()
+    if not candidate_rows:
+        return {}
+
+    candidate_build_ids = list(dict.fromkeys(row[0] for row in candidate_rows))
+    build_rows: dict[str, list[tuple]] = {}
+    build_source_ids: list[str] = []
+    for row in conn.execute(
+        "SELECT build_id, source_id, snapshot_id, artifact_id, content_hash,"
+        " publication_is_previous_attempt, status, stage, diagnostics"
+        " FROM lesson_knowledge_work WHERE build_id = ANY(%s)"
+        " ORDER BY build_id, seq, id",
+        (candidate_build_ids,),
+    ).fetchall():
+        build_rows.setdefault(row[0], []).append(row[1:])
+        build_source_ids.append(row[1])
+    build_publications = current_source_publications(
+        conn, list(dict.fromkeys(build_source_ids))
+    )
+
+    def complete_current(row: tuple) -> bool:
+        (
+            source_id,
+            snapshot_id,
+            artifact_id,
+            content_hash,
+            was_previous_attempt,
+            status,
+            stage,
+            diagnostics,
+        ) = row
+        publication = build_publications.get(source_id)
+        diagnostics = dict(diagnostics or {})
+        try:
+            completed = int(diagnostics.get("completed_stage_count"))
+            total = int(diagnostics.get("total_stage_count"))
+            kc_count = int(diagnostics.get("kc_count"))
+        except (TypeError, ValueError):
+            return False
+        return bool(
+            publication is not None
+            and not publication.is_previous_attempt
+            and not was_previous_attempt
+            and publication.snapshot_id == snapshot_id
+            and publication.artifact_id == artifact_id
+            and publication.content_hash == content_hash
+            and status == "succeeded"
+            and stage in (None, "local-complete")
+            and completed == len(kc_pipeline.LOCAL_STAGES)
+            and total == len(kc_pipeline.LOCAL_STAGES)
+            and kc_count >= 0
+        )
+
+    current_builds = {
+        build_id
+        for build_id, rows in build_rows.items()
+        if rows and all(complete_current(row) for row in rows)
+    }
+    projected: dict[str, dict] = {}
+    for (
+        build_id,
+        _,
+        work_id,
+        source_id,
+        snapshot_id,
+        artifact_id,
+        content_hash,
+        was_previous_attempt,
+        status,
+        stage,
+        diagnostics,
+    ) in candidate_rows:
+        if source_id in projected or build_id not in current_builds:
+            continue
+        publication = publications.get(source_id)
+        if (
+            publication is None
+            or was_previous_attempt
+            or publication.snapshot_id != snapshot_id
+            or publication.artifact_id != artifact_id
+            or publication.content_hash != content_hash
+            or status != "succeeded"
+            or stage not in (None, "local-complete")
+        ):
+            continue
+        diagnostics = dict(diagnostics or {})
+        projected[source_id] = {
+            "build_id": build_id,
+            "work_id": work_id,
+            "status": "succeeded",
+            "current": True,
+            "kc_count": int(diagnostics["kc_count"]),
+            "snapshot": None,
+        }
+    return projected
+
+
 def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
     source_ids = list(
         dict.fromkeys(
@@ -854,12 +985,66 @@ def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
     usage = _syllabus_usage(conn, source_ids)
     if usage:
         detail["usage"] = usage
+    version_id = detail.get("version", {}).get("id")
+    lesson_ids = [
+        lesson["id"]
+        for lesson in detail.get("lessons", [])
+        if lesson.get("id")
+    ]
+    offers = (
+        lesson_knowledge.offer_many(
+            conn,
+            detail["id"],
+            version_id,
+            lesson_ids,
+        )
+        if version_id and lesson_ids
+        else {}
+    )
+    if version_id:
+        syllabus_offer = syllabus_knowledge.offer_summary(
+            conn, detail["id"], version_id
+        )
+        detail["knowledge"] = syllabus_offer
+        published_corpus = syllabus_offer.get("published_build")
+        if (
+            published_corpus
+            and published_corpus.get("current") is True
+        ):
+            detail["knowledge_manifest_id"] = published_corpus["manifest_id"]
+    reusable_knowledge = _reusable_source_knowledge(conn, source_ids)
     for lesson in detail.get("lessons", []):
+        offer = offers.get(lesson.get("id"))
+        if offer is not None:
+            lesson["knowledge"] = offer
+        work_by_reference = {
+            reference["reference_id"]: work_by_id.get(reference["work_id"])
+            for build in [offer.get("latest_build") if offer else None]
+            if build
+            for work_by_id in [
+                {work["id"]: work for work in build.get("work", [])}
+            ]
+            for reference in build.get("references", [])
+        }
         for source in lesson.get("sources", []):
             source["acquisition_capability"] = _acquisition_capability(
                 source.get("media_type")
             )
             source.update(operational.get(source.get("source_id"), {}))
+            work = work_by_reference.get(source.get("reference_id"))
+            if work is not None:
+                source["knowledge"] = {
+                    "build_id": offer["latest_build"]["id"],
+                    "work_id": work["id"],
+                    "status": work["status"],
+                    "current": work["current"],
+                    "kc_count": work.get("kc_count", 0),
+                    "snapshot": work.get("snapshot"),
+                }
+            elif offer is None or offer.get("latest_build") is None:
+                reusable = reusable_knowledge.get(source.get("source_id"))
+                if reusable is not None:
+                    source["knowledge"] = reusable
     return detail
 
 
@@ -938,6 +1123,30 @@ def _workbook_error(exc: Exception) -> HTTPException:
     if isinstance(exc, ValueError):
         return HTTPException(status_code=422, detail=str(exc))
     return HTTPException(status_code=500, detail="Não foi possível registrar o syllabus.")
+
+
+def _knowledge_error(exc: Exception) -> HTTPException:
+    if isinstance(
+        exc,
+        (
+            lesson_knowledge.LessonKnowledgeNotReady,
+            syllabus_knowledge.SyllabusKnowledgeNotReady,
+        ),
+    ):
+        return HTTPException(
+            status_code=409,
+            detail={
+                "code": exc.code,
+                "message": str(exc),
+                "reference_ids": list(exc.reference_ids),
+                "source_ids": list(exc.source_ids),
+            },
+        )
+    if isinstance(exc, LookupError):
+        return HTTPException(status_code=404, detail=str(exc))
+    if isinstance(exc, ValueError):
+        return HTTPException(status_code=422, detail=str(exc))
+    return HTTPException(status_code=500, detail="Não foi possível acessar os KCs.")
 
 
 def _manual_upload_mime(file: UploadFile) -> str:
@@ -1096,7 +1305,7 @@ def create_app(
 
     @app.get("/graph", include_in_schema=False)
     def graph_page() -> FileResponse:
-        return FileResponse(STATIC_DIR / "graph.html")
+        return FileResponse(STATIC_DIR / "universe.html")
 
     @app.get("/api/syllabi")
     def syllabi_index() -> dict:
@@ -1229,6 +1438,117 @@ def create_app(
                 return enriched
         except LookupError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}/knowledge"
+    )
+    def syllabus_knowledge_offer(
+        syllabus_id: str,
+        version_id: str,
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return syllabus_knowledge.offer(conn, syllabus_id, version_id)
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+
+    @app.post(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}/knowledge-builds",
+        status_code=202,
+    )
+    def request_syllabus_knowledge_build(
+        syllabus_id: str,
+        version_id: str,
+        payload: dict = Body(...),
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return syllabus_knowledge.request(
+                    conn,
+                    syllabus_id,
+                    version_id,
+                    payload.get("request_key"),
+                    actor="founder",
+                )
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+
+    @app.get(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}"
+        "/knowledge-builds/{build_id}"
+    )
+    def read_syllabus_knowledge_build(
+        syllabus_id: str,
+        version_id: str,
+        build_id: str,
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                build = syllabus_knowledge.read(
+                    conn, syllabus_id, version_id, build_id
+                )
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+        if build is None:
+            raise HTTPException(
+                status_code=404, detail="Syllabus Knowledge Build not found"
+            )
+        return build
+
+    @app.get(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}"
+        "/lessons/{lesson_id}/knowledge"
+    )
+    def lesson_knowledge_offer(
+        syllabus_id: str,
+        version_id: str,
+        lesson_id: str,
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_knowledge.offer(
+                    conn,
+                    syllabus_id,
+                    version_id,
+                    lesson_id,
+                )
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+
+    @app.post(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}"
+        "/lessons/{lesson_id}/knowledge-builds",
+        status_code=202,
+    )
+    def request_lesson_knowledge_build(
+        syllabus_id: str,
+        version_id: str,
+        lesson_id: str,
+        payload: dict = Body(...),
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_knowledge.request(
+                    conn,
+                    syllabus_id,
+                    version_id,
+                    lesson_id,
+                    payload.get("request_key"),
+                    actor="founder",
+                )
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+
+    @app.get("/api/knowledge-builds/{build_id}")
+    def read_lesson_knowledge_build(build_id: str) -> dict:
+        try:
+            with connect_factory() as conn:
+                build = lesson_knowledge.read_by_id(conn, build_id)
+        except (LookupError, ValueError) as exc:
+            raise _knowledge_error(exc) from exc
+        if build is None:
+            raise HTTPException(status_code=404, detail="Knowledge Build not found")
+        return build
 
     @app.patch("/api/syllabi/{syllabus_id}/sources/{reference_id}/review")
     def patch_source_review(

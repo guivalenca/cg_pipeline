@@ -276,6 +276,46 @@ def test_transient_failure_is_retried_inside_the_item_worker(
     assert sleeps == [2.0, 6.0]
     item = harness.fetch_items(db, summary["run_id"])[0]
     assert item["usage"]["retry_count"] == 2
+    assert [attempt["status"] for attempt in item["usage"]["attempts"]] == [
+        "failed",
+        "failed",
+        "succeeded",
+    ]
+
+
+def test_retry_ledger_preserves_billed_usage_from_a_failed_tool_response(
+    db, prompt, targets, monkeypatch
+):
+    calls = 0
+
+    def billed_then_valid(url, headers, payload, timeout):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            error = ModelError("provider returned no forced tool", status_code=503)
+            error.usage = {"cost": 0.003, "total_tokens": 25}
+            error.duration_ms = 41
+            raise error
+        return fake_transport()(url, headers, payload, timeout)
+
+    monkeypatch.setattr(harness.time, "sleep", lambda _seconds: None)
+    summary = harness.execute(
+        db, prompt, client(transport=billed_then_valid), targets[:1]
+    )
+
+    assert summary["ok"] == 1
+    usage = harness.fetch_items(db, summary["run_id"])[0]["usage"]
+    assert usage["retry_count"] == 1
+    assert usage["attempts"][0] == {
+        "status": "failed",
+        "usage": {"cost": 0.003, "total_tokens": 25},
+        "duration_ms": 41,
+        "error_type": "ModelError",
+        "error": "provider returned no forced tool",
+        "status_code": 503,
+    }
+    assert usage["attempts"][1]["status"] == "succeeded"
+    assert usage["attempts"][1]["usage"]["total_tokens"] == 120
 
 
 def test_transient_failure_stops_after_four_total_attempts(
@@ -298,6 +338,35 @@ def test_transient_failure_stops_after_four_total_attempts(
     assert sleeps == [2.0, 6.0, 18.0]
     item = harness.fetch_items(db, summary["run_id"])[0]
     assert item["usage"]["retry_count"] == 3
+
+
+def test_transient_retry_honors_provider_retry_after(
+    db, prompt, targets, monkeypatch
+):
+    calls = 0
+    sleeps = []
+
+    def rate_limited_then_valid(url, headers, payload, timeout):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            error = ModelError("rate limited", status_code=429)
+            error.retry_after_seconds = 37
+            raise error
+        return fake_transport()(url, headers, payload, timeout)
+
+    monkeypatch.setattr(harness.random, "random", lambda: 1.0)
+    monkeypatch.setattr(harness.time, "sleep", sleeps.append)
+
+    summary = harness.execute(
+        db, prompt, client(transport=rate_limited_then_valid), targets[:1]
+    )
+
+    assert summary["ok"] == 1
+    assert sleeps == [37]
+    attempt = harness.fetch_items(db, summary["run_id"])[0]["usage"]["attempts"][0]
+    assert attempt["error"] == "rate limited"
+    assert attempt["status_code"] == 429
 
 
 def test_non_transient_failure_is_not_retried(db, prompt, targets, monkeypatch):
@@ -336,6 +405,12 @@ def test_a_response_that_is_not_text_fails_its_item_only(db, prompt, targets):
 
 def test_an_empty_selection_selects_nothing(db, targets):
     """Only None means "no restriction"; a falsy selection must not mean "all"."""
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES ('000-harness-unpublished', '{\"kind\":\"test\"}',"
+        " 'Unpublished', 'article') ON CONFLICT DO NOTHING"
+    )
+    db.commit()
     assert harness.select_targets(db, [], None) == []
     assert harness.select_targets(db, None, 0) == []
     assert len(harness.select_targets(db, None, 1)) == 1
@@ -594,6 +669,32 @@ def test_embedding_client_rejects_error_responses(body, message):
     )
     with pytest.raises(ModelError, match=message):
         client.embed(["hello", "world"])
+
+
+def test_embedding_client_preserves_usage_on_malformed_billed_response():
+    def transport(url, headers, payload, timeout):
+        return {
+            "data": [{"index": 0}],
+            "usage": {"cost": 0.0027, "total_tokens": 19},
+            "provider": "example-provider",
+            "model": "fake/embedding-response",
+        }
+
+    client = EmbeddingClient(
+        "fake/embedding-model",
+        api_base="https://example.invalid/v1",
+        transport=transport,
+    )
+    with pytest.raises(ModelError, match="item without embedding") as caught:
+        client.embed(["hello"])
+
+    assert caught.value.usage == {
+        "cost": 0.0027,
+        "total_tokens": 19,
+        "provider": "example-provider",
+        "response_model": "fake/embedding-response",
+    }
+    assert caught.value.duration_ms >= 0
 
 
 def test_load_tool_includes_parallel_tool_calls_false(tmp_path):

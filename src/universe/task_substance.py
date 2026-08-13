@@ -15,11 +15,11 @@ import psycopg
 
 from universe import report
 from universe.db import connect
+from universe.effective_evidence import effective_task_manifest_sha
 from universe.harness import (
     Target,
     execute,
     fetch_items,
-    fetch_run,
     fetch_sources,
     id_list,
     json_object,
@@ -28,10 +28,7 @@ from universe.harness import (
     positive_int,
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
-from universe.passages import fetch_passages_for_runs
-from universe.task_granularity import granularity_of, materialize_parts
-from universe.task_triage import apply_revisions, fetch_revisions
-from universe.tasks import fetch_tasks_for_runs, materialize
+from universe.task_scope import effective_tasks
 
 STAGE = "task-substance"
 LEGACY_VERDICTS = {"substantive", "trivial", "unsure"}
@@ -91,124 +88,25 @@ def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
 def cmd_run(args: argparse.Namespace) -> None:
     if args.parts_revision_run and not args.granularity_run:
         raise SystemExit("--parts-revision-run requires --granularity-run")
+    if not args.triage_run:
+        raise SystemExit(
+            "--triage-run is required; unsupported tasks must be dropped"
+            " before substance calls"
+        )
 
     prompt = load_prompt(STAGE, args.prompt, require_body=False)
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
     with connect() as conn:
-        for run_id in args.gen_runs:
-            counts = materialize(conn, run_id)
-            print(
-                f"{run_id}: {counts['tasks_new']} new task(s),"
-                f" {counts['tasks_existing']} already known"
-            )
-        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
-        if args.passages_from:
-            drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
-            outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
-            tasks = [t for t in tasks if t["passage_id"] in drawn]
-            print(
-                f"{outside} task(s) outside the passages of"
-                f" {', '.join(args.passages_from)}, skipped"
-            )
-        if args.revision_run:
-            base_revisions = fetch_revisions(conn, args.revision_run)
-            tasks, revision_dropped, unjudged = apply_revisions(tasks, base_revisions)
-            if unjudged:
-                names = ", ".join(t["id"] for t in unjudged)
-                raise SystemExit(
-                    f"{len(unjudged)} task(s) have no usable revision in"
-                    f" {args.revision_run}: {names}; silence is not a verdict"
-                )
-        if args.granularity_run:
-            granularity = {}
-            for item in fetch_items(conn, args.granularity_run):
-                if not item["task_id"]:
-                    raise SystemExit(f"{item['id']} is not about a task")
-                granularity[item["task_id"]] = granularity_of(item)
-            unjudged = [
-                task
-                for task in tasks
-                if not isinstance(granularity.get(task["id"]), dict)
-            ]
-            if unjudged:
-                names = ", ".join(task["id"] for task in unjudged)
-                raise SystemExit(
-                    f"{len(unjudged)} task(s) have no usable granularity in"
-                    f" {args.granularity_run}: {names}; silence is not a verdict"
-                )
-
-            surviving_task_ids = {task["id"] for task in tasks}
-            rewritten_composites = [
-                task["id"]
-                for task in tasks
-                if granularity[task["id"]]["verdict"] == "composite"
-                and args.revision_run
-                and isinstance(base_revisions[task["id"]], dict)
-                and base_revisions[task["id"]]["verdict"] == "rewritten"
-            ]
-            if rewritten_composites:
-                print(
-                    f"warning: {len(rewritten_composites)} rewritten composite parent(s)"
-                    " whose rewrites are superseded by their parts"
-                )
-            composite_count = sum(
-                granularity[task["id"]]["verdict"] == "composite" for task in tasks
-            )
-            tasks = [
-                task
-                for task in tasks
-                if granularity[task["id"]]["verdict"] != "composite"
-            ]
-            materialize_parts(conn, args.granularity_run)
-            parent_by_part_run_item = {
-                item["id"]: item["task_id"] for item in fetch_items(conn, args.granularity_run)
-            }
-            part_tasks = [
-                task for task in fetch_tasks_for_runs(conn, [args.granularity_run])
-                if parent_by_part_run_item[task["run_item_id"]] in surviving_task_ids
-            ]
-            parts_count = len(part_tasks)
-            tasks.extend(part_tasks)
-            print(
-                f"{args.granularity_run}: {composite_count} composite task(s)"
-                f" replaced by {parts_count} part(s)"
-            )
-
-            if args.parts_revision_run:
-                part_revisions = fetch_revisions(conn, args.parts_revision_run)
-                revised_parts, part_dropped, unjudged = apply_revisions(part_tasks, part_revisions)
-                if unjudged:
-                    names = ", ".join(task["id"] for task in unjudged)
-                    raise SystemExit(
-                        f"{len(unjudged)} task(s) have no usable revision in"
-                        f" {args.parts_revision_run}: {names}; silence is not a verdict"
-                    )
-                rewritten = sum(
-                    1
-                    for task in revised_parts
-                    if isinstance(part_revisions[task["id"]], dict)
-                    and part_revisions[task["id"]]["verdict"] == "rewritten"
-                )
-                tasks = tasks[: len(tasks) - parts_count] + revised_parts
-                bodies = "body was" if rewritten == 1 else "bodies were"
-                print(
-                    f"{args.parts_revision_run}: {len(part_dropped)} task(s) dropped as"
-                    f" unfixable, {rewritten} task {bodies} swapped by rewrites"
-                )
-        if args.revision_run:
-            rewritten = sum(
-                1
-                for task in tasks
-                if task["id"] in base_revisions
-                and isinstance(base_revisions[task["id"]], dict)
-                and base_revisions[task["id"]]["verdict"] == "rewritten"
-            )
-            bodies = "body was" if rewritten == 1 else "bodies were"
-            print(
-                f"{args.revision_run}: {len(revision_dropped)} task(s) dropped as unfixable,"
-                f" {rewritten} task {bodies} swapped by rewrites"
-            )
+        tasks = effective_tasks(
+            conn,
+            generation_runs=args.gen_runs,
+            passages_from=args.passages_from,
+            granularity_run=args.granularity_run,
+            revision_run=args.revision_run,
+            parts_revision_run=args.parts_revision_run,
+            triage_run=args.triage_run,
+        )
         if not tasks:
             raise SystemExit(f"no tasks from {', '.join(args.gen_runs)}")
 
@@ -231,6 +129,8 @@ def cmd_run(args: argparse.Namespace) -> None:
                 "revision_run": args.revision_run,
                 "granularity_run": args.granularity_run,
                 "parts_revision_run": args.parts_revision_run,
+                "triage_run": args.triage_run,
+                "effective_task_manifest_sha": effective_task_manifest_sha(tasks),
             },
         )
         items = fetch_items(conn, summary["run_id"])
@@ -287,6 +187,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--parts-revision-run",
         help="task-revision run id; overlay rewrites and drop unfixable parts",
+    )
+    run.add_argument(
+        "--triage-run",
+        required=True,
+        help="task-triage run id; only explicitly supported tasks receive calls",
     )
     run.add_argument("--workers", type=positive_int, default=DEFAULT_WORKERS)
     run.add_argument("--temperature", type=float)

@@ -53,11 +53,13 @@ USAGE_ORDER = ["prompt_tokens", "completion_tokens", "total_tokens", "cost", "to
 
 
 def aggregate_usage(items: list[dict]) -> dict:
-    """Sum whatever numeric fields the API reported, across items.
+    """Sum the authoritative provider usage reported across items.
 
     One level of nesting is flattened by inner key, because OpenRouter
     reports cache and reasoning counts inside prompt_tokens_details and
-    completion_tokens_details instead of at the top level.
+    completion_tokens_details instead of at the top level. Newer run items
+    contain an attempt ledger; when present, that ledger replaces the legacy
+    top-level final-attempt usage so retries and their cost are counted once.
     """
     totals: dict[str, float] = {}
 
@@ -65,13 +67,26 @@ def aggregate_usage(items: list[dict]) -> dict:
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             totals[key] = totals.get(key, 0) + value
 
-    for item in items:
-        for key, value in (item.get("usage") or {}).items():
+    def add_usage(usage: dict) -> None:
+        for key, value in usage.items():
             if isinstance(value, dict):
                 for inner_key, inner_value in value.items():
                     add(inner_key, inner_value)
             else:
                 add(key, value)
+
+    for item in items:
+        usage = item.get("usage") or {}
+        attempts = usage.get("attempts")
+        if isinstance(attempts, list):
+            for attempt in attempts:
+                if (
+                    isinstance(attempt, dict)
+                    and isinstance(attempt.get("usage"), dict)
+                ):
+                    add_usage(attempt["usage"])
+        else:
+            add_usage(usage)
     return {key: round(value, 6) if isinstance(value, float) else value
             for key, value in sorted(totals.items(), key=_usage_rank)}
 

@@ -142,6 +142,33 @@ def test_local_snapshot_exposes_stated_unitary_kc_with_source_evidence(db):
     ]
 
 
+def test_pinned_local_snapshot_remains_readable_after_a_new_publication(db):
+    complete = seed_complete_single_task_source(db, _tag("historical-snapshot"))
+    target = kc_pipeline.SourcePublicationTarget(
+        complete["source_id"], complete["artifact_id"]
+    )
+    _supersede(db, complete["source_id"], "historical-snapshot")
+
+    with pytest.raises(
+        kc_pipeline.StepNotRunnable,
+        match="no longer current",
+    ):
+        kc_pipeline.read_snapshot(db, target)
+
+    historical = kc_pipeline.read_publication_snapshot(
+        db,
+        target,
+        require_current=False,
+    )
+
+    assert historical["source"]["artifact_id"] == complete["artifact_id"]
+    assert historical["source"]["current"] is False
+    assert historical["status"] == "complete"
+    assert historical["components"][0]["canonical"]["statement"].startswith(
+        "Statement corpus_historical-snapshot"
+    )
+
+
 @dataclass
 class _FakeProcess:
     pid: int = 4242

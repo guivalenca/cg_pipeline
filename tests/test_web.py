@@ -1220,9 +1220,16 @@ def test_kc_status_belongs_to_the_latest_markdown_artifact(
         with psycopg.connect(test_database_url) as conn:
             for suffix, body in (("old", "# Old"), ("new", "# New")):
                 conn.execute(
-                    "INSERT INTO source_snapshot (id, source_id, content_hash, status)"
-                    " VALUES (%s, %s, %s, 'ok')",
-                    (f"snap-{marker}-{suffix}", source_id, f"hash-{marker}-{suffix}"),
+                    "INSERT INTO source_snapshot"
+                    " (id, source_id, content_hash, status, created_at)"
+                    " VALUES (%s, %s, %s, 'ok',"
+                    " now() + %s * interval '1 second')",
+                    (
+                        f"snap-{marker}-{suffix}",
+                        source_id,
+                        f"hash-{marker}-{suffix}",
+                        0 if suffix == "old" else 1,
+                    ),
                 )
                 conn.execute(
                     "INSERT INTO artifact (id, snapshot_id, kind, tool, body, created_at)"

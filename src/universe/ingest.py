@@ -55,8 +55,8 @@ THINKING_EXTRA = {
 MODALITY_EXTRA = {"reasoning": {"enabled": False}, "provider": PROVIDER}
 MAX_TOKENS = "65536"
 THINKING_WORKERS = "16"
-# Only two providers serve task-modality's payload shape and they rate-limit.
-MODALITY_WORKERS = "2"
+# Tool-routing concentrates on few providers; serialize this fragile axis.
+MODALITY_WORKERS = "1"
 JUDGE_WORKERS = "12"
 EMBEDDING_WORKERS = "8"
 
@@ -321,6 +321,7 @@ def _build_task_substance(conn: psycopg.Connection, source_id: str) -> dict:
     refs = _task_refs(
         conn, source_id,
         "task-generation", "task-revision", "task-granularity", "parts-revision",
+        "task-triage",
     )
     argv, model = _model_argv(
         "universe.task_substance", "task-substance", refs,

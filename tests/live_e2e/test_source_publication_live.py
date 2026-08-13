@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import time
 from dataclasses import dataclass
 from decimal import Decimal
@@ -19,14 +20,26 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
+import psycopg
+from fastapi.testclient import TestClient
 from markdown_it import MarkdownIt
 from psycopg.pq import TransactionStatus
 from psycopg.types.json import Jsonb
 
+from universe import (
+    kc_pipeline,
+    lesson_knowledge,
+    lesson_knowledge_worker,
+    pipeline_lease,
+    syllabus_knowledge,
+)
 from universe.acquisition import videos
 from universe.acquisition.manual_uploads import ManualAsset, create_manual_upload_job
+from universe.acquisition import runner as acquisition_runner
 from universe.acquisition.runner import enqueue_source, process_next_work_item
 from universe.syllabus import import_workbook, parse_workbook
+from universe.source_publication import current as current_publication
+from universe.web.app import create_app
 
 if TYPE_CHECKING:
     from .conftest import LiveRun
@@ -76,6 +89,7 @@ class CaseBudget:
 
 BUDGETS = {
     "article": CaseBudget(Decimal("0.12"), 25 * 60),
+    "knowledge": CaseBudget(Decimal("0.75"), 60 * 60),
     "pdf": CaseBudget(Decimal("0.15"), 40 * 60, firecrawl_credits=32),
     "video": CaseBudget(Decimal("0.12"), 30 * 60),
     "book": CaseBudget(Decimal("0.20"), 60 * 60, firecrawl_credits=16),
@@ -531,6 +545,22 @@ def _summarize_usage_observations(
     }
 
 
+def _usage_attempt_count(usage: dict[str, Any]) -> int:
+    """Count the full ledger once, falling back to the legacy retry counter."""
+    raw_attempts = usage.get("attempts")
+    embedded_count = (
+        len([item for item in raw_attempts if isinstance(item, dict)])
+        if isinstance(raw_attempts, list)
+        else 0
+    )
+    if embedded_count:
+        return embedded_count
+    try:
+        return max(0, int(usage.get("retry_count") or 0)) + 1
+    except (TypeError, ValueError):
+        return 1
+
+
 def _usage_report(live: LiveRun, source_id: str) -> dict[str, Any]:
     queries = {
         "cleanup": (
@@ -578,17 +608,7 @@ def _usage_report(live: LiveRun, source_id: str) -> dict[str, Any]:
             if stage == "cleanup":
                 status, raw_usage = row
                 usage = dict(raw_usage or {})
-                raw_embedded = usage.get("attempts")
-                embedded_count = (
-                    len([item for item in raw_embedded if isinstance(item, dict)])
-                    if isinstance(raw_embedded, list)
-                    else 0
-                )
-                try:
-                    retry_count = max(0, int(usage.get("retry_count") or 0))
-                except (TypeError, ValueError):
-                    retry_count = 0
-                attempt_count = retry_count + (embedded_count or 1)
+                attempt_count = _usage_attempt_count(usage)
             else:
                 status, attempt_count, raw_usage = row
                 usage = dict(raw_usage or {})
@@ -815,6 +835,339 @@ def _run_article(live: LiveRun) -> tuple[str, dict[str, Any]]:
         "canonical_artifact_id": publication["canonical_id"],
         "canonical_characters": len(body),
         "image_outcomes": statuses,
+    }
+
+
+def _knowledge_usage_report(
+    live: LiveRun,
+    *,
+    started_at: Any,
+    source_id: str,
+    manifest_id: str,
+) -> dict[str, Any]:
+    """Price every durable model attempt launched by this bounded suffix."""
+    scopes = [f"source:{source_id}", f"corpus:{manifest_id}"]
+    evidence = _knowledge_usage_evidence(
+        live,
+        scopes=scopes,
+        started_at=started_at,
+    )
+    assert evidence["row_count"], "the knowledge suffix did not stamp any model run"
+    assert not evidence["failed_run_ids"], evidence["failed_run_ids"]
+    assert not evidence["failed_item_count"], evidence["failed_item_count"]
+    assert evidence["unpriced_attempts"] == 0, evidence
+    return evidence
+
+
+def _knowledge_usage_evidence(
+    live: LiveRun,
+    *,
+    scopes: list[str],
+    started_at: Any | None = None,
+) -> dict[str, Any]:
+    """Read model attempts for exact pipeline lease scopes without hiding failure."""
+    rows = live.conn.execute(
+        "SELECT r.id, r.stage, r.status, i.usage, i.error"
+        " FROM run r LEFT JOIN run_item i ON i.run_id = r.id"
+        " WHERE (%s::timestamptz IS NULL OR r.started_at >= %s)"
+        " AND r.params#>>'{pipeline_lease,scope_key}' = ANY(%s)"
+        " ORDER BY r.started_at, r.id, i.id",
+        (started_at, started_at, scopes),
+    ).fetchall()
+    observations = []
+    failed_runs = set()
+    failed_item_count = 0
+    for run_id, stage, status, raw_usage, error in rows:
+        if status == "failed":
+            failed_runs.add(run_id)
+        if error:
+            failed_item_count += 1
+        usage = dict(raw_usage or {})
+        observations.append(
+            {
+                "stage": stage,
+                "status": "failed" if error else "succeeded",
+                # Harness-backed stages persist their complete nested attempt
+                # ledger. Other stage adapters persist one usage object.
+                "attempt_count": 1 if raw_usage is not None else 0,
+                "usage": usage,
+            }
+        )
+    summary = _summarize_usage_observations(observations)
+    return {
+        **summary,
+        "row_count": len(rows),
+        "failed_run_ids": sorted(failed_runs),
+        "failed_item_count": failed_item_count,
+    }
+
+
+def _partial_knowledge_usage_report(
+    live: LiveRun,
+    source_id: str,
+) -> dict[str, Any]:
+    manifest_ids = [
+        row[0]
+        for row in live.conn.execute(
+            "SELECT DISTINCT manifest_id FROM kc_corpus_manifest_member"
+            " WHERE source_id = %s ORDER BY manifest_id",
+            (source_id,),
+        ).fetchall()
+    ]
+    return _knowledge_usage_evidence(
+        live,
+        scopes=[f"source:{source_id}", *(
+            f"corpus:{manifest_id}" for manifest_id in manifest_ids
+        )],
+    )
+
+
+class _TrackedKnowledgeSpawn:
+    """Retain live children so a failed/expired tracer cannot orphan spend."""
+
+    def __init__(self, conn) -> None:
+        self.dsn = pipeline_lease.connection_dsn(conn)
+        self.processes: list[subprocess.Popen] = []
+
+    def __call__(self, argv, lease):
+        process = kc_pipeline._spawn(argv, lease, database_url=self.dsn)
+        self.processes.append(process)
+        return process
+
+    def terminate_running(self) -> None:
+        for process in self.processes:
+            kc_pipeline._terminate_process(process)
+
+
+def _process_next_tracked_knowledge_work(
+    live: LiveRun,
+    spawn: _TrackedKnowledgeSpawn,
+) -> tuple[str, dict] | None:
+    """Use the production fair queue while retaining paid child processes."""
+    preferred = acquisition_runner._oldest_ready_work_kind(live.conn)
+    if preferred is None:
+        return None
+    processors = {
+        "acquisition": lambda: acquisition_runner.process_next_job(
+            live.conn, asset_store=live.asset_store
+        ),
+        "article_image": lambda: acquisition_runner.process_next_article_image(
+            live.conn, asset_store=live.asset_store
+        ),
+        "source_image_analysis": lambda: (
+            acquisition_runner.process_next_source_image_analysis(
+                live.conn, asset_store=live.asset_store
+            )
+        ),
+        "source_cleanup": lambda: acquisition_runner.process_next_source_cleanup(
+            live.conn
+        ),
+        "lesson_knowledge": lambda: lesson_knowledge_worker.process_next(
+            live.conn, spawn=spawn
+        ),
+        "syllabus_knowledge": lambda: syllabus_knowledge.process_next(
+            live.conn, spawn=spawn
+        ),
+    }
+    for kind in (preferred, *(item for item in processors if item != preferred)):
+        payload = processors[kind]()
+        if payload is not None:
+            return kind, payload
+    return None
+
+
+def _run_knowledge(
+    live: LiveRun,
+    *,
+    global_budget: Decimal,
+) -> tuple[str, dict[str, Any]]:
+    """One real Canonical Publication through 11 local + 4 shared stages."""
+    source_id = _source_id_for_case(live, "article")
+    publication = current_publication(live.conn, source_id)
+    assert publication is not None and not publication.is_previous_attempt
+    extraction_usage = _usage_report(live, source_id)
+    route = {
+        "syllabus_id": f"live-knowledge-{live.run_id}",
+        "version_id": f"live-knowledge-{live.run_id}:v0001",
+        "lesson_id": f"live-knowledge-{live.run_id}:lesson:01",
+        "reference_id": f"live-knowledge-{live.run_id}:reference:01",
+    }
+    live.conn.execute(
+        "INSERT INTO syllabus (id, title) VALUES (%s, %s)",
+        (route["syllabus_id"], "Live unified knowledge tracer"),
+    )
+    live.conn.execute(
+        "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+        " VALUES (%s, %s, 1, 'curation')",
+        (route["version_id"], route["syllabus_id"]),
+    )
+    live.conn.execute(
+        "INSERT INTO syllabus_lesson (id, version_id, seq, kind, title)"
+        " VALUES (%s, %s, 1, 'Encontro', 'Diagramas de implementação')",
+        (route["lesson_id"], route["version_id"]),
+    )
+    live.conn.execute(
+        "INSERT INTO syllabus_source_reference"
+        " (id, version_id, lesson_id, seq, title, media_type, source_id)"
+        " VALUES (%s, %s, %s, 1, 'IBM · Diagramas de implementação',"
+        " 'article', %s)",
+        (
+            route["reference_id"],
+            route["version_id"],
+            route["lesson_id"],
+            source_id,
+        ),
+    )
+    live.conn.execute(
+        "INSERT INTO syllabus_source_review (reference_id, is_validated)"
+        " VALUES (%s, true)",
+        (route["reference_id"],),
+    )
+    started_at = live.conn.execute("SELECT clock_timestamp()").fetchone()[0]
+    live.conn.commit()
+
+    spawn = _TrackedKnowledgeSpawn(live.conn)
+    deadline = time.monotonic() + BUDGETS["knowledge"].timeout_seconds
+
+    try:
+        local = lesson_knowledge.request(
+            live.conn,
+            route["syllabus_id"],
+            route["version_id"],
+            route["lesson_id"],
+            f"live-local-{live.run_id}",
+            actor="live-e2e",
+        )
+        live.conn.commit()
+        while time.monotonic() < deadline:
+            local = lesson_knowledge.read(
+                live.conn,
+                route["syllabus_id"],
+                route["version_id"],
+                route["lesson_id"],
+                local["id"],
+            )
+            assert local is not None
+            if local["status"] == "succeeded":
+                break
+            assert local["status"] != "failed", local
+            queued = _process_next_tracked_knowledge_work(live, spawn)
+            if queued is None or queued[1].get("action") in {"launched", "observed"}:
+                time.sleep(1)
+        else:
+            pytest.fail("the unified 11+4 KC suffix exceeded its live timeout")
+        assert local["current"] is True
+        assert local["stage_progress"] == {"completed": 11, "total": 11}
+        assert len(local["work"]) == 1
+        assert local["work"][0]["artifact_id"] == publication.artifact_id
+        assert local["work"][0]["snapshot"]["components"]
+
+        corpus = syllabus_knowledge.request(
+            live.conn,
+            route["syllabus_id"],
+            route["version_id"],
+            f"live-corpus-{live.run_id}",
+            actor="live-e2e",
+        )
+        live.conn.commit()
+        while time.monotonic() < deadline:
+            corpus = syllabus_knowledge.read(
+                live.conn,
+                route["syllabus_id"],
+                route["version_id"],
+                corpus["id"],
+            )
+            assert corpus is not None
+            if corpus["status"] == "succeeded":
+                break
+            assert corpus["status"] != "failed", corpus
+            queued = _process_next_tracked_knowledge_work(live, spawn)
+            if queued is None or queued[1].get("action") in {"launched", "observed"}:
+                time.sleep(1)
+        else:
+            pytest.fail("the unified 11+4 KC suffix exceeded its live timeout")
+    except BaseException:
+        spawn.terminate_running()
+        raise
+    assert corpus["progress"]["completed"] == 4
+    assert corpus["progress"]["total"] == 4
+    assert corpus["manifest"]["publications"] == [
+        {"source_id": source_id, "artifact_id": publication.artifact_id}
+    ]
+    snapshot = kc_pipeline.read_corpus_snapshot(
+        live.conn,
+        kc_pipeline.CorpusManifestTarget(corpus["manifest_id"]),
+    )
+    assert snapshot["status"] == "complete"
+    assert snapshot["components"]
+
+    # Exercise the same composed HTTP surface used by the browser.  This is
+    # deliberately after the exact domain assertions above: the web Adapter
+    # must expose that sealed manifest, never infer a global/latest corpus.
+    live.conn.commit()
+    app = create_app(
+        lambda: psycopg.connect(pipeline_lease.connection_dsn(live.conn)),
+        asset_store_factory=lambda: live.asset_store,
+    )
+    with TestClient(app) as client:
+        detail_response = client.get(
+            f"/api/syllabi/{route['syllabus_id']}",
+            params={"version_id": route["version_id"]},
+        )
+        assert detail_response.status_code == 200, detail_response.text
+        detail = detail_response.json()
+        assert detail["knowledge_manifest_id"] == corpus["manifest_id"]
+
+        graph_response = client.get(
+            "/api/universe", params={"manifest_id": corpus["manifest_id"]}
+        )
+        assert graph_response.status_code == 200, graph_response.text
+        graph = graph_response.json()
+        assert graph["manifest"]["id"] == corpus["manifest_id"]
+        assert graph["manifest"]["publications"] == [
+            {"source_id": source_id, "artifact_id": publication.artifact_id}
+        ]
+        assert graph["nodes"]
+        assert {node["source_id"] for node in graph["nodes"]} == {source_id}
+
+        page_response = client.get(
+            "/graph",
+            params={
+                "manifest_id": corpus["manifest_id"],
+                "syllabus_id": route["syllabus_id"],
+                "version_id": route["version_id"],
+            },
+        )
+        assert page_response.status_code == 200
+        assert "Voltar ao syllabus" in page_response.text
+
+    usage = _knowledge_usage_report(
+        live,
+        started_at=started_at,
+        source_id=source_id,
+        manifest_id=corpus["manifest_id"],
+    )
+    knowledge_cost = Decimal(usage["observed_cost_usd"])
+    assert knowledge_cost <= BUDGETS["knowledge"].openrouter_usd, usage
+    extraction_cost = Decimal(extraction_usage["observed_cost_usd"])
+    assert extraction_cost + knowledge_cost <= global_budget
+    return source_id, {
+        "route": route,
+        "source_id": source_id,
+        "artifact_id": publication.artifact_id,
+        "lesson_build_id": local["id"],
+        "local_stage_progress": local["stage_progress"],
+        "local_component_count": len(local["work"][0]["snapshot"]["components"]),
+        "syllabus_build_id": corpus["id"],
+        "manifest_id": corpus["manifest_id"],
+        "shared_stage_progress": corpus["progress"],
+        "corpus_component_count": len(snapshot["components"]),
+        "universe_node_count": len(graph["nodes"]),
+        "openrouter_observed_post_call": usage,
+        "global_openrouter_observed_post_call": {
+            "observed_cost_usd": str(extraction_cost + knowledge_cost),
+            "ceiling_usd": str(global_budget),
+        },
     }
 
 
@@ -1052,6 +1405,8 @@ def _write_report(live: LiveRun, report: dict[str, Any]) -> None:
 
 
 def _source_id_for_case(live: LiveRun, case: str) -> str:
+    if case == "knowledge":
+        case = "article"
     return f"live-{case}-{live.run_id}"
 
 
@@ -1081,6 +1436,9 @@ def _safe_case_observability(live: LiveRun, source_id: str) -> dict[str, Any]:
     report: dict[str, Any] = {}
     collectors = {
         "openrouter_observed_post_call": lambda: _usage_report(live, source_id),
+        "knowledge_openrouter_observed_post_call": lambda: (
+            _partial_knowledge_usage_report(live, source_id)
+        ),
         "firecrawl_observed_post_call": lambda: _firecrawl_report(live, source_id),
         "terminal_work": lambda: _work_state_report(live, source_id),
     }
@@ -1128,6 +1486,9 @@ def test_bounded_live_source_publications(
 
     runners = {
         "article": _run_article,
+        "knowledge": lambda live: _run_knowledge(
+            live, global_budget=live_openrouter_budget
+        ),
         "pdf": _run_pdf,
         "video": _run_video,
         "book": _run_book,
@@ -1144,15 +1505,16 @@ def test_bounded_live_source_publications(
             else:
                 observed_source_id, result = runners[case](live_run)
                 assert observed_source_id == source_id
-                result["terminal_work"] = _assert_terminal_work(
-                    live_run, source_id
-                )
-                result["observed_post_call"] = _assert_budget(
-                    live_run,
-                    source_id,
-                    case,
-                    global_budget=live_openrouter_budget,
-                )
+                if case != "knowledge":
+                    result["terminal_work"] = _assert_terminal_work(
+                        live_run, source_id
+                    )
+                    result["observed_post_call"] = _assert_budget(
+                        live_run,
+                        source_id,
+                        case,
+                        global_budget=live_openrouter_budget,
+                    )
                 result["openrouter_observed_post_call_ceiling_usd"] = str(
                     BUDGETS[case].openrouter_usd
                 )

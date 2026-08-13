@@ -20,6 +20,24 @@ const state = {
   reconciliationCleanup: null,
   manualUpload: { sourceId: null, title: '', kind: null, items: [], busy: false },
   markdownSourceId: null,
+  knowledge: {
+    lessonId: null,
+    sourceId: null,
+    referenceId: null,
+    sourceBuildId: null,
+    targetWorkId: null,
+    sourceTitle: '',
+    offer: null,
+    build: null,
+    mode: 'results',
+    requestKey: null,
+    busy: false,
+    error: null,
+    pollingTimer: null,
+    requestToken: null,
+    trigger: null,
+  },
+  knowledgeBuilds: new Map(),
   pollingTimer: null,
 };
 
@@ -30,6 +48,21 @@ const uploadForm = $('[data-upload-form]');
 const markdownDialog = $('[data-markdown-dialog]');
 const manualDialog = $('[data-manual-dialog]');
 const manualForm = $('[data-manual-form]');
+const knowledgeDialog = $('[data-knowledge-dialog]');
+
+const LOCAL_KC_STAGES = [
+  ['blocks', 'Blocos'],
+  ['passage-cuts', 'Recortes de passagem'],
+  ['passage-triage', 'Triagem de passagens'],
+  ['task-generation', 'Geração de tarefas'],
+  ['task-granularity', 'Granularidade'],
+  ['task-revision', 'Revisão de tarefas'],
+  ['task-triage', 'Triagem de tarefas'],
+  ['task-substance', 'Substância'],
+  ['kc-statement', 'Enunciados de KC'],
+  ['task-modality', 'Modalidade'],
+  ['task-knowledge', 'Tipo de conhecimento'],
+];
 
 const ICON = {
   plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
@@ -174,11 +207,16 @@ function sourceStatus(source) {
 }
 
 function knowledgeState(source) {
-  if (!source.source_id && !source.id) return null;
-  const raw = String(source.kc_state || source.knowledge_state || '').toLowerCase();
-  const count = Number(source.kc_count ?? 0);
-  const failed = Number(source.kc_failed_count ?? 0);
-  const invalid = Number(source.kc_invalid_count ?? 0);
+  const knowledge = source.knowledge;
+  if (!knowledge?.build_id) return null;
+  const raw = String(knowledge.status || '').toLowerCase();
+  const count = Number(knowledge.kc_count ?? (
+    Array.isArray(knowledge.snapshot?.components)
+      ? knowledge.snapshot.components.length : 0
+  ));
+  if (knowledge.current === false) {
+    return { key: 'partial', label: `${count} ${count === 1 ? 'KC anterior' : 'KCs anteriores'}` };
+  }
   if (['running', 'processing', 'queued'].includes(raw)) {
     return {
       key: 'running',
@@ -187,21 +225,11 @@ function knowledgeState(source) {
         : 'KCs em processamento',
     };
   }
-  if (raw === 'partial') {
-    const problems = failed + invalid;
-    return {
-      key: 'partial',
-      label: `${count} ${count === 1 ? 'KC extraído' : 'KCs extraídos'} · ${problems} ${problems === 1 ? 'item com problema' : 'itens com problema'}`,
-    };
-  }
   if (raw === 'failed') {
-    return { key: 'failed', label: 'Extração de KCs falhou' };
+    return { key: 'failed', label: 'Criação de KCs precisa de atenção' };
   }
-  if (source.has_kcs || ['ready', 'done', 'available', 'extracted'].includes(raw)) {
-    return { key: 'ready', label: `${count} ${count === 1 ? 'KC extraído' : 'KCs extraídos'}` };
-  }
-  if (source.has_markdown || source.markdown?.available || sourceStatus(source).key === 'ready') {
-    return { key: 'markdown', label: 'Somente Markdown' };
+  if (raw === 'succeeded') {
+    return { key: 'ready', label: `${count} ${count === 1 ? 'KC criado' : 'KCs criados'}` };
   }
   return null;
 }
@@ -333,6 +361,34 @@ function detailHeading() {
   const version = currentVersion(detail);
   const versions = versionsOf(detail);
   const editing = state.editor.active;
+  const syllabusKnowledge = detail.knowledge || null;
+  const corpusBuild = syllabusKnowledge?.latest_build || null;
+  const publishedBuild = syllabusKnowledge?.published_build || null;
+  const corpusProgress = corpusBuild?.progress || { completed: 0, total: 4 };
+  const corpusStatus = String(corpusBuild?.status || '').toLowerCase();
+  const universeHref = syllabusUniverseHref(detail);
+  const historicalUniverseHref = (
+    publishedBuild?.current === false
+      ? syllabusUniverseHref(detail, publishedBuild.manifest_id)
+      : null
+  );
+  const publishedAction = universeHref
+    ? `<a class="button button--quiet syl-universe-link" href="${esc(universeHref)}">Universo</a>`
+    : (historicalUniverseHref
+      ? `<a class="button button--quiet syl-universe-link" href="${esc(historicalUniverseHref)}">Universo anterior</a>`
+      : '');
+  const corpusAttemptAction = ['queued', 'running'].includes(corpusStatus)
+    ? `<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>${Number(corpusProgress.completed || 0)}/${Number(corpusProgress.total || 4)} · Publicando Universo</button>`
+    : (corpusStatus === 'failed' || historicalUniverseHref
+      ? (syllabusKnowledge?.eligibility?.eligible
+        ? '<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar novo Universo</button>'
+        : '<button class="button button--quiet syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais atuais antes de republicar">Publicar novo Universo</button>')
+      : (!publishedAction
+        ? (syllabusKnowledge?.eligibility?.eligible
+          ? '<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar Universo</button>'
+          : '<button class="button button--quiet syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais de todas as fontes ativas para publicar o Universo">Universo</button>')
+        : ''));
+  const corpusAction = `${publishedAction}${corpusAttemptAction}`;
   headingHost.innerHTML = `<div>
       <a class="syl-back" href="/syllabi">${ICON.back}Syllabi</a>
       <p class="syl-eyebrow">Syllabus</p>
@@ -347,6 +403,7 @@ function detailHeading() {
         </select>
       </label>
       ${version?.id ? `<a class="button button--quiet" href="/api/syllabi/${encodeURIComponent(detail.id)}/versions/${encodeURIComponent(version.id)}/workbook">Baixar XLSX</a>` : ''}
+      ${corpusAction}
       ${editing
         ? `<button class="button button--quiet" type="button" data-cancel-edit${state.editor.busy ? ' disabled' : ''}>Cancelar</button>
           <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
@@ -494,10 +551,32 @@ function sourceStatusMarkup(source) {
     ${knowledge ? `<span class="syl-knowledge-state syl-knowledge-state--${knowledge.key}">${esc(knowledge.label)}</span>` : ''}`;
 }
 
+function hasSourcePublication(source) {
+  const status = sourceStatus(source);
+  return Boolean(
+    source.source_publication
+    || source.publication
+    || source.publication_id
+    || source.has_markdown
+    || source.markdown?.available
+    || status.key === 'ready'
+  );
+}
+
+function sourceKnowledgeButton(source) {
+  if (!source.knowledge?.build_id) return '';
+  const sourceId = source.source_id || source.id || '';
+  const referenceId = source.reference_id || '';
+  const title = source.title || 'Fonte sem título';
+  return `<button class="button syl-action-button syl-kc-source-button" type="button"
+    data-open-source-knowledge data-source-id="${esc(sourceId)}" data-reference-id="${esc(referenceId)}"
+    data-source-title="${esc(title)}" aria-label="Ver KCs de ${esc(title)}">KCs</button>`;
+}
+
 function sourceActions(source) {
   const status = sourceStatus(source);
   const busy = ['queued', 'running'].includes(status.key);
-  const markdownReady = source.has_markdown || source.markdown?.available || status.key === 'ready';
+  const markdownReady = hasSourcePublication(source);
   const sourceId = source.source_id || source.id;
   const capability = acquisitionCapability(source);
   const unavailableLabel = `Adapter de ${mediaLabel(source).toLowerCase()} indisponível`;
@@ -507,6 +586,7 @@ function sourceActions(source) {
   const needsAuthorization = isVideo && preflight?.route === 'approval_required';
   return `<div class="syl-source__actions">
     ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
+    ${sourceKnowledgeButton(source)}
     ${source.source_id ? `<button class="button syl-action-button syl-manual-button" type="button" data-manual-source="${esc(source.source_id)}" data-manual-title="${esc(source.title || 'Fonte sem título')}"${busy ? ' disabled' : ''}>${ICON.upload}Upload de PDF ou Imagem</button>` : ''}
     ${needsPreflight
       ? `<button class="button syl-queue-button" type="button" data-video-preflight="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>${ICON.queue}${preflight ? 'Atualizar dados do vídeo' : 'Verificar vídeo'}</button>`
@@ -610,13 +690,14 @@ function sourceMarkup(source) {
   const status = sourceStatus(source);
   const sourceId = source.source_id || source.id || '';
   if (source.review?.validated) {
-    const markdownReady = source.has_markdown || source.markdown?.available || status.key === 'ready';
+    const markdownReady = hasSourcePublication(source);
     const referenceId = source.reference_id || '';
     const busy = state.reviewBusyReferenceIds.has(referenceId);
     return `<article class="syl-source syl-source--validated${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
       <h3>${esc(source.title || 'Fonte sem título')}</h3>
       <div class="syl-source__actions">
         ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
+        ${sourceKnowledgeButton(source)}
         <button class="button syl-action-button" type="button" data-toggle-source-validated data-reference-id="${esc(referenceId)}" aria-pressed="true"${busy ? ' disabled' : ''}>${ICON.check}Desvalidar</button>
       </div>
     </article>`;
@@ -675,6 +756,106 @@ function lessonIsCollapsed(lesson) {
   const lessonId = lesson.id || '';
   return state.collapsedLessonIds.has(lessonId)
     || (lessonIsValidated(lesson) && !state.expandedLessonIds.has(lessonId));
+}
+
+function knowledgeEligibility(offer) {
+  if (!offer) return { eligible: false, code: 'unavailable', message: '' };
+  if (offer.eligibility && typeof offer.eligibility === 'object') return offer.eligibility;
+  return {
+    eligible: Boolean(offer.eligible),
+    code: offer.eligible ? 'ready' : (offer.code || 'unavailable'),
+    message: offer.message || '',
+  };
+}
+
+function buildWork(build) {
+  if (!build || typeof build !== 'object') return [];
+  const entries = build.work || build.works || build.work_entries || build.entries || [];
+  return Array.isArray(entries) ? entries : [];
+}
+
+function workKey(work, index) {
+  const snapshot = work?.snapshot || {};
+  return String(
+    work?.artifact_id
+    || work?.target?.artifact_id
+    || snapshot?.source?.artifact_id
+    || work?.id
+    || `${work?.source_id || snapshot?.source?.id || 'work'}:${index}`
+  );
+}
+
+function uniqueBuildWork(build) {
+  const unique = new Map();
+  buildWork(build).forEach((work, index) => {
+    const key = workKey(work, index);
+    if (!unique.has(key)) unique.set(key, work);
+  });
+  return [...unique.values()];
+}
+
+function knowledgeProgress(build) {
+  if (build?.stage_progress && Number.isFinite(Number(build.stage_progress.total))) {
+    return {
+      completed: Number(build.stage_progress.completed || 0),
+      total: Number(build.stage_progress.total || 0),
+      work: uniqueBuildWork(build),
+    };
+  }
+  const work = uniqueBuildWork(build);
+  let completed = 0;
+  work.forEach((entry) => {
+    const stages = entry?.snapshot?.stages || {};
+    completed += LOCAL_KC_STAGES.filter(([name]) => stages?.[name]?.status === 'done').length;
+  });
+  return { completed, total: LOCAL_KC_STAGES.length * work.length, work };
+}
+
+function knowledgeBuildIsActive(build) {
+  return ['pending', 'queued', 'running', 'publishing'].includes(String(build?.status || '').toLowerCase());
+}
+
+function knowledgeComponentCount(build) {
+  return uniqueBuildWork(build).reduce(
+    (total, work) => total + Number(work?.kc_count ?? (
+      Array.isArray(work?.snapshot?.components) ? work.snapshot.components.length : 0
+    )),
+    0,
+  );
+}
+
+function lessonKnowledgeMarkup(lesson) {
+  const offer = lesson.knowledge || null;
+  const projectedBuild = offer?.latest_build || null;
+  const build = (projectedBuild?.id && state.knowledgeBuilds.get(projectedBuild.id)) || projectedBuild;
+  const eligibility = knowledgeEligibility(offer);
+  if (build) {
+    const progress = knowledgeProgress(build);
+    const count = knowledgeComponentCount(build);
+    const failed = String(build.status || '').toLowerCase() === 'failed';
+    const copy = build.current === false
+      ? `${count} ${count === 1 ? 'KC' : 'KCs'} em resultado anterior`
+      : (knowledgeBuildIsActive(build)
+        ? `${progress.completed}/${progress.total} etapas locais concluídas`
+        : (failed
+          ? `Precisa de atenção · ${progress.completed}/${progress.total} etapas locais`
+          : `${count} ${count === 1 ? 'KC unitário' : 'KCs unitários'} produzidos`));
+    return `<footer class="syl-lesson-knowledge-footer">
+      <div class="syl-lesson-knowledge-copy"><strong>KCs da aula</strong><span>${esc(copy)}</span></div>
+      <button class="button syl-lesson-knowledge" type="button" data-open-lesson-knowledge="${esc(lesson.id || '')}">${knowledgeBuildIsActive(build) ? 'Acompanhar' : 'Ver KCs da aula'}</button>
+    </footer>`;
+  }
+  if (lessonIsValidated(lesson) && eligibility.eligible) {
+    const publications = Number(offer.publication_count || 0);
+    const references = Number(offer.active_reference_count || publications);
+    const publicationCopy = `${publications} Source Publication${publications === 1 ? '' : 's'} pronta${publications === 1 ? '' : 's'}`;
+    const referenceCopy = `${references} ${references === 1 ? 'autoestudo validado' : 'autoestudos validados'}`;
+    return `<footer class="syl-lesson-knowledge-footer">
+      <div class="syl-lesson-knowledge-copy"><strong>KCs da aula</strong><span>${publicationCopy} · ${referenceCopy} · ainda não iniciados</span></div>
+      <button class="button syl-lesson-knowledge syl-lesson-knowledge--start" type="button" data-start-lesson-knowledge="${esc(lesson.id || '')}">Iniciar criação</button>
+    </footer>`;
+  }
+  return '';
 }
 
 function lessonMarkup(lesson, index) {
@@ -752,14 +933,121 @@ function lessonMarkup(lesson, index) {
     <div class="syl-lesson__sources">
       ${sources.length ? sources.map((source) => sourceMarkup(source)).join('') : '<p class="syl-lesson__empty">Nenhuma fonte registrada nesta aula.</p>'}
     </div>
+    ${lessonKnowledgeMarkup(lesson)}
   </section>`;
 }
 
 function hasActiveJobs(detail) {
-  return (detail?.lessons || []).some((lesson) => (lesson.sources || []).some((source) => {
+  return ['queued', 'running'].includes(String(detail?.knowledge?.latest_build?.status || '').toLowerCase())
+    || (detail?.lessons || []).some((lesson) => knowledgeBuildIsActive(lesson.knowledge?.latest_build)
+    || (lesson.sources || []).some((source) => {
     const status = sourceStatus(source).key;
     return status === 'queued' || status === 'running' || Boolean(source.image_branch?.active);
   }));
+}
+
+function syllabusKnowledgeApiPath() {
+  const versionId = currentVersion(state.detail)?.id || state.selectedVersionId;
+  if (!routeId || !versionId) return null;
+  return `/api/syllabi/${encodeURIComponent(routeId)}/versions/${encodeURIComponent(versionId)}`;
+}
+
+function syllabusUniverseHref(detail = state.detail, manifestId = detail?.knowledge_manifest_id) {
+  const versionId = currentVersion(detail)?.id;
+  if (!manifestId || !detail?.id || !versionId) return null;
+  return `/graph?manifest_id=${encodeURIComponent(manifestId)}&syllabus_id=${encodeURIComponent(detail.id)}&version_id=${encodeURIComponent(versionId)}`;
+}
+
+function syllabusKnowledgeEligibilityMessage(eligibility) {
+  const messages = {
+    no_active_references: 'O syllabus não possui autoestudos ativos.',
+    references_not_validated: 'Valide todos os autoestudos ativos antes de publicar.',
+    references_without_source: 'Uma ou mais referências ainda não resolvem para uma fonte.',
+    publications_unavailable: 'Uma ou mais fontes ainda não possuem uma publicação atual.',
+    publications_not_current: 'Uma ou mais publicações pertencem a uma tentativa anterior.',
+    local_kcs_incomplete: 'Conclua os 11 estágios locais de todas as fontes antes de publicar.',
+  };
+  return messages[eligibility?.code] || eligibility?.message || 'O Universo ainda não está pronto para publicação.';
+}
+
+function renderSyllabusKnowledgeDialog() {
+  if (state.knowledge.mode !== 'syllabus') return;
+  const offer = state.detail?.knowledge || {};
+  const build = offer.latest_build || null;
+  const publishedBuild = offer.published_build || null;
+  const eligibility = offer.eligibility || {};
+  const progress = build?.progress || { completed: 0, total: 4 };
+  const active = knowledgeBuildIsActive(build);
+  const universeHref = syllabusUniverseHref();
+  const historicalUniverseHref = (
+    publishedBuild?.current === false
+      ? syllabusUniverseHref(state.detail, publishedBuild.manifest_id)
+      : null
+  );
+  const publishedUniverseHref = universeHref || historicalUniverseHref;
+  const published = Boolean(
+    universeHref
+      && publishedBuild
+      && build?.id === publishedBuild.id
+      && String(build?.status || '').toLowerCase() === 'succeeded'
+  );
+  state.knowledge.build = build;
+  $('[data-knowledge-eyebrow]').textContent = 'Concept Universe do syllabus';
+  $('[data-knowledge-title]').textContent = state.detail?.title || state.detail?.name || 'Syllabus';
+  $('[data-knowledge-body]').innerHTML = published
+    ? `<div class="syl-knowledge-summary" role="status" aria-live="polite"><span class="syl-knowledge-build-state is-succeeded">Universo publicado</span><strong>${Number(progress.completed || 4)}/${Number(progress.total || 4)} etapas compartilhadas</strong></div><p class="syl-knowledge-offer__note">O corpus publicado permanece preso às Source Publications desta versão.</p><a class="button button--primary" href="${esc(universeHref)}">Abrir Universo</a>`
+    : (active
+      ? `<div class="syl-knowledge-summary" role="status" aria-live="polite"><span class="syl-knowledge-build-state is-running">Publicando Universo</span><strong>${Number(progress.completed || 0)}/${Number(progress.total || 4)} etapas compartilhadas</strong></div><p class="syl-knowledge-offer__note">O corpus está preso às Source Publications desta versão. A página será atualizada automaticamente.</p>${publishedUniverseHref ? `<a class="button button--quiet" href="${esc(publishedUniverseHref)}">Abrir Universo publicado</a>` : ''}`
+      : `<section class="syl-knowledge-offer"><p>Publicar o Concept Universe interpreta em conjunto todas as Source Publications com KCs locais completos nesta versão.</p><p class="syl-knowledge-offer__note">Este é um segundo checkpoint explícito: nada será iniciado até você confirmar.</p>${publishedUniverseHref ? `<p class="syl-knowledge-offer__note">A publicação anterior permanece disponível, presa às fontes anteriores. <a href="${esc(publishedUniverseHref)}">Abrir Universo publicado</a></p>` : ''}${eligibility.eligible ? '' : `<p class="syl-form-error" role="alert">${esc(syllabusKnowledgeEligibilityMessage(eligibility))}</p>`}</section>`);
+  const footer = $('[data-knowledge-footer]');
+  footer.hidden = active;
+  footer.innerHTML = active
+    ? ''
+    : (published
+      ? '<button class="button button--quiet" type="button" data-knowledge-close>Fechar</button>'
+      : `<button class="button button--quiet" type="button" data-knowledge-close>Cancelar</button><button class="button button--primary" type="button" data-confirm-syllabus-knowledge${eligibility.eligible ? '' : ' disabled'}>Confirmar publicação</button>`);
+}
+
+async function openSyllabusKnowledge(trigger) {
+  const path = syllabusKnowledgeApiPath();
+  if (!path) return;
+  resetKnowledgeState();
+  state.knowledge.trigger = knowledgeTriggerIdentity(trigger || document.activeElement);
+  state.knowledge.mode = 'syllabus';
+  state.knowledge.requestToken = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+  renderSyllabusKnowledgeDialog();
+  if (!knowledgeDialog.open) knowledgeDialog.showModal();
+  $('[data-knowledge-close]')?.focus();
+}
+
+async function confirmSyllabusKnowledge() {
+  const path = syllabusKnowledgeApiPath();
+  if (!path || state.knowledge.busy) return;
+  const requestToken = state.knowledge.requestToken;
+  state.knowledge.busy = true;
+  const confirm = $('[data-confirm-syllabus-knowledge]');
+  if (confirm) { confirm.disabled = true; confirm.textContent = 'Publicando…'; }
+  try {
+    const response = await fetch(`${path}/knowledge-builds`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_key: `syllabi-ui:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}` }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail?.message || body.detail || `o servidor respondeu ${response.status}`);
+    if (state.knowledge.requestToken !== requestToken) return;
+    state.detail.knowledge = { ...(state.detail.knowledge || {}), latest_build: body };
+    state.knowledge.busy = false;
+    state.knowledge.build = body;
+    announce('Publicação do Concept Universe iniciada para esta versão.');
+    renderDetail();
+    renderSyllabusKnowledgeDialog();
+  } catch (error) {
+    if (state.knowledge.requestToken !== requestToken) return;
+    state.knowledge.busy = false;
+    $('[data-knowledge-body]').innerHTML = `<div class="syl-knowledge-empty syl-knowledge-empty--error"><strong>Não foi possível publicar o Universo.</strong><span>${esc(error.message)}</span></div>`;
+    if (confirm) { confirm.disabled = false; confirm.textContent = 'Tentar novamente'; }
+  }
 }
 
 function schedulePolling() {
@@ -810,6 +1098,8 @@ function autosizeEditorTextareas() {
 const initialSearch = new URLSearchParams(window.location.search);
 const routeId = initialSearch.get('id');
 const initialReconciliationId = initialSearch.get('reconciliation');
+const initialVersionId = initialSearch.get('version_id');
+if (initialVersionId) state.selectedVersionId = initialVersionId;
 
 async function loadDetail({ versionId = state.selectedVersionId, silent = false } = {}) {
   if (!routeId) return;
@@ -832,6 +1122,9 @@ async function loadDetail({ versionId = state.selectedVersionId, silent = false 
   } finally {
     state.loading = false;
     renderDetail();
+    if (knowledgeDialog.open && state.knowledge.mode === 'syllabus') {
+      renderSyllabusKnowledgeDialog();
+    }
   }
 }
 
@@ -980,7 +1273,14 @@ async function updateSourceReview(referenceId, changes) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
     found.source.review = body.review;
-    if ('validated' in changes) state.expandedLessonIds.delete(found.lesson.id);
+    if ('validated' in changes) {
+      state.expandedLessonIds.delete(found.lesson.id);
+      // Validation is only one input to the authoritative KC gate. Refresh
+      // the publication/build projections before exposing either Start or
+      // Publish actions instead of combining new review state with a stale
+      // knowledge offer already held by the page.
+      await loadDetail({ versionId: state.selectedVersionId, silent: true });
+    }
     announce('Organização do autoestudo atualizada.');
   } catch (error) {
     announce(`Não foi possível atualizar o autoestudo: ${error.message}`);
@@ -1674,9 +1974,443 @@ async function openMarkdown(sourceId, title) {
   }
 }
 
+function lessonById(lessonId) {
+  return (state.detail?.lessons || []).find((lesson) => String(lesson.id) === String(lessonId)) || null;
+}
+
+function knowledgeApiPath(lessonId) {
+  const versionId = currentVersion(state.detail)?.id || state.selectedVersionId;
+  if (!routeId || !versionId || !lessonId) return null;
+  return `/api/syllabi/${encodeURIComponent(routeId)}/versions/${encodeURIComponent(versionId)}/lessons/${encodeURIComponent(lessonId)}`;
+}
+
+function knowledgeTriggerIdentity(trigger) {
+  if (!(trigger instanceof Element)) return null;
+  const lessonId = trigger.closest('[data-lesson-id]')?.dataset.lessonId || null;
+  if (trigger.matches('[data-open-syllabus-knowledge]')) {
+    return { kind: 'syllabus', element: trigger };
+  }
+  if (trigger.matches('[data-open-source-knowledge]')) {
+    return {
+      kind: 'source',
+      lessonId,
+      sourceId: trigger.dataset.sourceId || null,
+      referenceId: trigger.dataset.referenceId || null,
+      element: trigger,
+    };
+  }
+  if (trigger.matches('[data-start-lesson-knowledge], [data-open-lesson-knowledge]')) {
+    return {
+      kind: 'lesson',
+      lessonId: trigger.dataset.startLessonKnowledge || trigger.dataset.openLessonKnowledge || lessonId,
+      element: trigger,
+    };
+  }
+  return { kind: 'element', element: trigger };
+}
+
+function resolveKnowledgeTrigger(identity) {
+  if (!identity) return null;
+  if (identity.element?.isConnected) return identity.element;
+  if (identity.kind === 'syllabus') {
+    return $('[data-open-syllabus-knowledge]') || $('.syl-universe-link');
+  }
+  const lesson = [...document.querySelectorAll('[data-lesson-id]')].find(
+    (candidate) => String(candidate.dataset.lessonId || '') === String(identity.lessonId || ''),
+  );
+  if (identity.kind === 'lesson') {
+    return lesson?.querySelector('[data-open-lesson-knowledge], [data-start-lesson-knowledge]') || null;
+  }
+  if (identity.kind === 'source') {
+    return [...(lesson?.querySelectorAll('[data-open-source-knowledge]') || [])].find((candidate) => (
+      (identity.referenceId && String(candidate.dataset.referenceId || '') === String(identity.referenceId))
+      || (identity.sourceId && String(candidate.dataset.sourceId || '') === String(identity.sourceId))
+    )) || null;
+  }
+  return null;
+}
+
+function resetKnowledgeState() {
+  const trigger = state.knowledge.trigger;
+  window.clearTimeout(state.knowledge.pollingTimer);
+  state.knowledge = {
+    lessonId: null,
+    sourceId: null,
+    referenceId: null,
+    sourceBuildId: null,
+    targetWorkId: null,
+    sourceTitle: '',
+    offer: null,
+    build: null,
+    mode: 'results',
+    requestKey: null,
+    busy: false,
+    error: null,
+    pollingTimer: null,
+    requestToken: null,
+    trigger: null,
+  };
+  return trigger;
+}
+
+function putLessonKnowledge(lessonId, offer, build = undefined) {
+  const lesson = lessonById(lessonId);
+  if (!lesson) return;
+  lesson.knowledge = offer || lesson.knowledge || null;
+  if (build !== undefined && lesson.knowledge) lesson.knowledge.latest_build = build;
+  if (!build?.id) return;
+  state.knowledgeBuilds.set(build.id, build);
+  const workById = new Map(buildWork(build).map((work) => [String(work.id), work]));
+  (build.references || []).forEach((reference) => {
+    const source = (lesson.sources || []).find(
+      (candidate) => String(candidate.reference_id || '') === String(reference.reference_id || ''),
+    );
+    const work = workById.get(String(reference.work_id || ''));
+    if (!source || !work) return;
+    source.knowledge = {
+      build_id: build.id,
+      work_id: work.id,
+      status: work.status,
+      current: work.current,
+      kc_count: Number(work.kc_count ?? (Array.isArray(work.snapshot?.components) ? work.snapshot.components.length : 0)),
+      snapshot: work.snapshot,
+    };
+  });
+}
+
+function buildFromResponse(body) {
+  if (!body || typeof body !== 'object') return null;
+  return body.build && typeof body.build === 'object' ? body.build : body;
+}
+
+function sourceForKnowledge(sourceId, referenceId) {
+  const lesson = lessonById(state.knowledge.lessonId);
+  return (lesson?.sources || []).find((source) => (
+    (referenceId && String(source.reference_id || '') === String(referenceId))
+    || (sourceId && String(source.source_id || source.id || '') === String(sourceId))
+  )) || null;
+}
+
+function sourceName(sourceId, fallback = null) {
+  const lesson = lessonById(state.knowledge.lessonId);
+  const source = (lesson?.sources || []).find(
+    (candidate) => String(candidate.source_id || candidate.id || '') === String(sourceId || ''),
+  );
+  return source?.title || fallback || 'Fonte';
+}
+
+function workMatchesKnowledgeFilter(work, build) {
+  const { sourceId, referenceId, targetWorkId } = state.knowledge;
+  if (targetWorkId) return String(work?.id || '') === String(targetWorkId);
+  if (!sourceId && !referenceId) return true;
+  const snapshotSourceId = work?.snapshot?.source?.id;
+  const matchesSource = !sourceId || String(work?.source_id || snapshotSourceId || '') === String(sourceId);
+  if (!matchesSource) return false;
+  if (!referenceId) return true;
+  const directReferences = Array.isArray(work?.reference_ids) ? work.reference_ids : [];
+  const linkedReferences = Array.isArray(build?.references)
+    ? build.references.filter((item) => String(item.work_id || '') === String(work?.id || ''))
+      .map((item) => item.reference_id)
+    : [];
+  const knownReferences = [...directReferences, ...linkedReferences].filter(Boolean);
+  return !knownReferences.length || knownReferences.some((id) => String(id) === String(referenceId));
+}
+
+function knowledgeModalProgress(build) {
+  const work = uniqueBuildWork(build).filter((entry) => workMatchesKnowledgeFilter(entry, build));
+  let completed = 0;
+  work.forEach((entry) => {
+    const stages = entry?.snapshot?.stages || {};
+    completed += LOCAL_KC_STAGES.filter(([name]) => stages?.[name]?.status === 'done').length;
+  });
+  return { completed, total: LOCAL_KC_STAGES.length * work.length, work };
+}
+
+function knowledgeComponents(build) {
+  const seen = new Set();
+  const items = [];
+  uniqueBuildWork(build).forEach((work) => {
+    if (!workMatchesKnowledgeFilter(work, build)) return;
+    const snapshot = work?.snapshot || {};
+    const components = Array.isArray(snapshot.components) ? snapshot.components : [];
+    components.forEach((component) => {
+      const canonical = component?.canonical || {};
+      const members = Array.isArray(component?.members) ? component.members : [];
+      const matchingMembers = members.filter((member) => (
+        !state.knowledge.sourceId
+        || String(member?.source_id || work?.source_id || '') === String(state.knowledge.sourceId)
+      ));
+      const member = matchingMembers[0] || members[0] || {};
+      const statement = canonical.verdict === 'stated'
+        ? canonical.statement
+        : (canonical.statement || member.statement);
+      if (!String(statement || '').trim()) return;
+      const key = `${component?.id || member?.task_id || statement}:${member?.source_id || work?.source_id || ''}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      items.push({
+        statement: String(statement).trim(),
+        task: member.task,
+        answer: member.answer,
+        sourceId: member.source_id || work?.source_id || snapshot?.source?.id,
+        sourceTitle: snapshot?.source?.title,
+      });
+    });
+  });
+  return items;
+}
+
+function stageStatusLabel(status) {
+  if (status === 'done') return 'Concluída';
+  if (status === 'running') return 'Em andamento';
+  if (status === 'failed') return 'Atenção';
+  if (status === 'partial') return 'Parcial';
+  return 'Pendente';
+}
+
+function knowledgeStageDetails(build) {
+  const progress = knowledgeModalProgress(build);
+  if (!progress.work.length) return '';
+  return `<details class="syl-knowledge-stages" data-knowledge-stage-details>
+    <summary>${progress.completed}/${progress.total} etapas locais concluídas</summary>
+    <div class="syl-knowledge-work-list">
+      ${progress.work.map((work, index) => {
+        const stages = work?.snapshot?.stages || {};
+        const title = sourceName(work?.source_id || work?.snapshot?.source?.id, work?.snapshot?.source?.title);
+        return `<section class="syl-knowledge-work">
+          <strong>${esc(title)}</strong>
+          <ol>
+            ${LOCAL_KC_STAGES.map(([name, label]) => {
+              const status = String(
+                String(work?.status || '').toLowerCase() === 'failed'
+                  && String(work?.stage || work?.diagnostics?.pipeline_stage || '') === name
+                  ? 'failed'
+                  : (stages?.[name]?.status || 'pending'),
+              );
+              return `<li class="is-${esc(status)}"><span>${String(index + 1).padStart(2, '0')}.${String(LOCAL_KC_STAGES.findIndex(([stage]) => stage === name) + 1).padStart(2, '0')} ${esc(label)}</span><small>${esc(stageStatusLabel(status))}</small></li>`;
+            }).join('')}
+          </ol>
+        </section>`;
+      }).join('')}
+    </div>
+  </details>`;
+}
+
+function eligibilityMessage(eligibility) {
+  const messages = {
+    lesson_hidden: 'Esta aula está ocultada.',
+    no_active_references: 'A aula não possui autoestudos ativos.',
+    references_not_validated: 'Valide todos os autoestudos ativos antes de iniciar.',
+    references_without_source: 'Uma ou mais referências ainda não resolvem para uma fonte.',
+    publications_unavailable: 'Uma ou mais fontes ainda não possuem uma publicação atual.',
+    publications_not_current: 'Uma ou mais publicações pertencem a uma tentativa anterior.',
+  };
+  return messages[eligibility?.code] || eligibility?.message || 'A criação de KCs ainda não está disponível para esta aula.';
+}
+
+function renderKnowledgeDialog() {
+  const knowledge = state.knowledge;
+  const lesson = lessonById(knowledge.lessonId);
+  const source = sourceForKnowledge(knowledge.sourceId, knowledge.referenceId);
+  const title = source ? `KCs · ${source.title || knowledge.sourceTitle || 'Fonte'}` : 'KCs da aula';
+  $('[data-knowledge-eyebrow]').textContent = source ? 'Source Publication' : 'Conhecimento da aula';
+  $('[data-knowledge-title]').textContent = title;
+  const body = $('[data-knowledge-body]');
+  const footer = $('[data-knowledge-footer]');
+  footer.hidden = true;
+  footer.innerHTML = '';
+
+  if (knowledge.busy && !knowledge.offer) {
+    body.innerHTML = '<div class="syl-loading"><span></span>Carregando KCs…</div>';
+    return;
+  }
+  if (knowledge.error) {
+    body.innerHTML = `<div class="syl-knowledge-empty syl-knowledge-empty--error"><strong>Não foi possível abrir os KCs.</strong><span>${esc(knowledge.error)}</span></div>`;
+    return;
+  }
+
+  const offer = knowledge.offer || lesson?.knowledge || {};
+  const eligibility = knowledgeEligibility(offer);
+  const build = knowledge.build || offer.latest_build || null;
+  if (knowledge.mode === 'confirm' && !build) {
+    const count = Number(offer.publication_count || 0);
+    body.innerHTML = `<section class="syl-knowledge-offer">
+      <p>Esta aula está pronta para criar KCs a partir de <strong>${count} ${count === 1 ? 'Source Publication' : 'Source Publications'}</strong>.</p>
+      <p class="syl-knowledge-offer__note">Nada será iniciado até você confirmar. O trabalho fica preso às publicações atuais desta aula.</p>
+      ${eligibility.eligible ? '' : `<p class="syl-form-error" role="alert">${esc(eligibilityMessage(eligibility))}</p>`}
+    </section>`;
+    footer.hidden = false;
+    footer.innerHTML = `<button class="button button--quiet" type="button" data-knowledge-close>Cancelar</button>
+      <button class="button button--primary" type="button" data-confirm-knowledge${eligibility.eligible && !knowledge.busy ? '' : ' disabled'}>${knowledge.busy ? 'Iniciando…' : 'Confirmar e iniciar KCs'}</button>`;
+    return;
+  }
+
+  const components = knowledgeComponents(build);
+  const progress = build ? knowledgeModalProgress(build) : { completed: 0, total: 0 };
+  const status = String(build?.status || '').toLowerCase();
+  const statusLine = build
+    ? `<div class="syl-knowledge-summary" role="status" aria-live="polite"><span class="syl-knowledge-build-state is-${esc(status || 'queued')}">${knowledgeBuildIsActive(build) ? 'Criando KCs' : (status === 'failed' ? 'Precisa de atenção' : (build.current === false ? 'Resultado anterior' : 'KCs produzidos'))}</span><strong>${progress.completed}/${progress.total} etapas locais</strong></div>`
+    : '';
+  const results = components.length
+    ? `<div class="syl-kc-reading"><h3 class="syl-kc-heading">${components.length} ${components.length === 1 ? 'KC unitário' : 'KCs unitários'}</h3><p class="syl-kc-deck">Cada item mostra o enunciado e a tarefa, resposta e fonte que o sustentam.</p><ol class="syl-kc-list">${components.map((component) => `<li class="syl-kc-item">
+        <p class="syl-kc-statement">${esc(component.statement)}</p>
+        <dl>
+          ${component.task != null && String(component.task).trim() ? `<div><dt>Tarefa</dt><dd>${esc(component.task)}</dd></div>` : ''}
+          ${component.answer != null && String(component.answer).trim() ? `<div><dt>Resposta</dt><dd>${esc(component.answer)}</dd></div>` : ''}
+          <div><dt>Fonte</dt><dd>${esc(sourceName(component.sourceId, component.sourceTitle))}</dd></div>
+        </dl>
+      </li>`).join('')}</ol></div>`
+    : `<div class="syl-knowledge-empty"><strong>${build ? 'Os enunciados de KC ainda estão sendo produzidos.' : 'Nenhum KC criado para esta fonte.'}</strong><span>${build ? 'Esta lâmina será atualizada enquanto a criação estiver ativa.' : 'Os KCs aparecerão aqui depois que a criação da aula for iniciada.'}</span></div>`;
+  const canRestart = build && knowledgeEligibility(offer).eligible
+    && (String(build.status || '').toLowerCase() === 'failed' || build.current === false);
+  body.innerHTML = `${statusLine}${results}${build ? knowledgeStageDetails(build) : ''}`;
+  if (canRestart) {
+    footer.hidden = false;
+    footer.innerHTML = `<button class="button button--primary" type="button" data-restart-knowledge>${build.current === false ? 'Criar KCs para as publicações atuais' : 'Tentar novamente com novo pedido'}</button>`;
+  }
+}
+
+function prepareKnowledgeRestart() {
+  if (!state.knowledge.offer || !knowledgeEligibility(state.knowledge.offer).eligible) return;
+  state.knowledge.mode = 'confirm';
+  state.knowledge.build = null;
+  state.knowledge.offer = { ...state.knowledge.offer, latest_build: null };
+  state.knowledge.requestKey = `syllabi-ui:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+  renderKnowledgeDialog();
+}
+
+function scheduleKnowledgePolling() {
+  window.clearTimeout(state.knowledge.pollingTimer);
+  state.knowledge.pollingTimer = null;
+  if (!knowledgeDialog.open || !knowledgeBuildIsActive(state.knowledge.build)) return;
+  state.knowledge.pollingTimer = window.setTimeout(() => refreshKnowledgeBuild(), 2000);
+}
+
+async function refreshKnowledgeBuild() {
+  const buildId = state.knowledge.build?.id || state.knowledge.offer?.latest_build?.id;
+  const requestToken = state.knowledge.requestToken;
+  if (!buildId || !knowledgeDialog.open) return;
+  try {
+    const response = await fetch(`/api/knowledge-builds/${encodeURIComponent(buildId)}`, { headers: { Accept: 'application/json' } });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    const build = buildFromResponse(body);
+    if (!build?.id || String(build.id) !== String(buildId) || !knowledgeDialog.open
+      || state.knowledge.requestToken !== requestToken) return;
+    state.knowledge.build = build;
+    state.knowledgeBuilds.set(build.id, build);
+    putLessonKnowledge(state.knowledge.lessonId, state.knowledge.offer, build);
+    renderDetail();
+    renderKnowledgeDialog();
+  } catch (error) {
+    announce(`Não foi possível atualizar os KCs: ${error.message}`);
+  } finally {
+    scheduleKnowledgePolling();
+  }
+}
+
+async function openKnowledge({ lessonId, sourceId = null, referenceId = null, sourceTitle = '', confirm = false, trigger = null }) {
+  const path = knowledgeApiPath(lessonId);
+  if (!path) return;
+  resetKnowledgeState();
+  state.knowledge.lessonId = lessonId;
+  state.knowledge.sourceId = sourceId;
+  state.knowledge.referenceId = referenceId;
+  state.knowledge.sourceTitle = sourceTitle;
+  const selectedSource = sourceForKnowledge(sourceId, referenceId);
+  state.knowledge.sourceBuildId = selectedSource?.knowledge?.build_id || null;
+  state.knowledge.targetWorkId = selectedSource?.knowledge?.work_id || null;
+  state.knowledge.mode = confirm ? 'confirm' : 'results';
+  state.knowledge.busy = true;
+  state.knowledge.requestToken = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+  state.knowledge.trigger = knowledgeTriggerIdentity(trigger || document.activeElement);
+  const requestToken = state.knowledge.requestToken;
+  state.knowledge.requestKey = `syllabi-ui:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+  renderKnowledgeDialog();
+  if (!knowledgeDialog.open) knowledgeDialog.showModal();
+  $('[data-knowledge-close]')?.focus();
+  try {
+    const response = await fetch(`${path}/knowledge`, { headers: { Accept: 'application/json' } });
+    const offer = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(offer.detail || `o servidor respondeu ${response.status}`);
+    if (String(state.knowledge.lessonId) !== String(lessonId)
+      || state.knowledge.requestToken !== requestToken) return;
+    state.knowledge.offer = offer;
+    putLessonKnowledge(lessonId, offer);
+    const projectedBuild = offer.latest_build || null;
+    const requestedBuildId = state.knowledge.sourceBuildId || projectedBuild?.id || null;
+    if (requestedBuildId) {
+      state.knowledge.mode = 'results';
+      state.knowledge.build = state.knowledgeBuilds.get(requestedBuildId)
+        || (String(projectedBuild?.id || '') === String(requestedBuildId) ? projectedBuild : null);
+      const buildResponse = await fetch(`/api/knowledge-builds/${encodeURIComponent(requestedBuildId)}`, { headers: { Accept: 'application/json' } });
+      const buildBody = await buildResponse.json().catch(() => ({}));
+      if (!buildResponse.ok) throw new Error(buildBody.detail || `o servidor respondeu ${buildResponse.status}`);
+      if (state.knowledge.requestToken !== requestToken || !knowledgeDialog.open) return;
+      state.knowledge.build = buildFromResponse(buildBody);
+      if (state.knowledge.build?.id) state.knowledgeBuilds.set(state.knowledge.build.id, state.knowledge.build);
+      if (String(projectedBuild?.id || '') === String(state.knowledge.build?.id || '')) {
+        putLessonKnowledge(lessonId, offer, state.knowledge.build);
+      }
+    }
+    state.knowledge.busy = false;
+    renderDetail();
+    renderKnowledgeDialog();
+    scheduleKnowledgePolling();
+  } catch (error) {
+    if (state.knowledge.requestToken !== requestToken) return;
+    state.knowledge.busy = false;
+    state.knowledge.error = error.message;
+    renderKnowledgeDialog();
+  }
+}
+
+async function confirmKnowledgeBuild() {
+  const knowledge = state.knowledge;
+  const path = knowledgeApiPath(knowledge.lessonId);
+  if (!path || knowledge.busy || !knowledgeEligibility(knowledge.offer).eligible) return;
+  const requestToken = knowledge.requestToken;
+  knowledge.busy = true;
+  renderKnowledgeDialog();
+  try {
+    const response = await fetch(`${path}/knowledge-builds`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_key: knowledge.requestKey }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    if (state.knowledge !== knowledge || state.knowledge.requestToken !== requestToken) return;
+    const build = buildFromResponse(body);
+    knowledge.build = build;
+    knowledge.offer.latest_build = build;
+    knowledge.mode = 'results';
+    knowledge.busy = false;
+    if (build?.id) state.knowledgeBuilds.set(build.id, build);
+    putLessonKnowledge(knowledge.lessonId, knowledge.offer, build);
+    announce('Criação de KCs iniciada para as publicações atuais desta aula.');
+    renderDetail();
+    renderKnowledgeDialog();
+    scheduleKnowledgePolling();
+  } catch (error) {
+    if (state.knowledge !== knowledge || state.knowledge.requestToken !== requestToken) return;
+    knowledge.busy = false;
+    knowledge.error = error.message;
+    renderKnowledgeDialog();
+  }
+}
+
+function closeKnowledge() {
+  const trigger = resetKnowledgeState();
+  if (knowledgeDialog.open) knowledgeDialog.close();
+  resolveKnowledgeTrigger(trigger)?.focus();
+}
+
 document.querySelector('main').addEventListener('click', (event) => {
   if (event.target.closest('[data-new-syllabus]')) { openUpload('new'); return; }
   if (event.target.closest('[data-new-version]')) { openUpload('version'); return; }
+  const syllabusKnowledge = event.target.closest('[data-open-syllabus-knowledge]');
+  if (syllabusKnowledge) { openSyllabusKnowledge(syllabusKnowledge); return; }
   if (event.target.closest('[data-edit-syllabus]')) { startEditing(); return; }
   const editLesson = event.target.closest('[data-edit-lesson]');
   if (editLesson) { startEditing(editLesson.dataset.editLesson); return; }
@@ -1712,6 +2446,28 @@ document.querySelector('main').addEventListener('click', (event) => {
     const found = sourceByReferenceId(validated.dataset.referenceId);
     updateSourceReview(validated.dataset.referenceId, {
       validated: !Boolean(found?.source?.review?.validated),
+    });
+    return;
+  }
+  const startKnowledge = event.target.closest('[data-start-lesson-knowledge]');
+  if (startKnowledge) {
+    openKnowledge({ lessonId: startKnowledge.dataset.startLessonKnowledge, confirm: true, trigger: startKnowledge });
+    return;
+  }
+  const lessonKnowledge = event.target.closest('[data-open-lesson-knowledge]');
+  if (lessonKnowledge) {
+    openKnowledge({ lessonId: lessonKnowledge.dataset.openLessonKnowledge, trigger: lessonKnowledge });
+    return;
+  }
+  const sourceKnowledge = event.target.closest('[data-open-source-knowledge]');
+  if (sourceKnowledge) {
+    const lessonId = sourceKnowledge.closest('[data-lesson-id]')?.dataset.lessonId;
+    openKnowledge({
+      lessonId,
+      sourceId: sourceKnowledge.dataset.sourceId,
+      referenceId: sourceKnowledge.dataset.referenceId,
+      sourceTitle: sourceKnowledge.dataset.sourceTitle,
+      trigger: sourceKnowledge,
     });
     return;
   }
@@ -1790,6 +2546,17 @@ markdownDialog.addEventListener('click', (event) => {
   }
 });
 
+knowledgeDialog.addEventListener('click', (event) => {
+  if (event.target.closest('[data-confirm-syllabus-knowledge]')) { confirmSyllabusKnowledge(); return; }
+  if (event.target.closest('[data-confirm-knowledge]')) { confirmKnowledgeBuild(); return; }
+  if (event.target.closest('[data-restart-knowledge]')) { prepareKnowledgeRestart(); return; }
+  if (event.target.closest('[data-knowledge-close]') || event.target === knowledgeDialog) closeKnowledge();
+});
+knowledgeDialog.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeKnowledge();
+});
+
 manualForm.addEventListener('submit', submitManualUpload);
 manualDialog.addEventListener('click', (event) => {
   const kind = event.target.closest('[data-manual-kind]');
@@ -1810,6 +2577,7 @@ $('[data-manual-files]').addEventListener('change', (event) => addManualFiles(ev
 
 window.addEventListener('beforeunload', (event) => {
   window.clearTimeout(state.pollingTimer);
+  window.clearTimeout(state.knowledge.pollingTimer);
   revokeManualItems();
   if (state.editor.active && state.editor.dirty) {
     event.preventDefault();

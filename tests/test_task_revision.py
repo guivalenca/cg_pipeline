@@ -1,10 +1,12 @@
 """The task-revision parser and its files; no model, no transport."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from universe.harness import load_prompt, load_tool
+from universe import task_granularity, task_revision
 from universe.task_revision import revision_of
 
 TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-revision" / "tool-v003.json"
@@ -95,3 +97,82 @@ def test_the_tool_definition_loads_and_forces_report_revision():
     parameters = payload["tools"][0]["function"]["parameters"]
     assert parameters["properties"]["verdict"]["enum"] == ["stands", "rewritten", "unfixable"]
     assert parameters["required"] == ["verdict"]
+
+
+def test_revision_cli_consumes_only_the_shared_post_split_scope(monkeypatch):
+    conn = object()
+    selected = [{"id": "part-1", "artifact_id": "artifact", "body": "Part", "answer": "A"}]
+    seen = {}
+
+    class Connected:
+        def __enter__(self):
+            return conn
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(task_revision, "connect", lambda: Connected())
+    monkeypatch.setattr(
+        task_revision,
+        "materialize",
+        lambda *_args: {"tasks_new": 0, "tasks_existing": 1},
+    )
+    monkeypatch.setattr(
+        task_granularity,
+        "materialize_parts",
+        lambda *_args: {"tasks_new": 0, "tasks_existing": 1},
+    )
+
+    def post_split(_conn, *, generation_runs, granularity_runs):
+        seen["scope"] = (generation_runs, granularity_runs)
+        return selected
+
+    monkeypatch.setattr(task_revision, "post_split_tasks", post_split)
+    monkeypatch.setattr(
+        task_revision,
+        "build_targets",
+        lambda _conn, tasks: seen.setdefault("tasks", tasks) or [object()],
+    )
+    monkeypatch.setattr(
+        task_revision,
+        "load_prompt",
+        lambda *_args, **_kwargs: SimpleNamespace(ref="task-revision/v004", sha="sha"),
+    )
+    monkeypatch.setattr(task_revision, "load_tool", lambda *_args: {})
+    monkeypatch.setattr(task_revision, "ModelClient", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(
+        task_revision,
+        "execute",
+        lambda *_args, **_kwargs: {
+            "run_id": "revision-run",
+            "status": "done",
+            "ok": 1,
+            "failed": 0,
+        },
+    )
+    monkeypatch.setattr(
+        task_revision,
+        "fetch_items",
+        lambda *_args: [
+            {"error": None, "response": '{"verdict":"stands"}', "duration_ms": 0}
+        ],
+    )
+    monkeypatch.setattr(task_revision.report, "aggregate_usage", lambda _items: {})
+
+    task_revision.cmd_run(
+        SimpleNamespace(
+            gen_runs=["generation-run"],
+            granularity_runs=["granularity-run"],
+            passages_from=None,
+            prompt="v004",
+            model="model",
+            tool="tool.json",
+            extra=None,
+            temperature=None,
+            max_tokens=100,
+            workers=1,
+        )
+    )
+
+    assert seen["scope"] == (["generation-run"], ["granularity-run"])
+    assert seen["tasks"] == selected

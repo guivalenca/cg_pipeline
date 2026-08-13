@@ -44,6 +44,7 @@ from universe.kc_statement import fetch_usable_statements
 from universe.pipeline_scope import completed_judge_build_for_inputs
 from universe.recipe_identity import launch_recipe
 from universe.source_publication import current as current_publication
+from universe.source_publication import read as read_publication
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 
@@ -97,8 +98,8 @@ def current_target(
 ) -> SourcePublicationTarget:
     """Resolve new work at the Source Publication seam without ledger writes."""
     publication = current_publication(conn, source_id)
-    if publication is None:
-        raise LookupError(f"no Source Publication for {source_id}")
+    if publication is None or publication.is_previous_attempt:
+        raise LookupError(f"no current Source Publication for {source_id}")
     return SourcePublicationTarget(source_id, publication.artifact_id)
 
 
@@ -109,7 +110,11 @@ def _local_target(
     if isinstance(target, str):
         return current_target(conn, target)
     publication = current_publication(conn, target.source_id)
-    if publication is None or publication.artifact_id != target.artifact_id:
+    if (
+        publication is None
+        or publication.is_previous_attempt
+        or publication.artifact_id != target.artifact_id
+    ):
         raise StepNotRunnable(
             "the pinned Source Publication is no longer current"
         )
@@ -792,24 +797,42 @@ def _task_evidence(
     }
 
 
-def _read_local_snapshot(
+def read_publication_snapshot(
     conn: psycopg.Connection,
     target: SourcePublicationTarget | str | None = None,
     *,
     source_id: str | None = None,
+    require_current: bool = True,
 ) -> dict:
-    """Read local progress and stated unitary KCs without inferring a corpus."""
+    """Read local progress and stated unitary KCs without inferring a corpus.
+
+    New work is current-only.  Durable callers may set ``require_current`` to
+    false to keep an already pinned, formerly canonical Source Publication
+    inspectable after a refresh; the Source Publication module still rejects
+    arbitrary Markdown intermediates.
+    """
     if target is None:
         if source_id is None:
             raise TypeError("read_snapshot requires a Source Publication target")
         target = source_id
     elif source_id is not None:
         raise TypeError("pass target or source_id, not both")
-    local = _local_target(conn, target)
+    if isinstance(target, str):
+        local = current_target(conn, target)
+    elif require_current:
+        local = _local_target(conn, target)
+    else:
+        local = target
     source_id = local.source_id
-    publication = current_publication(conn, source_id)
+    publication = (
+        current_publication(conn, source_id)
+        if require_current
+        else read_publication(conn, source_id, local.artifact_id)
+    )
     if publication is None or publication.artifact_id != local.artifact_id:
-        raise LookupError(f"no current Source Publication for {source_id}")
+        qualifier = "current " if require_current else ""
+        raise LookupError(f"no {qualifier}Source Publication for {source_id}")
+    current = current_publication(conn, source_id)
     title_row = conn.execute(
         "SELECT title FROM source WHERE id = %s", (source_id,)
     ).fetchone()
@@ -830,6 +853,12 @@ def _read_local_snapshot(
         "artifact_id": publication.artifact_id,
         "content_sha256": publication.content_hash,
         "provenance": publication.metadata,
+        "current": bool(
+            current is not None
+            and not current.is_previous_attempt
+            and current.artifact_id == publication.artifact_id
+        ),
+        "previous_attempt": publication.is_previous_attempt,
     }
     base = {
         "source": source,
@@ -1023,7 +1052,7 @@ def read_snapshot(
         if source_id is not None:
             raise TypeError("pass target or source_id, not both")
         return read_corpus_snapshot(conn, target)
-    return _read_local_snapshot(conn, target, source_id=source_id)
+    return read_publication_snapshot(conn, target, source_id=source_id)
 
 
 def _dotenv() -> dict[str, str]:

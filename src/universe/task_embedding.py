@@ -18,12 +18,13 @@ text it came from.
 import argparse
 import hashlib
 import sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from psycopg.types.json import Jsonb
 
-from universe import report
+from universe import pipeline_lease, report
 from universe.db import connect
+from universe.effective_evidence import effective_task_manifest_sha
 from universe.harness import claim_run, fetch_items, id_list, load_prompt, positive_int
 from universe.kc_statement import fetch_usable_statements
 from universe.model_client import EmbeddingClient
@@ -97,32 +98,46 @@ def cmd_run(args: argparse.Namespace) -> None:
             raise SystemExit(f"{len(empty)} task(s) render to empty input: {', '.join(empty)}")
         input_shas = [hashlib.sha256(text.encode()).hexdigest() for text in rendered]
         client = EmbeddingClient(args.model)
+        supervisor = pipeline_lease.current_supervisor(required=True)
         print(
             f"{prompt.ref} ({prompt.sha[:12]}) on {len(tasks)} task(s)"
             f" via {args.model}, {args.workers} at a time"
         )
+        run_params = {
+            "gen_runs": args.gen_runs,
+            "statements_from": args.statements_from,
+            "passages_from": args.passages_from,
+            "revision_run": args.revision_run,
+            "granularity_run": args.granularity_run,
+            "parts_revision_run": args.parts_revision_run,
+        }
+        if not args.statements_from:
+            run_params["effective_task_manifest_sha"] = effective_task_manifest_sha(tasks)
         run_id = claim_run(
-            conn, STAGE, args.model, prompt.ref, prompt.sha,
-            {
-                "gen_runs": args.gen_runs,
-                "statements_from": args.statements_from,
-                "passages_from": args.passages_from,
-                "revision_run": args.revision_run,
-                "granularity_run": args.granularity_run,
-                "parts_revision_run": args.parts_revision_run,
-            },
+            conn, STAGE, args.model, prompt.ref, prompt.sha, run_params
         )
 
         def call(work: tuple[int, dict, str, str]) -> tuple:
             index, task, text, input_sha = work
             try:
+                if supervisor is not None:
+                    supervisor.before_provider_call()
                 vectors, usage, duration_ms = client.embed([text])
                 if len(vectors) != 1:
                     raise ValueError(f"expected one embedding, got {len(vectors)}")
                 return index, task, text, input_sha, vectors[0], usage, duration_ms, None
+            except pipeline_lease.LeaseLost:
+                raise
             except Exception as exc:  # one bad call must not end the run
-                return index, task, text, input_sha, None, None, None, (
-                    f"{type(exc).__name__}: {exc}"
+                return (
+                    index,
+                    task,
+                    text,
+                    input_sha,
+                    None,
+                    getattr(exc, "usage", None),
+                    getattr(exc, "duration_ms", None),
+                    f"{type(exc).__name__}: {exc}",
                 )
 
         work = [
@@ -136,10 +151,14 @@ def cmd_run(args: argparse.Namespace) -> None:
         with ThreadPoolExecutor(
             max_workers=max(1, min(args.workers, len(tasks) or 1))
         ) as pool:
-            for index, task, text, input_sha, vector, usage, duration_ms, error in pool.map(
-                call, work
-            ):
+            futures = [pool.submit(call, item) for item in work]
+            for future in as_completed(futures):
+                index, task, text, input_sha, vector, usage, duration_ms, error = (
+                    future.result()
+                )
                 item_id = f"{run_id}-{index:04d}"
+                if supervisor is not None:
+                    supervisor.fence(conn)
                 conn.execute(
                     "INSERT INTO run_item"
                     " (id, run_id, artifact_id, passage_id, task_id,"
@@ -183,6 +202,8 @@ def cmd_run(args: argparse.Namespace) -> None:
                 conn.commit()
 
         status = "done" if ok else "failed"
+        if supervisor is not None:
+            supervisor.fence(conn)
         conn.execute(
             "UPDATE run SET status = %s, finished_at = now() WHERE id = %s",
             (status, run_id),

@@ -136,6 +136,20 @@ def test_usage_summary_never_hides_prior_retries_behind_latest_cost() -> None:
     assert summary["observed_cost_usd"] == "0.02"
 
 
+def test_usage_attempt_count_prefers_complete_ledger_over_retry_counter() -> None:
+    usage = {
+        "retry_count": 2,
+        "attempts": [
+            {"status": "failed", "usage": {"cost": "0.01"}},
+            {"status": "failed", "usage": {"cost": "0.02"}},
+            {"status": "succeeded", "usage": {"cost": "0.03"}},
+        ],
+    }
+
+    assert LIVE._usage_attempt_count(usage) == 3
+    assert LIVE._usage_attempt_count({"retry_count": 2, "cost": "0.03"}) == 3
+
+
 def test_usage_summary_does_not_invent_a_paid_attempt_for_skipped_visual_input() -> None:
     summary = LIVE._summarize_usage_observations(
         [
@@ -186,6 +200,29 @@ def test_terminal_work_summary_covers_every_runnable_child_queue() -> None:
         "nonterminal_count": 9,
     }
 
+
+def test_tracked_knowledge_work_uses_the_same_fair_queue_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+    live = SimpleNamespace(conn=object(), asset_store=object())
+    spawn = object()
+    monkeypatch.setattr(
+        LIVE.acquisition_runner,
+        "_oldest_ready_work_kind",
+        lambda _conn: "lesson_knowledge",
+    )
+    monkeypatch.setattr(
+        LIVE.lesson_knowledge_worker,
+        "process_next",
+        lambda _conn, *, spawn: events.append("lesson")
+        or {"action": "launched"},
+    )
+
+    result = LIVE._process_next_tracked_knowledge_work(live, spawn)
+
+    assert result == ("lesson_knowledge", {"action": "launched"})
+    assert events == ["lesson"]
 
 def test_quality_report_write_is_atomic_and_replaces_running_snapshot(tmp_path: Path) -> None:
     live = SimpleNamespace(evidence_dir=tmp_path)

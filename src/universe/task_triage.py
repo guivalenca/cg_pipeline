@@ -27,6 +27,7 @@ import psycopg
 
 from universe import report
 from universe.db import connect
+from universe.effective_evidence import effective_task_manifest_sha
 from universe.harness import (
     Target,
     execute,
@@ -41,9 +42,9 @@ from universe.harness import (
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passages import fetch_passages_for_runs, source_text
+from universe.post_split import tasks as post_split_tasks
 from universe.task_revision import STAGE as REVISION_STAGE
 from universe.task_revision import revision_of
-from universe.tasks import fetch_tasks_for_runs, materialize
 
 STAGE = "task-triage"
 DEFAULT_WORKERS = 16
@@ -108,23 +109,11 @@ def cmd_run(args: argparse.Namespace) -> None:
     extra = dict(load_tool(args.tool)) if args.tool else {}
     extra.update(args.extra or {})
     with connect() as conn:
-        for run_id in args.gen_runs:
-            counts = materialize(conn, run_id)
-            print(
-                f"{run_id}: {counts['tasks_new']} new task(s),"
-                f" {counts['tasks_existing']} already known"
-            )
-        for run_id in args.granularity_runs or []:
-            # Local import avoids the task_triage -> task_granularity ->
-            # task_triage import cycle.
-            from universe.task_granularity import materialize_parts
-
-            counts = materialize_parts(conn, run_id)
-            print(
-                f"{run_id}: {counts['tasks_new']} new task(s),"
-                f" {counts['tasks_existing']} already known"
-            )
-        tasks = fetch_tasks_for_runs(conn, args.gen_runs)
+        tasks = post_split_tasks(
+            conn,
+            generation_runs=args.gen_runs,
+            granularity_runs=args.granularity_runs,
+        )
         if args.passages_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
@@ -133,29 +122,6 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f"{outside} task(s) outside the passages of"
                 f" {', '.join(args.passages_from)}, skipped"
             )
-        if args.granularity_runs:
-            # Local import avoids the task_triage -> task_granularity ->
-            # task_triage import cycle.
-            from universe.task_granularity import granularity_of
-
-            surviving_task_ids = {task["id"] for task in tasks}
-            parent_by_item = {}
-            composite_parent_ids = set()
-            for granularity_run in args.granularity_runs:
-                for item in fetch_items(conn, granularity_run):
-                    if not item["task_id"]:
-                        raise SystemExit(f"{item['id']} is not about a task")
-                    granularity = granularity_of(item)
-                    if isinstance(granularity, dict) and granularity["verdict"] == "composite":
-                        parent_by_item[item["id"]] = item["task_id"]
-                        composite_parent_ids.add(item["task_id"])
-            tasks = [task for task in tasks if task["id"] not in composite_parent_ids]
-            part_tasks = [
-                task
-                for task in fetch_tasks_for_runs(conn, args.granularity_runs)
-                if parent_by_item.get(task["run_item_id"]) in surviving_task_ids
-            ]
-            tasks.extend(part_tasks)
         if args.revision_run:
             revisions = fetch_revisions(conn, args.revision_run)
             tasks, dropped, unjudged = apply_revisions(tasks, revisions)
@@ -194,6 +160,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 "passages_from": args.passages_from,
                 "revision_run": args.revision_run,
                 "granularity_runs": args.granularity_runs or [],
+                "effective_task_manifest_sha": effective_task_manifest_sha(tasks),
             },
         )
         items = fetch_items(conn, summary["run_id"])

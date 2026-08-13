@@ -31,7 +31,8 @@ from universe.harness import (
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
 from universe.passages import fetch_passages_for_runs
-from universe.tasks import fetch_tasks_for_runs, materialize
+from universe.post_split import tasks as post_split_tasks
+from universe.tasks import materialize
 
 STAGE = "task-revision"
 VERDICTS = ("stands", "rewritten", "unfixable")
@@ -100,8 +101,14 @@ def cmd_run(args: argparse.Namespace) -> None:
                     f"{run_id}: {counts['tasks_new']} new task(s),"
                     f" {counts['tasks_existing']} already known"
                 )
-        combined_run_ids = gen_runs + granularity_runs
-        tasks = fetch_tasks_for_runs(conn, combined_run_ids)
+        # Composite parents are replaced by the parts produced by their exact
+        # granularity verdict. They are not learner tasks that survive beside
+        # those parts, so revision must consume the shared post-split scope.
+        tasks = post_split_tasks(
+            conn,
+            generation_runs=gen_runs,
+            granularity_runs=granularity_runs,
+        )
         if args.passages_from:
             drawn = {p["id"] for p in fetch_passages_for_runs(conn, args.passages_from)}
             outside = sum(1 for t in tasks if t["passage_id"] not in drawn)
@@ -111,7 +118,9 @@ def cmd_run(args: argparse.Namespace) -> None:
                 f" {', '.join(args.passages_from)}, skipped"
             )
         if not tasks:
-            raise SystemExit(f"no tasks from {', '.join(combined_run_ids)}")
+            raise SystemExit(
+                f"no post-split tasks from {', '.join(gen_runs + granularity_runs)}"
+            )
 
         targets = build_targets(conn, tasks)
         client = ModelClient(

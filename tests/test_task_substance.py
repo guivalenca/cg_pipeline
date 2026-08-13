@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from universe.harness import load_prompt, load_tool
-from universe.task_substance import DROPPED, substance_of
+from universe.task_substance import DROPPED, build_parser, substance_of
 from universe.task_substance_report import render_verdict
 
 TOOL_PATH = Path(__file__).resolve().parents[1] / "prompts" / "task-substance" / "tool-v004.json"
@@ -132,3 +132,20 @@ def test_the_verdict_only_tool_definition_loads_and_forces_report_check():
         },
     }
     assert parameters["required"] == ["verdict", "reason"]
+
+
+def test_substance_cli_requires_the_support_triage_witness():
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(
+            [
+                "run",
+                "--prompt",
+                "v004",
+                "--model",
+                "model",
+                "--gen-runs",
+                "generation",
+                "--tool",
+                str(TOOL_PATH),
+            ]
+        )

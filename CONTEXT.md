@@ -61,3 +61,15 @@ _Avoid_: Decoration, unresolved remote image
 **Knowledge Component**:
 A reusable unit of knowledge derived downstream from source-grounded tasks and statements, never created implicitly by Source acquisition.
 _Avoid_: Passage, task, Markdown section
+
+**Lesson Knowledge Build**:
+An explicit, idempotent request to interpret the current validated Source Publications referenced by one lesson. References remain curricular decisions; local KC work is deduplicated by Source Publication and can be reused across lessons.
+_Avoid_: Lesson-owned KC, opening the KC viewer as a write, one build per reference
+
+**KC Corpus Manifest**:
+An immutable, content-addressed set of Source Publications authorized for shared embedding, judging, grouping, and canonicalization.
+_Avoid_: Latest global corpus, visible Sources in the DOM, syllabus id alone
+
+**Syllabus Knowledge Build**:
+The second explicit checkpoint that publishes the four shared KC stages for exactly one Syllabus Version's KC Corpus Manifest.
+_Avoid_: Automatic fallthrough from local KC creation, mutable Universe

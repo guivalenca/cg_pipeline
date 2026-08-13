@@ -1,12 +1,16 @@
-"""Task embeddings and their report helpers; no model or transport calls."""
+"""Task embeddings and their report helpers; no live model calls."""
 
+import argparse
 import re
+import uuid
 from pathlib import Path
 
 import pytest
 
-from universe import harness
+from universe import harness, task_embedding
+from universe.blocks import BLOCKER_VERSION
 from universe.harness import load_prompt
+from universe.model_client import ModelError
 from universe.task_embedding import (
     STAGE,
     build_parser,
@@ -259,3 +263,108 @@ def test_embedding_run_requires_generation_or_statement_runs():
         SystemExit, match="one of --gen-runs or --statements-from is required"
     ):
         cmd_run(args)
+
+
+def test_embedding_run_persists_billable_failure_telemetry(db, monkeypatch):
+    marker = uuid.uuid4().hex[:8]
+    source_id = f"embedding-error-source-{marker}"
+    snapshot_id = f"embedding-error-snapshot-{marker}"
+    artifact_id = f"embedding-error-artifact-{marker}"
+    passage_id = f"embedding-error-passage-{marker}"
+    generation = harness.claim_run(
+        db, "task-generation", "fake/generator", "task-generation/v001", "sha", {}
+    )
+    generation_item = f"{generation}-seed"
+    task_id = f"embedding-error-task-{marker}"
+    db.execute(
+        "INSERT INTO source (id, identity, title, media_type)"
+        " VALUES (%s, '{}'::jsonb, 'Embedding error', 'article')",
+        (source_id,),
+    )
+    db.execute(
+        "INSERT INTO source_snapshot (id, source_id, content_hash, status)"
+        " VALUES (%s, %s, %s, 'ok')",
+        (snapshot_id, source_id, f"hash-{marker}"),
+    )
+    db.execute(
+        "INSERT INTO artifact (id, snapshot_id, kind, tool, body)"
+        " VALUES (%s, %s, 'markdown', 'test', 'body')",
+        (artifact_id, snapshot_id),
+    )
+    db.execute(
+        "INSERT INTO passage"
+        " (id, artifact_id, blocker_version, first_seq, last_seq)"
+        " VALUES (%s, %s, %s, 0, 0)",
+        (passage_id, artifact_id, BLOCKER_VERSION),
+    )
+    db.execute(
+        "INSERT INTO run_item (id, run_id, artifact_id, passage_id, response)"
+        " VALUES (%s, %s, %s, %s, '{}')",
+        (generation_item, generation, artifact_id, passage_id),
+    )
+    db.execute(
+        "INSERT INTO task (id, run_item_id, passage_id, seq, body, answer)"
+        " VALUES (%s, %s, %s, 1, 'Question?', 'Answer.')",
+        (task_id, generation_item, passage_id),
+    )
+    db.commit()
+
+    class BorrowedConnection:
+        def __enter__(self):
+            return db
+
+        def __exit__(self, *_):
+            return False
+
+    class FailedEmbeddingClient:
+        def __init__(self, model):
+            self.model = model
+
+        def embed(self, texts):
+            error = ModelError("malformed billed embedding")
+            error.usage = {"cost": 0.0019, "total_tokens": 11}
+            error.duration_ms = 47
+            raise error
+
+    prompt = type("Prompt", (), {"ref": "task-embedding/v002", "sha": "sha"})()
+    monkeypatch.setattr(task_embedding, "connect", lambda: BorrowedConnection())
+    monkeypatch.setattr(task_embedding, "EmbeddingClient", FailedEmbeddingClient)
+    monkeypatch.setattr(task_embedding, "load_prompt", lambda *a, **k: prompt)
+    monkeypatch.setattr(
+        task_embedding,
+        "statement_embedding_inputs",
+        lambda conn, runs, loaded_prompt: (
+            [{
+                "id": task_id,
+                "artifact_id": artifact_id,
+                "passage_id": passage_id,
+                "body": "Question?",
+                "answer": "Answer.",
+            }],
+            ["Statement"],
+        ),
+    )
+
+    task_embedding.cmd_run(
+        argparse.Namespace(
+            prompt="v002",
+            model="fake/embedding-error",
+            gen_runs=None,
+            statements_from=["statement-run"],
+            passages_from=None,
+            revision_run=None,
+            granularity_run=None,
+            parts_revision_run=None,
+            workers=1,
+        )
+    )
+
+    assert db.execute(
+        "SELECT usage, duration_ms, error FROM run_item"
+        " WHERE run_id = (SELECT id FROM run WHERE stage = 'task-embedding'"
+        " AND model = 'fake/embedding-error' ORDER BY started_at DESC LIMIT 1)"
+    ).fetchone() == (
+        {"cost": 0.0019, "total_tokens": 11},
+        47,
+        "ModelError: malformed billed embedding",
+    )

@@ -260,6 +260,20 @@ passage may validly report no tasks:
         --cleanup CLEANUP_ID \
         --tool prompts/task-generation/tool-v002.json
 
+The Syllabus surface now exposes that interpretation boundary directly. Once
+every active reference in a lesson is validated and resolves to a current
+Source Publication, an explicit Lesson Knowledge Build advances its eleven
+local KC stages. Work is pinned to immutable publication artifacts and reused
+when the same publication appears in another lesson; reading Markdown or KCs
+never starts provider work.
+
+Publishing the Concept Universe is a separate explicit checkpoint. A Syllabus
+Knowledge Build seals the exact current publications of one Syllabus Version
+into a content-addressed KC Corpus Manifest, then advances only the four shared
+stages (embedding, judging, grouping, and canonical statements). `/graph`
+requires that manifest id, so historical versions never silently open a
+global/latest corpus.
+
 ## Dashboard
 
 `python serve.py` serves the integrated application at

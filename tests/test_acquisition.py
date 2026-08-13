@@ -5,6 +5,7 @@ import json
 import re
 import threading
 import time
+import uuid
 from dataclasses import dataclass
 from types import SimpleNamespace
 
@@ -1431,6 +1432,195 @@ def test_cli_worker_runs_image_when_it_is_the_oldest_ready_item(
     assert '"kind": "article_image"' in capsys.readouterr().out
 
 
+def test_fair_worker_processes_lesson_knowledge_without_asset_dependencies(
+    monkeypatch,
+):
+    conn = object()
+    events = []
+    payload = {
+        "action": "launched",
+        "build_id": "lkb-1",
+        "work_id": "lkw-1",
+        "source_id": "source-1",
+        "artifact_id": "artifact-1",
+        "status": "running",
+        "stage": "blocks",
+        "pid": 101,
+        "claim_count": 1,
+    }
+
+    def process_lesson_knowledge(received_conn):
+        events.append(("lesson_knowledge", received_conn))
+        return payload
+
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "lesson_knowledge"
+    )
+    monkeypatch.setattr(
+        runner,
+        "lesson_knowledge_worker",
+        SimpleNamespace(process_next=process_lesson_knowledge),
+        raising=False,
+    )
+
+    result = runner.process_next_work_item(
+        conn,
+        asset_store=object(),
+        video_adapter=object(),
+        lease_connection_factory=lambda: None,
+    )
+
+    assert result == ("lesson_knowledge", payload)
+    assert events == [("lesson_knowledge", conn)]
+
+
+def test_fair_worker_processes_syllabus_knowledge_without_asset_dependencies(
+    monkeypatch,
+):
+    conn = object()
+    events = []
+    payload = {
+        "action": "launched",
+        "build_id": "syllabus-kc-build-1",
+        "manifest_id": "kc-corpus-1",
+        "status": "running",
+        "stage": "task-embedding",
+        "pid": 202,
+        "claim_count": 1,
+    }
+
+    def process_syllabus_knowledge(received_conn):
+        events.append(("syllabus_knowledge", received_conn))
+        return payload
+
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "syllabus_knowledge"
+    )
+    monkeypatch.setattr(
+        runner,
+        "syllabus_knowledge",
+        SimpleNamespace(process_next=process_syllabus_knowledge),
+        raising=False,
+    )
+
+    result = runner.process_next_work_item(
+        conn,
+        asset_store=object(),
+        video_adapter=object(),
+        lease_connection_factory=lambda: None,
+    )
+
+    assert result == ("syllabus_knowledge", payload)
+    assert events == [("syllabus_knowledge", conn)]
+
+
+def test_cli_worker_reports_lesson_knowledge_progress(monkeypatch, capsys):
+    class FakeConnect:
+        def __enter__(self):
+            return object()
+
+        def __exit__(self, *_args):
+            return False
+
+    payload = {
+        "action": "observed",
+        "build_id": "lkb-cli",
+        "work_id": "lkw-cli",
+        "source_id": "source-cli",
+        "artifact_id": "artifact-cli",
+        "status": "running",
+        "stage": "claims",
+        "pid": None,
+        "claim_count": 2,
+    }
+    monkeypatch.setattr(runner, "connect", lambda: FakeConnect())
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "lesson_knowledge"
+    )
+    monkeypatch.setattr(
+        runner.lesson_knowledge_worker,
+        "process_next",
+        lambda _conn: payload,
+    )
+
+    runner.cmd_work(SimpleNamespace(job_id=None, forever=False))
+
+    assert json.loads(capsys.readouterr().out) == {
+        "kind": "lesson_knowledge",
+        **payload,
+    }
+
+
+def test_cli_worker_reports_syllabus_knowledge_progress(monkeypatch, capsys):
+    class FakeConnect:
+        def __enter__(self):
+            return object()
+
+        def __exit__(self, *_args):
+            return False
+
+    payload = {
+        "action": "observed",
+        "build_id": "syllabus-kc-build-cli",
+        "manifest_id": "kc-corpus-cli",
+        "status": "running",
+        "stage": "task-embedding",
+        "pid": None,
+        "claim_count": 2,
+    }
+    monkeypatch.setattr(runner, "connect", lambda: FakeConnect())
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "syllabus_knowledge"
+    )
+    monkeypatch.setattr(
+        runner.syllabus_knowledge,
+        "process_next",
+        lambda _conn: payload,
+    )
+
+    runner.cmd_work(SimpleNamespace(job_id=None, forever=False))
+
+    assert json.loads(capsys.readouterr().out) == {
+        "kind": "syllabus_knowledge",
+        **payload,
+    }
+
+
+def test_cli_explicit_parent_job_bypasses_the_fair_queue(monkeypatch, capsys):
+    events = []
+
+    class FakeConnect:
+        def __enter__(self):
+            return object()
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(runner, "connect", lambda: FakeConnect())
+    monkeypatch.setattr(
+        runner,
+        "process_next_work_item",
+        lambda *_args, **_kwargs: pytest.fail("fair queue must not handle --job"),
+    )
+
+    def process_parent(_conn, *, job_id, lease_connection_factory):
+        events.append((job_id, lease_connection_factory))
+        return {
+            "id": job_id,
+            "source_id": "source-explicit",
+            "status": "succeeded",
+            "artifact_id": "artifact-explicit",
+            "failure_code": None,
+        }
+
+    monkeypatch.setattr(runner, "process_next_job", process_parent)
+
+    runner.cmd_work(SimpleNamespace(job_id="acq-explicit", forever=False))
+
+    assert events == [("acq-explicit", runner.connect)]
+    assert json.loads(capsys.readouterr().out)["id"] == "acq-explicit"
+
+
 def test_fair_worker_falls_back_when_the_oldest_image_claim_races(monkeypatch):
     conn = object()
     events = []
@@ -1453,6 +1643,54 @@ def test_fair_worker_falls_back_when_the_oldest_image_claim_races(monkeypatch):
 
     assert result == ("acquisition", {"id": "acq-fallback"})
     assert events == ["image-raced", "parent"]
+
+
+def test_fair_worker_falls_back_when_the_oldest_lesson_claim_races(monkeypatch):
+    conn = object()
+    events = []
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "lesson_knowledge"
+    )
+    monkeypatch.setattr(
+        runner.lesson_knowledge_worker,
+        "process_next",
+        lambda _conn: events.append("lesson-raced") or None,
+    )
+    monkeypatch.setattr(
+        runner,
+        "process_next_job",
+        lambda _conn, *, job_id=None, asset_store=None: events.append("parent")
+        or {"id": "acq-fallback"},
+    )
+
+    result = runner.process_next_work_item(conn)
+
+    assert result == ("acquisition", {"id": "acq-fallback"})
+    assert events == ["lesson-raced", "parent"]
+
+
+def test_fair_worker_falls_back_when_the_oldest_syllabus_claim_races(monkeypatch):
+    conn = object()
+    events = []
+    monkeypatch.setattr(
+        runner, "_oldest_ready_work_kind", lambda _conn: "syllabus_knowledge"
+    )
+    monkeypatch.setattr(
+        runner.syllabus_knowledge,
+        "process_next",
+        lambda _conn: events.append("syllabus-raced") or None,
+    )
+    monkeypatch.setattr(
+        runner,
+        "process_next_job",
+        lambda _conn, *, job_id=None, asset_store=None: events.append("parent")
+        or {"id": "acq-fallback"},
+    )
+
+    result = runner.process_next_work_item(conn)
+
+    assert result == ("acquisition", {"id": "acq-fallback"})
+    assert events == ["syllabus-raced", "parent"]
 
 
 def test_fair_worker_selects_the_oldest_ready_row_across_both_queues(
@@ -1513,6 +1751,123 @@ def test_fair_worker_selects_the_oldest_ready_row_across_both_queues(
         "UPDATE source_image_candidate SET status = 'filtered',"
         " filter_reason = 'test cleanup', finished_at = now()"
         " WHERE id = 'image-fair-oldest'"
+    )
+    acquisition_db.execute(
+        "UPDATE acquisition_job SET status = 'failed', failure_code = 'test_cleanup',"
+        " finished_at = now() WHERE id = %s",
+        (parent_job,),
+    )
+    acquisition_db.commit()
+
+
+def test_fair_worker_orders_acquisition_lesson_and_syllabus_by_available_at(
+    acquisition_db,
+):
+    marker = uuid.uuid4().hex[:10]
+    source_id = f"acqx-fair-lesson-{marker}"
+    snapshot_id = f"{source_id}:snapshot"
+    artifact_id = f"{snapshot_id}:markdown"
+    syllabus_id = f"syllabus-fair-lesson-{marker}"
+    version_id = f"version-fair-lesson-{marker}"
+    lesson_id = f"lesson-fair-lesson-{marker}"
+    build_id = f"build-fair-lesson-{marker}"
+    work_id = f"work-fair-lesson-{marker}"
+    manifest_id = f"manifest-fair-syllabus-{marker}"
+    syllabus_build_id = f"build-fair-syllabus-{marker}"
+    parent_source = f"acqx-fair-parent-{marker}"
+    parent_job = f"acquisition-fair-parent-{marker}"
+    add_source(acquisition_db, source_id)
+    add_source(acquisition_db, parent_source)
+    acquisition_db.execute(
+        "INSERT INTO source_snapshot"
+        " (id, source_id, captured_at, content_hash, status)"
+        " VALUES (%s, %s, now(), %s, 'ok')",
+        (snapshot_id, source_id, f"sha256-{marker}"),
+    )
+    acquisition_db.execute(
+        "INSERT INTO artifact (id, snapshot_id, kind, tool, body)"
+        " VALUES (%s, %s, 'markdown', 'test', '# Fair lesson')",
+        (artifact_id, snapshot_id),
+    )
+    acquisition_db.execute(
+        "INSERT INTO syllabus (id, title) VALUES (%s, 'Sistemas de Informacao')",
+        (syllabus_id,),
+    )
+    acquisition_db.execute(
+        "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+        " VALUES (%s, %s, 1, 'upload')",
+        (version_id, syllabus_id),
+    )
+    acquisition_db.execute(
+        "INSERT INTO syllabus_lesson"
+        " (id, version_id, week, seq, kind, title)"
+        " VALUES (%s, %s, 6, 1, 'Encontro', 'Aula 6')",
+        (lesson_id, version_id),
+    )
+    acquisition_db.execute(
+        "INSERT INTO lesson_knowledge_build"
+        " (id, version_id, lesson_id, request_key, requested_by)"
+        " VALUES (%s, %s, %s, 'fair-queue', 'test')",
+        (build_id, version_id, lesson_id),
+    )
+    acquisition_db.execute(
+        "INSERT INTO lesson_knowledge_work"
+        " (id, build_id, seq, source_id, snapshot_id, artifact_id, content_hash,"
+        "  available_at)"
+        " VALUES (%s, %s, 1, %s, %s, %s, %s, '2000-01-01')",
+        (
+            work_id,
+            build_id,
+            source_id,
+            snapshot_id,
+            artifact_id,
+            f"sha256-{marker}",
+        ),
+    )
+    acquisition_db.execute(
+        "INSERT INTO kc_corpus_manifest (id, manifest_sha256) VALUES (%s, %s)",
+        (manifest_id, marker.ljust(64, "0")),
+    )
+    acquisition_db.execute(
+        "INSERT INTO syllabus_knowledge_build"
+        " (id, version_id, request_key, requested_by, manifest_id, available_at)"
+        " VALUES (%s, %s, 'fair-syllabus-queue', 'test', %s, '2001-01-01')",
+        (syllabus_build_id, version_id, manifest_id),
+    )
+    acquisition_db.execute(
+        "INSERT INTO acquisition_job (id, source_id, provider, available_at)"
+        " VALUES (%s, %s, %s, '2002-01-01')",
+        (parent_job, parent_source, runner.ARTICLE_PROVIDER),
+    )
+    acquisition_db.commit()
+
+    assert runner._oldest_ready_work_kind(acquisition_db) == "lesson_knowledge"
+
+    acquisition_db.execute(
+        "UPDATE lesson_knowledge_work SET available_at = '2003-01-01'"
+        " WHERE id = %s",
+        (work_id,),
+    )
+    acquisition_db.commit()
+    assert runner._oldest_ready_work_kind(acquisition_db) == "syllabus_knowledge"
+
+    acquisition_db.execute(
+        "UPDATE syllabus_knowledge_build SET available_at = '2004-01-01'"
+        " WHERE id = %s",
+        (syllabus_build_id,),
+    )
+    acquisition_db.commit()
+    assert runner._oldest_ready_work_kind(acquisition_db) == "acquisition"
+
+    acquisition_db.execute(
+        "UPDATE lesson_knowledge_work SET status = 'failed',"
+        " failure_code = 'test_cleanup' WHERE id = %s",
+        (work_id,),
+    )
+    acquisition_db.execute(
+        "UPDATE syllabus_knowledge_build SET status = 'failed',"
+        " failure_code = 'test_cleanup' WHERE id = %s",
+        (syllabus_build_id,),
     )
     acquisition_db.execute(
         "UPDATE acquisition_job SET status = 'failed', failure_code = 'test_cleanup',"

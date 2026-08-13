@@ -5,8 +5,8 @@ import pytest
 from universe.task_modality import DEFAULT_WORKERS, modality_of
 
 
-def test_task_modality_keeps_two_workers():
-    assert DEFAULT_WORKERS == 2
+def test_task_modality_is_serial_to_avoid_provider_rate_limit_bursts():
+    assert DEFAULT_WORKERS == 1
 
 
 def test_an_errored_item_is_an_error():

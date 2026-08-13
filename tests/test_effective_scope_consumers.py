@@ -1,8 +1,19 @@
 """Provider-free checks that KC consumers share post-split task evidence."""
 
 import argparse
+from contextlib import nullcontext
+from types import SimpleNamespace
 
-from universe import kc_statement_report, task_embedding, task_substance_report
+import pytest
+
+from universe import (
+    kc_statement_report,
+    task_embedding,
+    task_knowledge,
+    task_modality,
+    task_substance_report,
+)
+from universe.effective_evidence import effective_task_manifest_sha
 
 
 def _part(body: str = "Rewritten part") -> dict:
@@ -159,3 +170,50 @@ def test_statement_report_labels_the_exact_effective_tasks(monkeypatch):
     }
     assert "### T01 part 1" in report
     assert "> Rewritten part" in report
+
+
+@pytest.mark.parametrize("module", [task_modality, task_knowledge])
+def test_axis_cli_stamps_the_exact_effective_scope(monkeypatch, module):
+    selected = [_part()]
+    captured = {}
+    monkeypatch.setattr(module, "connect", lambda: nullcontext(object()))
+    monkeypatch.setattr(module, "select_tasks", lambda *_args: selected)
+    monkeypatch.setattr(
+        module,
+        "load_prompt",
+        lambda *_args, **_kwargs: SimpleNamespace(ref=f"{module.STAGE}/v001", sha="sha"),
+    )
+    monkeypatch.setattr(module, "load_tool", lambda *_args: {})
+    monkeypatch.setattr(module, "build_targets", lambda *_args: [object()])
+    monkeypatch.setattr(module, "ModelClient", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(
+        module,
+        "execute",
+        lambda *_args, **kwargs: captured.update(params=kwargs["run_params"])
+        or {"run_id": "axis", "status": "done", "ok": 1, "failed": 0},
+    )
+    monkeypatch.setattr(module, "fetch_items", lambda *_args: [])
+    monkeypatch.setattr(module.report, "aggregate_usage", lambda _items: {})
+
+    module.cmd_run(
+        SimpleNamespace(
+            gen_runs=["generation"],
+            passages_from=["cuts"],
+            revision_run="revision",
+            granularity_run="granularity",
+            parts_revision_run="revision",
+            triage_run="triage",
+            substance_run="substance",
+            prompt="v001",
+            tool="tool.json",
+            extra=None,
+            model="model",
+            workers=1,
+            temperature=None,
+            max_tokens=100,
+        )
+    )
+
+    assert captured["params"]["effective_task_manifest_sha"] == (
+        effective_task_manifest_sha(selected)
+    )

@@ -180,13 +180,9 @@ def select_targets(
         source_ids = [
             row[0]
             for row in conn.execute(
-                "SELECT id FROM source ORDER BY id"
-                + (" LIMIT %s" if limit is not None else ""),
-                ([limit] if limit is not None else []),
+                "SELECT id FROM source ORDER BY id",
             ).fetchall()
         ]
-    elif limit is not None:
-        source_ids = source_ids[:limit]
     publications = current_source_publications(conn, source_ids)
     titles = {
         source_id: title
@@ -195,7 +191,7 @@ def select_targets(
             (source_ids,),
         ).fetchall()
     } if source_ids else {}
-    return [
+    targets = [
         Target(
             source_id,
             titles.get(source_id),
@@ -205,6 +201,7 @@ def select_targets(
         for source_id in source_ids
         if source_id in publications
     ]
+    return targets[:limit] if limit is not None else targets
 
 
 def fetch_sources(conn: psycopg.Connection, artifact_ids: list[str]) -> dict[str, tuple]:
@@ -414,20 +411,52 @@ def _execute(
 
     def call(
         work: tuple[int, Target, str],
-    ) -> tuple[int, Target, tuple | None, str | None, int]:
+    ) -> tuple[int, Target, tuple | None, str | None, int, list[dict]]:
         index, target, rendered = work
         retry_count = 0
+        attempts: list[dict] = []
         while True:
             try:
                 supervisor.before_provider_call()
-                return index, target, client.complete(rendered), None, retry_count
+                result = client.complete(rendered)
+                attempts.append(
+                    {
+                        "status": "succeeded",
+                        "usage": dict(result[1] or {}),
+                        "duration_ms": result[2],
+                    }
+                )
+                return index, target, result, None, retry_count, attempts
             except pipeline_lease.LeaseLost:
                 raise
             except Exception as exc:  # one bad call must not end the run
+                attempt = {
+                    "status": "failed",
+                    "usage": dict(getattr(exc, "usage", {}) or {}),
+                    "duration_ms": getattr(exc, "duration_ms", None),
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                }
+                if isinstance(getattr(exc, "status_code", None), int):
+                    attempt["status_code"] = exc.status_code
+                retry_after = getattr(exc, "retry_after_seconds", None)
+                if isinstance(retry_after, (int, float)) and retry_after > 0:
+                    attempt["retry_after_seconds"] = retry_after
+                attempts.append(attempt)
                 if not is_transient_failure(exc) or retry_count >= MAX_ATTEMPTS - 1:
-                    return index, target, None, f"{type(exc).__name__}: {exc}", retry_count
+                    return (
+                        index,
+                        target,
+                        None,
+                        f"{type(exc).__name__}: {exc}",
+                        retry_count,
+                        attempts,
+                    )
                 retry_count += 1
-                time.sleep(retry_backoff_seconds(retry_count))
+                delay = retry_backoff_seconds(retry_count)
+                if isinstance(retry_after, (int, float)) and retry_after > 0:
+                    delay = max(delay, float(retry_after))
+                time.sleep(delay)
 
     work = [
         (index, target, text)
@@ -437,9 +466,13 @@ def _execute(
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(targets) or 1))) as pool:
         futures = [pool.submit(call, item) for item in work]
         for future in as_completed(futures):
-            index, target, result, error, retry_count = future.result()
+            index, target, result, error, retry_count, attempts = future.result()
             text, usage, duration_ms = result if result else (None, None, None)
-            usage = {**(usage or {}), "retry_count": retry_count}
+            usage = {
+                **(usage or {}),
+                "retry_count": retry_count,
+                "attempts": attempts,
+            }
             supervisor.fence(conn)
             conn.execute(
                 "INSERT INTO run_item"
@@ -590,7 +623,14 @@ def cmd_run(args: argparse.Namespace) -> None:
             extra=extra or None,
         )
         print(f"{prompt.ref} ({prompt.sha[:12]}) on {len(targets)} artifact(s) via {args.model}")
-        run_params = {"blocker_version": BLOCKER_VERSION} if args.body_from == "blocks" else None
+        run_params = (
+            {
+                "body_from": "blocks",
+                "blocker_version": BLOCKER_VERSION,
+            }
+            if args.body_from == "blocks"
+            else None
+        )
         summary = execute(
             conn, prompt, client, targets, workers=args.workers, run_params=run_params
         )

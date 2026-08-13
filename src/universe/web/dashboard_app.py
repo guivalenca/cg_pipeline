@@ -20,10 +20,21 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg.types.json import Jsonb
 
-from universe import curation, defaults, ingest, org, spine, syllabus
+from universe import (
+    curation,
+    defaults,
+    ingest,
+    kc_pipeline,
+    org,
+    spine,
+    syllabus,
+)
 from universe.db import connect
-from universe.kc_canonical_statement import fetch_current_canonicalizations
-from universe.kc_groups import fetch_grouping_verdicts, grouping_staleness
+from universe.kc_groups import (
+    compute_groups,
+    fetch_grouping_verdicts,
+    grouping_staleness,
+)
 from universe.kc_statement import statement_of
 from universe.task_knowledge import knowledge_of
 from universe.task_modality import modality_of
@@ -514,68 +525,262 @@ def _source_detail(conn: psycopg.Connection, source_id: str) -> dict:
     }
 
 
-def _universe(conn: psycopg.Connection) -> dict:
-    grouping, group_by_task = _latest_grouping(conn)
+def _manifest_grouping(
+    conn: psycopg.Connection, manifest_id: str
+) -> tuple[dict, dict]:
+    """Resolve one explicitly bound, fully witnessed corpus grouping."""
+    try:
+        snapshot = kc_pipeline.read_corpus_snapshot(
+            conn,
+            kc_pipeline.CorpusManifestTarget(manifest_id),
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    corpus = snapshot.get("corpus") or {}
+    if corpus.get("id") != manifest_id:
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus snapshot does not match the requested manifest",
+        )
+    grouping_id = snapshot.get("grouping_id")
+    if not grouping_id:
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus manifest has no complete grouping",
+        )
+    row = conn.execute(
+        "SELECT id, computed_at, params FROM kc_grouping WHERE id = %s",
+        (grouping_id,),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus manifest grouping is missing",
+        )
+    params = dict(row[2] or {})
+    stages = snapshot.get("stages") or {}
+    embedding = stages.get("task-embedding") or {}
+    grouped = stages.get("grouped") or {}
+    expected = {
+        "build_key": grouped.get("build_key"),
+        "embedding_run": embedding.get("run_id"),
+        "judge_run_id": grouped.get("judge_run_id"),
+        "candidate_count": grouped.get("candidate_count"),
+        "candidate_manifest_sha256": grouped.get("candidate_manifest_sha256"),
+    }
+    if any(params.get(key) != value for key, value in expected.items()):
+        raise HTTPException(
+            status_code=409,
+            detail="KC grouping is not bound to the requested corpus manifest",
+        )
+    return snapshot, {
+        "id": row[0],
+        "computed_at": row[1],
+        "params": params,
+        "stale": False,
+        "stale_reasons": [],
+    }
+
+
+def _group_signature(groups: list[dict]) -> list[tuple[str, tuple[str, ...]]]:
+    """Order-independent identity for one derived grouping publication."""
+    return sorted(
+        (str(group["id"]), tuple(sorted(group.get("members") or [])))
+        for group in groups
+    )
+
+
+def _universe(conn: psycopg.Connection, manifest_id: str) -> dict:
+    snapshot, grouping = _manifest_grouping(conn, manifest_id)
+    components = list(snapshot.get("components") or [])
+    evidence_by_task: dict[str, dict] = {}
+    composite_by_id: dict[str, dict] = {}
+    for component in components:
+        component_id = component.get("id")
+        kind = component.get("kind")
+        if (
+            not isinstance(component_id, str)
+            or kind not in {"singleton", "composite"}
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="KC corpus snapshot contains an invalid component",
+            )
+        if kind == "composite":
+            if component_id in composite_by_id:
+                raise HTTPException(
+                    status_code=409,
+                    detail="KC corpus snapshot repeats a composite",
+                )
+            composite_by_id[component_id] = component
+        for member in component.get("members") or []:
+            task_id = member.get("task_id")
+            if not isinstance(task_id, str) or not task_id:
+                raise HTTPException(
+                    status_code=409,
+                    detail="KC corpus snapshot contains an invalid task",
+                )
+            if task_id in evidence_by_task:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"KC task {task_id} belongs to more than one group",
+                )
+            evidence_by_task[task_id] = member
+
+    node_ids = set(evidence_by_task)
+    if not node_ids:
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus grouping has no effective task evidence",
+        )
     axes = _task_axes(conn, grouping)
-    task_rows = conn.execute(
-        "SELECT t.id, s.id, s.title, t.body, t.answer"
-        " FROM task t JOIN passage p ON p.id = t.passage_id"
-        " JOIN artifact a ON a.id = p.artifact_id"
-        " JOIN source_snapshot sn ON sn.id = a.snapshot_id"
-        " JOIN source s ON s.id = sn.source_id ORDER BY t.id"
+    if not node_ids.issubset(axes):
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus axes do not match the effective manifest tasks",
+        )
+    source_ids = sorted(
+        {
+            member.get("source_id")
+            for member in evidence_by_task.values()
+            if isinstance(member.get("source_id"), str)
+        }
+    )
+    titles = {
+        source_id: title
+        for source_id, title in conn.execute(
+            "SELECT id, title FROM source WHERE id = ANY(%s) ORDER BY id",
+            (source_ids,),
+        ).fetchall()
+    }
+    if set(titles) != set(source_ids):
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus evidence references a missing source",
+        )
+
+    edge_rows = fetch_grouping_verdicts(conn, grouping["id"])
+    if any(a not in node_ids or b not in node_ids for a, b, *_ in edge_rows):
+        raise HTTPException(
+            status_code=409,
+            detail="KC grouping contains edges outside the sealed manifest",
+        )
+
+    member_rows = conn.execute(
+        "SELECT g.id, m.task_id"
+        " FROM kc_group g LEFT JOIN kc_group_member m"
+        "   ON m.grouping_id = g.grouping_id AND m.group_id = g.id"
+        " WHERE g.grouping_id = %s ORDER BY g.id, m.task_id",
+        (grouping["id"],),
     ).fetchall()
-    nodes = []
-    for task_id, source_id, source_title, task_body, task_answer in task_rows:
-        annotation = axes.get(task_id, {})
-        if not annotation.get("statement"):
+    members_by_group: dict[str, list[str]] = {}
+    group_by_task: dict[str, str] = {}
+    for group_id, task_id in member_rows:
+        members_by_group.setdefault(group_id, [])
+        if task_id is None:
             continue
+        if task_id not in node_ids:
+            raise HTTPException(
+                status_code=409,
+                detail="KC grouping contains members outside the sealed manifest",
+            )
+        if task_id in group_by_task:
+            raise HTTPException(
+                status_code=409,
+                detail=f"KC task {task_id} belongs to more than one group",
+            )
+        group_by_task[task_id] = group_id
+        members_by_group[group_id].append(task_id)
+
+    persisted_groups = [
+        {"id": group_id, "members": sorted(members)}
+        for group_id, members in members_by_group.items()
+    ]
+    derived_groups = compute_groups(edge_rows)
+    if _group_signature(persisted_groups) != _group_signature(derived_groups):
+        raise HTTPException(
+            status_code=409,
+            detail="KC grouping is not derived from its certified verdicts",
+        )
+    snapshot_groups = [
+        {
+            "id": component_id,
+            "members": [
+                member["task_id"]
+                for member in component.get("members") or []
+            ],
+        }
+        for component_id, component in composite_by_id.items()
+    ]
+    if _group_signature(snapshot_groups) != _group_signature(persisted_groups):
+        raise HTTPException(
+            status_code=409,
+            detail="KC corpus snapshot does not match its certified grouping",
+        )
+
+    nodes = []
+    for task_id, member in sorted(evidence_by_task.items()):
+        annotation = axes[task_id]
+        statement = member.get("statement")
+        source_id = member.get("source_id")
+        if not isinstance(statement, str) or not statement.strip():
+            raise HTTPException(
+                status_code=409,
+                detail="KC corpus evidence has no usable statement",
+            )
+        if source_id not in titles:
+            raise HTTPException(
+                status_code=409,
+                detail="KC corpus evidence references a missing source",
+            )
         nodes.append(
             {
                 "id": task_id,
-                "statement": annotation["statement"],
+                "statement": statement,
                 "modality": annotation.get("modality"),
                 "knowledge": annotation.get("knowledge"),
                 "source_id": source_id,
-                "source_title": source_title,
-                "task": task_body,
-                "answer": task_answer,
+                "source_title": titles[source_id],
+                "task": member.get("task"),
+                "answer": member.get("answer"),
                 "group_id": group_by_task.get(task_id),
             }
         )
-    if grouping is None:
-        edge_rows = []
-    else:
-        edge_rows = fetch_grouping_verdicts(conn, grouping["id"])
+
     edges = [
         {"a": a, "b": b, "ab": ab, "ba": ba, "mutual": ab == ba == "clear_yes"}
         for a, b, ab, ba in edge_rows
     ]
     groups = []
-    if grouping is not None:
-        canonical = fetch_current_canonicalizations(conn, grouping["id"])
-        group_rows = conn.execute(
-            "SELECT g.id, array_agg(m.task_id ORDER BY m.task_id)"
-            " FILTER (WHERE m.task_id IS NOT NULL)"
-            " FROM kc_group g LEFT JOIN kc_group_member m"
-            "   ON m.grouping_id = g.grouping_id AND m.group_id = g.id"
-            " WHERE g.grouping_id = %s GROUP BY g.id ORDER BY g.id",
-            (grouping["id"],),
-        ).fetchall()
-        groups = []
-        for group_id, members in group_rows:
-            result = canonical.get(group_id)
-            groups.append(
+    for group in sorted(persisted_groups, key=lambda item: item["id"]):
+        canonical = composite_by_id[group["id"]].get("canonical") or {}
+        groups.append(
+            {
+                "id": group["id"],
+                "members": group["members"],
+                "canonical_status": canonical.get("verdict", "missing"),
+                "canonical_statement": canonical.get("statement"),
+                "canonical_reason": canonical.get("reason"),
+            }
+        )
+    corpus = snapshot["corpus"]
+    return {
+        "manifest": {
+            "id": corpus["id"],
+            "manifest_sha256": corpus["manifest_sha256"],
+            "publications": [
                 {
-                    "id": group_id,
-                    "members": members or [],
-                    "canonical_status": result["verdict"] if result else "missing",
-                    "canonical_statement": (
-                        result.get("statement") if result else None
-                    ),
-                    "canonical_reason": result.get("reason") if result else None,
+                    "source_id": publication["source_id"],
+                    "artifact_id": publication["artifact_id"],
                 }
-            )
-    return {"nodes": nodes, "edges": edges, "groups": groups, "grouping": grouping}
+                for publication in corpus["publications"]
+            ],
+        },
+        "nodes": nodes,
+        "edges": edges,
+        "groups": groups,
+        "grouping": grouping,
+    }
 
 
 def _runs(conn: psycopg.Connection) -> list[dict]:
@@ -901,9 +1106,9 @@ def create_app() -> FastAPI:
         return launched
 
     @app.get("/api/universe")
-    def universe_graph() -> dict:
+    def universe_graph(manifest_id: str) -> dict:
         with connect() as conn:
-            return _universe(conn)
+            return _universe(conn, manifest_id)
 
     @app.get("/api/runs")
     def list_runs() -> dict:
@@ -919,6 +1124,7 @@ def create_app() -> FastAPI:
         "/structure": "structure.html",
         "/syllabi": "syllabi.html",
         "/sources": "sources.html",
+        "/graph": "universe.html",
         "/universe": "universe.html",
         "/runs": "runs.html",
     }

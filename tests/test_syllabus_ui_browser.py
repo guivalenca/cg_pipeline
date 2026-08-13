@@ -1,11 +1,13 @@
 """Browser regressions for the syllabus curation interface."""
 
 from contextlib import contextmanager
+from copy import deepcopy
 from pathlib import Path
 import socket
 import threading
 import time
 import uuid
+from urllib.parse import quote, urlparse
 
 import psycopg
 from openpyxl import Workbook
@@ -19,6 +21,21 @@ from universe.syllabus import (
     import_workbook,
 )
 from universe.web.app import create_app
+
+
+LOCAL_KC_STAGES = (
+    "blocks",
+    "passage-cuts",
+    "passage-triage",
+    "task-generation",
+    "task-granularity",
+    "task-revision",
+    "task-triage",
+    "task-substance",
+    "kc-statement",
+    "task-modality",
+    "task-knowledge",
+)
 
 
 def _editable_workbook(path: Path) -> Path:
@@ -100,6 +117,72 @@ def _serve(app):
         server.should_exit = True
         thread.join(timeout=5)
         sock.close()
+
+
+def _route_detail(page, syllabus_id, mutate):
+    """Keep the real projection, replacing only the not-yet-landed KC fields."""
+
+    cached = {"payload": None}
+
+    def handler(route):
+        if urlparse(route.request.url).path != f"/api/syllabi/{syllabus_id}":
+            route.continue_()
+            return
+        response = route.fetch()
+        payload = response.json()
+        status = response.status
+        if "lessons" not in payload and cached["payload"] is not None:
+            payload = deepcopy(cached["payload"])
+            status = 200
+        mutate(payload)
+        cached["payload"] = deepcopy(payload)
+        route.fulfill(status=status, json=payload)
+
+    page.route(f"**/api/syllabi/{syllabus_id}*", handler)
+
+
+def _snapshot(
+    source_id,
+    source_title,
+    artifact_id,
+    *,
+    completed,
+    statement=None,
+    task=None,
+    answer=None,
+):
+    stages = {
+        name: {"status": "done" if index < completed else "pending"}
+        for index, name in enumerate(LOCAL_KC_STAGES)
+    }
+    components = []
+    if statement:
+        components.append(
+            {
+                "id": f"task-{source_id}",
+                "kind": "singleton",
+                "canonical": {"verdict": "stated", "statement": statement},
+                "members": [
+                    {
+                        "task_id": f"task-{source_id}",
+                        "source_id": source_id,
+                        "task": task,
+                        "answer": answer,
+                        "statement": statement,
+                    }
+                ],
+            }
+        )
+    return {
+        "source": {
+            "id": source_id,
+            "title": source_title,
+            "artifact_id": artifact_id,
+        },
+        "stages": stages,
+        "components": components,
+        "relationships": [],
+    }
 
 
 def test_targeted_lesson_editor_stays_scoped_and_can_hide_that_lesson(
@@ -224,6 +307,56 @@ def test_a_fully_validated_lesson_can_be_unvalidated_from_its_compact_row(
         browser.close()
 
 
+def test_validating_the_last_source_refreshes_the_kc_offer(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser KC gate {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "kc-gate.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+
+    def mutate_detail(payload):
+        lesson = payload["lessons"][0]
+        source = lesson["sources"][0]
+        validated = bool(source.get("review", {}).get("validated"))
+        source["has_markdown"] = True
+        source["markdown"] = {"available": True}
+        lesson["knowledge"] = {
+            "lesson_id": lesson["id"],
+            "active_reference_count": 1,
+            "publication_count": 1,
+            "eligibility": {
+                "eligible": validated,
+                "code": "ready" if validated else "references_not_validated",
+            },
+            "latest_build": None,
+        }
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _route_detail(page, imported["syllabus_id"], mutate_detail)
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        first_lesson = page.locator(".syl-lesson").first
+        expect(
+            first_lesson.get_by_role("button", name="Iniciar criação")
+        ).to_have_count(0)
+
+        first_lesson.get_by_role("button", name="Validada").click()
+
+        expect(
+            first_lesson.get_by_role("button", name="Iniciar criação")
+        ).to_be_visible()
+        expect(first_lesson).to_contain_text(
+            "1 Source Publication pronta · 1 autoestudo validado"
+        )
+        browser.close()
+
+
 def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
     test_database_url, applied_migrations, tmp_path
 ):
@@ -259,3 +392,556 @@ def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
         "Primeira aula revisada",
         "Segunda aula revisada",
     ]
+
+
+def test_kc_entry_points_confirm_before_post_and_poll_the_active_build(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser KC start {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "kc-start.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    current = {"build": None, "source_id": None, "reference_id": None}
+    posts = []
+    build_reads = []
+
+    def mutate_detail(payload):
+        lesson = payload["lessons"][0]
+        source = lesson["sources"][0]
+        current["source_id"] = source["source_id"]
+        current["reference_id"] = source["reference_id"]
+        source["review"] = {"validated": True, "complexity": "simple"}
+        source["has_markdown"] = True
+        source["markdown"] = {"available": True}
+        lesson["knowledge"] = {
+            "lesson_id": lesson["id"],
+            "publication_count": 1,
+            "eligibility": {"eligible": True, "code": "ready"},
+            "latest_build": current["build"],
+        }
+        # Keep a non-KC source in its ordinary pre-extraction state so this
+        # regression also proves those controls remain present.
+        payload["lessons"][1]["sources"][0]["source_id"] = (
+            payload["lessons"][1]["sources"][0].get("source_id")
+            or "source-browser-book"
+        )
+        payload["knowledge_manifest_id"] = None
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _route_detail(page, imported["syllabus_id"], mutate_detail)
+
+        def offer_handler(route):
+            lesson_id = urlparse(route.request.url).path.split("/")[-2]
+            route.fulfill(
+                status=200,
+                json={
+                    "lesson_id": lesson_id,
+                    "publication_count": 1,
+                    "eligibility": {"eligible": True, "code": "ready"},
+                    "latest_build": current["build"],
+                },
+            )
+
+        def start_handler(route):
+            posts.append(route.request.post_data_json)
+            source_id = current["source_id"]
+            reference_id = current["reference_id"]
+            current["build"] = {
+                "id": "build-browser-start",
+                "status": "running",
+                "references": [
+                    {
+                        "reference_id": reference_id,
+                        "work_id": "work-browser-start",
+                    }
+                ],
+                "work": [
+                    {
+                        "id": "work-browser-start",
+                        "source_id": source_id,
+                        "artifact_id": "artifact-browser-start",
+                        "reference_ids": [reference_id],
+                        "status": "running",
+                        "snapshot": _snapshot(
+                            source_id,
+                            "Artigo da primeira aula",
+                            "artifact-browser-start",
+                            completed=0,
+                        ),
+                    }
+                ],
+            }
+            route.fulfill(status=202, json=current["build"])
+
+        def build_handler(route):
+            build_reads.append(route.request.url)
+            source_id = current["source_id"]
+            reference_id = current["reference_id"]
+            current["build"] = {
+                "id": "build-browser-start",
+                "status": "running",
+                "references": [
+                    {
+                        "reference_id": reference_id,
+                        "work_id": "work-browser-start",
+                    }
+                ],
+                "work": [
+                    {
+                        "id": "work-browser-start",
+                        "source_id": source_id,
+                        "artifact_id": "artifact-browser-start",
+                        "reference_ids": [reference_id],
+                        "status": "running",
+                        "snapshot": _snapshot(
+                            source_id,
+                            "Artigo da primeira aula",
+                            "artifact-browser-start",
+                            completed=9,
+                            statement="Explica por que feedback reduz incerteza.",
+                            task="Por que ciclos curtos ajudam a equipe?",
+                            answer="Eles antecipam evidência sobre a solução.",
+                        ),
+                    }
+                ],
+            }
+            route.fulfill(status=200, json=current["build"])
+
+        page.route("**/api/knowledge-builds/build-browser-start", build_handler)
+        page.route("**/knowledge-builds", start_handler)
+        page.route("**/knowledge", offer_handler)
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        first_lesson = page.locator(".syl-lesson").first
+        expect(first_lesson.get_by_role("button", name="Visualizar")).to_be_visible()
+        expect(
+            first_lesson.get_by_role(
+                "button", name="Ver KCs de Artigo da primeira aula"
+            )
+        ).to_have_count(0)
+        expect(first_lesson.get_by_role("button", name="Desvalidar")).to_be_visible()
+        expect(page.get_by_role("button", name="Universo")).to_be_disabled()
+        expect(
+            page.locator(".syl-lesson").nth(1).get_by_role(
+                "button", name="Upload de PDF ou Imagem"
+            )
+        ).to_be_visible()
+
+        expect(first_lesson).to_contain_text(
+            "1 Source Publication pronta · 1 autoestudo validado"
+        )
+        first_lesson.get_by_role("button", name="Iniciar criação").click()
+        dialog = page.locator("[data-knowledge-dialog]")
+        expect(dialog).to_be_visible()
+        expect(dialog).to_contain_text("1 Source Publication")
+        expect(dialog.get_by_role("button", name="Confirmar e iniciar KCs")).to_be_visible()
+        assert posts == []
+
+        dialog.get_by_role("button", name="Confirmar e iniciar KCs").click()
+        expect(dialog).to_contain_text("0/11 etapas locais")
+        assert len(posts) == 1
+        assert set(posts[0]) == {"request_key"}
+        assert posts[0]["request_key"].startswith("syllabi-ui:")
+
+        expect(dialog).to_contain_text("9/11 etapas locais", timeout=5_000)
+        expect(dialog).to_contain_text("Explica por que feedback reduz incerteza.")
+        expect(first_lesson).to_contain_text("9/11 etapas locais concluídas")
+        expect(first_lesson.get_by_role("button", name="Acompanhar")).to_be_visible()
+        expect(
+            first_lesson.get_by_role(
+                "button", name="Ver KCs de Artigo da primeira aula"
+            )
+        ).to_be_visible()
+        assert build_reads
+        assert dialog.locator("[data-knowledge-stage-details]").evaluate(
+            "element => element.open"
+        ) is False
+        dialog.get_by_role("button", name="Fechar").click()
+        expect(first_lesson.get_by_role("button", name="Acompanhar")).to_be_focused()
+        browser.close()
+
+
+def test_kc_modal_filters_one_publication_and_deduplicates_lesson_work(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser KC results {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "kc-results.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    shaped = {
+        "offer": None,
+        "build": None,
+        "summary": None,
+        "source_a": None,
+        "reused_lesson_id": None,
+    }
+
+    def mutate_detail(payload):
+        lesson = payload["lessons"][0]
+        source_a = lesson["sources"][0]
+        source_a["review"] = {"validated": True, "complexity": "simple"}
+        source_a["has_markdown"] = True
+        source_a["markdown"] = {"available": True}
+        source_b = {
+            **source_a,
+            "source_id": "source-browser-neighbor",
+            "reference_id": "reference-browser-neighbor",
+            "title": "Fonte vizinha",
+            "url": "https://example.com/vizinha",
+            "review": {"validated": True, "complexity": "complex"},
+        }
+        lesson["sources"] = [source_a, source_b]
+        shaped["source_a"] = source_a
+        source_a_id = source_a["source_id"]
+        reference_a_id = source_a["reference_id"]
+        work_a = {
+            "id": "work-a",
+            "source_id": source_a_id,
+            "artifact_id": "artifact-a",
+            "reference_ids": [reference_a_id],
+            "status": "succeeded",
+            "snapshot": _snapshot(
+                source_a_id,
+                source_a["title"],
+                "artifact-a",
+                completed=9,
+                statement="Distingue feedback de aprovação tardia.",
+                task="Qual é a função do feedback?",
+                answer="Reduzir incerteza enquanto ainda é barato mudar.",
+            ),
+        }
+        duplicate_a = {**work_a, "id": "work-a-duplicate"}
+        work_b = {
+            "id": "work-b",
+            "source_id": source_b["source_id"],
+            "artifact_id": "artifact-b",
+            "reference_ids": [source_b["reference_id"]],
+            "status": "succeeded",
+            "snapshot": _snapshot(
+                source_b["source_id"],
+                source_b["title"],
+                "artifact-b",
+                completed=11,
+                statement="Relaciona descoberta contínua e decisões reversíveis.",
+                task="O que torna uma decisão reversível?",
+                answer="Baixo custo de correção após nova evidência.",
+            ),
+        }
+        shaped["build"] = {
+            "id": "build-browser-results",
+            "status": "succeeded",
+            "references": [
+                {"reference_id": reference_a_id, "work_id": "work-a"},
+                {
+                    "reference_id": source_b["reference_id"],
+                    "work_id": "work-b",
+                },
+            ],
+            "work": [work_a, duplicate_a, work_b],
+        }
+        shaped["summary"] = {
+            "id": shaped["build"]["id"],
+            "status": "succeeded",
+            "stage_progress": {"completed": 20, "total": 22},
+            "references": shaped["build"]["references"],
+            "work": [
+                {
+                    "id": "work-a",
+                    "source_id": source_a_id,
+                    "artifact_id": "artifact-a",
+                    "reference_ids": [reference_a_id],
+                    "status": "succeeded",
+                    "kc_count": 1,
+                },
+                {
+                    "id": "work-b",
+                    "source_id": source_b["source_id"],
+                    "artifact_id": "artifact-b",
+                    "reference_ids": [source_b["reference_id"]],
+                    "status": "succeeded",
+                    "kc_count": 1,
+                },
+            ],
+        }
+        shaped["offer"] = {
+            "lesson_id": lesson["id"],
+            "publication_count": 2,
+            "eligibility": {"eligible": True, "code": "ready"},
+            "latest_build": shaped["summary"],
+        }
+        lesson["knowledge"] = shaped["offer"]
+        source_a["knowledge"] = {
+            "build_id": shaped["build"]["id"],
+            "work_id": "work-a",
+            "status": "succeeded",
+            "current": True,
+            "kc_count": 1,
+        }
+        source_b["knowledge"] = {
+            "build_id": shaped["build"]["id"],
+            "work_id": "work-b",
+            "status": "succeeded",
+            "current": True,
+            "kc_count": 1,
+        }
+        reused_lesson = payload["lessons"][1]
+        reused_source = reused_lesson["sources"][0]
+        shaped["reused_lesson_id"] = reused_lesson["id"]
+        reused_source["source_id"] = source_a_id
+        reused_source["review"] = {"validated": True, "complexity": "simple"}
+        reused_source["has_markdown"] = True
+        reused_source["markdown"] = {"available": True}
+        reused_source["knowledge"] = {
+            "build_id": shaped["build"]["id"],
+            "work_id": "work-a",
+            "status": "succeeded",
+            "current": True,
+            "kc_count": 1,
+        }
+        reused_lesson["knowledge"] = {
+            "lesson_id": reused_lesson["id"],
+            "publication_count": 1,
+            "eligibility": {"eligible": True, "code": "ready"},
+            "latest_build": None,
+        }
+        payload["knowledge_manifest_id"] = "manifest-browser-results"
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _route_detail(page, imported["syllabus_id"], mutate_detail)
+        page.route(
+            "**/api/knowledge-builds/build-browser-results",
+            lambda route: route.fulfill(status=200, json=shaped["build"]),
+        )
+        def offer_handler(route):
+            lesson_id = urlparse(route.request.url).path.split("/")[-2]
+            offer = shaped["offer"]
+            if lesson_id == shaped["reused_lesson_id"]:
+                offer = {
+                    "lesson_id": lesson_id,
+                    "publication_count": 1,
+                    "eligibility": {"eligible": True, "code": "ready"},
+                    "latest_build": None,
+                }
+            route.fulfill(status=200, json=offer)
+
+        page.route("**/knowledge", offer_handler)
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        first_lesson = page.locator(".syl-lesson").first
+        expect(first_lesson).to_contain_text("2 KCs unitários produzidos")
+        expect(first_lesson.get_by_role("button", name="Ver KCs da aula")).to_be_visible()
+        universe = page.get_by_role("link", name="Universo", exact=True)
+        expect(universe).to_have_attribute(
+            "href",
+            (
+                "/graph?manifest_id=manifest-browser-results"
+                f"&syllabus_id={imported['syllabus_id']}"
+                f"&version_id={quote(imported['version_id'], safe='')}"
+            ),
+        )
+
+        first_lesson.get_by_role(
+            "button", name="Ver KCs de Artigo da primeira aula"
+        ).click()
+        dialog = page.locator("[data-knowledge-dialog]")
+        expect(dialog).to_be_visible()
+        expect(dialog.get_by_role("heading", name="KCs · Artigo da primeira aula")).to_be_visible()
+        expect(dialog).to_contain_text("Distingue feedback de aprovação tardia.")
+        expect(dialog).to_contain_text("Qual é a função do feedback?")
+        expect(dialog).to_contain_text(
+            "Reduzir incerteza enquanto ainda é barato mudar."
+        )
+        expect(dialog).to_contain_text("9/11 etapas locais")
+        expect(dialog).to_contain_text("Artigo da primeira aula")
+        expect(dialog).not_to_contain_text("Fonte vizinha")
+        expect(dialog).not_to_contain_text(
+            "Relaciona descoberta contínua e decisões reversíveis."
+        )
+        expect(dialog.locator(".syl-kc-item")).to_have_count(1)
+        expect(dialog.locator(".syl-knowledge-work")).to_have_count(1)
+        assert dialog.locator("[data-knowledge-stage-details]").evaluate(
+            "element => element.open"
+        ) is False
+
+        page.keyboard.press("Escape")
+        source_button = first_lesson.get_by_role(
+            "button", name="Ver KCs de Artigo da primeira aula"
+        )
+        expect(source_button).to_be_focused()
+        first_lesson.get_by_role("button", name="Ver KCs da aula").click()
+        expect(dialog).to_contain_text("20/22 etapas locais")
+        expect(dialog).to_contain_text(
+            "Relaciona descoberta contínua e decisões reversíveis."
+        )
+        expect(dialog.locator(".syl-kc-item")).to_have_count(2)
+        expect(dialog.locator(".syl-knowledge-work")).to_have_count(2)
+        dialog.get_by_role("button", name="Fechar").click()
+        expect(first_lesson.get_by_role("button", name="Ver KCs da aula")).to_be_focused()
+
+        reused_lesson = page.locator(".syl-lesson").nth(1)
+        reused_lesson.get_by_role("button", name="Ver KCs de Livro da segunda aula").click()
+        expect(dialog.get_by_role("heading", name="KCs · Livro da segunda aula")).to_be_visible()
+        expect(dialog).to_contain_text("9/11 etapas locais")
+        expect(dialog).to_contain_text("Distingue feedback de aprovação tardia.")
+        expect(dialog.locator(".syl-kc-item")).to_have_count(1)
+        expect(dialog.locator(".syl-knowledge-work")).to_have_count(1)
+        browser.close()
+
+
+def test_universe_publication_is_a_second_explicit_checkpoint_with_shared_progress(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser corpus checkpoint {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "corpus-checkpoint.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    state = {
+        "build": None,
+        "published_build": None,
+        "reads_after_start": 0,
+        "auto_complete": True,
+    }
+    posts = []
+
+    def mutate_detail(payload):
+        build = state["build"]
+        if build is not None:
+            state["reads_after_start"] += 1
+            if state["auto_complete"] and state["reads_after_start"] >= 2:
+                build = {
+                    **build,
+                    "status": "succeeded",
+                    "progress": {
+                        "completed": 4,
+                        "total": 4,
+                        "pending": 0,
+                        "partial": 0,
+                        "running": 0,
+                        "failed": 0,
+                    },
+                }
+                state["build"] = build
+                state["published_build"] = build
+        payload["knowledge"] = {
+            "eligibility": {"eligible": True, "code": "ready"},
+            "complete_publication_count": 2,
+            "publication_count": 2,
+            "latest_build": build,
+            "published_build": state["published_build"],
+        }
+        published_build = state["published_build"]
+        if published_build and published_build.get("current", True):
+            payload["knowledge_manifest_id"] = published_build["manifest_id"]
+        else:
+            payload.pop("knowledge_manifest_id", None)
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _route_detail(page, imported["syllabus_id"], mutate_detail)
+
+        def start_handler(route):
+            posts.append(route.request.post_data_json)
+            state["build"] = {
+                "id": "syllabus-build-browser",
+                "manifest_id": "manifest-browser-published",
+                "status": "running",
+                "current": True,
+                "progress": {
+                    "completed": 0,
+                    "total": 4,
+                    "pending": 4,
+                    "partial": 0,
+                    "running": 0,
+                    "failed": 0,
+                },
+            }
+            route.fulfill(status=202, json=state["build"])
+
+        page.route("**/versions/*/knowledge-builds", start_handler)
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        page.get_by_role("button", name="Publicar Universo").click()
+        dialog = page.locator("[data-knowledge-dialog]")
+        expect(dialog).to_be_visible()
+        expect(dialog).to_contain_text("segundo checkpoint explícito")
+        expect(dialog.get_by_role("button", name="Confirmar publicação")).to_be_visible()
+        assert posts == []
+
+        dialog.get_by_role("button", name="Confirmar publicação").click()
+        expect(dialog).to_be_visible()
+        expect(dialog).to_contain_text("0/4 etapas compartilhadas")
+        expect(page.get_by_role("button", name="0/4 · Publicando Universo")).to_be_visible()
+        assert len(posts) == 1
+        assert set(posts[0]) == {"request_key"}
+
+        universe = page.get_by_role("link", name="Universo", exact=True)
+        expect(universe).to_be_visible(timeout=7_000)
+        expected_href = (
+            "/graph?manifest_id=manifest-browser-published"
+            f"&syllabus_id={imported['syllabus_id']}"
+            f"&version_id={quote(imported['version_id'], safe='')}"
+        )
+        expect(universe).to_have_attribute("href", expected_href)
+        expect(dialog).to_contain_text("Universo publicado")
+        expect(dialog).to_contain_text("4/4 etapas compartilhadas")
+        expect(dialog.get_by_role("link", name="Abrir Universo")).to_have_attribute(
+            "href", expected_href
+        )
+        dialog.locator("[data-knowledge-close]").first.click()
+        expect(universe).to_be_focused()
+
+        state["auto_complete"] = False
+        state["reads_after_start"] = 0
+        state["build"] = {
+            "id": "syllabus-build-browser-republish",
+            "manifest_id": "manifest-browser-republish",
+            "status": "queued",
+            "current": True,
+            "progress": {
+                "completed": 0,
+                "total": 4,
+                "pending": 4,
+                "partial": 0,
+                "running": 0,
+                "failed": 0,
+            },
+        }
+        page.reload()
+        expect(page.get_by_role("link", name="Universo", exact=True)).to_have_attribute(
+            "href", expected_href
+        )
+        republishing = page.get_by_role("button", name="0/4 · Publicando Universo")
+        expect(republishing).to_be_visible()
+        republishing.click()
+        expect(dialog).to_contain_text("0/4 etapas compartilhadas")
+        expect(dialog.get_by_role("link", name="Abrir Universo publicado")).to_have_attribute(
+            "href", expected_href
+        )
+        dialog.locator("[data-knowledge-close]").first.click()
+
+        state["build"] = {**state["build"], "status": "failed"}
+        state["published_build"] = {
+            **state["published_build"],
+            "current": False,
+        }
+        page.reload()
+        previous = page.get_by_role("link", name="Universo anterior")
+        expect(previous).to_have_attribute("href", expected_href)
+        expect(
+            page.get_by_role("button", name="Publicar novo Universo")
+        ).to_be_visible()
+        browser.close()

@@ -2,6 +2,8 @@
    Vanilla ES module, SVG rendering, no libraries. */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
+const pageParams = new URLSearchParams(window.location.search);
+const manifestId = (pageParams.get('manifest_id') || '').trim();
 
 const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
@@ -52,6 +54,7 @@ const els = {
   toggleOneway: $('[data-toggle-oneway]'),
   toggleUnmerged: $('[data-toggle-unmerged]'),
   compositeCount: $('[data-composite-count]'),
+  back: $('[data-universe-back]'),
 };
 
 const state = {
@@ -84,6 +87,35 @@ async function fetchJSON(url) {
     throw new Error(body?.detail || `Request failed (${response.status})`);
   }
   return response.json();
+}
+
+function returnContextHref() {
+  const rawBack = (pageParams.get('back') || '').trim();
+  const syllabusId = (pageParams.get('syllabus_id') || '').trim();
+  const versionId = (pageParams.get('version_id') || '').trim();
+
+  let target = new URL('/syllabi', window.location.origin);
+  if (rawBack) {
+    try {
+      const requested = new URL(rawBack, window.location.origin);
+      if (requested.origin === window.location.origin && requested.pathname === '/syllabi') {
+        target = requested;
+      }
+    } catch {
+      // A malformed return context falls back to the only safe product page.
+    }
+  }
+  if (syllabusId) target.searchParams.set('id', syllabusId);
+  if (versionId) target.searchParams.set('version_id', versionId);
+  return `${target.pathname}${target.search}${target.hash}`;
+}
+
+function mountReturnContext() {
+  const href = returnContextHref();
+  if (!els.back || !href) return;
+  els.back.href = href;
+  els.back.textContent = '← Voltar ao syllabus';
+  els.back.hidden = false;
 }
 
 /* ---------------------------------------------------------------- build */
@@ -878,13 +910,19 @@ function hideOverlay() {
 }
 
 async function boot() {
+  if (!manifestId) {
+    window.location.replace(returnContextHref());
+    return;
+  }
+
   els.emptyNote.hidden = true;
   showOverlay('Loading universe…');
   els.status.textContent = 'Loading universe…';
 
   let data;
   try {
-    data = await fetchJSON('/api/universe');
+    const apiParams = new URLSearchParams({ manifest_id: manifestId });
+    data = await fetchJSON(`/api/universe?${apiParams.toString()}`);
   } catch (error) {
     showOverlay(`
       Could not load the universe. ${esc(error.message)}<br>
@@ -917,5 +955,6 @@ async function boot() {
   else reheat(1);
 }
 
+mountReturnContext();
 bindControls();
 boot();

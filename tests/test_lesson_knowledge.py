@@ -8,6 +8,21 @@ import pytest
 from psycopg.types.json import Jsonb
 
 
+class _CountingConnection:
+    """Small Postgres adapter that exposes the query cost of a public read."""
+
+    def __init__(self, connection):
+        self._connection = connection
+        self.query_count = 0
+
+    def execute(self, *args, **kwargs):
+        self.query_count += 1
+        return self._connection.execute(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._connection, name)
+
+
 def _seed_route(db, *, marker: str) -> dict[str, str]:
     ids = {
         "syllabus_id": f"syllabus-lesson-kc-{marker}",
@@ -349,7 +364,10 @@ def test_idempotent_replay_keeps_original_pins_and_latest_tracks_new_request(db)
 
     replay = request(db, *route.values(), "user-click-1", actor="someone-else")
 
-    assert replay == first
+    assert replay["id"] == first["id"]
+    assert replay["request_key"] == first["request_key"]
+    assert replay["requested_by"] == first["requested_by"]
+    assert replay["current"] is False
     assert replay["work"][0]["artifact_id"] == publication["artifact_id"]
     with pytest.raises(LessonKnowledgeNotReady) as caught:
         request(db, *route.values(), "user-click-2", actor="founder")
@@ -539,3 +557,199 @@ def test_read_derives_aggregate_status_and_progress_from_publication_work(db):
         "succeeded": 2,
         "failed": 0,
     }
+
+
+def test_offer_and_read_include_pinned_pipeline_snapshots_and_staleness(db):
+    from universe.lesson_knowledge import offer, read, request
+
+    marker = uuid.uuid4().hex[:10]
+    route = _seed_route(db, marker=marker)
+    publication = _seed_publication(db, marker=marker, suffix="snapshot")
+    _attach_reference(
+        db,
+        route=route,
+        publication=publication,
+        reference_id=f"reference-lesson-kc-{marker}",
+        seq=1,
+    )
+
+    build = request(db, *route.values(), "snapshot", actor="founder")
+    work = build["work"][0]
+
+    assert build["current"] is True
+    assert work["current"] is True
+    assert work["snapshot"]["source"]["artifact_id"] == publication["artifact_id"]
+    assert tuple(work["snapshot"]["stages"]) == (
+        "blocks",
+        "passage-cuts",
+        "passage-triage",
+        "task-generation",
+        "task-granularity",
+        "task-revision",
+        "task-triage",
+        "task-substance",
+        "kc-statement",
+        "task-modality",
+        "task-knowledge",
+    )
+    assert offer(db, *route.values())["latest_build"]["current"] is True
+
+    _supersede_publication(db, source_id=publication["source_id"], marker=marker)
+    historical = read(db, *route.values(), build["id"])
+
+    assert historical is not None
+    assert historical["current"] is False
+    assert historical["work"][0]["current"] is False
+    assert historical["work"][0]["snapshot"]["source"]["artifact_id"] == (
+        publication["artifact_id"]
+    )
+
+
+def test_offer_many_bulk_projects_twenty_latest_builds_with_bounded_queries(db):
+    from universe.lesson_knowledge import offer, offer_many, request
+
+    marker = uuid.uuid4().hex[:10]
+    route = _seed_route(db, marker=marker)
+    lesson_ids = []
+    build_ids = {}
+    for index in range(20):
+        lesson_id = (
+            route["lesson_id"]
+            if index == 0
+            else f"syllabus-lesson-kc-{marker}-{index + 1}"
+        )
+        if index:
+            db.execute(
+                "INSERT INTO syllabus_lesson"
+                " (id, version_id, week, seq, kind, title)"
+                " VALUES (%s, %s, 6, %s, 'Encontro', %s)",
+                (
+                    lesson_id,
+                    route["version_id"],
+                    index + 1,
+                    f"Aula {index + 1}",
+                ),
+            )
+        lesson_route = {**route, "lesson_id": lesson_id}
+        publication = _seed_publication(
+            db,
+            marker=marker,
+            suffix=f"bulk-{index + 1}",
+        )
+        _attach_reference(
+            db,
+            route=lesson_route,
+            publication=publication,
+            reference_id=f"reference-lesson-kc-{marker}-bulk-{index + 1}",
+            seq=1,
+        )
+        build = request(
+            db,
+            *lesson_route.values(),
+            f"bulk-{index + 1}",
+            actor="founder",
+        )
+        lesson_ids.append(lesson_id)
+        build_ids[lesson_id] = build["id"]
+
+    deep = offer(
+        db,
+        route["syllabus_id"],
+        route["version_id"],
+        lesson_ids[0],
+    )
+    counted = _CountingConnection(db)
+    offered = offer_many(
+        counted,
+        route["syllabus_id"],
+        route["version_id"],
+        lesson_ids,
+    )
+
+    assert counted.query_count <= 8
+    assert list(offered) == lesson_ids
+    for lesson_id in lesson_ids:
+        projection = offered[lesson_id]
+        assert projection["eligibility"]["code"] == "ready"
+        assert projection["active_reference_count"] == 1
+        assert projection["publication_count"] == 1
+        assert projection["latest_build"]["id"] == build_ids[lesson_id]
+        assert projection["latest_build"]["status"] == "queued"
+        assert projection["latest_build"]["stage_progress"] == {
+            "completed": 0,
+            "total": 11,
+        }
+        assert "snapshot" not in projection["latest_build"]["work"][0]
+    first_summary = offered[lesson_ids[0]]
+    assert first_summary["eligibility"] == deep["eligibility"]
+    assert first_summary["latest_build"]["progress"] == deep["latest_build"][
+        "progress"
+    ]
+    assert first_summary["latest_build"]["stage_progress"] == deep[
+        "latest_build"
+    ]["stage_progress"]
+    assert first_summary["latest_build"]["references"] == deep["latest_build"][
+        "references"
+    ]
+
+
+def test_offer_many_treats_a_hidden_lesson_as_having_no_active_scope(db):
+    from universe.lesson_knowledge import offer_many
+
+    marker = uuid.uuid4().hex[:10]
+    route = _seed_route(db, marker=marker)
+    publication = _seed_publication(db, marker=marker, suffix="hidden-lesson")
+    _attach_reference(
+        db,
+        route=route,
+        publication=publication,
+        reference_id=f"reference-lesson-kc-{marker}-hidden-lesson",
+        seq=1,
+    )
+    db.execute(
+        "UPDATE syllabus_lesson SET is_hidden = true WHERE id = %s",
+        (route["lesson_id"],),
+    )
+
+    offered = offer_many(
+        db,
+        route["syllabus_id"],
+        route["version_id"],
+        [route["lesson_id"]],
+    )[route["lesson_id"]]
+
+    assert offered["eligibility"]["code"] == "lesson_hidden"
+    assert offered["active_reference_count"] == 0
+    assert offered["publication_count"] == 0
+
+
+def test_offer_many_marks_a_pinned_build_stale_during_a_failed_refresh(db):
+    from universe.lesson_knowledge import offer_many, request
+
+    marker = uuid.uuid4().hex[:10]
+    route = _seed_route(db, marker=marker)
+    publication = _seed_publication(db, marker=marker, suffix="refresh-staleness")
+    _attach_reference(
+        db,
+        route=route,
+        publication=publication,
+        reference_id=f"reference-lesson-kc-{marker}-refresh-staleness",
+        seq=1,
+    )
+    request(db, *route.values(), "before-refresh", actor="founder")
+    _mark_refresh_incomplete(
+        db,
+        source_id=publication["source_id"],
+        marker=f"{marker}-after-build",
+    )
+
+    offered = offer_many(
+        db,
+        route["syllabus_id"],
+        route["version_id"],
+        [route["lesson_id"]],
+    )[route["lesson_id"]]
+
+    assert offered["eligibility"]["code"] == "publications_not_current"
+    assert offered["latest_build"]["current"] is False
+    assert offered["latest_build"]["work"][0]["current"] is False

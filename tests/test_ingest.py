@@ -301,6 +301,13 @@ def chain(db):
 
 
 class TestChainScoping:
+    def test_task_substance_wires_the_support_triage_gate(self, db, chain):
+        source_id, _, _, runs = chain
+
+        argv = ingest._build_task_substance(db, source_id)["argv"]
+
+        assert opt(argv, "--triage-run") == runs["ttriage"]
+
     def test_kc_statement_wires_the_whole_source_chain(self, db, chain):
         source_id, _, _, runs = chain
         step = ingest.next_step(db, source_id)
@@ -320,7 +327,7 @@ class TestChainScoping:
         assert opt(argv, "--tool") == "prompts/kc-statement/tool-v007.json"
         assert opt(argv, "--workers") == "16"
 
-    def test_task_modality_runs_two_workers_without_thinking(self, db, chain):
+    def test_task_modality_runs_serially_without_thinking(self, db, chain):
         source_id, artifact_id, task_ids, runs = chain
         runs["statement"] = seed_run(
             db, f"r_{P}_ch_st", "kc-statement", artifact_id,
@@ -333,7 +340,7 @@ class TestChainScoping:
         step = ingest.next_step(db, source_id)
         assert step["stage"] == "task-modality"
         argv = step["argv"]
-        assert opt(argv, "--workers") == "2"
+        assert opt(argv, "--workers") == "1"
         extra = json.loads(opt(argv, "--extra"))
         assert extra["reasoning"] == {"enabled": False}
         assert "thinking" not in extra

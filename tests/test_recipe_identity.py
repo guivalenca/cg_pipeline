@@ -1,6 +1,10 @@
 """Provider-free contracts for the exact recipe behind a live Run Witness."""
 
 from copy import deepcopy
+import os
+from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -180,6 +184,28 @@ def test_embedding_and_canonical_recipes_are_first_class_identities():
     assert canonical["model_params"]["tools"][0]["function"]["name"] == (
         "report_statement"
     )
+    assert launch_recipe("task-modality")["workers"] == 1
+    assert launch_recipe("kc-canonical-statement")["workers"] == 1
+    assert launch_recipe("kc-judge")["workers"] == 16
+
+
+def test_judge_recipe_does_not_follow_the_process_wide_token_override():
+    env = dict(os.environ)
+    env["CONCEPT_UNIVERSE_MODEL_MAX_TOKENS"] = "8000"
+    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
+
+    output = subprocess.check_output(
+        [
+            sys.executable,
+            "-c",
+            "from universe.recipe_identity import launch_recipe; "
+            "print(launch_recipe('kc-judge')['max_tokens'])",
+        ],
+        env=env,
+        text=True,
+    )
+
+    assert output.strip() == "65536"
 
 
 def test_passage_cuts_requires_its_numbered_block_input_contract():
@@ -190,17 +216,37 @@ def test_passage_cuts_requires_its_numbered_block_input_contract():
         "prompt_sha": identity["prompt_sha"],
     }
 
-    assert identity["input_contract"] == {"body_from": "blocks"}
+    assert identity["input_contract"] == {
+        "body_from": "blocks",
+        "blocker_version": "3",
+    }
     assert not matches_recipe(
         "passage-cuts", **common, params=identity["model_params"]
     )
     assert not matches_recipe(
         "passage-cuts",
         **common,
-        params={**identity["model_params"], "body_from": "artifact"},
+        params={
+            **identity["model_params"],
+            "body_from": "artifact",
+            "blocker_version": "3",
+        },
     )
     assert matches_recipe(
         "passage-cuts",
         **common,
-        params={**identity["model_params"], "body_from": "blocks"},
+        params={
+            **identity["model_params"],
+            "body_from": "blocks",
+            "blocker_version": "3",
+        },
+    )
+    assert not matches_recipe(
+        "passage-cuts",
+        **common,
+        params={
+            **identity["model_params"],
+            "body_from": "blocks",
+            "blocker_version": "2",
+        },
     )

@@ -855,3 +855,83 @@ def test_canonical_lineage_must_reach_the_cleanup_source_artifact(db):
     assert publication.artifact_id == previous["canonical_artifact_id"]
     assert publication.body == "# Previous valid publication"
     assert publication.is_previous_attempt is True
+
+
+def test_read_keeps_a_historical_strict_publication_but_rejects_its_intermediate(
+    db,
+):
+    from universe.source_publication import current, read
+
+    marker = uuid.uuid4().hex[:10]
+    source_id = f"source-read-history-{marker}"
+    _insert_source(db, source_id)
+    historical = _insert_strict_publication(
+        db,
+        source_id=source_id,
+        tag=f"read-history-{marker}-old",
+        body="# Historical canonical",
+        snapshot_offset=0,
+    )
+    latest = _insert_strict_publication(
+        db,
+        source_id=source_id,
+        tag=f"read-history-{marker}-new",
+        body="# Current canonical",
+        snapshot_offset=5,
+    )
+
+    selected = current(db, source_id)
+    pinned = read(db, source_id, historical["canonical_artifact_id"])
+
+    assert selected is not None
+    assert selected.artifact_id == latest["canonical_artifact_id"]
+    assert pinned is not None
+    assert pinned.artifact_id == historical["canonical_artifact_id"]
+    assert pinned.body == "# Historical canonical"
+    assert pinned.is_previous_attempt is True
+    assert read(db, source_id, historical["source_artifact_id"]) is None
+
+
+def test_read_rejects_a_fabricated_or_corrupted_cleanup_artifact(db):
+    from universe.source_publication import read
+
+    marker = uuid.uuid4().hex[:10]
+    source_id = f"source-read-corrupt-{marker}"
+    _insert_source(db, source_id)
+    strict = _insert_strict_publication(
+        db,
+        source_id=source_id,
+        tag=f"read-corrupt-{marker}",
+        body="# Corrupted canonical",
+    )
+    fake_id = f"artifact-read-corrupt-{marker}-fake"
+    db.execute(
+        "INSERT INTO artifact"
+        " (id, snapshot_id, kind, tool, body, metadata)"
+        " VALUES (%s, %s, 'markdown', 'passage-cleanup', '# Fake', %s)",
+        (
+            fake_id,
+            strict["snapshot_id"],
+            Jsonb(
+                {
+                    "source_markdown_artifact_id": fake_id,
+                    "cleanup_id": f"cleanup-result-read-corrupt-{marker}",
+                }
+            ),
+        ),
+    )
+    db.execute(
+        "UPDATE artifact SET metadata = %s WHERE id = %s",
+        (
+            Jsonb(
+                {
+                    "source_markdown_artifact_id": fake_id,
+                    "cleanup_id": f"cleanup-result-read-corrupt-{marker}",
+                }
+            ),
+            strict["canonical_artifact_id"],
+        ),
+    )
+
+    assert read(db, source_id, fake_id) is None
+    assert read(db, source_id, strict["canonical_artifact_id"]) is None

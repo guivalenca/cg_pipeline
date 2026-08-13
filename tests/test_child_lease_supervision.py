@@ -6,7 +6,8 @@ import psycopg
 import pytest
 
 from universe import harness, kc_pipeline, pipeline_lease, pipeline_worker
-from universe.kc_pipeline import register_markdown
+
+from test_kc_pipeline_orchestration import seed_source
 
 
 def _lease_environment(monkeypatch, lease: pipeline_lease.Lease) -> None:
@@ -66,15 +67,10 @@ def test_model_child_renews_its_own_token_without_a_parent_heartbeat(
 def test_takeover_stops_provider_work_and_fences_run_item_persistence(
     db, test_database_url, monkeypatch
 ):
-    registration = register_markdown(
-        db,
-        source_id="child-fence-source",
-        markdown="# Guarded\n\nThe provider result must not outlive ownership.",
-    )
-    db.commit()
+    source_id, artifact_id = seed_source(db, "child_fence", blocks=False)
     lease = pipeline_lease.acquire(
         db,
-        scope_key="source:child-fence-source",
+        scope_key=f"source:{source_id}",
         stage="passage-cuts",
         owner_id="dead-parent",
         ttl_seconds=30,
@@ -106,9 +102,9 @@ def test_takeover_stops_provider_work_and_fences_run_item_persistence(
 
     prompt = harness.load_prompt("passage-cuts", "v001")
     target = harness.Target(
-        "child-fence-source",
+        source_id,
         None,
-        registration["artifact_id"],
+        artifact_id,
         "The source body.",
     )
 

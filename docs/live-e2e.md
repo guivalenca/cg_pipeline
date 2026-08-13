@@ -32,7 +32,9 @@ All three controls are required:
 2. `RUN_LIVE_SOURCE_E2E` must exactly equal
    `I_UNDERSTAND_THIS_CALLS_EXTERNAL_PROVIDERS`;
 3. `LIVE_E2E_CASES` must explicitly select a comma-separated subset of
-   `xlsx,article,pdf,video,book`.
+   `xlsx,article,knowledge,pdf,video,book`. `knowledge` requires `article`
+   and continues that one real Canonical Source Publication through the 11
+   local and 4 shared KC stages.
 
 Provider cases additionally require an explicit
 `LIVE_E2E_MAX_OPENROUTER_USD`. The suite rejects global ceilings above `$1.00`
@@ -121,12 +123,14 @@ figures remain estimates.
 | Case | Observed OpenRouter post-call ceiling | Other bounds | Quality gates |
 | --- | ---: | ---: | --- |
 | Article | `$0.12` | at most 4 Firecrawl attempts | at least 2,500 canonical characters, UML terms, terminal image outcomes, at least one useful local image |
+| Knowledge | `$0.75` | one 60 minute deadline for all 11+4 stages | exact Source Publication pin, 11/11 local, 4/4 shared, manifest-scoped API and Universe nodes |
 | PDF | `$0.15` | at most 32 estimated Firecrawl credits | 24 usable pages covered exactly once, no failed figure region, at least one figure, at least 30,000 characters, expected structure/content |
 | Video | `$0.12` | 30 minute wall timeout | publisher-caption preflight, 360-410 seconds, 100-160 cues, no STT chunks, 1-20 frames, at least one useful frame |
 | Book | `$0.20` | at most 16 estimated Firecrawl credits | exactly pages 198-205 with exact text and image bytes, forced OCR, eight-page diagnostics, at least one cropped figure |
 
-A full run therefore requires a global observed ceiling of at least `$0.59`;
-use `$0.60` for `LIVE_E2E_MAX_OPENROUTER_USD`. The small fixed inputs,
+A full extraction-only run therefore requires a global observed ceiling of at least `$0.59`;
+use `$0.60` for `LIVE_E2E_MAX_OPENROUTER_USD`. An article+knowledge tracer
+requires `$0.87`. The small fixed inputs,
 per-case assertions, serial ordering, and stop-on-first-failure behavior bound
 exposure, but the environment value cannot stop a provider call in flight.
 
@@ -169,6 +173,19 @@ export LIVE_E2E_CASES=article
 export LIVE_E2E_MAX_OPENROUTER_USD=0.12
 .venv/bin/python -m pytest -q tests/live_e2e --live-e2e
 ```
+
+The bounded unified article-to-Universe tracer is:
+
+```sh
+export LIVE_E2E_CASES=article,knowledge
+export LIVE_E2E_MAX_OPENROUTER_USD=0.87
+.venv/bin/python -m pytest -q tests/live_e2e --live-e2e
+```
+
+It authors a one-lesson validated test route around the characterized article;
+it does not claim that the separate 64-lesson XLSX tracer contains that exact
+Source identity. Any internal model retry whose prior attempt has no durable
+cost is reported as unpriced and fails acceptance.
 
 The PDF and book cases also require explicit upload consent:
 

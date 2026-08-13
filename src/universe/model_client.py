@@ -8,6 +8,7 @@ JSON, so tests hand in a fake one and never touch the network.
 
 import copy
 import json
+import math
 import os
 import socket
 import time
@@ -28,9 +29,16 @@ DEFAULT_ROUTING = {
 class ModelError(RuntimeError):
     """The call did not come back with a usable completion."""
 
-    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        retry_after_seconds: float | None = None,
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
+        self.retry_after_seconds = retry_after_seconds
         self.usage: dict = {}
         self.duration_ms: int = 0
 
@@ -109,6 +117,19 @@ def _api_error(body: dict) -> ModelError:
     )
 
 
+def _response_usage(body: object) -> dict:
+    """Return only usable billing/routing telemetry from a provider body."""
+    if not isinstance(body, dict):
+        return {}
+    raw_usage = body.get("usage")
+    usage = dict(raw_usage) if isinstance(raw_usage, dict) else {}
+    if body.get("provider"):
+        usage["provider"] = body["provider"]
+    if body.get("model"):
+        usage["response_model"] = body["model"]
+    return usage
+
+
 def http_transport(url: str, headers: dict[str, str], payload: dict, timeout: float) -> dict:
     request = urllib.request.Request(
         url, data=json.dumps(payload).encode(), headers=headers, method="POST"
@@ -117,9 +138,18 @@ def http_transport(url: str, headers: dict[str, str], payload: dict, timeout: fl
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as exc:
+        retry_after = None
+        raw_retry_after = exc.headers.get("Retry-After") if exc.headers else None
+        try:
+            parsed_retry_after = float(raw_retry_after)
+            if parsed_retry_after > 0 and math.isfinite(parsed_retry_after):
+                retry_after = parsed_retry_after
+        except (TypeError, ValueError):
+            pass
         raise ModelError(
             f"HTTP {exc.code}: {exc.read().decode(errors='replace')[:500]}",
             status_code=exc.code,
+            retry_after_seconds=retry_after,
         ) from exc
     except urllib.error.URLError as exc:
         raise ModelError(f"transport failure: {exc.reason}") from exc
@@ -187,13 +217,16 @@ class ModelClient:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
         started = time.monotonic()
-        body = self.transport(f"{self.api_base}/chat/completions", headers, payload, self.timeout)
+        try:
+            body = self.transport(
+                f"{self.api_base}/chat/completions", headers, payload, self.timeout
+            )
+        except ModelError as exc:
+            if not exc.duration_ms:
+                exc.duration_ms = int((time.monotonic() - started) * 1000)
+            raise
         duration_ms = int((time.monotonic() - started) * 1000)
-        usage = dict(body.get("usage") or {})
-        if body.get("provider"):
-            usage["provider"] = body["provider"]
-        if body.get("model"):
-            usage["response_model"] = body["model"]
+        usage = _response_usage(body)
         try:
             text = extract_text(body, require_tool="tools" in payload)
         except ModelError as exc:
@@ -254,19 +287,19 @@ class ModelClient:
             f"{self.api_base}/chat/completions", headers, payload, self.timeout
         )
         duration_ms = int((time.monotonic() - started) * 1000)
-        raw_arguments = extract_tool_arguments(body, expected_tool=tool_name)
+        usage = _response_usage(body)
         try:
-            arguments = json.loads(raw_arguments)
-        except json.JSONDecodeError as exc:
-            raise ModelError(f"tool returned invalid JSON: {exc.msg}") from exc
-        if not isinstance(arguments, dict):
-            raise ModelError("tool arguments must be a JSON object")
-
-        usage = dict(body.get("usage") or {})
-        if body.get("provider"):
-            usage["provider"] = body["provider"]
-        if body.get("model"):
-            usage["response_model"] = body["model"]
+            raw_arguments = extract_tool_arguments(body, expected_tool=tool_name)
+            try:
+                arguments = json.loads(raw_arguments)
+            except json.JSONDecodeError as exc:
+                raise ModelError(f"tool returned invalid JSON: {exc.msg}") from exc
+            if not isinstance(arguments, dict):
+                raise ModelError("tool arguments must be a JSON object")
+        except ModelError as exc:
+            exc.usage = usage
+            exc.duration_ms = duration_ms
+            raise
         return arguments, usage, duration_ms
 
 
@@ -313,11 +346,30 @@ class EmbeddingClient:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
         started = time.monotonic()
-        body = self.transport(f"{self.api_base}/embeddings", headers, payload, self.timeout)
+        try:
+            body = self.transport(
+                f"{self.api_base}/embeddings", headers, payload, self.timeout
+            )
+        except ModelError as exc:
+            if not exc.duration_ms:
+                exc.duration_ms = int((time.monotonic() - started) * 1000)
+            raise
         duration_ms = int((time.monotonic() - started) * 1000)
 
+        usage = _response_usage(body)
+        if not isinstance(body, dict):
+            exc = ModelError(
+                f"unexpected response shape: {json.dumps(body)[:500]}"
+            )
+            exc.usage = usage
+            exc.duration_ms = duration_ms
+            raise exc
+
         if "error" in body:
-            raise _api_error(body)
+            exc = _api_error(body)
+            exc.usage = usage
+            exc.duration_ms = duration_ms
+            raise exc
 
         try:
             data = body["data"]
@@ -325,6 +377,8 @@ class EmbeddingClient:
                 raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
             if len(data) != len(texts):
                 raise ModelError(f"expected {len(texts)} embeddings, got {len(data)}")
+            if any(not isinstance(item, dict) for item in data):
+                raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
 
             sorted_data = sorted(data, key=lambda item: item.get("index", 0))
 
@@ -336,9 +390,18 @@ class EmbeddingClient:
                     raise ModelError(f"empty embedding vector: {json.dumps(item)[:500]}")
                 vectors.append(item["embedding"])
 
-            return vectors, body.get("usage") or {}, duration_ms
+            return vectors, usage, duration_ms
+        except ModelError as exc:
+            exc.usage = usage
+            exc.duration_ms = duration_ms
+            raise
         except (KeyError, IndexError, TypeError) as exc:
-            raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
+            wrapped = ModelError(
+                f"unexpected response shape: {json.dumps(body)[:500]}"
+            )
+            wrapped.usage = usage
+            wrapped.duration_ms = duration_ms
+            raise wrapped from exc
 
 
 def extract_text(body: dict, require_tool: bool = False) -> str:
@@ -351,17 +414,28 @@ def extract_text(body: dict, require_tool: bool = False) -> str:
     too: it happens when the API forbids forcing (thinking mode), and the
     answer must be a recorded failure to rerun, never accepted as if parsed.
     """
+    if not isinstance(body, dict):
+        raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
     if "error" in body:
         raise _api_error(body)
     try:
         message = body["choices"][0]["message"]
     except (KeyError, IndexError, TypeError) as exc:
         raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
+    if not isinstance(message, dict):
+        raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
     calls = message.get("tool_calls")
+    if calls is not None and not isinstance(calls, list):
+        raise ModelError(f"invalid tool_calls: {json.dumps(calls)[:500]}")
     if calls:
         if len(calls) != 1:
             raise ModelError(f"expected one tool call, got {len(calls)}")
-        arguments = (calls[0].get("function") or {}).get("arguments")
+        if not isinstance(calls[0], dict):
+            raise ModelError(f"invalid tool call: {json.dumps(calls[0])[:500]}")
+        function = calls[0].get("function")
+        if not isinstance(function, dict):
+            raise ModelError(f"invalid tool call: {json.dumps(calls[0])[:500]}")
+        arguments = function.get("arguments")
         if not arguments or not isinstance(arguments, str):
             raise ModelError(f"tool call without arguments: {json.dumps(calls[0])[:500]}")
         return arguments
@@ -377,12 +451,16 @@ def extract_text(body: dict, require_tool: bool = False) -> str:
 
 def extract_tool_arguments(body: dict, *, expected_tool: str) -> str:
     """Return arguments only when exactly the forced named tool was called."""
+    if not isinstance(body, dict):
+        raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
     if "error" in body:
         raise ModelError(f"api error: {json.dumps(body['error'])[:500]}")
     try:
         message = body["choices"][0]["message"]
     except (KeyError, IndexError, TypeError) as exc:
         raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}") from exc
+    if not isinstance(message, dict):
+        raise ModelError(f"unexpected response shape: {json.dumps(body)[:500]}")
     calls = message.get("tool_calls")
     if not isinstance(calls, list) or len(calls) != 1:
         count = len(calls) if isinstance(calls, list) else 0

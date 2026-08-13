@@ -101,6 +101,8 @@ def test_publication_target_and_read_need_no_provider(db):
             "## One idea\n\nThe source body.".encode()
         ).hexdigest(),
         "provenance": {"capture_id": "readable"},
+        "current": True,
+        "previous_attempt": False,
     }
     assert snapshot["status"] == "pending"
     assert snapshot["next_stage"] == "blocks"
@@ -272,5 +274,5 @@ def test_current_target_rejects_a_source_without_a_publication(db):
     )
     db.commit()
 
-    with pytest.raises(LookupError, match="no Source Publication"):
+    with pytest.raises(LookupError, match="no current Source Publication"):
         kc_pipeline.current_target(db, source_id)
