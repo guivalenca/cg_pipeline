@@ -404,7 +404,7 @@ function detailHeading() {
       ${corpusAction}
       ${editing
         ? `<button class="button button--quiet" type="button" data-cancel-edit${state.editor.busy ? ' disabled' : ''}>Cancelar</button>
-          <button class="button button--primary" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
+          <button class="button button--primary syl-mobile-save" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>`
         : `<button class="button" type="button" data-edit-syllabus${isLatestVersion(detail) ? '' : ' disabled title="Abra a versão mais recente para editar"'}>Editar syllabus</button>
           <button class="button" type="button" data-new-version>Enviar nova versão</button>`}
       </div>
@@ -496,6 +496,7 @@ function usageMarkup(detail) {
   const firecrawlExtractions = Number(firecrawl.extractions || 0);
   const firecrawlAttempts = Number(firecrawl.attempts || 0);
   return `<section class="syl-shell-usage" aria-label="Consumo das fontes desta versão">
+    ${state.editor.active ? `<button class="button button--primary syl-shell-save" type="button" data-save-syllabus${state.editor.busy ? ' disabled' : ''}>${state.editor.busy ? 'Salvando…' : 'Salvar nova versão'}</button>` : ''}
     <div class="syl-usage-item" title="${esc(`${fmtInteger(openrouter.calls)} chamadas · ${fmtInteger(openrouter.total_tokens)} tokens`)}">
       <span>OpenRouter</span>
       <strong>${esc(fmtUsd(openrouter.cost_usd))}</strong>
@@ -1184,7 +1185,7 @@ function startEditing(targetLessonId = null) {
     targetLessonId,
     note: '',
   };
-  state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: true };
+  state.filters = { query: '', subject: '', mediaType: '', validation: '', complexity: '', showHidden: false };
   announce(targetLessonId
     ? 'Editando somente esta aula. Salvar criará uma nova versão do syllabus.'
     : 'Modo de edição aberto. Nenhuma mudança foi salva ainda.');
@@ -1314,7 +1315,6 @@ function addEditorSource(lessonIndex) {
     __new: true,
   });
   markEditorDirty();
-  state.filters.showHidden = true;
   renderDetail();
   window.setTimeout(() => {
     const index = lesson.sources.length - 1;
@@ -1334,6 +1334,7 @@ function toggleEditorSourceHidden(position) {
   const found = editorPosition(position);
   if (!found) return;
   found.source.hidden = !found.source.hidden;
+  if (found.source.hidden) state.filters.showHidden = true;
   markEditorDirty();
   renderDetail();
 }
@@ -1342,6 +1343,7 @@ function toggleEditorLessonHidden(index) {
   const lesson = state.editor.lessons?.[Number(index)];
   if (!lesson) return;
   lesson.hidden = !lesson.hidden;
+  if (lesson.hidden) state.filters.showHidden = true;
   markEditorDirty();
   renderDetail();
 }
@@ -2616,6 +2618,11 @@ document.querySelector('main').addEventListener('click', (event) => {
   if (event.target.closest('[data-retry]')) {
     if (routeId) loadDetail({ versionId: state.selectedVersionId }); else loadList();
   }
+});
+
+document.querySelector('[data-admin-shell]')?.addEventListener('click', (event) => {
+  const saveSyllabus = event.target.closest('[data-save-syllabus]');
+  if (saveSyllabus) openVersionDialog('save', saveSyllabus);
 });
 
 document.querySelector('main').addEventListener('input', (event) => {
