@@ -37,6 +37,7 @@ function mountAdminShell(host) {
           `<a class="admin-shell__link" href="${page.path}"${currentPage(page.path, pathname)}>${page.label}</a>`
         )).join('')}
       </nav>
+      <div class="admin-shell__context" data-admin-shell-context></div>
       <button class="admin-shell__theme" type="button" data-admin-theme aria-label="Toggle theme" aria-pressed="false">
         <span aria-hidden="true">◐</span>
       </button>

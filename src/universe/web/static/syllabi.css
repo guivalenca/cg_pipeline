@@ -206,17 +206,18 @@
 .syl-back:hover { color: var(--admin-text); }
 
 .syl-version-picker {
-  min-width: 190px;
-  display: grid;
-  gap: 5px;
+  width: 190px;
+  padding-right: 10px;
 }
 
-.syl-version-picker > span {
-  color: var(--admin-text-secondary);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+.syl-version-picker select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }
 
 .syl-toolbar {
@@ -273,43 +274,50 @@
 
 .syl-filter--compact { min-width: 138px; }
 
-.syl-usage-strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin-bottom: 10px;
-  overflow: hidden;
-  border: 1px solid var(--admin-border);
-  border-radius: 10px;
-  background: var(--admin-border);
+.workspace__actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
-.syl-usage-item {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+.syl-shell-usage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.syl-shell-usage .syl-usage-item {
+  display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 10px 13px;
-  background: var(--admin-surface);
+  gap: 5px;
+  white-space: nowrap;
 }
 
-.syl-usage-item > span {
+.syl-shell-usage .syl-usage-item > span {
   color: var(--admin-text-muted);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  font-size: 9.5px;
+  font-weight: 600;
 }
 
-.syl-usage-item strong {
-  color: var(--admin-text);
-  font-size: 12px;
+.syl-shell-usage .syl-usage-item strong {
+  color: var(--admin-text-secondary);
+  font-size: 10.5px;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 
-.syl-usage-item small {
-  color: var(--admin-text-muted);
-  font-size: 10px;
+.syl-shell-usage .syl-usage-item small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .syl-version-stamp {
@@ -371,6 +379,8 @@
 .syl-lesson[data-subject="MTF"],
 .syl-lesson[data-subject="MAT"] { --lesson-accent: #b4552d; --lesson-accent-strong: #934423; --lesson-accent-soft: #f8ece5; }
 .syl-lesson[data-subject="NEG"] { --lesson-accent: #7d5a3c; --lesson-accent-strong: #63462e; --lesson-accent-soft: #f2ebe2; }
+.syl-lesson[data-subject="ORIENTATION"],
+.syl-lesson[data-subject="ORIENTAÇÃO"] { --lesson-accent: #667248; --lesson-accent-strong: #505b37; --lesson-accent-soft: #eef1e6; }
 
 [data-theme="dark"] .syl-lesson[data-subject="COM"] { --lesson-accent: #6aa6c8; --lesson-accent-strong: #6aa6c8; --lesson-accent-soft: #25323b; }
 [data-theme="dark"] .syl-lesson[data-subject="UEX"],
@@ -380,6 +390,8 @@
 [data-theme="dark"] .syl-lesson[data-subject="MTF"],
 [data-theme="dark"] .syl-lesson[data-subject="MAT"] { --lesson-accent: #e09a76; --lesson-accent-strong: #e09a76; --lesson-accent-soft: #3b2a21; }
 [data-theme="dark"] .syl-lesson[data-subject="NEG"] { --lesson-accent: #c9a075; --lesson-accent-strong: #c9a075; --lesson-accent-soft: #332a20; }
+[data-theme="dark"] .syl-lesson[data-subject="ORIENTATION"],
+[data-theme="dark"] .syl-lesson[data-subject="ORIENTAÇÃO"] { --lesson-accent: #b3bf8c; --lesson-accent-strong: #b3bf8c; --lesson-accent-soft: #303526; }
 
 .syl-lesson.is-hidden-lesson {
   border-style: dashed;
@@ -1597,7 +1609,6 @@
   .syl-toolbar { align-items: stretch; flex-wrap: wrap; }
   .syl-search { min-width: 100%; }
   .syl-filter { flex: 1; }
-  .syl-usage-strip { grid-template-columns: 1fr; }
   .syl-version-stamp { width: 100%; margin: 0; padding: 2px 4px; }
   .syl-editing-stamp { order: 5; }
   .syl-lesson__header { grid-template-columns: 38px minmax(0, 1fr); padding: 16px; }
@@ -1622,15 +1633,13 @@
   .workspace__heading { display: grid; }
   .workspace__heading > .button { width: 100%; }
   .workspace__actions { width: 100%; align-items: end; }
-  .syl-version-picker { min-width: 0; flex: 1; }
+  .syl-version-picker { width: auto; min-width: 0; flex: 1; }
   .syl-syllabus-card__facts { gap: 12px; }
   .syl-lesson__meta { align-items: flex-start; flex-direction: column; gap: 2px; }
   .syl-lesson__meta > * + *::before { display: none; }
   .syl-source__topline { align-items: flex-start; flex-direction: column; }
   .syl-source__actions .button { width: 100%; }
   .syl-hidden-toggle { flex: 1; justify-content: center; }
-  .syl-usage-item { grid-template-columns: auto auto; }
-  .syl-usage-item small { grid-column: 1 / -1; }
   .syl-editor-grid { grid-template-columns: 1fr; }
   .syl-editor-field--wide,
   .syl-editor-field--full { grid-column: 1; }

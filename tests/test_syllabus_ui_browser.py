@@ -93,6 +93,33 @@ def _editable_workbook(path: Path) -> Path:
     return path
 
 
+def _subject_filter_workbook(path: Path) -> Path:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "All"
+    sheet.append(LEGACY_COLUMNS)
+
+    def append(**values):
+        sheet.append([values.get(column) for column in LEGACY_COLUMNS])
+
+    append(
+        Week=1,
+        Sort=1,
+        Type="Class",
+        Title="Aula de comunicação",
+        Axis="COM",
+    )
+    append(
+        Week=1,
+        Sort=2,
+        Type="Orientation",
+        Title="Sprint Planning",
+    )
+    workbook.save(path)
+    workbook.close()
+    return path
+
+
 @contextmanager
 def _serve(app):
     sock = socket.socket()
@@ -275,6 +302,94 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
         expect(page.locator("[data-status]")).to_contain_text(
             "Código do livro copiado"
         )
+        browser.close()
+
+
+def test_syllabus_costs_live_in_the_top_bar_and_heading_controls_share_one_style(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser heading {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _editable_workbook(tmp_path / "heading.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+
+    def mutate_detail(payload):
+        payload["usage"] = {
+            "openrouter": {"cost_usd": 0.15, "calls": 2, "total_tokens": 150},
+            "firecrawl": {
+                "extractions": 1,
+                "attempts": 2,
+                "succeeded": 1,
+                "failed": 0,
+            },
+        }
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        _route_detail(page, imported["syllabus_id"], mutate_detail)
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        costs = page.locator(".admin-shell").get_by_label(
+            "Consumo das fontes desta versão"
+        )
+        expect(costs).to_contain_text("OpenRouter")
+        expect(costs).to_contain_text("US$ 0,15")
+        expect(costs).to_contain_text("Firecrawl")
+        expect(costs).to_contain_text("1 extração")
+        expect(page.locator(".syl-view .syl-usage-strip")).to_have_count(0)
+
+        theme = page.get_by_role("button", name="Toggle theme")
+        assert costs.bounding_box()["x"] < theme.bounding_box()["x"]
+
+        controls = [
+            page.get_by_label("Versão exibida").locator("xpath=.."),
+            page.get_by_role("link", name="Baixar XLSX"),
+            page.get_by_role("button", name="Universo"),
+            page.get_by_role("button", name="Editar syllabus"),
+            page.get_by_role("button", name="Enviar nova versão"),
+        ]
+        appearances = [
+            control.evaluate(
+                "element => { const style = getComputedStyle(element); return {"
+                "height: element.getBoundingClientRect().height, "
+                "radius: style.borderRadius, "
+                "border: style.borderTopStyle"
+                "}; }"
+            )
+            for control in controls
+        ]
+        assert all(round(item["height"]) == 38 for item in appearances)
+        assert {item["radius"] for item in appearances} == {"9px"}
+        assert {item["border"] for item in appearances} == {"solid"}
+        browser.close()
+
+
+def test_orientation_is_available_as_a_subject_filter(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser orientation {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _subject_filter_workbook(tmp_path / "orientation.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        subjects = page.get_by_label("Matéria")
+        expect(subjects.get_by_role("option", name="COM")).to_have_count(1)
+        expect(subjects.get_by_role("option", name="Orientação")).to_have_count(1)
+        subjects.select_option(label="Orientação")
+
+        expect(page.locator(".syl-lesson")).to_have_count(1)
+        expect(page.locator(".syl-lesson h2")).to_have_text("Sprint Planning")
         browser.close()
 
 

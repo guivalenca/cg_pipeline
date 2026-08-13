@@ -312,6 +312,7 @@ function syllabusCard(syllabus) {
 
 function renderList() {
   document.title = 'Syllabi · Concept Universe';
+  renderShellUsage();
   listHeading();
   viewHost.setAttribute('aria-busy', String(state.loading));
   if (state.loading) {
@@ -373,20 +374,20 @@ function detailHeading() {
       : null
   );
   const publishedAction = universeHref
-    ? `<a class="button button--quiet syl-universe-link" href="${esc(universeHref)}">Universo</a>`
+    ? `<a class="button syl-universe-link" href="${esc(universeHref)}">Universo</a>`
     : (historicalUniverseHref
-      ? `<a class="button button--quiet syl-universe-link" href="${esc(historicalUniverseHref)}">Universo anterior</a>`
+      ? `<a class="button syl-universe-link" href="${esc(historicalUniverseHref)}">Universo anterior</a>`
       : '');
   const corpusAttemptAction = ['queued', 'running'].includes(corpusStatus)
-    ? `<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>${Number(corpusProgress.completed || 0)}/${Number(corpusProgress.total || 4)} · Publicando Universo</button>`
+    ? `<button class="button syl-universe-link" type="button" data-open-syllabus-knowledge>${Number(corpusProgress.completed || 0)}/${Number(corpusProgress.total || 4)} · Publicando Universo</button>`
     : (corpusStatus === 'failed' || historicalUniverseHref
       ? (syllabusKnowledge?.eligibility?.eligible
-        ? '<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar novo Universo</button>'
-        : '<button class="button button--quiet syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais atuais antes de republicar">Publicar novo Universo</button>')
+        ? '<button class="button syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar novo Universo</button>'
+        : '<button class="button syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais atuais antes de republicar">Publicar novo Universo</button>')
       : (!publishedAction
         ? (syllabusKnowledge?.eligibility?.eligible
-          ? '<button class="button button--quiet syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar Universo</button>'
-          : '<button class="button button--quiet syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais de todas as fontes ativas para publicar o Universo">Universo</button>')
+          ? '<button class="button syl-universe-link" type="button" data-open-syllabus-knowledge>Publicar Universo</button>'
+          : '<button class="button syl-universe-link" type="button" disabled aria-disabled="true" title="Conclua os KCs locais de todas as fontes ativas para publicar o Universo">Universo</button>')
         : ''));
   const corpusAction = `${publishedAction}${corpusAttemptAction}`;
   headingHost.innerHTML = `<div>
@@ -396,13 +397,13 @@ function detailHeading() {
       <p class="admin-page__intro">${sourceCount(detail)} fontes em ${(detail.lessons || []).length} aulas</p>
     </div>
     <div class="workspace__actions">
-      <label class="syl-version-picker">
-        <span>Versão</span>
-        <select class="field" data-version-select aria-label="Versão exibida"${editing ? ' disabled' : ''}>
+      <label class="button syl-version-picker">
+        <span class="sr-only">Versão</span>
+        <select data-version-select aria-label="Versão exibida"${editing ? ' disabled' : ''}>
           ${versions.map((entry) => `<option value="${esc(entry.id)}"${entry.id === version?.id ? ' selected' : ''}>v${esc(entry.seq)} · ${esc(fmtDate(entry.created_at))}</option>`).join('')}
         </select>
       </label>
-      ${version?.id ? `<a class="button button--quiet" href="/api/syllabi/${encodeURIComponent(detail.id)}/versions/${encodeURIComponent(version.id)}/workbook">Baixar XLSX</a>` : ''}
+      ${version?.id ? `<a class="button" href="/api/syllabi/${encodeURIComponent(detail.id)}/versions/${encodeURIComponent(version.id)}/workbook">Baixar XLSX</a>` : ''}
       ${corpusAction}
       ${editing
         ? `<button class="button button--quiet" type="button" data-cancel-edit${state.editor.busy ? ' disabled' : ''}>Cancelar</button>
@@ -412,9 +413,22 @@ function detailHeading() {
     </div>`;
 }
 
+function lessonSubjectFilter(lesson) {
+  const subject = String(lesson?.subject || '').trim();
+  if (subject) return { value: subject, label: subject };
+  const kind = String(lesson?.kind || '').trim().toLocaleLowerCase('pt-BR');
+  if (kind === 'orientation' || kind === 'orientação') {
+    return { value: 'orientation', label: 'Orientação' };
+  }
+  return null;
+}
+
 function filterMarkup(detail) {
-  const subjects = [...new Set((detail.lessons || []).map((lesson) => lesson.subject).filter(Boolean))]
-    .sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
+  const subjects = [...new Map((detail.lessons || [])
+    .map(lessonSubjectFilter)
+    .filter(Boolean)
+    .map((subject) => [subject.value, subject])).values()]
+    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   const hiddenCount = (detail.lessons || []).reduce(
     (count, lesson) => count + Number(Boolean(lesson.hidden))
       + (lesson.sources || []).filter((source) => source.hidden).length, 0,
@@ -426,7 +440,7 @@ function filterMarkup(detail) {
     ${subjects.length > 1 ? `<label class="syl-filter"><span class="sr-only">Matéria</span>
       <select data-filter-subject>
         <option value="">Todas as matérias</option>
-        ${subjects.map((subject) => `<option value="${esc(subject)}"${subject === state.filters.subject ? ' selected' : ''}>${esc(subject)}</option>`).join('')}
+        ${subjects.map((subject) => `<option value="${esc(subject.value)}"${subject.value === state.filters.subject ? ' selected' : ''}>${esc(subject.label)}</option>`).join('')}
       </select>
     </label>` : ''}
     <label class="syl-filter syl-filter--compact"><span class="sr-only">Tipo de fonte</span>
@@ -466,21 +480,28 @@ function usageMarkup(detail) {
   const openrouter = usage.openrouter || {};
   const firecrawl = usage.firecrawl || {};
   const firecrawlOutcome = [
-    Number(firecrawl.succeeded || 0) ? `${fmtInteger(firecrawl.succeeded)} concluídas` : null,
-    Number(firecrawl.failed || 0) ? `${fmtInteger(firecrawl.failed)} falharam` : null,
+    Number(firecrawl.succeeded || 0) ? `${fmtInteger(firecrawl.succeeded)} ${Number(firecrawl.succeeded) === 1 ? 'concluída' : 'concluídas'}` : null,
+    Number(firecrawl.failed || 0) ? `${fmtInteger(firecrawl.failed)} ${Number(firecrawl.failed) === 1 ? 'falhou' : 'falharam'}` : null,
   ].filter(Boolean).join(' · ');
-  return `<section class="syl-usage-strip" aria-label="Consumo das fontes desta versão">
-    <div class="syl-usage-item">
+  const firecrawlExtractions = Number(firecrawl.extractions || 0);
+  const firecrawlAttempts = Number(firecrawl.attempts || 0);
+  return `<section class="syl-shell-usage" aria-label="Consumo das fontes desta versão">
+    <div class="syl-usage-item" title="${esc(`${fmtInteger(openrouter.calls)} chamadas · ${fmtInteger(openrouter.total_tokens)} tokens`)}">
       <span>OpenRouter</span>
       <strong>${esc(fmtUsd(openrouter.cost_usd))}</strong>
       <small>${esc(fmtInteger(openrouter.calls))} chamadas · ${esc(fmtInteger(openrouter.total_tokens))} tokens</small>
     </div>
-    <div class="syl-usage-item">
+    <div class="syl-usage-item" title="${esc(`${fmtInteger(firecrawlAttempts)} ${firecrawlAttempts === 1 ? 'tentativa' : 'tentativas'}${firecrawlOutcome ? ` · ${firecrawlOutcome}` : ''}`)}">
       <span>Firecrawl</span>
-      <strong>${esc(fmtInteger(firecrawl.extractions))} extrações</strong>
-      <small>${esc(fmtInteger(firecrawl.attempts))} tentativas${firecrawlOutcome ? ` · ${esc(firecrawlOutcome)}` : ''}</small>
+      <strong>${esc(fmtInteger(firecrawlExtractions))} ${firecrawlExtractions === 1 ? 'extração' : 'extrações'}</strong>
+      <small>${esc(fmtInteger(firecrawlAttempts))} ${firecrawlAttempts === 1 ? 'tentativa' : 'tentativas'}${firecrawlOutcome ? ` · ${esc(firecrawlOutcome)}` : ''}</small>
     </div>
   </section>`;
+}
+
+function renderShellUsage(detail = null) {
+  const host = document.querySelector('[data-admin-shell-context]');
+  if (host) host.innerHTML = detail ? usageMarkup(detail) : '';
 }
 
 function sourceMatches(source, query) {
@@ -493,7 +514,7 @@ function filteredLessons(detail) {
   const query = state.filters.query.trim().toLocaleLowerCase('pt-BR');
   return (detail.lessons || []).flatMap((lesson, lessonIndex) => {
     if (lesson.hidden && !state.filters.showHidden) return [];
-    if (state.filters.subject && lesson.subject !== state.filters.subject) return [];
+    if (state.filters.subject && lessonSubjectFilter(lesson)?.value !== state.filters.subject) return [];
     const lessonMatches = [lesson.title, lesson.subject, lesson.description]
       .filter(Boolean).join(' ').toLocaleLowerCase('pt-BR').includes(query);
     const allSources = lesson.sources || [];
@@ -866,7 +887,8 @@ function lessonMarkup(lesson, index) {
     && (!state.editor.targetLessonId || state.editor.targetLessonId === lesson.id);
   if (editingThisLesson) {
     const originalSourceCount = state.editor.lessons?.[lessonIndex]?.sources?.length || 0;
-    return `<section class="syl-lesson syl-lesson--editor${lesson.hidden ? ' is-hidden-lesson' : ''}" data-subject="${esc(String(lesson.subject || '').trim().toUpperCase())}">
+    const editorSubject = lessonSubjectFilter(lesson)?.label || '';
+    return `<section class="syl-lesson syl-lesson--editor${lesson.hidden ? ' is-hidden-lesson' : ''}" data-subject="${esc(editorSubject.toUpperCase())}">
       <header class="syl-lesson__header syl-lesson__header--editor">
         <div class="syl-lesson__index" aria-hidden="true">${String(lessonIndex + 1).padStart(2, '0')}</div>
         <div class="syl-editor-lesson-fields">
@@ -905,17 +927,17 @@ function lessonMarkup(lesson, index) {
   const validated = lessonIsValidated(lesson);
   const progress = lessonValidationProgress(lesson);
   const collapsed = lessonIsCollapsed(lesson);
-  const subject = String(lesson.subject || '').trim().toUpperCase();
-  return `<section class="syl-lesson${lesson.hidden ? ' is-hidden-lesson' : ''}${validated ? ' is-validated' : ''}${collapsed ? ' is-collapsed' : ''}" data-lesson-id="${esc(lesson.id || '')}" data-subject="${esc(subject)}">
+  const subject = lessonSubjectFilter(lesson)?.label || '';
+  return `<section class="syl-lesson${lesson.hidden ? ' is-hidden-lesson' : ''}${validated ? ' is-validated' : ''}${collapsed ? ' is-collapsed' : ''}" data-lesson-id="${esc(lesson.id || '')}" data-subject="${esc(subject.toUpperCase())}">
     <header class="syl-lesson__header${collapsed ? ' syl-lesson__header--collapsed' : ''}">
       <button class="syl-lesson__header-toggle" type="button" data-toggle-lesson-expanded data-lesson-id="${esc(lesson.id || '')}" aria-expanded="${!collapsed}" aria-label="${collapsed ? 'Expandir' : 'Recolher'} aula ${esc(lesson.title || 'sem título')}"></button>
       <div class="syl-lesson__index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</div>
       <div class="syl-lesson__identity">
         <div class="syl-lesson__meta">${collapsed
           ? `<time${lesson.date ? ` datetime="${esc(lesson.date)}"` : ''}>${esc(when)}</time>
-            ${lesson.subject ? `<span>${esc(lesson.subject)}</span>` : ''}`
+            ${subject ? `<span>${esc(subject)}</span>` : ''}`
           : `<time${lesson.date ? ` datetime="${esc(lesson.date)}"` : ''}>${esc(when)}</time>
-            ${lesson.subject ? `<span>${esc(lesson.subject)}</span>` : ''}
+            ${subject ? `<span>${esc(subject)}</span>` : ''}
             ${lesson.hidden ? '<span class="syl-hidden-state">Ocultada</span>' : ''}`}
         </div>
         <h2>${esc(lesson.title || 'Aula sem título')}</h2>
@@ -1074,8 +1096,9 @@ function renderDetail() {
   if (!detail) return;
   document.title = `${detail.title || detail.name} · Syllabi · Concept Universe`;
   detailHeading();
+  renderShellUsage(detail);
   const lessons = filteredLessons(detail);
-  viewHost.innerHTML = `${usageMarkup(detail)}${filterMarkup(detail)}
+  viewHost.innerHTML = `${filterMarkup(detail)}
     <div class="syl-lessons">
       ${lessons.length ? lessons.map(lessonMarkup).join('') : `<div class="syl-empty"><strong>Nenhuma aula encontrada</strong><span>Ajuste os filtros para voltar a visualizar o syllabus.</span></div>`}
     </div>`;

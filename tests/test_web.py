@@ -1482,7 +1482,7 @@ def test_source_organization_controls_are_exposed_and_lessons_use_subject_colors
         "data-toggle-lesson-expanded",
         "data-edit-lesson",
         "data-toggle-lesson-hidden",
-        "usageMarkup(detail)",
+        "renderShellUsage(detail)",
     ):
         assert contract in script
     assert ".syl-lesson.is-collapsed .syl-lesson__sources" in styles
@@ -1501,7 +1501,7 @@ def test_source_organization_controls_are_exposed_and_lessons_use_subject_colors
     assert ".syl-lesson.is-collapsed.is-validated .syl-lesson__sources" in styles
     assert '.syl-lesson[data-subject="COM"]' in styles
     assert '.syl-lesson[data-subject="UEX"]' in styles
-    assert ".syl-usage-strip" in styles
+    assert ".syl-shell-usage" in styles
 
 
 def test_provider_auth_failure_is_not_described_as_target_site_refusal():
