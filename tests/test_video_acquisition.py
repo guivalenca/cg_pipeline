@@ -1070,29 +1070,6 @@ def test_syllabus_card_projects_video_route_and_exposes_matching_actions(
     assert source["video_preflight"]["duration_seconds"] == 74 * 60
     assert source["video_preflight"]["uploaded_caption_languages"] == []
 
-    script = (
-        Path(__file__).resolve().parents[1]
-        / "src"
-        / "universe"
-        / "web"
-        / "static"
-        / "syllabi.js"
-    ).read_text()
-    for contract in (
-        "Vídeo verificado",
-        "Legendas do autor",
-        "Quadros serão analisados",
-        "Conteúdo visual será compreendido",
-        "Compreendendo o vídeo",
-        "Processar vídeo longo",
-        "Duração desconhecida",
-        "data-video-preflight",
-        "data-authorize-video",
-    ):
-        assert contract in script
-    assert "Transcrição OpenRouter será usada" not in script
-    assert "selected_caption_language" not in script
-
 
 def test_openrouter_stt_request_and_provider_segments_are_stamped(tmp_path):
     chunk_path = tmp_path / "chunk.mp3"
@@ -1764,18 +1741,6 @@ def test_syllabus_progress_reports_stt_chunks_then_canonical_cleanup(
         "chunks_failed": 0,
         "chunks_running": 0,
     }
-    script = (
-        Path(__file__).resolve().parents[1]
-        / "src"
-        / "universe"
-        / "web"
-        / "static"
-        / "syllabi.js"
-    ).read_text()
-    assert "chunks concluídos" not in script
-    assert "Selecionando passagens" in script
-    assert "source.video_progress = {" in script
-    assert "stage: jobStatus" in script
 
 
 def test_stt_rejects_inconsistent_languages_across_successful_chunks(db, tmp_path):

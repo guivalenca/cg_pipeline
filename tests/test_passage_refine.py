@@ -18,7 +18,7 @@ Remove this aside.
 """
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def refinement_passage(db) -> dict:
     source_id = "passage-refine-src"
     snapshot_id = f"{source_id}:snapshot"

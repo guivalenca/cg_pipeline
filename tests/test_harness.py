@@ -44,7 +44,7 @@ def client(**kwargs) -> ModelClient:
 
 
 class KeepOpen:
-    """`with connect() as conn` must not close the session-scoped test connection."""
+    """`with connect() as conn` must not close the fixture-owned connection."""
 
     def __init__(self, conn):
         self.conn = conn
@@ -56,7 +56,7 @@ class KeepOpen:
         return False
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def targets(db) -> list[harness.Target]:
     """Two sources of the harness's own, independent of the fixture backfill."""
     for number, title in ((1, "Alpha lesson"), (2, "Beta lesson")):
@@ -143,6 +143,14 @@ def test_prompt_ref_and_sha_come_from_the_file_on_disk(prompt):
     assert prompt.ref == f"{STAGE}/{VERSION}"
     assert prompt.sha == hashlib.sha256(path.read_bytes()).hexdigest()
     assert "{{body}}" not in prompt.render("SOMETHING")
+
+
+def test_bodyless_prompts_require_explicit_opt_in():
+    with pytest.raises(SystemExit):
+        harness.load_prompt("task-revision", "v004")
+    assert harness.load_prompt(
+        "task-revision", "v004", require_body=False
+    ).ref == "task-revision/v004"
 
 
 def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):

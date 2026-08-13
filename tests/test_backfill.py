@@ -1,14 +1,8 @@
-import pytest
-
 from universe.backfill import backfill
 
 
-@pytest.fixture(scope="session")
-def first_run(db, fixture_dir) -> dict[str, int]:
-    return backfill(db, fixture_dir)
-
-
-def test_first_run_inserts_the_whole_fixture(first_run):
+def test_backfill_is_lossless_and_idempotent(db, fixture_dir):
+    first_run = backfill(db, fixture_dir)
     assert first_run == {
         "sources": 69,
         "snapshots_ok": 67,
@@ -16,9 +10,6 @@ def test_first_run_inserts_the_whole_fixture(first_run):
         "artifacts": 67,
         "skipped": 0,
     }
-
-
-def test_row_counts(db, first_run):
     assert db.execute(
         "SELECT count(*) FROM source WHERE id NOT LIKE 'acqx-%'"
     ).fetchone()[0] == 69
@@ -42,9 +33,6 @@ def test_row_counts(db, first_run):
         ).fetchall()
     )
     assert by_status == {"ok": 67, "failed": 2}
-
-
-def test_failed_snapshots_carry_a_reason_and_no_hash(db, first_run):
     failed = db.execute(
         "SELECT sn.content_hash, sn.failure_note FROM source_snapshot sn"
         " JOIN source s ON s.id = sn.source_id"
@@ -57,9 +45,6 @@ def test_failed_snapshots_carry_a_reason_and_no_hash(db, first_run):
         " JOIN source src ON src.id = s.source_id"
         " WHERE s.status = 'failed' AND src.id NOT LIKE 'acqx-%'"
     ).fetchall()
-
-
-def test_every_artifact_reaches_its_source(db, first_run):
     reached = db.execute(
         "SELECT count(*), count(DISTINCT src.id) FROM artifact a"
         " JOIN source_snapshot s ON s.id = a.snapshot_id"
@@ -67,9 +52,6 @@ def test_every_artifact_reaches_its_source(db, first_run):
         " WHERE src.id NOT LIKE 'acqx-%'"
     ).fetchone()
     assert reached == (67, 67)
-
-
-def test_second_run_inserts_nothing(db, first_run, fixture_dir):
     again = backfill(db, fixture_dir)
     assert again == {
         "sources": 0,

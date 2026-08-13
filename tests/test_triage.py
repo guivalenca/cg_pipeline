@@ -69,7 +69,7 @@ def transport(verdicts: dict[str, str], calls: list | None = None):
     return send
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def triage_artifact(db) -> str:
     """A source of triage's own, blocked, independent of the other fixtures."""
     source_id = "triage-src-1"
@@ -114,7 +114,7 @@ def fake_cuts_run(db, artifact_id: str, cut_list: list[int]) -> str:
     return run_id
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def cuts_runs(db, triage_artifact) -> tuple[str, str]:
     """Two runs that agree on the opening passage and disagree after it."""
     return fake_cuts_run(db, triage_artifact, [3, 6]), fake_cuts_run(db, triage_artifact, [3])

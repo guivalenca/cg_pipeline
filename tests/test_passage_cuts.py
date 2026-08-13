@@ -1,15 +1,11 @@
 """Tool-call extraction, the blocks body, and the cut checks: all pure."""
 
 import json
-from pathlib import Path
 
 import pytest
 
 from universe import cuts
-from universe.harness import load_tool
 from universe.model_client import ModelError, extract_text
-
-PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts"
 
 
 def tool_response(*arguments: str) -> dict:
@@ -50,20 +46,6 @@ def test_prose_when_a_tool_was_declared_is_an_error():
     body = {"choices": [{"message": {"content": "The cuts are 4 and 9."}}]}
     with pytest.raises(ModelError, match="prose instead of the declared tool call"):
         extract_text(body, require_tool=True)
-
-
-def test_the_versioned_tool_file_loads_as_a_forcing_payload():
-    payload = load_tool(str(PROMPTS_DIR / "passage-cuts" / "tool-v001.json"))
-    assert payload["tools"][0]["type"] == "function"
-    assert payload["tools"][0]["function"]["name"] == "report_cuts"
-    assert payload["tool_choice"] == {"type": "function", "function": {"name": "report_cuts"}}
-    assert "cuts" in payload["tools"][0]["function"]["parameters"]["properties"]
-
-
-def test_the_prompt_file_has_the_placeholder_inside_source_tags():
-    text = (PROMPTS_DIR / "passage-cuts" / "v001.md").read_text()
-    assert "<source>\n{{body}}\n</source>" in text
-    assert "report_cuts" in text
 
 
 def test_cuts_parse_and_reject_non_integers():

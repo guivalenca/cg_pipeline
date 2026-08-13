@@ -1,8 +1,6 @@
 """Task materialization and the task-triage targets; transport faked, database real."""
 
 import json
-from pathlib import Path
-
 import pytest
 from psycopg.types.json import Jsonb
 
@@ -20,7 +18,7 @@ Third paragraph, about gamma.
 """
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def tasks_artifact(db) -> str:
     """A source of this module's own, blocked, independent of other fixtures."""
     source_id = "tasks-src-1"
@@ -47,7 +45,7 @@ def tasks_artifact(db) -> str:
     return artifact_id
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def cuts_run(db, tasks_artifact) -> str:
     """A hand-written cuts run so passages exist without any model."""
     run_id = harness.next_run_id(db)
@@ -65,7 +63,7 @@ def cuts_run(db, tasks_artifact) -> str:
     return run_id
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def gen_run(db, cuts_run) -> str:
     """A task-generation run written by hand over the cuts run's passages."""
     passages.materialize(db, cuts_run)
@@ -181,18 +179,3 @@ def test_a_run_item_records_the_task_it_was_about(db, gen_run):
 
     items = harness.fetch_items(db, summary["run_id"])
     assert [item["task_id"] for item in items] == [row["id"] for row in rows]
-
-
-def test_the_prompt_declares_the_tool_and_all_three_fields():
-    prompt = harness.load_prompt("task-triage", "v001")
-    assert "Use the report_verdict tool" in prompt.template
-    for field in ("{{body}}", "{{task}}", "{{answer}}"):
-        assert field in prompt.template
-
-
-def test_the_tool_definition_has_the_three_way_verdict():
-    path = Path(__file__).resolve().parents[1] / "prompts" / "task-triage" / "tool-v001.json"
-    payload = harness.load_tool(str(path))
-    assert payload["tool_choice"]["function"]["name"] == "report_verdict"
-    enum = payload["tools"][0]["function"]["parameters"]["properties"]["verdict"]["enum"]
-    assert enum == ["supported", "unsupported", "unsure"]

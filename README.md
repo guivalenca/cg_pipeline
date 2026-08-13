@@ -295,7 +295,9 @@ the run is `failed` only if every item failed.
 
 ## Test
 
-Tests need the compose database running. They drop and recreate a separate
-`universe_test` database, so the working database is never touched.
+Tests need the compose database running. Pytest migrates one temporary
+`universe_test_template_*` database, clones a fresh `universe_test_*` database
+for each test module, and drops them after the run. The working database is
+never touched, and committed facts cannot leak between modules.
 
     pytest

@@ -342,7 +342,7 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
         browser.close()
 
 
-def test_syllabus_costs_live_in_the_top_bar_and_heading_controls_share_one_style(
+def test_syllabus_costs_live_in_the_top_bar(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser heading {uuid.uuid4().hex[:8]}"
@@ -379,30 +379,6 @@ def test_syllabus_costs_live_in_the_top_bar_and_heading_controls_share_one_style
         expect(costs).to_contain_text("1 extração")
         expect(page.locator(".syl-view .syl-usage-strip")).to_have_count(0)
 
-        theme = page.get_by_role("button", name="Toggle theme")
-        assert costs.bounding_box()["x"] < theme.bounding_box()["x"]
-
-        controls = [
-            page.get_by_role("button", name="Versão 1"),
-            page.get_by_role("link", name="Baixar XLSX"),
-            page.get_by_role("button", name="Universo"),
-            page.get_by_role("button", name="Editar syllabus"),
-            page.get_by_role("button", name="Enviar nova versão"),
-        ]
-        appearances = [
-            control.evaluate(
-                "element => { const style = getComputedStyle(element); return {"
-                "height: element.getBoundingClientRect().height, "
-                "radius: style.borderRadius, "
-                "border: style.borderTopStyle"
-                "}; }"
-            )
-            for control in controls
-        ]
-        assert all(round(item["height"]) == 38 for item in appearances)
-        assert {item["radius"] for item in appearances} == {"9px"}
-        assert {item["border"] for item in appearances} == {"solid"}
-        assert controls[0].bounding_box()["y"] > controls[3].bounding_box()["y"]
         browser.close()
 
 

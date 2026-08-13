@@ -251,7 +251,7 @@ def test_the_real_source_0023_splits_cleanly(fixture_dir):
 # --- the ledger -------------------------------------------------------------
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def blocked_artifact(db) -> str:
     """A source of the blocker's own, independent of the fixture backfill."""
     source_id = "blocks-src-1"

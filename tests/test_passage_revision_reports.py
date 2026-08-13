@@ -53,7 +53,7 @@ def model_run_item(
     return run_id, harness.fetch_items(db, run_id)[0]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def report_states(db) -> dict:
     source_id = "passage-report-state-src"
     snapshot_id = f"{source_id}:snapshot"
