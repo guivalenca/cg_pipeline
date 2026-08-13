@@ -946,7 +946,7 @@ function lessonMarkup(lesson, index) {
   const validated = lessonIsValidated(lesson);
   const progress = lessonValidationProgress(lesson);
   const collapsed = lessonIsCollapsed(lesson);
-  const activeWork = collapsed && lessonHasActiveWork(lesson);
+  const activeWork = lessonHasActiveWork(lesson);
   const subject = lessonSubjectFilter(lesson)?.label || '';
   return `<section class="syl-lesson${lesson.hidden ? ' is-hidden-lesson' : ''}${validated ? ' is-validated' : ''}${collapsed ? ' is-collapsed' : ''}" data-lesson-id="${esc(lesson.id || '')}" data-subject="${esc(subject.toUpperCase())}">
     <header class="syl-lesson__header${collapsed ? ' syl-lesson__header--collapsed' : ''}">
