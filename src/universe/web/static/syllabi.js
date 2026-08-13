@@ -790,6 +790,14 @@ function lessonIsCollapsed(lesson) {
     || !state.expandedLessonIds.has(lessonId);
 }
 
+function lessonHasActiveWork(lesson) {
+  if (knowledgeBuildIsActive(lesson.knowledge?.latest_build)) return true;
+  return (lesson.__allSources || lesson.sources || []).some((source) => {
+    const status = sourceStatus(source).key;
+    return status === 'queued' || status === 'running' || Boolean(source.image_branch?.active);
+  });
+}
+
 function knowledgeEligibility(offer) {
   if (!offer) return { eligible: false, code: 'unavailable', message: '' };
   if (offer.eligibility && typeof offer.eligibility === 'object') return offer.eligibility;
@@ -938,6 +946,7 @@ function lessonMarkup(lesson, index) {
   const validated = lessonIsValidated(lesson);
   const progress = lessonValidationProgress(lesson);
   const collapsed = lessonIsCollapsed(lesson);
+  const activeWork = collapsed && lessonHasActiveWork(lesson);
   const subject = lessonSubjectFilter(lesson)?.label || '';
   return `<section class="syl-lesson${lesson.hidden ? ' is-hidden-lesson' : ''}${validated ? ' is-validated' : ''}${collapsed ? ' is-collapsed' : ''}" data-lesson-id="${esc(lesson.id || '')}" data-subject="${esc(subject.toUpperCase())}">
     <header class="syl-lesson__header${collapsed ? ' syl-lesson__header--collapsed' : ''}">
@@ -956,6 +965,7 @@ function lessonMarkup(lesson, index) {
       </div>
       <div class="syl-lesson__side">
         <div class="syl-lesson__source-tools">
+          ${activeWork ? '<span class="syl-lesson__spinner" role="status" aria-label="Processando aula" title="Processando"></span>' : ''}
           <span class="syl-lesson__source-count">${sources.length} ${sources.length === 1 ? 'fonte' : 'fontes'}</span>
           ${isLatestVersion() && (!state.editor.active || state.editor.targetLessonId) ? `<button class="syl-lesson-edit" type="button" data-edit-lesson="${esc(lesson.id || '')}" aria-label="Editar somente esta aula">${ICON.edit}</button>` : ''}
         </div>

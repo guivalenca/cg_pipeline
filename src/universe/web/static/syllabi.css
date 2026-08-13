@@ -598,6 +598,16 @@
   gap: 6px;
 }
 
+.syl-lesson__spinner {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  border: 1.5px solid var(--admin-border-strong);
+  border-top-color: var(--lesson-accent-strong);
+  border-radius: 50%;
+  animation: syl-spin .75s linear infinite;
+}
+
 .syl-lesson-edit:hover { border-color: var(--admin-border-strong); color: var(--admin-text); }
 
 .syl-lesson-edit {
@@ -1798,6 +1808,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .syl-loading span { animation: none; }
+  .syl-loading span,
+  .syl-lesson__spinner { animation: none; }
   .syl-syllabus-card { transition: none; }
 }
