@@ -93,6 +93,23 @@ class CorpusManifestTarget:
 PipelineTarget = SourcePublicationTarget | CorpusManifestTarget
 
 
+@dataclass(frozen=True, slots=True)
+class _LocalPlan:
+    """One source-scoped progress projection reused while planning a stage.
+
+    ``kc_progress`` owns witness selection: additive stages expose their
+    oldest-first retry union, while singular consumers expose at most one
+    coherent run. Builders consume that projected answer without querying a
+    broader corpus or reconstructing its semantics.
+    """
+
+    target: SourcePublicationTarget
+    stages: Mapping[str, Mapping[str, object]]
+
+    def runs(self, stage: str) -> list[str]:
+        return list(self.stages.get(stage, {}).get("input_runs") or [])
+
+
 def current_target(
     conn: psycopg.Connection, source_id: str
 ) -> SourcePublicationTarget:
@@ -144,54 +161,6 @@ def _corpus_target(
 
 # --- deciding the next step -------------------------------------------------
 
-_SOURCE_SCOPED_STAGES = {
-    "passage-cuts",
-    "passage-triage",
-    "task-generation",
-    "task-granularity",
-    "task-revision",
-    "task-triage",
-    "task-substance",
-    "kc-statement",
-    "task-modality",
-    "task-knowledge",
-}
-
-
-def _current_runs(
-    conn: psycopg.Connection, stage: str, source_id: str | None = None
-) -> list[str]:
-    """Exact coverage witness runs, oldest first.
-
-    The progress projection and orchestration deliberately share this answer:
-    source runs are pure for one current artifact, retry unions are represented
-    only when the consumer supports multiple ids, and singular consumers see a
-    single coherent run or nothing.
-    """
-    progress = spine.source_progress(conn)
-    if source_id is not None:
-        source = progress.get(source_id)
-        if source is None:
-            return []
-        return list(source["stages"].get(stage, {}).get("input_runs") or [])
-    if stage in _SOURCE_SCOPED_STAGES or stage == "task-embedding":
-        runs: list[str] = []
-        for source in progress.values():
-            for run_id in source["stages"].get(stage, {}).get("input_runs") or []:
-                if run_id not in runs:
-                    runs.append(run_id)
-        return runs
-    rows = conn.execute(
-        "SELECT id, model, prompt_ref FROM run"
-        " WHERE stage = %s AND status = 'done' ORDER BY started_at, id",
-        (stage,),
-    ).fetchall()
-    return [
-        run_id
-        for run_id, model, prompt_ref in rows
-        if defaults.run_generation(stage, model, prompt_ref) == "current"
-    ]
-
 
 def _require(runs: list[str], stage: str) -> list[str]:
     if not runs:
@@ -202,8 +171,8 @@ def _require(runs: list[str], stage: str) -> list[str]:
     return runs
 
 
-def _latest(conn: psycopg.Connection, stage: str, source_id: str | None = None) -> str:
-    return _require(_current_runs(conn, stage, source_id), stage)[-1]
+def _latest(plan: _LocalPlan, stage: str) -> str:
+    return _require(plan.runs(stage), stage)[-1]
 
 
 def _model_argv(
@@ -236,7 +205,7 @@ def _model_argv(
     return argv, recipe["model"]
 
 
-def _task_refs(conn: psycopg.Connection, source_id: str, *stages: str) -> list[str]:
+def _task_refs(plan: _LocalPlan, *stages: str) -> list[str]:
     """CLI references to this source's own chain, the way the reference chain
     wired them: every current-generation task-generation run, and the latest
     current-generation run of each judging stage."""
@@ -245,29 +214,30 @@ def _task_refs(conn: psycopg.Connection, source_id: str, *stages: str) -> list[s
         if stage == "task-generation":
             refs += [
                 "--gen-runs",
-                ",".join(_require(_current_runs(conn, stage, source_id), stage)),
+                ",".join(_require(plan.runs(stage), stage)),
             ]
         elif stage == "task-granularity":
-            refs += ["--granularity-run", _latest(conn, stage, source_id)]
+            refs += ["--granularity-run", _latest(plan, stage)]
         elif stage == "task-granularity-list":
-            refs += ["--granularity-runs", _latest(conn, "task-granularity", source_id)]
+            refs += ["--granularity-runs", _latest(plan, "task-granularity")]
         elif stage == "task-revision":
-            refs += ["--revision-run", _latest(conn, stage, source_id)]
+            refs += ["--revision-run", _latest(plan, stage)]
         elif stage == "parts-revision":
             # The reference chain revised originals and parts in one run.
-            refs += ["--parts-revision-run", _latest(conn, "task-revision", source_id)]
+            refs += ["--parts-revision-run", _latest(plan, "task-revision")]
         elif stage == "task-triage":
-            refs += ["--triage-run", _latest(conn, stage, source_id)]
+            refs += ["--triage-run", _latest(plan, stage)]
         elif stage == "task-substance":
-            refs += ["--substance-run", _latest(conn, stage, source_id)]
+            refs += ["--substance-run", _latest(plan, stage)]
         else:  # pragma: no cover - a typo in the builder table
             raise ValueError(f"unknown reference stage {stage}")
     return refs
 
 
 def _build_blocks(
-    conn: psycopg.Connection, target: SourcePublicationTarget
+    conn: psycopg.Connection, plan: _LocalPlan
 ) -> dict:
+    target = plan.target
     exists = conn.execute(
         "SELECT EXISTS (SELECT 1 FROM block"
         " WHERE artifact_id = %s AND blocker_version = %s)",
@@ -285,8 +255,9 @@ def _build_blocks(
 
 
 def _build_passage_cuts(
-    conn: psycopg.Connection, target: SourcePublicationTarget
+    conn: psycopg.Connection, plan: _LocalPlan
 ) -> dict:
+    target = plan.target
     recipe = launch_recipe("passage-cuts")
     argv = [
         sys.executable, "-m", "universe.harness", "run",
@@ -303,9 +274,8 @@ def _build_passage_cuts(
     return {"argv": argv, "model": recipe["model"], "spends_model_calls": True}
 
 
-def _build_passage_triage(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
-    cuts = _require(_current_runs(conn, "passage-cuts", source_id), "passage-cuts")
+def _build_passage_triage(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
+    cuts = _require(plan.runs("passage-cuts"), "passage-cuts")
     argv, model = _model_argv(
         "universe.triage", "passage-triage",
         ["--cuts-runs", ",".join(cuts)],
@@ -313,14 +283,13 @@ def _build_passage_triage(conn: psycopg.Connection, target: SourcePublicationTar
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_generation(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
-    cuts = _require(_current_runs(conn, "passage-cuts", source_id), "passage-cuts")
+def _build_task_generation(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
+    cuts = _require(plan.runs("passage-cuts"), "passage-cuts")
     triage = _require(
-        _current_runs(conn, "passage-triage", source_id),
+        plan.runs("passage-triage"),
         "passage-triage",
     )
-    previous = _current_runs(conn, "task-generation", source_id)
+    previous = plan.runs("task-generation")
     refs = ["--cuts-runs", ",".join(cuts), "--triage-runs", ",".join(triage)]
     if previous:
         refs += ["--skip-runs", ",".join(previous)]
@@ -331,37 +300,33 @@ def _build_task_generation(conn: psycopg.Connection, target: SourcePublicationTa
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_granularity(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
-    refs = _task_refs(conn, source_id, "task-generation")
+def _build_task_granularity(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
+    refs = _task_refs(plan, "task-generation")
     argv, model = _model_argv(
         "universe.task_granularity", "task-granularity", refs,
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_revision(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
-    refs = _task_refs(conn, source_id, "task-generation", "task-granularity-list")
+def _build_task_revision(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
+    refs = _task_refs(plan, "task-generation", "task-granularity-list")
     argv, model = _model_argv(
         "universe.task_revision", "task-revision", refs,
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_triage(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
-    refs = _task_refs(conn, source_id, "task-generation", "task-revision", "task-granularity")
+def _build_task_triage(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
+    refs = _task_refs(plan, "task-generation", "task-revision", "task-granularity")
     argv, model = _model_argv(
         "universe.task_triage", "task-triage", refs,
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_substance(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
+def _build_task_substance(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
     refs = _task_refs(
-        conn, source_id,
+        plan,
         "task-generation",
         "task-revision",
         "task-granularity",
@@ -374,37 +339,34 @@ def _build_task_substance(conn: psycopg.Connection, target: SourcePublicationTar
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _statement_shaped_refs(conn: psycopg.Connection, source_id: str) -> list[str]:
+def _statement_shaped_refs(plan: _LocalPlan) -> list[str]:
     return _task_refs(
-        conn, source_id,
+        plan,
         "task-generation", "task-revision", "task-granularity", "parts-revision",
         "task-triage", "task-substance",
     )
 
 
-def _build_kc_statement(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
+def _build_kc_statement(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
     argv, model = _model_argv(
         "universe.kc_statement", "kc-statement",
-        _statement_shaped_refs(conn, source_id),
+        _statement_shaped_refs(plan),
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_modality(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
+def _build_task_modality(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
     argv, model = _model_argv(
         "universe.task_modality", "task-modality",
-        _statement_shaped_refs(conn, source_id),
+        _statement_shaped_refs(plan),
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
 
-def _build_task_knowledge(conn: psycopg.Connection, target: SourcePublicationTarget) -> dict:
-    source_id = target.source_id
+def _build_task_knowledge(conn: psycopg.Connection, plan: _LocalPlan) -> dict:
     argv, model = _model_argv(
         "universe.task_knowledge", "task-knowledge",
-        _statement_shaped_refs(conn, source_id),
+        _statement_shaped_refs(plan),
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 
@@ -637,14 +599,14 @@ def _plan_step(
 ) -> dict:
     """Private planner that can revalidate the lease it just acquired."""
     target = _local_target(conn, target)
-    source_id = target.source_id
-    progress = spine.source_progress(
-        conn, ignore_lease_token=ignore_lease_token
+    progress = spine.publication_progress(
+        conn,
+        source_id=target.source_id,
+        artifact_id=target.artifact_id,
+        ignore_lease_token=ignore_lease_token,
     )
-    if source_id not in progress:
-        raise LookupError(f"no source {source_id}")
-    source = progress[source_id]
-    stages = source["stages"]
+    plan = _LocalPlan(target, progress["stages"])
+    stages = plan.stages
     stage = next(
         (name for name in LOCAL_STAGES if stages[name]["status"] != "done"),
         None,
@@ -678,7 +640,7 @@ def _plan_step(
         )
         return step
     try:
-        built = LOCAL_BUILDERS[stage](conn, target)
+        built = LOCAL_BUILDERS[stage](conn, plan)
     except StepNotRunnable as exc:
         step["reason"] = str(exc)
         return step

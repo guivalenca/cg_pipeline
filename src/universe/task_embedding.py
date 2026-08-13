@@ -24,7 +24,7 @@ from psycopg.types.json import Jsonb
 
 from universe import pipeline_lease, report
 from universe.db import connect
-from universe.effective_evidence import effective_task_manifest_sha
+from universe.effective_evidence import effective_task_run_params
 from universe.harness import claim_run, fetch_items, id_list, load_prompt, positive_int
 from universe.kc_statement import fetch_usable_statements
 from universe.model_client import EmbeddingClient
@@ -112,7 +112,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             "parts_revision_run": args.parts_revision_run,
         }
         if not args.statements_from:
-            run_params["effective_task_manifest_sha"] = effective_task_manifest_sha(tasks)
+            run_params = effective_task_run_params(tasks, **run_params)
         run_id = claim_run(
             conn, STAGE, args.model, prompt.ref, prompt.sha, run_params
         )

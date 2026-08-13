@@ -15,7 +15,7 @@ import psycopg
 
 from universe import report
 from universe.db import connect
-from universe.effective_evidence import effective_task_manifest_sha
+from universe.effective_evidence import effective_task_run_params
 from universe.harness import (
     Target,
     execute,
@@ -123,15 +123,15 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
         summary = execute(
             conn, prompt, client, targets, workers=args.workers,
-            run_params={
-                "gen_runs": args.gen_runs,
-                "passages_from": args.passages_from,
-                "revision_run": args.revision_run,
-                "granularity_run": args.granularity_run,
-                "parts_revision_run": args.parts_revision_run,
-                "triage_run": args.triage_run,
-                "effective_task_manifest_sha": effective_task_manifest_sha(tasks),
-            },
+            run_params=effective_task_run_params(
+                tasks,
+                gen_runs=args.gen_runs,
+                passages_from=args.passages_from,
+                revision_run=args.revision_run,
+                granularity_run=args.granularity_run,
+                parts_revision_run=args.parts_revision_run,
+                triage_run=args.triage_run,
+            ),
         )
         items = fetch_items(conn, summary["run_id"])
 

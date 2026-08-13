@@ -8,13 +8,12 @@ classifies the demanded knowledge as fact, concept, procedure, or unsure.
 """
 
 import argparse
-import json
 
 import psycopg
 
 from universe import report
 from universe.db import connect
-from universe.effective_evidence import effective_task_manifest_sha
+from universe.effective_evidence import effective_task_run_params
 from universe.harness import (
     Target,
     execute,
@@ -27,6 +26,7 @@ from universe.harness import (
     positive_int,
 )
 from universe.model_client import DEFAULT_MAX_TOKENS, ModelClient
+from universe.reasoned_verdict import parse_reasoned_verdict
 from universe.task_scope import effective_tasks
 
 STAGE = "task-knowledge"
@@ -36,18 +36,7 @@ DEFAULT_WORKERS = 16
 
 def knowledge_of(item: dict) -> dict | str:
     """The knowledge kind and reason, or why neither is usable."""
-    if item["error"]:
-        return "error"
-    try:
-        parsed = json.loads(item["response"])
-    except (TypeError, json.JSONDecodeError):
-        return "unparseable"
-    if not isinstance(parsed, dict) or parsed.get("verdict") not in VERDICTS:
-        return "unparseable"
-    reason = parsed.get("reason")
-    if not isinstance(reason, str) or not (reason := reason.strip()):
-        return "unparseable"
-    return {"verdict": parsed["verdict"], "reason": reason}
+    return parse_reasoned_verdict(item, VERDICTS)
 
 
 def build_targets(conn: psycopg.Connection, tasks: list[dict]) -> list[Target]:
@@ -108,16 +97,16 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
         summary = execute(
             conn, prompt, client, targets, workers=args.workers,
-            run_params={
-                "gen_runs": args.gen_runs,
-                "passages_from": args.passages_from,
-                "revision_run": args.revision_run,
-                "granularity_run": args.granularity_run,
-                "parts_revision_run": args.parts_revision_run,
-                "triage_run": args.triage_run,
-                "substance_run": args.substance_run,
-                "effective_task_manifest_sha": effective_task_manifest_sha(tasks),
-            },
+            run_params=effective_task_run_params(
+                tasks,
+                gen_runs=args.gen_runs,
+                passages_from=args.passages_from,
+                revision_run=args.revision_run,
+                granularity_run=args.granularity_run,
+                parts_revision_run=args.parts_revision_run,
+                triage_run=args.triage_run,
+                substance_run=args.substance_run,
+            ),
         )
         items = fetch_items(conn, summary["run_id"])
 

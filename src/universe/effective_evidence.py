@@ -193,6 +193,14 @@ def effective_task_manifest_sha(tasks: Iterable[dict]) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
+def effective_task_run_params(tasks: Iterable[dict], **scope: object) -> dict:
+    """Stamp one selected task scope with its exact effective evidence."""
+    return {
+        **scope,
+        "effective_task_manifest_sha": effective_task_manifest_sha(tasks),
+    }
+
+
 def effective_task_manifest_for_run(
     conn: psycopg.Connection,
     run_id: str,

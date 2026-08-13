@@ -6,8 +6,6 @@ from pathlib import Path
 import subprocess
 import sys
 
-import pytest
-
 from universe.recipe_identity import (
     launch_recipe,
     matches_recipe,
@@ -16,7 +14,7 @@ from universe.recipe_identity import (
 )
 
 
-FROZEN_SOURCE_RECIPES = {
+FROZEN_PIPELINE_RECIPES = {
     "passage-cuts": (
         "deepseek/deepseek-v4-flash", "passage-cuts/v001",
         "ab4d1e9871d626b627fb297dcb029d08a6e5fec3cb0f783a1a719086931bb138",
@@ -61,50 +59,69 @@ FROZEN_SOURCE_RECIPES = {
         "qwen/qwen3-embedding-8b", "task-embedding/v002",
         "835d46325c3de8740c190ebe7743d4756222eba95b93702195c2ab57c8e73674",
     ),
+    "kc-judge": (
+        "deepseek/deepseek-v4-flash-0731", "kc-judge/v003-surmise-pair",
+        "23ce1be180591d15fd262560755b24581654de402aef489ace14226d03e5e350",
+    ),
+    "kc-canonical-statement": (
+        "deepseek/deepseek-v4-pro", "kc-canonical-statement/v001",
+        "842d2cc4d2a3b231b4ebb980e4e484222f34ea8f8cf8cffe892fadb1064e6cc1",
+    ),
+}
+
+FROZEN_RECIPE_FINGERPRINTS = {
+    "passage-cuts": "1bce9f2458910dc97e25f1244ef09fb56443e92cd31d92ad029ee1e23adc7d80",
+    "passage-triage": "45babf668f14da50eaa82e5bea6ace3cefc2cd83401f5697e46a7331d69be821",
+    "task-generation": "9e7fae0e8fe88ec5a278e479963581576e64c100998db11bf7f948745d832efd",
+    "task-granularity": "ab1f36c40c624880111127efd0ecd20e5bf2e528c5b262eb02e9d0f29945acf9",
+    "task-revision": "e25acfbc224de1adde605d8ecf177480e70f4deded1f84adfc829bc213f01977",
+    "task-triage": "9676bb25f06a30beb8ef08de4f8d1fe193571927490f42a91685ab5b8aa0fdd7",
+    "task-substance": "343e993b5e0ec57cc18ea25fe8314c9575f6702f0f4620f7fe73a08390e35df0",
+    "kc-statement": "2c98644a5a3f0b73e1f57e059e074dfe1130ff0a1dde6e801a8423d257dc877d",
+    "task-modality": "1c04fe4f7ad3da077986be1e72975bde44247e107c641021678247579f712f97",
+    "task-knowledge": "07d95f44f0d7ac5b9b8491fa4e3e930038d08ded9bdbb8e097e28b7c6ee81f23",
+    "task-embedding": "fc6ed61f12d6648e9dae1d38514aa140dcbafc0800a5440e4707a70c06883038",
+    "kc-judge": "95efa6238e236cc1926701e10b8c2815b1c6fc7f3fde98a94130e03a41d6f4f5",
+    "kc-canonical-statement": "56cd512f234a6f3af49d96c0a1e65c1a4e7cab2ff41d4651c1112314a6ab0fe5",
 }
 
 
-@pytest.mark.parametrize(
-    ("stage", "expected"),
-    FROZEN_SOURCE_RECIPES.items(),
-)
-def test_all_eleven_source_recipe_defaults_are_frozen(stage, expected):
-    identity = recipe_identity(stage)
-
-    assert (
-        identity["model"], identity["prompt_ref"], identity["prompt_sha"]
-    ) == expected
+def test_every_pipeline_recipe_is_frozen_as_one_semantic_contract():
+    for stage, expected in FROZEN_PIPELINE_RECIPES.items():
+        identity = recipe_identity(stage)
+        observed = (
+            identity["model"], identity["prompt_ref"], identity["prompt_sha"]
+        )
+        assert observed == expected, stage
+        assert recipe_fingerprint(stage) == FROZEN_RECIPE_FINGERPRINTS[stage], stage
 
 
-@pytest.mark.parametrize(
-    "stage",
-    [*FROZEN_SOURCE_RECIPES, "kc-judge", "kc-canonical-statement"],
-)
-def test_every_model_stage_has_one_exact_recipe_and_rejects_unknown_flags(stage):
-    identity = recipe_identity(stage)
-    launch = launch_recipe(stage)
-    stamped = deepcopy(identity["model_params"])
-    stamped.update(identity["input_contract"])
-    stamped["workers"] = 37
-    stamped["target_manifest"] = {"sha256": "operational-publication-input"}
+def test_every_model_stage_rejects_unknown_semantic_flags():
+    for stage in FROZEN_PIPELINE_RECIPES:
+        identity = recipe_identity(stage)
+        launch = launch_recipe(stage)
+        stamped = deepcopy(identity["model_params"])
+        stamped.update(identity["input_contract"])
+        stamped["workers"] = 37
+        stamped["target_manifest"] = {"sha256": "operational-publication-input"}
 
-    assert launch["model"] == identity["model"]
-    assert launch["prompt_ref"] == identity["prompt_ref"]
-    assert launch["workers"] >= 1
-    assert matches_recipe(stage, **{
-        "model": identity["model"],
-        "prompt_ref": identity["prompt_ref"],
-        "prompt_sha": identity["prompt_sha"],
-        "params": stamped,
-    })
+        assert launch["model"] == identity["model"], stage
+        assert launch["prompt_ref"] == identity["prompt_ref"], stage
+        assert launch["workers"] >= 1, stage
+        assert matches_recipe(stage, **{
+            "model": identity["model"],
+            "prompt_ref": identity["prompt_ref"],
+            "prompt_sha": identity["prompt_sha"],
+            "params": stamped,
+        }), stage
 
-    stamped["unknown_provider_flag"] = True
-    assert not matches_recipe(stage, **{
-        "model": identity["model"],
-        "prompt_ref": identity["prompt_ref"],
-        "prompt_sha": identity["prompt_sha"],
-        "params": stamped,
-    })
+        stamped["unknown_provider_flag"] = True
+        assert not matches_recipe(stage, **{
+            "model": identity["model"],
+            "prompt_ref": identity["prompt_ref"],
+            "prompt_sha": identity["prompt_sha"],
+            "params": stamped,
+        }), stage
 
 
 def test_statement_recipe_contains_every_semantic_input_but_not_concurrency():

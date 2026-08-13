@@ -19,24 +19,9 @@ from universe.task_embedding import (
 )
 from universe.task_embedding_report import components, percentile
 
-PROMPT_PATH = (
-    Path(__file__).resolve().parents[1] / "prompts" / "task-embedding" / "v001.md"
+STATEMENT_PROMPT_PATH = (
+    Path(__file__).resolve().parents[1] / "prompts" / "task-embedding" / "v002.md"
 )
-STATEMENT_PROMPT_PATH = PROMPT_PATH.with_name("v002.md")
-
-
-# --- the stage's files ------------------------------------------------------
-
-
-def test_the_prompt_is_only_the_task_and_answer():
-    assert PROMPT_PATH.read_bytes() == b"{{task}}\n\n{{answer}}\n"
-
-    prompt = load_prompt(STAGE, "v001", require_body=False)
-    assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
-    assert "{{body}}" not in prompt.template
-    assert prompt.render_fields({"task": "Question?", "answer": "Answer."}) == (
-        "Question?\n\nAnswer.\n"
-    )
 
 
 def test_statement_scope_keeps_only_stated_task_and_renders_statement_text(db):

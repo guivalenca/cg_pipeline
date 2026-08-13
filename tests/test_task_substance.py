@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from universe.harness import load_prompt, load_tool
 from universe.task_substance import DROPPED, build_parser, substance_of
 from universe.task_substance_report import render_verdict
 
@@ -99,39 +98,6 @@ def test_nonfixable_verdicts_drop_stray_corrections(verdict):
 )
 def test_substance_of_names_what_it_cannot_use(item):
     assert substance_of(item) in ("error", "unparseable")
-
-
-# --- the stage's files ------------------------------------------------------
-
-
-def test_the_prompt_reads_task_and_answer_and_no_source():
-    prompt = load_prompt("task-substance", "v004", require_body=False)
-    assert "Use the report_check tool" in prompt.template
-    assert "{{task}}" in prompt.template and "{{answer}}" in prompt.template
-    assert "{{body}}" not in prompt.template
-
-
-def test_a_bodyless_prompt_still_fails_where_a_body_is_required():
-    with pytest.raises(SystemExit):
-        load_prompt("task-substance", "v003")
-
-
-def test_the_verdict_only_tool_definition_loads_and_forces_report_check():
-    payload = load_tool(str(TOOL_PATH))
-    assert payload["tool_choice"]["function"]["name"] == "report_check"
-    parameters = payload["tools"][0]["function"]["parameters"]
-    assert parameters["properties"] == {
-        "verdict": {
-            "type": "string",
-            "enum": ["works", "does_not_work", "unsure"],
-            "description": "works when the task does its job as it is; does_not_work when it does not; unsure when you cannot tell",
-        },
-        "reason": {
-            "type": "string",
-            "description": "The reason for the verdict, in one sentence.",
-        },
-    }
-    assert parameters["required"] == ["verdict", "reason"]
 
 
 def test_substance_cli_requires_the_support_triage_witness():

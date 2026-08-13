@@ -4,6 +4,7 @@ from psycopg.types.json import Jsonb
 
 from universe.effective_evidence import (
     effective_task_manifest_sha,
+    effective_task_run_params,
     resolve_statement_tasks,
 )
 
@@ -126,3 +127,9 @@ def test_statement_evidence_uses_rewritten_text_and_changes_its_manifest(db):
     assert second[0]["body"] == "Question B"
     assert "Raw question" not in {first[0]["body"], second[0]["body"]}
     assert effective_task_manifest_sha(first) != effective_task_manifest_sha(second)
+    assert effective_task_run_params(
+        second, revision_run="effective-evidence-revision-2"
+    ) == {
+        "revision_run": "effective-evidence-revision-2",
+        "effective_task_manifest_sha": effective_task_manifest_sha(second),
+    }
