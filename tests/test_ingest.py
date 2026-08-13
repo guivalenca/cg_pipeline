@@ -128,6 +128,55 @@ def verdict_items(task_ids, verdict, **extra):
     ]
 
 
+def seed_chain_through_revision(db, tag):
+    """One production-shaped task chain ready for support triage."""
+    source_id, artifact_id = seed_source(db, tag)
+    passage_id = f"pass_{P}_{tag}"
+    seed_cuts_done(db, tag, artifact_id)
+    seed_run(
+        db,
+        f"r_{P}_{tag}_ptri",
+        "passage-triage",
+        artifact_id,
+        items=[
+            {"passage_id": passage_id, "response": '{"verdict":"not_filler"}'}
+        ],
+        started="2030-01-02 00:00:00+00",
+    )
+    generation = seed_run(
+        db,
+        f"r_{P}_{tag}_gen",
+        "task-generation",
+        artifact_id,
+        items=[{"passage_id": passage_id, "response": '{"tasks":[]}'}],
+        started="2030-01-03 00:00:00+00",
+    )
+    task_id = f"{generation}-i1:t01"
+    db.execute(
+        "INSERT INTO task (id, run_item_id, passage_id, seq, body, answer)"
+        " VALUES (%s, %s, %s, 1, 'Q?', 'A')",
+        (task_id, f"{generation}-i1", passage_id),
+    )
+    db.commit()
+    seed_run(
+        db,
+        f"r_{P}_{tag}_gran",
+        "task-granularity",
+        artifact_id,
+        items=verdict_items([task_id], "single"),
+        started="2030-01-04 00:00:00+00",
+    )
+    seed_run(
+        db,
+        f"r_{P}_{tag}_rev",
+        "task-revision",
+        artifact_id,
+        items=verdict_items([task_id], "stands"),
+        started="2030-01-05 00:00:00+00",
+    )
+    return source_id
+
+
 class TestNextStepDecision:
     def test_unacquired_article_offers_the_acquisition_cli(self, db):
         source_id, _ = seed_source(db, "raw", snapshot=False, artifact=False, blocks=False)
@@ -216,6 +265,18 @@ class TestNextStepDecision:
         assert step["stage"] == "passage-triage"
         assert step["runnable"] is True
         assert opt(step["argv"], "--cuts-runs") == cuts_run
+
+    def test_task_triage_argv_uses_flash_with_low_thinking(self, db):
+        source_id = seed_chain_through_revision(db, "triage_flash_low")
+
+        step = ingest.next_step(db, source_id)
+
+        assert step["stage"] == "task-triage"
+        assert step["model"] == "deepseek-v4-flash"
+        assert opt(step["argv"], "--model") == "deepseek/deepseek-v4-flash"
+        extra = json.loads(opt(step["argv"], "--extra"))
+        assert extra["thinking"] == {"type": "enabled"}
+        assert extra["reasoning_effort"] == "low"
 
     def test_superseded_cuts_reopen_the_cut_step(self, db):
         """A source cut only by a superseded recipe needs re-cutting: the

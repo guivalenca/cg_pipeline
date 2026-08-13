@@ -18,7 +18,7 @@ STAGE_DEFAULTS: dict[str, dict[str, str]] = {
     "task-generation": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-generation/v004"},
     "task-granularity": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-granularity/v004"},
     "task-revision": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-revision/v004"},
-    "task-triage": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-triage/v001"},
+    "task-triage": {"model": "deepseek/deepseek-v4-flash", "prompt_ref": "task-triage/v001"},
     "task-substance": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-substance/v004"},
     "kc-statement": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "kc-statement/v005"},
     "task-modality": {"model": "deepseek/deepseek-v4-pro", "prompt_ref": "task-modality/v003"},

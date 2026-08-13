@@ -38,7 +38,7 @@ FROZEN_SOURCE_RECIPES = {
         "30a6e347c28b4789afab5520637e966700bc1f659af1f1e41bc3fb50dae2f054",
     ),
     "task-triage": (
-        "deepseek/deepseek-v4-pro", "task-triage/v001",
+        "deepseek/deepseek-v4-flash", "task-triage/v001",
         "82095babcce66eef51d68bf897737693f4966334265495b134016f6140c3cd62",
     ),
     "task-substance": (

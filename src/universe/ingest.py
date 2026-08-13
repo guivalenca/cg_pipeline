@@ -52,6 +52,10 @@ THINKING_EXTRA = {
     "tool_choice": "auto",
     "provider": PROVIDER,
 }
+TASK_TRIAGE_EXTRA = {
+    **THINKING_EXTRA,
+    "reasoning_effort": "low",
+}
 MODALITY_EXTRA = {"reasoning": {"enabled": False}, "provider": PROVIDER}
 MAX_TOKENS = "65536"
 THINKING_WORKERS = "16"
@@ -312,7 +316,7 @@ def _build_task_triage(conn: psycopg.Connection, source_id: str) -> dict:
     refs = _task_refs(conn, source_id, "task-generation", "task-revision", "task-granularity")
     argv, model = _model_argv(
         "universe.task_triage", "task-triage", refs,
-        THINKING_WORKERS, THINKING_EXTRA,
+        THINKING_WORKERS, TASK_TRIAGE_EXTRA,
     )
     return {"argv": argv, "model": model, "spends_model_calls": True}
 

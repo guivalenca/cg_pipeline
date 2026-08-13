@@ -661,7 +661,7 @@ class TestNextStepDecision:
             "task-triage",
             artifact_id,
             items=verdict_items([task_id], "supported"),
-            params={"reasoning_effort": "low"},
+            params={"reasoning_effort": "high"},
             started="2030-01-07 00:00:00+00",
         )
 

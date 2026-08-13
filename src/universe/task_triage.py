@@ -1,6 +1,6 @@
 """Judge one task at a time against the whole source that produced it.
 
-    python -m universe.task_triage run --prompt v001 --model deepseek-v4-pro \
+    python -m universe.task_triage run --prompt v001 --model deepseek/deepseek-v4-flash \
         --gen-runs r0050,r0051 --tool prompts/task-triage/tool-v001.json
 
 The generation runs named here are materialized first, so what this stage

@@ -32,6 +32,10 @@ _THINKING = {
     "tool_choice": "auto",
     "provider": _PROVIDER,
 }
+_TASK_TRIAGE = {
+    **_THINKING,
+    "reasoning_effort": "low",
+}
 _MODALITY = {
     "reasoning": {"enabled": False},
     "provider": _PROVIDER,
@@ -78,12 +82,14 @@ _SPECS = {
             "task-generation",
             "task-granularity",
             "task-revision",
-            "task-triage",
             "task-substance",
             "kc-statement",
             "task-knowledge",
         )
     },
+    "task-triage": _RecipeSpec(
+        _TOOLS["task-triage"], 65536, _TASK_TRIAGE, 16
+    ),
     "task-modality": _RecipeSpec(
         _TOOLS["task-modality"], 65536, _MODALITY, 1
     ),
