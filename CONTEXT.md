@@ -62,14 +62,26 @@ _Avoid_: Decoration, unresolved remote image
 A reusable unit of knowledge derived downstream from source-grounded tasks and statements, never created implicitly by Source acquisition.
 _Avoid_: Passage, task, Markdown section
 
-**Lesson Knowledge Build**:
-An explicit, idempotent request to interpret the current validated Source Publications referenced by one lesson. References remain curricular decisions; local KC work is deduplicated by Source Publication and can be reused across lessons.
-_Avoid_: Lesson-owned KC, opening the KC viewer as a write, one build per reference
+**KC Candidate**:
+A unitary unit of knowledge produced by KC Generation — one task with its answer, statement, and axes — before any lesson has selected it. It joins the Universe only when at least one active lesson selects it.
+_Avoid_: KC, task row, rejected knowledge
 
-**KC Corpus Manifest**:
-An immutable, content-addressed set of Source Publications authorized for shared embedding, judging, grouping, and canonicalization.
-_Avoid_: Latest global corpus, visible Sources in the DOM, syllabus id alone
+**Lesson Purpose**:
+The approved statement of why one lesson exists inside its course, derived from curricular context (title, description, subjects) and never from source content. KC Selection judges every candidate against it.
+_Avoid_: Source summary, spreadsheet description field
 
-**Syllabus Knowledge Build**:
-The second explicit checkpoint that publishes the four shared KC stages for exactly one Syllabus Version's KC Corpus Manifest.
-_Avoid_: Automatic fallthrough from local KC creation, mutable Universe
+**KC Generation**:
+The first explicit checkpoint: turns one lesson's validated Source Publications into KC Candidates by running the whole per-source generation chain. Work is keyed by Source Publication, so a publication shared by two lessons is generated once and reused.
+_Avoid_: Lesson-owned KC, opening the KC viewer as a write, Lesson Knowledge Build (former name)
+
+**KC Selection**:
+The second explicit checkpoint: judges one lesson's KC Candidates against its Lesson Purpose and selects only those whose removal would materially reduce what the student can understand, explain, or do. Selection is local to the lesson — an omitted candidate remains reusable and may be selected by another lesson.
+_Avoid_: Deletion, quality gate, per-source quota
+
+**Reconciliation Scope**:
+The frozen, exact list of what one Universe Reconciliation runs over — locked before reconciling starts so the result can never silently drift.
+_Avoid_: Latest global corpus, visible Sources in the DOM, syllabus id alone, KC Corpus Manifest (former name)
+
+**Universe Reconciliation**:
+The third explicit checkpoint: decides cross-source identity over its frozen Reconciliation Scope — near-identical KC Candidates merge into one composite KC with a canonical statement. Also the only producer of the directional (one-way implication) signal, unused downstream today.
+_Avoid_: Syllabus Reconciliation, automatic fallthrough from local KC creation, mutable Universe, Syllabus Knowledge Build (former name)
