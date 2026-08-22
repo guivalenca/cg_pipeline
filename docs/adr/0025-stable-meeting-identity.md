@@ -1,7 +1,7 @@
 # 0025: Stable meeting identity carried by reconciliation
 
 Date: 2026-08-21
-Status: accepted.
+Status: accepted, amended 2026-08-22 (see Amendment).
 
 ## Context
 
@@ -47,3 +47,14 @@ nothing: identity, purpose, and selections all survive untouched.
   Encontro pai parenthood) is a prerequisite of the KC Selection slice, since
   the purpose derives from those fields.
 - Typo fixes and cosmetic edits never orphan anything.
+
+## Amendment (2026-08-22)
+
+ADR 0026 removed the Lesson Purpose, part of this decision's motivation.
+What stands unchanged: the stable meeting id, its lineage through the
+operator's reconciliation decision, and re-selection on candidate-pool
+changes. The purpose-validity toggle is re-keyed to the selection itself:
+each matched lesson holding a completed selection shows "selection still
+valid / re-select", with the same suggested default (curricular fields —
+title, description, subjects — unchanged suggests valid). The DEV-19
+investigation is unaffected.

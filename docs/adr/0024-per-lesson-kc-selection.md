@@ -1,7 +1,9 @@
 # 0024: Per-lesson KC Selection and a selected-only Universe
 
 Date: 2026-08-21
-Status: accepted.
+Status: accepted; the Lesson Purpose and the counterfactual survival
+criterion are superseded by ADR 0026 (2026-08-22) — selection judges the
+curricular record directly, as optimization.
 
 ## Context
 

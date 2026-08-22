@@ -66,17 +66,13 @@ _Avoid_: Passage, task, Markdown section
 A unitary unit of knowledge produced by KC Generation — one task with its answer, statement, and axes — before any lesson has selected it. It joins the Universe only when at least one active lesson selects it.
 _Avoid_: KC, task row, rejected knowledge
 
-**Lesson Purpose**:
-The approved statement of why one lesson exists inside its course, derived from curricular context (title, description, subjects) and never from source content. KC Selection judges every candidate against it.
-_Avoid_: Source summary, spreadsheet description field
-
 **KC Generation**:
 The first explicit checkpoint: turns one lesson's validated Source Publications into KC Candidates by running the whole per-source generation chain. Work is keyed by Source Publication, so a publication shared by two lessons is generated once and reused.
 _Avoid_: Lesson-owned KC, opening the KC viewer as a write, Lesson Knowledge Build (former name)
 
 **KC Selection**:
-The second explicit checkpoint: judges one lesson's KC Candidates against its Lesson Purpose and selects only those whose removal would materially reduce what the student can understand, explain, or do. Selection is local to the lesson — an omitted candidate remains reusable and may be selected by another lesson.
-_Avoid_: Deletion, quality gate, per-source quota
+The second explicit checkpoint: selects, from one lesson's KC Candidates, the set that best fulfills the lesson's curricular record — title and description carry the intention, subjects detail it. Selection is optimization, not reduction, and is local to the lesson: an omitted candidate remains reusable and may be selected by another lesson.
+_Avoid_: Deletion, quality gate, per-source quota, Lesson Purpose (removed intermediate)
 
 **Reconciliation Scope**:
 The frozen, exact list of what one Universe Reconciliation runs over — locked before reconciling starts so the result can never silently drift.

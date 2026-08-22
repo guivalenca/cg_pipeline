@@ -275,11 +275,11 @@ Scope (formerly KC Corpus Manifest), then advances only the four shared stages
 that scope id, so historical versions never silently open a global/latest
 corpus.
 
-A third checkpoint, KC Selection, is decided but not built yet (ADR 0024):
-between generation and reconciliation, it judges each lesson's KC Candidates
-against an approved Lesson Purpose, and only selected candidates enter the
-Universe. Until that slice lands, the Reconciliation Scope still freezes
-publications as described above.
+A third checkpoint, KC Selection, is decided but not built yet (ADRs 0024
+and 0026): between generation and reconciliation, it selects the KC
+Candidates that best fulfill each lesson's curricular record, and only
+selected candidates enter the Universe. Until that slice lands, the
+Reconciliation Scope still freezes publications as described above.
 
 ## Dashboard
 
