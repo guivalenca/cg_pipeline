@@ -6,7 +6,7 @@
   <title>Syllabi · Concept Universe</title>
   <script src="/static/theme_boot.js?v=1"></script>
   <link rel="stylesheet" href="/static/shell.css?v=2">
-  <link rel="stylesheet" href="/static/syllabi.css?v=20">
+  <link rel="stylesheet" href="/static/syllabi.css?v=21">
 </head>
 <body>
   <div data-admin-shell></div>
@@ -17,12 +17,12 @@
       <div class="syl-empty">Carregando syllabi…</div>
     </section>
   </main>
-  <dialog class="syl-dialog syl-dialog--form" data-upload-dialog>
+  <dialog class="syl-dialog syl-dialog--form" data-upload-dialog aria-labelledby="upload-dialog-title">
     <form class="syl-dialog__surface" data-upload-form>
       <div class="syl-dialog__header">
         <div>
           <p class="syl-eyebrow" data-upload-eyebrow>Novo syllabus</p>
-          <h2 data-upload-title>Adicionar syllabus</h2>
+          <h2 id="upload-dialog-title" data-upload-title>Adicionar syllabus</h2>
         </div>
         <button class="syl-icon-button" type="button" data-dialog-close aria-label="Fechar">×</button>
       </div>
@@ -32,6 +32,29 @@
           <input class="field" type="text" name="name" autocomplete="off" placeholder="Ex.: SI módulo 7 2026" required>
           <small>Este é o nome durável do syllabus. O arquivo será registrado como uma versão.</small>
         </label>
+        <fieldset class="syl-graph-fields" data-graph-fields aria-labelledby="graph-fields-title">
+          <div class="syl-form-section-heading">
+            <h3 id="graph-fields-title">Dados no Companion</h3>
+            <p>Definem o grafo exportado e acompanham todas as versões deste syllabus.</p>
+          </div>
+          <label class="syl-form-field">
+            <span>Nome exibido do grafo</span>
+            <input class="field" type="text" name="display_name" autocomplete="off" maxlength="255" placeholder="Ex.: Computação" aria-describedby="display-name-help" required>
+            <small id="display-name-help">Nome que estudantes e equipe verão no Companion.</small>
+          </label>
+          <div class="syl-form-row">
+            <label class="syl-form-field">
+              <span>Identificador da instituição</span>
+              <input class="field" type="text" name="institution_slug" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="2" maxlength="64" pattern="[a-z][a-z0-9\-]{1,63}" placeholder="Ex.: inteli" aria-describedby="institution-slug-help" required>
+              <small id="institution-slug-help">Use o identificador da instituição no Companion. Letras minúsculas, números e hífen.</small>
+            </label>
+            <label class="syl-form-field">
+              <span>Identificador do grafo</span>
+              <input class="field" type="text" name="graph_id" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="2" maxlength="128" pattern="[a-z][a-z0-9._\-]{1,127}" placeholder="Ex.: graph-inteli-cc07" aria-describedby="graph-id-help" required>
+              <small id="graph-id-help">Será usado no Companion. Comece com letra minúscula; use letras, números, ponto, hífen ou sublinhado.</small>
+            </label>
+          </div>
+        </fieldset>
         <label class="syl-file-picker">
           <span class="syl-file-picker__title">Planilha XLSX</span>
           <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required data-upload-file>
@@ -136,6 +159,6 @@
   </dialog>
 
   <script type="module" src="/static/shell.js?v=4"></script>
-  <script type="module" src="/static/syllabi.js?v=30"></script>
+  <script type="module" src="/static/syllabi.js?v=31"></script>
 </body>
 </html>

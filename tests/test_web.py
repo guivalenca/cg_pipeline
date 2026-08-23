@@ -134,10 +134,27 @@ def _workbook(
     return path
 
 
-def _upload(client: TestClient, path: Path, name: str, syllabus_id: str | None = None):
+def _upload(
+    client: TestClient,
+    path: Path,
+    name: str,
+    syllabus_id: str | None = None,
+    *,
+    graph_id: str | None = None,
+    display_name: str = "Computação",
+    institution_slug: str = "inteli",
+):
     data = {"name": name}
     if syllabus_id:
         data["syllabus_id"] = syllabus_id
+    else:
+        data.update(
+            {
+                "graph_id": graph_id or f"graph-{uuid.uuid4().hex}",
+                "display_name": display_name,
+                "institution_slug": institution_slug,
+            }
+        )
     with path.open("rb") as workbook:
         return client.post(
             "/api/syllabi/upload",
@@ -159,7 +176,14 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
     path = _workbook(tmp_path / "first.xlsx", project="Ignored workbook title", lesson="Aula 1")
 
     with TestClient(_app(test_database_url)) as client:
-        uploaded = _upload(client, path, name)
+        uploaded = _upload(
+            client,
+            path,
+            name,
+            graph_id="graph-inteli-grad-cc07",
+            display_name="Ciência da Computação",
+            institution_slug="inteli",
+        )
         assert uploaded.status_code == 201, uploaded.text
         result = uploaded.json()
         assert result["unchanged"] is False
@@ -167,11 +191,17 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
         index = client.get("/api/syllabi")
         entry = next(item for item in index.json()["syllabi"] if item["id"] == result["syllabus_id"])
         assert entry["title"] == name
+        assert entry["graph_id"] == "graph-inteli-grad-cc07"
+        assert entry["display_name"] == "Ciência da Computação"
+        assert entry["institution_slug"] == "inteli"
         assert entry["latest"]["lesson_count"] == 1
         assert entry["latest"]["source_count"] == 1
 
         detail = client.get(f"/api/syllabi/{result['syllabus_id']}").json()
         assert detail["title"] == name
+        assert detail["graph_id"] == "graph-inteli-grad-cc07"
+        assert detail["display_name"] == "Ciência da Computação"
+        assert detail["institution_slug"] == "inteli"
         assert detail["lessons"][0]["title"] == "Aula 1"
         assert detail["lessons"][0]["sources"][0]["has_markdown"] is False
         assert detail["lessons"][0]["sources"][0]["has_kcs"] is False
@@ -188,6 +218,51 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
             "SELECT count(*) FROM acquisition_job WHERE source_id = %s",
             (detail["lessons"][0]["sources"][0]["source_id"],),
         ).fetchone()[0] == 0
+
+
+def test_new_syllabus_upload_requires_complete_valid_graph_metadata(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "metadata.xlsx",
+        project="Project",
+        lesson="Aula 1",
+    )
+
+    with TestClient(_app(test_database_url)) as client, path.open("rb") as workbook:
+        missing = client.post(
+            "/api/syllabi/upload",
+            data={"name": "Sem metadados"},
+            files={
+                "file": (
+                    path.name,
+                    workbook,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            },
+        )
+    assert missing.status_code == 422
+    assert "instituição" in missing.json()["detail"]
+
+    with TestClient(_app(test_database_url)) as client, path.open("rb") as workbook:
+        invalid = client.post(
+            "/api/syllabi/upload",
+            data={
+                "name": "Metadados inválidos",
+                "graph_id": "Graph Inteli",
+                "display_name": "Computação",
+                "institution_slug": "Inteli",
+            },
+            files={
+                "file": (
+                    path.name,
+                    workbook,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            },
+        )
+    assert invalid.status_code == 422
+    assert "identificador do grafo" in invalid.json()["detail"]
 
 
 def test_version_query_loads_that_versions_actual_lessons(

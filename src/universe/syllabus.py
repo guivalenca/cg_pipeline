@@ -98,6 +98,47 @@ YOUTUBE_TEXTUAL_QUERY = re.compile(
     r"(?:\s+e\s+(?:list|index|t)=[^\s]+)+$",
     re.IGNORECASE,
 )
+GRAPH_ID = re.compile(r"^[a-z][a-z0-9_.-]{1,127}$")
+INSTITUTION_SLUG = re.compile(r"^[a-z][a-z0-9-]{1,63}$")
+
+
+def _graph_metadata(
+    graph_id: str | None,
+    display_name: str | None,
+    institution_slug: str | None,
+    *,
+    required: bool,
+) -> dict[str, str] | None:
+    raw = {
+        "graph_id": graph_id,
+        "display_name": display_name,
+        "institution_slug": institution_slug,
+    }
+    values = {
+        key: str(value or "").strip()
+        for key, value in raw.items()
+    }
+    if not any(values.values()):
+        if required:
+            raise ValueError("Informe a instituição, o identificador e o nome exibido do grafo.")
+        return None
+    if not all(values.values()):
+        raise ValueError("Preencha todos os dados do grafo.")
+    if GRAPH_ID.fullmatch(values["graph_id"]) is None:
+        raise ValueError(
+            "O identificador do grafo deve começar com letra minúscula e usar apenas "
+            "letras minúsculas, números, ponto, hífen ou sublinhado."
+        )
+    if INSTITUTION_SLUG.fullmatch(values["institution_slug"]) is None:
+        raise ValueError(
+            "A instituição deve começar com letra minúscula e usar apenas letras "
+            "minúsculas, números ou hífen."
+        )
+    if len(values["display_name"]) > 255 or any(
+        ord(character) < 32 for character in values["display_name"]
+    ):
+        raise ValueError("O nome exibido do grafo deve ter no máximo 255 caracteres.")
+    return values
 
 
 def slugify(text: str) -> str:
@@ -602,6 +643,10 @@ def import_workbook(
     name: str | None = None,
     *,
     syllabus_id: str | None = None,
+    graph_id: str | None = None,
+    display_name: str | None = None,
+    institution_slug: str | None = None,
+    require_graph_metadata: bool = False,
     actor: str = "founder",
 ) -> dict:
     """Author one complete uploaded version under a manually named syllabus."""
@@ -613,22 +658,61 @@ def import_workbook(
     resolved_id = (syllabus_id or slugify(name)).strip()
     if not resolved_id:
         raise ValueError("syllabus id is empty after normalizing its name")
+    metadata = _graph_metadata(
+        graph_id,
+        display_name,
+        institution_slug,
+        required=require_graph_metadata,
+    )
     path = Path(path)
     file_body = path.read_bytes()
     file_sha = hashlib.sha256(file_body).hexdigest()
     parsed = parse_workbook(path)
 
+    if metadata:
+        graph_owner = conn.execute(
+            "SELECT id FROM syllabus WHERE graph_id = %s",
+            (metadata["graph_id"],),
+        ).fetchone()
+        if graph_owner and graph_owner[0] != resolved_id:
+            raise ValueError("o identificador do grafo já pertence a outro syllabus")
     conn.execute(
-        "INSERT INTO syllabus (id, title) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",
-        (resolved_id, name),
+        "INSERT INTO syllabus"
+        " (id, title, graph_id, display_name, institution_slug)"
+        " VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
+        (
+            resolved_id,
+            name,
+            metadata["graph_id"] if metadata else None,
+            metadata["display_name"] if metadata else None,
+            metadata["institution_slug"] if metadata else None,
+        ),
     )
     stored = conn.execute(
-        "SELECT title FROM syllabus WHERE id = %s FOR UPDATE", (resolved_id,)
+        "SELECT title, graph_id, display_name, institution_slug"
+        " FROM syllabus WHERE id = %s FOR UPDATE",
+        (resolved_id,),
     ).fetchone()
     if stored[0] != name:
         raise ValueError(
             f"syllabus id {resolved_id!r} already belongs to {stored[0]!r}, not {name!r}"
         )
+    stored_metadata = dict(
+        zip(("graph_id", "display_name", "institution_slug"), stored[1:])
+    )
+    if metadata and not any(stored_metadata.values()):
+        conn.execute(
+            "UPDATE syllabus SET graph_id = %s, display_name = %s, institution_slug = %s"
+            " WHERE id = %s",
+            (
+                metadata["graph_id"],
+                metadata["display_name"],
+                metadata["institution_slug"],
+                resolved_id,
+            ),
+        )
+    elif metadata and stored_metadata != metadata:
+        raise ValueError("os dados do grafo não correspondem ao syllabus existente")
     previous = _latest_version_row(conn, resolved_id)
     if previous and previous["file_sha"] == file_sha:
         lesson_count, reference_count = _version_counts(conn, previous["id"])
@@ -887,21 +971,36 @@ def _latest_version_row(conn: psycopg.Connection, syllabus_id: str) -> dict | No
 
 def list_syllabi(conn: psycopg.Connection) -> list[dict]:
     """List syllabi with a compact summary of only their latest version."""
-    rows = conn.execute("SELECT id, title, created_at FROM syllabus ORDER BY created_at DESC, id").fetchall()
+    rows = conn.execute(
+        "SELECT id, title, graph_id, display_name, institution_slug, created_at"
+        " FROM syllabus ORDER BY created_at DESC, id"
+    ).fetchall()
     result = []
-    for syllabus_id, title, created_at in rows:
+    for syllabus_id, title, graph_id, display_name, institution_slug, created_at in rows:
         latest = _latest_version_row(conn, syllabus_id)
         if latest:
             lesson_count, source_count = _version_counts(conn, latest["id"])
             latest = {**latest, "lesson_count": lesson_count, "source_count": source_count}
-        result.append({"id": syllabus_id, "title": title, "created_at": created_at, "latest": latest})
+        result.append(
+            {
+                "id": syllabus_id,
+                "title": title,
+                "graph_id": graph_id,
+                "display_name": display_name,
+                "institution_slug": institution_slug,
+                "created_at": created_at,
+                "latest": latest,
+            }
+        )
     return result
 
 
 def get_syllabus_history(conn: psycopg.Connection, syllabus_id: str) -> dict:
     """Return immutable versions newest first, each with full-state counts."""
     syllabus = conn.execute(
-        "SELECT id, title, created_at FROM syllabus WHERE id = %s", (syllabus_id,)
+        "SELECT id, title, graph_id, display_name, institution_slug, created_at"
+        " FROM syllabus WHERE id = %s",
+        (syllabus_id,),
     ).fetchone()
     if syllabus is None:
         raise LookupError(f"unknown syllabus {syllabus_id!r}")
@@ -925,7 +1024,15 @@ def get_syllabus_history(conn: psycopg.Connection, syllabus_id: str) -> dict:
         )
         for row in rows
     ]
-    return {"id": syllabus[0], "title": syllabus[1], "created_at": syllabus[2], "versions": versions}
+    return {
+        "id": syllabus[0],
+        "title": syllabus[1],
+        "graph_id": syllabus[2],
+        "display_name": syllabus[3],
+        "institution_slug": syllabus[4],
+        "created_at": syllabus[5],
+        "versions": versions,
+    }
 
 
 def get_syllabus_workbook(conn: psycopg.Connection, version_id: str) -> dict:
@@ -947,7 +1054,9 @@ def get_syllabus_version(
 ) -> dict:
     """Return one full version; omitting ``version_id`` means latest."""
     syllabus = conn.execute(
-        "SELECT id, title, created_at FROM syllabus WHERE id = %s", (syllabus_id,)
+        "SELECT id, title, graph_id, display_name, institution_slug, created_at"
+        " FROM syllabus WHERE id = %s",
+        (syllabus_id,),
     ).fetchone()
     if syllabus is None:
         raise LookupError(f"unknown syllabus {syllabus_id!r}")
@@ -1021,7 +1130,10 @@ def get_syllabus_version(
     return {
         "id": syllabus[0],
         "title": syllabus[1],
-        "created_at": syllabus[2],
+        "graph_id": syllabus[2],
+        "display_name": syllabus[3],
+        "institution_slug": syllabus[4],
+        "created_at": syllabus[5],
         "version": version,
         "lessons": lessons,
     }

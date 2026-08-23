@@ -226,6 +226,53 @@ def _snapshot(
     }
 
 
+def test_upload_dialog_captures_graph_metadata_only_for_a_new_syllabus(
+    test_database_url, applied_migrations, tmp_path
+):
+    workbook_path = _editable_workbook(tmp_path / "graph-metadata.xlsx")
+    marker = uuid.uuid4().hex[:10]
+    app = create_app(lambda: psycopg.connect(test_database_url))
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi")
+        page.locator("[data-new-syllabus]").first.click()
+
+        dialog = page.locator("[data-upload-dialog]")
+        graph_fields = dialog.locator("[data-graph-fields]")
+        expect(dialog).to_be_visible()
+        expect(graph_fields).to_be_visible()
+        expect(dialog.locator('[name="name"]')).to_be_focused()
+        for field_name in ("display_name", "institution_slug", "graph_id"):
+            assert dialog.locator(f'[name="{field_name}"]').evaluate(
+                "field => field.required"
+            )
+
+        dialog.locator('[name="name"]').fill(f"Upload metadata {marker}")
+        dialog.locator('[name="display_name"]').fill("Ciência da Computação")
+        dialog.locator('[name="institution_slug"]').fill("inteli")
+        graph_id = dialog.locator('[name="graph_id"]')
+        graph_id.fill("Graph Inteli")
+        dialog.locator('[name="file"]').set_input_files(workbook_path)
+        dialog.get_by_role("button", name="Adicionar syllabus").click()
+
+        expect(dialog).to_be_visible()
+        assert graph_id.evaluate("field => field.validity.patternMismatch")
+
+        graph_id.fill(f"graph-inteli-{marker}")
+        dialog.get_by_role("button", name="Adicionar syllabus").click()
+        page.wait_for_url("**/syllabi?id=*")
+        expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
+
+        page.get_by_role("button", name="Enviar nova versão").click()
+        expect(dialog).to_be_visible()
+        expect(graph_fields).to_be_hidden()
+        expect(graph_fields.locator('[name="display_name"]')).to_be_disabled()
+        expect(dialog.locator('[name="file"]')).to_be_focused()
+        browser.close()
+
+
 def test_targeted_lesson_editor_stays_scoped_and_can_hide_that_lesson(
     test_database_url, applied_migrations, tmp_path
 ):

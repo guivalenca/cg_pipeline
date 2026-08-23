@@ -1318,6 +1318,9 @@ def create_app(
         name: str = Form(...),
         file: UploadFile = File(...),
         syllabus_id: str | None = Form(default=None),
+        graph_id: str | None = Form(default=None),
+        display_name: str | None = Form(default=None),
+        institution_slug: str | None = Form(default=None),
     ) -> dict:
         clean_name = name.strip()
         if not clean_name:
@@ -1347,6 +1350,10 @@ def create_app(
                         temporary_path,
                         clean_name,
                         syllabus_id=syllabus_id,
+                        graph_id=graph_id,
+                        display_name=display_name,
+                        institution_slug=institution_slug,
+                        require_graph_metadata=syllabus_id is None,
                     )
         except HTTPException:
             raise

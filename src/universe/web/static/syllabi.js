@@ -1625,11 +1625,17 @@ function openUpload(mode) {
   $('[data-upload-error]').textContent = '';
   $('[data-file-name]').textContent = 'Escolher arquivo .xlsx';
   const nameField = $('[data-name-field]');
+  const graphFields = $('[data-graph-fields]');
   const nameInput = uploadForm.elements.name;
   const isVersion = mode === 'version';
   nameField.hidden = isVersion;
+  graphFields.hidden = isVersion;
+  graphFields.disabled = isVersion;
   nameInput.required = !isVersion;
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
+  for (const fieldName of ['display_name', 'institution_slug', 'graph_id']) {
+    uploadForm.elements[fieldName].required = !isVersion;
+  }
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
   $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
@@ -1648,6 +1654,9 @@ async function submitUpload(event) {
   const data = new FormData(uploadForm);
   const file = data.get('file');
   const name = String(data.get('name') || '').trim();
+  for (const fieldName of ['name', 'display_name', 'institution_slug', 'graph_id']) {
+    if (data.has(fieldName)) data.set(fieldName, String(data.get(fieldName) || '').trim());
+  }
   if (!file?.name || !/\.xlsx$/i.test(file.name)) {
     $('[data-upload-error]').textContent = 'Escolha uma planilha .xlsx válida.';
     return;
