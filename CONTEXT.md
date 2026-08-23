@@ -12,6 +12,14 @@ _Avoid_: Spreadsheet upload, current sheet
 An operator-reviewed comparison between the current Syllabus Version and an incoming workbook, including lesson and source disposition decisions.
 _Avoid_: Blind re-import, spreadsheet diff
 
+**Lesson Subject**:
+The curricular area assigned to a lesson, expressed by the standard code shared across syllabus formats, such as COM, UEX, NEG, or LID.
+_Avoid_: Eixo text
+
+**Lesson Kind**:
+The role a lesson plays in a syllabus: Class, Orientation, Deliverable, or Evaluation.
+_Avoid_: Tipo da atividade text
+
 **Source Review**:
 The syllabus-level decision that preserves, moves, hides, or replaces one Source while reconciling versions.
 _Avoid_: Row edit, automatic deletion

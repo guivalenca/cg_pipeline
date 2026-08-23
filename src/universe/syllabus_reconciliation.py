@@ -27,12 +27,15 @@ from universe.syllabus import (
     curate_syllabus,
     get_syllabus_version,
     parse_workbook,
+    parse_subjects,
 )
 
 
 DECISIONS = {"keep", "transition", "custom"}
-PLAN_VERSION = 2
-LESSON_AUTHORED_FIELDS = ("week", "kind", "title", "subject", "date", "description")
+PLAN_VERSION = 3
+LESSON_AUTHORED_FIELDS = (
+    "week", "kind", "title", "subject", "subjects", "date", "description",
+)
 SOURCE_AUTHORED_FIELDS = (
     "title", "description", "url", "media_type", "resource_code",
     "scope_kind", "scope_value",
@@ -91,6 +94,7 @@ def _lesson_projection(lesson: dict, order: int, source_key: str) -> dict:
         "kind": lesson.get("kind") or "Class",
         "title": lesson.get("title") or "",
         "subject": lesson.get("subject"),
+        "subjects": parse_subjects(lesson.get("subjects")),
         "date": _date(lesson.get("date", lesson.get("lesson_date"))),
         "description": lesson.get("description"),
         "hidden": bool(lesson.get("hidden", lesson.get("is_hidden", False))),
@@ -125,6 +129,7 @@ def _lesson_signature(item: dict | None) -> tuple:
         _norm(item.get("kind")),
         _norm(item.get("title")),
         _norm(item.get("subject")),
+        tuple(_norm(subject) for subject in parse_subjects(item.get("subjects"))),
         _date(item.get("date")),
         _norm(item.get("description")),
     )
@@ -162,6 +167,10 @@ def _lesson_score(left: dict, right: dict) -> float:
     if left.get("week") == right.get("week"):
         score += 15
     if _norm(left.get("subject")) == _norm(right.get("subject")) and _norm(left.get("subject")):
+        score += 12
+    left_subjects = tuple(_norm(value) for value in parse_subjects(left.get("subjects")))
+    right_subjects = tuple(_norm(value) for value in parse_subjects(right.get("subjects")))
+    if left_subjects and left_subjects == right_subjects:
         score += 12
     if left.get("date") and left.get("date") == right.get("date"):
         score += 8
@@ -627,6 +636,7 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
             "kind": _text(draft.get("kind")) or anchor.get("kind") or "Class",
             "title": title,
             "subject": _text(draft.get("subject")) or None,
+            "subjects": parse_subjects(draft.get("subjects")),
             "date": _text(draft.get("date")) or None,
             "description": _text(draft.get("description")) or None,
             "hidden": bool((current or anchor).get("hidden")),

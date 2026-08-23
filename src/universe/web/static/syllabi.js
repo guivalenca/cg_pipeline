@@ -433,6 +433,11 @@ function lessonSubjectFilter(lesson) {
   }[kind] || null;
 }
 
+function lessonSubjects(value) {
+  const values = Array.isArray(value) ? value : String(value || '').split(/\r?\n/);
+  return [...new Set(values.map((subject) => String(subject || '').trim()).filter(Boolean))];
+}
+
 function filterMarkup(detail) {
   const subjects = [...new Map((detail.lessons || [])
     .map(lessonSubjectFilter)
@@ -900,6 +905,7 @@ function lessonKnowledgeMarkup(lesson) {
 
 function lessonMarkup(lesson, index) {
   const sources = lesson.sources || [];
+  const subjects = lessonSubjects(lesson.subjects);
   const when = lesson.date ? fmtDate(lesson.date) : (lesson.week ? `Semana ${lesson.week}` : 'Data não informada');
   const lessonIndex = Number.isInteger(lesson.__lessonIndex) ? lesson.__lessonIndex : index;
   const editingThisLesson = state.editor.active
@@ -926,6 +932,9 @@ function lessonMarkup(lesson, index) {
             </label>
             <label class="syl-form-field syl-editor-field--full"><span>Descrição da aula</span>
               <textarea class="field" rows="3" maxlength="4000" data-lesson-field="description" data-lesson-index="${lessonIndex}">${esc(lesson.description || '')}</textarea>
+            </label>
+            <label class="syl-form-field syl-editor-field--full"><span>Assuntos, um por linha</span>
+              <textarea class="field" rows="3" maxlength="20000" data-lesson-field="subjects" data-lesson-index="${lessonIndex}">${esc(subjects.join('\n'))}</textarea>
             </label>
           </div>
         </div>
@@ -962,6 +971,7 @@ function lessonMarkup(lesson, index) {
         </div>
         <h2>${esc(lesson.title || 'Aula sem título')}</h2>
         ${!collapsed && lesson.description ? `<p>${esc(lesson.description)}</p>` : ''}
+        ${!collapsed && subjects.length ? `<ul class="syl-lesson__subjects" aria-label="Assuntos">${subjects.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>` : ''}
       </div>
       <div class="syl-lesson__side">
         <div class="syl-lesson__source-tools">
@@ -1468,6 +1478,7 @@ function editorPayload() {
     kind: lesson.kind || 'Class',
     title: String(lesson.title || '').trim(),
     subject: String(lesson.subject || '').trim() || null,
+    subjects: lessonSubjects(lesson.subjects),
     date: lesson.date || null,
     description: String(lesson.description || '').trim() || null,
     sources: (lesson.sources || []).map((source) => ({
@@ -1587,7 +1598,7 @@ async function showReconciliation(reconciliation) {
   state.reconciliationCleanup?.();
   state.reconciliation = reconciliation;
   reconciliationUrl(reconciliation.id);
-  const { mountSyllabusReconciliation } = await import('/static/syllabus_reconciliation.js?v=3');
+  const { mountSyllabusReconciliation } = await import('/static/syllabus_reconciliation.js?v=4');
   state.reconciliationCleanup = mountSyllabusReconciliation({
     headingHost,
     viewHost,

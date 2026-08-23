@@ -78,6 +78,27 @@ LEGACY_COLUMNS = (
 # Compatibility for callers that imported the old constant.
 COLUMNS = PROJECT_COLUMNS
 WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
+PROJECT_SUBJECT_CODES = {
+    "com": "COM",
+    "computacao": "COM",
+    "lid": "LID",
+    "lideranca": "LID",
+    "neg": "NEG",
+    "negocios": "NEG",
+    "uex": "UEX",
+    "user experience": "UEX",
+}
+PROJECT_LESSON_KINDS = {
+    "class": "Class",
+    "avaliacao / pesquisa": "Evaluation",
+    "deliverable": "Deliverable",
+    "desenvolvimento projeto": "Deliverable",
+    "encontro": "Class",
+    "encontro de instrucao": "Class",
+    "encontro de orientacao": "Orientation",
+    "evaluation": "Evaluation",
+    "orientation": "Orientation",
+}
 BOOK_SCOPE = re.compile(
     r"(?P<label>cap[ií]tulos?|cap\.?|chapters?|p[aá]ginas?|p[aá]gs?\.?|pag(?:es?)?\.?|"
     r"p\.|pages?|unidades?|units?|exerc[ií]cios?|exercises?)"
@@ -327,6 +348,44 @@ def _text(value) -> str | None:
     return result or None
 
 
+def _project_subject(value: object, *, row_number: int) -> str | None:
+    """Translate an institutional Eixo label to the shared subject code."""
+    subject = _text(value)
+    if not subject:
+        return None
+    code = PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold())
+    if code is None:
+        raise ValueError(f"row {row_number}: unsupported Eixo value {subject!r}")
+    return code
+
+
+def _project_lesson_kind(value: object, *, row_number: int) -> str:
+    """Translate a Projetos activity label to the shared lesson taxonomy."""
+    kind = _text(value)
+    canonical = PROJECT_LESSON_KINDS.get(_ascii(kind or "").casefold())
+    if canonical is None:
+        raise ValueError(
+            f"row {row_number}: unsupported Tipo da atividade value {kind!r}"
+        )
+    return canonical
+
+
+def parse_subjects(value: object) -> list[str]:
+    """Turn one workbook subjects cell into an ordered list.
+
+    The Projetos workbook separates topics with newlines and prefixes every
+    line after the first with a comma. Commas inside a topic remain content.
+    """
+    values = value if isinstance(value, (list, tuple)) else [value]
+    subjects: list[str] = []
+    for raw in values:
+        for line in re.split(r"[\r\n]+", str(raw or "")):
+            subject = re.sub(r"^\s*,\s*", "", line).strip()
+            if subject and subject not in subjects:
+                subjects.append(subject)
+    return subjects
+
+
 def _as_int(value, *, row_number: int, column: str) -> int:
     text = _text(value)
     try:
@@ -428,11 +487,20 @@ def _parse_project_sheet(sheet) -> dict:
                 }
             )
         else:
+            lesson_kind = _project_lesson_kind(
+                fields.get("Tipo da atividade"), row_number=row_number
+            )
+            lesson_subject = _project_subject(
+                fields.get("Eixo"), row_number=row_number
+            )
+            if lesson_kind == "Class" and lesson_subject is None:
+                raise ValueError(f"row {row_number}: Eixo is required for a Class")
             lessons.append(
                 {
                     **common,
-                    "kind": fields.get("Tipo da atividade") or "Atividade",
-                    "subject": fields.get("Eixo"),
+                    "kind": lesson_kind,
+                    "subject": lesson_subject,
+                    "subjects": parse_subjects(fields.get("Assuntos")),
                     "lesson_date": None,
                 }
             )
@@ -476,6 +544,7 @@ def _parse_legacy_sheet(sheet) -> dict:
                     **common,
                     "kind": fields.get("Type") or "Activity",
                     "subject": fields.get("Axis"),
+                    "subjects": parse_subjects(fields.get("Related subjects")),
                     "lesson_date": _as_date(fields.get("Date")),
                 }
             )
@@ -753,9 +822,9 @@ def import_workbook(
         lesson_id = f"{version_id}:lesson:{lesson_number:04d}"
         conn.execute(
             "INSERT INTO syllabus_lesson"
-            " (id, version_id, week, seq, kind, title, subject, lesson_date, description,"
-            "  is_hidden, fields)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            " (id, version_id, week, seq, kind, title, subject, subjects, lesson_date,"
+            "  description, is_hidden, fields)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 lesson_id,
                 version_id,
@@ -764,6 +833,7 @@ def import_workbook(
                 lesson["kind"],
                 lesson["title"],
                 lesson.get("subject"),
+                lesson.get("subjects") or [],
                 lesson.get("lesson_date"),
                 lesson.get("description"),
                 bool(lesson.get("is_hidden")),
@@ -1077,8 +1147,8 @@ def get_syllabus_version(
         raise LookupError(f"unknown version {version_id!r} for syllabus {syllabus_id!r}")
 
     lesson_rows = conn.execute(
-        "SELECT sl.id, sl.week, sl.seq, sl.kind, sl.title, sl.subject, sl.lesson_date,"
-        " sl.description, sl.fields, sl.created_at, sl.is_hidden"
+        "SELECT sl.id, sl.week, sl.seq, sl.kind, sl.title, sl.subject, sl.subjects,"
+        " sl.lesson_date, sl.description, sl.fields, sl.created_at, sl.is_hidden"
         " FROM syllabus_lesson sl"
         " WHERE sl.version_id = %s ORDER BY sl.week NULLS LAST, sl.seq, sl.id",
         (version["id"],),
@@ -1087,7 +1157,10 @@ def get_syllabus_version(
     for row in lesson_rows:
         lesson = dict(
             zip(
-                ("id", "week", "seq", "kind", "title", "subject", "date", "description", "fields", "created_at", "hidden"),
+                (
+                    "id", "week", "seq", "kind", "title", "subject", "subjects",
+                    "date", "description", "fields", "created_at", "hidden",
+                ),
                 row,
             )
         )
@@ -1201,6 +1274,24 @@ def _clean_edit_text(value, *, field: str, required: bool = False, limit: int = 
     return text
 
 
+def _clean_subjects(value: object, *, lesson_index: int) -> list[str]:
+    if value in (None, ""):
+        return []
+    if not isinstance(value, (str, list, tuple)):
+        raise ValueError(f"lesson {lesson_index}: subjects must be a list")
+    subjects = parse_subjects(value)
+    if len(subjects) > 200:
+        raise ValueError(f"lesson {lesson_index}: subjects exceed the limit of 200")
+    for subject in subjects:
+        _clean_edit_text(
+            subject,
+            field=f"lesson {lesson_index} subject",
+            required=True,
+            limit=500,
+        )
+    return subjects
+
+
 def _base_fields(item: dict | None) -> dict:
     fields = (item or {}).get("fields") or {}
     return dict(fields) if isinstance(fields, dict) else {}
@@ -1265,6 +1356,12 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
             ),
             "subject": _clean_edit_text(
                 raw_lesson.get("subject"), field=f"lesson {lesson_index} subject", limit=500
+            ),
+            "subjects": _clean_subjects(
+                raw_lesson.get(
+                    "subjects", (base_lesson or {}).get("subjects") or []
+                ),
+                lesson_index=lesson_index,
             ),
             "lesson_date": lesson_date,
             "description": _clean_edit_text(
@@ -1349,6 +1446,7 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
             "kind": lesson.get("kind"),
             "title": lesson.get("title"),
             "subject": lesson.get("subject"),
+            "subjects": list(lesson.get("subjects") or []),
             "date": str(lesson.get("lesson_date") or lesson.get("date") or ""),
             "description": lesson.get("description"),
             "hidden": bool(lesson.get("is_hidden", lesson.get("hidden", False))),
@@ -1373,51 +1471,55 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
 def _project_export_row(
     fields: dict, *, syllabus_title: str, week: int | None, order: int,
     kind: str, title: str, description: str | None, subject: str | None,
+    subjects: list[str] | None = None,
     parent: str | None = None, url: str | None = None, hidden: bool = False,
 ) -> list:
     values = dict(fields)
-    values.update(
-        {
-            "Projeto": values.get("Projeto") or syllabus_title,
-            "Semana": f"Semana {week:02d}" if week is not None else None,
-            "Ordem": order,
-            "Atividade": title,
-            "Tipo da atividade": kind,
-            "Descrição da atividade": description,
-            "Eixo": subject,
-            "URL": url,
-            "Encontro pai": parent,
-            HIDDEN_COLUMN: "yes" if hidden else "no",
-        }
-    )
+    updates = {
+        "Projeto": values.get("Projeto") or syllabus_title,
+        "Semana": f"Semana {week:02d}" if week is not None else None,
+        "Ordem": order,
+        "Atividade": title,
+        "Tipo da atividade": kind,
+        "Descrição da atividade": description,
+        "Eixo": subject,
+        "URL": url,
+        "Encontro pai": parent,
+        HIDDEN_COLUMN: "yes" if hidden else "no",
+    }
+    if subjects is not None:
+        updates["Assuntos"] = "\n,".join(subjects) or None
+    values.update(updates)
     return [values.get(column) for column in (*PROJECT_COLUMNS, HIDDEN_COLUMN)]
 
 
 def _legacy_export_row(
     fields: dict, *, week: int | None, order: int, kind: str, title: str,
     lesson_date: date | None, description: str | None, subject: str | None,
+    subjects: list[str] | None = None,
     parent: str | None = None, url: str | None = None,
     resource_code: str | None = None, hidden: bool = False,
 ) -> list:
     values = dict(fields)
     formatted_date = lesson_date.strftime("%d/%m/%Y") if lesson_date else None
-    values.update(
-        {
-            "Week": week,
-            "Sort": order,
-            "Type": kind,
-            "Title": title,
-            "Date": formatted_date,
-            "Date source": "inherited" if parent else (values.get("Date source") or "own"),
-            "Parent class": parent,
-            "Class date": formatted_date if parent else None,
-            "Axis": subject,
-            "Description": description,
-            "URL": url,
-            "Resource code": resource_code,
-            HIDDEN_COLUMN: "yes" if hidden else "no",
-        }
-    )
+    updates = {
+        "Week": week,
+        "Sort": order,
+        "Type": kind,
+        "Title": title,
+        "Date": formatted_date,
+        "Date source": "inherited" if parent else (values.get("Date source") or "own"),
+        "Parent class": parent,
+        "Class date": formatted_date if parent else None,
+        "Axis": subject,
+        "Description": description,
+        "URL": url,
+        "Resource code": resource_code,
+        HIDDEN_COLUMN: "yes" if hidden else "no",
+    }
+    if subjects is not None:
+        updates["Related subjects"] = "\n".join(subjects) or None
+    values.update(updates)
     return [values.get(column) for column in (*LEGACY_COLUMNS, HIDDEN_COLUMN)]
 
 
@@ -1440,6 +1542,7 @@ def compile_syllabus_workbook(
                     week=lesson["week"], order=order, kind=lesson["kind"],
                     title=lesson["title"], description=lesson.get("description"),
                     subject=lesson.get("subject"),
+                    subjects=lesson.get("subjects") or [],
                     hidden=bool(lesson.get("is_hidden", lesson.get("hidden", False))),
                 )
             )
@@ -1450,6 +1553,7 @@ def compile_syllabus_workbook(
                     kind=lesson["kind"], title=lesson["title"],
                     lesson_date=lesson.get("lesson_date"),
                     description=lesson.get("description"), subject=lesson.get("subject"),
+                    subjects=lesson.get("subjects") or [],
                     hidden=bool(lesson.get("is_hidden", lesson.get("hidden", False))),
                 )
             )
@@ -1556,13 +1660,14 @@ def curate_syllabus(
         lesson_id = f"{version_id}:lesson:{lesson_number:04d}"
         conn.execute(
             "INSERT INTO syllabus_lesson"
-            " (id, version_id, week, seq, kind, title, subject, lesson_date, description,"
-            "  is_hidden, fields)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            " (id, version_id, week, seq, kind, title, subject, subjects, lesson_date,"
+            "  description, is_hidden, fields)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 lesson_id, version_id, lesson["week"], lesson_number, lesson["kind"],
-                lesson["title"], lesson.get("subject"), lesson.get("lesson_date"),
-                lesson.get("description"), lesson["is_hidden"], Jsonb(lesson["fields"]),
+                lesson["title"], lesson.get("subject"), lesson.get("subjects") or [],
+                lesson.get("lesson_date"), lesson.get("description"),
+                lesson["is_hidden"], Jsonb(lesson["fields"]),
             ),
         )
         for source_number, reference in enumerate(lesson["source_references"], 1):
