@@ -429,12 +429,19 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     </section>`;
   }
 
+  function renderDecisionEditor(item) {
+    const standardChoices = state.manualExpanded.has(item.item_id)
+      ? ''
+      : renderChoices(item);
+    return `${standardChoices}${renderManual(item)}`;
+  }
+
   function renderSelectedItem(item) {
     const index = actionableItems.findIndex((candidate) => candidate.item_id === item.item_id);
     return `<section class="recon-item-detail">
       <header><div class="recon-item-detail__type"><span>${item.kind === 'lesson' ? ICONS.lesson : ICONS.source}</span><small>${item.kind === 'lesson' ? 'Dados da aula' : 'Autoestudo'}</small>${renderExtraction(item)}</div></header>
       <div class="recon-item-detail__heading"><h2>${esc(item.kind === 'lesson' ? 'Dados da aula' : titleOf(item))}</h2><span class="recon-change-state recon-change-state--${esc(item.status)}">${esc(statusLabel(item.status))}</span></div>
-      <p>${esc(summaryFor(item))}</p>${renderIdentity(item)}${renderDeletedWarning(item)}${renderComparison(item)}${renderChoices(item)}${renderManual(item)}
+      <p>${esc(summaryFor(item))}</p>${renderIdentity(item)}${renderDeletedWarning(item)}${renderComparison(item)}${renderDecisionEditor(item)}
       <footer><button type="button" data-recon-step="-1">← Anterior</button><span>${index >= 0 ? `${index + 1} de ${actionableItems.length} itens com decisão` : 'Item sem mudanças'}</span><button type="button" data-recon-step="1">Próximo →</button></footer>
     </section>`;
   }
@@ -543,7 +550,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     } else return;
     state.error = null;
     render();
-    restoreIdentityFocus(item.item_id, 'data-recon-lesson-action', action);
+    restoreControlFocus(item.item_id, 'data-recon-lesson-action', action);
   }
 
   function clearDuplicateIdentity(lessonId, ownerItemId) {
@@ -559,7 +566,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     });
   }
 
-  function restoreIdentityFocus(itemId, control, value) {
+  function restoreControlFocus(itemId, control, value) {
     const controls = [...viewHost.querySelectorAll(`[${control}]`)];
     const target = controls.find((element) => {
       const item = element.closest('.recon-item-detail');
@@ -612,14 +619,16 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
         }
         state.error = null;
         render();
-        restoreIdentityFocus(item.item_id, 'data-recon-manual-identity', choice);
+        restoreControlFocus(item.item_id, 'data-recon-manual-identity', choice);
       }
       return;
     }
     if (event.target.closest('[data-recon-manual-toggle]')) {
       const id = selectedItem().item_id;
       if (state.manualExpanded.has(id)) state.manualExpanded.delete(id); else state.manualExpanded.add(id);
-      render(); return;
+      render();
+      restoreControlFocus(id, 'data-recon-manual-toggle');
+      return;
     }
     if (event.target.closest('[data-recon-apply]')) applyAll();
   }
@@ -644,7 +653,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
         };
       }
       render();
-      restoreIdentityFocus(item.item_id, 'data-recon-identity-candidate');
+      restoreControlFocus(item.item_id, 'data-recon-identity-candidate');
       return;
     }
     const input = event.target.closest('[data-recon-draft]');
@@ -673,7 +682,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     }
     state.decisions[itemId] = 'custom';
     render();
-    restoreIdentityFocus(itemId, 'data-recon-manual-toggle');
+    restoreControlFocus(itemId, 'data-recon-manual-toggle');
   }
 
   function handleKeys(event) {
@@ -683,11 +692,15 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     if (event.key === 'ArrowLeft') { event.preventDefault(); moveItem(-1); }
     else if (event.key === 'ArrowRight') { event.preventDefault(); moveItem(1); }
     else if (event.key.toLowerCase() === 'm') {
+      if (state.manualExpanded.has(selectedItem()?.item_id)) return;
       event.preventDefault();
       if (selectedItem()?.identity?.state === 'review') applyReviewedLessonAction('keep');
       else applyDecision('keep');
     }
-    else if (event.key.toLowerCase() === 't') { event.preventDefault(); applyDecision('transition'); }
+    else if (event.key.toLowerCase() === 't') {
+      if (state.manualExpanded.has(selectedItem()?.item_id)) return;
+      event.preventDefault(); applyDecision('transition');
+    }
   }
 
   viewHost.addEventListener('click', handleClick);

@@ -416,7 +416,12 @@ def test_reviewed_lesson_uses_one_coherent_action_and_labels_a_noop(
         expect(page.get_by_text("Candidata selecionada", exact=True)).to_have_count(0)
         expect(page.locator("[data-recon-identity-candidate]")).to_have_count(0)
 
-        page.get_by_role("button", name="Montar uma versão manual", exact=False).click()
+        manual_toggle = page.get_by_role(
+            "button", name="Montar uma versão manual", exact=False
+        )
+        manual_toggle.click()
+        expect(manual_toggle).to_be_focused()
+        expect(actions).to_be_hidden()
         manual = page.locator("[data-recon-manual-form]")
         manual.get_by_label("Título", exact=True).fill("Versão montada")
         use_manual = manual.get_by_role("button", name="Usar versão montada")
@@ -429,6 +434,10 @@ def test_reviewed_lesson_uses_one_coherent_action_and_labels_a_noop(
         manual_related.click()
         expect(use_manual).to_be_enabled()
         use_manual.click()
+        expect(actions).to_be_hidden()
+        manual_toggle.click()
+        expect(manual_toggle).to_be_focused()
+        expect(actions).to_be_visible()
         expect(related).to_have_attribute("aria-pressed", "false")
         expect(keep).to_have_attribute("aria-pressed", "false")
         expect(new).to_have_attribute("aria-pressed", "false")

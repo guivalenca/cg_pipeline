@@ -1598,7 +1598,7 @@ async function showReconciliation(reconciliation) {
   state.reconciliationCleanup?.();
   state.reconciliation = reconciliation;
   reconciliationUrl(reconciliation.id);
-  const { mountSyllabusReconciliation } = await import('/static/syllabus_reconciliation.js?v=9');
+  const { mountSyllabusReconciliation } = await import('/static/syllabus_reconciliation.js?v=10');
   state.reconciliationCleanup = mountSyllabusReconciliation({
     headingHost,
     viewHost,
