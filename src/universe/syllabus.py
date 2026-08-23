@@ -78,6 +78,18 @@ LEGACY_COLUMNS = (
 # Compatibility for callers that imported the old constant.
 COLUMNS = PROJECT_COLUMNS
 WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
+PROJECT_SUBJECT_CODES = {
+    "computacao": "COM",
+    "lideranca": "LID",
+    "negocios": "NEG",
+    "user experience": "UEX",
+}
+PROJECT_LESSON_KINDS = {
+    "avaliacao / pesquisa": "Evaluation",
+    "desenvolvimento projeto": "Deliverable",
+    "encontro de instrucao": "Class",
+    "encontro de orientacao": "Orientation",
+}
 BOOK_SCOPE = re.compile(
     r"(?P<label>cap[ií]tulos?|cap\.?|chapters?|p[aá]ginas?|p[aá]gs?\.?|pag(?:es?)?\.?|"
     r"p\.|pages?|unidades?|units?|exerc[ií]cios?|exercises?)"
@@ -286,6 +298,20 @@ def _text(value) -> str | None:
     return result or None
 
 
+def _project_subject(value: object) -> str | None:
+    """Translate an institutional Eixo label to the shared subject code."""
+    subject = _text(value)
+    if not subject:
+        return None
+    return PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold(), subject)
+
+
+def _project_lesson_kind(value: object) -> str:
+    """Translate a Projetos activity label to the shared lesson taxonomy."""
+    kind = _text(value) or "Atividade"
+    return PROJECT_LESSON_KINDS.get(_ascii(kind).casefold(), kind)
+
+
 def parse_subjects(value: object) -> list[str]:
     """Turn one workbook subjects cell into an ordered list.
 
@@ -406,8 +432,8 @@ def _parse_project_sheet(sheet) -> dict:
             lessons.append(
                 {
                     **common,
-                    "kind": fields.get("Tipo da atividade") or "Atividade",
-                    "subject": fields.get("Eixo"),
+                    "kind": _project_lesson_kind(fields.get("Tipo da atividade")),
+                    "subject": _project_subject(fields.get("Eixo")),
                     "subjects": parse_subjects(fields.get("Assuntos")),
                     "lesson_date": None,
                 }

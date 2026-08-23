@@ -186,6 +186,41 @@ class TestWorkbookAdapters:
             "https://example.com/architecture"
         ]
 
+    def test_project_workbook_translates_subjects_and_lesson_kinds(self, tmp_path):
+        path = tmp_path / "project-taxonomy.xlsx"
+        write_project(
+            path,
+            [
+                project_row(seq="1", title="Computação", subject="Computação"),
+                project_row(seq="2", title="Experiência", subject="User Experience"),
+                project_row(seq="3", title="Liderança", subject="Liderança"),
+                project_row(seq="4", title="Negócios", subject="Negócios"),
+                project_row(
+                    seq="5", title="Planejamento", kind="Encontro de orientação",
+                    subject=None,
+                ),
+                project_row(
+                    seq="6", title="Entrega", kind="Desenvolvimento projeto",
+                    subject=None,
+                ),
+                project_row(
+                    seq="7", title="Avaliação", kind="Avaliação / pesquisa",
+                    subject=None,
+                ),
+            ],
+        )
+
+        parsed = parse_workbook(path)
+
+        assert [lesson["subject"] for lesson in parsed["lessons"][:4]] == [
+            "COM", "UEX", "LID", "NEG",
+        ]
+        assert [lesson["kind"] for lesson in parsed["lessons"]] == [
+            "Class", "Class", "Class", "Class",
+            "Orientation", "Deliverable", "Evaluation",
+        ]
+        assert parsed["lessons"][0]["fields"]["Eixo"] == "Computação"
+
     def test_legacy_related_workbook_groups_self_study_under_lesson(self, tmp_path):
         path = tmp_path / "legacy.xlsx"
         write_legacy(

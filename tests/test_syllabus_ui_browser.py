@@ -166,6 +166,24 @@ def _type2_workbook(path: Path) -> Path:
             "URL": "https://example.com/mysql",
         },
     )
+    append(
+        **common,
+        Ordem=3,
+        Atividade="Sprint Planning",
+        **{"Tipo da atividade": "Encontro de orientação"},
+    )
+    append(
+        **common,
+        Ordem=4,
+        Atividade="Entrega do artefato",
+        **{"Tipo da atividade": "Desenvolvimento projeto"},
+    )
+    append(
+        **common,
+        Ordem=5,
+        Atividade="Avaliação geral",
+        **{"Tipo da atividade": "Avaliação / pesquisa"},
+    )
     workbook.save(path)
     workbook.close()
     return path
@@ -471,6 +489,16 @@ def test_type2_lesson_shows_subjects_and_its_parented_source(
         expect(subjects.get_by_text("Banco de dados relacional", exact=True)).to_be_visible()
         expect(subjects.get_by_text("SQL Básico", exact=True)).to_be_visible()
         expect(lesson.get_by_role("heading", name="Tutorial MySQL")).to_be_visible()
+
+        subject_filter = page.get_by_label("Matéria")
+        for label in ("COM", "Orientação", "Artefatos", "Avaliações"):
+            expect(subject_filter.get_by_role("option", name=label)).to_have_count(1)
+        expect(page.locator('.syl-lesson[data-subject="COM"]')).to_have_css(
+            "border-left-color", "rgb(39, 93, 125)"
+        )
+        expect(page.locator('.syl-lesson[data-subject="ORIENTAÇÃO"]')).to_have_css(
+            "border-left-color", "rgb(102, 114, 72)"
+        )
         browser.close()
 
 
