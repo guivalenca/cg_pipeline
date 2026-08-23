@@ -259,7 +259,7 @@ def _video_workbook(path, *, url: str) -> None:
         Semana="Semana 01",
         Ordem="1",
         Atividade="Aula",
-        **{"Tipo da atividade": "Encontro", "Eixo": "Vídeo"},
+        **{"Tipo da atividade": "Encontro", "Eixo": "COM"},
     )
     append(
         Projeto="Video project",
