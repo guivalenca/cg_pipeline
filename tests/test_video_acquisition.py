@@ -1052,7 +1052,9 @@ def test_syllabus_card_projects_video_route_and_exposes_matching_actions(
         video_adapter_factory=lambda: FakeMetadataAdapter(74 * 60),
     )
     with psycopg.connect(test_database_url) as conn:
-        uploaded = import_workbook(conn, path, "Video syllabus")
+        uploaded = import_workbook(
+            conn, path, "Video syllabus", require_syllabus_metadata=False
+        )
     with TestClient(app) as client:
         detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
         source_id = detail["lessons"][0]["sources"][0]["source_id"]
@@ -1714,7 +1716,9 @@ def test_syllabus_progress_reports_stt_chunks_then_canonical_cleanup(
         video_adapter_factory=lambda: adapter,
     )
     with psycopg.connect(test_database_url) as conn:
-        uploaded = import_workbook(conn, path, "Video progress")
+        uploaded = import_workbook(
+            conn, path, "Video progress", require_syllabus_metadata=False
+        )
     with TestClient(app) as client:
         detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
         source_id = detail["lessons"][0]["sources"][0]["source_id"]

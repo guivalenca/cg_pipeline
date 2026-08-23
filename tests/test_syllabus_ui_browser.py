@@ -14,6 +14,7 @@ from openpyxl import Workbook
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
+from universe import org
 from universe.syllabus import (
     LEGACY_COLUMNS,
     PROJECT_COLUMNS,
@@ -281,11 +282,28 @@ def _snapshot(
     }
 
 
-def test_upload_dialog_captures_graph_metadata_only_for_a_new_syllabus(
+def test_upload_dialog_selects_durable_syllabus_metadata_only_for_a_new_syllabus(
     test_database_url, applied_migrations, tmp_path
 ):
-    workbook_path = _editable_workbook(tmp_path / "graph-metadata.xlsx")
+    workbook_path = _editable_workbook(tmp_path / "syllabus-metadata.xlsx")
     marker = uuid.uuid4().hex[:10]
+    with psycopg.connect(test_database_url) as conn:
+        institution = org.create_institution(
+            conn, f"browser-inteli-{marker}", "Inteli Browser"
+        )
+        computing = org.create_lesson_subject(
+            conn, institution["id"], "COM", "Computação"
+        )
+        leadership = org.create_lesson_subject(
+            conn, institution["id"], "LID", "Liderança"
+        )
+        other = org.create_institution(
+            conn, f"browser-other-{marker}", "Outra instituição"
+        )
+        org.create_lesson_subject(conn, other["id"], "COM", "Computação externa")
+        org.create_institution(
+            conn, f"browser-empty-{marker}", "Instituição sem matérias"
+        )
     app = create_app(lambda: psycopg.connect(test_database_url))
 
     with _serve(app) as base_url, sync_playwright() as playwright:
@@ -295,36 +313,108 @@ def test_upload_dialog_captures_graph_metadata_only_for_a_new_syllabus(
         page.locator("[data-new-syllabus]").first.click()
 
         dialog = page.locator("[data-upload-dialog]")
-        graph_fields = dialog.locator("[data-graph-fields]")
+        syllabus_fields = dialog.locator("[data-syllabus-fields]")
         expect(dialog).to_be_visible()
-        expect(graph_fields).to_be_visible()
+        expect(syllabus_fields).to_be_visible()
         expect(dialog.locator('[name="name"]')).to_be_focused()
-        for field_name in ("display_name", "institution_slug", "graph_id"):
+        for field_name in ("display_name", "institution_id"):
             assert dialog.locator(f'[name="{field_name}"]').evaluate(
                 "field => field.required"
             )
+        expect(dialog.locator('[name="graph_id"]')).to_have_count(0)
+        expect(dialog.locator('[name="institution_slug"]')).to_have_count(0)
+
+        institution_select = dialog.locator('[name="institution_id"]')
+        expect(institution_select).to_be_enabled()
+        institution_select.select_option(label="Inteli Browser")
+        expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(2)
+        expect(dialog.get_by_text("Computação", exact=True)).to_be_visible()
+        expect(dialog.get_by_text("Liderança", exact=True)).to_be_visible()
+
+        dialog.locator(
+            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
+        ).check()
+        institution_select.select_option(label="Outra instituição")
+        expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(1)
+        assert dialog.locator('[name="lesson_subject_ids"]').is_checked() is False
+        institution_select.select_option(label="Instituição sem matérias")
+        expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(0)
+        expect(dialog.get_by_role("link", name="Cadastre-as em Estrutura")).to_be_visible()
+        institution_select.select_option(label="Inteli Browser")
+        assert dialog.locator(
+            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
+        ).is_checked() is False
 
         dialog.locator('[name="name"]').fill(f"Upload metadata {marker}")
-        dialog.locator('[name="display_name"]').fill("Ciência da Computação")
-        dialog.locator('[name="institution_slug"]').fill("inteli")
-        graph_id = dialog.locator('[name="graph_id"]')
-        graph_id.fill("Graph Inteli")
+        dialog.locator('[name="display_name"]').fill("GRAD CC07 · 2026-2A")
         dialog.locator('[name="file"]').set_input_files(workbook_path)
         dialog.get_by_role("button", name="Adicionar syllabus").click()
 
         expect(dialog).to_be_visible()
-        assert graph_id.evaluate("field => field.validity.patternMismatch")
+        expect(dialog.locator('[data-upload-error]')).to_contain_text(
+            "Selecione ao menos uma matéria"
+        )
 
-        graph_id.fill(f"graph-inteli-{marker}")
+        dialog.locator(
+            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
+        ).check()
+        dialog.locator(
+            f'[name="lesson_subject_ids"][value="{leadership["id"]}"]'
+        ).check()
         dialog.get_by_role("button", name="Adicionar syllabus").click()
         page.wait_for_url("**/syllabi?id=*")
         expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
 
         page.get_by_role("button", name="Enviar nova versão").click()
         expect(dialog).to_be_visible()
-        expect(graph_fields).to_be_hidden()
-        expect(graph_fields.locator('[name="display_name"]')).to_be_disabled()
+        expect(syllabus_fields).to_be_hidden()
+        expect(syllabus_fields.locator('[name="display_name"]')).to_be_disabled()
+        expect(syllabus_fields.locator('[name="institution_id"]')).to_be_disabled()
         expect(dialog.locator('[name="file"]')).to_be_focused()
+        browser.close()
+
+
+def test_structure_page_creates_and_renames_lesson_subjects(
+    test_database_url, applied_migrations
+):
+    marker = uuid.uuid4().hex[:10]
+    institution_id = f"browser-catalog-{marker}"
+    app = create_app(lambda: psycopg.connect(test_database_url))
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/structure")
+
+        institution_form = page.locator("[data-add-institution]")
+        institution_form.locator('[name="slug"]').fill(institution_id)
+        institution_form.locator('[name="name"]').fill("Catalog Browser")
+        institution_form.get_by_role("button", name="Create institution").click()
+
+        subject_form = page.locator(
+            f'[data-add-subject][data-institution="{institution_id}"]'
+        )
+        expect(subject_form).to_be_visible()
+        subject_form.locator('[name="code"]').fill("com")
+        subject_form.locator('[name="display_name"]').fill("Computação inicial")
+        subject_form.get_by_role("button", name="Add subject").click()
+
+        institution_card = page.locator(
+            f'[data-add-subject][data-institution="{institution_id}"]'
+        ).locator("xpath=ancestor::article")
+        rename_form = institution_card.locator("[data-rename-subject]")
+        expect(rename_form.locator(".org-subject__code")).to_have_text("COM")
+        rename_form.locator('[name="display_name"]').fill("Computação")
+        rename_form.get_by_role("button", name="Save name").click()
+
+        expect(page.locator("[data-status]")).to_contain_text(
+            "Lesson Subject COM renamed"
+        )
+        expect(
+            institution_card.locator(
+                "[data-rename-subject] [name='display_name']"
+            )
+        ).to_have_value("Computação")
         browser.close()
 
 
@@ -333,7 +423,12 @@ def test_targeted_lesson_editor_stays_scoped_and_can_hide_that_lesson(
 ):
     name = f"Browser editor {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
-        imported = import_workbook(conn, _editable_workbook(tmp_path / "editor.xlsx"), name)
+        imported = import_workbook(
+            conn,
+            _editable_workbook(tmp_path / "editor.xlsx"),
+            name,
+            require_syllabus_metadata=False,
+        )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
     with _serve(app) as base_url, sync_playwright() as playwright:
@@ -388,7 +483,10 @@ def test_lesson_description_expands_to_show_its_content_when_editing(
     name = f"Browser autosize {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "autosize.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "autosize.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -418,7 +516,10 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
     name = f"Browser copy {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "copy.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "copy.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -450,7 +551,10 @@ def test_syllabus_costs_live_in_the_top_bar(
     name = f"Browser heading {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "heading.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "heading.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -490,7 +594,10 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
     name = f"Browser orientation {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _subject_filter_workbook(tmp_path / "orientation.xlsx"), name
+            conn,
+            _subject_filter_workbook(tmp_path / "orientation.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -499,7 +606,7 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
         page = browser.new_page()
         page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
 
-        subjects = page.get_by_label("Matéria")
+        subjects = page.locator("[data-filter-subject]")
         expect(subjects.get_by_role("option", name="COM")).to_have_count(1)
         expect(subjects.get_by_role("option", name="Artefatos")).to_have_count(1)
         expect(subjects.get_by_role("option", name="Avaliações")).to_have_count(1)
@@ -517,7 +624,10 @@ def test_type2_lesson_shows_subjects_and_its_parented_source(
     name = f"Browser type 2 {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _type2_workbook(tmp_path / "type2.xlsx"), name
+            conn,
+            _type2_workbook(tmp_path / "type2.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -537,7 +647,7 @@ def test_type2_lesson_shows_subjects_and_its_parented_source(
         expect(subjects.get_by_text("SQL Básico", exact=True)).to_be_visible()
         expect(lesson.get_by_role("heading", name="Tutorial MySQL")).to_be_visible()
 
-        subject_filter = page.get_by_label("Matéria")
+        subject_filter = page.locator("[data-filter-subject]")
         for label in ("COM", "Orientação", "Artefatos", "Avaliações"):
             expect(subject_filter.get_by_role("option", name=label)).to_have_count(1)
         expect(page.locator('.syl-lesson[data-subject="COM"]')).to_have_css(
@@ -555,7 +665,10 @@ def test_a_fully_validated_lesson_can_be_unvalidated_from_its_compact_row(
     name = f"Browser unvalidate {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "unvalidate.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "unvalidate.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -591,7 +704,10 @@ def test_syllabus_opens_with_every_lesson_collapsed(
     name = f"Browser collapsed default {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "collapsed-default.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "collapsed-default.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -622,7 +738,10 @@ def test_validating_the_last_source_refreshes_the_kc_offer(
     name = f"Browser KC gate {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "kc-gate.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "kc-gate.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -675,7 +794,10 @@ def test_sequential_lesson_edits_are_saved_as_one_syllabus_edition(
     name = f"Browser serial edits {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "serial.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "serial.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -717,7 +839,10 @@ def test_kc_entry_points_confirm_before_post_and_poll_the_active_build(
     name = f"Browser KC start {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "kc-start.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "kc-start.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -892,7 +1017,10 @@ def test_kc_modal_filters_one_publication_and_deduplicates_lesson_work(
     name = f"Browser KC results {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "kc-results.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "kc-results.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))
@@ -1124,7 +1252,10 @@ def test_universe_publication_is_a_second_explicit_checkpoint_with_shared_progre
     name = f"Browser corpus checkpoint {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _editable_workbook(tmp_path / "corpus-checkpoint.xlsx"), name
+            conn,
+            _editable_workbook(tmp_path / "corpus-checkpoint.xlsx"),
+            name,
+            require_syllabus_metadata=False,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))

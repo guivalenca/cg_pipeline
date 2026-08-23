@@ -10,12 +10,11 @@ pages and generated reports used by this unauthenticated local-only tool.
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 from typing import Any
 
 import psycopg
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg.types.json import Jsonb
@@ -813,54 +812,6 @@ def create_app() -> FastAPI:
         with connect() as conn:
             return {"syllabi": _syllabi(conn)}
 
-    @app.post("/api/syllabi/upload")
-    def upload_syllabus(file: UploadFile) -> dict:
-        file_name = Path(file.filename or "syllabus.xlsx").name or "syllabus.xlsx"
-        temporary_directory: tempfile.TemporaryDirectory | None = None
-        temp_path: Path | None = None
-        try:
-            temporary_directory = tempfile.TemporaryDirectory()
-            temp_path = Path(temporary_directory.name) / file_name
-            with temp_path.open("wb") as temporary:
-                while chunk := file.file.read(1024 * 1024):
-                    temporary.write(chunk)
-            with connect() as conn:
-                imported = syllabus.import_workbook(conn, temp_path, "founder")
-                if imported["unchanged"]:
-                    item_count = imported.get("item_count", 0)
-                    source_count = imported.get("source_count", 0)
-                else:
-                    # The importer reports newly inserted canonical sources.  The
-                    # upload result reports linked workbook rows, including two
-                    # activities that intentionally reuse an existing source.
-                    item_count, source_count = conn.execute(
-                        "SELECT count(*),"
-                        " count(*) FILTER (WHERE source_id IS NOT NULL)"
-                        " FROM syllabus_item WHERE version_id = %s",
-                        (imported["version_id"],),
-                    ).fetchone()
-            diff = imported.get("diff") or {}
-            return {
-                "syllabus_id": imported["syllabus_id"],
-                "version_id": imported["version_id"],
-                "unchanged": bool(imported["unchanged"]),
-                "item_count": item_count,
-                "source_count": source_count,
-                "diff": {
-                    name: [
-                        {"week": item.get("week"), "title": item.get("title", "")}
-                        for item in diff.get(name, [])
-                    ]
-                    for name in ("added", "removed", "changed")
-                },
-            }
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        finally:
-            file.file.close()
-            if temporary_directory is not None:
-                temporary_directory.cleanup()
-
     @app.get("/api/syllabi/{syllabus_id}")
     def syllabus_detail(syllabus_id: str) -> dict:
         with connect() as conn:
@@ -979,6 +930,27 @@ def create_app() -> FastAPI:
                 conn,
                 _required(payload, "institution_id"),
                 _required(payload, "name"),
+            )
+
+    @app.post("/api/org/lesson-subjects")
+    def create_lesson_subject(payload: dict) -> dict:
+        with connect() as conn:
+            return _org_write(
+                org.create_lesson_subject,
+                conn,
+                _required(payload, "institution_id"),
+                _required(payload, "code"),
+                _required(payload, "display_name"),
+            )
+
+    @app.patch("/api/org/lesson-subjects/{lesson_subject_id}")
+    def rename_lesson_subject(lesson_subject_id: str, payload: dict) -> dict:
+        with connect() as conn:
+            return _org_write(
+                org.rename_lesson_subject,
+                conn,
+                lesson_subject_id,
+                _required(payload, "display_name"),
             )
 
     @app.post("/api/org/groups")

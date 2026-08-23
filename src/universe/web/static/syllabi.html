@@ -6,7 +6,7 @@
   <title>Syllabi · Concept Universe</title>
   <script src="/static/theme_boot.js?v=1"></script>
   <link rel="stylesheet" href="/static/shell.css?v=2">
-  <link rel="stylesheet" href="/static/syllabi.css?v=21">
+  <link rel="stylesheet" href="/static/syllabi.css?v=22">
 </head>
 <body>
   <div data-admin-shell></div>
@@ -32,28 +32,33 @@
           <input class="field" type="text" name="name" autocomplete="off" placeholder="Ex.: SI módulo 7 2026" required>
           <small>Este é o nome durável do syllabus. O arquivo será registrado como uma versão.</small>
         </label>
-        <fieldset class="syl-graph-fields" data-graph-fields aria-labelledby="graph-fields-title">
+        <fieldset class="syl-metadata-fields" data-syllabus-fields aria-labelledby="syllabus-fields-title">
           <div class="syl-form-section-heading">
-            <h3 id="graph-fields-title">Dados no Companion</h3>
-            <p>Definem o grafo exportado e acompanham todas as versões deste syllabus.</p>
+            <h3 id="syllabus-fields-title">Vínculo curricular</h3>
+            <p>Escolha uma instituição já cadastrada e as matérias que fazem parte deste syllabus.</p>
           </div>
-          <label class="syl-form-field">
-            <span>Nome exibido do grafo</span>
-            <input class="field" type="text" name="display_name" autocomplete="off" maxlength="255" placeholder="Ex.: Computação" aria-describedby="display-name-help" required>
-            <small id="display-name-help">Nome que estudantes e equipe verão no Companion.</small>
-          </label>
           <div class="syl-form-row">
             <label class="syl-form-field">
-              <span>Identificador da instituição</span>
-              <input class="field" type="text" name="institution_slug" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="2" maxlength="64" pattern="[a-z][a-z0-9\-]{1,63}" placeholder="Ex.: inteli" aria-describedby="institution-slug-help" required>
-              <small id="institution-slug-help">Use o identificador da instituição no Companion. Letras minúsculas, números e hífen.</small>
+              <span>Instituição</span>
+              <select class="field" name="institution_id" data-institution-select aria-describedby="institution-help" required disabled>
+                <option value="">Carregando instituições…</option>
+              </select>
+              <small id="institution-help">A instituição é escolhida do cadastro. O identificador não é digitado aqui.</small>
             </label>
             <label class="syl-form-field">
-              <span>Identificador do grafo</span>
-              <input class="field" type="text" name="graph_id" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="2" maxlength="128" pattern="[a-z][a-z0-9._\-]{1,127}" placeholder="Ex.: graph-inteli-cc07" aria-describedby="graph-id-help" required>
-              <small id="graph-id-help">Será usado no Companion. Comece com letra minúscula; use letras, números, ponto, hífen ou sublinhado.</small>
+              <span>Nome da unidade curricular</span>
+              <input class="field" type="text" name="display_name" autocomplete="off" maxlength="255" placeholder="Ex.: GRAD CC07 · 2026-2A" aria-describedby="display-name-help" required>
+              <small id="display-name-help">Pode ser um módulo, semestre, ano ou outra unidade usada pela instituição.</small>
             </label>
           </div>
+          <div class="syl-form-field">
+            <span id="lesson-subjects-label">Matérias deste syllabus</span>
+            <div class="syl-subject-options" data-lesson-subject-options role="group" aria-labelledby="lesson-subjects-label" aria-live="polite">
+              <p class="syl-subject-options__empty">Selecione uma instituição para ver suas matérias.</p>
+            </div>
+            <small>O código da matéria é estável. O nome exibido pode mudar no cadastro da instituição.</small>
+          </div>
+          <p class="syl-catalog-error" data-catalog-error role="alert"></p>
         </fieldset>
         <label class="syl-file-picker">
           <span class="syl-file-picker__title">Planilha XLSX</span>
@@ -159,6 +164,6 @@
   </dialog>
 
   <script type="module" src="/static/shell.js?v=4"></script>
-  <script type="module" src="/static/syllabi.js?v=31"></script>
+  <script type="module" src="/static/syllabi.js?v=32"></script>
 </body>
 </html>

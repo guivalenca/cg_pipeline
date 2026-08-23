@@ -428,6 +428,17 @@ class TestSourceIdentity:
 
 
 class TestVersionedImport:
+    def test_new_named_import_requires_durable_metadata_by_default(self, db, tmp_path):
+        path = tmp_path / "requires-metadata.xlsx"
+        write_project(path, [project_row(project="Metadata required")])
+
+        with pytest.raises(ValueError, match="instituição"):
+            import_workbook(db, path, "Metadata required")
+
+        assert db.execute(
+            "SELECT 1 FROM syllabus WHERE id = 'metadata-required'"
+        ).fetchone() is None
+
     def test_name_is_manual_and_uploaded_xlsx_is_retained_exactly(self, db, tmp_path):
         path = tmp_path / "input.xlsx"
         write_project(
@@ -442,7 +453,9 @@ class TestVersionedImport:
         original = path.read_bytes()
         run_count = db.execute("SELECT count(*) FROM run").fetchone()[0]
 
-        result = import_workbook(db, path, "SI módulo 7 2026")
+        result = import_workbook(
+            db, path, "SI módulo 7 2026", require_syllabus_metadata=False
+        )
 
         assert result["syllabus_id"] == "si-modulo-7-2026"
         assert result["seq"] == 1
@@ -465,8 +478,12 @@ class TestVersionedImport:
         path = tmp_path / "same.xlsx"
         write_project(path, [project_row(project="UNRELATED")])
 
-        first = import_workbook(db, path, "Idempotent syllabus")
-        second = import_workbook(db, path, "Idempotent syllabus")
+        first = import_workbook(
+            db, path, "Idempotent syllabus", require_syllabus_metadata=False
+        )
+        second = import_workbook(
+            db, path, "Idempotent syllabus", require_syllabus_metadata=False
+        )
 
         assert second["unchanged"] is True
         assert second["version_id"] == first["version_id"]
@@ -490,12 +507,18 @@ class TestVersionedImport:
             url="https://example.com/reused",
         )
         write_project(path, [lesson, source])
-        first = import_workbook(db, path, "Reused source syllabus")
+        first = import_workbook(
+            db, path, "Reused source syllabus", require_syllabus_metadata=False
+        )
 
         source[5] = "Description changed without changing source identity"
         write_project(path, [lesson, source])
-        second = import_workbook(db, path, "Reused source syllabus")
-        unchanged = import_workbook(db, path, "Reused source syllabus")
+        second = import_workbook(
+            db, path, "Reused source syllabus", require_syllabus_metadata=False
+        )
+        unchanged = import_workbook(
+            db, path, "Reused source syllabus", require_syllabus_metadata=False
+        )
 
         assert first["source_count"] == first["reference_count"] == 1
         assert first["new_source_count"] == 1
@@ -516,7 +539,9 @@ class TestVersionedImport:
         path = tmp_path / "curation-id.xlsx"
         write_project(path, [project_row(project="IGNORED")])
 
-        result = import_workbook(db, path, "Strict curation id syllabus")
+        result = import_workbook(
+            db, path, "Strict curation id syllabus", require_syllabus_metadata=False
+        )
 
         event_id = db.execute(
             "SELECT id FROM curation_event"
@@ -537,13 +562,17 @@ class TestVersionedImport:
             url="https://example.com/v1",
         )
         write_project(path, [lesson, source])
-        first = import_workbook(db, path, "Versioned syllabus")
+        first = import_workbook(
+            db, path, "Versioned syllabus", require_syllabus_metadata=False
+        )
         first_view = get_syllabus_version(db, first["syllabus_id"])
 
         source[12] = "https://example.com/v2"
         source[5] = "Changed description"
         write_project(path, [lesson, source])
-        second = import_workbook(db, path, "Versioned syllabus")
+        second = import_workbook(
+            db, path, "Versioned syllabus", require_syllabus_metadata=False
+        )
 
         latest = get_syllabus_version(db, first["syllabus_id"])
         historical = get_syllabus_version(db, first["syllabus_id"], first["version_id"])
@@ -566,7 +595,9 @@ class TestVersionedImport:
             url="https://example.com/lasting",
         )
         write_project(path, [lesson, source])
-        first = import_workbook(db, path, "Removal syllabus")
+        first = import_workbook(
+            db, path, "Removal syllabus", require_syllabus_metadata=False
+        )
         first_view = get_syllabus_version(db, first["syllabus_id"])
         source_id = first_view["lessons"][0]["sources"][0]["source_id"]
         db.execute(
@@ -581,7 +612,9 @@ class TestVersionedImport:
         db.commit()
 
         write_project(path, [lesson])
-        import_workbook(db, path, "Removal syllabus")
+        import_workbook(
+            db, path, "Removal syllabus", require_syllabus_metadata=False
+        )
 
         latest = get_syllabus_version(db, first["syllabus_id"])
         historical = get_syllabus_version(db, first["syllabus_id"], first["version_id"])
@@ -626,7 +659,9 @@ class TestVersionedImport:
             ],
         )
 
-        result = import_workbook(db, path, "Books syllabus")
+        result = import_workbook(
+            db, path, "Books syllabus", require_syllabus_metadata=False
+        )
         view = get_syllabus_version(db, result["syllabus_id"])
         source_ids = {source["source_id"] for source in view["lessons"][0]["sources"]}
 
@@ -652,7 +687,9 @@ class TestVersionedImport:
             ],
         )
 
-        result = import_workbook(db, path, "Incomplete books")
+        result = import_workbook(
+            db, path, "Incomplete books", require_syllabus_metadata=False
+        )
         source = get_syllabus_version(db, result["syllabus_id"])["lessons"][0]["sources"][0]
 
         assert source["media_type"] == "book"
@@ -686,7 +723,9 @@ class TestSyllabusCuration:
                 ),
             ],
         )
-        return import_workbook(db, path, "Syllabus editável")
+        return import_workbook(
+            db, path, "Syllabus editável", require_syllabus_metadata=False
+        )
 
     def test_editor_authors_new_complete_version_and_preserves_old_facts(self, db, tmp_path):
         imported = self._import_related(db, tmp_path)

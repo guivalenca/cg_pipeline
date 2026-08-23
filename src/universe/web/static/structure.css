@@ -1,4 +1,4 @@
-/* Structure — institutions, courses and groups, plus their creation forms.
+/* Structure — institutions, Lesson Subjects, courses and groups, plus their forms.
    Shared primitives (.workspace, .panel, .button, .field) come from shell.css. */
 
 .structure-workspace a:focus-visible,
@@ -113,6 +113,12 @@
   flex: 0 1 190px;
 }
 
+.org-form__code {
+  flex: 0 1 110px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
+}
+
 .org-form .button {
   flex: none;
   min-height: 40px;
@@ -160,7 +166,7 @@
 
 .org-columns {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 4fr) minmax(0, 6fr);
   gap: 24px;
 }
 
@@ -204,6 +210,42 @@
   min-height: 24px;
   font-size: 12.5px;
   font-weight: 600;
+}
+
+/* ---------- Lesson Subjects ---------- */
+
+.org-subjects {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.org-subject {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.org-subject .field {
+  min-width: 0;
+}
+
+.org-subject__code {
+  min-width: 42px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--admin-surface-soft);
+  color: var(--admin-text-secondary);
+  font-size: 10px;
+  text-align: center;
+}
+
+.org-subject .org-form__error {
+  grid-column: 1 / -1;
 }
 
 /* ---------- groups ---------- */
@@ -295,7 +337,7 @@
 
 /* ---------- responsive ---------- */
 
-@media (max-width: 860px) {
+@media (max-width: 1120px) {
   .org-columns {
     grid-template-columns: minmax(0, 1fr);
   }

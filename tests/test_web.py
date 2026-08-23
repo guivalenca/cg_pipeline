@@ -99,6 +99,7 @@ def _workbook(
     *,
     project: str,
     lesson: str,
+    subject: str = "Negócios",
     source_title: str = "Fonte",
     source_url: str = "https://example.com/material",
     source_description: str = "Uma descrição útil.",
@@ -116,7 +117,7 @@ def _workbook(
         Semana="Semana 01",
         Ordem="1",
         Atividade=lesson,
-        **{"Tipo da atividade": "Encontro", "Eixo": "Negócios"},
+        **{"Tipo da atividade": "Encontro", "Eixo": subject},
     )
     row(
         Projeto=project,
@@ -134,25 +135,67 @@ def _workbook(
     return path
 
 
+def _test_catalog(client: TestClient) -> tuple[dict, list[dict]]:
+    institution_id = "web-inteli"
+    tree = client.get("/api/org").json()["institutions"]
+    institution = next(
+        (entry for entry in tree if entry["id"] == institution_id),
+        None,
+    )
+    if institution is None:
+        created = client.post(
+            "/api/org/institutions",
+            json={"slug": institution_id, "name": "Inteli Web"},
+        )
+        assert created.status_code == 200, created.text
+        institution = {**created.json(), "lesson_subjects": []}
+    subjects = {subject["code"]: subject for subject in institution["lesson_subjects"]}
+    for code, display_name in (
+        ("COM", "Computação"),
+        ("LID", "Liderança"),
+        ("NEG", "Negócios"),
+        ("UEX", "User Experience"),
+    ):
+        if code in subjects:
+            continue
+        created = client.post(
+            "/api/org/lesson-subjects",
+            json={
+                "institution_id": institution_id,
+                "code": code,
+                "display_name": display_name,
+            },
+        )
+        assert created.status_code == 200, created.text
+        subjects[code] = created.json()
+    return (
+        {"id": institution_id, "name": "Inteli Web"},
+        [subjects[code] for code in sorted(subjects)],
+    )
+
+
 def _upload(
     client: TestClient,
     path: Path,
     name: str,
     syllabus_id: str | None = None,
     *,
-    graph_id: str | None = None,
-    display_name: str = "Computação",
-    institution_slug: str = "inteli",
+    display_name: str = "Módulo 7",
+    institution_id: str | None = None,
+    lesson_subject_ids: list[str] | None = None,
 ):
     data = {"name": name}
     if syllabus_id:
         data["syllabus_id"] = syllabus_id
     else:
+        default_institution, default_subjects = _test_catalog(client)
         data.update(
             {
-                "graph_id": graph_id or f"graph-{uuid.uuid4().hex}",
                 "display_name": display_name,
-                "institution_slug": institution_slug,
+                "institution_id": institution_id or default_institution["id"],
+                "lesson_subject_ids": lesson_subject_ids
+                if lesson_subject_ids is not None
+                else [subject["id"] for subject in default_subjects],
             }
         )
     with path.open("rb") as workbook:
@@ -180,9 +223,7 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
             client,
             path,
             name,
-            graph_id="graph-inteli-grad-cc07",
-            display_name="Ciência da Computação",
-            institution_slug="inteli",
+            display_name="GRAD CC07 · 2026-2A",
         )
         assert uploaded.status_code == 201, uploaded.text
         result = uploaded.json()
@@ -191,17 +232,28 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
         index = client.get("/api/syllabi")
         entry = next(item for item in index.json()["syllabi"] if item["id"] == result["syllabus_id"])
         assert entry["title"] == name
-        assert entry["graph_id"] == "graph-inteli-grad-cc07"
-        assert entry["display_name"] == "Ciência da Computação"
-        assert entry["institution_slug"] == "inteli"
+        assert entry["graph_id"] == result["syllabus_id"]
+        assert entry["display_name"] == "GRAD CC07 · 2026-2A"
+        assert entry["institution"] == {"id": "web-inteli", "name": "Inteli Web"}
+        assert entry["institution_slug"] == "web-inteli"
+        assert [subject["code"] for subject in entry["lesson_subjects"]] == [
+            "COM", "LID", "NEG", "UEX"
+        ]
+        assert entry["metadata_complete"] is True
+        assert entry["temporary_bridge"] == {
+            "graph_id": result["syllabus_id"],
+            "display_name": "GRAD CC07 · 2026-2A",
+            "institution_slug": "web-inteli",
+        }
         assert entry["latest"]["lesson_count"] == 1
         assert entry["latest"]["source_count"] == 1
 
         detail = client.get(f"/api/syllabi/{result['syllabus_id']}").json()
         assert detail["title"] == name
-        assert detail["graph_id"] == "graph-inteli-grad-cc07"
-        assert detail["display_name"] == "Ciência da Computação"
-        assert detail["institution_slug"] == "inteli"
+        assert detail["graph_id"] == result["syllabus_id"]
+        assert detail["display_name"] == "GRAD CC07 · 2026-2A"
+        assert detail["institution_slug"] == "web-inteli"
+        assert detail["lessons"][0]["lesson_subject"]["code"] == "NEG"
         assert detail["lessons"][0]["title"] == "Aula 1"
         assert detail["lessons"][0]["sources"][0]["has_markdown"] is False
         assert detail["lessons"][0]["sources"][0]["has_kcs"] is False
@@ -220,7 +272,7 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
         ).fetchone()[0] == 0
 
 
-def test_new_syllabus_upload_requires_complete_valid_graph_metadata(
+def test_new_syllabus_upload_requires_complete_valid_syllabus_metadata(
     test_database_url, applied_migrations, tmp_path
 ):
     path = _workbook(
@@ -245,13 +297,14 @@ def test_new_syllabus_upload_requires_complete_valid_graph_metadata(
     assert "instituição" in missing.json()["detail"]
 
     with TestClient(_app(test_database_url)) as client, path.open("rb") as workbook:
+        _, subjects = _test_catalog(client)
         invalid = client.post(
             "/api/syllabi/upload",
             data={
                 "name": "Metadados inválidos",
-                "graph_id": "Graph Inteli",
-                "display_name": "Computação",
-                "institution_slug": "Inteli",
+                "display_name": "Módulo 7",
+                "institution_id": "unknown-institution",
+                "lesson_subject_ids": [subjects[0]["id"]],
             },
             files={
                 "file": (
@@ -262,7 +315,353 @@ def test_new_syllabus_upload_requires_complete_valid_graph_metadata(
             },
         )
     assert invalid.status_code == 422
-    assert "identificador do grafo" in invalid.json()["detail"]
+    assert "instituição existente" in invalid.json()["detail"]
+
+    with TestClient(_app(test_database_url)) as client, path.open("rb") as workbook:
+        nonexistent_target = client.post(
+            "/api/syllabi/upload",
+            data={"name": "Alvo inexistente", "syllabus_id": "missing-target"},
+            files={
+                "file": (
+                    path.name,
+                    workbook,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            },
+        )
+    assert nonexistent_target.status_code == 404
+    assert "unknown syllabus" in nonexistent_target.json()["detail"]
+
+
+def test_partial_legacy_metadata_can_be_completed_by_a_valid_upload(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "repair-metadata.xlsx",
+        project="Project",
+        lesson="Aula 1",
+    )
+    syllabus_id = f"repair-metadata-{uuid.uuid4().hex[:8]}"
+    with TestClient(_app(test_database_url)) as client:
+        institution, subjects = _test_catalog(client)
+        selected = [subject for subject in subjects if subject["code"] == "NEG"]
+        with psycopg.connect(test_database_url) as conn:
+            conn.execute(
+                "INSERT INTO syllabus (id, title, institution_id) VALUES (%s, %s, %s)",
+                (syllabus_id, "Repair metadata", institution["id"]),
+            )
+            conn.commit()
+
+        with path.open("rb") as workbook:
+            repaired = client.post(
+                "/api/syllabi/upload",
+                data={
+                    "name": "Repair metadata",
+                    "syllabus_id": syllabus_id,
+                    "institution_id": institution["id"],
+                    "display_name": "Módulo reparado",
+                    "lesson_subject_ids": [selected[0]["id"]],
+                },
+                files={
+                    "file": (
+                        path.name,
+                        workbook,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                },
+            )
+        assert repaired.status_code == 201, repaired.text
+        detail = client.get(f"/api/syllabi/{syllabus_id}").json()
+        assert detail["display_name"] == "Módulo reparado"
+        assert [subject["code"] for subject in detail["lesson_subjects"]] == ["NEG"]
+        assert detail["metadata_complete"] is True
+
+
+def test_new_syllabus_upload_rejects_duplicate_cross_institution_and_missing_subjects(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "subject-validation.xlsx",
+        project="Project",
+        lesson="Aula 1",
+    )
+    with TestClient(_app(test_database_url)) as client:
+        institution, subjects = _test_catalog(client)
+        by_code = {subject["code"]: subject for subject in subjects}
+
+        other = client.post(
+            "/api/org/institutions",
+            json={"slug": "web-other", "name": "Other Web Institution"},
+        )
+        if other.status_code == 400:
+            tree = client.get("/api/org").json()["institutions"]
+            other_subjects = next(
+                entry["lesson_subjects"] for entry in tree if entry["id"] == "web-other"
+            )
+        else:
+            assert other.status_code == 200, other.text
+            created_subject = client.post(
+                "/api/org/lesson-subjects",
+                json={
+                    "institution_id": "web-other",
+                    "code": "COM",
+                    "display_name": "Computação Other",
+                },
+            )
+            assert created_subject.status_code == 200, created_subject.text
+            other_subjects = [created_subject.json()]
+
+        empty = _upload(
+            client,
+            path,
+            f"Empty subjects {uuid.uuid4().hex[:8]}",
+            institution_id=institution["id"],
+            lesson_subject_ids=[],
+        )
+        assert empty.status_code == 422
+        assert "ao menos uma matéria" in empty.json()["detail"]
+
+        unknown = _upload(
+            client,
+            path,
+            f"Unknown subject {uuid.uuid4().hex[:8]}",
+            institution_id=institution["id"],
+            lesson_subject_ids=["ls-does-not-exist"],
+        )
+        assert unknown.status_code == 422
+        assert "instituição escolhida" in unknown.json()["detail"]
+
+        duplicate = _upload(
+            client,
+            path,
+            f"Duplicate subjects {uuid.uuid4().hex[:8]}",
+            institution_id=institution["id"],
+            lesson_subject_ids=[by_code["COM"]["id"], by_code["COM"]["id"]],
+        )
+        assert duplicate.status_code == 422
+        assert "uma única vez" in duplicate.json()["detail"]
+
+        cross_institution = _upload(
+            client,
+            path,
+            f"Cross institution {uuid.uuid4().hex[:8]}",
+            institution_id=institution["id"],
+            lesson_subject_ids=[by_code["COM"]["id"], other_subjects[0]["id"]],
+        )
+        assert cross_institution.status_code == 422
+        assert "instituição escolhida" in cross_institution.json()["detail"]
+
+        omitted_workbook_subject = _upload(
+            client,
+            path,
+            f"Missing workbook subject {uuid.uuid4().hex[:8]}",
+            institution_id=institution["id"],
+            lesson_subject_ids=[by_code["LID"]["id"]],
+        )
+        assert omitted_workbook_subject.status_code == 422
+        assert "NEG" in omitted_workbook_subject.json()["detail"]
+
+        invalid_bridge_id = _upload(
+            client,
+            path,
+            "1",
+            institution_id=institution["id"],
+            lesson_subject_ids=[by_code["NEG"]["id"]],
+        )
+        assert invalid_bridge_id.status_code == 422
+        assert "identificador" in invalid_bridge_id.json()["detail"]
+        assert client.get("/api/syllabi/1").status_code == 404
+
+
+def test_subject_selection_is_a_set_and_legacy_graph_fields_cannot_override_it(
+    test_database_url, applied_migrations, tmp_path
+):
+    path = _workbook(
+        tmp_path / "subject-set.xlsx",
+        project="Project",
+        lesson="Aula 1",
+    )
+    name = f"Subject set {uuid.uuid4().hex[:8]}"
+    with TestClient(_app(test_database_url)) as client:
+        institution, subjects = _test_catalog(client)
+        subject_ids = [subject["id"] for subject in subjects]
+        first = _upload(
+            client,
+            path,
+            name,
+            institution_id=institution["id"],
+            lesson_subject_ids=list(reversed(subject_ids)),
+        )
+        assert first.status_code == 201, first.text
+        repeated = _upload(
+            client,
+            path,
+            name,
+            institution_id=institution["id"],
+            lesson_subject_ids=subject_ids,
+        )
+        assert repeated.status_code == 201, repeated.text
+        assert repeated.json()["unchanged"] is True
+
+        with path.open("rb") as workbook:
+            ignored_legacy_fields = client.post(
+                "/api/syllabi/upload",
+                data={
+                    "name": f"Derived bridge {uuid.uuid4().hex[:8]}",
+                    "display_name": "Módulo derivado",
+                    "institution_id": institution["id"],
+                    "lesson_subject_ids": subject_ids,
+                    "graph_id": "attacker-controlled-graph",
+                    "institution_slug": "attacker-controlled-institution",
+                },
+                files={
+                    "file": (
+                        path.name,
+                        workbook,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                },
+            )
+        assert ignored_legacy_fields.status_code == 201, ignored_legacy_fields.text
+        detail = client.get(
+            f"/api/syllabi/{ignored_legacy_fields.json()['syllabus_id']}"
+        ).json()
+        assert detail["graph_id"] == detail["id"]
+        assert detail["institution_slug"] == institution["id"]
+
+
+def test_later_upload_cannot_author_a_subject_outside_the_syllabus_set(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Bounded subjects {uuid.uuid4().hex[:8]}"
+    first_path = _workbook(
+        tmp_path / "selected-neg.xlsx",
+        project="Project",
+        lesson="Aula de negócios",
+        subject="Negócios",
+    )
+    second_path = _workbook(
+        tmp_path / "unselected-com.xlsx",
+        project="Project",
+        lesson="Aula de computação",
+        subject="Computação",
+    )
+    with TestClient(_app(test_database_url)) as client:
+        institution, subjects = _test_catalog(client)
+        by_code = {subject["code"]: subject for subject in subjects}
+        first = _upload(
+            client,
+            first_path,
+            name,
+            institution_id=institution["id"],
+            lesson_subject_ids=[by_code["NEG"]["id"]],
+        )
+        assert first.status_code == 201, first.text
+
+        rejected = _upload(
+            client,
+            second_path,
+            name,
+            syllabus_id=first.json()["syllabus_id"],
+        )
+        assert rejected.status_code == 422
+        assert "COM" in rejected.json()["detail"]
+        detail = client.get(f"/api/syllabi/{first.json()['syllabus_id']}")
+        assert detail.status_code == 200, detail.text
+        assert len(detail.json()["versions"]) == 1
+
+        lessons = detail.json()["lessons"]
+        lessons[0]["subject"] = "COM"
+        rejected_curation = client.post(
+            f"/api/syllabi/{first.json()['syllabus_id']}/curate",
+            json={
+                "base_version_id": first.json()["version_id"],
+                "note": "Tenta trocar para uma matéria fora do escopo.",
+                "lessons": lessons,
+            },
+        )
+        assert rejected_curation.status_code == 422
+        assert "COM" in rejected_curation.json()["detail"]
+
+
+def test_lesson_subject_rename_propagates_without_changing_membership(
+    test_database_url, applied_migrations, tmp_path
+):
+    suffix = uuid.uuid4().hex[:8]
+    institution_id = f"rename-{suffix}"
+    name = f"Rename subject {suffix}"
+    path = _workbook(
+        tmp_path / "rename-subject.xlsx",
+        project="Project",
+        lesson="Aula 1",
+    )
+    with TestClient(_app(test_database_url)) as client:
+        institution = client.post(
+            "/api/org/institutions",
+            json={"slug": institution_id, "name": "Rename Institution"},
+        )
+        assert institution.status_code == 200, institution.text
+        subject = client.post(
+            "/api/org/lesson-subjects",
+            json={
+                "institution_id": institution_id,
+                "code": "NEG",
+                "display_name": "Negócios original",
+            },
+        )
+        assert subject.status_code == 200, subject.text
+        uploaded = _upload(
+            client,
+            path,
+            name,
+            institution_id=institution_id,
+            lesson_subject_ids=[subject.json()["id"]],
+        )
+        assert uploaded.status_code == 201, uploaded.text
+
+        renamed = client.patch(
+            f"/api/org/lesson-subjects/{subject.json()['id']}",
+            json={"display_name": "Negócios aplicados"},
+        )
+        assert renamed.status_code == 200, renamed.text
+        detail = client.get(
+            f"/api/syllabi/{uploaded.json()['syllabus_id']}"
+        ).json()
+        assert detail["lesson_subjects"] == [
+            {
+                "id": subject.json()["id"],
+                "code": "NEG",
+                "display_name": "Negócios aplicados",
+            }
+        ]
+
+
+def test_metadata_incomplete_legacy_syllabus_remains_readable(
+    test_database_url, applied_migrations
+):
+    syllabus_id = f"legacy-readable-{uuid.uuid4().hex[:8]}"
+    version_id = f"{syllabus_id}:v0001"
+    with psycopg.connect(test_database_url) as conn:
+        conn.execute(
+            "INSERT INTO syllabus (id, title) VALUES (%s, 'Legacy readable')",
+            (syllabus_id,),
+        )
+        conn.execute(
+            "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+            " VALUES (%s, %s, 1, 'upload')",
+            (version_id, syllabus_id),
+        )
+        conn.commit()
+
+    with TestClient(_app(test_database_url)) as client:
+        detail = client.get(f"/api/syllabi/{syllabus_id}")
+
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["institution"] is None
+    assert detail.json()["lesson_subjects"] == []
+    assert detail.json()["institution_slug"] is None
+    assert detail.json()["metadata_complete"] is False
+    assert detail.json()["temporary_bridge"] is None
 
 
 def test_version_query_loads_that_versions_actual_lessons(

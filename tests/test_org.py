@@ -23,6 +23,16 @@ def course(db, institution):
 
 
 @pytest.fixture(scope="module")
+def lesson_subject(db, institution):
+    return org.create_lesson_subject(
+        db,
+        institution["id"],
+        "COM",
+        "Computação Orgx",
+    )
+
+
+@pytest.fixture(scope="module")
 def group(db, institution, course):
     return org.create_group(db, institution["id"], "Orgx 2026-2A", course["id"])
 
@@ -70,6 +80,51 @@ def test_course_requires_existing_institution_and_usable_name(db, institution):
 def test_course_name_is_unique_per_institution(db, institution, course):
     with pytest.raises(ValueError, match="already has a course"):
         org.create_course(db, institution["id"], "Ciencia da Computacao Orgx")
+
+
+def test_lesson_subject_code_is_stable_and_unique_within_an_institution(
+    db, institution, lesson_subject
+):
+    assert lesson_subject["id"].startswith("ls-")
+    assert lesson_subject["institution_id"] == institution["id"]
+    assert lesson_subject["code"] == "COM"
+    assert lesson_subject["display_name"] == "Computação Orgx"
+
+    with pytest.raises(ValueError, match="already has"):
+        org.create_lesson_subject(db, institution["id"], "com", "Outro nome")
+
+    other = org.create_institution(db, "orgx-subject-peer", "Orgx Subject Peer")
+    peer = org.create_lesson_subject(db, other["id"], "COM", "Computação Peer")
+    assert peer["id"] != lesson_subject["id"]
+
+
+def test_lesson_subject_display_name_can_change_without_changing_identity(
+    db, institution
+):
+    subject = org.create_lesson_subject(
+        db, institution["id"], "LID", "Liderança original"
+    )
+    renamed = org.rename_lesson_subject(db, subject["id"], "Liderança")
+
+    assert renamed == {
+        **subject,
+        "display_name": "Liderança",
+    }
+    with pytest.raises(psycopg.errors.RaiseException, match="identity is immutable"):
+        db.execute(
+            "UPDATE lesson_subject SET code = 'NEW' WHERE id = %s",
+            (subject["id"],),
+        )
+    db.rollback()
+
+
+def test_lesson_subject_validates_code_and_display_name(db, institution):
+    with pytest.raises(ValueError, match="code"):
+        org.create_lesson_subject(db, institution["id"], "invalid code", "Valid")
+    with pytest.raises(ValueError, match="255"):
+        org.create_lesson_subject(db, institution["id"], "UEX", "x" * 256)
+    with pytest.raises(ValueError, match="255"):
+        org.create_lesson_subject(db, institution["id"], "NEG", "Bad\x7fname")
 
 
 def test_group_is_minted_with_g_prefix_and_optional_course(db, institution, group):
@@ -161,8 +216,22 @@ def test_assignment_requires_existing_syllabus_and_group(db, group):
         org.assign_syllabus(db, "orgx-syllabus", "g-orgx-ghost")
 
 
+def test_assignment_rejects_a_group_from_another_institution(db, institution):
+    other = org.create_institution(db, "orgx-assignment-other", "Other Institution")
+    other_group = org.create_group(db, other["id"], "Other Group")
+    db.execute(
+        "INSERT INTO syllabus (id, title, institution_id, display_name)"
+        " VALUES ('orgx-durable-syllabus', 'Durable', %s, 'Durable unit')",
+        (institution["id"],),
+    )
+    db.commit()
+
+    with pytest.raises(ValueError, match="another institution"):
+        org.assign_syllabus(db, "orgx-durable-syllabus", other_group["id"])
+
+
 def test_structure_tree_shape_and_unassigned_syllabus_untouched(
-    db, institution, course, group, assigned_syllabus
+    db, institution, lesson_subject, course, group, assigned_syllabus
 ):
     db.execute(
         "INSERT INTO syllabus (id, title)"
@@ -173,6 +242,10 @@ def test_structure_tree_shape_and_unassigned_syllabus_untouched(
     tree = org.structure(db)
     mine = next(node for node in tree if node["id"] == institution["id"])
     assert mine["name"] == "Orgx University"
+    assert lesson_subject in [
+        {**subject, "institution_id": institution["id"]}
+        for subject in mine["lesson_subjects"]
+    ]
     assert {"id": course["id"], "name": course["name"]} in mine["courses"]
     groups = {node["id"]: node for node in mine["groups"]}
     assert group["id"] in groups
@@ -219,6 +292,16 @@ def test_api_creates_the_whole_hierarchy(client):
     )
     assert institution.status_code == 200, institution.text
 
+    lesson_subject = client.post(
+        "/api/org/lesson-subjects",
+        json={
+            "institution_id": "orgx-api-uni",
+            "code": "com",
+            "display_name": "Computação API",
+        },
+    )
+    assert lesson_subject.status_code == 200, lesson_subject.text
+
     course = client.post(
         "/api/org/courses",
         json={"institution_id": "orgx-api-uni", "name": "Orgx API Course"},
@@ -242,7 +325,23 @@ def test_api_creates_the_whole_hierarchy(client):
         node for node in tree.json()["institutions"] if node["id"] == "orgx-api-uni"
     )
     assert [item["id"] for item in mine["courses"]] == [course_id]
+    assert mine["lesson_subjects"] == [
+        {
+            "id": lesson_subject.json()["id"],
+            "code": "COM",
+            "display_name": "Computação API",
+        }
+    ]
     assert [item["id"] for item in mine["groups"]] == [group.json()["id"]]
+
+    renamed = client.patch(
+        f"/api/org/lesson-subjects/{lesson_subject.json()['id']}",
+        json={"display_name": "Computação Aplicada"},
+    )
+    assert renamed.status_code == 200, renamed.text
+    assert renamed.json()["id"] == lesson_subject.json()["id"]
+    assert renamed.json()["code"] == "COM"
+    assert renamed.json()["display_name"] == "Computação Aplicada"
 
 
 def test_api_errors_are_plain_400s_and_404s(client):

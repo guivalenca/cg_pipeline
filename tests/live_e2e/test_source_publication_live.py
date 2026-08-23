@@ -759,6 +759,7 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
         workbook,
         "GRAD CC07 - 2026-2A live E2E",
         syllabus_id=f"live-e2e-cc07-{live.run_id}",
+        require_syllabus_metadata=False,
         actor="live-e2e",
     )
     repeated = import_workbook(
@@ -766,6 +767,7 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
         workbook,
         "GRAD CC07 - 2026-2A live E2E",
         syllabus_id=imported["syllabus_id"],
+        require_syllabus_metadata=False,
         actor="live-e2e",
     )
     assert imported["lesson_count"] == 64

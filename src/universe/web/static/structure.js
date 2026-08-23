@@ -48,6 +48,23 @@ function courseListMarkup(institution) {
   )).join('')}</ul>`;
 }
 
+function lessonSubjectListMarkup(institution) {
+  const subjects = institution.lesson_subjects || [];
+  if (!subjects.length) {
+    return '<p class="org-none">No Lesson Subjects yet.</p>';
+  }
+  return `<ul class="org-subjects">${subjects.map((subject) => (
+    `<li>
+      <form class="org-subject" data-rename-subject data-subject="${esc(subject.id)}" novalidate>
+        <code class="org-subject__code">${esc(subject.code)}</code>
+        <input class="field" type="text" name="display_name" value="${esc(subject.display_name)}" autocomplete="off" aria-label="Display name for ${esc(subject.code)}">
+        <button class="button button--quiet" type="submit">Save name</button>
+        <p class="org-form__error" role="alert" data-error hidden></p>
+      </form>
+    </li>`
+  )).join('')}</ul>`;
+}
+
 function syllabusRowMarkup(entry) {
   return `<li>
     <a class="org-syllabus" href="/syllabi?id=${encodeURIComponent(entry.id)}">
@@ -83,6 +100,15 @@ function courseFormMarkup(institution) {
   </form>`;
 }
 
+function lessonSubjectFormMarkup(institution) {
+  return `<form class="org-form" data-add-subject data-institution="${esc(institution.id)}" novalidate>
+    <input class="field org-form__code" type="text" name="code" placeholder="Code, e.g. COM" autocomplete="off" spellcheck="false" aria-label="New Lesson Subject code for ${esc(institution.name)}">
+    <input class="field" type="text" name="display_name" placeholder="Display name" autocomplete="off" aria-label="New Lesson Subject name for ${esc(institution.name)}">
+    <button class="button" type="submit">Add subject</button>
+    <p class="org-form__error" role="alert" data-error hidden></p>
+  </form>`;
+}
+
 function groupFormMarkup(institution) {
   const options = (institution.courses || []).map((course) => (
     `<option value="${esc(course.id)}">${esc(course.name)}</option>`
@@ -109,6 +135,11 @@ function institutionMarkup(institution) {
       <code class="org-id">${esc(institution.id)}</code>
     </header>
     <div class="org-columns">
+      <section class="org-section" aria-label="Lesson Subjects of ${esc(institution.name)}">
+        <p class="org-section__label">Lesson Subjects</p>
+        ${lessonSubjectListMarkup(institution)}
+        ${lessonSubjectFormMarkup(institution)}
+      </section>
       <section class="org-section" aria-label="Courses of ${esc(institution.name)}">
         <p class="org-section__label">Courses</p>
         ${courseListMarkup(institution)}
@@ -152,9 +183,9 @@ async function loadTree() {
   render();
 }
 
-async function post(url, payload) {
+async function post(url, payload, method = 'POST') {
   const response = await fetch(url, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -192,7 +223,7 @@ async function submitForm(form, buildRequest, successMessage) {
   }
   setFormBusy(form, true);
   try {
-    const created = await post(request.url, request.payload);
+    const created = await post(request.url, request.payload, request.method);
     announce(successMessage(created));
     await loadTree();
   } catch (error) {
@@ -217,6 +248,30 @@ function courseRequest(form) {
   };
 }
 
+function lessonSubjectRequest(form) {
+  const code = form.elements.code.value.trim();
+  const displayName = form.elements.display_name.value.trim();
+  if (!code || !displayName) return 'Fill in both the code and the display name.';
+  return {
+    url: '/api/org/lesson-subjects',
+    payload: {
+      institution_id: form.dataset.institution,
+      code,
+      display_name: displayName,
+    },
+  };
+}
+
+function renameLessonSubjectRequest(form) {
+  const displayName = form.elements.display_name.value.trim();
+  if (!displayName) return 'Give the Lesson Subject a display name.';
+  return {
+    url: `/api/org/lesson-subjects/${encodeURIComponent(form.dataset.subject)}`,
+    method: 'PATCH',
+    payload: { display_name: displayName },
+  };
+}
+
 function groupRequest(form) {
   const name = form.elements.name.value.trim();
   if (!name) return 'Give the group a name.';
@@ -237,6 +292,10 @@ document.querySelector('main').addEventListener('submit', (event) => {
   event.preventDefault();
   if (form.matches('[data-add-institution]')) {
     submitForm(form, institutionRequest, (created) => `Institution “${created.name}” created.`);
+  } else if (form.matches('[data-add-subject]')) {
+    submitForm(form, lessonSubjectRequest, (created) => `Lesson Subject “${created.display_name}” created.`);
+  } else if (form.matches('[data-rename-subject]')) {
+    submitForm(form, renameLessonSubjectRequest, (updated) => `Lesson Subject ${updated.code} renamed.`);
   } else if (form.matches('[data-add-course]')) {
     submitForm(form, courseRequest, (created) => `Course “${created.name}” created.`);
   } else if (form.matches('[data-add-group]')) {

@@ -17,6 +17,7 @@ const state = {
   editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
   versionDialog: { mode: 'history', trigger: null, error: null },
   upload: { mode: 'new', syllabusId: null, busy: false },
+  catalog: { institutions: [], loaded: false, loading: false, error: null },
   reconciliation: null,
   reconciliationCleanup: null,
   manualUpload: { sourceId: null, title: '', kind: null, items: [], busy: false },
@@ -1630,27 +1631,105 @@ async function loadReconciliation(reconciliationId) {
   }
 }
 
+function selectedUploadInstitution() {
+  const institutionId = uploadForm.elements.institution_id?.value || '';
+  return state.catalog.institutions.find((entry) => entry.id === institutionId) || null;
+}
+
+function renderUploadSubjects() {
+  const host = $('[data-lesson-subject-options]');
+  const institution = selectedUploadInstitution();
+  if (!institution) {
+    host.innerHTML = '<p class="syl-subject-options__empty">Selecione uma instituição para ver suas matérias.</p>';
+    return;
+  }
+  const subjects = [...(institution.lesson_subjects || [])].sort((left, right) => (
+    String(left.code || '').localeCompare(String(right.code || ''), 'pt-BR')
+  ));
+  if (!subjects.length) {
+    host.innerHTML = `<p class="syl-subject-options__empty">${esc(institution.name)} ainda não tem matérias cadastradas. <a href="/structure">Cadastre-as em Estrutura</a>.</p>`;
+    return;
+  }
+  host.innerHTML = subjects.map((subject) => `<label class="syl-subject-option">
+    <input type="checkbox" name="lesson_subject_ids" value="${esc(subject.id)}">
+    <span>${esc(subject.display_name)}</span>
+    <code>${esc(subject.code)}</code>
+  </label>`).join('');
+}
+
+function renderUploadCatalog() {
+  const select = uploadForm.elements.institution_id;
+  const error = $('[data-catalog-error]');
+  if (state.catalog.error) {
+    select.innerHTML = '<option value="">Não foi possível carregar</option>';
+    select.disabled = true;
+    error.textContent = `Não foi possível carregar o cadastro: ${state.catalog.error}`;
+    renderUploadSubjects();
+    return;
+  }
+  const institutions = state.catalog.institutions;
+  if (!institutions.length) {
+    select.innerHTML = '<option value="">Nenhuma instituição cadastrada</option>';
+    select.disabled = true;
+    error.innerHTML = 'Cadastre a instituição e suas matérias em <a href="/structure">Estrutura</a> antes de criar o syllabus.';
+    renderUploadSubjects();
+    return;
+  }
+  select.innerHTML = `<option value="">Selecione a instituição</option>${institutions.map((institution) => (
+    `<option value="${esc(institution.id)}">${esc(institution.name)}</option>`
+  )).join('')}`;
+  select.disabled = false;
+  error.textContent = '';
+  renderUploadSubjects();
+}
+
+async function loadUploadCatalog() {
+  if (state.catalog.loaded) {
+    renderUploadCatalog();
+    return;
+  }
+  if (state.catalog.loading) return;
+  state.catalog.loading = true;
+  const select = uploadForm.elements.institution_id;
+  select.innerHTML = '<option value="">Carregando instituições…</option>';
+  select.disabled = true;
+  try {
+    const response = await fetch('/api/org', { headers: { Accept: 'application/json' } });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    state.catalog.institutions = body.institutions || [];
+    state.catalog.error = null;
+    state.catalog.loaded = true;
+  } catch (error) {
+    state.catalog.error = error.message;
+  } finally {
+    state.catalog.loading = false;
+    if (state.upload.mode === 'new' && uploadDialog.open) renderUploadCatalog();
+  }
+}
+
 function openUpload(mode) {
   state.upload = { mode, syllabusId: mode === 'version' ? routeId : null, busy: false };
   uploadForm.reset();
   $('[data-upload-error]').textContent = '';
   $('[data-file-name]').textContent = 'Escolher arquivo .xlsx';
   const nameField = $('[data-name-field]');
-  const graphFields = $('[data-graph-fields]');
+  const syllabusFields = $('[data-syllabus-fields]');
   const nameInput = uploadForm.elements.name;
   const isVersion = mode === 'version';
   nameField.hidden = isVersion;
-  graphFields.hidden = isVersion;
-  graphFields.disabled = isVersion;
+  syllabusFields.hidden = isVersion;
+  syllabusFields.disabled = isVersion;
   nameInput.required = !isVersion;
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
-  for (const fieldName of ['display_name', 'institution_slug', 'graph_id']) {
+  for (const fieldName of ['display_name', 'institution_id']) {
     uploadForm.elements[fieldName].required = !isVersion;
   }
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
   $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
   uploadDialog.showModal();
+  if (!isVersion) loadUploadCatalog();
   window.setTimeout(() => (isVersion ? $('[data-upload-file]') : nameInput).focus(), 0);
 }
 
@@ -1665,7 +1744,7 @@ async function submitUpload(event) {
   const data = new FormData(uploadForm);
   const file = data.get('file');
   const name = String(data.get('name') || '').trim();
-  for (const fieldName of ['name', 'display_name', 'institution_slug', 'graph_id']) {
+  for (const fieldName of ['name', 'display_name', 'institution_id']) {
     if (data.has(fieldName)) data.set(fieldName, String(data.get(fieldName) || '').trim());
   }
   if (!file?.name || !/\.xlsx$/i.test(file.name)) {
@@ -1674,6 +1753,14 @@ async function submitUpload(event) {
   }
   if (state.upload.mode === 'new' && !name) {
     $('[data-upload-error]').textContent = 'Dê um nome ao syllabus.';
+    return;
+  }
+  if (state.upload.mode === 'new' && !data.get('institution_id')) {
+    $('[data-upload-error]').textContent = 'Selecione uma instituição cadastrada.';
+    return;
+  }
+  if (state.upload.mode === 'new' && !data.getAll('lesson_subject_ids').length) {
+    $('[data-upload-error]').textContent = 'Selecione ao menos uma matéria deste syllabus.';
     return;
   }
   if (state.upload.syllabusId) data.set('syllabus_id', state.upload.syllabusId);
@@ -2692,6 +2779,7 @@ document.querySelector('main').addEventListener('change', (event) => {
 });
 
 uploadForm.addEventListener('submit', submitUpload);
+uploadForm.elements.institution_id.addEventListener('change', renderUploadSubjects);
 uploadDialog.addEventListener('click', (event) => {
   if (event.target.closest('[data-dialog-close]')) closeUpload();
   else if (event.target === uploadDialog) closeUpload();

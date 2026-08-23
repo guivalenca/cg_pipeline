@@ -195,7 +195,9 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
     db, tmp_path: Path
 ):
     original = _workbook(tmp_path / "recon-original.xlsx")
-    imported = import_workbook(db, original, "Reconciliação 1")
+    imported = import_workbook(
+        db, original, "Reconciliação 1", require_syllabus_metadata=False
+    )
     initial = get_syllabus_version(db, imported["syllabus_id"])
     curated = curate_syllabus(
         db,
@@ -243,7 +245,9 @@ def test_transition_applies_only_changed_workbook_fields_over_manual_settings(
         tmp_path / "recon-delta-incoming.xlsx",
         description="Descrição institucional nova",
     )
-    imported = import_workbook(db, original, "Reconciliação 2")
+    imported = import_workbook(
+        db, original, "Reconciliação 2", require_syllabus_metadata=False
+    )
     initial = get_syllabus_version(db, imported["syllabus_id"])
     curate_syllabus(
         db,
