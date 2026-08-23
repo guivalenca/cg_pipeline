@@ -11,12 +11,73 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from openpyxl import Workbook
 from psycopg.conninfo import make_conninfo
 
 from universe.db import database_url
 from universe.migrate import migrate
+from universe.syllabus import PROJECT_COLUMNS
 
 TEST_DATABASE_PREFIX = "universe_test"
+
+
+@pytest.fixture
+def type2_workbook():
+    def build(
+        path: Path,
+        *,
+        lesson_title: str = "Programação e Desenvolvimento de Banco de Dados",
+        lesson_description: str = "Criação e manipulação de bancos relacionais.",
+        lesson_axis: str = "Computação",
+        include_course_events: bool = False,
+    ) -> Path:
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Projetos"
+        sheet.append(PROJECT_COLUMNS)
+
+        def append(**values):
+            sheet.append([values.get(column) for column in PROJECT_COLUMNS])
+
+        common = {"Projeto": "GRAD CC07", "Semana": "Semana 02"}
+        append(
+            **common,
+            Ordem=1,
+            Atividade=lesson_title,
+            **{
+                "Tipo da atividade": "Encontro de instrução",
+                "Descrição da atividade": lesson_description,
+                "Eixo": lesson_axis,
+                "Assuntos": "Banco de dados relacional\n,SQL Básico",
+            },
+        )
+        append(
+            **common,
+            Ordem=2,
+            Atividade="Tutorial MySQL",
+            **{
+                "Tipo da atividade": "Autoestudo",
+                "Encontro pai": lesson_title,
+                "URL": "https://example.com/mysql",
+            },
+        )
+        if include_course_events:
+            for order, title, kind in (
+                (3, "Sprint Planning", "Encontro de orientação"),
+                (4, "Entrega do artefato", "Desenvolvimento projeto"),
+                (5, "Avaliação geral", "Avaliação / pesquisa"),
+            ):
+                append(
+                    **common,
+                    Ordem=order,
+                    Atividade=title,
+                    **{"Tipo da atividade": kind},
+                )
+        workbook.save(path)
+        workbook.close()
+        return path
+
+    return build
 
 
 @pytest.fixture(scope="session")

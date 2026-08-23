@@ -1,7 +1,7 @@
 # 0025: Stable meeting identity carried by reconciliation
 
 Date: 2026-08-21
-Status: accepted, amended 2026-08-22 (see Amendment).
+Status: accepted, amended 2026-08-22 and 2026-08-23 (see Amendments).
 
 ## Context
 
@@ -58,3 +58,28 @@ each matched lesson holding a completed selection shows "selection still
 valid / re-select", with the same suggested default (curricular fields —
 title, description, subjects — unchanged suggests valid). The DEV-19
 investigation is unaffected.
+
+## Amendment (2026-08-23)
+
+DEV-29 replaces the rule that every lineage assertion requires an operator.
+Syllabus Reconciliation now carries a Lesson id automatically only when the
+match is unambiguous, subject and kind are unchanged, and title and
+description remain within conservative similarity thresholds. Date and
+Self-study changes do not participate in this identity decision. Subject or
+kind changes, large text edits, and ambiguous or low-confidence matches stay
+explicit founder decisions: select one previous Lesson id or declare a new
+Lesson.
+
+The uploaded workbook remains immutable evidence. Automatic and founder
+identity outcomes are recorded as versioned reconciliation interpretations.
+This amendment also removes the remaining Lesson Purpose framing from the
+active identity rule; ADR 0026 already retired that concept.
+
+Founder review presents content and identity as one outcome. `Manter` keeps
+the current Lesson content and stable id. Transitioning accepts the incoming
+content either as the related Lesson or as a new Lesson. A manually authored
+Lesson must make the same related-or-new identity decision before it can enter
+the result. These combinations are validated together, so an instruction to
+keep current content cannot also mint or claim another id. When every outcome
+keeps the current projection, the reconciliation is recorded without creating
+a new Syllabus Version.

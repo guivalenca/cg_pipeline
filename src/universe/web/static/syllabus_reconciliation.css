@@ -240,8 +240,10 @@
 .recon-choices > div:first-child > small { color: var(--admin-brand); font-size: 7.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
 .recon-choices h3 { margin: 4px 0 0; font-size: 10.5px; }
 .recon-choices > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.recon-choices--lesson > div:last-child { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .recon-choices button { min-height: 55px; display: flex; align-items: flex-start; gap: 7px; padding: 9px 10px; border: 1px solid var(--admin-border-strong); border-radius: 9px; color: var(--admin-text); background: var(--admin-surface); cursor: pointer; text-align: left; }
 .recon-choices button:hover { border-color: var(--admin-text-muted); }
+.recon-choices button[disabled] { opacity: .45; cursor: not-allowed; }
 .recon-choices button.is-selected { color: var(--recon-green); border-color: color-mix(in srgb, var(--recon-green) 50%, var(--admin-border)); background: var(--recon-green-soft); }
 .recon-choices button > span { min-width: 0; display: grid; flex: 1; gap: 3px; }
 .recon-choices button strong { font-size: 10px; }
@@ -257,6 +259,54 @@
 .recon-outcome svg,
 .recon-unchanged-note svg { width: 12px; height: 12px; }
 
+.recon-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--recon-green) 28%, var(--admin-border));
+  border-radius: 9px;
+  color: var(--recon-green);
+  background: var(--recon-green-soft);
+}
+.recon-identity > svg { width: 14px; height: 14px; margin-top: 2px; }
+.recon-identity > div { display: grid; gap: 3px; }
+.recon-identity small { color: currentColor; font-size: 7.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-identity strong { color: var(--admin-text); font-size: 10px; }
+.recon-identity span { color: var(--admin-text-secondary); font-size: 8.5px; line-height: 1.4; }
+.recon-identity--new { color: var(--recon-blue); border-color: color-mix(in srgb, var(--recon-blue) 28%, var(--admin-border)); background: color-mix(in srgb, var(--recon-blue) 8%, var(--admin-surface)); }
+
+.recon-identity-review {
+  display: grid;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--recon-amber) 38%, var(--admin-border));
+  border-radius: 10px;
+  background: var(--recon-amber-soft);
+}
+.recon-identity-review > header { display: flex; align-items: flex-start; gap: 9px; }
+.recon-identity-review > header > svg { width: 15px; height: 15px; margin-top: 2px; color: var(--recon-amber); }
+.recon-identity-review > header > div { display: grid; gap: 3px; }
+.recon-identity-review > header small { color: var(--recon-amber); font-size: 7.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-identity-review h3 { margin: 0; font-size: 11px; }
+.recon-identity-review p { margin: 0; color: var(--admin-text-secondary); font-size: 8.5px; line-height: 1.4; }
+.recon-identity-picker { display: grid; gap: 4px; }
+.recon-identity-picker > span { color: var(--admin-text-secondary); font-size: 7.5px; font-weight: 700; }
+.recon-identity-picker select { width: 100%; box-sizing: border-box; padding: 8px 9px; border: 1px solid var(--admin-border-strong); border-radius: 7px; color: var(--admin-text); background: var(--admin-surface); font-size: 9px; }
+.recon-identity-picker select:focus { border-color: var(--recon-amber); outline: 2px solid color-mix(in srgb, var(--recon-amber) 14%, transparent); }
+.recon-identity-candidate { display: grid; gap: 3px; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: 8px; background: var(--admin-surface); }
+.recon-identity-candidate > span { color: var(--admin-text-secondary); font-size: 7px; font-weight: 750; text-transform: uppercase; }
+.recon-identity-candidate strong { font-size: 9.5px; }
+.recon-identity-candidate small { color: var(--admin-text-secondary); font-size: 8px; }
+.recon-identity-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.recon-identity-choices button { min-height: 52px; display: flex; align-items: flex-start; gap: 7px; padding: 9px 10px; border: 1px solid var(--admin-border-strong); border-radius: 9px; color: var(--admin-text); background: var(--admin-surface); cursor: pointer; text-align: left; }
+.recon-identity-choices button:hover { border-color: var(--recon-amber); }
+.recon-identity-choices button.is-selected { color: var(--recon-green); border-color: color-mix(in srgb, var(--recon-green) 50%, var(--admin-border)); background: var(--recon-green-soft); }
+.recon-identity-choices button > svg { width: 12px; height: 12px; margin-top: 1px; }
+.recon-identity-choices button > span { display: grid; gap: 3px; }
+.recon-identity-choices button strong { font-size: 9.5px; }
+.recon-identity-choices button small { color: var(--admin-text-secondary); font-size: 8px; line-height: 1.35; }
+
 .recon-manual-shell { overflow: hidden; border: 1px dashed color-mix(in srgb, var(--admin-brand) 45%, var(--admin-border)); border-radius: 9px; }
 .recon-manual-shell > button { width: 100%; display: grid; grid-template-columns: 29px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 11px; border: 0; color: var(--admin-text); background: color-mix(in srgb, var(--admin-brand) 3%, var(--admin-surface)); cursor: pointer; text-align: left; }
 .recon-manual-shell > button > svg { width: 14px; height: 14px; color: var(--admin-brand); }
@@ -267,6 +317,11 @@
 .recon-manual-shell form { display: grid; gap: 11px; padding: 12px; border-top: 1px dashed color-mix(in srgb, var(--admin-brand) 35%, var(--admin-border)); background: color-mix(in srgb, var(--admin-brand) 2%, var(--admin-surface)); }
 .recon-manual-shell form > p { margin: 0; color: var(--admin-text-secondary); font-size: 8px; }
 .recon-manual-shell form > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.recon-manual-identity { display: grid; gap: 9px; padding: 11px; border: 1px solid var(--admin-border); border-radius: 9px; background: var(--admin-surface); }
+.recon-manual-identity > header { display: grid; gap: 3px; }
+.recon-manual-identity > header small { color: var(--admin-brand); font-size: 7.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.recon-manual-identity h4 { margin: 0; font-size: 10px; }
+.recon-manual-identity p { margin: 0; color: var(--admin-text-secondary); font-size: 8px; }
 .recon-manual-field { display: grid; gap: 4px; }
 .recon-manual-field--wide { grid-column: 1 / -1; }
 .recon-manual-field > span { color: var(--admin-text-secondary); font-size: 7.5px; font-weight: 700; }
@@ -309,6 +364,7 @@
   .recon-workspace { grid-template-columns: 320px minmax(0, 1fr); }
   .recon-main { padding-inline: 21px; }
   .recon-choices { grid-template-columns: 1fr; }
+  .recon-choices--lesson > div:last-child { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -322,6 +378,7 @@
   .recon-main { padding: 19px 14px; }
   .recon-comparison,
   .recon-choices > div:last-child,
+  .recon-identity-choices,
   .recon-manual-shell form > div { grid-template-columns: 1fr; }
   .recon-manual-field--wide { grid-column: auto; }
 }

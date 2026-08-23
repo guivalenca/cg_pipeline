@@ -1172,8 +1172,9 @@ def get_syllabus_version(
             " FROM syllabus_source_reference sr"
             " LEFT JOIN source s ON s.id = sr.source_id"
             " LEFT JOIN syllabus_source_review rr ON rr.reference_id = sr.id"
-            " WHERE sr.lesson_id = %s ORDER BY sr.seq, sr.id",
-            (lesson["id"],),
+            " WHERE sr.version_id = %s AND sr.lesson_id = %s"
+            " ORDER BY sr.seq, sr.id",
+            (version["id"], lesson["id"]),
         ).fetchall()
         sources = []
         for reference_row in reference_rows:
@@ -1340,6 +1341,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
             raise ValueError("the syllabus exceeds the limit of 5000 sources")
 
         lesson = {
+            "id": (base_lesson or {}).get("id"),
             "week": week,
             "seq": lesson_index,
             "kind": _clean_edit_text(
@@ -1367,7 +1369,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
             "description": _clean_edit_text(
                 raw_lesson.get("description"),
                 field=f"lesson {lesson_index} description",
-                limit=4000,
+                limit=20_000,
             ),
             "is_hidden": bool(raw_lesson.get("hidden")),
             "fields": _base_fields(base_lesson),
@@ -1439,9 +1441,10 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
 
 
 def _projection_signature(lessons: list[dict]) -> list[dict]:
-    """Return only the authored syllabus meaning, excluding row ids/field bags."""
+    """Return the authored syllabus meaning and stable Lesson identities."""
     return [
         {
+            "id": lesson.get("id"),
             "week": lesson.get("week"),
             "kind": lesson.get("kind"),
             "title": lesson.get("title"),
@@ -1657,7 +1660,7 @@ def curate_syllabus(
     reference_count = 0
     new_sources = 0
     for lesson_number, lesson in enumerate(normalized, 1):
-        lesson_id = f"{version_id}:lesson:{lesson_number:04d}"
+        lesson_id = lesson.get("id") or f"{version_id}:lesson:{lesson_number:04d}"
         conn.execute(
             "INSERT INTO syllabus_lesson"
             " (id, version_id, week, seq, kind, title, subject, subjects, lesson_date,"
@@ -1747,7 +1750,8 @@ def diff_versions(conn: psycopg.Connection, version_a: str, version_b: str) -> d
         "SELECT sl.week, sl.title, sr.seq, sr.title, sr.url, sr.description,"
         " sr.resource_code, sr.scope_kind, sr.scope_value, sr.is_hidden"
         " FROM syllabus_source_reference sr"
-        " JOIN syllabus_lesson sl ON sl.id = sr.lesson_id"
+        " JOIN syllabus_lesson sl"
+        "   ON sl.version_id = sr.version_id AND sl.id = sr.lesson_id"
         " WHERE sr.version_id = %s ORDER BY sl.week, sl.seq, sr.seq, sr.id"
     )
     rows_a = conn.execute(query, (version_a,)).fetchall()

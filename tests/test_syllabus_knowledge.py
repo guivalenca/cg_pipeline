@@ -70,7 +70,7 @@ def _attach(
         "INSERT INTO syllabus_lesson"
         " (id, version_id, seq, kind, title, is_hidden)"
         " VALUES (%s, %s, %s, 'Encontro', %s, %s)"
-        " ON CONFLICT (id) DO NOTHING",
+        " ON CONFLICT (version_id, id) DO NOTHING",
         (
             lesson_id,
             route["version_id"],
