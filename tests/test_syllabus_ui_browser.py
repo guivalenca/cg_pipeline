@@ -135,7 +135,13 @@ def _subject_filter_workbook(path: Path) -> Path:
     return path
 
 
-def _type2_workbook(path: Path) -> Path:
+def _type2_workbook(
+    path: Path,
+    *,
+    lesson_title: str = "Programação e Desenvolvimento de Banco de Dados",
+    lesson_description: str = "Criação e manipulação de bancos relacionais.",
+    lesson_axis: str = "Computação",
+) -> Path:
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Projetos"
@@ -148,11 +154,11 @@ def _type2_workbook(path: Path) -> Path:
     append(
         **common,
         Ordem=1,
-        Atividade="Programação e Desenvolvimento de Banco de Dados",
+        Atividade=lesson_title,
         **{
             "Tipo da atividade": "Encontro de instrução",
-            "Descrição da atividade": "Criação e manipulação de bancos relacionais.",
-            "Eixo": "Computação",
+            "Descrição da atividade": lesson_description,
+            "Eixo": lesson_axis,
             "Assuntos": "Banco de dados relacional\n,SQL Básico",
         },
     )
@@ -162,7 +168,7 @@ def _type2_workbook(path: Path) -> Path:
         Atividade="Tutorial MySQL",
         **{
             "Tipo da atividade": "Autoestudo",
-            "Encontro pai": "Programação e Desenvolvimento de Banco de Dados",
+            "Encontro pai": lesson_title,
             "URL": "https://example.com/mysql",
         },
     )
@@ -325,6 +331,69 @@ def test_upload_dialog_captures_graph_metadata_only_for_a_new_syllabus(
         expect(graph_fields).to_be_hidden()
         expect(graph_fields.locator('[name="display_name"]')).to_be_disabled()
         expect(dialog.locator('[name="file"]')).to_be_focused()
+        browser.close()
+
+
+def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser stable identity {uuid.uuid4().hex[:8]}"
+    original = _type2_workbook(tmp_path / "identity-original.xlsx")
+    changed_subject = _type2_workbook(
+        tmp_path / "identity-subject.xlsx",
+        lesson_axis="Negócios",
+    )
+    small_edit = _type2_workbook(
+        tmp_path / "identity-small-edit.xlsx",
+        lesson_axis="Negócios",
+        lesson_description=(
+            "Criação e manipulação de bancos relacionais na nuvem."
+        ),
+    )
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(conn, original, name)
+        first = get_syllabus_version(conn, imported["syllabus_id"])
+        first_id = first["lessons"][0]["id"]
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        page.get_by_role("button", name="Enviar nova versão").click()
+        dialog = page.locator("[data-upload-dialog]")
+        dialog.locator('[name="file"]').set_input_files(changed_subject)
+        dialog.get_by_role("button", name="Comparar planilha").click()
+
+        expect(page.get_by_role("heading", name="Esta é a mesma aula?")).to_be_visible()
+        expect(page.locator(".recon-identity-review")).to_contain_text(
+            "A matéria mudou"
+        )
+        page.get_by_role("button", name="É uma aula nova", exact=False).click()
+        page.locator('[data-recon-choice="transition"]').click()
+        page.get_by_role("button", name="Criar versão 2", exact=False).click()
+        page.wait_for_function("!location.search.includes('reconciliation=')")
+
+        with psycopg.connect(test_database_url) as conn:
+            second = get_syllabus_version(conn, imported["syllabus_id"])
+            second_id = second["lessons"][0]["id"]
+        assert second_id != first_id
+
+        page.get_by_role("button", name="Enviar nova versão").click()
+        dialog.locator('[name="file"]').set_input_files(small_edit)
+        dialog.get_by_role("button", name="Comparar planilha").click()
+
+        expect(page.locator(".recon-identity--automatic")).to_contain_text(
+            "ID mantido automaticamente"
+        )
+        page.locator('[data-recon-choice="transition"]').click()
+        page.get_by_role("button", name="Criar versão 3", exact=False).click()
+        page.wait_for_function("!location.search.includes('reconciliation=')")
+
+        with psycopg.connect(test_database_url) as conn:
+            third = get_syllabus_version(conn, imported["syllabus_id"])
+        assert third["lessons"][0]["id"] == second_id
         browser.close()
 
 

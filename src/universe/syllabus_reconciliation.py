@@ -32,7 +32,11 @@ from universe.syllabus import (
 
 
 DECISIONS = {"keep", "transition", "custom"}
-PLAN_VERSION = 3
+IDENTITY_DECISIONS = {"same", "new"}
+PLAN_VERSION = 4
+AUTO_TITLE_SIMILARITY = 0.86
+AUTO_DESCRIPTION_SIMILARITY = 0.80
+AUTO_MATCH_MARGIN = 8.0
 LESSON_AUTHORED_FIELDS = (
     "week", "kind", "title", "subject", "subjects", "date", "description",
 )
@@ -89,6 +93,7 @@ def _lesson_projection(lesson: dict, order: int, source_key: str) -> dict:
     sources = lesson.get(source_key, [])
     return {
         "id": lesson.get("id"),
+        "incoming_key": lesson.get("incoming_key"),
         "week": lesson.get("week"),
         "seq": order,
         "kind": lesson.get("kind") or "Class",
@@ -113,12 +118,19 @@ def _version_projection(detail: dict) -> dict:
 
 
 def _parsed_projection(parsed: dict) -> dict:
-    return {
-        "lessons": [
-            _lesson_projection(lesson, index, "source_references")
-            for index, lesson in enumerate(parsed.get("lessons", []), 1)
-        ]
-    }
+    lessons = []
+    for index, lesson in enumerate(parsed.get("lessons", []), 1):
+        projected = _lesson_projection(lesson, index, "source_references")
+        projected["incoming_key"] = f"incoming-{index:04d}"
+        lessons.append(projected)
+    return {"lessons": lessons}
+
+
+def _ensure_incoming_keys(projection: dict) -> dict:
+    keyed = copy.deepcopy(projection)
+    for index, lesson in enumerate(keyed.get("lessons") or [], 1):
+        lesson["incoming_key"] = lesson.get("incoming_key") or f"incoming-{index:04d}"
+    return keyed
 
 
 def _lesson_signature(item: dict | None) -> tuple:
@@ -156,27 +168,140 @@ def _ratio(left: object, right: object) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
+def _similarity(left: object, right: object) -> float:
+    a, b = _norm(left), _norm(right)
+    if a == b:
+        return 1.0
+    if not a or not b:
+        return 0.0
+    return SequenceMatcher(None, a, b).ratio()
+
+
 def _lesson_score(left: dict, right: dict) -> float:
-    score = 0.0
-    if _norm(left.get("title")) == _norm(right.get("title")):
-        score += 100
-    else:
-        similarity = _ratio(left.get("title"), right.get("title"))
-        if similarity >= 0.72:
-            score += similarity * 55
-    if left.get("week") == right.get("week"):
-        score += 15
-    if _norm(left.get("subject")) == _norm(right.get("subject")) and _norm(left.get("subject")):
+    left_id, right_id = _text(left.get("id")), _text(right.get("id"))
+    if left_id and left_id == right_id:
+        return 1000.0
+    subject_same = _norm(left.get("subject")) == _norm(right.get("subject"))
+    kind_same = _norm(left.get("kind")) == _norm(right.get("kind"))
+    score = _similarity(left.get("title"), right.get("title")) * 55
+    score += _similarity(left.get("description"), right.get("description")) * 25
+    score += 30 if subject_same else -30
+    score += 12 if kind_same else -12
+    if left.get("week") is not None and left.get("week") == right.get("week"):
         score += 12
-    left_subjects = tuple(_norm(value) for value in parse_subjects(left.get("subjects")))
-    right_subjects = tuple(_norm(value) for value in parse_subjects(right.get("subjects")))
-    if left_subjects and left_subjects == right_subjects:
-        score += 12
-    if left.get("date") and left.get("date") == right.get("date"):
+    if left.get("seq") is not None and left.get("seq") == right.get("seq"):
         score += 8
-    if left.get("seq") == right.get("seq"):
-        score += 5
     return score
+
+
+def _lesson_pair_is_plausible(left: dict, right: dict, score: float) -> bool:
+    left_id, right_id = _text(left.get("id")), _text(right.get("id"))
+    if left_id and left_id == right_id:
+        return True
+    title_similarity = _similarity(left.get("title"), right.get("title"))
+    description_similarity = _similarity(
+        left.get("description"), right.get("description")
+    )
+    same_position = (
+        left.get("week") is not None
+        and left.get("week") == right.get("week")
+        and left.get("seq") is not None
+        and left.get("seq") == right.get("seq")
+    )
+    return (
+        title_similarity >= 0.45
+        or (title_similarity >= 0.30 and description_similarity >= 0.45)
+        or same_position
+        or score >= 70
+    )
+
+
+def _identity_reason(
+    left: dict,
+    right: dict,
+    *,
+    automatic: bool,
+    unambiguous: bool,
+) -> str:
+    if _norm(left.get("subject")) != _norm(right.get("subject")):
+        return "subject_changed"
+    if _norm(left.get("kind")) != _norm(right.get("kind")):
+        return "kind_changed"
+    if not unambiguous:
+        return "ambiguous_match"
+    if automatic:
+        exact = (
+            _norm(left.get("title")) == _norm(right.get("title"))
+            and _norm(left.get("description")) == _norm(right.get("description"))
+        )
+        return "exact_text" if exact else "small_text_edit"
+    if _similarity(left.get("title"), right.get("title")) < AUTO_TITLE_SIMILARITY:
+        return "large_title_edit"
+    return "large_description_edit"
+
+
+def _match_lessons(left: list[dict], right: list[dict]) -> dict[int, dict]:
+    """Pair plausible Lessons and classify whether identity can carry silently."""
+    candidates: list[tuple[float, int, int]] = []
+    by_left: dict[int, list[tuple[float, int]]] = {}
+    by_right: dict[int, list[tuple[float, int]]] = {}
+    for left_index, left_item in enumerate(left):
+        for right_index, right_item in enumerate(right):
+            value = _lesson_score(left_item, right_item)
+            if not _lesson_pair_is_plausible(left_item, right_item, value):
+                continue
+            candidates.append((value, left_index, right_index))
+            by_left.setdefault(left_index, []).append((value, right_index))
+            by_right.setdefault(right_index, []).append((value, left_index))
+
+    for values in (*by_left.values(), *by_right.values()):
+        values.sort(reverse=True)
+
+    result: dict[int, dict] = {}
+    used_right: set[int] = set()
+    for value, left_index, right_index in sorted(candidates, reverse=True):
+        if left_index in result or right_index in used_right:
+            continue
+        left_rank = by_left[left_index]
+        right_rank = by_right[right_index]
+        mutual_best = (
+            left_rank[0][1] == right_index and right_rank[0][1] == left_index
+        )
+        left_margin = value - left_rank[1][0] if len(left_rank) > 1 else float("inf")
+        right_margin = value - right_rank[1][0] if len(right_rank) > 1 else float("inf")
+        unambiguous = (
+            mutual_best
+            and left_margin >= AUTO_MATCH_MARGIN
+            and right_margin >= AUTO_MATCH_MARGIN
+        )
+        left_item, right_item = left[left_index], right[right_index]
+        same_id = (
+            bool(_text(left_item.get("id")))
+            and _text(left_item.get("id")) == _text(right_item.get("id"))
+        )
+        automatic = same_id or (
+            unambiguous
+            and _norm(left_item.get("subject")) == _norm(right_item.get("subject"))
+            and _norm(left_item.get("kind")) == _norm(right_item.get("kind"))
+            and _similarity(left_item.get("title"), right_item.get("title"))
+            >= AUTO_TITLE_SIMILARITY
+            and _similarity(
+                left_item.get("description"), right_item.get("description")
+            )
+            >= AUTO_DESCRIPTION_SIMILARITY
+        )
+        result[left_index] = {
+            "right_index": right_index,
+            "automatic": automatic,
+            "reason": _identity_reason(
+                left_item,
+                right_item,
+                automatic=automatic,
+                unambiguous=unambiguous,
+            ),
+        }
+        used_right.add(right_index)
+    return result
 
 
 def _source_score(left: dict, right: dict) -> float:
@@ -363,20 +488,55 @@ def _build_source_plans(
     return plans
 
 
+def _identity_plan(anchor: dict | None, incoming: dict | None, match: dict | None) -> dict:
+    lesson_id = _text((anchor or {}).get("id")) or None
+    if incoming is None:
+        return {"state": "removed", "lesson_id": lesson_id, "reason": "removed"}
+    if anchor is None or lesson_id is None:
+        return {"state": "new", "lesson_id": None, "reason": "no_predecessor"}
+    if match and match.get("automatic"):
+        return {
+            "state": "carried",
+            "lesson_id": lesson_id,
+            "reason": match["reason"],
+        }
+    return {
+        "state": "review",
+        "lesson_id": None,
+        "reason": (match or {}).get("reason") or "ambiguous_match",
+        "candidate": {
+            "lesson_id": lesson_id,
+            "title": anchor.get("title"),
+            "description": anchor.get("description"),
+            "subject": anchor.get("subject"),
+            "kind": anchor.get("kind"),
+            "week": anchor.get("week"),
+        },
+    }
+
+
 def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
     """Build one deterministic lesson/source reconciliation tree."""
     base_lessons = list(baseline.get("lessons") or [])
     current_lessons = list(current.get("lessons") or [])
     incoming_lessons = list(incoming.get("lessons") or [])
-    base_current = _match(base_lessons, current_lessons, _lesson_score, 45)
-    base_incoming = _match(base_lessons, incoming_lessons, _lesson_score, 45)
-    used_current = set(base_current.values())
-    used_incoming = set(base_incoming.values())
+    base_current = _match_lessons(base_lessons, current_lessons)
+    base_incoming = _match_lessons(base_lessons, incoming_lessons)
+    used_current = {match["right_index"] for match in base_current.values()}
+    used_incoming = {match["right_index"] for match in base_incoming.values()}
     lesson_plans: list[dict] = []
 
     for baseline_index, base_lesson in enumerate(base_lessons):
-        current_lesson = current_lessons[base_current[baseline_index]] if baseline_index in base_current else None
-        incoming_lesson = incoming_lessons[base_incoming[baseline_index]] if baseline_index in base_incoming else None
+        current_match = base_current.get(baseline_index)
+        incoming_match = base_incoming.get(baseline_index)
+        current_lesson = (
+            current_lessons[current_match["right_index"]] if current_match else None
+        )
+        incoming_lesson = (
+            incoming_lessons[incoming_match["right_index"]]
+            if incoming_match
+            else None
+        )
         merged_lesson = _three_way_incoming(
             base_lesson, current_lesson, incoming_lesson, LESSON_AUTHORED_FIELDS
         )
@@ -385,43 +545,63 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
         )
         if lesson_status == "unchanged" and current_lesson is None:
             continue
-        source_plans = _build_source_plans(
-            base_lesson.get("sources") or [],
-            (current_lesson or {}).get("sources") or [],
-            (incoming_lesson or {}).get("sources") or [],
-        )
         lesson_plans.append(
             {
                 "kind": "lesson",
                 "status": lesson_status,
                 "order": (incoming_lesson or current_lesson or base_lesson).get("seq"),
+                "incoming_key": (incoming_lesson or {}).get("incoming_key"),
+                "identity": _identity_plan(
+                    current_lesson or base_lesson, incoming_lesson, incoming_match
+                ),
                 "current": copy.deepcopy(current_lesson),
                 "incoming": _effective_incoming(
                     lesson_status, current_lesson, incoming_lesson, merged_lesson
                 ),
-                "sources": source_plans,
+                "sources": _build_source_plans(
+                    base_lesson.get("sources") or [],
+                    (current_lesson or {}).get("sources") or [],
+                    (incoming_lesson or {}).get("sources") or [],
+                ),
             }
         )
 
-    unmatched_current = [item for index, item in enumerate(current_lessons) if index not in used_current]
-    unmatched_incoming = [item for index, item in enumerate(incoming_lessons) if index not in used_incoming]
-    local_matches = _match(unmatched_current, unmatched_incoming, _lesson_score, 45)
-    matched_incoming = set(local_matches.values())
+    unmatched_current = [
+        item for index, item in enumerate(current_lessons) if index not in used_current
+    ]
+    unmatched_incoming = [
+        item for index, item in enumerate(incoming_lessons) if index not in used_incoming
+    ]
+    local_matches = _match_lessons(unmatched_current, unmatched_incoming)
+    matched_incoming = {match["right_index"] for match in local_matches.values()}
     for current_index, current_lesson in enumerate(unmatched_current):
-        incoming_lesson = unmatched_incoming[local_matches[current_index]] if current_index in local_matches else None
-        exact = incoming_lesson is not None and _lesson_signature(current_lesson) == _lesson_signature(incoming_lesson)
-        lesson_status = "unchanged" if exact or incoming_lesson is None else "added"
-        source_plans = _build_source_plans(
-            [], current_lesson.get("sources") or [], (incoming_lesson or {}).get("sources") or []
+        local_match = local_matches.get(current_index)
+        incoming_lesson = (
+            unmatched_incoming[local_match["right_index"]] if local_match else None
         )
+        exact = (
+            incoming_lesson is not None
+            and _lesson_signature(current_lesson) == _lesson_signature(incoming_lesson)
+        )
+        lesson_status = "unchanged" if exact or incoming_lesson is None else "added"
         lesson_plans.append(
             {
                 "kind": "lesson",
                 "status": lesson_status,
                 "order": (incoming_lesson or current_lesson).get("seq"),
+                "incoming_key": (incoming_lesson or {}).get("incoming_key"),
+                "identity": _identity_plan(
+                    current_lesson, incoming_lesson, local_match
+                ),
                 "current": copy.deepcopy(current_lesson),
-                "incoming": copy.deepcopy(current_lesson if lesson_status == "unchanged" else incoming_lesson),
-                "sources": source_plans,
+                "incoming": copy.deepcopy(
+                    current_lesson if lesson_status == "unchanged" else incoming_lesson
+                ),
+                "sources": _build_source_plans(
+                    [],
+                    current_lesson.get("sources") or [],
+                    (incoming_lesson or {}).get("sources") or [],
+                ),
             }
         )
     for incoming_index, incoming_lesson in enumerate(unmatched_incoming):
@@ -432,9 +612,13 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
                 "kind": "lesson",
                 "status": "added",
                 "order": incoming_lesson.get("seq"),
+                "incoming_key": incoming_lesson.get("incoming_key"),
+                "identity": _identity_plan(None, incoming_lesson, None),
                 "current": None,
                 "incoming": copy.deepcopy(incoming_lesson),
-                "sources": _build_source_plans([], [], incoming_lesson.get("sources") or []),
+                "sources": _build_source_plans(
+                    [], [], incoming_lesson.get("sources") or []
+                ),
             }
         )
 
@@ -445,6 +629,8 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
         )
     )
     action_count = 0
+    identity_action_count = 0
+    automatic_identity_count = 0
     unchanged_source_count = 0
     unchanged_lesson_count = 0
     inherited_settings = 0
@@ -454,6 +640,10 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
             unchanged_lesson_count += 1
         else:
             action_count += 1
+        if lesson["identity"]["state"] == "review":
+            identity_action_count += 1
+        elif lesson["identity"]["state"] == "carried":
+            automatic_identity_count += 1
         for source_index, source in enumerate(lesson["sources"], 1):
             source["item_id"] = f"source-{lesson_index:04d}-{source_index:04d}"
             if source["status"] == "unchanged":
@@ -469,6 +659,7 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
         1
         for lesson in lesson_plans
         if lesson["status"] != "unchanged"
+        or lesson["identity"]["state"] == "review"
         or any(source["status"] != "unchanged" for source in lesson["sources"])
     )
     return {
@@ -476,11 +667,15 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
         "lessons": lesson_plans,
         "summary": {
             "lesson_count": len(incoming_lessons),
-            "source_count": sum(len(lesson.get("sources") or []) for lesson in incoming_lessons),
+            "source_count": sum(
+                len(lesson.get("sources") or []) for lesson in incoming_lessons
+            ),
             "unchanged_lesson_count": unchanged_lesson_count,
             "unchanged_source_count": unchanged_source_count,
             "changed_lesson_count": changed_lessons,
             "action_count": action_count,
+            "identity_action_count": identity_action_count,
+            "automatic_identity_count": automatic_identity_count,
             "inherited_settings": inherited_settings,
         },
     }
@@ -494,7 +689,7 @@ def _baseline_projection(conn: psycopg.Connection, syllabus_id: str) -> dict:
         (syllabus_id,),
     ).fetchone()
     if applied is not None:
-        return dict(applied[0])
+        return _ensure_incoming_keys(dict(applied[0]))
     uploaded = conn.execute(
         "SELECT id FROM syllabus_version"
         " WHERE syllabus_id = %s AND origin = 'upload' ORDER BY seq DESC LIMIT 1",
@@ -537,14 +732,15 @@ def get_reconciliation(
         raise LookupError(f"unknown reconciliation {reconciliation_id!r}")
     payload = _row_payload(row)
     if payload["status"] == "pending" and payload["plan"].get("version") != PLAN_VERSION:
+        payload["incoming"] = _ensure_incoming_keys(payload["incoming"])
         baseline = _baseline_projection(conn, syllabus_id)
         current = _version_projection(
             get_syllabus_version(conn, syllabus_id, payload["base_version_id"])
         )
         plan = build_plan(baseline, current, payload["incoming"])
         conn.execute(
-            "UPDATE syllabus_reconciliation SET plan = %s WHERE id = %s",
-            (Jsonb(plan), reconciliation_id),
+            "UPDATE syllabus_reconciliation SET incoming = %s, plan = %s WHERE id = %s",
+            (Jsonb(payload["incoming"]), Jsonb(plan), reconciliation_id),
         )
         conn.commit()
         payload["plan"] = plan
@@ -605,7 +801,24 @@ def _action_items(plan: dict) -> list[dict]:
     ]
 
 
-def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | None:
+def _identity_action_items(plan: dict) -> list[dict]:
+    return [
+        lesson
+        for lesson in plan.get("lessons", [])
+        if (lesson.get("identity") or {}).get("state") == "review"
+    ]
+
+
+_LESSON_ID_UNSET = object()
+
+
+def _selected_projection(
+    item: dict,
+    choice: str,
+    draft: dict | None,
+    *,
+    lesson_id: object = _LESSON_ID_UNSET,
+) -> dict | None:
     current = copy.deepcopy(item.get("current"))
     incoming = copy.deepcopy(item.get("incoming"))
     if choice == "keep":
@@ -615,7 +828,11 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
         if selected is not None and current is not None:
             selected["hidden"] = bool(current.get("hidden"))
             if item.get("kind") == "lesson":
-                selected["id"] = current.get("id")
+                selected["id"] = (
+                    current.get("id")
+                    if lesson_id is _LESSON_ID_UNSET
+                    else lesson_id
+                )
             else:
                 selected["reference_id"] = current.get("reference_id")
                 selected["review"] = copy.deepcopy(current.get("review") or {})
@@ -631,7 +848,11 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
     anchor = current or incoming or {}
     if item.get("kind") == "lesson":
         return {
-            "id": (current or {}).get("id"),
+            "id": (
+                (current or {}).get("id")
+                if lesson_id is _LESSON_ID_UNSET
+                else lesson_id
+            ),
             "week": draft.get("week") if draft.get("week") not in {None, ""} else None,
             "kind": _text(draft.get("kind")) or anchor.get("kind") or "Class",
             "title": title,
@@ -663,7 +884,46 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
     }
 
 
-def _projection_from_decisions(plan: dict, decisions: dict, drafts: dict) -> list[dict]:
+def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
+    if decisions is None:
+        decisions = {}
+    if not isinstance(decisions, dict):
+        raise ValueError("As decisões de identidade das aulas são inválidas.")
+    actions = {item["item_id"]: item for item in _identity_action_items(plan)}
+    missing = sorted(set(actions) - set(decisions))
+    unknown = sorted(set(decisions) - set(actions))
+    if missing:
+        raise ValueError(
+            f"Ainda existem {len(missing)} identidades de aula sem decisão."
+        )
+    if unknown:
+        raise ValueError("A reconciliação contém identidades de aula desconhecidas.")
+    if any(value not in IDENTITY_DECISIONS for value in decisions.values()):
+        raise ValueError("A reconciliação contém uma decisão de identidade inválida.")
+    return decisions
+
+
+def _resolved_identity(lesson: dict, identity_decisions: dict) -> tuple[str | None, str]:
+    identity = lesson.get("identity") or {}
+    state = identity.get("state")
+    if state == "carried":
+        return identity.get("lesson_id"), "automatic_same"
+    if state == "review":
+        choice = identity_decisions[lesson["item_id"]]
+        if choice == "same":
+            return (identity.get("candidate") or {}).get("lesson_id"), "founder_same"
+        return None, "founder_new"
+    if state == "new":
+        return None, "automatic_new"
+    return identity.get("lesson_id"), "removed"
+
+
+def _projection_from_decisions(
+    plan: dict,
+    decisions: dict,
+    drafts: dict,
+    identity_decisions: dict,
+) -> list[dict]:
     actions = {item["item_id"]: item for item in _action_items(plan)}
     missing = sorted(set(actions) - set(decisions))
     unknown = sorted(set(decisions) - set(actions))
@@ -677,10 +937,23 @@ def _projection_from_decisions(plan: dict, decisions: dict, drafts: dict) -> lis
 
     output: list[dict] = []
     for lesson in plan.get("lessons", []):
+        resolved_id, identity_outcome = _resolved_identity(
+            lesson, identity_decisions
+        )
         lesson_choice = decisions.get(lesson["item_id"], "keep")
-        selected_lesson = _selected_projection(
-            lesson, lesson_choice, drafts.get(lesson["item_id"])
-        ) if lesson["status"] != "unchanged" else copy.deepcopy(lesson.get("current"))
+        if lesson["status"] != "unchanged":
+            selected_lesson = _selected_projection(
+                lesson,
+                lesson_choice,
+                drafts.get(lesson["item_id"]),
+                lesson_id=resolved_id,
+            )
+        elif identity_outcome == "founder_new":
+            selected_lesson = _selected_projection(
+                lesson, "transition", None, lesson_id=None
+            )
+        else:
+            selected_lesson = copy.deepcopy(lesson.get("current"))
         if selected_lesson is None:
             continue
         selected_sources: list[dict] = []
@@ -692,8 +965,57 @@ def _projection_from_decisions(plan: dict, decisions: dict, drafts: dict) -> lis
             if selected_source is not None:
                 selected_sources.append(selected_source)
         selected_lesson["sources"] = selected_sources
+        incoming_key = lesson.get("incoming_key")
+        maps_incoming = bool(incoming_key) and (
+            identity_outcome in {"automatic_same", "founder_same"}
+            or lesson_choice in {"transition", "custom"}
+            or lesson["status"] == "unchanged"
+        )
+        selected_lesson["_incoming_key"] = incoming_key
+        selected_lesson["_maps_incoming_identity"] = maps_incoming
+        selected_lesson["_identity_outcome"] = identity_outcome
         output.append(selected_lesson)
     return output
+
+
+def _accepted_incoming(
+    incoming: dict,
+    plan: dict,
+    projection: list[dict],
+    created: dict,
+) -> tuple[dict, dict]:
+    ids_by_key: dict[str, str] = {}
+    for selected, stored in zip(projection, created.get("lessons", []), strict=True):
+        incoming_key = selected.get("_incoming_key")
+        if incoming_key and selected.get("_maps_incoming_identity"):
+            ids_by_key[incoming_key] = stored["id"]
+
+    accepted = _ensure_incoming_keys(incoming)
+    for lesson in accepted.get("lessons", []):
+        lesson["id"] = ids_by_key.get(lesson.get("incoming_key"))
+
+    outcomes = {}
+    for lesson in plan.get("lessons", []):
+        incoming_key = lesson.get("incoming_key")
+        if not incoming_key:
+            continue
+        outcomes[incoming_key] = {
+            "outcome": next(
+                (
+                    selected.get("_identity_outcome")
+                    for selected in projection
+                    if selected.get("_incoming_key") == incoming_key
+                ),
+                (
+                    "automatic_new"
+                    if (lesson.get("identity") or {}).get("state") == "new"
+                    else "not_applied"
+                ),
+            ),
+            "lesson_id": ids_by_key.get(incoming_key),
+            "reason": (lesson.get("identity") or {}).get("reason"),
+        }
+    return accepted, outcomes
 
 
 def apply_reconciliation(
@@ -702,6 +1024,7 @@ def apply_reconciliation(
     reconciliation_id: str,
     decisions: object,
     drafts: object = None,
+    identity_decisions: object = None,
     *,
     actor: str = "founder",
 ) -> dict:
@@ -732,14 +1055,15 @@ def apply_reconciliation(
             "Este syllabus recebeu uma versão mais nova. Refaça a comparação antes de aplicar."
         )
     if record["plan"].get("version") != PLAN_VERSION:
+        record["incoming"] = _ensure_incoming_keys(record["incoming"])
         baseline = _baseline_projection(conn, syllabus_id)
         current = _version_projection(
             get_syllabus_version(conn, syllabus_id, record["base_version_id"])
         )
         record["plan"] = build_plan(baseline, current, record["incoming"])
         conn.execute(
-            "UPDATE syllabus_reconciliation SET plan = %s WHERE id = %s",
-            (Jsonb(record["plan"]), reconciliation_id),
+            "UPDATE syllabus_reconciliation SET incoming = %s, plan = %s WHERE id = %s",
+            (Jsonb(record["incoming"]), Jsonb(record["plan"]), reconciliation_id),
         )
     if not isinstance(decisions, dict):
         raise ValueError("As decisões da reconciliação são obrigatórias.")
@@ -747,7 +1071,12 @@ def apply_reconciliation(
         drafts = {}
     if not isinstance(drafts, dict):
         raise ValueError("As versões manuais da reconciliação são inválidas.")
-    projection = _projection_from_decisions(record["plan"], decisions, drafts)
+    identity_decisions = _validated_identity_decisions(
+        record["plan"], identity_decisions
+    )
+    projection = _projection_from_decisions(
+        record["plan"], decisions, drafts, identity_decisions
+    )
     result = curate_syllabus(
         conn,
         syllabus_id,
@@ -756,11 +1085,24 @@ def apply_reconciliation(
         actor=actor,
         note=f"Reconciliação da planilha {record['file_name']} ({reconciliation_id})",
     )
+    created = get_syllabus_version(conn, syllabus_id, result["version_id"])
+    accepted_incoming, identity_outcomes = _accepted_incoming(
+        record["incoming"], record["plan"], projection, created
+    )
     conn.execute(
-        "UPDATE syllabus_reconciliation SET status = 'applied', decisions = %s,"
+        "UPDATE syllabus_reconciliation SET status = 'applied', incoming = %s,"
+        " decisions = %s,"
         " created_version_id = %s, applied_at = now() WHERE id = %s",
         (
-            Jsonb({"choices": decisions, "drafts": drafts}),
+            Jsonb(accepted_incoming),
+            Jsonb(
+                {
+                    "choices": decisions,
+                    "drafts": drafts,
+                    "identities": identity_decisions,
+                    "identity_outcomes": identity_outcomes,
+                }
+            ),
             result["version_id"],
             reconciliation_id,
         ),

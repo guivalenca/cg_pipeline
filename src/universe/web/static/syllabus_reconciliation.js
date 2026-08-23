@@ -98,7 +98,7 @@ function ensureStyles() {
   if (document.querySelector('[data-reconciliation-style]')) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = '/static/syllabus_reconciliation.css?v=3';
+  link.href = '/static/syllabus_reconciliation.css?v=4';
   link.dataset.reconciliationStyle = 'true';
   document.head.appendChild(link);
 }
@@ -106,14 +106,17 @@ function ensureStyles() {
 export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliation, onCancel, onApplied, announce }) {
   ensureStyles();
   const lessons = reconciliation.lessons || [];
-  const reviewLessons = lessons.filter((lesson) => lesson.status !== 'unchanged' || lesson.sources.some((source) => source.status !== 'unchanged'));
+  const reviewLessons = lessons.filter((lesson) => lesson.status !== 'unchanged' || lesson.identity?.state === 'review' || lesson.sources.some((source) => source.status !== 'unchanged'));
   const allItems = lessons.flatMap((lesson) => [lesson, ...lesson.sources]);
-  const actionableItems = allItems.filter((item) => item.status !== 'unchanged');
+  const actionableItems = allItems.filter((item) => item.status !== 'unchanged' || item.identity?.state === 'review');
+  const contentActionableItems = allItems.filter((item) => item.status !== 'unchanged');
+  const identityActionableItems = lessons.filter((lesson) => lesson.identity?.state === 'review');
   const state = {
     active: true,
     selectedLessonId: reviewLessons[0]?.item_id || null,
     selectedItemId: reviewLessons[0]?.item_id || null,
     decisions: {},
+    identityDecisions: {},
     drafts: {},
     manualExpanded: new Set(),
     busy: false,
@@ -122,7 +125,8 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
 
   const selectedLesson = () => lessons.find((lesson) => lesson.item_id === state.selectedLessonId) || reviewLessons[0] || lessons[0];
   const selectedItem = () => allItems.find((item) => item.item_id === state.selectedItemId) || selectedLesson();
-  const pendingCount = () => actionableItems.filter((item) => !state.decisions[item.item_id]).length;
+  const pendingCount = () => contentActionableItems.filter((item) => !state.decisions[item.item_id]).length
+    + identityActionableItems.filter((item) => !state.identityDecisions[item.item_id]).length;
 
   function renderHeading() {
     const version = reconciliation.current_version || {};
@@ -140,7 +144,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     const pending = pendingCount();
     return `<section class="recon-summary" aria-label="Resumo da comparação">
       <div><span>Versão ${esc(reconciliation.current_version?.seq)} → prévia da versão ${esc(reconciliation.next_version_seq)}</span><strong>${pending} ${pending === 1 ? 'item pendente' : 'itens pendentes'}</strong><p>Itens 1:1 não exigem decisão. Ocultação, validação, complexidade e edições manuais continuam aplicadas.</p></div>
-      <dl><div><dt>${esc(summary.unchanged_lesson_count || 0)}</dt><dd>aulas sem mudança</dd></div><div><dt>${esc(summary.unchanged_source_count || 0)}</dt><dd>fontes sem mudança</dd></div><div><dt>${esc(summary.inherited_settings || 0)}</dt><dd>ajustes preservados</dd></div><div><dt>${esc(summary.action_count || 0)}</dt><dd>decisões necessárias</dd></div></dl>
+      <dl><div><dt>${esc(summary.automatic_identity_count || 0)}</dt><dd>IDs reconhecidos</dd></div><div><dt>${esc(summary.unchanged_source_count || 0)}</dt><dd>fontes sem mudança</dd></div><div><dt>${esc(summary.inherited_settings || 0)}</dt><dd>ajustes preservados</dd></div><div><dt>${esc((summary.action_count || 0) + (summary.identity_action_count || 0))}</dt><dd>decisões necessárias</dd></div></dl>
     </section>`;
   }
 
@@ -158,18 +162,28 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
 
   function renderRailSubtask(item) {
     const decision = state.decisions[item.item_id];
+    const identityDecision = state.identityDecisions[item.item_id];
     const settings = settingsLabel(item);
+    const decisionLabel = item.identity?.state === 'review' && !identityDecision
+      ? 'Identidade pendente'
+      : identityDecision
+        ? (identityDecision === 'same' ? 'Mesma aula' : 'Nova aula')
+        : decision
+          ? (decision === 'keep' ? 'Manter' : decision === 'transition' ? 'Transicionar' : 'Versão manual')
+          : statusLabel(item.status);
     return `<button type="button" data-recon-item="${esc(item.item_id)}" class="recon-lesson-subtask recon-lesson-subtask--${esc(item.status)} ${item.item_id === state.selectedItemId ? 'is-active' : ''}">
       <span class="recon-lesson-subtask__line"></span>
       <span class="recon-lesson-subtask__body"><small>${item.kind === 'lesson' ? 'Dados da aula' : 'Autoestudo'}${settings.length ? ` · ${esc(settings.join(' · '))}` : ''}</small><strong>${esc(item.kind === 'lesson' ? 'Dados da aula' : titleOf(item))}</strong><em>${esc(summaryFor(item))}</em></span>
-      <span class="recon-lesson-subtask__meta">${renderExtraction(item)}<span class="recon-change-state recon-change-state--${esc(item.status)}">${decision ? `${ICONS.check}${decision === 'keep' ? 'Manter' : decision === 'transition' ? 'Transicionar' : 'Versão manual'}` : esc(statusLabel(item.status))}</span></span>
+      <span class="recon-lesson-subtask__meta">${renderExtraction(item)}<span class="recon-change-state recon-change-state--${esc(item.status)}">${decision || identityDecision ? ICONS.check : ''}${esc(decisionLabel)}</span></span>
     </button>`;
   }
 
   function renderLessonRail(lesson) {
     const counts = lessonCounts(lesson);
-    const total = [lesson, ...lesson.sources].filter((item) => item.status !== 'unchanged').length;
-    const resolved = [lesson, ...lesson.sources].filter((item) => item.status !== 'unchanged' && state.decisions[item.item_id]).length;
+    const total = [lesson, ...lesson.sources].filter((item) => item.status !== 'unchanged').length
+      + (lesson.identity?.state === 'review' ? 1 : 0);
+    const resolved = [lesson, ...lesson.sources].filter((item) => item.status !== 'unchanged' && state.decisions[item.item_id]).length
+      + (lesson.identity?.state === 'review' && state.identityDecisions[lesson.item_id] ? 1 : 0);
     const active = lesson.item_id === state.selectedLessonId;
     const model = lessonModel(lesson);
     const changes = [];
@@ -224,6 +238,41 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     </div></section>`;
   }
 
+  function identityReason(identity) {
+    return {
+      exact_text: 'Título, descrição e matéria coincidem com a versão anterior.',
+      small_text_edit: 'As mudanças de título e descrição ficaram dentro do limite automático.',
+      subject_changed: 'A matéria mudou. O sistema não mantém o ID sem sua decisão.',
+      kind_changed: 'O tipo da aula mudou. O sistema não mantém o ID sem sua decisão.',
+      ambiguous_match: 'Mais de uma continuidade parece possível.',
+      large_title_edit: 'O título mudou além do limite automático.',
+      large_description_edit: 'A descrição mudou além do limite automático.',
+      no_predecessor: 'Nenhuma aula anterior corresponde a esta entrada.',
+    }[identity?.reason] || 'A identidade desta aula precisa de confirmação.';
+  }
+
+  function renderIdentity(item) {
+    if (item.kind !== 'lesson') return '';
+    const identity = item.identity || {};
+    if (identity.state === 'removed') return '';
+    if (identity.state === 'carried') {
+      return `<aside class="recon-identity recon-identity--automatic">${ICONS.inherited}<div><small>Identidade da aula</small><strong>ID mantido automaticamente</strong><span>${esc(identityReason(identity))}</span></div></aside>`;
+    }
+    if (identity.state === 'new') {
+      return `<aside class="recon-identity recon-identity--new">${ICONS.lesson}<div><small>Identidade da aula</small><strong>Nova aula</strong><span>${esc(identityReason(identity))}</span></div></aside>`;
+    }
+    const choice = state.identityDecisions[item.item_id];
+    const candidate = identity.candidate || {};
+    return `<section class="recon-identity-review">
+      <header>${identity.reason === 'subject_changed' ? ICONS.warning : ICONS.lesson}<div><small>Identidade da aula</small><h3>Esta é a mesma aula?</h3><p>${esc(identityReason(identity))}</p></div></header>
+      <div class="recon-identity-candidate"><span>Aula atual</span><strong>${esc(candidate.title || 'Aula sem título')}</strong><small>${esc(candidate.subject || 'Sem matéria')} · ${esc(candidate.kind || 'Aula')}</small></div>
+      <div class="recon-identity-choices">
+        <button type="button" data-recon-identity="same" class="${choice === 'same' ? 'is-selected' : ''}" aria-pressed="${choice === 'same'}">${choice === 'same' ? ICONS.check : ''}<span><strong>É a mesma aula</strong><small>Mantém o ID atual.</small></span></button>
+        <button type="button" data-recon-identity="new" class="${choice === 'new' ? 'is-selected' : ''}" aria-pressed="${choice === 'new'}">${choice === 'new' ? ICONS.check : ''}<span><strong>É uma aula nova</strong><small>Cria um novo ID quando ela entrar na versão.</small></span></button>
+      </div>
+    </section>`;
+  }
+
   function renderManualField(item, key, label, kind) {
     const value = state.drafts[item.item_id]?.[key] || '';
     if (kind === 'textarea' || kind === 'subjects') {
@@ -249,7 +298,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     return `<section class="recon-item-detail">
       <header><div class="recon-item-detail__type"><span>${item.kind === 'lesson' ? ICONS.lesson : ICONS.source}</span><small>${item.kind === 'lesson' ? 'Dados da aula' : 'Autoestudo'}</small>${renderExtraction(item)}</div></header>
       <div class="recon-item-detail__heading"><h2>${esc(item.kind === 'lesson' ? 'Dados da aula' : titleOf(item))}</h2><span class="recon-change-state recon-change-state--${esc(item.status)}">${esc(statusLabel(item.status))}</span></div>
-      <p>${esc(summaryFor(item))}</p>${renderDeletedWarning(item)}${renderComparison(item)}${renderChoices(item)}${renderManual(item)}
+      <p>${esc(summaryFor(item))}</p>${renderIdentity(item)}${renderDeletedWarning(item)}${renderComparison(item)}${renderChoices(item)}${renderManual(item)}
       <footer><button type="button" data-recon-step="-1">← Anterior</button><span>${index >= 0 ? `${index + 1} de ${actionableItems.length} itens com decisão` : 'Item sem mudanças'}</span><button type="button" data-recon-step="1">Próximo →</button></footer>
     </section>`;
   }
@@ -315,7 +364,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     state.error = null;
     render();
     try {
-      const result = await onApplied({ decisions: state.decisions, drafts: state.drafts });
+      const result = await onApplied({ decisions: state.decisions, drafts: state.drafts, identity_decisions: state.identityDecisions });
       state.active = false;
       return result;
     } catch (error) {
@@ -337,6 +386,16 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     if (step) { moveItem(Number(step.dataset.reconStep)); return; }
     const choice = event.target.closest('[data-recon-choice]');
     if (choice) { applyDecision(choice.dataset.reconChoice); return; }
+    const identity = event.target.closest('[data-recon-identity]');
+    if (identity) {
+      const item = selectedItem();
+      if (item?.identity?.state === 'review') {
+        state.identityDecisions[item.item_id] = identity.dataset.reconIdentity;
+        state.error = null;
+        render();
+      }
+      return;
+    }
     if (event.target.closest('[data-recon-manual-toggle]')) {
       const id = selectedItem().item_id;
       if (state.manualExpanded.has(id)) state.manualExpanded.delete(id); else state.manualExpanded.add(id);
