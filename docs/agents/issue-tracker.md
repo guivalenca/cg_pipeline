@@ -16,10 +16,11 @@ Não existe MCP do Linear nem CLI aqui. Tudo passa pela **API GraphQL** em
 
 ## Auth
 
-A chave está no `.env` como `LINEAR_API_KEY`. Carregue antes de qualquer chamada:
+A chave compartilhada está no `.env` do workspace pai como `LINEAR_API_KEY`. A partir
+deste repositório, carregue-a antes de qualquer chamada:
 
 ```bash
-set -a && source .env && set +a
+set -a && source ../.env && set +a
 ```
 
 O header é a chave crua — **sem** prefixo `Bearer`:
