@@ -79,16 +79,25 @@ LEGACY_COLUMNS = (
 COLUMNS = PROJECT_COLUMNS
 WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
 PROJECT_SUBJECT_CODES = {
+    "com": "COM",
     "computacao": "COM",
+    "lid": "LID",
     "lideranca": "LID",
+    "neg": "NEG",
     "negocios": "NEG",
+    "uex": "UEX",
     "user experience": "UEX",
 }
 PROJECT_LESSON_KINDS = {
+    "class": "Class",
     "avaliacao / pesquisa": "Evaluation",
+    "deliverable": "Deliverable",
     "desenvolvimento projeto": "Deliverable",
+    "encontro": "Class",
     "encontro de instrucao": "Class",
     "encontro de orientacao": "Orientation",
+    "evaluation": "Evaluation",
+    "orientation": "Orientation",
 }
 BOOK_SCOPE = re.compile(
     r"(?P<label>cap[ií]tulos?|cap\.?|chapters?|p[aá]ginas?|p[aá]gs?\.?|pag(?:es?)?\.?|"
@@ -298,18 +307,26 @@ def _text(value) -> str | None:
     return result or None
 
 
-def _project_subject(value: object) -> str | None:
+def _project_subject(value: object, *, row_number: int) -> str | None:
     """Translate an institutional Eixo label to the shared subject code."""
     subject = _text(value)
     if not subject:
         return None
-    return PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold(), subject)
+    code = PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold())
+    if code is None:
+        raise ValueError(f"row {row_number}: unsupported Eixo value {subject!r}")
+    return code
 
 
-def _project_lesson_kind(value: object) -> str:
+def _project_lesson_kind(value: object, *, row_number: int) -> str:
     """Translate a Projetos activity label to the shared lesson taxonomy."""
-    kind = _text(value) or "Atividade"
-    return PROJECT_LESSON_KINDS.get(_ascii(kind).casefold(), kind)
+    kind = _text(value)
+    canonical = PROJECT_LESSON_KINDS.get(_ascii(kind or "").casefold())
+    if canonical is None:
+        raise ValueError(
+            f"row {row_number}: unsupported Tipo da atividade value {kind!r}"
+        )
+    return canonical
 
 
 def parse_subjects(value: object) -> list[str]:
@@ -429,11 +446,19 @@ def _parse_project_sheet(sheet) -> dict:
                 }
             )
         else:
+            lesson_kind = _project_lesson_kind(
+                fields.get("Tipo da atividade"), row_number=row_number
+            )
+            lesson_subject = _project_subject(
+                fields.get("Eixo"), row_number=row_number
+            )
+            if lesson_kind == "Class" and lesson_subject is None:
+                raise ValueError(f"row {row_number}: Eixo is required for a Class")
             lessons.append(
                 {
                     **common,
-                    "kind": _project_lesson_kind(fields.get("Tipo da atividade")),
-                    "subject": _project_subject(fields.get("Eixo")),
+                    "kind": lesson_kind,
+                    "subject": lesson_subject,
                     "subjects": parse_subjects(fields.get("Assuntos")),
                     "lesson_date": None,
                 }

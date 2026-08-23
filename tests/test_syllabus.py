@@ -221,6 +221,26 @@ class TestWorkbookAdapters:
         ]
         assert parsed["lessons"][0]["fields"]["Eixo"] == "Computação"
 
+    @pytest.mark.parametrize(
+        ("row", "message"),
+        [
+            (project_row(subject="Marketing"), "unsupported Eixo value 'Marketing'"),
+            (
+                project_row(kind="Workshop", subject=None),
+                "unsupported Tipo da atividade value 'Workshop'",
+            ),
+            (project_row(subject=None), "Eixo is required for a Class"),
+        ],
+    )
+    def test_project_workbook_rejects_unmapped_lesson_taxonomy(
+        self, tmp_path, row, message
+    ):
+        path = tmp_path / "unmapped-project-taxonomy.xlsx"
+        write_project(path, [row])
+
+        with pytest.raises(ValueError, match=message):
+            parse_workbook(path)
+
     def test_legacy_related_workbook_groups_self_study_under_lesson(self, tmp_path):
         path = tmp_path / "legacy.xlsx"
         write_legacy(
