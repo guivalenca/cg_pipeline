@@ -6,7 +6,6 @@ from openpyxl import Workbook
 
 from universe.syllabus import (
     LEGACY_COLUMNS,
-    PROJECT_COLUMNS,
     curate_syllabus,
     get_syllabus_workbook,
     get_syllabus_version,
@@ -15,6 +14,8 @@ from universe.syllabus import (
     update_source_review,
 )
 from universe.syllabus_reconciliation import (
+    _projection_from_decisions,
+    _validated_identity_decisions,
     apply_reconciliation,
     build_plan,
     create_reconciliation,
@@ -297,7 +298,7 @@ def test_large_description_edit_requires_identity_review():
     lesson = plan["lessons"][0]
     assert lesson["identity"]["state"] == "review"
     assert lesson["identity"]["reason"] == "large_description_edit"
-    assert lesson["identity"]["candidate"]["lesson_id"] == "lesson-stable"
+    assert lesson["identity"]["candidates"][0]["lesson_id"] == "lesson-stable"
     assert plan["summary"]["identity_action_count"] == 1
 
 
@@ -331,6 +332,78 @@ def test_equal_candidates_require_review_instead_of_a_greedy_identity_match():
     )
     assert incoming_plan["identity"]["state"] == "review"
     assert incoming_plan["identity"]["reason"] == "ambiguous_match"
+    assert {
+        candidate["lesson_id"]
+        for candidate in incoming_plan["identity"]["candidates"]
+    } == {"lesson-stable", "lesson-other"}
+
+
+def test_non_primary_identity_candidate_can_keep_content():
+    first = _identity_projection()["lessons"][0]
+    second = {**copy.deepcopy(first), "id": "lesson-other", "seq": 2}
+    incoming_lesson = {
+        **copy.deepcopy(first),
+        "id": None,
+        "incoming_key": "incoming-0001",
+        "seq": 3,
+    }
+    plan = build_plan(
+        {"lessons": [first, second]},
+        {"lessons": copy.deepcopy([first, second])},
+        {"lessons": [incoming_lesson]},
+    )
+    review = next(
+        lesson for lesson in plan["lessons"] if lesson.get("incoming_key")
+    )
+    identity_decisions = _validated_identity_decisions(
+        plan,
+        {
+            review["item_id"]: {
+                "choice": "same",
+                "lesson_id": "lesson-stable",
+            }
+        },
+    )
+    removed = next(lesson for lesson in plan["lessons"] if not lesson.get("incoming_key"))
+
+    projection = _projection_from_decisions(
+        plan,
+        {removed["item_id"]: "keep"},
+        {},
+        identity_decisions,
+    )
+
+    assert [lesson["id"] for lesson in projection] == [
+        "lesson-other",
+        "lesson-stable",
+    ]
+    accepted = next(
+        lesson for lesson in projection if lesson.get("_incoming_key")
+    )
+    assert accepted["id"] == "lesson-stable"
+
+
+def test_fully_rewritten_and_moved_lesson_still_requires_identity_review():
+    baseline = _identity_projection()
+    current = copy.deepcopy(baseline)
+    incoming = _identity_projection(
+        lesson_id=None,
+        title="Cerimônia de encerramento",
+        description="Pesquisa qualitativa com usuários e síntese de entrevistas.",
+    )
+    incoming["lessons"][0].update({"week": 9, "seq": 9})
+
+    plan = build_plan(baseline, current, incoming)
+
+    incoming_plan = next(
+        lesson for lesson in plan["lessons"] if lesson.get("incoming_key")
+    )
+    assert incoming_plan["identity"]["state"] == "review"
+    assert incoming_plan["identity"]["reason"] == "no_confident_match"
+    assert [
+        candidate["lesson_id"]
+        for candidate in incoming_plan["identity"]["candidates"]
+    ] == ["lesson-stable"]
 
 
 def test_identical_institutional_workbook_preserves_manual_overlay_without_review(
@@ -519,7 +592,16 @@ def test_founder_resolves_large_lesson_change_as_same_or_new(
         preview["id"],
         {lesson["item_id"]: "transition"},
         {},
-        {lesson["item_id"]: identity_choice},
+        {
+            lesson["item_id"]: (
+                {
+                    "choice": "same",
+                    "lesson_id": lesson["identity"]["candidates"][0]["lesson_id"],
+                }
+                if identity_choice == "same"
+                else {"choice": "new"}
+            )
+        },
     )
     after = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])
 
@@ -527,55 +609,17 @@ def test_founder_resolves_large_lesson_change_as_same_or_new(
     recorded = get_reconciliation(db, imported["syllabus_id"], preview["id"])
     outcome = next(iter(recorded["decisions"]["identity_outcomes"].values()))
     assert outcome["outcome"] == f"founder_{identity_choice}"
+    assert recorded["incoming"]["lessons"][0]["id"] is None
+    assert recorded["decisions"]["accepted_incoming"]["lessons"][0]["id"] == after["lessons"][0]["id"]
 
 
-def _project_workbook(
-    path: Path,
-    *,
-    lesson_title: str = "Programação e Desenvolvimento de Banco de Dados",
-    description: str = "Criação e manipulação de bancos relacionais.",
-    axis: str = "Computação",
-) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-
-    def append(**values):
-        sheet.append([values.get(column) for column in PROJECT_COLUMNS])
-
-    common = {"Projeto": "GRAD CC07", "Semana": "Semana 02"}
-    append(
-        **common,
-        Ordem=1,
-        Atividade=lesson_title,
-        **{
-            "Tipo da atividade": "Encontro de instrução",
-            "Descrição da atividade": description,
-            "Eixo": axis,
-            "Assuntos": "Banco de dados relacional\n,SQL Básico",
-        },
-    )
-    append(
-        **common,
-        Ordem=2,
-        Atividade="Tutorial MySQL",
-        **{
-            "Tipo da atividade": "Autoestudo",
-            "Encontro pai": lesson_title,
-            "URL": "https://example.com/mysql",
-        },
-    )
-    workbook.save(path)
-    workbook.close()
-    return path
-
-
-def test_type2_update_round_trips_after_new_identity_decision(db, tmp_path: Path):
-    original = _project_workbook(tmp_path / "type2-original.xlsx")
-    incoming = _project_workbook(
+def test_type2_update_round_trips_after_new_identity_decision(
+    db, tmp_path: Path, type2_workbook
+):
+    original = type2_workbook(tmp_path / "type2-original.xlsx")
+    incoming = type2_workbook(
         tmp_path / "type2-incoming.xlsx",
-        axis="Negócios",
+        lesson_axis="Negócios",
     )
     imported = import_workbook(db, original, "GRAD CC07 estável")
     before = get_syllabus_version(db, imported["syllabus_id"])
@@ -590,7 +634,7 @@ def test_type2_update_round_trips_after_new_identity_decision(db, tmp_path: Path
         preview["id"],
         {lesson["item_id"]: "transition"},
         {},
-        {lesson["item_id"]: "new"},
+        {lesson["item_id"]: {"choice": "new"}},
     )
     latest = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])
 
@@ -610,3 +654,36 @@ def test_type2_update_round_trips_after_new_identity_decision(db, tmp_path: Path
     assert [
         source["title"] for source in parsed["lessons"][0]["source_references"]
     ] == ["Tutorial MySQL"]
+
+
+def test_type2_update_accepts_realistic_long_lesson_descriptions(
+    db, tmp_path: Path, type2_workbook
+):
+    original_description = "Infraestrutura, integração e observabilidade. " * 105
+    incoming_description = original_description + "Revisão institucional pequena."
+    original = type2_workbook(
+        tmp_path / "type2-long-original.xlsx",
+        lesson_description=original_description,
+    )
+    incoming = type2_workbook(
+        tmp_path / "type2-long-incoming.xlsx",
+        lesson_description=incoming_description,
+    )
+    imported = import_workbook(db, original, "GRAD CC07 descrição longa")
+    before = get_syllabus_version(db, imported["syllabus_id"])
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
+    lesson = preview["lessons"][0]
+
+    assert len(original_description) > 4000
+    assert lesson["identity"]["state"] == "carried"
+    result = apply_reconciliation(
+        db,
+        imported["syllabus_id"],
+        preview["id"],
+        {lesson["item_id"]: "transition"},
+        {},
+    )
+    after = get_syllabus_version(db, imported["syllabus_id"], result["version_id"])
+
+    assert after["lessons"][0]["id"] == before["lessons"][0]["id"]
+    assert after["lessons"][0]["description"] == incoming_description

@@ -98,7 +98,7 @@ function ensureStyles() {
   if (document.querySelector('[data-reconciliation-style]')) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = '/static/syllabus_reconciliation.css?v=4';
+  link.href = '/static/syllabus_reconciliation.css?v=5';
   link.dataset.reconciliationStyle = 'true';
   document.head.appendChild(link);
 }
@@ -117,6 +117,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     selectedItemId: reviewLessons[0]?.item_id || null,
     decisions: {},
     identityDecisions: {},
+    identityCandidates: {},
     drafts: {},
     manualExpanded: new Set(),
     busy: false,
@@ -143,7 +144,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     const summary = reconciliation.summary || {};
     const pending = pendingCount();
     return `<section class="recon-summary" aria-label="Resumo da comparação">
-      <div><span>Versão ${esc(reconciliation.current_version?.seq)} → prévia da versão ${esc(reconciliation.next_version_seq)}</span><strong>${pending} ${pending === 1 ? 'item pendente' : 'itens pendentes'}</strong><p>Itens 1:1 não exigem decisão. Ocultação, validação, complexidade e edições manuais continuam aplicadas.</p></div>
+      <div><span>Versão ${esc(reconciliation.current_version?.seq)} → prévia da versão ${esc(reconciliation.next_version_seq)}</span><strong>${pending} ${pending === 1 ? 'item pendente' : 'itens pendentes'}</strong><p>Itens com conteúdo 1:1 não exigem decisão de conteúdo. Ocultação, validação, complexidade e edições manuais continuam aplicadas.</p></div>
       <dl><div><dt>${esc(summary.automatic_identity_count || 0)}</dt><dd>IDs reconhecidos</dd></div><div><dt>${esc(summary.unchanged_source_count || 0)}</dt><dd>fontes sem mudança</dd></div><div><dt>${esc(summary.inherited_settings || 0)}</dt><dd>ajustes preservados</dd></div><div><dt>${esc((summary.action_count || 0) + (summary.identity_action_count || 0))}</dt><dd>decisões necessárias</dd></div></dl>
     </section>`;
   }
@@ -167,7 +168,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     const decisionLabel = item.identity?.state === 'review' && !identityDecision
       ? 'Identidade pendente'
       : identityDecision
-        ? (identityDecision === 'same' ? 'Mesma aula' : 'Nova aula')
+        ? (identityDecision.choice === 'same' ? 'Mesma aula' : 'Nova aula')
         : decision
           ? (decision === 'keep' ? 'Manter' : decision === 'transition' ? 'Transicionar' : 'Versão manual')
           : statusLabel(item.status);
@@ -229,7 +230,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
   }
 
   function renderChoices(item) {
-    if (item.status === 'unchanged') return `<p class="recon-unchanged-note">${ICONS.inherited}<span><strong>Nenhuma decisão necessária</strong>Este item é 1:1 e seus ajustes locais continuam aplicados.</span></p>`;
+    if (item.status === 'unchanged') return `<p class="recon-unchanged-note">${ICONS.inherited}<span><strong>Nenhuma decisão de conteúdo necessária</strong>Este item é 1:1 e seus ajustes locais continuam aplicados.</span></p>`;
     const decision = state.decisions[item.item_id];
     const transitionCopy = item.status === 'removed' ? 'Aceita a remoção indicada pela planilha.' : item.status === 'added' ? 'Inclui o novo item no syllabus.' : 'Aceita todas as mudanças deste item.';
     return `<section class="recon-choices"><div><small>O que deve entrar na nova versão?</small><h3>Escolha o destino deste item</h3></div><div>
@@ -244,11 +245,24 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
       small_text_edit: 'As mudanças de título e descrição ficaram dentro do limite automático.',
       subject_changed: 'A matéria mudou. O sistema não mantém o ID sem sua decisão.',
       kind_changed: 'O tipo da aula mudou. O sistema não mantém o ID sem sua decisão.',
-      ambiguous_match: 'Mais de uma continuidade parece possível.',
+      ambiguous_match: 'A correspondência não é segura o suficiente para manter o ID automaticamente.',
       large_title_edit: 'O título mudou além do limite automático.',
       large_description_edit: 'A descrição mudou além do limite automático.',
+      no_confident_match: 'Não há uma correspondência segura. Escolha uma aula anterior ou crie um novo ID.',
       no_predecessor: 'Nenhuma aula anterior corresponde a esta entrada.',
     }[identity?.reason] || 'A identidade desta aula precisa de confirmação.';
+  }
+
+  function identityCandidateLabel(candidate, { includeTitle = true } = {}) {
+    const details = [
+      candidate.subject || 'Sem matéria',
+      candidate.kind || 'Aula',
+      candidate.week ? `semana ${candidate.week}` : null,
+      candidate.date ? fmtDate(candidate.date) : null,
+      candidate.seq ? `ordem ${candidate.seq}` : null,
+      candidate.lesson_id ? `ID …${String(candidate.lesson_id).slice(-6)}` : null,
+    ].filter(Boolean);
+    return `${includeTitle ? `${candidate.title || 'Aula sem título'} · ` : ''}${details.join(' · ')}`;
   }
 
   function renderIdentity(item) {
@@ -261,14 +275,21 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     if (identity.state === 'new') {
       return `<aside class="recon-identity recon-identity--new">${ICONS.lesson}<div><small>Identidade da aula</small><strong>Nova aula</strong><span>${esc(identityReason(identity))}</span></div></aside>`;
     }
-    const choice = state.identityDecisions[item.item_id];
-    const candidate = identity.candidate || {};
+    const decision = state.identityDecisions[item.item_id];
+    const candidates = identity.candidates || [];
+    const candidateId = state.identityCandidates[item.item_id] || decision?.lesson_id || candidates[0]?.lesson_id;
+    const candidate = candidates.find((option) => option.lesson_id === candidateId) || candidates[0] || {};
+    state.identityCandidates[item.item_id] = candidate.lesson_id;
+    const selectedElsewhere = new Set(Object.entries(state.identityDecisions)
+      .filter(([itemId, value]) => itemId !== item.item_id && value?.choice === 'same')
+      .map(([, value]) => value.lesson_id));
     return `<section class="recon-identity-review">
       <header>${identity.reason === 'subject_changed' ? ICONS.warning : ICONS.lesson}<div><small>Identidade da aula</small><h3>Esta é a mesma aula?</h3><p>${esc(identityReason(identity))}</p></div></header>
-      <div class="recon-identity-candidate"><span>Aula atual</span><strong>${esc(candidate.title || 'Aula sem título')}</strong><small>${esc(candidate.subject || 'Sem matéria')} · ${esc(candidate.kind || 'Aula')}</small></div>
+      <label class="recon-identity-picker"><span>Aula anterior</span><select data-recon-identity-candidate aria-label="Aula anterior que continuará com este ID">${candidates.map((option) => `<option value="${esc(option.lesson_id)}"${option.lesson_id === candidate.lesson_id ? ' selected' : ''}${selectedElsewhere.has(option.lesson_id) ? ' disabled' : ''}>${esc(identityCandidateLabel(option))}</option>`).join('')}</select></label>
+      <div class="recon-identity-candidate"><span>Candidata selecionada</span><strong>${esc(candidate.title || 'Aula sem título')}</strong><small>${esc(identityCandidateLabel(candidate, { includeTitle: false }))}</small></div>
       <div class="recon-identity-choices">
-        <button type="button" data-recon-identity="same" class="${choice === 'same' ? 'is-selected' : ''}" aria-pressed="${choice === 'same'}">${choice === 'same' ? ICONS.check : ''}<span><strong>É a mesma aula</strong><small>Mantém o ID atual.</small></span></button>
-        <button type="button" data-recon-identity="new" class="${choice === 'new' ? 'is-selected' : ''}" aria-pressed="${choice === 'new'}">${choice === 'new' ? ICONS.check : ''}<span><strong>É uma aula nova</strong><small>Cria um novo ID quando ela entrar na versão.</small></span></button>
+        <button type="button" data-recon-identity="same" class="${decision?.choice === 'same' && decision.lesson_id === candidate.lesson_id ? 'is-selected' : ''}" aria-pressed="${decision?.choice === 'same' && decision.lesson_id === candidate.lesson_id}">${decision?.choice === 'same' && decision.lesson_id === candidate.lesson_id ? ICONS.check : ''}<span><strong>É a aula selecionada</strong><small>Mantém o ID dessa aula anterior.</small></span></button>
+        <button type="button" data-recon-identity="new" class="${decision?.choice === 'new' ? 'is-selected' : ''}" aria-pressed="${decision?.choice === 'new'}">${decision?.choice === 'new' ? ICONS.check : ''}<span><strong>É uma aula nova</strong><small>Cria um novo ID quando ela entrar na versão.</small></span></button>
       </div>
     </section>`;
   }
@@ -321,7 +342,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     viewHost.className = 'syl-view recon-production';
     viewHost.setAttribute('aria-busy', 'false');
     viewHost.innerHTML = `${renderSummary()}<div class="recon-workspace">
-      <aside class="recon-lesson-rail"><header><span>Aulas com mudanças</span><h2>${reviewLessons.length} ${reviewLessons.length === 1 ? 'aula para revisar' : 'aulas para revisar'}</h2><p>Abra uma aula e percorra seus dados e autoestudos.</p></header><nav aria-label="Aulas com mudanças">${reviewLessons.map(renderLessonRail).join('')}</nav><footer>${ICONS.inherited}<div><strong>${esc(reconciliation.summary?.unchanged_lesson_count || 0)} aulas 1:1 não exigem revisão</strong><span>${esc(reconciliation.summary?.inherited_settings || 0)} ajustes locais reaplicados</span></div></footer></aside>
+      <aside class="recon-lesson-rail"><header><span>Aulas com mudanças</span><h2>${reviewLessons.length} ${reviewLessons.length === 1 ? 'aula para revisar' : 'aulas para revisar'}</h2><p>Abra uma aula e percorra seus dados e autoestudos.</p></header><nav aria-label="Aulas com mudanças">${reviewLessons.map(renderLessonRail).join('')}</nav><footer>${ICONS.inherited}<div><strong>${esc(reconciliation.summary?.unchanged_lesson_count || 0)} aulas com conteúdo 1:1</strong><span>${esc(reconciliation.summary?.inherited_settings || 0)} ajustes locais reaplicados</span></div></footer></aside>
       <main class="recon-main"><header class="recon-class-heading"><div><small>${esc(model.subject || 'Sem matéria')} · Aula</small><h2>${esc(model.title || 'Aula sem título')}</h2><p>${esc(fmtDate(model.date))}</p></div><span>${lesson.sources.length} ${lesson.sources.length === 1 ? 'autoestudo' : 'autoestudos'}</span></header>${renderSelectedItem(item)}</main>
     </div>${renderActionBar()}`;
   }
@@ -358,6 +379,23 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     render();
   }
 
+  function clearDuplicateIdentity(lessonId, ownerItemId) {
+    Object.entries(state.identityDecisions).forEach(([itemId, decision]) => {
+      if (itemId !== ownerItemId && decision?.choice === 'same' && decision.lesson_id === lessonId) {
+        delete state.identityDecisions[itemId];
+      }
+    });
+  }
+
+  function restoreIdentityFocus(itemId, control, value) {
+    const controls = [...viewHost.querySelectorAll(`[${control}]`)];
+    const target = controls.find((element) => {
+      const item = element.closest('.recon-item-detail');
+      return selectedItem()?.item_id === itemId && item && (!value || element.getAttribute(control) === value);
+    });
+    target?.focus();
+  }
+
   async function applyAll() {
     if (pendingCount() || state.busy) return;
     state.busy = true;
@@ -390,9 +428,17 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
     if (identity) {
       const item = selectedItem();
       if (item?.identity?.state === 'review') {
-        state.identityDecisions[item.item_id] = identity.dataset.reconIdentity;
+        const choice = identity.dataset.reconIdentity;
+        if (choice === 'same') {
+          const lessonId = state.identityCandidates[item.item_id] || item.identity.candidates?.[0]?.lesson_id;
+          clearDuplicateIdentity(lessonId, item.item_id);
+          state.identityDecisions[item.item_id] = { choice: 'same', lesson_id: lessonId };
+        } else {
+          state.identityDecisions[item.item_id] = { choice: 'new' };
+        }
         state.error = null;
         render();
+        restoreIdentityFocus(item.item_id, 'data-recon-identity', choice);
       }
       return;
     }
@@ -405,6 +451,22 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
   }
 
   function handleInput(event) {
+    const identityCandidate = event.target.closest('[data-recon-identity-candidate]');
+    if (identityCandidate) {
+      const item = selectedItem();
+      if (!item || item.identity?.state !== 'review') return;
+      state.identityCandidates[item.item_id] = identityCandidate.value;
+      if (state.identityDecisions[item.item_id]?.choice === 'same') {
+        clearDuplicateIdentity(identityCandidate.value, item.item_id);
+        state.identityDecisions[item.item_id] = {
+          choice: 'same',
+          lesson_id: identityCandidate.value,
+        };
+      }
+      render();
+      restoreIdentityFocus(item.item_id, 'data-recon-identity-candidate');
+      return;
+    }
     const input = event.target.closest('[data-recon-draft]');
     if (!input) return;
     const form = input.closest('[data-recon-manual-form]');

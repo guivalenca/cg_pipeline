@@ -16,7 +16,6 @@ import uvicorn
 
 from universe.syllabus import (
     LEGACY_COLUMNS,
-    PROJECT_COLUMNS,
     get_syllabus_history,
     get_syllabus_version,
     import_workbook,
@@ -129,66 +128,6 @@ def _subject_filter_workbook(path: Path) -> Path:
         Type="Evaluation",
         Title="Avaliação em pares",
         **{"Grade weight": 2},
-    )
-    workbook.save(path)
-    workbook.close()
-    return path
-
-
-def _type2_workbook(
-    path: Path,
-    *,
-    lesson_title: str = "Programação e Desenvolvimento de Banco de Dados",
-    lesson_description: str = "Criação e manipulação de bancos relacionais.",
-    lesson_axis: str = "Computação",
-) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-
-    def append(**values):
-        sheet.append([values.get(column) for column in PROJECT_COLUMNS])
-
-    common = {"Projeto": "GRAD CC07", "Semana": "Semana 02"}
-    append(
-        **common,
-        Ordem=1,
-        Atividade=lesson_title,
-        **{
-            "Tipo da atividade": "Encontro de instrução",
-            "Descrição da atividade": lesson_description,
-            "Eixo": lesson_axis,
-            "Assuntos": "Banco de dados relacional\n,SQL Básico",
-        },
-    )
-    append(
-        **common,
-        Ordem=2,
-        Atividade="Tutorial MySQL",
-        **{
-            "Tipo da atividade": "Autoestudo",
-            "Encontro pai": lesson_title,
-            "URL": "https://example.com/mysql",
-        },
-    )
-    append(
-        **common,
-        Ordem=3,
-        Atividade="Sprint Planning",
-        **{"Tipo da atividade": "Encontro de orientação"},
-    )
-    append(
-        **common,
-        Ordem=4,
-        Atividade="Entrega do artefato",
-        **{"Tipo da atividade": "Desenvolvimento projeto"},
-    )
-    append(
-        **common,
-        Ordem=5,
-        Atividade="Avaliação geral",
-        **{"Tipo da atividade": "Avaliação / pesquisa"},
     )
     workbook.save(path)
     workbook.close()
@@ -335,20 +274,24 @@ def test_upload_dialog_captures_graph_metadata_only_for_a_new_syllabus(
 
 
 def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically(
-    test_database_url, applied_migrations, tmp_path
+    test_database_url, applied_migrations, tmp_path, type2_workbook
 ):
     name = f"Browser stable identity {uuid.uuid4().hex[:8]}"
-    original = _type2_workbook(tmp_path / "identity-original.xlsx")
-    changed_subject = _type2_workbook(
+    original = type2_workbook(
+        tmp_path / "identity-original.xlsx", include_course_events=True
+    )
+    changed_subject = type2_workbook(
         tmp_path / "identity-subject.xlsx",
         lesson_axis="Negócios",
+        include_course_events=True,
     )
-    small_edit = _type2_workbook(
+    small_edit = type2_workbook(
         tmp_path / "identity-small-edit.xlsx",
         lesson_axis="Negócios",
         lesson_description=(
             "Criação e manipulação de bancos relacionais na nuvem."
         ),
+        include_course_events=True,
     )
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(conn, original, name)
@@ -370,7 +313,11 @@ def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically
         expect(page.locator(".recon-identity-review")).to_contain_text(
             "A matéria mudou"
         )
-        page.get_by_role("button", name="É uma aula nova", exact=False).click()
+        new_identity = page.get_by_role(
+            "button", name="É uma aula nova", exact=False
+        )
+        new_identity.click()
+        expect(new_identity).to_be_focused()
         page.locator('[data-recon-choice="transition"]').click()
         page.get_by_role("button", name="Criar versão 2", exact=False).click()
         page.wait_for_function("!location.search.includes('reconciliation=')")
@@ -581,12 +528,16 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
 
 
 def test_type2_lesson_shows_subjects_and_its_parented_source(
-    test_database_url, applied_migrations, tmp_path
+    test_database_url, applied_migrations, tmp_path, type2_workbook
 ):
     name = f"Browser type 2 {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
-            conn, _type2_workbook(tmp_path / "type2.xlsx"), name
+            conn,
+            type2_workbook(
+                tmp_path / "type2.xlsx", include_course_events=True
+            ),
+            name,
         )
 
     app = create_app(lambda: psycopg.connect(test_database_url))

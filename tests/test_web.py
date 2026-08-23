@@ -483,7 +483,7 @@ def test_editor_api_requires_a_bounded_reason_for_a_new_version(
         excessive_description = [dict(lesson) for lesson in lessons]
         excessive_description[0] = {
             **excessive_description[0],
-            "description": "d" * 4001,
+            "description": "d" * 20_001,
         }
         rejected_description = client.post(
             f"/api/syllabi/{uploaded['syllabus_id']}/curate",
@@ -494,7 +494,7 @@ def test_editor_api_requires_a_bounded_reason_for_a_new_version(
             },
         )
         assert rejected_description.status_code == 422
-        assert "description exceeds 4000 characters" in (
+        assert "description exceeds 20000 characters" in (
             rejected_description.json()["detail"]
         )
 

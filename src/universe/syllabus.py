@@ -1369,7 +1369,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
             "description": _clean_edit_text(
                 raw_lesson.get("description"),
                 field=f"lesson {lesson_index} description",
-                limit=4000,
+                limit=20_000,
             ),
             "is_hidden": bool(raw_lesson.get("hidden")),
             "fields": _base_fields(base_lesson),

@@ -33,7 +33,33 @@ from universe.syllabus import (
 
 DECISIONS = {"keep", "transition", "custom"}
 IDENTITY_DECISIONS = {"same", "new"}
-PLAN_VERSION = 4
+IDENTITY_STATES = {"carried", "review", "new", "removed"}
+IDENTITY_REASONS = {
+    "exact_text",
+    "small_text_edit",
+    "subject_changed",
+    "kind_changed",
+    "ambiguous_match",
+    "large_title_edit",
+    "large_description_edit",
+    "no_confident_match",
+    "no_predecessor",
+    "removed",
+}
+IDENTITY_REASONS_BY_STATE = {
+    "carried": {"exact_text", "small_text_edit"},
+    "review": {
+        "subject_changed",
+        "kind_changed",
+        "ambiguous_match",
+        "large_title_edit",
+        "large_description_edit",
+        "no_confident_match",
+    },
+    "new": {"no_predecessor"},
+    "removed": {"removed"},
+}
+PLAN_VERSION = 5
 AUTO_TITLE_SIMILARITY = 0.86
 AUTO_DESCRIPTION_SIMILARITY = 0.80
 AUTO_MATCH_MARGIN = 8.0
@@ -161,17 +187,15 @@ def _source_signature(item: dict | None) -> tuple:
     )
 
 
-def _ratio(left: object, right: object) -> float:
-    a, b = _norm(left), _norm(right)
-    if not a or not b:
-        return 0.0
-    return SequenceMatcher(None, a, b).ratio()
-
-
-def _similarity(left: object, right: object) -> float:
+def _similarity(
+    left: object,
+    right: object,
+    *,
+    empty_values_match: bool = True,
+) -> float:
     a, b = _norm(left), _norm(right)
     if a == b:
-        return 1.0
+        return 1.0 if a or empty_values_match else 0.0
     if not a or not b:
         return 0.0
     return SequenceMatcher(None, a, b).ratio()
@@ -309,7 +333,9 @@ def _source_score(left: dict, right: dict) -> float:
     if _norm(left.get("title")) == _norm(right.get("title")):
         score += 100
     else:
-        similarity = _ratio(left.get("title"), right.get("title"))
+        similarity = _similarity(
+            left.get("title"), right.get("title"), empty_values_match=False
+        )
         if similarity >= 0.68:
             score += similarity * 55
     if _norm(left.get("url")) and _norm(left.get("url")) == _norm(right.get("url")):
@@ -320,7 +346,11 @@ def _source_score(left: dict, right: dict) -> float:
         score += 8
     if left.get("seq") == right.get("seq"):
         score += 8
-    description_similarity = _ratio(left.get("description"), right.get("description"))
+    description_similarity = _similarity(
+        left.get("description"),
+        right.get("description"),
+        empty_values_match=False,
+    )
     if description_similarity >= 0.82:
         score += description_similarity * 18
     return score
@@ -504,15 +534,117 @@ def _identity_plan(anchor: dict | None, incoming: dict | None, match: dict | Non
         "state": "review",
         "lesson_id": None,
         "reason": (match or {}).get("reason") or "ambiguous_match",
-        "candidate": {
-            "lesson_id": lesson_id,
-            "title": anchor.get("title"),
-            "description": anchor.get("description"),
-            "subject": anchor.get("subject"),
-            "kind": anchor.get("kind"),
-            "week": anchor.get("week"),
-        },
+        "candidates": [_identity_candidate(anchor)],
     }
+
+
+def _identity_candidate(lesson: dict) -> dict:
+    return {
+        "lesson_id": lesson.get("id"),
+        "title": lesson.get("title"),
+        "description": lesson.get("description"),
+        "subject": lesson.get("subject"),
+        "kind": lesson.get("kind"),
+        "week": lesson.get("week"),
+        "seq": lesson.get("seq"),
+        "date": _date(lesson.get("date", lesson.get("lesson_date"))),
+    }
+
+
+def _validate_identity(identity: dict) -> None:
+    """Validate the closed identity result sent across the HTTP seam."""
+    state = identity.get("state")
+    reason = identity.get("reason")
+    if (
+        state not in IDENTITY_STATES
+        or reason not in IDENTITY_REASONS
+        or reason not in IDENTITY_REASONS_BY_STATE.get(state, set())
+    ):
+        raise ValueError("invalid lesson identity plan")
+    lesson_id = _text(identity.get("lesson_id"))
+    candidates = identity.get("candidates")
+    allowed_keys = {"state", "lesson_id", "reason"}
+    if state == "review":
+        allowed_keys.add("candidates")
+    if set(identity) != allowed_keys:
+        raise ValueError("lesson identity plan has invalid fields")
+    if state in {"carried", "removed"} and not lesson_id:
+        raise ValueError("resolved lesson identity is missing its id")
+    if state == "review":
+        if lesson_id or not isinstance(candidates, list) or not candidates:
+            raise ValueError("reviewable lesson identity needs candidates")
+        candidate_keys = {
+            "lesson_id",
+            "title",
+            "description",
+            "subject",
+            "kind",
+            "week",
+            "seq",
+            "date",
+        }
+        if any(
+            not isinstance(candidate, dict) or set(candidate) != candidate_keys
+            for candidate in candidates
+        ):
+            raise ValueError("reviewable lesson identity candidate shape is invalid")
+        candidate_ids = [_text(candidate.get("lesson_id")) for candidate in candidates]
+        if not all(candidate_ids) or len(candidate_ids) != len(set(candidate_ids)):
+            raise ValueError("reviewable lesson identity candidates are invalid")
+    elif state == "new" and lesson_id:
+        raise ValueError("new lesson identity cannot have an existing id")
+    elif candidates is not None:
+        raise ValueError("resolved lesson identity cannot include candidates")
+
+
+def _enrich_identity_reviews(
+    lesson_plans: list[dict], current_lessons: list[dict]
+) -> None:
+    """Offer every unreserved stable Lesson when automation is not safe.
+
+    The matcher chooses a primary pair for the content comparison. Identity is
+    more conservative: a founder can select any previous Lesson that was not
+    already carried automatically, or explicitly create a new identity.
+    """
+    reserved_ids = {
+        _text((lesson.get("identity") or {}).get("lesson_id"))
+        for lesson in lesson_plans
+        if (lesson.get("identity") or {}).get("state") == "carried"
+    }
+    available = {
+        _text(lesson.get("id")): lesson
+        for lesson in current_lessons
+        if _text(lesson.get("id")) and _text(lesson.get("id")) not in reserved_ids
+    }
+    for lesson in lesson_plans:
+        identity = lesson.get("identity") or {}
+        if identity.get("state") not in {"review", "new"}:
+            _validate_identity(identity)
+            continue
+        incoming = lesson.get("incoming") or {}
+        primary_ids = [
+            _text(candidate.get("lesson_id"))
+            for candidate in identity.get("candidates") or []
+        ]
+        ranked = sorted(
+            available.values(),
+            key=lambda candidate: (
+                _text(candidate.get("id")) not in primary_ids,
+                -_lesson_score(candidate, incoming),
+                candidate.get("seq") or 10**9,
+                _norm(candidate.get("title")),
+            ),
+        )
+        if identity.get("state") == "new" and ranked:
+            identity = {
+                "state": "review",
+                "lesson_id": None,
+                "reason": "no_confident_match",
+            }
+            lesson["identity"] = identity
+        if identity.get("state") == "review":
+            identity["candidates"] = [_identity_candidate(candidate) for candidate in ranked]
+        _validate_identity(identity)
 
 
 def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
@@ -622,6 +754,7 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
             }
         )
 
+    _enrich_identity_reviews(lesson_plans, current_lessons)
     lesson_plans.sort(
         key=lambda item: (
             (item.get("incoming") or item.get("current") or {}).get("week") or 10**9,
@@ -683,13 +816,15 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
 
 def _baseline_projection(conn: psycopg.Connection, syllabus_id: str) -> dict:
     applied = conn.execute(
-        "SELECT incoming FROM syllabus_reconciliation"
+        "SELECT incoming, decisions FROM syllabus_reconciliation"
         " WHERE syllabus_id = %s AND status = 'applied'"
         " ORDER BY applied_at DESC, id DESC LIMIT 1",
         (syllabus_id,),
     ).fetchone()
     if applied is not None:
-        return _ensure_incoming_keys(dict(applied[0]))
+        decisions = dict(applied[1] or {})
+        accepted = decisions.get("accepted_incoming") or applied[0]
+        return _ensure_incoming_keys(dict(accepted))
     uploaded = conn.execute(
         "SELECT id FROM syllabus_version"
         " WHERE syllabus_id = %s AND origin = 'upload' ORDER BY seq DESC LIMIT 1",
@@ -822,6 +957,12 @@ def _selected_projection(
     current = copy.deepcopy(item.get("current"))
     incoming = copy.deepcopy(item.get("incoming"))
     if choice == "keep":
+        if (
+            current is not None
+            and item.get("kind") == "lesson"
+            and lesson_id is not _LESSON_ID_UNSET
+        ):
+            current["id"] = lesson_id
         return current
     if choice == "transition":
         selected = incoming
@@ -898,9 +1039,29 @@ def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
         )
     if unknown:
         raise ValueError("A reconciliação contém identidades de aula desconhecidas.")
-    if any(value not in IDENTITY_DECISIONS for value in decisions.values()):
-        raise ValueError("A reconciliação contém uma decisão de identidade inválida.")
-    return decisions
+    normalized = {}
+    selected_ids = []
+    for item_id, value in decisions.items():
+        if not isinstance(value, dict) or value.get("choice") not in IDENTITY_DECISIONS:
+            raise ValueError("A reconciliação contém uma decisão de identidade inválida.")
+        choice = value["choice"]
+        if choice == "new":
+            if set(value) != {"choice"}:
+                raise ValueError("A decisão de nova aula contém dados inválidos.")
+            normalized[item_id] = {"choice": "new"}
+            continue
+        lesson_id = _text(value.get("lesson_id"))
+        candidate_ids = {
+            _text(candidate.get("lesson_id"))
+            for candidate in (actions[item_id].get("identity") or {}).get("candidates", [])
+        }
+        if set(value) != {"choice", "lesson_id"} or lesson_id not in candidate_ids:
+            raise ValueError("A aula anterior escolhida não é uma candidata válida.")
+        normalized[item_id] = {"choice": "same", "lesson_id": lesson_id}
+        selected_ids.append(lesson_id)
+    if len(selected_ids) != len(set(selected_ids)):
+        raise ValueError("Uma aula anterior não pode continuar como duas aulas diferentes.")
+    return normalized
 
 
 def _resolved_identity(lesson: dict, identity_decisions: dict) -> tuple[str | None, str]:
@@ -909,9 +1070,9 @@ def _resolved_identity(lesson: dict, identity_decisions: dict) -> tuple[str | No
     if state == "carried":
         return identity.get("lesson_id"), "automatic_same"
     if state == "review":
-        choice = identity_decisions[lesson["item_id"]]
-        if choice == "same":
-            return (identity.get("candidate") or {}).get("lesson_id"), "founder_same"
+        decision = identity_decisions[lesson["item_id"]]
+        if decision["choice"] == "same":
+            return decision["lesson_id"], "founder_same"
         return None, "founder_new"
     if state == "new":
         return None, "automatic_new"
@@ -935,18 +1096,46 @@ def _projection_from_decisions(
     if invalid:
         raise ValueError("A reconciliação contém uma decisão inválida.")
 
+    claimed_ids = {
+        value["lesson_id"]: item_id
+        for item_id, value in identity_decisions.items()
+        if value["choice"] == "same"
+    }
     output: list[dict] = []
     for lesson in plan.get("lessons", []):
         resolved_id, identity_outcome = _resolved_identity(
             lesson, identity_decisions
         )
         lesson_choice = decisions.get(lesson["item_id"], "keep")
+        current = lesson.get("current") or {}
+        current_id = _text(current.get("id")) or None
+        displaced = bool(
+            current_id
+            and current_id in claimed_ids
+            and claimed_ids[current_id] != lesson["item_id"]
+        )
+        if (
+            identity_outcome == "founder_same"
+            and current_id
+            and current_id != resolved_id
+            and not displaced
+        ):
+            preserved = copy.deepcopy(current)
+            preserved["_incoming_key"] = None
+            preserved["_maps_incoming_identity"] = False
+            preserved["_identity_outcome"] = "preserved_after_reassignment"
+            output.append(preserved)
         if lesson["status"] != "unchanged":
+            keep_identity = (
+                resolved_id
+                if identity_outcome == "founder_same"
+                else _LESSON_ID_UNSET
+            )
             selected_lesson = _selected_projection(
                 lesson,
                 lesson_choice,
                 drafts.get(lesson["item_id"]),
-                lesson_id=resolved_id,
+                lesson_id=(keep_identity if lesson_choice == "keep" else resolved_id),
             )
         elif identity_outcome == "founder_new":
             selected_lesson = _selected_projection(
@@ -954,6 +1143,10 @@ def _projection_from_decisions(
             )
         else:
             selected_lesson = copy.deepcopy(lesson.get("current"))
+            if selected_lesson is not None and identity_outcome == "founder_same":
+                selected_lesson["id"] = resolved_id
+        if displaced and lesson_choice == "keep":
+            selected_lesson = None
         if selected_lesson is None:
             continue
         selected_sources: list[dict] = []
@@ -975,6 +1168,9 @@ def _projection_from_decisions(
         selected_lesson["_maps_incoming_identity"] = maps_incoming
         selected_lesson["_identity_outcome"] = identity_outcome
         output.append(selected_lesson)
+    stable_ids = [_text(lesson.get("id")) for lesson in output if lesson.get("id")]
+    if len(stable_ids) != len(set(stable_ids)):
+        raise ValueError("A reconciliação tentou reutilizar o mesmo ID de aula duas vezes.")
     return output
 
 
@@ -1090,17 +1286,16 @@ def apply_reconciliation(
         record["incoming"], record["plan"], projection, created
     )
     conn.execute(
-        "UPDATE syllabus_reconciliation SET status = 'applied', incoming = %s,"
-        " decisions = %s,"
+        "UPDATE syllabus_reconciliation SET status = 'applied', decisions = %s,"
         " created_version_id = %s, applied_at = now() WHERE id = %s",
         (
-            Jsonb(accepted_incoming),
             Jsonb(
                 {
                     "choices": decisions,
                     "drafts": drafts,
                     "identities": identity_decisions,
                     "identity_outcomes": identity_outcomes,
+                    "accepted_incoming": accepted_incoming,
                 }
             ),
             result["version_id"],
