@@ -32,7 +32,7 @@ from universe.syllabus import (
 
 
 DECISIONS = {"keep", "transition", "custom"}
-IDENTITY_DECISIONS = {"same", "new"}
+IDENTITY_DECISIONS = {"same", "new", "keep"}
 IDENTITY_STATES = {"carried", "review", "new", "removed"}
 IDENTITY_REASONS = {
     "exact_text",
@@ -59,7 +59,7 @@ IDENTITY_REASONS_BY_STATE = {
     "new": {"no_predecessor"},
     "removed": {"removed"},
 }
-PLAN_VERSION = 5
+PLAN_VERSION = 6
 AUTO_TITLE_SIMILARITY = 0.86
 AUTO_DESCRIPTION_SIMILARITY = 0.80
 AUTO_MATCH_MARGIN = 8.0
@@ -187,13 +187,12 @@ def _source_signature(item: dict | None) -> tuple:
     )
 
 
-def _similarity(
-    left: object,
-    right: object,
+def _normalized_similarity(
+    a: str,
+    b: str,
     *,
-    empty_values_match: bool = True,
+    empty_values_match: bool,
 ) -> float:
-    a, b = _norm(left), _norm(right)
     if a == b:
         return 1.0 if a or empty_values_match else 0.0
     if not a or not b:
@@ -201,14 +200,50 @@ def _similarity(
     return SequenceMatcher(None, a, b).ratio()
 
 
-def _lesson_score(left: dict, right: dict) -> float:
+def _similarity(
+    left: object,
+    right: object,
+    *,
+    empty_values_match: bool = True,
+) -> float:
+    return _normalized_similarity(
+        _norm(left),
+        _norm(right),
+        empty_values_match=empty_values_match,
+    )
+
+
+def _plan_similarity():
+    """Reuse normalized text comparisons within one reconciliation plan."""
+    cache: dict[tuple[str, str, bool], float] = {}
+
+    def compare(
+        left: object,
+        right: object,
+        *,
+        empty_values_match: bool = True,
+    ) -> float:
+        a, b = _norm(left), _norm(right)
+        key = (a, b, empty_values_match)
+        if key not in cache:
+            cache[key] = _normalized_similarity(
+                a,
+                b,
+                empty_values_match=empty_values_match,
+            )
+        return cache[key]
+
+    return compare
+
+
+def _lesson_score(left: dict, right: dict, *, similarity=_similarity) -> float:
     left_id, right_id = _text(left.get("id")), _text(right.get("id"))
     if left_id and left_id == right_id:
         return 1000.0
     subject_same = _norm(left.get("subject")) == _norm(right.get("subject"))
     kind_same = _norm(left.get("kind")) == _norm(right.get("kind"))
-    score = _similarity(left.get("title"), right.get("title")) * 55
-    score += _similarity(left.get("description"), right.get("description")) * 25
+    score = similarity(left.get("title"), right.get("title")) * 55
+    score += similarity(left.get("description"), right.get("description")) * 25
     score += 30 if subject_same else -30
     score += 12 if kind_same else -12
     if left.get("week") is not None and left.get("week") == right.get("week"):
@@ -218,12 +253,18 @@ def _lesson_score(left: dict, right: dict) -> float:
     return score
 
 
-def _lesson_pair_is_plausible(left: dict, right: dict, score: float) -> bool:
+def _lesson_pair_is_plausible(
+    left: dict,
+    right: dict,
+    score: float,
+    *,
+    similarity=_similarity,
+) -> bool:
     left_id, right_id = _text(left.get("id")), _text(right.get("id"))
     if left_id and left_id == right_id:
         return True
-    title_similarity = _similarity(left.get("title"), right.get("title"))
-    description_similarity = _similarity(
+    title_similarity = similarity(left.get("title"), right.get("title"))
+    description_similarity = similarity(
         left.get("description"), right.get("description")
     )
     same_position = (
@@ -246,6 +287,7 @@ def _identity_reason(
     *,
     automatic: bool,
     unambiguous: bool,
+    similarity=_similarity,
 ) -> str:
     if _norm(left.get("subject")) != _norm(right.get("subject")):
         return "subject_changed"
@@ -259,20 +301,24 @@ def _identity_reason(
             and _norm(left.get("description")) == _norm(right.get("description"))
         )
         return "exact_text" if exact else "small_text_edit"
-    if _similarity(left.get("title"), right.get("title")) < AUTO_TITLE_SIMILARITY:
+    if similarity(left.get("title"), right.get("title")) < AUTO_TITLE_SIMILARITY:
         return "large_title_edit"
     return "large_description_edit"
 
 
-def _match_lessons(left: list[dict], right: list[dict]) -> dict[int, dict]:
+def _match_lessons(
+    left: list[dict], right: list[dict], *, similarity=_similarity
+) -> dict[int, dict]:
     """Pair plausible Lessons and classify whether identity can carry silently."""
     candidates: list[tuple[float, int, int]] = []
     by_left: dict[int, list[tuple[float, int]]] = {}
     by_right: dict[int, list[tuple[float, int]]] = {}
     for left_index, left_item in enumerate(left):
         for right_index, right_item in enumerate(right):
-            value = _lesson_score(left_item, right_item)
-            if not _lesson_pair_is_plausible(left_item, right_item, value):
+            value = _lesson_score(left_item, right_item, similarity=similarity)
+            if not _lesson_pair_is_plausible(
+                left_item, right_item, value, similarity=similarity
+            ):
                 continue
             candidates.append((value, left_index, right_index))
             by_left.setdefault(left_index, []).append((value, right_index))
@@ -307,9 +353,9 @@ def _match_lessons(left: list[dict], right: list[dict]) -> dict[int, dict]:
             unambiguous
             and _norm(left_item.get("subject")) == _norm(right_item.get("subject"))
             and _norm(left_item.get("kind")) == _norm(right_item.get("kind"))
-            and _similarity(left_item.get("title"), right_item.get("title"))
+            and similarity(left_item.get("title"), right_item.get("title"))
             >= AUTO_TITLE_SIMILARITY
-            and _similarity(
+            and similarity(
                 left_item.get("description"), right_item.get("description")
             )
             >= AUTO_DESCRIPTION_SIMILARITY
@@ -322,6 +368,7 @@ def _match_lessons(left: list[dict], right: list[dict]) -> dict[int, dict]:
                 right_item,
                 automatic=automatic,
                 unambiguous=unambiguous,
+                similarity=similarity,
             ),
         }
         used_right.add(right_index)
@@ -598,7 +645,7 @@ def _validate_identity(identity: dict) -> None:
 
 
 def _enrich_identity_reviews(
-    lesson_plans: list[dict], current_lessons: list[dict]
+    lesson_plans: list[dict], current_lessons: list[dict], *, similarity=_similarity
 ) -> None:
     """Offer every unreserved stable Lesson when automation is not safe.
 
@@ -630,7 +677,7 @@ def _enrich_identity_reviews(
             available.values(),
             key=lambda candidate: (
                 _text(candidate.get("id")) not in primary_ids,
-                -_lesson_score(candidate, incoming),
+                -_lesson_score(candidate, incoming, similarity=similarity),
                 candidate.get("seq") or 10**9,
                 _norm(candidate.get("title")),
             ),
@@ -652,8 +699,13 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
     base_lessons = list(baseline.get("lessons") or [])
     current_lessons = list(current.get("lessons") or [])
     incoming_lessons = list(incoming.get("lessons") or [])
-    base_current = _match_lessons(base_lessons, current_lessons)
-    base_incoming = _match_lessons(base_lessons, incoming_lessons)
+    lesson_similarity = _plan_similarity()
+    base_current = _match_lessons(
+        base_lessons, current_lessons, similarity=lesson_similarity
+    )
+    base_incoming = _match_lessons(
+        base_lessons, incoming_lessons, similarity=lesson_similarity
+    )
     used_current = {match["right_index"] for match in base_current.values()}
     used_incoming = {match["right_index"] for match in base_incoming.values()}
     lesson_plans: list[dict] = []
@@ -704,7 +756,9 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
     unmatched_incoming = [
         item for index, item in enumerate(incoming_lessons) if index not in used_incoming
     ]
-    local_matches = _match_lessons(unmatched_current, unmatched_incoming)
+    local_matches = _match_lessons(
+        unmatched_current, unmatched_incoming, similarity=lesson_similarity
+    )
     matched_incoming = {match["right_index"] for match in local_matches.values()}
     for current_index, current_lesson in enumerate(unmatched_current):
         local_match = local_matches.get(current_index)
@@ -754,7 +808,9 @@ def build_plan(baseline: dict, current: dict, incoming: dict) -> dict:
             }
         )
 
-    _enrich_identity_reviews(lesson_plans, current_lessons)
+    _enrich_identity_reviews(
+        lesson_plans, current_lessons, similarity=lesson_similarity
+    )
     lesson_plans.sort(
         key=lambda item: (
             (item.get("incoming") or item.get("current") or {}).get("week") or 10**9,
@@ -966,15 +1022,15 @@ def _selected_projection(
         return current
     if choice == "transition":
         selected = incoming
-        if selected is not None and current is not None:
-            selected["hidden"] = bool(current.get("hidden"))
+        if selected is not None:
+            if current is not None:
+                selected["hidden"] = bool(current.get("hidden"))
             if item.get("kind") == "lesson":
-                selected["id"] = (
-                    current.get("id")
-                    if lesson_id is _LESSON_ID_UNSET
-                    else lesson_id
-                )
-            else:
+                if lesson_id is not _LESSON_ID_UNSET:
+                    selected["id"] = lesson_id
+                elif current is not None:
+                    selected["id"] = current.get("id")
+            elif current is not None:
                 selected["reference_id"] = current.get("reference_id")
                 selected["review"] = copy.deepcopy(current.get("review") or {})
         return selected
@@ -1025,12 +1081,32 @@ def _selected_projection(
     }
 
 
-def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
+def _validated_identity_decisions(
+    plan: dict,
+    decisions: object,
+    content_decisions: object = None,
+) -> dict:
     if decisions is None:
         decisions = {}
     if not isinstance(decisions, dict):
         raise ValueError("As decisões de identidade das aulas são inválidas.")
-    actions = {item["item_id"]: item for item in _identity_action_items(plan)}
+    if content_decisions is None:
+        content_decisions = {}
+    if not isinstance(content_decisions, dict):
+        raise ValueError("As decisões da reconciliação são inválidas.")
+    lessons = {
+        lesson["item_id"]: lesson for lesson in plan.get("lessons", [])
+    }
+    actions = {
+        item["item_id"]: item for item in _identity_action_items(plan)
+    }
+    actions.update(
+        {
+            item_id: lessons[item_id]
+            for item_id, choice in content_decisions.items()
+            if choice == "custom" and item_id in lessons
+        }
+    )
     missing = sorted(set(actions) - set(decisions))
     unknown = sorted(set(decisions) - set(actions))
     if missing:
@@ -1040,11 +1116,41 @@ def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
     if unknown:
         raise ValueError("A reconciliação contém identidades de aula desconhecidas.")
     normalized = {}
-    selected_ids = []
+    selected_ids = [
+        _text((lessons[item_id].get("current") or {}).get("id"))
+        for item_id, choice in content_decisions.items()
+        if choice == "keep"
+        and item_id in lessons
+        and _text((lessons[item_id].get("current") or {}).get("id"))
+    ]
     for item_id, value in decisions.items():
         if not isinstance(value, dict) or value.get("choice") not in IDENTITY_DECISIONS:
             raise ValueError("A reconciliação contém uma decisão de identidade inválida.")
         choice = value["choice"]
+        item = actions[item_id]
+        identity = item.get("identity") or {}
+        content_choice = content_decisions.get(item_id)
+        if choice == "keep":
+            if (
+                set(value) != {"choice"}
+                or identity.get("state") != "review"
+                or (
+                    item.get("status") != "unchanged"
+                    and content_choice != "keep"
+                )
+            ):
+                raise ValueError(
+                    "Manter uma aula exige manter também seu conteúdo atual."
+                )
+            normalized[item_id] = {"choice": "keep"}
+            current_id = _text((item.get("current") or {}).get("id"))
+            if current_id and content_choice != "keep":
+                selected_ids.append(current_id)
+            continue
+        if item.get("status") != "unchanged" and content_choice == "keep":
+            raise ValueError(
+                "Uma aula mantida não pode receber outra decisão de identidade."
+            )
         if choice == "new":
             if set(value) != {"choice"}:
                 raise ValueError("A decisão de nova aula contém dados inválidos.")
@@ -1053,8 +1159,13 @@ def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
         lesson_id = _text(value.get("lesson_id"))
         candidate_ids = {
             _text(candidate.get("lesson_id"))
-            for candidate in (actions[item_id].get("identity") or {}).get("candidates", [])
+            for candidate in identity.get("candidates", [])
         }
+        if identity.get("state") == "carried":
+            candidate_ids.add(_text(identity.get("lesson_id")))
+        if identity.get("state") == "removed":
+            candidate_ids.add(_text((item.get("current") or {}).get("id")))
+        candidate_ids.discard("")
         if set(value) != {"choice", "lesson_id"} or lesson_id not in candidate_ids:
             raise ValueError("A aula anterior escolhida não é uma candidata válida.")
         normalized[item_id] = {"choice": "same", "lesson_id": lesson_id}
@@ -1067,13 +1178,17 @@ def _validated_identity_decisions(plan: dict, decisions: object) -> dict:
 def _resolved_identity(lesson: dict, identity_decisions: dict) -> tuple[str | None, str]:
     identity = lesson.get("identity") or {}
     state = identity.get("state")
-    if state == "carried":
-        return identity.get("lesson_id"), "automatic_same"
-    if state == "review":
-        decision = identity_decisions[lesson["item_id"]]
+    decision = identity_decisions.get(lesson["item_id"])
+    if decision is not None:
+        if decision["choice"] == "keep":
+            return _text((lesson.get("current") or {}).get("id")) or None, "founder_kept_current"
         if decision["choice"] == "same":
             return decision["lesson_id"], "founder_same"
         return None, "founder_new"
+    if state == "carried":
+        return identity.get("lesson_id"), "automatic_same"
+    if state == "review":
+        raise ValueError("A identidade desta aula ainda não foi decidida.")
     if state == "new":
         return None, "automatic_new"
     return identity.get("lesson_id"), "removed"
@@ -1160,7 +1275,8 @@ def _projection_from_decisions(
         selected_lesson["sources"] = selected_sources
         incoming_key = lesson.get("incoming_key")
         maps_incoming = bool(incoming_key) and (
-            identity_outcome in {"automatic_same", "founder_same"}
+            identity_outcome
+            in {"automatic_same", "founder_same", "founder_kept_current"}
             or lesson_choice in {"transition", "custom"}
             or lesson["status"] == "unchanged"
         )
@@ -1268,7 +1384,7 @@ def apply_reconciliation(
     if not isinstance(drafts, dict):
         raise ValueError("As versões manuais da reconciliação são inválidas.")
     identity_decisions = _validated_identity_decisions(
-        record["plan"], identity_decisions
+        record["plan"], identity_decisions, decisions
     )
     projection = _projection_from_decisions(
         record["plan"], decisions, drafts, identity_decisions

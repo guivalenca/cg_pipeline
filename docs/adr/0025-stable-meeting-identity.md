@@ -74,3 +74,12 @@ The uploaded workbook remains immutable evidence. Automatic and founder
 identity outcomes are recorded as versioned reconciliation interpretations.
 This amendment also removes the remaining Lesson Purpose framing from the
 active identity rule; ADR 0026 already retired that concept.
+
+Founder review presents content and identity as one outcome. `Manter` keeps
+the current Lesson content and stable id. Transitioning accepts the incoming
+content either as the related Lesson or as a new Lesson. A manually authored
+Lesson must make the same related-or-new identity decision before it can enter
+the result. These combinations are validated together, so an instruction to
+keep current content cannot also mint or claim another id. When every outcome
+keeps the current projection, the reconciliation is recorded without creating
+a new Syllabus Version.

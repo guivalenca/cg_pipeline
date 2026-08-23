@@ -16,6 +16,7 @@ import uvicorn
 
 from universe.syllabus import (
     LEGACY_COLUMNS,
+    PROJECT_COLUMNS,
     get_syllabus_history,
     get_syllabus_version,
     import_workbook,
@@ -129,6 +130,34 @@ def _subject_filter_workbook(path: Path) -> Path:
         Title="Avaliação em pares",
         **{"Grade weight": 2},
     )
+    workbook.save(path)
+    workbook.close()
+    return path
+
+
+def _identity_conflict_workbook(path: Path, *, incoming: bool) -> Path:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Projetos"
+    sheet.append(PROJECT_COLUMNS)
+    values = {
+        "Projeto": "GRAD CC07",
+        "Semana": "Semana 09" if incoming else "Semana 02",
+        "Ordem": 1,
+        "Atividade": (
+            "Estratégia comercial para novos mercados"
+            if incoming
+            else "Fundamentos de bancos de dados relacionais"
+        ),
+        "Tipo da atividade": "Encontro de instrução",
+        "Descrição da atividade": (
+            "Negociação, canais de venda e expansão internacional."
+            if incoming
+            else "Modelagem relacional, normalização e consultas SQL."
+        ),
+        "Eixo": "Negócios" if incoming else "Computação",
+    }
+    sheet.append([values.get(column) for column in PROJECT_COLUMNS])
     workbook.save(path)
     workbook.close()
     return path
@@ -309,16 +338,20 @@ def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically
         dialog.locator('[name="file"]').set_input_files(changed_subject)
         dialog.get_by_role("button", name="Comparar planilha").click()
 
-        expect(page.get_by_role("heading", name="Esta é a mesma aula?")).to_be_visible()
+        expect(
+            page.get_by_role(
+                "heading",
+                name="Como esta entrada se relaciona com o syllabus atual?",
+            )
+        ).to_be_visible()
         expect(page.locator(".recon-identity-review")).to_contain_text(
             "A matéria mudou"
         )
         new_identity = page.get_by_role(
-            "button", name="É uma aula nova", exact=False
+            "button", name="É uma aula nova + transicionar", exact=True
         )
         new_identity.click()
         expect(new_identity).to_be_focused()
-        page.locator('[data-recon-choice="transition"]').click()
         page.get_by_role("button", name="Criar versão 2", exact=False).click()
         page.wait_for_function("!location.search.includes('reconciliation=')")
 
@@ -341,6 +374,144 @@ def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically
         with psycopg.connect(test_database_url) as conn:
             third = get_syllabus_version(conn, imported["syllabus_id"])
         assert third["lessons"][0]["id"] == second_id
+        browser.close()
+
+
+def test_reviewed_lesson_uses_one_coherent_action_and_labels_a_noop(
+    test_database_url, applied_migrations, tmp_path, type2_workbook
+):
+    original = type2_workbook(tmp_path / "coherent-original.xlsx")
+    rewritten = type2_workbook(
+        tmp_path / "coherent-rewritten.xlsx",
+        lesson_title="Fundamentos de produto e estratégia comercial",
+        lesson_description=(
+            "Proposta de valor, precificação, negociação e canais de distribuição."
+        ),
+    )
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(conn, original, "Ações coerentes de reconciliação")
+        before = get_syllabus_version(conn, imported["syllabus_id"])
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+        page.get_by_role("button", name="Enviar nova versão").click()
+        dialog = page.locator("[data-upload-dialog]")
+        dialog.locator('[name="file"]').set_input_files(rewritten)
+        dialog.get_by_role("button", name="Comparar planilha").click()
+
+        actions = page.locator("[data-recon-lesson-actions]")
+        related = actions.get_by_role(
+            "button", name="É a aula selecionada + transicionar", exact=True
+        )
+        keep = actions.get_by_role("button", name="Manter", exact=True)
+        new = actions.get_by_role(
+            "button", name="É uma aula nova + transicionar", exact=True
+        )
+        expect(related).to_be_visible()
+        expect(keep).to_be_visible()
+        expect(new).to_be_visible()
+        expect(page.get_by_text("Candidata selecionada", exact=True)).to_have_count(0)
+        expect(page.locator("[data-recon-identity-candidate]")).to_have_count(0)
+
+        page.get_by_role("button", name="Montar uma versão manual", exact=False).click()
+        manual = page.locator("[data-recon-manual-form]")
+        manual.get_by_label("Título", exact=True).fill("Versão montada")
+        use_manual = manual.get_by_role("button", name="Usar versão montada")
+        expect(use_manual).to_be_disabled()
+        manual_related = manual.get_by_role(
+            "button", name="É a aula relacionada", exact=True
+        )
+        expect(manual_related).to_be_visible()
+        expect(manual.get_by_role("button", name="É uma aula nova", exact=True)).to_be_visible()
+        manual_related.click()
+        expect(use_manual).to_be_enabled()
+        use_manual.click()
+        expect(related).to_have_attribute("aria-pressed", "false")
+        expect(keep).to_have_attribute("aria-pressed", "false")
+        expect(new).to_have_attribute("aria-pressed", "false")
+        expect(
+            page.get_by_role("button", name="Concluir revisão", exact=True)
+        ).to_be_enabled()
+
+        new.click()
+        expect(new).to_have_attribute("aria-pressed", "true")
+        keep.click()
+        expect(keep).to_have_attribute("aria-pressed", "true")
+        expect(new).to_have_attribute("aria-pressed", "false")
+        finish = page.get_by_role(
+            "button", name="Concluir sem criar versão", exact=False
+        )
+        expect(finish).to_be_enabled()
+        expect(page.get_by_role("button", name="Criar versão 2", exact=False)).to_have_count(0)
+        finish.click()
+        page.wait_for_function("!location.search.includes('reconciliation=')")
+        browser.close()
+
+    with psycopg.connect(test_database_url) as conn:
+        after = get_syllabus_version(conn, imported["syllabus_id"])
+    assert after["version"]["id"] == before["version"]["id"]
+
+
+def test_keeping_removed_lesson_reserves_its_identity_in_both_selection_orders(
+    test_database_url, applied_migrations, tmp_path
+):
+    original = _identity_conflict_workbook(
+        tmp_path / "identity-owner-original.xlsx", incoming=False
+    )
+    incoming = _identity_conflict_workbook(
+        tmp_path / "identity-owner-incoming.xlsx", incoming=True
+    )
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(conn, original, "Reserva de identidade")
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+        page.get_by_role("button", name="Enviar nova versão").click()
+        dialog = page.locator("[data-upload-dialog]")
+        dialog.locator('[name="file"]').set_input_files(incoming)
+        dialog.get_by_role("button", name="Comparar planilha").click()
+        page.wait_for_function("location.search.includes('reconciliation=')")
+        reconciliation_url = page.url
+
+        page.locator('[data-recon-choice="keep"]').click()
+        page.locator("[data-recon-lesson]").filter(
+            has_text="Estratégia comercial para novos mercados"
+        ).click()
+        related = page.get_by_role(
+            "button", name="É a aula selecionada + transicionar", exact=True
+        )
+        expect(related).to_be_disabled()
+        expect(page.get_by_role("button", name="Concluir revisão")).to_be_disabled()
+
+        page.goto(reconciliation_url)
+        page.locator("[data-recon-lesson]").filter(
+            has_text="Estratégia comercial para novos mercados"
+        ).click()
+        related = page.get_by_role(
+            "button", name="É a aula selecionada + transicionar", exact=True
+        )
+        related.click()
+        expect(related).to_have_attribute("aria-pressed", "true")
+
+        page.locator("[data-recon-lesson]").filter(
+            has_text="Fundamentos de bancos de dados relacionais"
+        ).click()
+        page.locator('[data-recon-choice="keep"]').click()
+        page.locator("[data-recon-lesson]").filter(
+            has_text="Estratégia comercial para novos mercados"
+        ).click()
+        related = page.get_by_role(
+            "button", name="É a aula selecionada + transicionar", exact=True
+        )
+        expect(related).to_be_disabled()
+        expect(related).to_have_attribute("aria-pressed", "false")
+        expect(page.get_by_role("button", name="Concluir revisão")).to_be_disabled()
         browser.close()
 
 

@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from openpyxl import Workbook
 
+import universe.syllabus_reconciliation as reconciliation_module
 from universe.syllabus import (
     LEGACY_COLUMNS,
     curate_syllabus,
@@ -285,6 +286,28 @@ def test_small_title_and_description_edits_carry_identity_automatically():
     assert plan["lessons"][0]["identity"]["reason"] == "small_text_edit"
 
 
+def test_plan_scoped_similarity_cache_preserves_the_reconciliation_plan(
+    monkeypatch,
+):
+    baseline = _identity_projection()
+    current = copy.deepcopy(baseline)
+    incoming = _identity_projection(
+        lesson_id=None,
+        title="Arquitetura da Computação em Nuvem",
+        description="Apresenta os principais serviços usados por uma aplicação em nuvem.",
+    )
+    cached = build_plan(baseline, current, incoming)
+
+    monkeypatch.setattr(
+        reconciliation_module,
+        "_plan_similarity",
+        lambda: reconciliation_module._similarity,
+    )
+    uncached = build_plan(baseline, current, incoming)
+
+    assert cached == uncached
+
+
 def test_large_description_edit_requires_identity_review():
     baseline = _identity_projection()
     current = copy.deepcopy(baseline)
@@ -383,6 +406,72 @@ def test_non_primary_identity_candidate_can_keep_content():
     assert accepted["id"] == "lesson-stable"
 
 
+def test_unchanged_ambiguous_lesson_can_keep_its_current_identity():
+    lesson = {
+        "item_id": "lesson-0001",
+        "kind": "lesson",
+        "status": "unchanged",
+        "current": {"id": "lesson-current", "title": "Aula", "sources": []},
+        "incoming": {"title": "Aula", "sources": []},
+        "identity": {
+            "state": "review",
+            "lesson_id": None,
+            "reason": "ambiguous_match",
+            "candidates": [{"lesson_id": "lesson-current"}],
+        },
+        "sources": [],
+    }
+    plan = {"lessons": [lesson]}
+
+    identities = _validated_identity_decisions(
+        plan,
+        {lesson["item_id"]: {"choice": "keep"}},
+        {},
+    )
+    projection = _projection_from_decisions(plan, {}, {}, identities)
+
+    assert identities == {lesson["item_id"]: {"choice": "keep"}}
+    assert projection[0]["id"] == "lesson-current"
+
+
+def test_related_identity_cannot_displace_a_lesson_explicitly_kept():
+    def review_lesson(item_id: str, current_id: str) -> dict:
+        return {
+            "item_id": item_id,
+            "kind": "lesson",
+            "status": "changed",
+            "current": {"id": current_id, "title": item_id, "sources": []},
+            "incoming": {"title": f"{item_id} nova", "sources": []},
+            "identity": {
+                "state": "review",
+                "lesson_id": None,
+                "reason": "ambiguous_match",
+                "candidates": [{"lesson_id": "lesson-a"}],
+            },
+            "sources": [],
+        }
+
+    kept = review_lesson("lesson-0001", "lesson-a")
+    related = review_lesson("lesson-0002", "lesson-b")
+    plan = {"lessons": [kept, related]}
+
+    with pytest.raises(ValueError, match="duas aulas diferentes"):
+        _validated_identity_decisions(
+            plan,
+            {
+                kept["item_id"]: {"choice": "keep"},
+                related["item_id"]: {
+                    "choice": "same",
+                    "lesson_id": "lesson-a",
+                },
+            },
+            {
+                kept["item_id"]: "keep",
+                related["item_id"]: "transition",
+            },
+        )
+
+
 def test_fully_rewritten_and_moved_lesson_still_requires_identity_review():
     baseline = _identity_projection()
     current = copy.deepcopy(baseline)
@@ -404,6 +493,68 @@ def test_fully_rewritten_and_moved_lesson_still_requires_identity_review():
         candidate["lesson_id"]
         for candidate in incoming_plan["identity"]["candidates"]
     ] == ["lesson-stable"]
+
+
+def test_related_added_lesson_claims_the_selected_removed_lesson_id():
+    removed = {
+        "item_id": "lesson-removed",
+        "kind": "lesson",
+        "status": "removed",
+        "current": {"id": "lesson-stable", "title": "Aula antiga", "sources": []},
+        "incoming": None,
+        "identity": {
+            "state": "removed",
+            "lesson_id": "lesson-stable",
+            "reason": "removed",
+        },
+        "sources": [],
+    }
+    added = {
+        "item_id": "lesson-added",
+        "kind": "lesson",
+        "status": "added",
+        "current": None,
+        "incoming": {"id": None, "title": "Aula reescrita", "sources": []},
+        "identity": {
+            "state": "review",
+            "lesson_id": None,
+            "reason": "no_confident_match",
+            "candidates": [{"lesson_id": "lesson-stable"}],
+        },
+        "sources": [],
+    }
+    plan = {"lessons": [removed, added]}
+    identities = _validated_identity_decisions(
+        plan,
+        {
+            added["item_id"]: {
+                "choice": "same",
+                "lesson_id": "lesson-stable",
+            }
+        },
+        {removed["item_id"]: "transition", added["item_id"]: "transition"},
+    )
+
+    projection = _projection_from_decisions(
+        plan,
+        {removed["item_id"]: "transition", added["item_id"]: "transition"},
+        {},
+        identities,
+    )
+
+    assert [lesson["id"] for lesson in projection] == ["lesson-stable"]
+
+    with pytest.raises(ValueError, match="duas aulas diferentes"):
+        _validated_identity_decisions(
+            plan,
+            {
+                added["item_id"]: {
+                    "choice": "same",
+                    "lesson_id": "lesson-stable",
+                }
+            },
+            {removed["item_id"]: "keep", added["item_id"]: "transition"},
+        )
 
 
 def test_identical_institutional_workbook_preserves_manual_overlay_without_review(
@@ -611,6 +762,110 @@ def test_founder_resolves_large_lesson_change_as_same_or_new(
     assert outcome["outcome"] == f"founder_{identity_choice}"
     assert recorded["incoming"]["lessons"][0]["id"] is None
     assert recorded["decisions"]["accepted_incoming"]["lessons"][0]["id"] == after["lessons"][0]["id"]
+
+
+def test_keeping_a_reviewed_lesson_is_an_explicit_noop(
+    db, tmp_path: Path
+):
+    original = _workbook(tmp_path / "review-keep-original.xlsx")
+    incoming = _workbook(
+        tmp_path / "review-keep-incoming.xlsx",
+        lesson_title="Estratégia comercial e canais de distribuição",
+        lesson_description="Discute proposta de valor, precificação e canais de venda.",
+    )
+    imported = import_workbook(db, original, "Identidade revisada e mantida")
+    before = get_syllabus_version(db, imported["syllabus_id"])
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
+    lesson = preview["lessons"][0]
+
+    with pytest.raises(ValueError, match="aula mantida"):
+        apply_reconciliation(
+            db,
+            imported["syllabus_id"],
+            preview["id"],
+            {lesson["item_id"]: "keep"},
+            {},
+            {lesson["item_id"]: {"choice": "new"}},
+        )
+    db.rollback()
+
+    applied = apply_reconciliation(
+        db,
+        imported["syllabus_id"],
+        preview["id"],
+        {lesson["item_id"]: "keep"},
+        {},
+        {lesson["item_id"]: {"choice": "keep"}},
+    )
+
+    assert applied["unchanged"] is True
+    assert applied["version_id"] == before["version"]["id"]
+    recorded = get_reconciliation(db, imported["syllabus_id"], preview["id"])
+    outcome = next(iter(recorded["decisions"]["identity_outcomes"].values()))
+    assert outcome["outcome"] == "founder_kept_current"
+    assert outcome["lesson_id"] == before["lessons"][0]["id"]
+    assert (
+        recorded["decisions"]["accepted_incoming"]["lessons"][0]["id"]
+        == before["lessons"][0]["id"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("identity_choice", "keeps_id"),
+    [("same", True), ("new", False)],
+)
+def test_manual_lesson_version_requires_an_explicit_identity_choice(
+    db, tmp_path: Path, identity_choice: str, keeps_id: bool
+):
+    original = _workbook(tmp_path / f"manual-identity-{identity_choice}-original.xlsx")
+    incoming = _workbook(
+        tmp_path / f"manual-identity-{identity_choice}-incoming.xlsx",
+        lesson_title="Aula de arquitetura.",
+        lesson_description="Descrição da aula.",
+    )
+    imported = import_workbook(
+        db, original, f"Identidade da versão manual {identity_choice}"
+    )
+    before = get_syllabus_version(db, imported["syllabus_id"])
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
+    lesson = preview["lessons"][0]
+    draft = {
+        "title": "Aula de arquitetura montada",
+        "kind": "Class",
+        "subject": "SI",
+        "description": "Versão montada pelo founder.",
+    }
+
+    with pytest.raises(ValueError, match="identidade.*sem decisão"):
+        apply_reconciliation(
+            db,
+            imported["syllabus_id"],
+            preview["id"],
+            {lesson["item_id"]: "custom"},
+            {lesson["item_id"]: draft},
+            {},
+        )
+
+    applied = apply_reconciliation(
+        db,
+        imported["syllabus_id"],
+        preview["id"],
+        {lesson["item_id"]: "custom"},
+        {lesson["item_id"]: draft},
+        {
+            lesson["item_id"]: (
+                {
+                    "choice": "same",
+                    "lesson_id": lesson["identity"]["lesson_id"],
+                }
+                if identity_choice == "same"
+                else {"choice": "new"}
+            )
+        },
+    )
+    after = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])
+
+    assert (after["lessons"][0]["id"] == before["lessons"][0]["id"]) is keeps_id
 
 
 def test_type2_update_round_trips_after_new_identity_decision(
