@@ -34,6 +34,7 @@ const FIELD_DEFS = {
   lesson: [
     ['title', 'Título', 'text'],
     ['subject', 'Matéria', 'text'],
+    ['subjects', 'Assuntos', 'subjects'],
     ['date', 'Data', 'date'],
     ['week', 'Semana', 'number'],
     ['kind', 'Tipo', 'text'],
@@ -78,7 +79,8 @@ function settingsLabel(item) {
 function fieldChanged(item, key) {
   const current = valueOf(item, 'current')?.[key] ?? null;
   const incoming = valueOf(item, 'incoming')?.[key] ?? null;
-  return String(current ?? '') !== String(incoming ?? '');
+  const comparable = (value) => Array.isArray(value) ? JSON.stringify(value) : String(value ?? '');
+  return comparable(current) !== comparable(incoming);
 }
 
 function summaryFor(item) {
@@ -96,7 +98,7 @@ function ensureStyles() {
   if (document.querySelector('[data-reconciliation-style]')) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = '/static/syllabus_reconciliation.css?v=2';
+  link.href = '/static/syllabus_reconciliation.css?v=3';
   link.dataset.reconciliationStyle = 'true';
   document.head.appendChild(link);
 }
@@ -185,7 +187,13 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
 
   function renderFieldValue(item, key, label, kind, side) {
     const value = valueOf(item, side)?.[key];
-    const printable = value === null || value === undefined || value === '' ? '—' : kind === 'date' ? fmtDate(value) : value;
+    const printable = value === null || value === undefined || value === ''
+      ? '—'
+      : kind === 'date'
+        ? fmtDate(value)
+        : kind === 'subjects'
+          ? (Array.isArray(value) ? value.join('\n') : value)
+          : value;
     const href = kind === 'url' ? safeUrl(value) : null;
     const content = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(printable)}${ICONS.external}</a>` : `<p>${esc(printable)}</p>`;
     return `<div class="recon-field${fieldChanged(item, key) ? ' is-changed' : ''}"><small>${esc(label)}${fieldChanged(item, key) ? '<span>Mudou</span>' : ''}</small>${content}</div>`;
@@ -218,7 +226,10 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
 
   function renderManualField(item, key, label, kind) {
     const value = state.drafts[item.item_id]?.[key] || '';
-    if (kind === 'textarea') return `<label class="recon-manual-field recon-manual-field--wide"><span>${esc(label)}</span><textarea rows="4" data-recon-draft="${esc(key)}">${esc(value)}</textarea></label>`;
+    if (kind === 'textarea' || kind === 'subjects') {
+      const printable = kind === 'subjects' && Array.isArray(value) ? value.join('\n') : value;
+      return `<label class="recon-manual-field recon-manual-field--wide"><span>${esc(label)}</span><textarea rows="4" data-recon-draft="${esc(key)}">${esc(printable)}</textarea></label>`;
+    }
     if (kind === 'media') return `<label class="recon-manual-field"><span>${esc(label)}</span><select data-recon-draft="${esc(key)}"><option value="">Escolha</option>${['article', 'video', 'book'].map((choice) => `<option value="${choice}"${value === choice ? ' selected' : ''}>${choice === 'article' ? 'Artigo' : choice === 'video' ? 'Vídeo' : 'Livro'}</option>`).join('')}</select></label>`;
     return `<label class="recon-manual-field"><span>${esc(label)}</span><input type="${kind === 'number' ? 'number' : kind === 'date' ? 'date' : 'text'}" value="${esc(value)}" data-recon-draft="${esc(key)}"></label>`;
   }

@@ -16,6 +16,7 @@ import uvicorn
 
 from universe.syllabus import (
     LEGACY_COLUMNS,
+    PROJECT_COLUMNS,
     get_syllabus_history,
     get_syllabus_version,
     import_workbook,
@@ -128,6 +129,42 @@ def _subject_filter_workbook(path: Path) -> Path:
         Type="Evaluation",
         Title="Avaliação em pares",
         **{"Grade weight": 2},
+    )
+    workbook.save(path)
+    workbook.close()
+    return path
+
+
+def _type2_workbook(path: Path) -> Path:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Projetos"
+    sheet.append(PROJECT_COLUMNS)
+
+    def append(**values):
+        sheet.append([values.get(column) for column in PROJECT_COLUMNS])
+
+    common = {"Projeto": "GRAD CC07", "Semana": "Semana 02"}
+    append(
+        **common,
+        Ordem=1,
+        Atividade="Programação e Desenvolvimento de Banco de Dados",
+        **{
+            "Tipo da atividade": "Encontro de instrução",
+            "Descrição da atividade": "Criação e manipulação de bancos relacionais.",
+            "Eixo": "Computação",
+            "Assuntos": "Banco de dados relacional\n,SQL Básico",
+        },
+    )
+    append(
+        **common,
+        Ordem=2,
+        Atividade="Tutorial MySQL",
+        **{
+            "Tipo da atividade": "Autoestudo",
+            "Encontro pai": "Programação e Desenvolvimento de Banco de Dados",
+            "URL": "https://example.com/mysql",
+        },
     )
     workbook.save(path)
     workbook.close()
@@ -406,6 +443,34 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
 
         expect(page.locator(".syl-lesson")).to_have_count(1)
         expect(page.locator(".syl-lesson h2")).to_have_text("Apresentação do artefato")
+        browser.close()
+
+
+def test_type2_lesson_shows_subjects_and_its_parented_source(
+    test_database_url, applied_migrations, tmp_path
+):
+    name = f"Browser type 2 {uuid.uuid4().hex[:8]}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn, _type2_workbook(tmp_path / "type2.xlsx"), name
+        )
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        lesson = page.locator(".syl-lesson").first
+        lesson.get_by_role(
+            "button", name="Expandir aula Programação e Desenvolvimento de Banco de Dados"
+        ).click()
+
+        expect(lesson.get_by_text("Criação e manipulação de bancos relacionais.")).to_be_visible()
+        subjects = lesson.get_by_label("Assuntos")
+        expect(subjects.get_by_text("Banco de dados relacional", exact=True)).to_be_visible()
+        expect(subjects.get_by_text("SQL Básico", exact=True)).to_be_visible()
+        expect(lesson.get_by_role("heading", name="Tutorial MySQL")).to_be_visible()
         browser.close()
 
 

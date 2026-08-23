@@ -37,6 +37,7 @@ def project_row(
     url=None,
     parent=None,
     subject="Computação",
+    subjects=None,
 ):
     return [
         project,
@@ -50,7 +51,7 @@ def project_row(
         "Sim",
         "0",
         subject,
-        None,
+        subjects,
         url,
         "Não",
         parent,
@@ -130,12 +131,60 @@ class TestWorkbookAdapters:
         assert parsed["lesson_count"] == 64
         assert parsed["source_count"] == 130
         assert sum(len(lesson["source_references"]) for lesson in parsed["lessons"]) == 130
+        database_lesson = next(
+            lesson
+            for lesson in parsed["lessons"]
+            if lesson["title"] == "Programação e Desenvolvimento de Banco de Dados"
+        )
+        assert database_lesson["subjects"] == [
+            "Arquitetura de banco de dados on premisse",
+            "Banco de dados relacional",
+            "Linguagem de criação e manipulação de dados",
+            "SQL Básico",
+        ]
+        assert "Tipos de ofertas de serviços na nuvem" in {
+            source["title"] for source in database_lesson["source_references"]
+        }
         first_source = next(
             source
             for lesson in parsed["lessons"]
             for source in lesson["source_references"]
         )
         assert set(first_source["fields"]) == set(PROJECT_COLUMNS)
+
+    def test_project_workbook_promotes_subjects_and_attaches_parent_sources(
+        self, tmp_path
+    ):
+        path = tmp_path / "project.xlsx"
+        write_project(
+            path,
+            [
+                project_row(
+                    title="Aula de arquitetura",
+                    subjects="Arquitetura de nuvem\n,Modelos de serviço em nuvem",
+                ),
+                project_row(
+                    seq="2",
+                    title="Leitura de arquitetura",
+                    kind="Autoestudo",
+                    parent="Aula de arquitetura",
+                    subjects="Metadado do autoestudo não curricular",
+                    url="https://example.com/architecture",
+                ),
+            ],
+        )
+
+        parsed = parse_workbook(path)
+
+        assert parsed["lesson_count"] == 1
+        lesson = parsed["lessons"][0]
+        assert lesson["subjects"] == [
+            "Arquitetura de nuvem",
+            "Modelos de serviço em nuvem",
+        ]
+        assert [source["url"] for source in lesson["source_references"]] == [
+            "https://example.com/architecture"
+        ]
 
     def test_legacy_related_workbook_groups_self_study_under_lesson(self, tmp_path):
         path = tmp_path / "legacy.xlsx"
@@ -326,7 +375,15 @@ class TestSourceIdentity:
 class TestVersionedImport:
     def test_name_is_manual_and_uploaded_xlsx_is_retained_exactly(self, db, tmp_path):
         path = tmp_path / "input.xlsx"
-        write_project(path, [project_row(project="DO NOT USE AS NAME")])
+        write_project(
+            path,
+            [
+                project_row(
+                    project="DO NOT USE AS NAME",
+                    subjects="Arquitetura de nuvem\n,Modelos de serviço em nuvem",
+                )
+            ],
+        )
         original = path.read_bytes()
         run_count = db.execute("SELECT count(*) FROM run").fetchone()[0]
 
@@ -345,6 +402,9 @@ class TestVersionedImport:
             "body": original,
         }
         assert list_syllabi(db)[0]["title"] == "SI módulo 7 2026"
+        assert get_syllabus_version(db, result["syllabus_id"])["lessons"][0][
+            "subjects"
+        ] == ["Arquitetura de nuvem", "Modelos de serviço em nuvem"]
 
     def test_same_file_is_idempotent_within_one_syllabus(self, db, tmp_path):
         path = tmp_path / "same.xlsx"
@@ -585,6 +645,7 @@ class TestSyllabusCuration:
                 "kind": "Class",
                 "title": "Aula revisada",
                 "subject": "NEG",
+                "subjects": ["Custos fixos", "Custos variáveis"],
                 "date": "2026-08-13",
                 "description": "Descrição revisada",
                 "sources": [
@@ -620,6 +681,10 @@ class TestSyllabusCuration:
             db, imported["syllabus_id"], imported["version_id"]
         )
         assert latest["lessons"][0]["title"] == "Aula revisada"
+        assert latest["lessons"][0]["subjects"] == [
+            "Custos fixos",
+            "Custos variáveis",
+        ]
         assert [source["title"] for source in latest["lessons"][0]["sources"]] == [
             "Fonte B revisada",
             "Fonte nova",
@@ -639,6 +704,7 @@ class TestSyllabusCuration:
         payload = [
             {
                 **{key: before["lessons"][0].get(key) for key in ("id", "week", "kind", "title", "subject", "description")},
+                "subjects": ["Custos fixos", "Rentabilidade, ROI, EBITDA"],
                 "date": "2026-08-06",
                 "sources": [
                     {
@@ -669,6 +735,10 @@ class TestSyllabusCuration:
         parsed = parse_workbook(exported)
 
         assert parsed["format"] == "related-16"
+        assert parsed["lessons"][0]["subjects"] == [
+            "Custos fixos",
+            "Rentabilidade, ROI, EBITDA",
+        ]
         assert [source["title"] for source in parsed["lessons"][0]["source_references"]] == [
             "Fonte B",
             "Fonte A",

@@ -159,6 +159,38 @@ def test_source_reordering_uses_incoming_order_without_creating_a_decision():
     ]
 
 
+def test_subject_changes_are_first_class_reconciliation_decisions():
+    def projection(subjects: list[str]) -> dict:
+        return {
+            "lessons": [
+                {
+                    "id": "lesson-current",
+                    "week": 1,
+                    "seq": 1,
+                    "kind": "Class",
+                    "title": "Aula de arquitetura",
+                    "subject": "SI",
+                    "subjects": subjects,
+                    "date": "2026-08-11",
+                    "description": "Descrição",
+                    "hidden": False,
+                    "sources": [],
+                }
+            ]
+        }
+
+    baseline = projection(["Arquitetura de nuvem"])
+    current = projection(["Arquitetura de nuvem"])
+    incoming = projection(["Arquitetura de nuvem", "Serverless"])
+
+    plan = build_plan(baseline, current, incoming)
+
+    assert plan["summary"]["action_count"] == 1
+    lesson = plan["lessons"][0]
+    assert lesson["status"] == "changed"
+    assert lesson["incoming"]["subjects"] == ["Arquitetura de nuvem", "Serverless"]
+
+
 def test_identical_institutional_workbook_preserves_manual_overlay_without_review(
     db, tmp_path: Path
 ):
