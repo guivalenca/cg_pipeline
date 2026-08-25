@@ -16,8 +16,12 @@ const state = {
   reviewBusyReferenceIds: new Set(),
   editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
   versionDialog: { mode: 'history', trigger: null, error: null },
-  upload: { mode: 'new', syllabusId: null, busy: false },
-  catalog: { institutions: [], loaded: false, loading: false, error: null },
+  upload: {
+    mode: 'new', syllabusId: null, busy: false, graphIdBusy: false,
+    confirmedGraphId: '', editingGraphId: false,
+    proposedGraphId: '', proposalToken: 0,
+  },
+  catalog: { institutions: [], graphIds: [], loaded: false, loading: false, error: null },
   reconciliation: null,
   reconciliationCleanup: null,
   manualUpload: { sourceId: null, title: '', kind: null, items: [], busy: false },
@@ -1631,32 +1635,6 @@ async function loadReconciliation(reconciliationId) {
   }
 }
 
-function selectedUploadInstitution() {
-  const institutionId = uploadForm.elements.institution_id?.value || '';
-  return state.catalog.institutions.find((entry) => entry.id === institutionId) || null;
-}
-
-function renderUploadSubjects() {
-  const host = $('[data-lesson-subject-options]');
-  const institution = selectedUploadInstitution();
-  if (!institution) {
-    host.innerHTML = '<p class="syl-subject-options__empty">Selecione uma instituição para ver suas matérias.</p>';
-    return;
-  }
-  const subjects = [...(institution.lesson_subjects || [])].sort((left, right) => (
-    String(left.code || '').localeCompare(String(right.code || ''), 'pt-BR')
-  ));
-  if (!subjects.length) {
-    host.innerHTML = `<p class="syl-subject-options__empty">${esc(institution.name)} ainda não tem matérias cadastradas. <a href="/structure">Cadastre-as em Estrutura</a>.</p>`;
-    return;
-  }
-  host.innerHTML = subjects.map((subject) => `<label class="syl-subject-option">
-    <input type="checkbox" name="lesson_subject_ids" value="${esc(subject.id)}">
-    <span>${esc(subject.display_name)}</span>
-    <code>${esc(subject.code)}</code>
-  </label>`).join('');
-}
-
 function renderUploadCatalog() {
   const select = uploadForm.elements.institution_id;
   const error = $('[data-catalog-error]');
@@ -1664,28 +1642,26 @@ function renderUploadCatalog() {
     select.innerHTML = '<option value="">Não foi possível carregar</option>';
     select.disabled = true;
     error.textContent = `Não foi possível carregar o cadastro: ${state.catalog.error}`;
-    renderUploadSubjects();
     return;
   }
   const institutions = state.catalog.institutions;
   if (!institutions.length) {
     select.innerHTML = '<option value="">Nenhuma instituição cadastrada</option>';
     select.disabled = true;
-    error.innerHTML = 'Cadastre a instituição e suas matérias em <a href="/structure">Estrutura</a> antes de criar o syllabus.';
-    renderUploadSubjects();
+    error.textContent = 'O Companion não retornou nenhuma instituição.';
     return;
   }
   select.innerHTML = `<option value="">Selecione a instituição</option>${institutions.map((institution) => (
-    `<option value="${esc(institution.id)}">${esc(institution.name)}</option>`
+    `<option value="${esc(institution.slug)}">${esc(institution.name)}</option>`
   )).join('')}`;
   select.disabled = false;
   error.textContent = '';
-  renderUploadSubjects();
 }
 
 async function loadUploadCatalog() {
   if (state.catalog.loaded) {
     renderUploadCatalog();
+    scheduleGraphProposal();
     return;
   }
   if (state.catalog.loading) return;
@@ -1694,23 +1670,253 @@ async function loadUploadCatalog() {
   select.innerHTML = '<option value="">Carregando instituições…</option>';
   select.disabled = true;
   try {
-    const response = await fetch('/api/org', { headers: { Accept: 'application/json' } });
+    const response = await fetch('/api/companion/graph-namespace', { headers: { Accept: 'application/json' } });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
     state.catalog.institutions = body.institutions || [];
+    state.catalog.graphIds = body.graph_ids || [];
     state.catalog.error = null;
     state.catalog.loaded = true;
   } catch (error) {
     state.catalog.error = error.message;
   } finally {
     state.catalog.loading = false;
-    if (state.upload.mode === 'new' && uploadDialog.open) renderUploadCatalog();
+    if (state.upload.mode === 'new' && uploadDialog.open) {
+      renderUploadCatalog();
+      scheduleGraphProposal();
+    }
   }
 }
 
+let graphProposalTimer = null;
+
+function hideIdentityConflicts() {
+  $('[data-graph-conflict]').hidden = true;
+  $('[data-syllabus-conflict]').hidden = true;
+}
+
+function renderGraphIdChoice() {
+  const field = $('[data-graph-id-field]');
+  const input = uploadForm.elements.graph_id;
+  const status = $('[data-graph-id-status]');
+  const confirmed = state.upload.confirmedGraphId;
+  const editing = state.upload.editingGraphId;
+  field.hidden = !editing && !confirmed;
+  input.disabled = !state.upload.editingGraphId && !confirmed;
+  input.readOnly = !editing && Boolean(confirmed);
+  input.required = editing;
+  if (!editing) input.value = confirmed;
+  $('[data-proposed-graph-id]').textContent = confirmed || state.upload.proposedGraphId;
+  $('[data-preview-edit-graph-id]').textContent = confirmed ? 'Editar ID' : 'Escolher outro ID';
+  $('[data-save-graph-id]').hidden = !editing;
+  $('[data-cancel-graph-id]').hidden = !editing;
+  $('[data-use-generated-id]').hidden = !confirmed;
+  status.hidden = !confirmed;
+  status.textContent = confirmed ? 'ID verificado. Será salvo ao adicionar o syllabus.' : '';
+}
+
+function clearGraphIdChoice() {
+  state.upload.confirmedGraphId = '';
+  state.upload.editingGraphId = false;
+  uploadForm.elements.graph_id.value = '';
+  $('[data-graph-id-error]').textContent = '';
+  renderGraphIdChoice();
+}
+
+function openGraphIdEditor() {
+  const editButton = $('[data-preview-edit-graph-id]');
+  if (editButton.disabled) return;
+  const input = uploadForm.elements.graph_id;
+  const occupied = $('[data-conflicting-graph-id]').textContent.trim();
+  const baseId = occupied || state.upload.proposedGraphId;
+  state.upload.editingGraphId = true;
+  input.value = state.upload.confirmedGraphId || (occupied ? `${baseId}-2` : baseId);
+  $('[data-graph-id-error]').textContent = '';
+  renderGraphIdChoice();
+  input.focus();
+  input.select();
+}
+
+function cancelGraphIdEditor() {
+  state.upload.editingGraphId = false;
+  $('[data-graph-id-error]').textContent = '';
+  renderGraphIdChoice();
+}
+
+async function saveGraphId() {
+  if (state.upload.graphIdBusy) return;
+  const input = uploadForm.elements.graph_id;
+  const graphId = input.value.trim();
+  const occupied = $('[data-conflicting-graph-id]').textContent.trim();
+  const error = $('[data-graph-id-error]');
+  if (!/^[a-z][a-z0-9_.-]{1,127}$/.test(graphId)) {
+    error.textContent = 'Use de 2 a 128 caracteres: letras minúsculas, números, ponto, hífen ou sublinhado.';
+    input.focus();
+    return;
+  }
+  if (occupied && graphId === occupied) {
+    error.textContent = 'Escolha um ID diferente do que já está em uso.';
+    input.focus();
+    return;
+  }
+  const saveButton = $('[data-save-graph-id]');
+  state.upload.graphIdBusy = true;
+  saveButton.disabled = true;
+  saveButton.textContent = 'Verificando…';
+  error.textContent = '';
+  try {
+    const query = new URLSearchParams({ graph_id: graphId });
+    const response = await fetch(`/api/syllabi/graph-id-availability?${query}`, {
+      headers: { Accept: 'application/json' },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const detail = typeof body.detail === 'string' ? body.detail : body.detail?.message;
+      throw new Error(detail || `o servidor respondeu ${response.status}`);
+    }
+    state.upload.confirmedGraphId = String(body.graph_id || graphId);
+    state.upload.editingGraphId = false;
+    renderGraphIdChoice();
+    $('[data-graph-conflict]').hidden = true;
+    $('[data-upload-error]').textContent = '';
+  } catch (saveError) {
+    error.textContent = `Não foi possível usar este ID: ${saveError.message}`;
+    input.focus();
+  } finally {
+    state.upload.graphIdBusy = false;
+    saveButton.disabled = false;
+    saveButton.textContent = 'Salvar ID';
+  }
+}
+
+function restoreGeneratedGraphId() {
+  clearGraphIdChoice();
+  refreshGraphProposal();
+}
+
+function resetGraphIdentity() {
+  if (graphProposalTimer) window.clearTimeout(graphProposalTimer);
+  graphProposalTimer = null;
+  state.upload.proposalToken += 1;
+  state.upload.proposedGraphId = '';
+  $('[data-graph-preview]').hidden = true;
+  $('[data-graph-display-name]').textContent = '';
+  $('[data-proposed-graph-id]').textContent = '';
+  $('[data-conflicting-graph-id]').textContent = '';
+  $('[data-preview-edit-graph-id]').disabled = true;
+  clearGraphIdChoice();
+  hideIdentityConflicts();
+}
+
+function showGraphConflict(detail) {
+  $('[data-syllabus-conflict]').hidden = true;
+  const conflict = $('[data-graph-conflict]');
+  const graphId = String(detail?.graph_id || '').trim();
+  $('[data-conflicting-graph-id]').textContent = graphId;
+  conflict.hidden = false;
+  conflict.scrollIntoView({ block: 'nearest' });
+}
+
+function showSyllabusConflict(detail) {
+  $('[data-graph-conflict]').hidden = true;
+  state.upload.editingGraphId = false;
+  renderGraphIdChoice();
+  $('[data-preview-edit-graph-id]').disabled = true;
+  const conflict = $('[data-syllabus-conflict]');
+  const syllabusId = String(detail?.syllabus_id || detail?.id || '').trim();
+  const title = String(detail?.title || detail?.message || '').trim();
+  $('[data-existing-syllabus-name]').textContent = title;
+  $('[data-open-existing]').href = `/syllabi?id=${encodeURIComponent(syllabusId)}`;
+  conflict.hidden = false;
+  conflict.scrollIntoView({ block: 'nearest' });
+}
+
+async function refreshGraphProposal() {
+  if (state.upload.mode !== 'new' || !uploadDialog.open) return;
+  const name = String(uploadForm.elements.name.value || '').trim();
+  const institutionId = String(uploadForm.elements.institution_id.value || '').trim();
+  const preview = $('[data-graph-preview]');
+  hideIdentityConflicts();
+  if (!name || !institutionId) {
+    state.upload.proposedGraphId = '';
+    preview.hidden = true;
+    return;
+  }
+  const token = ++state.upload.proposalToken;
+  try {
+    const query = new URLSearchParams({ institution_id: institutionId, name });
+    const response = await fetch(`/api/syllabi/graph-id-proposal?${query}`, {
+      headers: { Accept: 'application/json' },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (token !== state.upload.proposalToken) return;
+    if (!response.ok && response.status === 422) {
+      preview.hidden = false;
+      $('[data-graph-display-name]').textContent = name;
+      $('[data-proposed-graph-id]').textContent = 'Continue digitando…';
+      $('[data-preview-edit-graph-id]').disabled = true;
+      return;
+    }
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    state.upload.proposedGraphId = String(body.graph_id || '');
+    $('[data-graph-display-name]').textContent = body.display_name || name;
+    renderGraphIdChoice();
+    $('[data-preview-edit-graph-id]').disabled = false;
+    preview.hidden = false;
+    if (body.existing_syllabus) {
+      showSyllabusConflict({
+        ...body.existing_syllabus,
+        syllabus_id: body.existing_syllabus.id,
+        title: body.existing_syllabus.title,
+      });
+      return;
+    }
+    const occupied = body.graph_owner
+      || state.catalog.graphIds.includes(state.upload.proposedGraphId);
+    if (occupied && !state.upload.confirmedGraphId) {
+      showGraphConflict({ graph_id: state.upload.proposedGraphId });
+    }
+  } catch (error) {
+    if (token !== state.upload.proposalToken) return;
+    preview.hidden = false;
+    $('[data-graph-display-name]').textContent = name;
+    $('[data-proposed-graph-id]').textContent = 'Não foi possível calcular';
+    $('[data-preview-edit-graph-id]').disabled = true;
+    $('[data-upload-error]').textContent = `Não foi possível gerar o graph ID: ${error.message}`;
+  }
+}
+
+function scheduleGraphProposal({ resetManual = false } = {}) {
+  if (resetManual) {
+    const name = String(uploadForm.elements.name.value || '').trim();
+    const institutionId = String(uploadForm.elements.institution_id.value || '').trim();
+    state.upload.proposalToken += 1;
+    state.upload.proposedGraphId = '';
+    clearGraphIdChoice();
+    $('[data-graph-preview]').hidden = !name || !institutionId;
+    $('[data-graph-display-name]').textContent = name;
+    $('[data-proposed-graph-id]').textContent = name && institutionId ? 'Calculando…' : '';
+    $('[data-conflicting-graph-id]').textContent = '';
+    $('[data-preview-edit-graph-id]').disabled = true;
+    hideIdentityConflicts();
+  }
+  if (graphProposalTimer) window.clearTimeout(graphProposalTimer);
+  graphProposalTimer = window.setTimeout(refreshGraphProposal, 120);
+}
+
 function openUpload(mode) {
-  state.upload = { mode, syllabusId: mode === 'version' ? routeId : null, busy: false };
+  state.upload = {
+    mode,
+    syllabusId: mode === 'version' ? routeId : null,
+    busy: false,
+    graphIdBusy: false,
+    confirmedGraphId: '',
+    editingGraphId: false,
+    proposedGraphId: '',
+    proposalToken: state.upload.proposalToken + 1,
+  };
   uploadForm.reset();
+  resetGraphIdentity();
   $('[data-upload-error]').textContent = '';
   $('[data-file-name]').textContent = 'Escolher arquivo .xlsx';
   const nameField = $('[data-name-field]');
@@ -1722,9 +1928,7 @@ function openUpload(mode) {
   syllabusFields.disabled = isVersion;
   nameInput.required = !isVersion;
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
-  for (const fieldName of ['display_name', 'institution_id']) {
-    uploadForm.elements[fieldName].required = !isVersion;
-  }
+  uploadForm.elements.institution_id.required = !isVersion;
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
   $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
@@ -1744,7 +1948,7 @@ async function submitUpload(event) {
   const data = new FormData(uploadForm);
   const file = data.get('file');
   const name = String(data.get('name') || '').trim();
-  for (const fieldName of ['name', 'display_name', 'institution_id']) {
+  for (const fieldName of ['name', 'institution_id', 'graph_id']) {
     if (data.has(fieldName)) data.set(fieldName, String(data.get(fieldName) || '').trim());
   }
   if (!file?.name || !/\.xlsx$/i.test(file.name)) {
@@ -1759,10 +1963,6 @@ async function submitUpload(event) {
     $('[data-upload-error]').textContent = 'Selecione uma instituição cadastrada.';
     return;
   }
-  if (state.upload.mode === 'new' && !data.getAll('lesson_subject_ids').length) {
-    $('[data-upload-error]').textContent = 'Selecione ao menos uma matéria deste syllabus.';
-    return;
-  }
   if (state.upload.syllabusId) data.set('syllabus_id', state.upload.syllabusId);
   state.upload.busy = true;
   $('[data-upload-submit]').disabled = true;
@@ -1774,7 +1974,23 @@ async function submitUpload(event) {
       : '/api/syllabi/upload';
     const response = await fetch(endpoint, { method: 'POST', body: data });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    if (!response.ok && body.detail?.code === 'graph_id_conflict') {
+      showGraphConflict(body.detail);
+      $('[data-upload-error]').textContent = body.detail.message;
+      return;
+    }
+    if (!response.ok && body.detail?.code === 'syllabus_already_exists') {
+      showSyllabusConflict({
+        ...body.detail,
+        title: name,
+      });
+      $('[data-upload-error]').textContent = body.detail.message;
+      return;
+    }
+    if (!response.ok) {
+      const detail = typeof body.detail === 'string' ? body.detail : body.detail?.message;
+      throw new Error(detail || `o servidor respondeu ${response.status}`);
+    }
     uploadDialog.close();
     if (state.upload.mode === 'new') {
       announce(body.unchanged ? 'A planilha é igual à versão atual.' : 'Syllabus adicionado. Nenhuma fonte foi processada automaticamente.');
@@ -2779,9 +2995,27 @@ document.querySelector('main').addEventListener('change', (event) => {
 });
 
 uploadForm.addEventListener('submit', submitUpload);
-uploadForm.elements.institution_id.addEventListener('change', renderUploadSubjects);
+uploadForm.elements.name.addEventListener('input', () => {
+  $('[data-upload-error]').textContent = '';
+  scheduleGraphProposal({ resetManual: true });
+});
+uploadForm.elements.institution_id.addEventListener('change', () => {
+  $('[data-upload-error]').textContent = '';
+  scheduleGraphProposal({ resetManual: true });
+});
+uploadForm.elements.graph_id.addEventListener('input', () => {
+  $('[data-graph-id-error]').textContent = '';
+});
 uploadDialog.addEventListener('click', (event) => {
-  if (event.target.closest('[data-dialog-close]')) closeUpload();
+  if (event.target.closest('[data-edit-graph-id]')) {
+    openGraphIdEditor();
+  } else if (event.target.closest('[data-save-graph-id]')) {
+    saveGraphId();
+  } else if (event.target.closest('[data-cancel-graph-id]')) {
+    cancelGraphIdEditor();
+  } else if (event.target.closest('[data-use-generated-id]')) {
+    restoreGeneratedGraphId();
+  } else if (event.target.closest('[data-dialog-close]')) closeUpload();
   else if (event.target === uploadDialog) closeUpload();
 });
 $('[data-upload-file]').addEventListener('change', (event) => {

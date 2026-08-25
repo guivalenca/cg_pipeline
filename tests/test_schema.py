@@ -18,7 +18,7 @@ def test_rerunning_applies_nothing(db):
     assert migrate(db) == []
 
 
-def test_syllabus_metadata_schema_has_no_stored_graph_identity(db):
+def test_syllabus_metadata_schema_stores_only_the_export_identity(db):
     columns = {
         row[0]
         for row in db.execute(
@@ -26,16 +26,16 @@ def test_syllabus_metadata_schema_has_no_stored_graph_identity(db):
             " WHERE table_schema = current_schema() AND table_name = 'syllabus'"
         ).fetchall()
     }
-    assert {"institution_id", "display_name"} <= columns
-    assert "graph_id" not in columns
+    assert {"institution_id", "graph_id"} <= columns
+    assert "display_name" not in columns
     assert "institution_slug" not in columns
     assert db.execute(
         "SELECT to_regclass('syllabus_legacy_graph_metadata'),"
         " to_regclass('lesson_subject'), to_regclass('syllabus_lesson_subject')"
     ).fetchone() == (
         "syllabus_legacy_graph_metadata",
-        "lesson_subject",
-        "syllabus_lesson_subject",
+        None,
+        None,
     )
 
 
@@ -119,7 +119,10 @@ def test_0061_preserves_versions_and_archives_conflicting_graph_metadata(tmp_pat
                 " FROM syllabus_source_reference WHERE id = 'upgrade-reference'"
             ).fetchone()
 
-            assert migrate(conn) == ["0061_syllabus_institution_lesson_subjects"]
+            assert migrate(conn) == [
+                "0061_syllabus_institution_lesson_subjects",
+                "0062_syllabus_graph_identity",
+            ]
 
             assert conn.execute(
                 "SELECT id, syllabus_id, seq, file_name, file_sha, file_body"
@@ -134,23 +137,23 @@ def test_0061_preserves_versions_and_archives_conflicting_graph_metadata(tmp_pat
                 " FROM syllabus_source_reference WHERE id = 'upgrade-reference'"
             ).fetchone() == before_reference
             assert conn.execute(
-                "SELECT institution_id, display_name FROM syllabus"
+                "SELECT institution_id, graph_id FROM syllabus"
                 " WHERE id = 'upgrade-match'"
-            ).fetchone() == ("upgrade-inteli", "Módulo 7")
+            ).fetchone() == ("upgrade-inteli", "old-graph-match")
             assert conn.execute(
-                "SELECT institution_id, display_name FROM syllabus"
+                "SELECT institution_id, graph_id FROM syllabus"
                 " WHERE id = 'upgrade-conflict'"
             ).fetchone() == (None, None)
             assert conn.execute(
-                "SELECT institution_id, display_name FROM syllabus"
+                "SELECT institution_id, graph_id FROM syllabus"
                 " WHERE id = 'upgrade-long-title'"
-            ).fetchone() == ("upgrade-inteli", None)
+            ).fetchone() == ("upgrade-inteli", "old-graph-long")
             assert conn.execute(
-                "SELECT institution_id, display_name FROM syllabus"
+                "SELECT institution_id, graph_id FROM syllabus"
                 " WHERE id = 'upgrade-ungrouped'"
-            ).fetchone() == ("upgrade-other", "Ungrouped")
+            ).fetchone() == ("upgrade-other", "old-graph-ungrouped")
             assert conn.execute(
-                "SELECT institution_id, display_name FROM syllabus"
+                "SELECT institution_id, graph_id FROM syllabus"
                 " WHERE id = 'upgrade-unknown'"
             ).fetchone() == (None, None)
             assert conn.execute(

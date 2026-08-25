@@ -1145,6 +1145,7 @@
 
 .syl-form-field { display: grid; gap: 7px; }
 .syl-form-field > span,
+.syl-form-field__label,
 .syl-file-picker__title { color: var(--admin-text); font-size: 11px; font-weight: 700; }
 .syl-form-field small { color: var(--admin-text-muted); font-size: 10.5px; line-height: 1.45; }
 
@@ -1243,6 +1244,77 @@
 .syl-catalog-error:empty { display: none; }
 .syl-catalog-error a,
 .syl-subject-options__empty a { color: var(--admin-brand); font-weight: 650; }
+
+.syl-graph-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+  background: var(--admin-surface);
+}
+
+.syl-graph-preview__value {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.syl-graph-preview__value span {
+  color: var(--admin-text-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.syl-graph-preview__value strong,
+.syl-graph-preview__value code {
+  overflow-wrap: anywhere;
+  color: var(--admin-text);
+  font-size: 11.5px;
+}
+
+.syl-graph-preview__edit { white-space: nowrap; }
+.syl-graph-preview__status {
+  grid-column: 1 / -1;
+  color: var(--admin-text-secondary);
+  font-size: 10.5px;
+}
+.syl-graph-preview [data-graph-id-field] { grid-column: 1 / -1; }
+.syl-graph-id-editor__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.syl-graph-conflict {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, #a43b3b 45%, var(--admin-border));
+  border-radius: 9px;
+  background: color-mix(in srgb, #a43b3b 7%, var(--admin-surface));
+}
+
+.syl-graph-conflict strong { color: #a43b3b; font-size: 12px; }
+.syl-graph-conflict p { margin: 0; color: var(--admin-text-secondary); font-size: 11px; line-height: 1.5; }
+.syl-graph-conflict code { overflow-wrap: anywhere; }
+.syl-graph-conflict__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.syl-graph-conflict__actions--vertical {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.syl-graph-conflict__actions--vertical > .button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .syl-graph-preview { grid-template-columns: 1fr; align-items: stretch; }
+  .syl-graph-preview [data-graph-id-field] { grid-column: auto; }
+}
 
 .syl-file-picker {
   min-height: 100px;

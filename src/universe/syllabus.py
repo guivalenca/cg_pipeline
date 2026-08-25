@@ -28,6 +28,12 @@ from openpyxl import Workbook, load_workbook
 from psycopg.types.json import Jsonb
 
 from universe.db import connect
+from universe.graph_identity import (
+    GraphIdConflict,
+    graph_id_for,
+    slug_component,
+    validate_graph_id,
+)
 
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 HIDDEN_COLUMN = "Hidden"
@@ -77,6 +83,16 @@ LEGACY_COLUMNS = (
 
 # Compatibility for callers that imported the old constant.
 COLUMNS = PROJECT_COLUMNS
+
+
+class SyllabusAlreadyExists(ValueError):
+    """A create request resolved to an existing Syllabus."""
+
+    def __init__(self, syllabus_id: str, title: str, graph_id: str | None) -> None:
+        self.syllabus_id = syllabus_id
+        self.title = title
+        self.graph_id = graph_id
+        super().__init__(f"Já existe um syllabus chamado {title!r}.")
 WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
 PROJECT_SUBJECT_CODES = {
     "com": "COM",
@@ -122,91 +138,21 @@ YOUTUBE_TEXTUAL_QUERY = re.compile(
 SYLLABUS_ID = re.compile(r"^[a-z][a-z0-9_.-]{1,127}$")
 
 
-def _display_name(value: str | None, *, what: str) -> str:
-    display_name = str(value or "").strip()
-    if not display_name:
-        raise ValueError(f"Informe {what}.")
-    if len(display_name) > 255 or any(
-        unicodedata.category(character) == "Cc" for character in display_name
-    ):
-        raise ValueError(f"{what.capitalize()} deve ter no máximo 255 caracteres.")
-    return display_name
-
-
-def _syllabus_metadata(
-    conn: psycopg.Connection,
-    institution_id: str | None,
-    display_name: str | None,
-    lesson_subject_ids: list[str] | tuple[str, ...] | None,
-    *,
-    required: bool,
-) -> dict | None:
-    clean_institution_id = str(institution_id or "").strip()
-    clean_display_name = str(display_name or "").strip()
-    if lesson_subject_ids is None:
-        clean_subject_ids: list[str] = []
-    elif isinstance(lesson_subject_ids, (list, tuple)):
-        clean_subject_ids = [str(value or "").strip() for value in lesson_subject_ids]
-    else:
-        raise ValueError("A seleção de matérias deve ser uma lista.")
-    if any(not value for value in clean_subject_ids):
-        raise ValueError("A seleção de matérias contém um valor vazio.")
-    if len(set(clean_subject_ids)) != len(clean_subject_ids):
-        raise ValueError("Cada matéria deve ser selecionada uma única vez.")
-
-    if not clean_institution_id and not clean_display_name and not clean_subject_ids:
-        if required:
-            raise ValueError(
-                "Selecione a instituição, informe o nome da unidade curricular e "
-                "escolha ao menos uma matéria."
-            )
-        return None
-    if not clean_institution_id:
-        raise ValueError("Selecione uma instituição.")
-    if not clean_subject_ids:
-        raise ValueError("Selecione ao menos uma matéria da instituição.")
-    clean_display_name = _display_name(
-        clean_display_name,
-        what="o nome da unidade curricular",
-    )
-
-    institution = conn.execute(
-        "SELECT id, name FROM institution WHERE id = %s",
-        (clean_institution_id,),
-    ).fetchone()
-    if institution is None:
-        raise ValueError("Selecione uma instituição existente.")
-    rows = conn.execute(
-        "SELECT id, institution_id, code, display_name FROM lesson_subject"
-        " WHERE id = ANY(%s)",
-        (clean_subject_ids,),
-    ).fetchall()
-    by_id = {row[0]: row for row in rows}
-    if any(
-        subject_id not in by_id or by_id[subject_id][1] != clean_institution_id
-        for subject_id in clean_subject_ids
-    ):
-        raise ValueError("Selecione apenas matérias da instituição escolhida.")
-    subjects = [
-        {
-            "id": by_id[subject_id][0],
-            "code": by_id[subject_id][2],
-            "display_name": by_id[subject_id][3],
-        }
-        for subject_id in clean_subject_ids
-    ]
-    subjects.sort(key=lambda subject: (subject["code"], subject["id"]))
-    return {
-        "institution": {"id": institution[0], "name": institution[1]},
-        "display_name": clean_display_name,
-        "lesson_subjects": subjects,
-    }
-
-
 def slugify(text: str) -> str:
     """Return a lowercase ASCII slug suitable for a stable syllabus id."""
-    ascii_text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", ascii_text.lower())).strip("-")
+    return slug_component(text)
+
+
+def validate_syllabus_id(value: str) -> str:
+    """Return a valid durable Syllabus id or reject it with the UI contract."""
+    syllabus_id = str(value or "").strip()
+    if SYLLABUS_ID.fullmatch(syllabus_id) is None:
+        raise ValueError(
+            "O identificador do syllabus deve começar com letra minúscula, ter "
+            "de 2 a 128 caracteres e usar apenas letras minúsculas, números, "
+            "ponto, hífen ou sublinhado."
+        )
+    return syllabus_id
 
 
 def canonical_url(url: str) -> str:
@@ -754,14 +700,14 @@ def import_workbook(
     *,
     syllabus_id: str | None = None,
     institution_id: str | None = None,
-    display_name: str | None = None,
-    lesson_subject_ids: list[str] | tuple[str, ...] | None = None,
+    graph_id: str | None = None,
+    occupied_graph_ids: set[str] | tuple[str, ...] | list[str] = (),
     require_syllabus_metadata: bool = True,
     actor: str = "founder",
 ) -> dict:
     """Author one complete uploaded version under a manually named syllabus.
 
-    New named Syllabi require durable Institution and Lesson Subject metadata.
+    New named Syllabi require a Companion Institution and durable graph id.
     Passing ``require_syllabus_metadata=False`` is the explicit compatibility
     path for historical fixtures and migrations that predate that model.
     """
@@ -773,117 +719,88 @@ def import_workbook(
     resolved_id = (syllabus_id or slugify(name)).strip()
     if not resolved_id:
         raise ValueError("syllabus id is empty after normalizing its name")
-    syllabus_exists = conn.execute(
-        "SELECT 1 FROM syllabus WHERE id = %s",
+    stored = conn.execute(
+        "SELECT title, institution_id, graph_id, group_id"
+        " FROM syllabus WHERE id = %s",
         (resolved_id,),
-    ).fetchone() is not None
-    metadata = _syllabus_metadata(
-        conn,
-        institution_id,
-        display_name,
-        lesson_subject_ids,
-        required=require_syllabus_metadata and not syllabus_exists,
-    )
-    if metadata is not None and SYLLABUS_ID.fullmatch(resolved_id) is None:
-        raise ValueError(
-            "O identificador do syllabus deve começar com letra minúscula, ter "
-            "de 2 a 128 caracteres e usar apenas letras minúsculas, números, "
-            "ponto, hífen ou sublinhado."
-        )
+    ).fetchone()
+    syllabus_exists = stored is not None
+    creation_requested = require_syllabus_metadata and syllabus_id is None
+    clean_institution_id = str(institution_id or "").strip()
+    if syllabus_exists and not clean_institution_id:
+        clean_institution_id = stored[1] or ""
+    if require_syllabus_metadata and not clean_institution_id:
+        raise ValueError("Selecione uma instituição do Companion.")
+    if clean_institution_id:
+        institution = conn.execute(
+            "SELECT id, name FROM institution WHERE id = %s",
+            (clean_institution_id,),
+        ).fetchone()
+        if institution is None:
+            raise ValueError("Selecione uma instituição existente no Companion.")
+    if clean_institution_id:
+        resolved_id = validate_syllabus_id(resolved_id)
+    resolved_graph_id = str(graph_id or "").strip()
+    if syllabus_exists and not resolved_graph_id:
+        resolved_graph_id = stored[2] or ""
+    if not resolved_graph_id and clean_institution_id:
+        resolved_graph_id = graph_id_for(clean_institution_id, name)
+    if resolved_graph_id:
+        resolved_graph_id = validate_graph_id(resolved_graph_id)
+        local_owner = conn.execute(
+            "SELECT id FROM syllabus WHERE graph_id = %s",
+            (resolved_graph_id,),
+        ).fetchone()
+        if local_owner is not None and local_owner[0] != resolved_id:
+            raise GraphIdConflict(resolved_graph_id)
+        if not syllabus_exists and resolved_graph_id in set(occupied_graph_ids):
+            raise GraphIdConflict(resolved_graph_id)
+    elif require_syllabus_metadata:
+        raise ValueError("Não foi possível gerar o graph ID do syllabus.")
     path = Path(path)
     file_body = path.read_bytes()
     file_sha = hashlib.sha256(file_body).hexdigest()
     parsed = parse_workbook(path)
 
-    _validate_selected_lesson_subjects(conn, resolved_id, parsed["lessons"])
-
-    if metadata is not None:
-        selected_codes = {
-            subject["code"] for subject in metadata["lesson_subjects"]
-        }
-        missing_codes = sorted(
-            {
-                lesson["subject"]
-                for lesson in parsed["lessons"]
-                if lesson.get("subject")
-            }
-            - selected_codes
-        )
-        if missing_codes:
-            raise ValueError(
-                "Selecione as matérias usadas pela planilha: "
-                + ", ".join(missing_codes)
-                + "."
-            )
-
     inserted = conn.execute(
         "INSERT INTO syllabus"
-        " (id, title, institution_id, display_name)"
+        " (id, title, institution_id, graph_id)"
         " VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
         (
             resolved_id,
             name,
-            metadata["institution"]["id"] if metadata else None,
-            metadata["display_name"] if metadata else None,
+            clean_institution_id or None,
+            resolved_graph_id or None,
         ),
     ).rowcount
     stored = conn.execute(
-        "SELECT title, institution_id, display_name, group_id"
+        "SELECT title, institution_id, graph_id, group_id"
         " FROM syllabus WHERE id = %s FOR UPDATE",
         (resolved_id,),
     ).fetchone()
+    if creation_requested and not inserted:
+        raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
     if stored[0] != name:
         raise ValueError(
             f"syllabus id {resolved_id!r} already belongs to {stored[0]!r}, not {name!r}"
         )
-    stored_subject_ids = [
-        row[0]
-        for row in conn.execute(
-            "SELECT lesson_subject_id FROM syllabus_lesson_subject"
-            " WHERE syllabus_id = %s ORDER BY lesson_subject_id",
-            (resolved_id,),
-        ).fetchall()
-    ]
-    requested_subject_ids = (
-        [subject["id"] for subject in metadata["lesson_subjects"]]
-        if metadata
-        else []
-    )
-    if metadata and not inserted:
-        if stored[1] not in {None, metadata["institution"]["id"]}:
+    if clean_institution_id and not inserted:
+        if stored[1] not in {None, clean_institution_id}:
             raise ValueError("a instituição não corresponde ao syllabus existente")
-        if stored[2] not in {None, metadata["display_name"]}:
-            raise ValueError("o nome não corresponde ao syllabus existente")
-        if stored_subject_ids and set(stored_subject_ids) != set(requested_subject_ids):
-            raise ValueError("as matérias não correspondem ao syllabus existente")
+        if stored[2] not in {None, resolved_graph_id}:
+            raise ValueError("o graph ID não corresponde ao syllabus existente")
         if stored[3] is not None:
             group_institution = conn.execute(
                 "SELECT institution_id FROM study_group WHERE id = %s",
                 (stored[3],),
             ).fetchone()
-            if group_institution and group_institution[0] != metadata["institution"]["id"]:
+            if group_institution and group_institution[0] != clean_institution_id:
                 raise ValueError("a instituição não corresponde ao grupo do syllabus")
         conn.execute(
-            "UPDATE syllabus SET institution_id = %s, display_name = %s"
+            "UPDATE syllabus SET institution_id = %s, graph_id = %s"
             " WHERE id = %s",
-            (
-                metadata["institution"]["id"],
-                metadata["display_name"],
-                resolved_id,
-            ),
+            (clean_institution_id, resolved_graph_id or None, resolved_id),
         )
-    if metadata and not stored_subject_ids:
-        for subject in metadata["lesson_subjects"]:
-            conn.execute(
-                "INSERT INTO syllabus_lesson_subject"
-                " (syllabus_id, lesson_subject_id, institution_id)"
-                " VALUES (%s, %s, %s)",
-                (
-                    resolved_id,
-                    subject["id"],
-                    metadata["institution"]["id"],
-                ),
-            )
     previous = _latest_version_row(conn, resolved_id)
     if previous and previous["file_sha"] == file_sha:
         lesson_count, reference_count = _version_counts(conn, previous["id"])
@@ -1146,29 +1063,53 @@ def _lesson_subjects_by_syllabus(
     syllabus_ids: list[str] | tuple[str, ...] | None = None,
 ) -> dict[str, list[dict]]:
     query = (
-        "SELECT selected.syllabus_id, subject.id, subject.code, subject.display_name"
-        " FROM syllabus_lesson_subject selected"
-        " JOIN lesson_subject subject ON subject.id = selected.lesson_subject_id"
+        "WITH latest AS ("
+        " SELECT syllabus_id, max(seq) AS seq FROM syllabus_version"
+        " GROUP BY syllabus_id"
+        ")"
+        " SELECT version.syllabus_id, lesson.subject, lesson.fields"
+        " FROM latest"
+        " JOIN syllabus_version version"
+        " ON version.syllabus_id = latest.syllabus_id AND version.seq = latest.seq"
+        " JOIN syllabus_lesson lesson ON lesson.version_id = version.id"
+        " WHERE lesson.subject IS NOT NULL"
     )
-    params: tuple = ()
+    params: tuple[object, ...] = ()
     if syllabus_ids is not None:
         if not syllabus_ids:
             return {}
-        query += " WHERE selected.syllabus_id = ANY(%s)"
+        query += " AND version.syllabus_id = ANY(%s)"
         params = (list(syllabus_ids),)
-    query += " ORDER BY selected.syllabus_id, subject.code, subject.id"
-    result: dict[str, list[dict]] = {}
-    for syllabus_id, subject_id, code, display_name in conn.execute(
-        query, params
-    ).fetchall():
-        result.setdefault(syllabus_id, []).append(
-            {"id": subject_id, "code": code, "display_name": display_name}
+    query += " ORDER BY version.syllabus_id, lesson.subject, lesson.id"
+    by_code: dict[str, dict[str, dict]] = {}
+    canonical_names = {
+        "COM": "Computação",
+        "LID": "Liderança",
+        "NEG": "Negócios",
+        "UEX": "User Experience",
+    }
+    for syllabus_id, code, fields in conn.execute(query, params).fetchall():
+        fields = fields if isinstance(fields, dict) else {}
+        workbook_name = str(fields.get("Eixo") or fields.get("Axis") or "").strip()
+        workbook_code = PROJECT_SUBJECT_CODES.get(_ascii(workbook_name).casefold())
+        display_name = (
+            workbook_name
+            if workbook_name and workbook_code in {None, code}
+            else canonical_names.get(code, code)
         )
+        by_code.setdefault(syllabus_id, {}).setdefault(
+            code,
+            {"code": code, "display_name": display_name},
+        )
+    result = {
+        syllabus_id: [subjects[code] for code in sorted(subjects)]
+        for syllabus_id, subjects in by_code.items()
+    }
     return result
 
 
 def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
-    syllabus_id, title, display_name, institution_id, institution_name, created_at = row
+    syllabus_id, title, graph_id, institution_id, institution_name, created_at = row
     institution = (
         {"id": institution_id, "name": institution_name}
         if institution_id is not None
@@ -1176,14 +1117,13 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
     )
     metadata_complete = bool(
         institution_id
-        and display_name
-        and lesson_subjects
+        and graph_id
         and SYLLABUS_ID.fullmatch(syllabus_id)
     )
-    bridge = (
+    export_identity = (
         {
-            "graph_id": syllabus_id,
-            "display_name": display_name,
+            "graph_id": graph_id,
+            "display_name": title,
             "institution_slug": institution_id,
         }
         if metadata_complete
@@ -1192,16 +1132,14 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
     return {
         "id": syllabus_id,
         "title": title,
-        "display_name": display_name,
+        "display_name": title,
         "institution_id": institution_id,
         "institution": institution,
         "lesson_subjects": lesson_subjects,
         "metadata_complete": metadata_complete,
-        # Temporary compatibility values are derived from durable identities.
-        # Neither value is stored as a second content identity.
-        "graph_id": syllabus_id if metadata_complete else None,
-        "institution_slug": institution_id if metadata_complete else None,
-        "temporary_bridge": bridge,
+        "graph_id": graph_id,
+        "institution_slug": institution_id,
+        "export_identity": export_identity,
         "created_at": created_at,
     }
 
@@ -1209,7 +1147,7 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
 def list_syllabi(conn: psycopg.Connection) -> list[dict]:
     """List syllabi with a compact summary of only their latest version."""
     rows = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.display_name,"
+        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1232,7 +1170,7 @@ def list_syllabi(conn: psycopg.Connection) -> list[dict]:
 def get_syllabus_history(conn: psycopg.Connection, syllabus_id: str) -> dict:
     """Return immutable versions newest first, each with full-state counts."""
     syllabus = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.display_name,"
+        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1287,7 +1225,7 @@ def get_syllabus_version(
 ) -> dict:
     """Return one full version; omitting ``version_id`` means latest."""
     syllabus = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.display_name,"
+        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1635,38 +1573,6 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
     ]
 
 
-def _validate_selected_lesson_subjects(
-    conn: psycopg.Connection,
-    syllabus_id: str,
-    lessons: list[dict],
-) -> None:
-    selected_codes = {
-        row[0]
-        for row in conn.execute(
-            "SELECT subject.code FROM syllabus_lesson_subject selected"
-            " JOIN lesson_subject subject ON subject.id = selected.lesson_subject_id"
-            " WHERE selected.syllabus_id = %s",
-            (syllabus_id,),
-        ).fetchall()
-    }
-    if not selected_codes:
-        return
-    unselected = sorted(
-        {
-            lesson.get("subject")
-            for lesson in lessons
-            if lesson.get("subject")
-        }
-        - selected_codes
-    )
-    if unselected:
-        raise ValueError(
-            "As matérias das aulas devem pertencer ao syllabus: "
-            + ", ".join(unselected)
-            + "."
-        )
-
-
 def _project_export_row(
     fields: dict, *, syllabus_title: str, week: int | None, order: int,
     kind: str, title: str, description: str | None, subject: str | None,
@@ -1811,7 +1717,6 @@ def curate_syllabus(
         )
     base = get_syllabus_version(conn, syllabus_id, base_version_id)
     normalized = _normalize_curation_projection(base, lessons)
-    _validate_selected_lesson_subjects(conn, syllabus_id, normalized)
     if _projection_signature(normalized) == _projection_signature(base["lessons"]):
         conn.commit()
         lesson_count, source_count = _version_counts(conn, base_version_id)
@@ -1994,17 +1899,11 @@ def build_parser() -> argparse.ArgumentParser:
     import_cmd.add_argument("--syllabus-id", help="existing syllabus id for a new version")
     import_cmd.add_argument(
         "--institution-id",
-        help="existing Institution id for a new Syllabus",
+        help="Companion Institution slug for a new Syllabus",
     )
     import_cmd.add_argument(
-        "--display-name",
-        help="Institution-facing name of the curricular unit",
-    )
-    import_cmd.add_argument(
-        "--lesson-subject-id",
-        action="append",
-        dest="lesson_subject_ids",
-        help="selected Institution-owned Lesson Subject id; repeat as needed",
+        "--graph-id",
+        help="manual graph id override; normally generated from the Syllabus name",
     )
     import_cmd.set_defaults(func=cmd_import)
     sub.add_parser("list", help="list syllabi").set_defaults(func=cmd_list)
@@ -2012,15 +1911,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def cmd_import(args: argparse.Namespace) -> None:
+    from universe import companion_seam
+
+    namespace = companion_seam.graph_namespace()
     with connect() as conn:
+        if args.institution_id:
+            companion_seam.remember_institution(conn, namespace, args.institution_id)
         result = import_workbook(
             conn,
             args.path,
             args.name,
             syllabus_id=args.syllabus_id,
             institution_id=args.institution_id,
-            display_name=args.display_name,
-            lesson_subject_ids=args.lesson_subject_ids,
+            graph_id=args.graph_id,
+            occupied_graph_ids=namespace["graph_ids"],
             require_syllabus_metadata=True,
         )
     print(json.dumps(result, default=str, ensure_ascii=False, indent=2))

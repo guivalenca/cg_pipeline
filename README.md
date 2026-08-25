@@ -75,9 +75,18 @@ the same Source can instead be acquired from one uploaded PDF or an explicitly
 ordered set of images (ADR 0013); this is a new acquisition attempt, not a new
 Source or a Syllabus edit.
 
+Creating a Syllabus reads only Companion's Institution slugs/names and occupied
+graph ids through the sibling repository. The graph id is generated from the
+chosen Institution and Syllabus name; Lesson Subject names/codes come from the
+workbook. Course and Group never cross this seam. A finished graph package must
+pass Companion's own runtime package loader before it can be treated as
+exportable. If the sibling repository uses a different database or Python
+executable, set the optional `COMPANION_*` values in `.env.example`.
+
 The same operations are available without the browser:
 
-    python -m universe.syllabus import path/to/syllabus.xlsx --name "SI module 7"
+    python -m universe.syllabus import path/to/syllabus.xlsx \
+      --name "SI module 7" --institution-id inteli
     python -m universe.syllabus list
     python -m universe.acquisition enqueue SOURCE_ID
     python -m universe.acquisition work
@@ -287,8 +296,9 @@ Reconciliation Scope still freezes publications as described above.
 `http://127.0.0.1:8100`. The rich Syllabus surface owns version review,
 source acquisition, Markdown publication and manual PDF/image fallback. The
 same process also preserves the overview and attention queue, organizational
-structure, per-source pipeline progress, universe graph, and run ledger from
-the KC dashboard. Static pages require no frontend build step.
+labels on historical records, per-source pipeline progress, universe graph,
+and run ledger from the KC dashboard. Static pages require no frontend build
+step.
 
 `report` and `compare` write self-contained HTML into `reports/`, which is
 git-ignored because it is regenerable from the database. Historical judge

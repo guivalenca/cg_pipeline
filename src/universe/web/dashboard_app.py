@@ -893,91 +893,6 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             return _effective_item(conn, item_id)
 
-    @app.get("/api/org")
-    def org_tree() -> dict:
-        with connect() as conn:
-            return {"institutions": org.structure(conn)}
-
-    def _org_write(operation, conn: psycopg.Connection, *args) -> dict:
-        try:
-            return operation(conn, *args)
-        except LookupError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    def _required(payload: dict, key: str) -> str:
-        value = payload.get(key)
-        if not isinstance(value, str) or not value.strip():
-            raise HTTPException(status_code=400, detail=f"{key} is required")
-        return value
-
-    @app.post("/api/org/institutions")
-    def create_institution(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_institution,
-                conn,
-                _required(payload, "slug"),
-                _required(payload, "name"),
-            )
-
-    @app.post("/api/org/courses")
-    def create_course(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_course,
-                conn,
-                _required(payload, "institution_id"),
-                _required(payload, "name"),
-            )
-
-    @app.post("/api/org/lesson-subjects")
-    def create_lesson_subject(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_lesson_subject,
-                conn,
-                _required(payload, "institution_id"),
-                _required(payload, "code"),
-                _required(payload, "display_name"),
-            )
-
-    @app.patch("/api/org/lesson-subjects/{lesson_subject_id}")
-    def rename_lesson_subject(lesson_subject_id: str, payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.rename_lesson_subject,
-                conn,
-                lesson_subject_id,
-                _required(payload, "display_name"),
-            )
-
-    @app.post("/api/org/groups")
-    def create_group(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_group,
-                conn,
-                _required(payload, "institution_id"),
-                _required(payload, "name"),
-                payload.get("course_id") or None,
-            )
-
-    @app.post("/api/syllabi/{syllabus_id}/assign-group")
-    def assign_syllabus_group(syllabus_id: str, payload: dict) -> dict:
-        # group_id must be sent explicitly: a group id assigns, null clears
-        # the assignment (back to "not assigned to a group yet").
-        if "group_id" not in payload:
-            raise HTTPException(status_code=400, detail="group_id is required")
-        group_id = payload["group_id"]
-        if group_id is not None and (not isinstance(group_id, str) or not group_id.strip()):
-            raise HTTPException(
-                status_code=400, detail="group_id must be a group id or null"
-            )
-        with connect() as conn:
-            return _org_write(org.assign_syllabus, conn, syllabus_id, group_id)
-
     @app.get("/api/sources")
     def list_sources() -> dict:
         with connect() as conn:
@@ -1093,7 +1008,6 @@ def create_app() -> FastAPI:
 
     page_files = {
         "/": "index.html",
-        "/structure": "structure.html",
         "/syllabi": "syllabi.html",
         "/sources": "sources.html",
         "/graph": "universe.html",

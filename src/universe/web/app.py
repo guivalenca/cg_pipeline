@@ -50,6 +50,7 @@ def create_app(
     start_worker: bool = False,
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
     video_adapter_factory=acquisition_app.YtDlpYouTubeAdapter,
+    companion_namespace_provider: Callable[[], dict] | None = None,
 ) -> FastAPI:
     """Create one application containing acquisition and KC-review surfaces."""
     connect_factory = connect_factory or connect
@@ -58,6 +59,7 @@ def create_app(
         start_worker=start_worker,
         asset_store_factory=asset_store_factory,
         video_adapter_factory=video_adapter_factory,
+        companion_namespace_provider=companion_namespace_provider,
     )
     # The older dashboard was written against a module-level connection
     # helper. Point it at the same factory so the composed app has one DB.

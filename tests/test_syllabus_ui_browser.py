@@ -14,7 +14,6 @@ from openpyxl import Workbook
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
-from universe import org
 from universe.syllabus import (
     LEGACY_COLUMNS,
     PROJECT_COLUMNS,
@@ -282,29 +281,23 @@ def _snapshot(
     }
 
 
-def test_upload_dialog_selects_durable_syllabus_metadata_only_for_a_new_syllabus(
+def test_upload_dialog_previews_companion_identity_and_offers_conflict_choices(
     test_database_url, applied_migrations, tmp_path
 ):
-    workbook_path = _editable_workbook(tmp_path / "syllabus-metadata.xlsx")
+    workbook_path = _editable_workbook(tmp_path / "syllabus-identity.xlsx")
     marker = uuid.uuid4().hex[:10]
-    with psycopg.connect(test_database_url) as conn:
-        institution = org.create_institution(
-            conn, f"browser-inteli-{marker}", "Inteli Browser"
-        )
-        computing = org.create_lesson_subject(
-            conn, institution["id"], "COM", "Computação"
-        )
-        leadership = org.create_lesson_subject(
-            conn, institution["id"], "LID", "Liderança"
-        )
-        other = org.create_institution(
-            conn, f"browser-other-{marker}", "Outra instituição"
-        )
-        org.create_lesson_subject(conn, other["id"], "COM", "Computação externa")
-        org.create_institution(
-            conn, f"browser-empty-{marker}", "Instituição sem matérias"
-        )
-    app = create_app(lambda: psycopg.connect(test_database_url))
+    name = f"Upload identity {marker}"
+    occupied = f"graph-inteli-upload-identity-{marker}"
+    also_occupied = f"{occupied}-reserved"
+    namespace = {
+        "schema_version": "companion_graph_namespace.v1",
+        "institutions": [{"slug": "inteli", "name": "Inteli"}],
+        "graph_ids": [occupied, also_occupied],
+    }
+    app = create_app(
+        lambda: psycopg.connect(test_database_url),
+        companion_namespace_provider=lambda: namespace,
+    )
 
     with _serve(app) as base_url, sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
@@ -313,108 +306,162 @@ def test_upload_dialog_selects_durable_syllabus_metadata_only_for_a_new_syllabus
         page.locator("[data-new-syllabus]").first.click()
 
         dialog = page.locator("[data-upload-dialog]")
-        syllabus_fields = dialog.locator("[data-syllabus-fields]")
         expect(dialog).to_be_visible()
-        expect(syllabus_fields).to_be_visible()
-        expect(dialog.locator('[name="name"]')).to_be_focused()
-        for field_name in ("display_name", "institution_id"):
-            assert dialog.locator(f'[name="{field_name}"]').evaluate(
-                "field => field.required"
-            )
-        expect(dialog.locator('[name="graph_id"]')).to_have_count(0)
-        expect(dialog.locator('[name="institution_slug"]')).to_have_count(0)
-
-        institution_select = dialog.locator('[name="institution_id"]')
-        expect(institution_select).to_be_enabled()
-        institution_select.select_option(label="Inteli Browser")
-        expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(2)
-        expect(dialog.get_by_text("Computação", exact=True)).to_be_visible()
-        expect(dialog.get_by_text("Liderança", exact=True)).to_be_visible()
-
-        dialog.locator(
-            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
-        ).check()
-        institution_select.select_option(label="Outra instituição")
-        expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(1)
-        assert dialog.locator('[name="lesson_subject_ids"]').is_checked() is False
-        institution_select.select_option(label="Instituição sem matérias")
+        expect(dialog.locator('[name="display_name"]')).to_have_count(0)
         expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(0)
-        expect(dialog.get_by_role("link", name="Cadastre-as em Estrutura")).to_be_visible()
-        institution_select.select_option(label="Inteli Browser")
-        assert dialog.locator(
-            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
-        ).is_checked() is False
+        graph_id = dialog.locator('[name="graph_id"]')
+        expect(graph_id).to_be_hidden()
+        assert graph_id.is_disabled()
 
-        dialog.locator('[name="name"]').fill(f"Upload metadata {marker}")
-        dialog.locator('[name="display_name"]').fill("GRAD CC07 · 2026-2A")
+        dialog.locator('[name="institution_id"]').select_option("inteli")
+        dialog.locator('[name="name"]').fill(name)
+
+        preview = dialog.locator("[data-graph-preview]")
+        expect(preview).to_be_visible()
+        expect(preview.locator("[data-graph-display-name]")).to_have_text(name)
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(occupied)
+
+        conflict = dialog.locator("[data-graph-conflict]")
+        expect(conflict).to_be_visible()
+        expect(conflict).to_contain_text(occupied)
+
+        dialog.locator('[name="name"]').fill("C")
+        assert preview.evaluate("element => element.hidden") is False
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Continue digitando…")
+        assert preview.evaluate("element => element.hidden") is False
+
+        changed_name = f"{name} changed"
+        dialog.locator('[name="name"]').fill(changed_name)
+        assert preview.evaluate("element => element.hidden") is False
+        expect(preview.locator("[data-graph-display-name]")).to_have_text(changed_name)
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
+        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
+        assert conflict.evaluate("element => element.hidden") is True
+        expect(preview).to_be_visible()
+        expect(preview.locator("[data-graph-display-name]")).to_have_text(changed_name)
+
+        dialog.locator('[name="name"]').fill(name)
+        assert preview.evaluate("element => element.hidden") is False
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
+        expect(conflict).to_be_visible()
+        expect(dialog.get_by_role("button", name="Mudar nome do syllabus")).to_have_count(0)
+        dialog.get_by_role("button", name="Editar somente o ID").click()
+        expect(graph_id).to_be_visible()
+        expect(graph_id).to_be_enabled()
+        expect(dialog.get_by_role("button", name="Salvar ID")).to_be_visible()
+        expect(dialog.get_by_role("button", name="Cancelar edição")).to_be_visible()
+
+        graph_id.fill(f"{occupied}-rascunho")
+        expect(conflict).to_be_visible()
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(occupied)
+        dialog.get_by_role("button", name="Cancelar edição").click()
+        expect(graph_id).to_be_hidden()
+        assert graph_id.is_disabled()
+        expect(conflict).to_be_visible()
+
+        dialog.get_by_role("button", name="Editar somente o ID").click()
+        graph_id.fill(also_occupied)
+        expect(conflict).to_be_visible()
+        dialog.get_by_role("button", name="Salvar ID").click()
+        expect(dialog.locator("[data-graph-id-error]")).to_contain_text("já está em uso")
+        expect(conflict).to_be_visible()
+        expect(graph_id).to_be_visible()
+
+        graph_id.fill(f"{occupied}-2")
+        dialog.get_by_role("button", name="Salvar ID").click()
+        expect(preview.locator("[data-graph-id-status]")).to_have_text(
+            "ID verificado. Será salvo ao adicionar o syllabus."
+        )
+        expect(graph_id).to_be_visible()
+        assert graph_id.is_enabled()
+        assert graph_id.evaluate("input => input.readOnly") is True
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(f"{occupied}-2")
+        expect(dialog.get_by_role("button", name="Salvar ID")).to_be_hidden()
+        expect(dialog.get_by_role("button", name="Cancelar edição")).to_be_hidden()
+        expect(conflict).to_be_hidden()
+
         dialog.locator('[name="file"]').set_input_files(workbook_path)
         dialog.get_by_role("button", name="Adicionar syllabus").click()
 
-        expect(dialog).to_be_visible()
-        expect(dialog.locator('[data-upload-error]')).to_contain_text(
-            "Selecione ao menos uma matéria"
-        )
-
-        dialog.locator(
-            f'[name="lesson_subject_ids"][value="{computing["id"]}"]'
-        ).check()
-        dialog.locator(
-            f'[name="lesson_subject_ids"][value="{leadership["id"]}"]'
-        ).check()
-        dialog.get_by_role("button", name="Adicionar syllabus").click()
         page.wait_for_url("**/syllabi?id=*")
         expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
-
-        page.get_by_role("button", name="Enviar nova versão").click()
-        expect(dialog).to_be_visible()
-        expect(syllabus_fields).to_be_hidden()
-        expect(syllabus_fields.locator('[name="display_name"]')).to_be_disabled()
-        expect(syllabus_fields.locator('[name="institution_id"]')).to_be_disabled()
-        expect(dialog.locator('[name="file"]')).to_be_focused()
         browser.close()
 
 
-def test_structure_page_creates_and_renames_lesson_subjects(
-    test_database_url, applied_migrations
+def test_upload_dialog_blocks_an_existing_syllabus_and_can_open_it(
+    test_database_url, applied_migrations, tmp_path
 ):
+    workbook_path = _editable_workbook(tmp_path / "existing-syllabus.xlsx")
     marker = uuid.uuid4().hex[:10]
-    institution_id = f"browser-catalog-{marker}"
-    app = create_app(lambda: psycopg.connect(test_database_url))
+    name = f"Existing syllabus {marker}"
+    with psycopg.connect(test_database_url) as conn:
+        conn.execute(
+            "INSERT INTO institution (id, name) VALUES ('inteli', 'Inteli')"
+            " ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name"
+        )
+        imported = import_workbook(conn, workbook_path, name, institution_id="inteli")
+
+    namespace = {
+        "schema_version": "companion_graph_namespace.v1",
+        "institutions": [{"slug": "inteli", "name": "Inteli"}],
+        "graph_ids": [imported["syllabus_id"]],
+    }
+    app = create_app(
+        lambda: psycopg.connect(test_database_url),
+        companion_namespace_provider=lambda: namespace,
+    )
 
     with _serve(app) as base_url, sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto(f"{base_url}/structure")
+        page.goto(f"{base_url}/syllabi")
+        page.locator("[data-new-syllabus]").first.click()
+        dialog = page.locator("[data-upload-dialog]")
+        dialog.locator('[name="institution_id"]').select_option("inteli")
+        dialog.locator('[name="name"]').fill(name)
 
-        institution_form = page.locator("[data-add-institution]")
-        institution_form.locator('[name="slug"]').fill(institution_id)
-        institution_form.locator('[name="name"]').fill("Catalog Browser")
-        institution_form.get_by_role("button", name="Create institution").click()
-
-        subject_form = page.locator(
-            f'[data-add-subject][data-institution="{institution_id}"]'
+        conflict = dialog.locator("[data-syllabus-conflict]")
+        expect(conflict).to_be_visible()
+        expect(conflict).to_contain_text(name)
+        expect(conflict).not_to_contain_text("mude o nome")
+        expect(dialog.get_by_role("button", name="Mudar nome do syllabus")).to_have_count(0)
+        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
+        actions = conflict.locator(".syl-graph-conflict__actions")
+        assert actions.evaluate("element => getComputedStyle(element).display") == "grid"
+        assert actions.locator(".button").count() == 1
+        open_existing = dialog.get_by_role("link", name="Abrir syllabus existente")
+        assert "button--primary" not in (open_existing.get_attribute("class") or "")
+        assert "button--quiet" not in (open_existing.get_attribute("class") or "")
+        button_geometry = open_existing.evaluate(
+            """element => {
+                const style = getComputedStyle(element);
+                const box = element.getBoundingClientRect();
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                const text = range.getBoundingClientRect();
+                return {
+                    display: style.display,
+                    alignItems: style.alignItems,
+                    verticalOffset: Math.abs(
+                        (box.top + box.height / 2) - (text.top + text.height / 2)
+                    ),
+                };
+            }"""
         )
-        expect(subject_form).to_be_visible()
-        subject_form.locator('[name="code"]').fill("com")
-        subject_form.locator('[name="display_name"]').fill("Computação inicial")
-        subject_form.get_by_role("button", name="Add subject").click()
+        assert button_geometry["display"] == "flex"
+        assert button_geometry["alignItems"] == "center"
+        assert button_geometry["verticalOffset"] < 1
 
-        institution_card = page.locator(
-            f'[data-add-subject][data-institution="{institution_id}"]'
-        ).locator("xpath=ancestor::article")
-        rename_form = institution_card.locator("[data-rename-subject]")
-        expect(rename_form.locator(".org-subject__code")).to_have_text("COM")
-        rename_form.locator('[name="display_name"]').fill("Computação")
-        rename_form.get_by_role("button", name="Save name").click()
+        dialog.locator('[name="name"]').fill(f"{name} changed")
+        expect(conflict).to_be_hidden()
+        dialog.locator('[name="name"]').fill(name)
+        expect(conflict).to_be_visible()
+        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
+        open_existing.click()
 
-        expect(page.locator("[data-status]")).to_contain_text(
-            "Lesson Subject COM renamed"
-        )
-        expect(
-            institution_card.locator(
-                "[data-rename-subject] [name='display_name']"
-            )
-        ).to_have_value("Computação")
+        page.wait_for_url(f"**/syllabi?id={imported['syllabus_id']}")
+        expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
         browser.close()
 
 

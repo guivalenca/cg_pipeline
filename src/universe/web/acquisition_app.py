@@ -28,7 +28,7 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import curation, kc_pipeline, lesson_knowledge, syllabus_knowledge
+from universe import companion_seam, curation, kc_pipeline, lesson_knowledge, syllabus_knowledge
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -49,7 +49,9 @@ from universe.acquisition.videos import (
 )
 from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect
+from universe.graph_identity import GraphIdConflict, graph_id_for, validate_graph_id
 from universe.syllabus import (
+    SyllabusAlreadyExists,
     SyllabusVersionConflict,
     curate_syllabus,
     get_syllabus_history,
@@ -57,7 +59,9 @@ from universe.syllabus import (
     get_syllabus_workbook,
     import_workbook,
     list_syllabi,
+    slugify,
     update_source_review,
+    validate_syllabus_id,
 )
 from universe.syllabus_reconciliation import (
     apply_reconciliation,
@@ -1118,7 +1122,32 @@ def _legacy_latest_projection(conn: psycopg.Connection, version_id: str) -> dict
     }
 
 
+def _graph_id_conflict_detail(graph_id: str) -> dict:
+    return {
+        "code": "graph_id_conflict",
+        "message": f"O identificador {graph_id!r} já está em uso.",
+        "graph_id": graph_id,
+    }
+
+
 def _workbook_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, companion_seam.CompanionSeamError):
+        return HTTPException(status_code=502, detail=str(exc))
+    if isinstance(exc, GraphIdConflict):
+        return HTTPException(
+            status_code=409,
+            detail=_graph_id_conflict_detail(exc.graph_id),
+        )
+    if isinstance(exc, SyllabusAlreadyExists):
+        return HTTPException(
+            status_code=409,
+            detail={
+                "code": "syllabus_already_exists",
+                "message": str(exc),
+                "syllabus_id": exc.syllabus_id,
+                "graph_id": exc.graph_id,
+            },
+        )
     if isinstance(exc, LookupError):
         return HTTPException(status_code=404, detail=str(exc))
     if isinstance(exc, ValueError):
@@ -1270,7 +1299,9 @@ def create_app(
     start_worker: bool = False,
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
     video_adapter_factory: Callable[[], VideoAdapter] = YtDlpYouTubeAdapter,
+    companion_namespace_provider: Callable[[], dict] | None = None,
 ) -> FastAPI:
+    namespace_provider = companion_namespace_provider or companion_seam.graph_namespace
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         stop = asyncio.Event()
@@ -1313,14 +1344,80 @@ def create_app(
         with connect_factory() as conn:
             return {"syllabi": list_syllabi(conn)}
 
+    @app.get("/api/companion/graph-namespace")
+    def companion_graph_namespace() -> dict:
+        try:
+            return namespace_provider()
+        except companion_seam.CompanionSeamError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    @app.get("/api/syllabi/graph-id-proposal")
+    def syllabus_graph_id_proposal(
+        institution_id: str = Query(...),
+        name: str = Query(...),
+    ) -> dict:
+        clean_name = name.strip()
+        if not clean_name:
+            raise HTTPException(status_code=422, detail="Dê um nome ao syllabus.")
+        try:
+            graph_id = graph_id_for(institution_id, clean_name)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        try:
+            syllabus_id = validate_syllabus_id(slugify(clean_name))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        with connect_factory() as conn:
+            existing = conn.execute(
+                "SELECT id, title, graph_id FROM syllabus WHERE id = %s",
+                (syllabus_id,),
+            ).fetchone()
+            graph_owner = conn.execute(
+                "SELECT id, title, graph_id FROM syllabus WHERE graph_id = %s",
+                (graph_id,),
+            ).fetchone()
+        def serialize(row) -> dict | None:
+            if row is None:
+                return None
+            return {"id": row[0], "title": row[1], "graph_id": row[2]}
+
+        return {
+            "display_name": clean_name,
+            "graph_id": graph_id,
+            "existing_syllabus": serialize(existing),
+            "graph_owner": serialize(graph_owner),
+        }
+
+    @app.get("/api/syllabi/graph-id-availability")
+    def syllabus_graph_id_availability(graph_id: str = Query(...)) -> dict:
+        try:
+            clean_graph_id = validate_graph_id(graph_id)
+            namespace = namespace_provider()
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except companion_seam.CompanionSeamError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        with connect_factory() as conn:
+            local_owner = conn.execute(
+                "SELECT id FROM syllabus WHERE graph_id = %s",
+                (clean_graph_id,),
+            ).fetchone()
+        companion_owns_id = clean_graph_id in set(namespace.get("graph_ids", []))
+        if local_owner is not None or companion_owns_id:
+            raise HTTPException(
+                status_code=409,
+                detail=_graph_id_conflict_detail(clean_graph_id),
+            )
+        return {"graph_id": clean_graph_id, "available": True}
+
     @app.post("/api/syllabi/upload", status_code=201)
     async def upload_syllabus(
         name: str = Form(...),
         file: UploadFile = File(...),
         syllabus_id: str | None = Form(default=None),
         institution_id: str | None = Form(default=None),
-        display_name: str | None = Form(default=None),
-        lesson_subject_ids: list[str] | None = Form(default=None),
+        graph_id: str | None = Form(default=None),
     ) -> dict:
         clean_name = name.strip()
         if not clean_name:
@@ -1341,18 +1438,26 @@ def create_app(
                 temporary_path = Path(directory) / filename
                 temporary_path.write_bytes(body)
                 with connect_factory() as conn:
+                    namespace = None
                     if syllabus_id:
                         history = get_syllabus_history(conn, syllabus_id)
                         if history["title"] != clean_name:
                             raise ValueError("o nome de uma nova versão deve ser igual ao syllabus existente")
+                    else:
+                        namespace = namespace_provider()
+                        companion_seam.remember_institution(
+                            conn,
+                            namespace,
+                            str(institution_id or "").strip(),
+                        )
                     return import_workbook(
                         conn,
                         temporary_path,
                         clean_name,
                         syllabus_id=syllabus_id,
                         institution_id=institution_id,
-                        display_name=display_name,
-                        lesson_subject_ids=lesson_subject_ids,
+                        graph_id=graph_id,
+                        occupied_graph_ids=(namespace or {}).get("graph_ids", []),
                         require_syllabus_metadata=True,
                     )
         except HTTPException:
