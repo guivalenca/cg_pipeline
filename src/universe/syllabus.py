@@ -758,38 +758,49 @@ def _assemble_adalove(
         lessons_by_activity[activity["activity_uuid"]] = lesson
 
     for activity in ordered:
-        if activity["kind"] != "Self-study":
+        if activity["kind"] not in {"Self-study", "Deliverable"}:
             continue
-        parent_uuid = activity.get("parent_activity_uuid") or ""
-        inference = activity.get("parent_inference") or ""
-        if not parent_uuid or not inference:
-            raise ValueError(
-                f"A linha {activity['row_number']} da aba Activities descreve o "
-                f"Self-study {activity['title']!r} sem pai inferido e identificado. "
-                "Gere outra exportação e confira a ordem das atividades da semana."
+        parent_uuid = None
+        inference = None
+        if activity["kind"] == "Self-study":
+            _lesson_subject(
+                activity["fields"].get("Lesson Subject code"),
+                row_number=activity["row_number"],
             )
-        if parent_uuid in orientation_ids:
-            dropped.append(
-                {
-                    "activity_uuid": activity["activity_uuid"],
-                    "type": activity["kind"],
-                    "title": activity["title"],
-                    "parent_activity_uuid": parent_uuid,
-                    "parent_inference": inference,
-                    "reason": "parent_orientation",
-                }
-            )
-            continue
-        lesson = lessons_by_activity.get(parent_uuid)
-        if lesson is None or lesson["kind"] != "Class":
-            raise ValueError(
-                f"A linha {activity['row_number']} da aba Activities liga o "
-                f"Self-study {activity['title']!r} ao Activity UUID {parent_uuid!r}, "
-                "mas esse pai não é uma Class da planilha."
-            )
+            parent_uuid = activity.get("parent_activity_uuid") or ""
+            inference = activity.get("parent_inference") or ""
+            if not parent_uuid or not inference:
+                raise ValueError(
+                    f"A linha {activity['row_number']} da aba Activities descreve o "
+                    f"Self-study {activity['title']!r} sem pai inferido e identificado. "
+                    "Gere outra exportação e confira a ordem das atividades da semana."
+                )
+            if parent_uuid in orientation_ids:
+                dropped.append(
+                    {
+                        "activity_uuid": activity["activity_uuid"],
+                        "type": activity["kind"],
+                        "title": activity["title"],
+                        "parent_activity_uuid": parent_uuid,
+                        "parent_inference": inference,
+                        "reason": "parent_orientation",
+                    }
+                )
+                continue
+            lesson = lessons_by_activity.get(parent_uuid)
+            if lesson is None or lesson["kind"] != "Class":
+                raise ValueError(
+                    f"A linha {activity['row_number']} da aba Activities liga o "
+                    f"Self-study {activity['title']!r} ao Activity UUID {parent_uuid!r}, "
+                    "mas esse pai não é uma Class da planilha."
+                )
+        else:
+            lesson = lessons_by_activity[activity["activity_uuid"]]
         subject_rows = subjects_by_activity[activity["activity_uuid"]]
         activity_materials = materials_by_activity[activity["activity_uuid"]]
         if not activity_materials:
+            if activity["kind"] == "Deliverable":
+                continue
             activity_materials = [
                 {
                     "Activity order": str(activity["activity_order"]),

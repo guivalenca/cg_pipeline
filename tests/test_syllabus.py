@@ -186,6 +186,33 @@ class TestWorkbookAdapters:
         with pytest.raises(ValueError, match=message):
             parse_workbook(path)
 
+    def test_self_study_with_unknown_lesson_subject_is_rejected(self, tmp_path):
+        path = tmp_path / "self-study-with-unmapped-subject.xlsx"
+        write_syllabus(
+            path,
+            [
+                syllabus_row(title="Aula de SQL"),
+                syllabus_row(
+                    seq=2,
+                    title="Leitura de SQL",
+                    kind="Self-study",
+                    parent="Aula de SQL",
+                    subject="Marketing",
+                    url="https://example.com/sql",
+                ),
+            ],
+        )
+
+        with pytest.raises(ValueError) as error:
+            parse_workbook(path)
+
+        assert str(error.value) == (
+            "A linha 3 da aba Activities tem o Eixo 'Marketing' na coluna "
+            "'Lesson Subject code'. O Eixo identifica a área curricular da aula. "
+            "Use um destes valores: COM Computação, LID Liderança, NEG Negócios, "
+            "UEX User Experience, MTF Matemática."
+        )
+
     def test_workbook_without_full_fidelity_sheets_is_rejected(self, tmp_path):
         path = tmp_path / "incomplete.xlsx"
         workbook = Workbook()
@@ -308,6 +335,65 @@ class TestSourceIdentity:
 
 
 class TestVersionedImport:
+    def test_import_persists_only_deliverable_materials_as_sources(self, db, tmp_path):
+        path = tmp_path / "activity-materials.xlsx"
+        write_syllabus(
+            path,
+            [
+                syllabus_row(
+                    title="Aula de SQL",
+                    kind="Class",
+                    materials=[
+                        material(
+                            url="https://example.com/class-slides",
+                            label="Slides da aula",
+                        )
+                    ],
+                ),
+                syllabus_row(
+                    seq=2,
+                    title="Entrega de SQL",
+                    kind="Deliverable",
+                    materials=[
+                        material(
+                            url="https://example.com/deliverable-brief",
+                            label="Briefing da entrega",
+                        )
+                    ],
+                ),
+                syllabus_row(
+                    seq=3,
+                    title="Avaliação de SQL",
+                    kind="Evaluation",
+                    materials=[
+                        material(
+                            url="https://example.com/evaluation-rubric",
+                            label="Rubrica da avaliação",
+                        )
+                    ],
+                ),
+            ],
+        )
+
+        result = import_workbook(
+            db, path, "Activity materials", require_syllabus_metadata=False
+        )
+        lessons = {
+            lesson["kind"]: lesson
+            for lesson in get_syllabus_version(db, result["syllabus_id"])["lessons"]
+        }
+
+        assert result["reference_count"] == 1
+        assert lessons["Class"]["sources"] == []
+        assert lessons["Evaluation"]["sources"] == []
+        assert [source["url"] for source in lessons["Deliverable"]["sources"]] == [
+            "https://example.com/deliverable-brief"
+        ]
+        assert lessons["Deliverable"]["sources"][0]["activity_uuid"] == stable_uuid(
+            "activity", 1, 2
+        )
+        assert lessons["Deliverable"]["sources"][0]["parent_activity_uuid"] is None
+
     def test_new_named_import_requires_durable_metadata_by_default(self, db, tmp_path):
         path = tmp_path / "requires-metadata.xlsx"
         write_syllabus(path, [syllabus_row(project="Metadata required")])
