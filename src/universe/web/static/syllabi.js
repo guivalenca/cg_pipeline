@@ -17,9 +17,8 @@ const state = {
   editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
   versionDialog: { mode: 'history', trigger: null, error: null },
   upload: {
-    mode: 'new', syllabusId: null, busy: false, graphIdBusy: false,
-    confirmedGraphId: '', editingGraphId: false,
-    proposedGraphId: '', proposalToken: 0,
+    mode: 'new', syllabusId: null, busy: false,
+    identityStatus: 'idle', proposedGraphId: '', proposalToken: 0,
   },
   catalog: { institutions: [], graphIds: [], loaded: false, loading: false, error: null },
   reconciliation: null,
@@ -1695,103 +1694,24 @@ function hideIdentityConflicts() {
   $('[data-syllabus-conflict]').hidden = true;
 }
 
-function renderGraphIdChoice() {
-  const field = $('[data-graph-id-field]');
-  const input = uploadForm.elements.graph_id;
+function renderUploadSubmitState() {
+  const submit = $('[data-upload-submit]');
+  const isVersion = state.upload.mode === 'version';
+  submit.disabled = state.upload.busy || (!isVersion && state.upload.identityStatus !== 'verified');
+  if (state.upload.busy) {
+    submit.textContent = isVersion ? 'Comparando…' : 'Registrando…';
+  } else {
+    submit.textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
+  }
+}
+
+function setGraphIdentityStatus(statusName, message = '') {
+  state.upload.identityStatus = statusName;
   const status = $('[data-graph-id-status]');
-  const confirmed = state.upload.confirmedGraphId;
-  const editing = state.upload.editingGraphId;
-  field.hidden = !editing && !confirmed;
-  input.disabled = !state.upload.editingGraphId && !confirmed;
-  input.readOnly = !editing && Boolean(confirmed);
-  input.required = editing;
-  if (!editing) input.value = confirmed;
-  $('[data-proposed-graph-id]').textContent = confirmed || state.upload.proposedGraphId;
-  $('[data-preview-edit-graph-id]').textContent = confirmed ? 'Editar ID' : 'Escolher outro ID';
-  $('[data-save-graph-id]').hidden = !editing;
-  $('[data-cancel-graph-id]').hidden = !editing;
-  $('[data-use-generated-id]').hidden = !confirmed;
-  status.hidden = !confirmed;
-  status.textContent = confirmed ? 'ID verificado. Será salvo ao adicionar o syllabus.' : '';
-}
-
-function clearGraphIdChoice() {
-  state.upload.confirmedGraphId = '';
-  state.upload.editingGraphId = false;
-  uploadForm.elements.graph_id.value = '';
-  $('[data-graph-id-error]').textContent = '';
-  renderGraphIdChoice();
-}
-
-function openGraphIdEditor() {
-  const editButton = $('[data-preview-edit-graph-id]');
-  if (editButton.disabled) return;
-  const input = uploadForm.elements.graph_id;
-  const occupied = $('[data-conflicting-graph-id]').textContent.trim();
-  const baseId = occupied || state.upload.proposedGraphId;
-  state.upload.editingGraphId = true;
-  input.value = state.upload.confirmedGraphId || (occupied ? `${baseId}-2` : baseId);
-  $('[data-graph-id-error]').textContent = '';
-  renderGraphIdChoice();
-  input.focus();
-  input.select();
-}
-
-function cancelGraphIdEditor() {
-  state.upload.editingGraphId = false;
-  $('[data-graph-id-error]').textContent = '';
-  renderGraphIdChoice();
-}
-
-async function saveGraphId() {
-  if (state.upload.graphIdBusy) return;
-  const input = uploadForm.elements.graph_id;
-  const graphId = input.value.trim();
-  const occupied = $('[data-conflicting-graph-id]').textContent.trim();
-  const error = $('[data-graph-id-error]');
-  if (!/^[a-z][a-z0-9_.-]{1,127}$/.test(graphId)) {
-    error.textContent = 'Use de 2 a 128 caracteres: letras minúsculas, números, ponto, hífen ou sublinhado.';
-    input.focus();
-    return;
-  }
-  if (occupied && graphId === occupied) {
-    error.textContent = 'Escolha um ID diferente do que já está em uso.';
-    input.focus();
-    return;
-  }
-  const saveButton = $('[data-save-graph-id]');
-  state.upload.graphIdBusy = true;
-  saveButton.disabled = true;
-  saveButton.textContent = 'Verificando…';
-  error.textContent = '';
-  try {
-    const query = new URLSearchParams({ graph_id: graphId });
-    const response = await fetch(`/api/syllabi/graph-id-availability?${query}`, {
-      headers: { Accept: 'application/json' },
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const detail = typeof body.detail === 'string' ? body.detail : body.detail?.message;
-      throw new Error(detail || `o servidor respondeu ${response.status}`);
-    }
-    state.upload.confirmedGraphId = String(body.graph_id || graphId);
-    state.upload.editingGraphId = false;
-    renderGraphIdChoice();
-    $('[data-graph-conflict]').hidden = true;
-    $('[data-upload-error]').textContent = '';
-  } catch (saveError) {
-    error.textContent = `Não foi possível usar este ID: ${saveError.message}`;
-    input.focus();
-  } finally {
-    state.upload.graphIdBusy = false;
-    saveButton.disabled = false;
-    saveButton.textContent = 'Salvar ID';
-  }
-}
-
-function restoreGeneratedGraphId() {
-  clearGraphIdChoice();
-  refreshGraphProposal();
+  status.hidden = !message;
+  status.textContent = message;
+  status.dataset.state = statusName;
+  renderUploadSubmitState();
 }
 
 function resetGraphIdentity() {
@@ -1802,31 +1722,30 @@ function resetGraphIdentity() {
   $('[data-graph-preview]').hidden = true;
   $('[data-graph-display-name]').textContent = '';
   $('[data-proposed-graph-id]').textContent = '';
-  $('[data-conflicting-graph-id]').textContent = '';
-  $('[data-preview-edit-graph-id]').disabled = true;
-  clearGraphIdChoice();
   hideIdentityConflicts();
+  setGraphIdentityStatus('idle');
 }
 
 function showGraphConflict(detail) {
   $('[data-syllabus-conflict]').hidden = true;
   const conflict = $('[data-graph-conflict]');
   const graphId = String(detail?.graph_id || '').trim();
-  $('[data-conflicting-graph-id]').textContent = graphId;
+  if (graphId) {
+    state.upload.proposedGraphId = graphId;
+    $('[data-proposed-graph-id]').textContent = graphId;
+    $('[data-graph-preview]').hidden = false;
+  }
+  setGraphIdentityStatus('conflict');
   conflict.hidden = false;
   conflict.scrollIntoView({ block: 'nearest' });
 }
 
 function showSyllabusConflict(detail) {
   $('[data-graph-conflict]').hidden = true;
-  state.upload.editingGraphId = false;
-  renderGraphIdChoice();
-  $('[data-preview-edit-graph-id]').disabled = true;
   const conflict = $('[data-syllabus-conflict]');
   const syllabusId = String(detail?.syllabus_id || detail?.id || '').trim();
-  const title = String(detail?.title || detail?.message || '').trim();
-  $('[data-existing-syllabus-name]').textContent = title;
   $('[data-open-existing]').href = `/syllabi?id=${encodeURIComponent(syllabusId)}`;
+  setGraphIdentityStatus('conflict');
   conflict.hidden = false;
   conflict.scrollIntoView({ block: 'nearest' });
 }
@@ -1840,6 +1759,7 @@ async function refreshGraphProposal() {
   if (!name || !institutionId) {
     state.upload.proposedGraphId = '';
     preview.hidden = true;
+    setGraphIdentityStatus('idle');
     return;
   }
   const token = ++state.upload.proposalToken;
@@ -1854,14 +1774,13 @@ async function refreshGraphProposal() {
       preview.hidden = false;
       $('[data-graph-display-name]').textContent = name;
       $('[data-proposed-graph-id]').textContent = 'Continue digitando…';
-      $('[data-preview-edit-graph-id]').disabled = true;
+      setGraphIdentityStatus('error', 'Continue digitando para gerar um ID válido.');
       return;
     }
     if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
     state.upload.proposedGraphId = String(body.graph_id || '');
     $('[data-graph-display-name]').textContent = body.display_name || name;
-    renderGraphIdChoice();
-    $('[data-preview-edit-graph-id]').disabled = false;
+    $('[data-proposed-graph-id]').textContent = state.upload.proposedGraphId;
     preview.hidden = false;
     if (body.existing_syllabus) {
       showSyllabusConflict({
@@ -1873,15 +1792,17 @@ async function refreshGraphProposal() {
     }
     const occupied = body.graph_owner
       || state.catalog.graphIds.includes(state.upload.proposedGraphId);
-    if (occupied && !state.upload.confirmedGraphId) {
+    if (occupied) {
       showGraphConflict({ graph_id: state.upload.proposedGraphId });
+      return;
     }
+    setGraphIdentityStatus('verified', 'ID verificado e disponível.');
   } catch (error) {
     if (token !== state.upload.proposalToken) return;
     preview.hidden = false;
     $('[data-graph-display-name]').textContent = name;
     $('[data-proposed-graph-id]').textContent = 'Não foi possível calcular';
-    $('[data-preview-edit-graph-id]').disabled = true;
+    setGraphIdentityStatus('error', 'Não foi possível verificar o ID.');
     $('[data-upload-error]').textContent = `Não foi possível gerar o graph ID: ${error.message}`;
   }
 }
@@ -1892,13 +1813,14 @@ function scheduleGraphProposal({ resetManual = false } = {}) {
     const institutionId = String(uploadForm.elements.institution_id.value || '').trim();
     state.upload.proposalToken += 1;
     state.upload.proposedGraphId = '';
-    clearGraphIdChoice();
     $('[data-graph-preview]').hidden = !name || !institutionId;
     $('[data-graph-display-name]').textContent = name;
     $('[data-proposed-graph-id]').textContent = name && institutionId ? 'Calculando…' : '';
-    $('[data-conflicting-graph-id]').textContent = '';
-    $('[data-preview-edit-graph-id]').disabled = true;
     hideIdentityConflicts();
+    setGraphIdentityStatus(
+      name && institutionId ? 'calculating' : 'idle',
+      name && institutionId ? 'Calculando e verificando o ID…' : '',
+    );
   }
   if (graphProposalTimer) window.clearTimeout(graphProposalTimer);
   graphProposalTimer = window.setTimeout(refreshGraphProposal, 120);
@@ -1909,9 +1831,7 @@ function openUpload(mode) {
     mode,
     syllabusId: mode === 'version' ? routeId : null,
     busy: false,
-    graphIdBusy: false,
-    confirmedGraphId: '',
-    editingGraphId: false,
+    identityStatus: 'idle',
     proposedGraphId: '',
     proposalToken: state.upload.proposalToken + 1,
   };
@@ -1923,15 +1843,23 @@ function openUpload(mode) {
   const syllabusFields = $('[data-syllabus-fields]');
   const nameInput = uploadForm.elements.name;
   const isVersion = mode === 'version';
+  $('[data-new-upload-mode]').hidden = isVersion;
+  $('[data-version-upload-mode]').hidden = !isVersion;
   nameField.hidden = isVersion;
   syllabusFields.hidden = isVersion;
   syllabusFields.disabled = isVersion;
   nameInput.required = !isVersion;
+  nameInput.disabled = isVersion;
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
   uploadForm.elements.institution_id.required = !isVersion;
+  if (isVersion) {
+    $('[data-version-syllabus-name]').textContent = state.detail?.title || 'Syllabus';
+    $('[data-version-institution]').textContent = state.detail?.institution?.name || 'Não definida';
+    $('[data-version-graph-id]').textContent = state.detail?.graph_id || 'Não definido';
+  }
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
-  $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
+  renderUploadSubmitState();
   uploadDialog.showModal();
   if (!isVersion) loadUploadCatalog();
   window.setTimeout(() => (isVersion ? $('[data-upload-file]') : nameInput).focus(), 0);
@@ -1948,7 +1876,7 @@ async function submitUpload(event) {
   const data = new FormData(uploadForm);
   const file = data.get('file');
   const name = String(data.get('name') || '').trim();
-  for (const fieldName of ['name', 'institution_id', 'graph_id']) {
+  for (const fieldName of ['name', 'institution_id']) {
     if (data.has(fieldName)) data.set(fieldName, String(data.get(fieldName) || '').trim());
   }
   if (!file?.name || !/\.xlsx$/i.test(file.name)) {
@@ -1963,10 +1891,13 @@ async function submitUpload(event) {
     $('[data-upload-error]').textContent = 'Selecione uma instituição cadastrada.';
     return;
   }
+  if (state.upload.mode === 'new' && state.upload.identityStatus !== 'verified') {
+    scheduleGraphProposal({ resetManual: true });
+    return;
+  }
   if (state.upload.syllabusId) data.set('syllabus_id', state.upload.syllabusId);
   state.upload.busy = true;
-  $('[data-upload-submit]').disabled = true;
-  $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparando…' : 'Registrando…';
+  renderUploadSubmitState();
   $('[data-upload-error]').textContent = '';
   try {
     const endpoint = state.upload.mode === 'version'
@@ -1976,7 +1907,6 @@ async function submitUpload(event) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok && body.detail?.code === 'graph_id_conflict') {
       showGraphConflict(body.detail);
-      $('[data-upload-error]').textContent = body.detail.message;
       return;
     }
     if (!response.ok && body.detail?.code === 'syllabus_already_exists') {
@@ -1984,7 +1914,6 @@ async function submitUpload(event) {
         ...body.detail,
         title: name,
       });
-      $('[data-upload-error]').textContent = body.detail.message;
       return;
     }
     if (!response.ok) {
@@ -2003,8 +1932,7 @@ async function submitUpload(event) {
     $('[data-upload-error]').textContent = `Não foi possível registrar a planilha: ${error.message}`;
   } finally {
     state.upload.busy = false;
-    $('[data-upload-submit]').disabled = false;
-    $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparar planilha' : 'Adicionar syllabus';
+    renderUploadSubmitState();
   }
 }
 
@@ -3003,19 +2931,8 @@ uploadForm.elements.institution_id.addEventListener('change', () => {
   $('[data-upload-error]').textContent = '';
   scheduleGraphProposal({ resetManual: true });
 });
-uploadForm.elements.graph_id.addEventListener('input', () => {
-  $('[data-graph-id-error]').textContent = '';
-});
 uploadDialog.addEventListener('click', (event) => {
-  if (event.target.closest('[data-edit-graph-id]')) {
-    openGraphIdEditor();
-  } else if (event.target.closest('[data-save-graph-id]')) {
-    saveGraphId();
-  } else if (event.target.closest('[data-cancel-graph-id]')) {
-    cancelGraphIdEditor();
-  } else if (event.target.closest('[data-use-generated-id]')) {
-    restoreGeneratedGraphId();
-  } else if (event.target.closest('[data-dialog-close]')) closeUpload();
+  if (event.target.closest('[data-dialog-close]')) closeUpload();
   else if (event.target === uploadDialog) closeUpload();
 });
 $('[data-upload-file]').addEventListener('change', (event) => {

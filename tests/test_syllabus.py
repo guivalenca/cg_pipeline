@@ -12,6 +12,7 @@ from universe.syllabus import (
     PROJECT_COLUMNS,
     SyllabusVersionConflict,
     XLSX_MIME,
+    build_parser,
     canonical_url,
     curate_syllabus,
     get_syllabus_history,
@@ -428,6 +429,19 @@ class TestSourceIdentity:
 
 
 class TestVersionedImport:
+    def test_import_cli_has_no_manual_graph_id_override(self):
+        with pytest.raises(SystemExit):
+            build_parser().parse_args(
+                [
+                    "import",
+                    "syllabus.xlsx",
+                    "--name",
+                    "Derived identity",
+                    "--graph-id",
+                    "graph-manual-override",
+                ]
+            )
+
     def test_new_named_import_requires_durable_metadata_by_default(self, db, tmp_path):
         path = tmp_path / "requires-metadata.xlsx"
         write_project(path, [project_row(project="Metadata required")])

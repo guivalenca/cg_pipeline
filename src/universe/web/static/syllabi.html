@@ -6,7 +6,7 @@
   <title>Syllabi · Concept Universe</title>
   <script src="/static/theme_boot.js?v=1"></script>
   <link rel="stylesheet" href="/static/shell.css?v=2">
-  <link rel="stylesheet" href="/static/syllabi.css?v=25">
+  <link rel="stylesheet" href="/static/syllabi.css?v=26">
 </head>
 <body>
   <div data-admin-shell></div>
@@ -27,6 +27,19 @@
         <button class="syl-icon-button" type="button" data-dialog-close aria-label="Fechar">×</button>
       </div>
       <div class="syl-dialog__body">
+        <section class="syl-upload-mode syl-upload-mode--new" data-new-upload-mode>
+          <span class="syl-upload-mode__label">Criar novo</span>
+          <p>Defina a instituição e o nome. O graph ID será derivado e verificado antes do envio.</p>
+        </section>
+        <section class="syl-upload-mode syl-upload-mode--version" data-version-upload-mode hidden>
+          <span class="syl-upload-mode__label">Adicionar versão</span>
+          <strong data-version-syllabus-name></strong>
+          <div class="syl-upload-mode__identity">
+            <span><small>Instituição</small><b data-version-institution></b></span>
+            <span><small>Graph ID</small><code data-version-graph-id></code></span>
+          </div>
+          <p>A identidade não muda. Envie somente a nova planilha.</p>
+        </section>
         <label class="syl-form-field" data-name-field>
           <span>Nome do syllabus</span>
           <input class="field" type="text" name="name" autocomplete="off" placeholder="Ex.: SI módulo 7 2026" required>
@@ -53,32 +66,15 @@
               <span>Graph ID</span>
               <code data-proposed-graph-id></code>
             </div>
-            <button class="button button--quiet syl-graph-preview__edit" type="button" data-edit-graph-id data-preview-edit-graph-id>Escolher outro ID</button>
             <small class="syl-graph-preview__status" data-graph-id-status hidden></small>
-            <div class="syl-form-field" data-graph-id-field hidden>
-              <label class="syl-form-field__label" for="upload-graph-id">Graph ID escolhido</label>
-              <input class="field" id="upload-graph-id" type="text" name="graph_id" autocomplete="off" maxlength="128" disabled>
-              <small>Isso muda apenas o identificador. O nome exibido do grafo continua igual.</small>
-              <p class="syl-form-error" data-graph-id-error role="alert"></p>
-              <div class="syl-graph-id-editor__actions">
-                <button class="button button--primary" type="button" data-save-graph-id>Salvar ID</button>
-                <button class="button" type="button" data-cancel-graph-id>Cancelar edição</button>
-                <button class="button button--quiet" type="button" data-use-generated-id hidden>Restaurar ID automático</button>
-              </div>
-            </div>
           </section>
           <section class="syl-graph-conflict" data-graph-conflict hidden aria-live="polite">
-            <strong>Este graph ID já existe</strong>
-            <p><code data-conflicting-graph-id></code> já está ocupado. Altere o nome acima ou salve outro ID.</p>
-            <div class="syl-graph-conflict__actions">
-              <button class="button" type="button" data-edit-graph-id>Editar somente o ID</button>
-            </div>
+            <p>Este ID já está em uso no Companion. Escolha outro nome para o syllabus.</p>
           </section>
           <section class="syl-graph-conflict" data-syllabus-conflict hidden aria-live="polite">
-            <strong>Este syllabus já existe</strong>
-            <p><span data-existing-syllabus-name></span> já está cadastrado. Abra o existente para enviar uma nova versão.</p>
+            <p>Este nome já existe. Você está adicionando uma versão a esse syllabus.</p>
             <div class="syl-graph-conflict__actions syl-graph-conflict__actions--vertical">
-              <a class="button" href="/syllabi" data-open-existing>Abrir syllabus existente</a>
+              <a class="button" href="/syllabi" data-open-existing>Abrir syllabus e adicionar versão</a>
             </div>
           </section>
           <p class="syl-catalog-error" data-catalog-error role="alert"></p>
@@ -187,6 +183,6 @@
   </dialog>
 
   <script type="module" src="/static/shell.js?v=4"></script>
-  <script type="module" src="/static/syllabi.js?v=35"></script>
+  <script type="module" src="/static/syllabi.js?v=36"></script>
 </body>
 </html>
