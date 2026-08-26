@@ -25,10 +25,10 @@
     21: 'Deliverable',
     31: 'Evaluation',
   };
-  // Keep this aligned with PROJECT_SUBJECTS in
+  // Keep AXIS_CAPTIONS aligned with PROJECT_SUBJECTS in
   // concept-universe/src/universe/syllabus.py and SUBJECT_THEMES in
-  // companion/static/js/subject_theme.js until "Unify subject identities
-  // under institutions" replaces the cross-repository copies.
+  // companion/static/js/subject_theme.js until "Unify subject identities under
+  // institutions" replaces the cross-repository copies.
   const AXIS_CAPTIONS = {
     COM: 'Computação',
     LID: 'Liderança',

@@ -97,9 +97,10 @@ class ProjectSubject:
     display_name: str
 
 
-# Keep this aligned with SUBJECT_THEMES in companion/static/js/subject_theme.js
-# until "Unify subject identities under institutions" replaces the
-# cross-repository copies.
+# Keep PROJECT_SUBJECTS aligned with AXIS_CAPTIONS in
+# concept-universe/tools/adalove_observer_export.js and SUBJECT_THEMES in
+# companion/static/js/subject_theme.js until "Unify subject identities under
+# institutions" replaces the cross-repository copies.
 PROJECT_SUBJECTS = (
     ProjectSubject("COM", ("COM", "Computação"), "Computação"),
     ProjectSubject("LID", ("LID", "Liderança"), "Liderança"),
