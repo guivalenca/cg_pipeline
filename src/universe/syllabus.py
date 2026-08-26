@@ -786,7 +786,9 @@ def import_workbook(
         (resolved_id,),
     ).fetchone()
     if creation_requested and not inserted:
-        raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
+        if stored[0] == name:
+            raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
+        raise GraphIdConflict(resolved_graph_id)
     if stored[0] != name:
         raise ValueError(
             f"syllabus id {resolved_id!r} already belongs to {stored[0]!r}, not {name!r}"

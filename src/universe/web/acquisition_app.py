@@ -1388,7 +1388,9 @@ def create_app(
         return {
             "display_name": clean_name,
             "graph_id": graph_id,
-            "existing_syllabus": serialize(existing),
+            "existing_syllabus": serialize(
+                existing if existing is not None and existing[1] == clean_name else None
+            ),
             "graph_owner": serialize(graph_owner),
         }
 

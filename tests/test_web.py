@@ -436,6 +436,49 @@ def test_second_new_upload_with_same_name_is_blocked_as_an_existing_syllabus(
         assert len(detail["versions"]) == 1
 
 
+def test_graph_id_proposal_treats_a_different_name_with_the_same_slug_as_occupied(
+    test_database_url, applied_migrations, tmp_path
+):
+    marker = uuid.uuid4().hex[:8]
+    existing_name = f"Math 101 {marker}"
+    colliding_name = f"Math-101-{marker}"
+    path = _workbook(
+        tmp_path / "normalized-collision.xlsx", project="Project", lesson="Aula"
+    )
+
+    with TestClient(_app(test_database_url)) as client:
+        created = _upload(client, path, existing_name)
+        assert created.status_code == 201, created.text
+
+        proposal = client.get(
+            "/api/syllabi/graph-id-proposal",
+            params={"institution_id": "web-inteli", "name": colliding_name},
+        )
+        collision = _upload(client, path, colliding_name)
+
+    graph_id = f"graph-web-inteli-{created.json()['syllabus_id']}"
+    assert proposal.status_code == 200, proposal.text
+    assert proposal.json() == {
+        "display_name": colliding_name,
+        "graph_id": graph_id,
+        "existing_syllabus": None,
+        "graph_owner": {
+            "id": created.json()["syllabus_id"],
+            "title": existing_name,
+            "graph_id": graph_id,
+        },
+    }
+    assert collision.status_code == 409
+    assert collision.json()["detail"] == {
+        "code": "graph_id_conflict",
+        "message": (
+            "Este ID já está em uso no Companion. "
+            "Escolha outro nome para o syllabus."
+        ),
+        "graph_id": graph_id,
+    }
+
+
 def test_graph_id_proposal_rejects_a_name_that_cannot_become_a_syllabus_id(
     test_database_url, applied_migrations
 ):
