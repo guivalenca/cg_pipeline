@@ -320,6 +320,44 @@ def test_graph_id_conflict_requires_a_new_name_or_manual_id(
         assert detail["graph_id"] == f"{expected}-2"
 
 
+def test_new_version_rejects_companion_graph_id_when_syllabus_needs_one(
+    test_database_url, applied_migrations, tmp_path
+):
+    syllabus_id = f"version-path-conflict-{uuid.uuid4().hex[:8]}"
+    occupied_graph_id = f"graph-web-inteli-{syllabus_id}"
+    version_id = f"{syllabus_id}:v0001"
+    path = _workbook(
+        tmp_path / "version-path-conflict.xlsx",
+        project="Project",
+        lesson="Aula atualizada",
+    )
+    with psycopg.connect(test_database_url) as conn:
+        conn.execute(
+            "INSERT INTO institution (id, name) VALUES ('web-inteli', 'Inteli Web')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        conn.execute(
+            "INSERT INTO syllabus (id, title, institution_id) VALUES (%s, %s, 'web-inteli')",
+            (syllabus_id, syllabus_id),
+        )
+        conn.execute(
+            "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+            " VALUES (%s, %s, 1, 'upload')",
+            (version_id, syllabus_id),
+        )
+        conn.commit()
+
+    with TestClient(_app(test_database_url, graph_ids=(occupied_graph_id,))) as client:
+        conflict = _upload(client, path, syllabus_id, syllabus_id)
+
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == {
+        "code": "graph_id_conflict",
+        "message": f"O identificador {occupied_graph_id!r} já está em uso.",
+        "graph_id": occupied_graph_id,
+    }
+
+
 def test_manual_graph_id_is_verified_against_companion_and_local_owners(
     test_database_url, applied_migrations, tmp_path
 ):
