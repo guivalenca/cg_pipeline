@@ -846,6 +846,71 @@ class TestSyllabusCuration:
         assert parsed["lessons"][0]["source_references"][0]["is_hidden"] is True
         assert parsed["lessons"][0]["source_references"][1]["is_hidden"] is False
 
+    def test_curated_deliverable_material_round_trips_on_its_activity(self, db, tmp_path):
+        original = tmp_path / "deliverable.xlsx"
+        write_syllabus(
+            original,
+            [
+                syllabus_row(
+                    title="Entrega de SQL",
+                    kind="Deliverable",
+                    materials=[
+                        material(
+                            url="https://example.com/deliverable-brief",
+                            label="Briefing da entrega",
+                        )
+                    ],
+                )
+            ],
+        )
+        imported = import_workbook(
+            db, original, "Deliverable round trip", require_syllabus_metadata=False
+        )
+        before = get_syllabus_version(db, imported["syllabus_id"])
+        deliverable = before["lessons"][0]
+        curated = curate_syllabus(
+            db,
+            imported["syllabus_id"],
+            imported["version_id"],
+            [
+                {
+                    "id": deliverable["id"],
+                    "week": deliverable["week"],
+                    "kind": deliverable["kind"],
+                    "title": "Entrega de SQL revisada",
+                    "subject": deliverable["subject"],
+                    "subjects": deliverable["subjects"],
+                    "date": str(deliverable["date"]),
+                    "description": deliverable["description"],
+                    "hidden": deliverable["hidden"],
+                    "sources": deliverable["sources"],
+                }
+            ],
+            note="Revisa o título da entrega.",
+        )
+        workbook = get_syllabus_workbook(db, curated["version_id"])
+        compiled = tmp_path / workbook["file_name"]
+        compiled.write_bytes(workbook["body"])
+
+        parsed = parse_workbook(compiled)
+
+        assert [
+            {
+                "kind": lesson["kind"],
+                "title": lesson["title"],
+                "activity_uuid": lesson["activity_uuid"],
+                "sources": [source["url"] for source in lesson["source_references"]],
+            }
+            for lesson in parsed["lessons"]
+        ] == [
+            {
+                "kind": "Deliverable",
+                "title": "Entrega de SQL revisada",
+                "activity_uuid": deliverable["activity_uuid"],
+                "sources": ["https://example.com/deliverable-brief"],
+            }
+        ]
+
     def test_stale_editor_cannot_overwrite_a_newer_version(self, db, tmp_path):
         imported = self._import_editable(db, tmp_path)
         before = get_syllabus_version(db, imported["syllabus_id"])

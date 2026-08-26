@@ -1933,8 +1933,27 @@ def compile_syllabus_workbook(syllabus_title: str, lessons: list[dict]) -> bytes
                 }
             )
 
+        source_references = lesson.get("source_references") or []
+        if lesson.get("kind") == "Deliverable":
+            for source in source_references:
+                material = dict((source.get("fields") or {}).get("adalove_material") or {})
+                material.update(
+                    {
+                        "Activity order": activity_order,
+                        "Week": week_order,
+                        "Activity UUID": activity_uuid,
+                        "Activity title": lesson.get("title"),
+                        "Label": source.get("title"),
+                        "URL": source.get("url"),
+                        "Resource code": source.get("resource_code"),
+                        "Video": "Sim" if source.get("media_type") == "video" else "Não",
+                    }
+                )
+                materials.append(material)
+            continue
+
         source_groups: dict[str, list[dict]] = {}
-        for source_index, source in enumerate(lesson.get("source_references") or [], 1):
+        for source_index, source in enumerate(source_references, 1):
             source_uuid = source.get("activity_uuid") or _curated_uuid(
                 "source", activity_uuid, source_index, source.get("title"), source.get("url")
             )
