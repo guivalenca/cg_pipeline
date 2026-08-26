@@ -20,9 +20,20 @@ def _completed(document, returncode=0):
     return run
 
 
-def test_reads_the_narrow_namespace_without_mirroring_courses_or_groups():
+@pytest.fixture
+def companion_repo(tmp_path):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    (scripts / "export_graph_namespace.py").touch()
+    (scripts / "validate_graph_package.py").touch()
+    return tmp_path
+
+
+def test_reads_the_narrow_namespace_without_mirroring_courses_or_groups(
+    companion_repo,
+):
     document = companion_seam.graph_namespace(
-        Path(__file__).resolve().parents[2] / "companion",
+        companion_repo,
         run=_completed(NAMESPACE),
     )
 
@@ -31,7 +42,7 @@ def test_reads_the_narrow_namespace_without_mirroring_courses_or_groups():
     assert "groups" not in document["institutions"][0]
 
 
-def test_preserves_a_companion_rejection_document():
+def test_preserves_a_companion_rejection_document(companion_repo):
     rejected = {
         "schema_version": "companion_graph_package_acceptance.v1",
         "accepted": False,
@@ -41,14 +52,14 @@ def test_preserves_a_companion_rejection_document():
     }
     result = companion_seam.validate_package(
         Path("candidate"),
-        Path(__file__).resolve().parents[2] / "companion",
+        companion_repo,
         run=_completed(rejected, returncode=2),
     )
 
     assert result == rejected
 
 
-def test_export_gate_cannot_return_a_rejected_package():
+def test_export_gate_cannot_return_a_rejected_package(companion_repo):
     rejected = {
         "schema_version": "companion_graph_package_acceptance.v1",
         "accepted": False,
@@ -63,12 +74,12 @@ def test_export_gate_cannot_return_a_rejected_package():
     ):
         companion_seam.require_export_acceptance(
             Path("candidate"),
-            Path(__file__).resolve().parents[2] / "companion",
+            companion_repo,
             run=_completed(rejected, returncode=2),
         )
 
 
-def test_export_gate_rejects_an_unbound_acceptance_receipt():
+def test_export_gate_rejects_an_unbound_acceptance_receipt(companion_repo):
     accepted_without_hash = {
         "schema_version": "companion_graph_package_acceptance.v1",
         "accepted": True,
@@ -83,6 +94,6 @@ def test_export_gate_rejects_an_unbound_acceptance_receipt():
     ):
         companion_seam.require_export_acceptance(
             Path("candidate"),
-            Path(__file__).resolve().parents[2] / "companion",
+            companion_repo,
             run=_completed(accepted_without_hash),
         )
