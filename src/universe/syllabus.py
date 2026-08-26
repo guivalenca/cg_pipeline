@@ -18,6 +18,7 @@ import hashlib
 import json
 import re
 import unicodedata
+from dataclasses import dataclass
 from datetime import date, datetime
 from io import BytesIO
 from pathlib import Path
@@ -85,6 +86,35 @@ LEGACY_COLUMNS = (
 COLUMNS = PROJECT_COLUMNS
 
 
+def _ascii(value: str) -> str:
+    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+
+
+@dataclass(frozen=True)
+class ProjectSubject:
+    code: str
+    accepted_spellings: tuple[str, ...]
+    display_name: str
+
+
+# Keep this aligned with SUBJECT_THEMES in companion/static/js/subject_theme.js
+# until "Unify subject identities under institutions" replaces the
+# cross-repository copies.
+PROJECT_SUBJECTS = (
+    ProjectSubject("COM", ("COM", "Computação"), "Computação"),
+    ProjectSubject("LID", ("LID", "Liderança"), "Liderança"),
+    ProjectSubject("NEG", ("NEG", "Negócios"), "Negócios"),
+    ProjectSubject("UEX", ("UEX", "User Experience"), "User Experience"),
+    ProjectSubject("MTF", ("MTF", "Matemática"), "Matemática"),
+)
+_PROJECT_SUBJECT_BY_CODE = {subject.code: subject for subject in PROJECT_SUBJECTS}
+_PROJECT_SUBJECT_BY_SPELLING = {
+    _ascii(spelling).casefold(): subject
+    for subject in PROJECT_SUBJECTS
+    for spelling in subject.accepted_spellings
+}
+
+
 class SyllabusAlreadyExists(ValueError):
     """A create request resolved to an existing Syllabus."""
 
@@ -93,17 +123,9 @@ class SyllabusAlreadyExists(ValueError):
         self.title = title
         self.graph_id = graph_id
         super().__init__(f"Já existe um syllabus chamado {title!r}.")
+
+
 WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
-PROJECT_SUBJECT_CODES = {
-    "com": "COM",
-    "computacao": "COM",
-    "lid": "LID",
-    "lideranca": "LID",
-    "neg": "NEG",
-    "negocios": "NEG",
-    "uex": "UEX",
-    "user experience": "UEX",
-}
 PROJECT_LESSON_KINDS = {
     "class": "Class",
     "avaliacao / pesquisa": "Evaluation",
@@ -322,10 +344,6 @@ def _normalize_scope_value(value: str) -> str:
     return normalized.strip()
 
 
-def _ascii(value: str) -> str:
-    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
-
-
 def _text(value) -> str | None:
     if value is None:
         return None
@@ -340,10 +358,10 @@ def _project_subject(value: object, *, row_number: int) -> str | None:
     subject = _text(value)
     if not subject:
         return None
-    code = PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold())
-    if code is None:
+    definition = _PROJECT_SUBJECT_BY_SPELLING.get(_ascii(subject).casefold())
+    if definition is None:
         raise ValueError(f"row {row_number}: unsupported Eixo value {subject!r}")
-    return code
+    return definition.code
 
 
 def _project_lesson_kind(value: object, *, row_number: int) -> str:
@@ -1082,20 +1100,19 @@ def _lesson_subjects_by_syllabus(
         params = (list(syllabus_ids),)
     query += " ORDER BY version.syllabus_id, lesson.subject, lesson.id"
     by_code: dict[str, dict[str, dict]] = {}
-    canonical_names = {
-        "COM": "Computação",
-        "LID": "Liderança",
-        "NEG": "Negócios",
-        "UEX": "User Experience",
-    }
     for syllabus_id, code, fields in conn.execute(query, params).fetchall():
         fields = fields if isinstance(fields, dict) else {}
         workbook_name = str(fields.get("Eixo") or fields.get("Axis") or "").strip()
-        workbook_code = PROJECT_SUBJECT_CODES.get(_ascii(workbook_name).casefold())
+        workbook_subject = _PROJECT_SUBJECT_BY_SPELLING.get(
+            _ascii(workbook_name).casefold()
+        )
+        canonical_subject = _PROJECT_SUBJECT_BY_CODE.get(code)
+        canonical_name = canonical_subject.display_name if canonical_subject else code
         display_name = (
             workbook_name
-            if workbook_name and workbook_code in {None, code}
-            else canonical_names.get(code, code)
+            if workbook_name
+            and (workbook_subject is None or workbook_subject.code == code)
+            else canonical_name
         )
         by_code.setdefault(syllabus_id, {}).setdefault(
             code,

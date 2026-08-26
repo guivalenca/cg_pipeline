@@ -10,6 +10,7 @@ from openpyxl import Workbook, load_workbook
 from universe.syllabus import (
     LEGACY_COLUMNS,
     PROJECT_COLUMNS,
+    PROJECT_SUBJECTS,
     SyllabusVersionConflict,
     XLSX_MIME,
     canonical_url,
@@ -119,6 +120,18 @@ def write_legacy(path, rows):
 
 
 class TestWorkbookAdapters:
+    def test_project_subject_catalog_has_the_shared_five_subjects(self):
+        assert [
+            (subject.code, subject.accepted_spellings, subject.display_name)
+            for subject in PROJECT_SUBJECTS
+        ] == [
+            ("COM", ("COM", "Computação"), "Computação"),
+            ("LID", ("LID", "Liderança"), "Liderança"),
+            ("NEG", ("NEG", "Negócios"), "Negócios"),
+            ("UEX", ("UEX", "User Experience"), "User Experience"),
+            ("MTF", ("MTF", "Matemática"), "Matemática"),
+        ]
+
     @pytest.mark.skipif(
         not WORKBOOK.exists(),
         reason="local real-workbook smoke fixture is not versioned",
@@ -195,16 +208,17 @@ class TestWorkbookAdapters:
                 project_row(seq="2", title="Experiência", subject="User Experience"),
                 project_row(seq="3", title="Liderança", subject="Liderança"),
                 project_row(seq="4", title="Negócios", subject="Negócios"),
+                project_row(seq="5", title="Matemática", subject="Matemática"),
                 project_row(
-                    seq="5", title="Planejamento", kind="Encontro de orientação",
+                    seq="6", title="Planejamento", kind="Encontro de orientação",
                     subject=None,
                 ),
                 project_row(
-                    seq="6", title="Entrega", kind="Desenvolvimento projeto",
+                    seq="7", title="Entrega", kind="Desenvolvimento projeto",
                     subject=None,
                 ),
                 project_row(
-                    seq="7", title="Avaliação", kind="Avaliação / pesquisa",
+                    seq="8", title="Avaliação", kind="Avaliação / pesquisa",
                     subject=None,
                 ),
             ],
@@ -212,11 +226,11 @@ class TestWorkbookAdapters:
 
         parsed = parse_workbook(path)
 
-        assert [lesson["subject"] for lesson in parsed["lessons"][:4]] == [
-            "COM", "UEX", "LID", "NEG",
+        assert [lesson["subject"] for lesson in parsed["lessons"][:5]] == [
+            "COM", "UEX", "LID", "NEG", "MTF",
         ]
         assert [lesson["kind"] for lesson in parsed["lessons"]] == [
-            "Class", "Class", "Class", "Class",
+            "Class", "Class", "Class", "Class", "Class",
             "Orientation", "Deliverable", "Evaluation",
         ]
         assert parsed["lessons"][0]["fields"]["Eixo"] == "Computação"
