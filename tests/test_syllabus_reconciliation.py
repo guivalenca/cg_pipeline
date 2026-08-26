@@ -1,15 +1,12 @@
 from pathlib import Path
 
-from openpyxl import Workbook
-
 from universe.syllabus import (
-    LEGACY_COLUMNS,
     curate_syllabus,
     get_syllabus_version,
     import_workbook,
-    parse_workbook,
     update_source_review,
 )
+from adalove_workbook import activity, write_adalove_workbook
 from universe.syllabus_reconciliation import (
     apply_reconciliation,
     build_plan,
@@ -18,36 +15,45 @@ from universe.syllabus_reconciliation import (
 )
 
 
-def _workbook(path: Path, *, description: str = "Descrição original", url: str = "https://example.com/original") -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-    lesson = {
-        "Week": 1,
-        "Sort": 1,
-        "Type": "Class",
-        "Title": "Aula de arquitetura",
-        "Date": "11/08/2026",
-        "Axis": "SI",
-        "Description": "Descrição da aula",
-    }
-    source = {
-        "Week": 1,
-        "Sort": 2,
-        "Type": "Self-study",
-        "Title": "Material principal",
-        "Date": "11/08/2026",
-        "Parent class": "Aula de arquitetura",
-        "Axis": "SI",
-        "Description": description,
-        "URL": url,
-    }
-    sheet.append([lesson.get(column) for column in LEGACY_COLUMNS])
-    sheet.append([source.get(column) for column in LEGACY_COLUMNS])
-    workbook.save(path)
-    workbook.close()
-    return path
+def _workbook(
+    path: Path,
+    *,
+    description: str = "Descrição original",
+    url: str = "https://example.com/original",
+    include_orientation: bool = False,
+) -> Path:
+    lesson = activity(
+        title="Aula de arquitetura",
+        week=1,
+        order=1,
+        subject="COM",
+        description="Descrição da aula",
+        date="11/08/2026",
+    )
+    source = activity(
+        title="Material principal",
+        kind="Self-study",
+        week=1,
+        order=2,
+        parent_uuid=lesson["Activity UUID"],
+        parent_title=lesson["Title"],
+        subject="COM",
+        description=description,
+        date="11/08/2026",
+        url=url,
+    )
+    activities = [lesson, source]
+    if include_orientation:
+        activities.append(
+            activity(
+                title="Orientação descartada",
+                kind="Orientation",
+                week=1,
+                order=3,
+                subject=None,
+            )
+        )
+    return write_adalove_workbook(path, activities)
 
 
 def _manual_projection(detail: dict, *, url: str) -> list[dict]:
@@ -77,43 +83,6 @@ def _manual_projection(detail: dict, *, url: str) -> list[dict]:
                 }
             ],
         }
-    ]
-
-
-def test_related_workbook_infers_one_unambiguous_orphan_source_parent(tmp_path: Path):
-    path = tmp_path / "orphan-with-institutional-metadata.xlsx"
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-    source = {
-        "Week": 1,
-        "Sort": 1,
-        "Type": "Self-study",
-        "Title": "Fonte órfã",
-        "Professor": "Professora Única",
-        "Axis": "COM",
-        "URL": "https://example.com/orphan",
-    }
-    lesson = {
-        "Week": 1,
-        "Sort": 8,
-        "Type": "Class",
-        "Title": "Aula inferida",
-        "Date": "11/08/2026",
-        "Professor": "Professora Única",
-        "Axis": "COM",
-    }
-    sheet.append([source.get(column) for column in LEGACY_COLUMNS])
-    sheet.append([lesson.get(column) for column in LEGACY_COLUMNS])
-    workbook.save(path)
-    workbook.close()
-
-    parsed = parse_workbook(path)
-
-    assert parsed["lessons"][0]["title"] == "Aula inferida"
-    assert [item["title"] for item in parsed["lessons"][0]["source_references"]] == [
-        "Fonte órfã"
     ]
 
 
@@ -159,6 +128,84 @@ def test_source_reordering_uses_incoming_order_without_creating_a_decision():
     ]
 
 
+def test_adalove_uuids_match_renamed_and_reordered_activities():
+    def projection(
+        lesson_title: str,
+        source_title: str,
+        *,
+        week: int,
+        lesson_order: int,
+        source_order: int,
+        url: str,
+    ) -> dict:
+        return {
+            "lessons": [
+                {
+                    "activity_uuid": "lesson-stable-uuid",
+                    "folder_uuid": "folder-stable-uuid",
+                    "week_order": week,
+                    "activity_order": lesson_order,
+                    "week": week,
+                    "seq": lesson_order,
+                    "kind": "Class",
+                    "title": lesson_title,
+                    "subject": "COM",
+                    "subjects": [],
+                    "date": "2026-08-11",
+                    "description": "Descrição",
+                    "hidden": False,
+                    "fields": {},
+                    "sources": [
+                        {
+                            "activity_uuid": "source-stable-uuid",
+                            "folder_uuid": "folder-stable-uuid",
+                            "week_order": week,
+                            "activity_order": source_order,
+                            "parent_activity_uuid": "lesson-stable-uuid",
+                            "parent_inference": "inferred_from_activity_order",
+                            "seq": source_order,
+                            "title": source_title,
+                            "description": "Fonte",
+                            "url": url,
+                            "media_type": "article",
+                            "hidden": False,
+                            "fields": {
+                                "adalove_material": {
+                                    "Source path": "basic_activity_url"
+                                }
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+
+    baseline = projection(
+        "Nome anterior",
+        "Fonte anterior",
+        week=1,
+        lesson_order=1,
+        source_order=2,
+        url="https://example.com/antes",
+    )
+    incoming = projection(
+        "Nome totalmente novo",
+        "Fonte totalmente nova",
+        week=3,
+        lesson_order=14,
+        source_order=15,
+        url="https://example.com/depois",
+    )
+
+    plan = build_plan(baseline, baseline, incoming)
+
+    assert plan["summary"]["lesson_count"] == 1
+    assert plan["summary"]["source_count"] == 1
+    assert plan["summary"]["action_count"] == 2
+    assert plan["lessons"][0]["status"] == "changed"
+    assert plan["lessons"][0]["sources"][0]["status"] == "changed"
+
+
 def test_subject_changes_are_first_class_reconciliation_decisions():
     def projection(subjects: list[str]) -> dict:
         return {
@@ -195,6 +242,9 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
     db, tmp_path: Path
 ):
     original = _workbook(tmp_path / "recon-original.xlsx")
+    incoming = _workbook(
+        tmp_path / "recon-with-orientation.xlsx", include_orientation=True
+    )
     imported = import_workbook(
         db, original, "Reconciliação 1", require_syllabus_metadata=False
     )
@@ -215,10 +265,15 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
         {"validated": True, "complexity": "complex"},
     )
 
-    preview = create_reconciliation(db, imported["syllabus_id"], original)
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
 
     assert preview["base_version_id"] == curated["version_id"]
     assert preview["summary"]["action_count"] == 0
+    assert preview["dropped_summary"] == {
+        "orientation_count": 1,
+        "orientation_self_study_count": 0,
+        "total_count": 1,
+    }
     source = preview["lessons"][0]["sources"][0]
     assert source["status"] == "unchanged"
     assert source["incoming"]["url"] == "https://example.com/manual"

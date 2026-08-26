@@ -32,13 +32,15 @@ from universe.syllabus import (
 
 
 DECISIONS = {"keep", "transition", "custom"}
-PLAN_VERSION = 3
+PLAN_VERSION = 4
 LESSON_AUTHORED_FIELDS = (
     "week", "kind", "title", "subject", "subjects", "date", "description",
+    "activity_uuid", "folder_uuid", "week_order", "activity_order", "fields",
 )
 SOURCE_AUTHORED_FIELDS = (
     "title", "description", "url", "media_type", "resource_code",
-    "scope_kind", "scope_value",
+    "scope_kind", "scope_value", "activity_uuid", "folder_uuid", "week_order",
+    "activity_order", "parent_activity_uuid", "parent_inference", "fields",
 )
 
 
@@ -71,7 +73,13 @@ def _source_projection(source: dict, order: int) -> dict:
     return {
         "reference_id": source.get("reference_id"),
         "source_id": source.get("source_id"),
-        "seq": order,
+        "seq": source.get("seq", order),
+        "activity_uuid": source.get("activity_uuid"),
+        "folder_uuid": source.get("folder_uuid"),
+        "week_order": source.get("week_order"),
+        "activity_order": source.get("activity_order"),
+        "parent_activity_uuid": source.get("parent_activity_uuid"),
+        "parent_inference": source.get("parent_inference"),
         "title": source.get("title") or "",
         "description": source.get("description"),
         "url": source.get("url"),
@@ -90,7 +98,11 @@ def _lesson_projection(lesson: dict, order: int, source_key: str) -> dict:
     return {
         "id": lesson.get("id"),
         "week": lesson.get("week"),
-        "seq": order,
+        "seq": lesson.get("seq", order),
+        "activity_uuid": lesson.get("activity_uuid"),
+        "folder_uuid": lesson.get("folder_uuid"),
+        "week_order": lesson.get("week_order"),
+        "activity_order": lesson.get("activity_order"),
         "kind": lesson.get("kind") or "Class",
         "title": lesson.get("title") or "",
         "subject": lesson.get("subject"),
@@ -117,7 +129,9 @@ def _parsed_projection(parsed: dict) -> dict:
         "lessons": [
             _lesson_projection(lesson, index, "source_references")
             for index, lesson in enumerate(parsed.get("lessons", []), 1)
-        ]
+        ],
+        "dropped": _json_value(parsed.get("dropped") or []),
+        "dropped_summary": _json_value(parsed.get("dropped_summary") or {}),
     }
 
 
@@ -125,6 +139,10 @@ def _lesson_signature(item: dict | None) -> tuple:
     if not item:
         return ()
     return (
+        item.get("activity_uuid"),
+        item.get("folder_uuid"),
+        item.get("week_order"),
+        item.get("activity_order"),
         item.get("week"),
         _norm(item.get("kind")),
         _norm(item.get("title")),
@@ -132,6 +150,7 @@ def _lesson_signature(item: dict | None) -> tuple:
         tuple(_norm(subject) for subject in parse_subjects(item.get("subjects"))),
         _date(item.get("date")),
         _norm(item.get("description")),
+        json.dumps(_json_value(item.get("fields") or {}), sort_keys=True),
     )
 
 
@@ -139,6 +158,12 @@ def _source_signature(item: dict | None) -> tuple:
     if not item:
         return ()
     return (
+        item.get("activity_uuid"),
+        item.get("folder_uuid"),
+        item.get("week_order"),
+        item.get("activity_order"),
+        item.get("parent_activity_uuid"),
+        item.get("parent_inference"),
         _norm(item.get("title")),
         _norm(item.get("description")),
         _norm(item.get("url")),
@@ -146,6 +171,7 @@ def _source_signature(item: dict | None) -> tuple:
         _norm(item.get("resource_code")),
         item.get("scope_kind"),
         _norm(item.get("scope_value")),
+        json.dumps(_json_value(item.get("fields") or {}), sort_keys=True),
     )
 
 
@@ -158,6 +184,8 @@ def _ratio(left: object, right: object) -> float:
 
 def _lesson_score(left: dict, right: dict) -> float:
     score = 0.0
+    if left.get("activity_uuid") and left.get("activity_uuid") == right.get("activity_uuid"):
+        score += 1000
     if _norm(left.get("title")) == _norm(right.get("title")):
         score += 100
     else:
@@ -181,6 +209,15 @@ def _lesson_score(left: dict, right: dict) -> float:
 
 def _source_score(left: dict, right: dict) -> float:
     score = 0.0
+    if left.get("activity_uuid") and left.get("activity_uuid") == right.get("activity_uuid"):
+        score += 500
+        left_material = (left.get("fields") or {}).get("adalove_material") or {}
+        right_material = (right.get("fields") or {}).get("adalove_material") or {}
+        if (
+            left_material.get("Source path")
+            and left_material.get("Source path") == right_material.get("Source path")
+        ):
+            score += 500
     if _norm(left.get("title")) == _norm(right.get("title")):
         score += 100
     else:
@@ -515,6 +552,10 @@ def _row_payload(row: tuple) -> dict:
     payload["incoming"] = dict(payload.get("incoming") or {})
     payload["plan"] = dict(payload.get("plan") or {})
     payload["decisions"] = dict(payload.get("decisions") or {})
+    payload["dropped"] = list(payload["incoming"].get("dropped") or [])
+    payload["dropped_summary"] = dict(
+        payload["incoming"].get("dropped_summary") or {}
+    )
     payload.update(payload["plan"])
     return payload
 
@@ -632,6 +673,10 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
     if item.get("kind") == "lesson":
         return {
             "id": (current or {}).get("id"),
+            "activity_uuid": anchor.get("activity_uuid"),
+            "folder_uuid": anchor.get("folder_uuid"),
+            "week_order": anchor.get("week_order"),
+            "activity_order": anchor.get("activity_order"),
             "week": draft.get("week") if draft.get("week") not in {None, ""} else None,
             "kind": _text(draft.get("kind")) or anchor.get("kind") or "Class",
             "title": title,
@@ -650,6 +695,12 @@ def _selected_projection(item: dict, choice: str, draft: dict | None) -> dict | 
     return {
         "reference_id": (current or {}).get("reference_id"),
         "source_id": (current or {}).get("source_id"),
+        "activity_uuid": anchor.get("activity_uuid"),
+        "folder_uuid": anchor.get("folder_uuid"),
+        "week_order": anchor.get("week_order"),
+        "activity_order": anchor.get("activity_order"),
+        "parent_activity_uuid": anchor.get("parent_activity_uuid"),
+        "parent_inference": anchor.get("parent_inference"),
         "title": title,
         "description": _text(draft.get("description")) or None,
         "url": _text(draft.get("url")) or None,
@@ -755,6 +806,7 @@ def apply_reconciliation(
         projection,
         actor=actor,
         note=f"Reconciliação da planilha {record['file_name']} ({reconciliation_id})",
+        trust_workbook_metadata=True,
     )
     conn.execute(
         "UPDATE syllabus_reconciliation SET status = 'applied', decisions = %s,"

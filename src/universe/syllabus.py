@@ -1,8 +1,7 @@
 """Versioned syllabus intake and its small domain-facing read interface.
 
-A syllabus is named by a person.  An XLSX file is only one input adapter that
-authors a complete immutable version of it.  The adapters in this module
-translate both institution workbook formats into the same shape::
+A syllabus is named by a person. An Adalove observer XLSX export is the one
+input adapter that authors a complete immutable version of it::
 
     syllabus -> version -> lesson -> source reference -> source
 
@@ -38,51 +37,80 @@ from universe.graph_identity import (
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 HIDDEN_COLUMN = "Hidden"
 
-PROJECT_COLUMNS = (
-    "Projeto",
-    "Semana",
-    "Ordem",
-    "Atividade",
-    "Tipo da atividade",
-    "Descrição da atividade",
-    "Questão do autoestudo",
-    "Barema do autoestudo",
-    "Atividade obrigatória",
-    "Peso da atividade",
-    "Eixo",
-    "Assuntos",
-    "URL",
-    "Ponderada aplicada em sala",
-    "Encontro pai",
-    "Prova",
-    "Prova substitutiva",
-    "Material de estudo",
-    "Material em vídeo",
-    "Duração em minutos",
-    "Atividade verificada",
-)
-
-LEGACY_COLUMNS = (
+ADALOVE_ACTIVITY_COLUMNS = (
+    "Activity order",
     "Week",
-    "Sort",
     "Type",
+    "Original label",
     "Title",
-    "Date",
-    "Date source",
-    "Parent class",
-    "Class date",
-    "Professor",
-    "Axis",
-    "Related subjects",
     "Description",
-    "URL",
+    "Date",
+    "Professor",
+    "Professor UUID",
+    "Assistant",
+    "Assistant UUID",
+    "Lesson Subject code",
+    "Related subjects",
+    "Primary URL",
     "Resource code",
+    "Study question",
+    "Study answer / rubric",
     "Required",
     "Grade weight",
+    "Duration minutes",
+    "Self-study schedule",
+    "Exam",
+    "Makeup exam",
+    "Parent activity UUID",
+    "Parent title",
+    "Parent date",
+    "Parent inference",
+    "Activity UUID",
+    "Folder UUID",
+    "Section UUID",
+    "Active",
+    "Detail error",
 )
-
-# Compatibility for callers that imported the old constant.
-COLUMNS = PROJECT_COLUMNS
+ADALOVE_SUBJECT_COLUMNS = (
+    "Activity order",
+    "Week",
+    "Activity UUID",
+    "Activity title",
+    "Lesson Subject code",
+    "Subject UUID",
+    "Related subject",
+)
+ADALOVE_MATERIAL_COLUMNS = (
+    "Activity order",
+    "Week",
+    "Activity UUID",
+    "Activity title",
+    "Label",
+    "URL",
+    "Source",
+    "Source path",
+    "Resource code",
+    "Video",
+)
+ADALOVE_ORDER_AUDIT_COLUMNS = (
+    "Activity order",
+    "Week",
+    "Order key",
+    "Duplicate order key",
+    "Missing orders in week",
+    "Activity UUID",
+    "Folder UUID",
+    "Type",
+    "Title",
+    "Parent inference",
+    "Detail error",
+)
+ADALOVE_SHEETS = {
+    "Activities": ADALOVE_ACTIVITY_COLUMNS,
+    "Subjects": ADALOVE_SUBJECT_COLUMNS,
+    "Materials": ADALOVE_MATERIAL_COLUMNS,
+    "Order audit": ADALOVE_ORDER_AUDIT_COLUMNS,
+}
 
 
 class SyllabusAlreadyExists(ValueError):
@@ -93,8 +121,7 @@ class SyllabusAlreadyExists(ValueError):
         self.title = title
         self.graph_id = graph_id
         super().__init__(f"Já existe um syllabus chamado {title!r}.")
-WEEK = re.compile(r"^Semana\s+(\d+)$", re.IGNORECASE)
-PROJECT_SUBJECT_CODES = {
+LESSON_SUBJECT_CODES = {
     "com": "COM",
     "computacao": "COM",
     "lid": "LID",
@@ -103,18 +130,18 @@ PROJECT_SUBJECT_CODES = {
     "negocios": "NEG",
     "uex": "UEX",
     "user experience": "UEX",
+    "mtf": "MTF",
+    "matematica": "MTF",
+    "matematica e fisica": "MTF",
 }
-PROJECT_LESSON_KINDS = {
-    "class": "Class",
-    "avaliacao / pesquisa": "Evaluation",
-    "deliverable": "Deliverable",
-    "desenvolvimento projeto": "Deliverable",
-    "encontro": "Class",
-    "encontro de instrucao": "Class",
-    "encontro de orientacao": "Orientation",
-    "evaluation": "Evaluation",
-    "orientation": "Orientation",
+LESSON_SUBJECT_NAMES = {
+    "COM": "Computação",
+    "LID": "Liderança",
+    "NEG": "Negócios",
+    "UEX": "User Experience",
+    "MTF": "Matemática",
 }
+ADALOVE_ACTIVITY_TYPES = {"Class", "Orientation", "Self-study", "Deliverable", "Evaluation"}
 BOOK_SCOPE = re.compile(
     r"(?P<label>cap[ií]tulos?|cap\.?|chapters?|p[aá]ginas?|p[aá]gs?\.?|pag(?:es?)?\.?|"
     r"p\.|pages?|unidades?|units?|exerc[ií]cios?|exercises?)"
@@ -335,34 +362,37 @@ def _text(value) -> str | None:
     return result or None
 
 
-def _project_subject(value: object, *, row_number: int) -> str | None:
-    """Translate an institutional Eixo label to the shared subject code."""
+def _lesson_subject(value: object, *, row_number: int) -> str | None:
+    """Translate an Adalove Eixo value to the shared Lesson Subject code."""
     subject = _text(value)
     if not subject:
         return None
-    code = PROJECT_SUBJECT_CODES.get(_ascii(subject).casefold())
+    code = LESSON_SUBJECT_CODES.get(_ascii(subject).casefold())
     if code is None:
-        raise ValueError(f"row {row_number}: unsupported Eixo value {subject!r}")
+        accepted = ", ".join(
+            f"{code} {name}" for code, name in LESSON_SUBJECT_NAMES.items()
+        )
+        raise ValueError(
+            f"A linha {row_number} da aba Activities tem o Eixo {subject!r} na "
+            "coluna 'Lesson Subject code'. O Eixo identifica a área curricular "
+            f"da aula. Use um destes valores: {accepted}."
+        )
     return code
 
 
-def _project_lesson_kind(value: object, *, row_number: int) -> str:
-    """Translate a Projetos activity label to the shared lesson taxonomy."""
-    kind = _text(value)
-    canonical = PROJECT_LESSON_KINDS.get(_ascii(kind or "").casefold())
-    if canonical is None:
+def _adalove_activity_type(value: object, *, row_number: int) -> str:
+    kind = _text(value) or ""
+    if kind not in ADALOVE_ACTIVITY_TYPES:
         raise ValueError(
-            f"row {row_number}: unsupported Tipo da atividade value {kind!r}"
+            f"A linha {row_number} da aba Activities tem o tipo {kind!r}. "
+            "A coluna 'Type' aceita Class, Orientation, Self-study, "
+            "Deliverable ou Evaluation."
         )
-    return canonical
+    return kind
 
 
 def parse_subjects(value: object) -> list[str]:
-    """Turn one workbook subjects cell into an ordered list.
-
-    The Projetos workbook separates topics with newlines and prefixes every
-    line after the first with a comma. Commas inside a topic remain content.
-    """
+    """Turn one submitted subjects value into an ordered list."""
     values = value if isinstance(value, (list, tuple)) else [value]
     subjects: list[str] = []
     for raw in values:
@@ -378,7 +408,10 @@ def _as_int(value, *, row_number: int, column: str) -> int:
     try:
         return int(float(text or ""))
     except ValueError as exc:
-        raise ValueError(f"row {row_number}: invalid {column} value {text!r}") from exc
+        raise ValueError(
+            f"A linha {row_number} tem {text!r} na coluna '{column}'. "
+            "Use um número inteiro nessa coluna."
+        ) from exc
 
 
 def _as_date(value) -> date | None:
@@ -397,12 +430,6 @@ def _as_date(value) -> date | None:
     return None
 
 
-def _as_bool(value) -> bool:
-    """Parse the optional XLSX/UI visibility marker conservatively."""
-    text = (_text(value) or "").casefold()
-    return text in {"1", "true", "yes", "sim", "hidden", "oculta", "oculto"}
-
-
 def _header(sheet) -> tuple[str | None, ...]:
     return tuple(_text(value) for value in next(sheet.iter_rows(max_row=1, values_only=True), ()))
 
@@ -410,213 +437,442 @@ def _header(sheet) -> tuple[str | None, ...]:
 def _require_columns(header: tuple[str | None, ...], required: tuple[str, ...], label: str) -> None:
     missing = [column for column in required if column not in header]
     if missing:
-        raise ValueError(f"invalid {label} workbook header; missing columns: {', '.join(missing)}")
+        raise ValueError(
+            f"A aba '{label}' não é a exportação completa do observador do "
+            f"Adalove. Faltam estas colunas: {', '.join(missing)}. Gere uma nova "
+            "planilha com tools/adalove_observer_export.js."
+        )
+
+
+def _sheet_records(sheet, required: tuple[str, ...]) -> list[dict]:
+    header = _header(sheet)
+    _require_columns(header, required, sheet.title)
+    records = []
+    rows = sheet.iter_rows(values_only=True)
+    next(rows, None)
+    for row_number, raw in enumerate(rows, start=2):
+        if not any(_text(value) for value in raw):
+            continue
+        records.append(
+            {
+                "row_number": row_number,
+                "fields": {column: _text(value) for column, value in zip(header, raw)},
+            }
+        )
+    return records
+
+
+def _read_me(workbook) -> dict[str, str | None]:
+    if "Read me" not in workbook.sheetnames:
+        return {}
+    rows = workbook["Read me"].iter_rows(values_only=True)
+    next(rows, None)
+    return {
+        _text(field) or "": _text(value)
+        for field, value, *_ in rows
+        if _text(field)
+    }
+
+
+def _week_order(fields: dict, *, row_number: int, sheet: str) -> int:
+    value = fields.get("Week order") or fields.get("Week")
+    text = _text(value) or ""
+    match = re.fullmatch(r"Semana\s+(\d+)", text, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    return _as_int(value, row_number=row_number, column=f"{sheet}: Week")
+
+
+def _yes(value: object) -> bool:
+    return (_text(value) or "").casefold() in {"1", "true", "yes", "sim"}
+
+
+def _as_bool(value: object) -> bool:
+    return (_text(value) or "").casefold() in {
+        "1", "true", "yes", "sim", "hidden", "oculta", "oculto"
+    }
+
+
+def _adalove_fields(
+    activity: dict,
+    *,
+    subjects: list[dict],
+    audit: dict,
+    material: dict | None = None,
+) -> dict:
+    fields = {
+        "adalove_activity": dict(activity),
+        "adalove_subjects": [dict(row) for row in subjects],
+        "adalove_order_audit": dict(audit),
+    }
+    if material is not None:
+        fields["adalove_material"] = dict(material)
+    return fields
 
 
 def parse_workbook(path: str | Path) -> dict:
-    """Parse either supported XLSX format without touching the database."""
-    workbook = load_workbook(Path(path), read_only=True, data_only=True)
+    """Parse one full-fidelity Adalove observer export."""
     try:
-        project_sheets = [sheet for sheet in workbook.worksheets if set(PROJECT_COLUMNS) <= set(_header(sheet))]
-        legacy_sheets = [sheet for sheet in workbook.worksheets if set(LEGACY_COLUMNS) <= set(_header(sheet))]
-        if project_sheets:
-            preferred = next((sheet for sheet in project_sheets if sheet.title == "Projetos"), project_sheets[0])
-            return _parse_project_sheet(preferred)
-        if legacy_sheets:
-            preferred = next((sheet for sheet in legacy_sheets if sheet.title.casefold() == "all"), legacy_sheets[0])
-            return _parse_legacy_sheet(preferred)
-        observed = ", ".join(workbook.sheetnames)
+        workbook = load_workbook(Path(path), read_only=True, data_only=True)
+    except Exception as exc:
         raise ValueError(
-            "unsupported syllabus workbook; expected the 21-column Projetos or "
-            f"16-column related format (sheets: {observed})"
+            "Não foi possível abrir a planilha. Envie um arquivo .xlsx gerado por "
+            "tools/adalove_observer_export.js."
+        ) from exc
+    try:
+        missing_sheets = [name for name in ADALOVE_SHEETS if name not in workbook.sheetnames]
+        if missing_sheets:
+            raise ValueError(
+                "Esta planilha não é uma exportação completa do observador do "
+                f"Adalove. Faltam estas abas: {', '.join(missing_sheets)}. Gere uma "
+                "nova planilha com tools/adalove_observer_export.js."
+            )
+        activity_required = tuple(
+            column
+            for column in ADALOVE_ACTIVITY_COLUMNS
+            if column not in {"Original label", "Self-study schedule"}
         )
+        activities = _sheet_records(workbook["Activities"], activity_required)
+        subjects = _sheet_records(workbook["Subjects"], ADALOVE_SUBJECT_COLUMNS)
+        materials = _sheet_records(workbook["Materials"], ADALOVE_MATERIAL_COLUMNS)
+        audits = _sheet_records(workbook["Order audit"], ADALOVE_ORDER_AUDIT_COLUMNS)
+        return _assemble_adalove(activities, subjects, materials, audits, _read_me(workbook))
     finally:
         workbook.close()
 
 
-def _parse_project_sheet(sheet) -> dict:
-    header = _header(sheet)
-    _require_columns(header, PROJECT_COLUMNS, "Projetos")
-    rows = sheet.iter_rows(values_only=True)
-    next(rows, None)
-    lessons, references = [], []
-    workbook_title = None
-    for row_number, raw in enumerate(rows, start=2):
-        if not any(_text(value) for value in raw):
-            continue
-        fields = {column: _text(value) for column, value in zip(header, raw)}
-        workbook_title = workbook_title or fields.get("Projeto")
-        week_text = fields.get("Semana") or ""
-        week_match = WEEK.fullmatch(week_text)
-        if not week_match:
+def _assemble_adalove(
+    activity_records: list[dict],
+    subject_records: list[dict],
+    material_records: list[dict],
+    audit_records: list[dict],
+    workbook_metadata: dict,
+) -> dict:
+    activities: dict[str, dict] = {}
+    for record in activity_records:
+        fields = record["fields"]
+        row_number = record["row_number"]
+        activity_uuid = fields.get("Activity UUID") or ""
+        if not activity_uuid:
             raise ValueError(
-                f"row {row_number}: invalid Semana value {week_text!r}; expected 'Semana XX'"
+                f"A linha {row_number} da aba Activities não tem 'Activity UUID'. "
+                "Gere novamente a exportação antes de enviar."
             )
-        common = {
-            "week": int(week_match.group(1)),
-            "seq": _as_int(fields.get("Ordem"), row_number=row_number, column="Ordem"),
-            "title": fields.get("Atividade") or "",
-            "description": fields.get("Descrição da atividade"),
-            "fields": fields,
-            "is_hidden": _as_bool(fields.get(HIDDEN_COLUMN)),
+        if activity_uuid in activities:
+            raise ValueError(
+                f"A aba Activities repete o Activity UUID {activity_uuid!r} nas "
+                f"linhas {activities[activity_uuid]['row_number']} e {row_number}."
+            )
+        folder_uuid = fields.get("Folder UUID") or ""
+        if not folder_uuid:
+            raise ValueError(
+                f"A linha {row_number} da aba Activities não tem 'Folder UUID'. "
+                "Gere novamente a exportação antes de enviar."
+            )
+        title = fields.get("Title") or ""
+        if not title:
+            raise ValueError(
+                f"A linha {row_number} da aba Activities não tem título. "
+                "Corrija a atividade no Adalove e gere outra exportação."
+            )
+        activity_type = _adalove_activity_type(fields.get("Type"), row_number=row_number)
+        detail_error = fields.get("Detail error")
+        if detail_error:
+            raise ValueError(
+                f"A linha {row_number} da aba Activities está incompleta porque o "
+                f"Adalove respondeu com este erro: {detail_error}. Gere a exportação "
+                "novamente; se o erro continuar, corrija essa atividade antes do upload."
+            )
+        week_order = _week_order(fields, row_number=row_number, sheet="Activities")
+        activity_order = _as_int(
+            fields.get("Activity order"), row_number=row_number, column="Activity order"
+        )
+        lesson_date = _as_date(fields.get("Date"))
+        if fields.get("Date") and lesson_date is None:
+            raise ValueError(
+                f"A linha {row_number} da aba Activities tem a data "
+                f"{fields.get('Date')!r}. Use DD/MM/AAAA ou AAAA-MM-DD."
+            )
+        activities[activity_uuid] = {
             "row_number": row_number,
-        }
-        if not common["title"]:
-            raise ValueError(f"row {row_number}: Atividade is empty")
-        if (fields.get("Tipo da atividade") or "").casefold() == "autoestudo":
-            references.append(
-                {
-                    **common,
-                    "parent_title": fields.get("Encontro pai"),
-                    "url": fields.get("URL"),
-                    "resource_code": None,
-                    "is_hidden": _as_bool(fields.get(HIDDEN_COLUMN)),
-                }
-            )
-        else:
-            lesson_kind = _project_lesson_kind(
-                fields.get("Tipo da atividade"), row_number=row_number
-            )
-            lesson_subject = _project_subject(
-                fields.get("Eixo"), row_number=row_number
-            )
-            if lesson_kind == "Class" and lesson_subject is None:
-                raise ValueError(f"row {row_number}: Eixo is required for a Class")
-            lessons.append(
-                {
-                    **common,
-                    "kind": lesson_kind,
-                    "subject": lesson_subject,
-                    "subjects": parse_subjects(fields.get("Assuntos")),
-                    "lesson_date": None,
-                }
-            )
-    return _assemble_parsed("projetos-21", workbook_title, lessons, references)
-
-
-def _parse_legacy_sheet(sheet) -> dict:
-    header = _header(sheet)
-    _require_columns(header, LEGACY_COLUMNS, "related")
-    rows = sheet.iter_rows(values_only=True)
-    next(rows, None)
-    lessons, references = [], []
-    for row_number, raw in enumerate(rows, start=2):
-        if not any(_text(value) for value in raw):
-            continue
-        fields = {column: _text(value) for column, value in zip(header, raw)}
-        common = {
-            "week": _as_int(fields.get("Week"), row_number=row_number, column="Week"),
-            "seq": _as_int(fields.get("Sort"), row_number=row_number, column="Sort"),
-            "title": fields.get("Title") or "",
+            "fields": fields,
+            "activity_uuid": activity_uuid,
+            "folder_uuid": folder_uuid,
+            "week_order": week_order,
+            "activity_order": activity_order,
+            "kind": activity_type,
+            "title": title,
             "description": fields.get("Description"),
-            "fields": fields,
-            "is_hidden": _as_bool(fields.get(HIDDEN_COLUMN)),
-            "row_number": row_number,
+            "lesson_date": lesson_date,
+            "parent_activity_uuid": fields.get("Parent activity UUID"),
+            "parent_inference": fields.get("Parent inference"),
         }
-        if not common["title"]:
-            raise ValueError(f"row {row_number}: Title is empty")
-        if (fields.get("Type") or "").casefold() == "self-study":
-            references.append(
-                {
-                    **common,
-                    "parent_title": fields.get("Parent class"),
-                    "url": fields.get("URL"),
-                    "resource_code": fields.get("Resource code"),
-                    "is_hidden": _as_bool(fields.get(HIDDEN_COLUMN)),
-                }
-            )
-        else:
-            lessons.append(
-                {
-                    **common,
-                    "kind": fields.get("Type") or "Activity",
-                    "subject": fields.get("Axis"),
-                    "subjects": parse_subjects(fields.get("Related subjects")),
-                    "lesson_date": _as_date(fields.get("Date")),
-                }
-            )
-    return _assemble_parsed("related-16", None, lessons, references)
 
-
-def _assemble_parsed(format_name: str, workbook_title: str | None, lessons: list[dict], references: list[dict]) -> dict:
-    if not lessons:
-        raise ValueError("syllabus workbook has no lessons")
-    lessons.sort(key=lambda item: (item["week"], item["seq"], item["row_number"]))
-    for lesson_index, lesson in enumerate(lessons):
-        lesson["source_references"] = []
-        lesson["_index"] = lesson_index
-
-    for reference in references:
-        parent = (reference.get("parent_title") or "").strip()
-        candidates = [
-            lesson
-            for lesson in lessons
-            if lesson["week"] == reference["week"] and lesson["title"].strip() == parent
-        ]
-        if not candidates and not parent:
-            # Some related workbooks omit Parent class for a source but retain
-            # the same Week, Axis and Professor as its lesson. Infer only when
-            # that institutional metadata identifies exactly one lesson; an
-            # ambiguous orphan remains an explicit workbook error.
-            reference_fields = reference.get("fields") or {}
-            professor = _text(reference_fields.get("Professor"))
-            axis = _text(reference_fields.get("Axis"))
-            inferred = [
-                lesson
-                for lesson in lessons
-                if lesson["week"] == reference["week"]
-                and professor
-                and professor == _text((lesson.get("fields") or {}).get("Professor"))
-                and axis
-                and axis == _text(lesson.get("subject"))
-            ]
-            if len(inferred) == 1:
-                candidates = inferred
-        if not candidates:
+    subjects_by_activity: dict[str, list[dict]] = {key: [] for key in activities}
+    for record in subject_records:
+        fields = record["fields"]
+        activity_uuid = fields.get("Activity UUID") or ""
+        if activity_uuid not in activities:
             raise ValueError(
-                f"row {reference['row_number']}: source {reference['title']!r} refers to "
-                f"unknown lesson {parent!r} in week {reference['week']}"
+                f"A linha {record['row_number']} da aba Subjects aponta para o "
+                f"Activity UUID desconhecido {activity_uuid!r}."
             )
-        preceding = [lesson for lesson in candidates if lesson["seq"] <= reference["seq"]]
-        lesson = max(preceding or candidates, key=lambda item: item["seq"])
-        url = reference.get("url") or ""
-        code = _resource_code(
-            url,
-            reference.get("resource_code"),
-            f"{reference['title']}\n{reference.get('description') or ''}",
-        )
-        kind = media_type(url, code)
-        scope = (
-            extract_book_scope(
-                f"{reference['title']}\n{reference.get('description') or ''}", url
+        subject = fields.get("Related subject")
+        if not subject:
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Subjects não informa o "
+                "assunto relacionado."
             )
-            if kind == "book"
-            else None
+        subjects_by_activity[activity_uuid].append(fields)
+
+    materials_by_activity: dict[str, list[dict]] = {key: [] for key in activities}
+    for record in material_records:
+        fields = record["fields"]
+        activity_uuid = fields.get("Activity UUID") or ""
+        if activity_uuid not in activities:
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Materials aponta para o "
+                f"Activity UUID desconhecido {activity_uuid!r}."
+            )
+        url = fields.get("URL") or ""
+        if not url:
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Materials não tem URL. "
+                "Corrija o material no Adalove e gere outra exportação."
+            )
+        materials_by_activity[activity_uuid].append(fields)
+
+    audits_by_activity: dict[str, dict] = {}
+    for record in audit_records:
+        fields = record["fields"]
+        activity_uuid = fields.get("Activity UUID") or ""
+        if activity_uuid not in activities:
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Order audit aponta para o "
+                f"Activity UUID desconhecido {activity_uuid!r}."
+            )
+        if activity_uuid in audits_by_activity:
+            raise ValueError(f"A aba Order audit repete o Activity UUID {activity_uuid!r}.")
+        if fields.get("Detail error"):
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Order audit registra este "
+                f"erro de leitura: {fields['Detail error']}. Gere a exportação novamente."
+            )
+        if _yes(fields.get("Duplicate order key")):
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Order audit marca a chave "
+                f"{fields.get('Order key')!r} como duplicada. Corrija a ordem no "
+                "Adalove e gere outra exportação."
+            )
+        activity = activities[activity_uuid]
+        audit_week = _week_order(
+            fields, row_number=record["row_number"], sheet="Order audit"
         )
-        lesson["source_references"].append(
-            {
-                "seq": reference["seq"],
-                "title": reference["title"],
-                "description": reference.get("description"),
-                "url": url or None,
-                "media_type": kind,
-                "resource_code": code,
-                "scope_kind": scope[0] if scope else None,
-                "scope_value": scope[1] if scope else None,
-                "is_hidden": bool(reference.get("is_hidden")),
-                "fields": reference["fields"],
-                "row_number": reference["row_number"],
-            }
+        audit_order = _as_int(
+            fields.get("Activity order"),
+            row_number=record["row_number"],
+            column="Order audit: Activity order",
+        )
+        expected_order_key = f"{audit_week}:{audit_order}"
+        if (
+            audit_week != activity["week_order"]
+            or audit_order != activity["activity_order"]
+            or fields.get("Order key") != expected_order_key
+            or fields.get("Folder UUID") != activity["folder_uuid"]
+        ):
+            raise ValueError(
+                f"A linha {record['row_number']} da aba Order audit não corresponde "
+                f"à atividade {activity_uuid!r} da aba Activities. Esperado: semana "
+                f"{activity['week_order']}, ordem {activity['activity_order']}, chave "
+                f"{activity['week_order']}:{activity['activity_order']} e Folder UUID "
+                f"{activity['folder_uuid']!r}. Gere outra exportação."
+            )
+        audits_by_activity[activity_uuid] = fields
+    missing_audits = sorted(set(activities) - set(audits_by_activity))
+    if missing_audits:
+        raise ValueError(
+            "A aba Order audit não registra todas as atividades. Faltam estes "
+            f"Activity UUIDs: {', '.join(missing_audits[:5])}. Gere outra exportação."
+        )
+
+    ordered = sorted(
+        activities.values(),
+        key=lambda item: (item["week_order"], item["activity_order"], item["activity_uuid"]),
+    )
+    orientation_ids = {
+        activity["activity_uuid"] for activity in ordered if activity["kind"] == "Orientation"
+    }
+    dropped = []
+    lessons_by_activity: dict[str, dict] = {}
+    for activity in ordered:
+        if activity["kind"] == "Orientation":
+            dropped.append(
+                {
+                    "activity_uuid": activity["activity_uuid"],
+                    "type": activity["kind"],
+                    "title": activity["title"],
+                    "reason": "orientation",
+                }
+            )
+            continue
+        if activity["kind"] == "Self-study":
+            continue
+        if activity.get("parent_activity_uuid"):
+            raise ValueError(
+                f"A linha {activity['row_number']} da aba Activities liga "
+                f"{activity['kind']} {activity['title']!r} a uma atividade pai. "
+                "Somente Self-study recebe pai no exportador."
+            )
+        subject = _lesson_subject(
+            activity["fields"].get("Lesson Subject code"),
+            row_number=activity["row_number"],
+        )
+        if activity["kind"] == "Class" and subject is None:
+            raise ValueError(
+                f"A linha {activity['row_number']} da aba Activities descreve uma "
+                "Class sem 'Lesson Subject code'. Informe o Eixo no Adalove e exporte novamente."
+            )
+        subject_rows = subjects_by_activity[activity["activity_uuid"]]
+        lesson = {
+            "week": activity["week_order"],
+            "seq": activity["activity_order"],
+            "week_order": activity["week_order"],
+            "activity_order": activity["activity_order"],
+            "activity_uuid": activity["activity_uuid"],
+            "folder_uuid": activity["folder_uuid"],
+            "kind": activity["kind"],
+            "title": activity["title"],
+            "subject": subject,
+            "subjects": list(dict.fromkeys(row["Related subject"] for row in subject_rows)),
+            "lesson_date": activity["lesson_date"],
+            "description": activity["description"],
+            "is_hidden": _as_bool(activity["fields"].get(HIDDEN_COLUMN)),
+            "fields": _adalove_fields(
+                activity["fields"],
+                subjects=subject_rows,
+                audit=audits_by_activity[activity["activity_uuid"]],
+            ),
+            "row_number": activity["row_number"],
+            "source_references": [],
+        }
+        lessons_by_activity[activity["activity_uuid"]] = lesson
+
+    for activity in ordered:
+        if activity["kind"] != "Self-study":
+            continue
+        parent_uuid = activity.get("parent_activity_uuid") or ""
+        inference = activity.get("parent_inference") or ""
+        if not parent_uuid or not inference:
+            raise ValueError(
+                f"A linha {activity['row_number']} da aba Activities descreve o "
+                f"Self-study {activity['title']!r} sem pai inferido e identificado. "
+                "Gere outra exportação e confira a ordem das atividades da semana."
+            )
+        if parent_uuid in orientation_ids:
+            dropped.append(
+                {
+                    "activity_uuid": activity["activity_uuid"],
+                    "type": activity["kind"],
+                    "title": activity["title"],
+                    "parent_activity_uuid": parent_uuid,
+                    "parent_inference": inference,
+                    "reason": "parent_orientation",
+                }
+            )
+            continue
+        lesson = lessons_by_activity.get(parent_uuid)
+        if lesson is None or lesson["kind"] != "Class":
+            raise ValueError(
+                f"A linha {activity['row_number']} da aba Activities liga o "
+                f"Self-study {activity['title']!r} ao Activity UUID {parent_uuid!r}, "
+                "mas esse pai não é uma Class da planilha."
+            )
+        subject_rows = subjects_by_activity[activity["activity_uuid"]]
+        activity_materials = materials_by_activity[activity["activity_uuid"]]
+        if not activity_materials:
+            activity_materials = [
+                {
+                    "Activity order": str(activity["activity_order"]),
+                    "Week": str(activity["week_order"]),
+                    "Activity UUID": activity["activity_uuid"],
+                    "Activity title": activity["title"],
+                    "Label": activity["title"],
+                    "URL": activity["fields"].get("Primary URL"),
+                    "Source": "activity_without_material_row",
+                    "Source path": "Primary URL",
+                    "Resource code": activity["fields"].get("Resource code"),
+                    "Video": None,
+                }
+            ]
+        for material_index, material in enumerate(activity_materials, 1):
+            url = material.get("URL") or activity["fields"].get("Primary URL") or ""
+            title = material.get("Label") or activity["title"]
+            code = _resource_code(
+                url,
+                material.get("Resource code") or activity["fields"].get("Resource code"),
+                f"{title}\n{activity['description'] or ''}",
+            )
+            kind = "video" if _yes(material.get("Video")) else media_type(url, code)
+            scope = (
+                extract_book_scope(f"{title}\n{activity['description'] or ''}", url)
+                if kind == "book"
+                else None
+            )
+            lesson["source_references"].append(
+                {
+                    "seq": activity["activity_order"],
+                    "week_order": activity["week_order"],
+                    "activity_order": activity["activity_order"],
+                    "activity_uuid": activity["activity_uuid"],
+                    "folder_uuid": activity["folder_uuid"],
+                    "parent_activity_uuid": parent_uuid,
+                    "parent_inference": inference,
+                    "material_index": material_index,
+                    "title": title,
+                    "description": activity["description"],
+                    "url": url or None,
+                    "media_type": kind,
+                    "resource_code": code,
+                    "scope_kind": scope[0] if scope else None,
+                    "scope_value": scope[1] if scope else None,
+                    "is_hidden": _as_bool(activity["fields"].get(HIDDEN_COLUMN)),
+                    "fields": _adalove_fields(
+                        activity["fields"],
+                        subjects=subject_rows,
+                        audit=audits_by_activity[activity["activity_uuid"]],
+                        material=material,
+                    ),
+                    "row_number": activity["row_number"],
+                }
+            )
+
+    lessons = sorted(
+        lessons_by_activity.values(),
+        key=lambda item: (item["week_order"], item["activity_order"], item["activity_uuid"]),
+    )
+    if not lessons:
+        raise ValueError(
+            "A exportação não tem nenhuma Class, Deliverable ou Evaluation para armazenar."
         )
     for lesson in lessons:
-        lesson["source_references"].sort(key=lambda item: (item["seq"], item["row_number"]))
-        lesson.pop("_index", None)
+        lesson["source_references"].sort(
+            key=lambda item: (item["activity_order"], item["activity_uuid"], item["material_index"])
+        )
+    orientation_count = sum(item["reason"] == "orientation" for item in dropped)
+    child_count = sum(item["reason"] == "parent_orientation" for item in dropped)
     return {
-        "format": format_name,
-        "workbook_title": workbook_title,
+        "format": "adalove-observer",
+        "workbook_title": workbook_metadata.get("Project"),
+        "workbook_metadata": workbook_metadata,
         "lessons": lessons,
         "lesson_count": len(lessons),
-        "source_count": len(references),
+        "source_count": sum(len(lesson["source_references"]) for lesson in lessons),
+        "dropped": dropped,
+        "dropped_summary": {
+            "orientation_count": orientation_count,
+            "orientation_self_study_count": child_count,
+            "total_count": len(dropped),
+        },
     }
 
 
@@ -696,7 +952,7 @@ def resolve_source(
 def import_workbook(
     conn: psycopg.Connection,
     path: str | Path,
-    name: str | None = None,
+    name: str,
     *,
     syllabus_id: str | None = None,
     institution_id: str | None = None,
@@ -711,8 +967,6 @@ def import_workbook(
     Passing ``require_syllabus_metadata=False`` is the explicit compatibility
     path for historical fixtures and migrations that predate that model.
     """
-    if name is None:
-        return _import_legacy_flat_workbook(conn, path, actor=actor)
     name = (name or "").strip()
     if not name:
         raise ValueError("syllabus name is required")
@@ -815,6 +1069,8 @@ def import_workbook(
             "source_count": reference_count,
             "new_source_count": 0,
             "diff": {},
+            "dropped": parsed["dropped"],
+            "dropped_summary": parsed["dropped_summary"],
         }
 
     next_seq = (previous["seq"] if previous else 0) + 1
@@ -842,8 +1098,9 @@ def import_workbook(
         conn.execute(
             "INSERT INTO syllabus_lesson"
             " (id, version_id, week, seq, kind, title, subject, subjects, lesson_date,"
-            "  description, is_hidden, fields)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "  description, is_hidden, fields, activity_uuid, folder_uuid, week_order,"
+            "  activity_order)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 lesson_id,
                 version_id,
@@ -857,6 +1114,10 @@ def import_workbook(
                 lesson.get("description"),
                 bool(lesson.get("is_hidden")),
                 Jsonb(lesson["fields"]),
+                lesson.get("activity_uuid"),
+                lesson.get("folder_uuid"),
+                lesson.get("week_order"),
+                lesson.get("activity_order"),
             ),
         )
         for reference in lesson["source_references"]:
@@ -875,8 +1136,11 @@ def import_workbook(
             conn.execute(
                 "INSERT INTO syllabus_source_reference"
                 " (id, version_id, lesson_id, seq, title, description, url, media_type,"
-                "  resource_code, scope_kind, scope_value, source_id, is_hidden, fields)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "  resource_code, scope_kind, scope_value, source_id, is_hidden, fields,"
+                "  activity_uuid, folder_uuid, week_order, activity_order,"
+                "  parent_activity_uuid, parent_inference)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,"
+                " %s, %s, %s, %s, %s, %s)",
                 (
                     reference_id,
                     version_id,
@@ -892,6 +1156,12 @@ def import_workbook(
                     source_id,
                     bool(reference.get("is_hidden")),
                     Jsonb(reference["fields"]),
+                    reference.get("activity_uuid"),
+                    reference.get("folder_uuid"),
+                    reference.get("week_order"),
+                    reference.get("activity_order"),
+                    reference.get("parent_activity_uuid"),
+                    reference.get("parent_inference"),
                 ),
             )
 
@@ -924,121 +1194,8 @@ def import_workbook(
         "source_count": reference_count,
         "new_source_count": new_sources,
         "diff": diff,
-    }
-
-
-def _import_legacy_flat_workbook(
-    conn: psycopg.Connection,
-    path: str | Path,
-    *,
-    actor: str,
-) -> dict:
-    """Preserve the former unnamed-import API beside the richer model.
-
-    This bridge is intentionally used only when no explicit syllabus name is
-    supplied. It keeps old curation facts addressable through ``syllabus_item``
-    while all current browser uploads author lesson/reference versions.
-    """
-    path = Path(path)
-    file_body = path.read_bytes()
-    file_sha = hashlib.sha256(file_body).hexdigest()
-    workbook = load_workbook(path, read_only=True, data_only=True)
-    try:
-        sheet = workbook["Projetos"] if "Projetos" in workbook.sheetnames else workbook.active
-        rows = sheet.iter_rows(values_only=True)
-        header = tuple(_text(value) for value in next(rows, ()))
-        _require_columns(header, PROJECT_COLUMNS, "Projetos")
-        items = []
-        workbook_name = None
-        for row_number, raw in enumerate(rows, start=2):
-            if not any(_text(value) for value in raw):
-                continue
-            fields = {column: _text(value) for column, value in zip(header, raw)}
-            workbook_name = workbook_name or fields.get("Projeto")
-            week_match = WEEK.fullmatch(fields.get("Semana") or "")
-            if not week_match:
-                raise ValueError(f"row {row_number}: invalid Semana value")
-            items.append(
-                {
-                    "week": int(week_match.group(1)),
-                    "seq": _as_int(
-                        fields.get("Ordem"), row_number=row_number, column="Ordem"
-                    ),
-                    "kind": fields.get("Tipo da atividade") or "Atividade",
-                    "title": fields.get("Atividade") or "",
-                    "description": fields.get("Descrição da atividade"),
-                    "parent_title": fields.get("Encontro pai"),
-                    "url": fields.get("URL"),
-                    "fields": fields,
-                }
-            )
-    finally:
-        workbook.close()
-    if not workbook_name or not items:
-        raise ValueError("syllabus workbook has no named items")
-
-    syllabus_id = slugify(workbook_name)
-    conn.execute(
-        "INSERT INTO syllabus (id, title) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",
-        (syllabus_id, workbook_name),
-    )
-    previous = _latest_version_row(conn, syllabus_id)
-    if previous and previous["file_sha"] == file_sha:
-        conn.commit()
-        return {
-            "syllabus_id": syllabus_id,
-            "version_id": previous["id"],
-            "seq": previous["seq"],
-            "unchanged": True,
-            "item_count": 0,
-            "source_count": 0,
-            "diff": {},
-        }
-
-    seq = (previous["seq"] if previous else 0) + 1
-    version_id = f"{syllabus_id}:v{seq:04d}"
-    conn.execute(
-        "INSERT INTO syllabus_version"
-        " (id, syllabus_id, seq, origin, input_format, file_name, file_mime,"
-        "  file_sha, file_body)"
-        " VALUES (%s, %s, %s, 'upload', 'legacy-flat', %s, %s, %s, %s)",
-        (version_id, syllabus_id, seq, path.name, XLSX_MIME, file_sha, file_body),
-    )
-    source_count = 0
-    for index, item in enumerate(
-        sorted(items, key=lambda value: (value["week"], value["seq"], value["title"])),
-        start=1,
-    ):
-        source_id = None
-        if item["kind"].casefold() == "autoestudo" and item["url"]:
-            source_id, created = resolve_source(conn, item["url"], item["title"])
-            source_count += int(created)
-        conn.execute(
-            "INSERT INTO syllabus_item"
-            " (id, version_id, week, seq, kind, title, description, parent_title,"
-            "  url, source_id, fields)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (
-                f"{version_id}:{index:04d}", version_id, item["week"], item["seq"],
-                item["kind"], item["title"], item["description"],
-                item["parent_title"], item["url"], source_id, Jsonb(item["fields"]),
-            ),
-        )
-    event_id = next_curation_event_id(conn)
-    conn.execute(
-        "INSERT INTO curation_event (id, actor, action, subject)"
-        " VALUES (%s, %s, 'syllabus_upload', %s)",
-        (event_id, actor, Jsonb({"syllabus_id": syllabus_id, "version_id": version_id, "file_sha": file_sha})),
-    )
-    conn.commit()
-    return {
-        "syllabus_id": syllabus_id,
-        "version_id": version_id,
-        "seq": seq,
-        "unchanged": False,
-        "item_count": len(items),
-        "source_count": source_count,
-        "diff": {},
+        "dropped": parsed["dropped"],
+        "dropped_summary": parsed["dropped_summary"],
     }
 
 
@@ -1082,20 +1239,15 @@ def _lesson_subjects_by_syllabus(
         params = (list(syllabus_ids),)
     query += " ORDER BY version.syllabus_id, lesson.subject, lesson.id"
     by_code: dict[str, dict[str, dict]] = {}
-    canonical_names = {
-        "COM": "Computação",
-        "LID": "Liderança",
-        "NEG": "Negócios",
-        "UEX": "User Experience",
-    }
     for syllabus_id, code, fields in conn.execute(query, params).fetchall():
         fields = fields if isinstance(fields, dict) else {}
-        workbook_name = str(fields.get("Eixo") or fields.get("Axis") or "").strip()
-        workbook_code = PROJECT_SUBJECT_CODES.get(_ascii(workbook_name).casefold())
+        activity = fields.get("adalove_activity") or {}
+        workbook_name = str(activity.get("Lesson Subject code") or "").strip()
+        workbook_code = LESSON_SUBJECT_CODES.get(_ascii(workbook_name).casefold())
         display_name = (
             workbook_name
-            if workbook_name and workbook_code in {None, code}
-            else canonical_names.get(code, code)
+            if workbook_name and workbook_code is None
+            else LESSON_SUBJECT_NAMES.get(code, code)
         )
         by_code.setdefault(syllabus_id, {}).setdefault(
             code,
@@ -1252,7 +1404,8 @@ def get_syllabus_version(
 
     lesson_rows = conn.execute(
         "SELECT sl.id, sl.week, sl.seq, sl.kind, sl.title, sl.subject, sl.subjects,"
-        " sl.lesson_date, sl.description, sl.fields, sl.created_at, sl.is_hidden"
+        " sl.lesson_date, sl.description, sl.fields, sl.created_at, sl.is_hidden,"
+        " sl.activity_uuid, sl.folder_uuid, sl.week_order, sl.activity_order"
         " FROM syllabus_lesson sl"
         " WHERE sl.version_id = %s ORDER BY sl.week NULLS LAST, sl.seq, sl.id",
         (version["id"],),
@@ -1264,6 +1417,7 @@ def get_syllabus_version(
                 (
                     "id", "week", "seq", "kind", "title", "subject", "subjects",
                     "date", "description", "fields", "created_at", "hidden",
+                    "activity_uuid", "folder_uuid", "week_order", "activity_order",
                 ),
                 row,
             )
@@ -1272,7 +1426,9 @@ def get_syllabus_version(
             "SELECT sr.id, sr.source_id, sr.seq, sr.title, sr.description, sr.url,"
             " sr.media_type, sr.resource_code, sr.scope_kind, sr.scope_value, sr.is_hidden,"
             " sr.fields, sr.created_at, s.identity,"
-            " coalesce(rr.is_validated, false), rr.complexity"
+            " coalesce(rr.is_validated, false), rr.complexity,"
+            " sr.activity_uuid, sr.folder_uuid, sr.week_order, sr.activity_order,"
+            " sr.parent_activity_uuid, sr.parent_inference"
             " FROM syllabus_source_reference sr"
             " LEFT JOIN source s ON s.id = sr.source_id"
             " LEFT JOIN syllabus_source_review rr ON rr.reference_id = sr.id"
@@ -1287,7 +1443,9 @@ def get_syllabus_version(
                         "reference_id", "source_id", "seq", "title", "description", "url",
                         "media_type", "resource_code", "scope_kind", "scope_value", "hidden",
                         "fields", "created_at", "identity",
-                        "validated", "complexity",
+                        "validated", "complexity", "activity_uuid", "folder_uuid",
+                        "week_order", "activity_order", "parent_activity_uuid",
+                        "parent_inference",
                     ),
                     reference_row,
                 )
@@ -1402,7 +1560,12 @@ def _base_fields(item: dict | None) -> dict:
     return dict(fields) if isinstance(fields, dict) else {}
 
 
-def _normalize_curation_projection(base: dict, submitted_lessons: object) -> list[dict]:
+def _normalize_curation_projection(
+    base: dict,
+    submitted_lessons: object,
+    *,
+    trust_workbook_metadata: bool = False,
+) -> list[dict]:
     """Validate an editor payload and inherit non-editable workbook metadata.
 
     The browser submits the complete desired projection, but arbitrary client
@@ -1424,6 +1587,7 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
     }
     normalized: list[dict] = []
     source_total = 0
+    curated_activity_order_by_week: dict[int | None, int] = {}
     for lesson_index, raw_lesson in enumerate(submitted_lessons, 1):
         if not isinstance(raw_lesson, dict):
             raise ValueError(f"lesson {lesson_index} is invalid")
@@ -1444,9 +1608,30 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
         if source_total > 5000:
             raise ValueError("the syllabus exceeds the limit of 5000 sources")
 
+        lesson_metadata = raw_lesson if trust_workbook_metadata else (base_lesson or {})
+        curated_activity_order_by_week[week] = (
+            curated_activity_order_by_week.get(week, 0) + 1
+        )
+        lesson_fields = (
+            dict(raw_lesson.get("fields") or {})
+            if trust_workbook_metadata
+            else _base_fields(base_lesson)
+        )
         lesson = {
             "week": week,
             "seq": lesson_index,
+            "activity_uuid": lesson_metadata.get("activity_uuid"),
+            "folder_uuid": lesson_metadata.get("folder_uuid"),
+            "week_order": (
+                lesson_metadata.get("week_order", week)
+                if trust_workbook_metadata
+                else week
+            ),
+            "activity_order": (
+                lesson_metadata.get("activity_order", lesson_index)
+                if trust_workbook_metadata
+                else curated_activity_order_by_week[week]
+            ),
             "kind": _clean_edit_text(
                 raw_lesson.get("kind") or (base_lesson or {}).get("kind") or "Class",
                 field=f"lesson {lesson_index} kind",
@@ -1475,9 +1660,10 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
                 limit=4000,
             ),
             "is_hidden": bool(raw_lesson.get("hidden")),
-            "fields": _base_fields(base_lesson),
+            "fields": lesson_fields,
             "source_references": [],
         }
+        curated_source_orders: dict[str, int] = {}
         for source_index, raw_source in enumerate(raw_sources, 1):
             if not isinstance(raw_source, dict):
                 raise ValueError(f"lesson {lesson_index}, source {source_index} is invalid")
@@ -1504,32 +1690,64 @@ def _normalize_curation_projection(base: dict, submitted_lessons: object) -> lis
                 )
             if scope_value:
                 scope_value = _normalize_scope_value(scope_value)
+            source_metadata = raw_source if trust_workbook_metadata else (base_source or {})
+            source_fields = (
+                dict(raw_source.get("fields") or {})
+                if trust_workbook_metadata
+                else _base_fields(base_source)
+            )
+            source_group_identity = source_metadata.get("activity_uuid") or (
+                f"new:{lesson_index}:{source_index}"
+            )
+            if source_group_identity not in curated_source_orders:
+                curated_activity_order_by_week[week] += 1
+                curated_source_orders[source_group_identity] = (
+                    curated_activity_order_by_week[week]
+                )
             reference = {
-                    "seq": source_index,
-                    "title": _clean_edit_text(
-                        raw_source.get("title"),
-                        field=f"lesson {lesson_index}, source {source_index} title",
-                        required=True,
-                        limit=1000,
-                    ),
-                    "description": _clean_edit_text(
-                        raw_source.get("description"),
-                        field=f"lesson {lesson_index}, source {source_index} description",
-                        limit=4000,
-                    ),
-                    "url": _clean_edit_text(
-                        raw_source.get("url"),
-                        field=f"lesson {lesson_index}, source {source_index} URL",
-                        limit=8000,
-                    ),
-                    "media_type": kind,
-                    "resource_code": code,
-                    "scope_kind": scope_kind,
-                    "scope_value": scope_value,
-                    "is_hidden": bool(raw_source.get("hidden")),
-                    "fields": _base_fields(base_source),
-                    "_base_review": dict((base_source or {}).get("review") or {}),
-                }
+                "seq": source_index,
+                "activity_uuid": source_metadata.get("activity_uuid"),
+                "folder_uuid": source_metadata.get("folder_uuid"),
+                "week_order": (
+                    source_metadata.get("week_order", week)
+                    if trust_workbook_metadata
+                    else week
+                ),
+                "activity_order": (
+                    source_metadata.get("activity_order", source_index)
+                    if trust_workbook_metadata
+                    else curated_source_orders[source_group_identity]
+                ),
+                "parent_activity_uuid": (
+                    source_metadata.get("parent_activity_uuid")
+                    or lesson_metadata.get("activity_uuid")
+                ),
+                "parent_inference": source_metadata.get("parent_inference")
+                or "curated_explicit_parent",
+                "title": _clean_edit_text(
+                    raw_source.get("title"),
+                    field=f"lesson {lesson_index}, source {source_index} title",
+                    required=True,
+                    limit=1000,
+                ),
+                "description": _clean_edit_text(
+                    raw_source.get("description"),
+                    field=f"lesson {lesson_index}, source {source_index} description",
+                    limit=4000,
+                ),
+                "url": _clean_edit_text(
+                    raw_source.get("url"),
+                    field=f"lesson {lesson_index}, source {source_index} URL",
+                    limit=8000,
+                ),
+                "media_type": kind,
+                "resource_code": code,
+                "scope_kind": scope_kind,
+                "scope_value": scope_value,
+                "is_hidden": bool(raw_source.get("hidden")),
+                "fields": source_fields,
+                "_base_review": dict((base_source or {}).get("review") or {}),
+            }
             reference["_content_unchanged"] = bool(
                 base_source
                 and _projection_signature(
@@ -1555,6 +1773,10 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
             "date": str(lesson.get("lesson_date") or lesson.get("date") or ""),
             "description": lesson.get("description"),
             "hidden": bool(lesson.get("is_hidden", lesson.get("hidden", False))),
+            "activity_uuid": lesson.get("activity_uuid"),
+            "folder_uuid": lesson.get("folder_uuid"),
+            "week_order": lesson.get("week_order"),
+            "activity_order": lesson.get("activity_order"),
             "sources": [
                 {
                     "title": source.get("title"),
@@ -1565,6 +1787,12 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
                     "scope_kind": source.get("scope_kind"),
                     "scope_value": source.get("scope_value"),
                     "hidden": bool(source.get("is_hidden", source.get("hidden", False))),
+                    "activity_uuid": source.get("activity_uuid"),
+                    "folder_uuid": source.get("folder_uuid"),
+                    "week_order": source.get("week_order"),
+                    "activity_order": source.get("activity_order"),
+                    "parent_activity_uuid": source.get("parent_activity_uuid"),
+                    "parent_inference": source.get("parent_inference"),
                 }
                 for source in lesson.get("source_references", lesson.get("sources", []))
             ],
@@ -1573,120 +1801,192 @@ def _projection_signature(lessons: list[dict]) -> list[dict]:
     ]
 
 
-def _project_export_row(
-    fields: dict, *, syllabus_title: str, week: int | None, order: int,
-    kind: str, title: str, description: str | None, subject: str | None,
-    subjects: list[str] | None = None,
-    parent: str | None = None, url: str | None = None, hidden: bool = False,
-) -> list:
-    values = dict(fields)
-    updates = {
-        "Projeto": values.get("Projeto") or syllabus_title,
-        "Semana": f"Semana {week:02d}" if week is not None else None,
-        "Ordem": order,
-        "Atividade": title,
-        "Tipo da atividade": kind,
-        "Descrição da atividade": description,
-        "Eixo": subject,
-        "URL": url,
-        "Encontro pai": parent,
-        HIDDEN_COLUMN: "yes" if hidden else "no",
-    }
-    if subjects is not None:
-        updates["Assuntos"] = "\n,".join(subjects) or None
-    values.update(updates)
-    return [values.get(column) for column in (*PROJECT_COLUMNS, HIDDEN_COLUMN)]
+def _curated_uuid(kind: str, *parts: object) -> str:
+    encoded = "\0".join(str(part or "") for part in parts).encode()
+    return f"curated-{kind}-" + hashlib.sha256(encoded).hexdigest()[:24]
 
 
-def _legacy_export_row(
-    fields: dict, *, week: int | None, order: int, kind: str, title: str,
-    lesson_date: date | None, description: str | None, subject: str | None,
-    subjects: list[str] | None = None,
-    parent: str | None = None, url: str | None = None,
-    resource_code: str | None = None, hidden: bool = False,
-) -> list:
-    values = dict(fields)
-    formatted_date = lesson_date.strftime("%d/%m/%Y") if lesson_date else None
-    updates = {
-        "Week": week,
-        "Sort": order,
-        "Type": kind,
-        "Title": title,
-        "Date": formatted_date,
-        "Date source": "inherited" if parent else (values.get("Date source") or "own"),
-        "Parent class": parent,
-        "Class date": formatted_date if parent else None,
-        "Axis": subject,
-        "Description": description,
-        "URL": url,
-        "Resource code": resource_code,
-        HIDDEN_COLUMN: "yes" if hidden else "no",
-    }
-    if subjects is not None:
-        updates["Related subjects"] = "\n".join(subjects) or None
-    values.update(updates)
-    return [values.get(column) for column in (*LEGACY_COLUMNS, HIDDEN_COLUMN)]
+def _formatted_date(value: object) -> str | None:
+    parsed = _as_date(value)
+    return parsed.strftime("%d/%m/%Y") if parsed else None
 
 
-def compile_syllabus_workbook(
-    syllabus_title: str, input_format: str | None, lessons: list[dict]
-) -> bytes:
-    """Compile one complete curation projection into a portable XLSX."""
-    workbook = Workbook()
-    sheet = workbook.active
-    project_format = input_format == "projetos-21"
-    sheet.title = "Projetos" if project_format else "All"
-    sheet.append((*PROJECT_COLUMNS, HIDDEN_COLUMN) if project_format else (*LEGACY_COLUMNS, HIDDEN_COLUMN))
-    order = 0
-    for lesson in lessons:
-        order += 1
-        if project_format:
-            sheet.append(
-                _project_export_row(
-                    lesson["fields"], syllabus_title=syllabus_title,
-                    week=lesson["week"], order=order, kind=lesson["kind"],
-                    title=lesson["title"], description=lesson.get("description"),
-                    subject=lesson.get("subject"),
-                    subjects=lesson.get("subjects") or [],
-                    hidden=bool(lesson.get("is_hidden", lesson.get("hidden", False))),
-                )
-            )
-        else:
-            sheet.append(
-                _legacy_export_row(
-                    lesson["fields"], week=lesson["week"], order=order,
-                    kind=lesson["kind"], title=lesson["title"],
-                    lesson_date=lesson.get("lesson_date"),
-                    description=lesson.get("description"), subject=lesson.get("subject"),
-                    subjects=lesson.get("subjects") or [],
-                    hidden=bool(lesson.get("is_hidden", lesson.get("hidden", False))),
-                )
-            )
-        for source in lesson["source_references"]:
-            order += 1
-            if project_format:
-                sheet.append(
-                    _project_export_row(
-                        source["fields"], syllabus_title=syllabus_title,
-                        week=lesson["week"], order=order, kind="Autoestudo",
-                        title=source["title"], description=source.get("description"),
-                        subject=lesson.get("subject"), parent=lesson["title"],
-                        url=source.get("url"), hidden=source["is_hidden"],
-                    )
-                )
-            else:
-                sheet.append(
-                    _legacy_export_row(
-                        source["fields"], week=lesson["week"], order=order,
-                        kind="Self-study", title=source["title"],
-                        lesson_date=lesson.get("lesson_date"),
-                        description=source.get("description"), subject=lesson.get("subject"),
-                        parent=lesson["title"], url=source.get("url"),
-                        resource_code=source.get("resource_code"), hidden=source["is_hidden"],
-                    )
-                )
+def _append_sheet(workbook: Workbook, name: str, columns: tuple[str, ...], rows: list[dict]) -> None:
+    sheet = workbook.active if name == "Activities" else workbook.create_sheet()
+    sheet.title = name
+    sheet.append(columns)
+    for row in rows:
+        sheet.append([row.get(column) for column in columns])
     sheet.freeze_panes = "A2"
     sheet.auto_filter.ref = sheet.dimensions
+
+
+def compile_syllabus_workbook(syllabus_title: str, lessons: list[dict]) -> bytes:
+    """Compile one curated projection using the Adalove observer workbook shape."""
+    activities: list[dict] = []
+    subjects: list[dict] = []
+    materials: list[dict] = []
+    audits: list[dict] = []
+
+    def add_activity(
+        item: dict,
+        *,
+        kind: str,
+        activity_uuid: str,
+        folder_uuid: str,
+        week_order: int,
+        activity_order: int,
+        parent: dict | None = None,
+    ) -> dict:
+        stored = dict((item.get("fields") or {}).get("adalove_activity") or {})
+        stored.update(
+            {
+                "Activity order": activity_order,
+                "Week": week_order,
+                "Type": kind,
+                "Original label": stored.get("Original label")
+                or stored.get("Type caption")
+                or kind,
+                "Title": item.get("title"),
+                "Description": item.get("description"),
+                "Date": _formatted_date(item.get("lesson_date", item.get("date"))),
+                "Lesson Subject code": item.get("subject"),
+                "Related subjects": "; ".join(item.get("subjects") or []),
+                "Primary URL": item.get("url"),
+                "Resource code": item.get("resource_code"),
+                "Parent activity UUID": (parent or {}).get("activity_uuid"),
+                "Parent title": (parent or {}).get("title"),
+                "Parent inference": item.get("parent_inference")
+                if parent
+                else None,
+                "Activity UUID": activity_uuid,
+                "Folder UUID": folder_uuid,
+                HIDDEN_COLUMN: "yes"
+                if item.get("is_hidden", item.get("hidden", False))
+                else "no",
+                "Detail error": None,
+            }
+        )
+        activities.append(stored)
+        audit = dict((item.get("fields") or {}).get("adalove_order_audit") or {})
+        audit.update(
+            {
+                "Activity order": activity_order,
+                "Week": week_order,
+                "Order key": f"{week_order}:{activity_order}",
+                "Activity UUID": activity_uuid,
+                "Folder UUID": folder_uuid,
+                "Type": kind,
+                "Title": item.get("title"),
+                "Parent inference": item.get("parent_inference") if parent else None,
+                "Detail error": None,
+            }
+        )
+        audits.append(audit)
+        return stored
+
+    for lesson_index, lesson in enumerate(lessons, 1):
+        week_order = lesson.get("week_order") or lesson.get("week") or lesson_index
+        activity_order = lesson.get("activity_order") or lesson.get("seq") or lesson_index
+        activity_uuid = lesson.get("activity_uuid") or _curated_uuid(
+            "lesson", week_order, activity_order, lesson.get("title")
+        )
+        folder_uuid = lesson.get("folder_uuid") or _curated_uuid("week", week_order)
+        lesson_identity = {
+            "activity_uuid": activity_uuid,
+            "folder_uuid": folder_uuid,
+            "title": lesson.get("title"),
+        }
+        add_activity(
+            lesson,
+            kind=lesson.get("kind") or "Class",
+            activity_uuid=activity_uuid,
+            folder_uuid=folder_uuid,
+            week_order=week_order,
+            activity_order=activity_order,
+        )
+        stored_subjects = (lesson.get("fields") or {}).get("adalove_subjects") or []
+        subject_uuid_by_name = {
+            row.get("Related subject"): row.get("Subject UUID") for row in stored_subjects
+        }
+        for subject in lesson.get("subjects") or []:
+            subjects.append(
+                {
+                    "Activity order": activity_order,
+                    "Week": week_order,
+                    "Activity UUID": activity_uuid,
+                    "Activity title": lesson.get("title"),
+                    "Lesson Subject code": lesson.get("subject"),
+                    "Subject UUID": subject_uuid_by_name.get(subject),
+                    "Related subject": subject,
+                }
+            )
+
+        source_groups: dict[str, list[dict]] = {}
+        for source_index, source in enumerate(lesson.get("source_references") or [], 1):
+            source_uuid = source.get("activity_uuid") or _curated_uuid(
+                "source", activity_uuid, source_index, source.get("title"), source.get("url")
+            )
+            source_groups.setdefault(source_uuid, []).append(source)
+        for group_index, (source_uuid, group) in enumerate(source_groups.items(), 1):
+            first = group[0]
+            source_order = first.get("activity_order") or activity_order + group_index
+            source_week = first.get("week_order") or week_order
+            source_folder = first.get("folder_uuid") or folder_uuid
+            source_item = {
+                **first,
+                "title": (
+                    (first.get("fields") or {}).get("adalove_activity") or {}
+                ).get("Title")
+                or first.get("title"),
+                "parent_inference": first.get("parent_inference")
+                or "curated_explicit_parent",
+            }
+            add_activity(
+                source_item,
+                kind="Self-study",
+                activity_uuid=source_uuid,
+                folder_uuid=source_folder,
+                week_order=source_week,
+                activity_order=source_order,
+                parent=lesson_identity,
+            )
+            for subject_row in (first.get("fields") or {}).get("adalove_subjects") or []:
+                row = dict(subject_row)
+                row.update(
+                    {
+                        "Activity order": source_order,
+                        "Week": source_week,
+                        "Activity UUID": source_uuid,
+                        "Activity title": source_item["title"],
+                    }
+                )
+                subjects.append(row)
+            for source in group:
+                material = dict((source.get("fields") or {}).get("adalove_material") or {})
+                material.update(
+                    {
+                        "Activity order": source_order,
+                        "Week": source_week,
+                        "Activity UUID": source_uuid,
+                        "Activity title": source_item["title"],
+                        "Label": source.get("title"),
+                        "URL": source.get("url"),
+                        "Resource code": source.get("resource_code"),
+                        "Video": "Sim" if source.get("media_type") == "video" else "Não",
+                    }
+                )
+                materials.append(material)
+
+    workbook = Workbook()
+    _append_sheet(workbook, "Activities", (*ADALOVE_ACTIVITY_COLUMNS, HIDDEN_COLUMN), activities)
+    _append_sheet(workbook, "Subjects", ADALOVE_SUBJECT_COLUMNS, subjects)
+    _append_sheet(workbook, "Materials", ADALOVE_MATERIAL_COLUMNS, materials)
+    _append_sheet(workbook, "Order audit", ADALOVE_ORDER_AUDIT_COLUMNS, audits)
+    read_me = workbook.create_sheet("Read me")
+    read_me.append(("Field", "Value / note"))
+    read_me.append(("Project", syllabus_title))
+    read_me.append(("Format", "Adalove observer export with curated values"))
     stream = BytesIO()
     workbook.save(stream)
     workbook.close()
@@ -1701,6 +2001,7 @@ def curate_syllabus(
     *,
     actor: str = "founder",
     note: str | None = None,
+    trust_workbook_metadata: bool = False,
 ) -> dict:
     """Author a full immutable curation version from the latest projection."""
     syllabus = conn.execute(
@@ -1716,7 +2017,11 @@ def curate_syllabus(
             "Este syllabus recebeu uma versão mais nova. Recarregue antes de salvar suas mudanças."
         )
     base = get_syllabus_version(conn, syllabus_id, base_version_id)
-    normalized = _normalize_curation_projection(base, lessons)
+    normalized = _normalize_curation_projection(
+        base,
+        lessons,
+        trust_workbook_metadata=trust_workbook_metadata,
+    )
     if _projection_signature(normalized) == _projection_signature(base["lessons"]):
         conn.commit()
         lesson_count, source_count = _version_counts(conn, base_version_id)
@@ -1742,7 +2047,7 @@ def curate_syllabus(
 
     next_seq = latest["seq"] + 1
     version_id = f"{syllabus_id}:v{next_seq:04d}"
-    body = compile_syllabus_workbook(syllabus[1], latest.get("input_format"), normalized)
+    body = compile_syllabus_workbook(syllabus[1], normalized)
     file_name = f"{syllabus_id}-v{next_seq:04d}.xlsx"
     file_sha = hashlib.sha256(body).hexdigest()
     clean_note = _clean_edit_text(
@@ -1754,7 +2059,7 @@ def curate_syllabus(
         "  file_body, note)"
         " VALUES (%s, %s, %s, 'curation', %s, %s, %s, %s, %s, %s)",
         (
-            version_id, syllabus_id, next_seq, latest.get("input_format") or "related-16",
+            version_id, syllabus_id, next_seq, latest.get("input_format") or "adalove-observer",
             file_name, XLSX_MIME, file_sha, body, clean_note,
         ),
     )
@@ -1766,13 +2071,16 @@ def curate_syllabus(
         conn.execute(
             "INSERT INTO syllabus_lesson"
             " (id, version_id, week, seq, kind, title, subject, subjects, lesson_date,"
-            "  description, is_hidden, fields)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "  description, is_hidden, fields, activity_uuid, folder_uuid, week_order,"
+            "  activity_order)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 lesson_id, version_id, lesson["week"], lesson_number, lesson["kind"],
                 lesson["title"], lesson.get("subject"), lesson.get("subjects") or [],
                 lesson.get("lesson_date"), lesson.get("description"),
                 lesson["is_hidden"], Jsonb(lesson["fields"]),
+                lesson.get("activity_uuid"), lesson.get("folder_uuid"),
+                lesson.get("week_order"), lesson.get("activity_order"),
             ),
         )
         for source_number, reference in enumerate(lesson["source_references"], 1):
@@ -1791,14 +2099,20 @@ def curate_syllabus(
             conn.execute(
                 "INSERT INTO syllabus_source_reference"
                 " (id, version_id, lesson_id, seq, title, description, url, media_type,"
-                "  resource_code, scope_kind, scope_value, source_id, is_hidden, fields)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "  resource_code, scope_kind, scope_value, source_id, is_hidden, fields,"
+                "  activity_uuid, folder_uuid, week_order, activity_order,"
+                "  parent_activity_uuid, parent_inference)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,"
+                " %s, %s, %s, %s, %s, %s)",
                 (
                     reference_id, version_id, lesson_id, source_number,
                     reference["title"], reference.get("description"), reference.get("url"),
                     reference["media_type"], reference.get("resource_code"),
                     reference.get("scope_kind"), reference.get("scope_value"), source_id,
                     reference["is_hidden"], Jsonb(reference["fields"]),
+                    reference.get("activity_uuid"), reference.get("folder_uuid"),
+                    reference.get("week_order"), reference.get("activity_order"),
+                    reference.get("parent_activity_uuid"), reference.get("parent_inference"),
                 ),
             )
             base_review = reference.get("_base_review") or {}
@@ -1849,36 +2163,42 @@ def curate_syllabus(
 def diff_versions(conn: psycopg.Connection, version_a: str, version_b: str) -> dict:
     """Compare source references in two full syllabus versions."""
     query = (
-        "SELECT sl.week, sl.title, sr.seq, sr.title, sr.url, sr.description,"
-        " sr.resource_code, sr.scope_kind, sr.scope_value, sr.is_hidden"
+        "SELECT sl.week, sl.title, sl.activity_uuid, sr.seq, sr.title, sr.url,"
+        " sr.description, sr.resource_code, sr.scope_kind, sr.scope_value,"
+        " sr.is_hidden, sr.activity_uuid,"
+        " sr.fields->'adalove_material'->>'Source path'"
         " FROM syllabus_source_reference sr"
         " JOIN syllabus_lesson sl ON sl.id = sr.lesson_id"
         " WHERE sr.version_id = %s ORDER BY sl.week, sl.seq, sr.seq, sr.id"
     )
     rows_a = conn.execute(query, (version_a,)).fetchall()
     rows_b = conn.execute(query, (version_b,)).fetchall()
-    keys = lambda row: (row[0], row[1], row[3])
+    def keys(row):
+        if row[11]:
+            return ("adalove", row[11], row[12] or row[3])
+        return ("authored", row[0], row[1], row[4])
+
     map_a, map_b = {keys(row): row for row in rows_a}, {keys(row): row for row in rows_b}
 
     def record(row):
         return {
             "week": row[0],
             "lesson": row[1],
-            "seq": row[2],
-            "title": row[3],
-            "url": row[4],
-            "description": row[5],
-            "resource_code": row[6],
-            "scope_kind": row[7],
-            "scope_value": row[8],
-            "hidden": row[9],
+            "seq": row[3],
+            "title": row[4],
+            "url": row[5],
+            "description": row[6],
+            "resource_code": row[7],
+            "scope_kind": row[8],
+            "scope_value": row[9],
+            "hidden": row[10],
         }
 
     added = [record(map_b[key]) for key in map_b.keys() - map_a.keys()]
     removed = [record(map_a[key]) for key in map_a.keys() - map_b.keys()]
     changed = []
     for key in map_a.keys() & map_b.keys():
-        if map_a[key][4:] != map_b[key][4:]:
+        if record(map_a[key]) != record(map_b[key]):
             changed.append({"before": record(map_a[key]), "after": record(map_b[key])})
     sort_key = lambda item: (item["week"], item["lesson"], item["seq"], item["title"])
     added.sort(key=sort_key)

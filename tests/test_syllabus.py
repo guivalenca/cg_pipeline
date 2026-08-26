@@ -1,4 +1,4 @@
-"""Syllabus facts: workbook adapters, immutable versions and source identity."""
+"""Syllabus facts: Adalove intake, immutable versions and source identity."""
 
 import hashlib
 import re
@@ -8,8 +8,6 @@ import pytest
 from openpyxl import Workbook, load_workbook
 
 from universe.syllabus import (
-    LEGACY_COLUMNS,
-    PROJECT_COLUMNS,
     SyllabusVersionConflict,
     XLSX_MIME,
     canonical_url,
@@ -22,154 +20,105 @@ from universe.syllabus import (
     parse_workbook,
     source_identity,
 )
+from adalove_workbook import activity, material, stable_uuid, write_adalove_workbook
 
-WORKBOOK = Path(__file__).resolve().parents[1] / "data" / "GRAD CC07 - 2026-2A.xlsx"
+SUBJECT_CODES = {
+    "Computação": "COM",
+    "User Experience": "UEX",
+    "Liderança": "LID",
+    "Negócios": "NEG",
+    "Matemática": "MTF",
+}
+KINDS = {
+    "Encontro de instrução": "Class",
+    "Encontro": "Class",
+    "Autoestudo": "Self-study",
+    "Encontro de orientação": "Orientation",
+    "Desenvolvimento projeto": "Deliverable",
+    "Avaliação / pesquisa": "Evaluation",
+}
 
 
-def project_row(
+def syllabus_row(
     *,
     project="INTERNAL WORKBOOK TITLE",
-    week="Semana 01",
-    seq="1",
+    week=1,
+    seq=1,
     title="Lesson",
-    kind="Encontro de instrução",
+    kind="Class",
     description="Description",
     url=None,
     parent=None,
-    subject="Computação",
+    parent_order=1,
+    subject="COM",
     subjects=None,
-):
-    return [
-        project,
-        week,
-        seq,
-        title,
-        kind,
-        description,
-        None,
-        None,
-        "Sim",
-        "0",
-        subject,
-        subjects,
-        url,
-        "Não",
-        parent,
-        "Não",
-        "Não",
-        "Não",
-        "Não",
-        None,
-        "Não",
-    ]
-
-
-def write_project(path, rows):
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-    for row in rows:
-        sheet.append(row)
-    workbook.save(path)
-
-
-def legacy_row(
-    *,
-    week=1,
-    seq=1,
-    kind="Class",
-    title="Lesson",
-    parent="",
-    description="Description",
-    url="",
-    code="",
-    subject="NEG",
+    code=None,
     date="06/08/2026",
+    hidden=False,
+    materials=None,
 ):
-    values = {
-        "Week": week,
-        "Sort": seq,
-        "Type": kind,
-        "Title": title,
-        "Date": date,
-        "Date source": "own",
-        "Parent class": parent,
-        "Class date": date,
-        "Professor": "Professor",
-        "Axis": subject,
-        "Related subjects": "",
-        "Description": description,
-        "URL": url,
-        "Resource code": code,
-        "Required": "yes",
-        "Grade weight": 0,
-    }
-    return [values[column] for column in LEGACY_COLUMNS]
+    week = int(str(week).replace("Semana", "").strip())
+    seq = int(seq)
+    canonical_kind = KINDS.get(kind, kind)
+    canonical_subject = SUBJECT_CODES.get(subject, subject)
+    topic_values = []
+    if subjects:
+        topic_values = [
+            line.removeprefix(",").strip()
+            for line in str(subjects).splitlines()
+            if line.removeprefix(",").strip()
+        ]
+    parent_uuid = (
+        stable_uuid("activity", week, parent_order)
+        if canonical_kind == "Self-study" and parent
+        else None
+    )
+    row = activity(
+        title=title,
+        kind=canonical_kind,
+        week=week,
+        order=seq,
+        parent_uuid=parent_uuid,
+        parent_title=parent,
+        subject=canonical_subject,
+        subjects=topic_values,
+        description=description,
+        date=date,
+        url=url,
+        resource_code=code,
+        hidden=hidden,
+        materials=materials,
+    )
+    row["_project"] = project
+    return row
 
 
-def write_legacy(path, rows):
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-    for row in rows:
-        sheet.append(row)
-    workbook.save(path)
+def write_syllabus(path, rows):
+    project = next((row.get("_project") for row in rows if row.get("_project")), "TEST")
+    clean_rows = [{key: value for key, value in row.items() if key != "_project"} for row in rows]
+    return write_adalove_workbook(path, clean_rows, project=project)
 
 
 class TestWorkbookAdapters:
-    @pytest.mark.skipif(
-        not WORKBOOK.exists(),
-        reason="local real-workbook smoke fixture is not versioned",
-    )
-    def test_real_21_column_workbook_becomes_lessons_with_sources(self):
-        parsed = parse_workbook(WORKBOOK)
-
-        assert parsed["format"] == "projetos-21"
-        assert parsed["workbook_title"] == "GRAD CC07 - 2026-2A"
-        assert parsed["lesson_count"] == 64
-        assert parsed["source_count"] == 130
-        assert sum(len(lesson["source_references"]) for lesson in parsed["lessons"]) == 130
-        database_lesson = next(
-            lesson
-            for lesson in parsed["lessons"]
-            if lesson["title"] == "Programação e Desenvolvimento de Banco de Dados"
-        )
-        assert database_lesson["subjects"] == [
-            "Arquitetura de banco de dados on premisse",
-            "Banco de dados relacional",
-            "Linguagem de criação e manipulação de dados",
-            "SQL Básico",
-        ]
-        assert "Tipos de ofertas de serviços na nuvem" in {
-            source["title"] for source in database_lesson["source_references"]
-        }
-        first_source = next(
-            source
-            for lesson in parsed["lessons"]
-            for source in lesson["source_references"]
-        )
-        assert set(first_source["fields"]) == set(PROJECT_COLUMNS)
-
-    def test_project_workbook_promotes_subjects_and_attaches_parent_sources(
-        self, tmp_path
-    ):
-        path = tmp_path / "project.xlsx"
-        write_project(
+    def test_full_fidelity_sheets_become_lessons_and_material_sources(self, tmp_path):
+        path = tmp_path / "adalove.xlsx"
+        write_syllabus(
             path,
             [
-                project_row(
+                syllabus_row(
                     title="Aula de arquitetura",
                     subjects="Arquitetura de nuvem\n,Modelos de serviço em nuvem",
                 ),
-                project_row(
-                    seq="2",
+                syllabus_row(
+                    seq=2,
                     title="Leitura de arquitetura",
-                    kind="Autoestudo",
+                    kind="Self-study",
                     parent="Aula de arquitetura",
-                    subjects="Metadado do autoestudo não curricular",
                     url="https://example.com/architecture",
+                    materials=[
+                        material(url="https://example.com/architecture", label="Artigo"),
+                        material(url="https://youtu.be/h4gw6gCP5ls", label="Vídeo", video=True),
+                    ],
                 ),
             ],
         )
@@ -183,151 +132,82 @@ class TestWorkbookAdapters:
             "Modelos de serviço em nuvem",
         ]
         assert [source["url"] for source in lesson["source_references"]] == [
-            "https://example.com/architecture"
+            "https://example.com/architecture",
+            "https://youtu.be/h4gw6gCP5ls",
         ]
+        assert lesson["activity_uuid"] == stable_uuid("activity", 1, 1)
+        assert lesson["folder_uuid"] == stable_uuid("folder", 1)
+        assert (lesson["week_order"], lesson["activity_order"]) == (1, 1)
+        assert lesson["source_references"][0]["parent_inference"] == "inferred_from_activity_order"
+        assert "adalove_order_audit" in lesson["fields"]
 
-    def test_project_workbook_translates_subjects_and_lesson_kinds(self, tmp_path):
-        path = tmp_path / "project-taxonomy.xlsx"
-        write_project(
+    def test_orientation_and_its_self_study_are_reported_and_dropped(self, tmp_path):
+        path = tmp_path / "orientation.xlsx"
+        write_syllabus(
             path,
             [
-                project_row(seq="1", title="Computação", subject="Computação"),
-                project_row(seq="2", title="Experiência", subject="User Experience"),
-                project_row(seq="3", title="Liderança", subject="Liderança"),
-                project_row(seq="4", title="Negócios", subject="Negócios"),
-                project_row(
-                    seq="5", title="Planejamento", kind="Encontro de orientação",
-                    subject=None,
+                syllabus_row(title="Aula", seq=1),
+                syllabus_row(
+                    title="Orientação", seq=2, kind="Orientation", subject=None
                 ),
-                project_row(
-                    seq="6", title="Entrega", kind="Desenvolvimento projeto",
-                    subject=None,
-                ),
-                project_row(
-                    seq="7", title="Avaliação", kind="Avaliação / pesquisa",
-                    subject=None,
+                syllabus_row(
+                    title="Material da orientação", seq=3, kind="Self-study",
+                    parent="Orientação", parent_order=2,
+                    url="https://example.com/orientation", subject=None,
                 ),
             ],
         )
 
         parsed = parse_workbook(path)
 
-        assert [lesson["subject"] for lesson in parsed["lessons"][:4]] == [
-            "COM", "UEX", "LID", "NEG",
+        assert [lesson["title"] for lesson in parsed["lessons"]] == ["Aula"]
+        assert parsed["dropped_summary"] == {
+            "orientation_count": 1,
+            "orientation_self_study_count": 1,
+            "total_count": 2,
+        }
+        assert [item["reason"] for item in parsed["dropped"]] == [
+            "orientation", "parent_orientation",
         ]
-        assert [lesson["kind"] for lesson in parsed["lessons"]] == [
-            "Class", "Class", "Class", "Class",
-            "Orientation", "Deliverable", "Evaluation",
-        ]
-        assert parsed["lessons"][0]["fields"]["Eixo"] == "Computação"
 
     @pytest.mark.parametrize(
-        ("row", "message"),
+        ("subject", "message"),
         [
-            (project_row(subject="Marketing"), "unsupported Eixo value 'Marketing'"),
-            (
-                project_row(kind="Workshop", subject=None),
-                "unsupported Tipo da atividade value 'Workshop'",
-            ),
-            (project_row(subject=None), "Eixo is required for a Class"),
+            ("Marketing", "COM Computação"),
+            ("SI", "MTF Matemática"),
         ],
     )
-    def test_project_workbook_rejects_unmapped_lesson_taxonomy(
-        self, tmp_path, row, message
+    def test_unknown_eixo_error_explains_the_column_and_every_accepted_value(
+        self, tmp_path, subject, message
     ):
-        path = tmp_path / "unmapped-project-taxonomy.xlsx"
-        write_project(path, [row])
+        path = tmp_path / "unmapped-subject.xlsx"
+        write_syllabus(path, [syllabus_row(subject=subject)])
 
         with pytest.raises(ValueError, match=message):
             parse_workbook(path)
 
-    def test_legacy_related_workbook_groups_self_study_under_lesson(self, tmp_path):
-        path = tmp_path / "legacy.xlsx"
-        write_legacy(
-            path,
-            [
-                legacy_row(title="Contabilidade de custos", seq=10),
-                legacy_row(
-                    kind="Self-study",
-                    title="Introdução aos custos",
-                    parent="Contabilidade de custos",
-                    seq=11,
-                    description="Leia as páginas 11 à 18.",
-                    url="https://philos.sophia.com.br/terminal/9418",
-                    code="9788522485048",
-                ),
-            ],
-        )
-
-        parsed = parse_workbook(path)
-
-        assert parsed["format"] == "related-16"
-        assert parsed["lesson_count"] == 1
-        lesson = parsed["lessons"][0]
-        assert lesson["title"] == "Contabilidade de custos"
-        assert lesson["subject"] == "NEG"
-        assert lesson["lesson_date"].isoformat() == "2026-08-06"
-        source = lesson["source_references"][0]
-        assert source["media_type"] == "book"
-        assert source["resource_code"] == "9788522485048"
-        assert source["scope_kind"] == "pages"
-        assert source["scope_value"] == "11-18"
-
-    def test_related_workbook_with_aggregate_and_subject_sheets_prefers_all(self, tmp_path):
-        path = tmp_path / "related-multisheet.xlsx"
+    def test_workbook_without_full_fidelity_sheets_is_rejected(self, tmp_path):
+        path = tmp_path / "incomplete.xlsx"
         workbook = Workbook()
-        all_sheet = workbook.active
-        all_sheet.title = "All"
-        all_sheet.append(LEGACY_COLUMNS)
-        all_sheet.append(legacy_row(title="Aula agregada"))
-        all_sheet.append(
-            legacy_row(
-                seq=2,
-                kind="Self-study",
-                title="Fonte agregada",
-                parent="Aula agregada",
-                url="https://example.com/all",
-            )
-        )
-        subject_sheet = workbook.create_sheet("NEG")
-        subject_sheet.append(LEGACY_COLUMNS)
-        subject_sheet.append(legacy_row(title="Aula da matéria"))
+        workbook.active.title = "Summary"
+        workbook.active.append(("Week", "Activity"))
         workbook.save(path)
+        workbook.close()
 
-        parsed = parse_workbook(path)
-
-        assert parsed["format"] == "related-16"
-        assert parsed["lesson_count"] == 1
-        assert parsed["source_count"] == 1
-        assert parsed["lessons"][0]["title"] == "Aula agregada"
-
-    def test_unknown_parent_is_a_clear_input_error(self, tmp_path):
-        path = tmp_path / "orphan.xlsx"
-        write_project(
-            path,
-            [
-                project_row(),
-                project_row(
-                    seq="2",
-                    title="Reading",
-                    kind="Autoestudo",
-                    parent="Missing lesson",
-                    url="https://example.com",
-                ),
-            ],
-        )
-
-        with pytest.raises(ValueError, match="refers to unknown lesson"):
+        with pytest.raises(ValueError, match="Faltam estas abas: Activities"):
             parse_workbook(path)
 
-    def test_missing_required_columns_names_them(self, tmp_path):
-        path = tmp_path / "invalid.xlsx"
-        workbook = Workbook()
-        sheet = workbook.active
-        sheet.append(["Mystery", "URL"])
+    def test_order_audit_duplicate_is_actionable(self, tmp_path):
+        path = tmp_path / "duplicate-order.xlsx"
+        write_syllabus(path, [syllabus_row()])
+        workbook = load_workbook(path)
+        sheet = workbook["Order audit"]
+        headers = [cell.value for cell in sheet[1]]
+        sheet.cell(2, headers.index("Duplicate order key") + 1, "yes")
         workbook.save(path)
+        workbook.close()
 
-        with pytest.raises(ValueError, match="unsupported syllabus workbook"):
+        with pytest.raises(ValueError, match="chave '1:1' como duplicada"):
             parse_workbook(path)
 
 
@@ -430,7 +310,7 @@ class TestSourceIdentity:
 class TestVersionedImport:
     def test_new_named_import_requires_durable_metadata_by_default(self, db, tmp_path):
         path = tmp_path / "requires-metadata.xlsx"
-        write_project(path, [project_row(project="Metadata required")])
+        write_syllabus(path, [syllabus_row(project="Metadata required")])
 
         with pytest.raises(ValueError, match="instituição"):
             import_workbook(db, path, "Metadata required")
@@ -441,10 +321,10 @@ class TestVersionedImport:
 
     def test_name_is_manual_and_uploaded_xlsx_is_retained_exactly(self, db, tmp_path):
         path = tmp_path / "input.xlsx"
-        write_project(
+        write_syllabus(
             path,
             [
-                project_row(
+                syllabus_row(
                     project="DO NOT USE AS NAME",
                     subjects="Arquitetura de nuvem\n,Modelos de serviço em nuvem",
                 )
@@ -474,9 +354,46 @@ class TestVersionedImport:
             "subjects"
         ] == ["Arquitetura de nuvem", "Modelos de serviço em nuvem"]
 
+    def test_import_reports_orientations_that_were_not_stored(self, db, tmp_path):
+        path = tmp_path / "dropped-orientations.xlsx"
+        write_syllabus(
+            path,
+            [
+                syllabus_row(title="Aula", seq=1),
+                syllabus_row(
+                    title="Orientação", seq=2, kind="Orientation", subject=None
+                ),
+                syllabus_row(
+                    title="Material da orientação",
+                    seq=3,
+                    kind="Self-study",
+                    parent="Orientação",
+                    parent_order=2,
+                    url="https://example.com/orientation",
+                    subject=None,
+                ),
+            ],
+        )
+
+        result = import_workbook(
+            db, path, "Orientation drop report", require_syllabus_metadata=False
+        )
+
+        assert result["dropped_summary"] == {
+            "orientation_count": 1,
+            "orientation_self_study_count": 1,
+            "total_count": 2,
+        }
+        assert result["lesson_count"] == 1
+        assert result["reference_count"] == 0
+        assert [
+            lesson["title"]
+            for lesson in get_syllabus_version(db, result["syllabus_id"])["lessons"]
+        ] == ["Aula"]
+
     def test_same_file_is_idempotent_within_one_syllabus(self, db, tmp_path):
         path = tmp_path / "same.xlsx"
-        write_project(path, [project_row(project="UNRELATED")])
+        write_syllabus(path, [syllabus_row(project="UNRELATED")])
 
         first = import_workbook(
             db, path, "Idempotent syllabus", require_syllabus_metadata=False
@@ -497,8 +414,8 @@ class TestVersionedImport:
         self, db, tmp_path
     ):
         path = tmp_path / "reused-source.xlsx"
-        lesson = project_row(project="IGNORED")
-        source = project_row(
+        lesson = syllabus_row(project="IGNORED")
+        source = syllabus_row(
             project="IGNORED",
             seq="2",
             title="Assigned article",
@@ -506,13 +423,13 @@ class TestVersionedImport:
             parent="Lesson",
             url="https://example.com/reused",
         )
-        write_project(path, [lesson, source])
+        write_syllabus(path, [lesson, source])
         first = import_workbook(
             db, path, "Reused source syllabus", require_syllabus_metadata=False
         )
 
-        source[5] = "Description changed without changing source identity"
-        write_project(path, [lesson, source])
+        source["Description"] = "Description changed without changing source identity"
+        write_syllabus(path, [lesson, source])
         second = import_workbook(
             db, path, "Reused source syllabus", require_syllabus_metadata=False
         )
@@ -537,7 +454,7 @@ class TestVersionedImport:
         )
         db.commit()
         path = tmp_path / "curation-id.xlsx"
-        write_project(path, [project_row(project="IGNORED")])
+        write_syllabus(path, [syllabus_row(project="IGNORED")])
 
         result = import_workbook(
             db, path, "Strict curation id syllabus", require_syllabus_metadata=False
@@ -552,8 +469,8 @@ class TestVersionedImport:
 
     def test_latest_and_history_are_full_immutable_versions(self, db, tmp_path):
         path = tmp_path / "versions.xlsx"
-        lesson = project_row(project="IGNORED")
-        source = project_row(
+        lesson = syllabus_row(project="IGNORED")
+        source = syllabus_row(
             project="IGNORED",
             seq="2",
             title="Assigned article",
@@ -561,15 +478,18 @@ class TestVersionedImport:
             parent="Lesson",
             url="https://example.com/v1",
         )
-        write_project(path, [lesson, source])
+        write_syllabus(path, [lesson, source])
         first = import_workbook(
             db, path, "Versioned syllabus", require_syllabus_metadata=False
         )
         first_view = get_syllabus_version(db, first["syllabus_id"])
 
-        source[12] = "https://example.com/v2"
-        source[5] = "Changed description"
-        write_project(path, [lesson, source])
+        source["Primary URL"] = "https://example.com/v2"
+        source["_materials"] = [
+            material(url="https://example.com/v2", label="Assigned article")
+        ]
+        source["Description"] = "Changed description"
+        write_syllabus(path, [lesson, source])
         second = import_workbook(
             db, path, "Versioned syllabus", require_syllabus_metadata=False
         )
@@ -585,8 +505,8 @@ class TestVersionedImport:
 
     def test_removed_reference_is_hidden_latest_but_source_and_artifact_survive(self, db, tmp_path):
         path = tmp_path / "removal.xlsx"
-        lesson = project_row(project="IGNORED")
-        source = project_row(
+        lesson = syllabus_row(project="IGNORED")
+        source = syllabus_row(
             project="IGNORED",
             seq="2",
             title="Assigned article",
@@ -594,7 +514,7 @@ class TestVersionedImport:
             parent="Lesson",
             url="https://example.com/lasting",
         )
-        write_project(path, [lesson, source])
+        write_syllabus(path, [lesson, source])
         first = import_workbook(
             db, path, "Removal syllabus", require_syllabus_metadata=False
         )
@@ -611,7 +531,7 @@ class TestVersionedImport:
         )
         db.commit()
 
-        write_project(path, [lesson])
+        write_syllabus(path, [lesson])
         import_workbook(
             db, path, "Removal syllabus", require_syllabus_metadata=False
         )
@@ -625,11 +545,11 @@ class TestVersionedImport:
     def test_sophia_gateway_mints_distinct_sources_by_code_and_scope(self, db, tmp_path):
         path = tmp_path / "books.xlsx"
         gateway = "https://philos.sophia.com.br/terminal/9418"
-        write_legacy(
+        write_syllabus(
             path,
             [
-                legacy_row(title="Books lesson"),
-                legacy_row(
+                syllabus_row(title="Books lesson"),
+                syllabus_row(
                     seq=2,
                     kind="Self-study",
                     title="Book A",
@@ -638,7 +558,7 @@ class TestVersionedImport:
                     url=gateway,
                     code="9780000000001",
                 ),
-                legacy_row(
+                syllabus_row(
                     seq=3,
                     kind="Self-study",
                     title="Book B",
@@ -647,7 +567,7 @@ class TestVersionedImport:
                     url=gateway,
                     code="9780000000002",
                 ),
-                legacy_row(
+                syllabus_row(
                     seq=4,
                     kind="Self-study",
                     title="Book A later",
@@ -671,11 +591,11 @@ class TestVersionedImport:
     def test_book_without_scope_remains_visible_without_source(self, db, tmp_path):
         path = tmp_path / "incomplete-book.xlsx"
         gateway = "https://philos.sophia.com.br/terminal/9418"
-        write_legacy(
+        write_syllabus(
             path,
             [
-                legacy_row(title="Books lesson"),
-                legacy_row(
+                syllabus_row(title="Books lesson"),
+                syllabus_row(
                     seq=2,
                     kind="Self-study",
                     title="Book without scope",
@@ -699,13 +619,13 @@ class TestVersionedImport:
 
 
 class TestSyllabusCuration:
-    def _import_related(self, db, tmp_path):
+    def _import_editable(self, db, tmp_path):
         path = tmp_path / "editable.xlsx"
-        write_legacy(
+        write_syllabus(
             path,
             [
-                legacy_row(title="Aula editável", description="Descrição original"),
-                legacy_row(
+                syllabus_row(title="Aula editável", description="Descrição original"),
+                syllabus_row(
                     seq=2,
                     kind="Self-study",
                     title="Fonte A",
@@ -713,7 +633,7 @@ class TestSyllabusCuration:
                     description="Descrição A",
                     url="https://example.com/a",
                 ),
-                legacy_row(
+                syllabus_row(
                     seq=3,
                     kind="Self-study",
                     title="Fonte B",
@@ -728,7 +648,7 @@ class TestSyllabusCuration:
         )
 
     def test_editor_authors_new_complete_version_and_preserves_old_facts(self, db, tmp_path):
-        imported = self._import_related(db, tmp_path)
+        imported = self._import_editable(db, tmp_path)
         before = get_syllabus_version(db, imported["syllabus_id"])
         source_a = before["lessons"][0]["sources"][0]
         source_b = before["lessons"][0]["sources"][1]
@@ -792,7 +712,7 @@ class TestSyllabusCuration:
         assert db.execute("SELECT count(*) FROM source WHERE id = %s", (source_a["source_id"],)).fetchone()[0] == 1
 
     def test_curated_xlsx_round_trips_order_edits_and_visibility(self, db, tmp_path):
-        imported = self._import_related(db, tmp_path)
+        imported = self._import_editable(db, tmp_path)
         before = get_syllabus_version(db, imported["syllabus_id"])
         sources = before["lessons"][0]["sources"]
         payload = [
@@ -828,7 +748,7 @@ class TestSyllabusCuration:
 
         parsed = parse_workbook(exported)
 
-        assert parsed["format"] == "related-16"
+        assert parsed["format"] == "adalove-observer"
         assert parsed["lessons"][0]["subjects"] == [
             "Custos fixos",
             "Rentabilidade, ROI, EBITDA",
@@ -841,7 +761,7 @@ class TestSyllabusCuration:
         assert parsed["lessons"][0]["source_references"][1]["is_hidden"] is False
 
     def test_stale_editor_cannot_overwrite_a_newer_version(self, db, tmp_path):
-        imported = self._import_related(db, tmp_path)
+        imported = self._import_editable(db, tmp_path)
         before = get_syllabus_version(db, imported["syllabus_id"])
         lesson = before["lessons"][0]
         payload = [{
@@ -862,7 +782,7 @@ class TestSyllabusCuration:
             )
 
     def test_saving_an_unchanged_projection_does_not_mint_noise_version(self, db, tmp_path):
-        imported = self._import_related(db, tmp_path)
+        imported = self._import_editable(db, tmp_path)
         before = get_syllabus_version(db, imported["syllabus_id"])
         history_before = get_syllabus_history(db, imported["syllabus_id"])["versions"]
         payload = []

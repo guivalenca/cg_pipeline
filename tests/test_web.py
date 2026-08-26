@@ -9,11 +9,11 @@ from pathlib import Path
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 from psycopg.types.json import Jsonb
 
 from universe.assets import LocalAssetStore
-from universe.syllabus import PROJECT_COLUMNS
+from adalove_workbook import activity, write_adalove_workbook
 from universe.web import app as web_app
 from universe.web.acquisition_app import _markdown_renderer
 from universe.web.app import (
@@ -116,35 +116,25 @@ def _workbook(
     source_url: str = "https://example.com/material",
     source_description: str = "Uma descrição útil.",
 ) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-
-    def row(**values):
-        sheet.append([values.get(column) for column in PROJECT_COLUMNS])
-
-    row(
-        Projeto=project,
-        Semana="Semana 01",
-        Ordem="1",
-        Atividade=lesson,
-        **{"Tipo da atividade": "Encontro", "Eixo": subject},
+    lesson_row = activity(
+        title=lesson,
+        kind="Class",
+        week=1,
+        order=1,
+        subject=subject,
     )
-    row(
-        Projeto=project,
-        Semana="Semana 01",
-        Ordem="2",
-        Atividade=source_title,
-        **{
-            "Tipo da atividade": "Autoestudo",
-            "Descrição da atividade": source_description,
-            "URL": source_url,
-            "Encontro pai": lesson,
-        },
+    source_row = activity(
+        title=source_title,
+        kind="Self-study",
+        week=1,
+        order=2,
+        parent_uuid=lesson_row["Activity UUID"],
+        parent_title=lesson,
+        subject=subject,
+        description=source_description,
+        url=source_url,
     )
-    workbook.save(path)
-    return path
+    return write_adalove_workbook(path, [lesson_row, source_row], project=project)
 
 
 def _upload(
@@ -605,7 +595,7 @@ def test_editor_api_saves_new_version_with_hidden_added_and_reordered_sources(
         assert workbook.status_code == 200
         assert workbook.content.startswith(b"PK")
         exported = load_workbook(BytesIO(workbook.content), read_only=True)
-        sheet = exported["Projetos"]
+        sheet = exported["Activities"]
         rows = sheet.iter_rows()
         headers = [cell.value for cell in next(rows)]
         lesson_row = [cell.value for cell in next(rows)]
