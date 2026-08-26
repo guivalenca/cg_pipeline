@@ -413,6 +413,11 @@ def test_second_new_upload_with_same_name_is_blocked_as_an_existing_syllabus(
                 "title": name,
                 "graph_id": f"graph-web-inteli-{first.json()['syllabus_id']}",
             },
+            "syllabus_id_owner": {
+                "id": first.json()["syllabus_id"],
+                "title": name,
+                "graph_id": f"graph-web-inteli-{first.json()['syllabus_id']}",
+            },
             "graph_owner": {
                 "id": first.json()["syllabus_id"],
                 "title": name,
@@ -434,6 +439,97 @@ def test_second_new_upload_with_same_name_is_blocked_as_an_existing_syllabus(
         }
         detail = client.get(f"/api/syllabi/{first.json()['syllabus_id']}").json()
         assert len(detail["versions"]) == 1
+
+
+def test_graph_id_proposal_finds_an_exact_historical_title_independently_of_its_id(
+    test_database_url, applied_migrations, tmp_path
+):
+    marker = uuid.uuid4().hex[:8]
+    name = f"Historical syllabus {marker}"
+    historical_id = f"historical-{marker}"
+    historical_graph_id = f"graph-web-inteli-historical-{marker}"
+    with psycopg.connect(test_database_url) as conn:
+        conn.execute(
+            "INSERT INTO syllabus (id, title, graph_id) VALUES (%s, %s, %s)",
+            (historical_id, name, historical_graph_id),
+        )
+
+    with TestClient(_app(test_database_url)) as client:
+        proposal = client.get(
+            "/api/syllabi/graph-id-proposal",
+            params={"institution_id": "web-inteli", "name": name},
+        )
+        path = _workbook(
+            tmp_path / "historical-title.xlsx", project="Project", lesson="Aula"
+        )
+        submission = _upload(client, path, name)
+
+    assert proposal.status_code == 200, proposal.text
+    assert proposal.json()["existing_syllabus"] == {
+        "id": historical_id,
+        "title": name,
+        "graph_id": historical_graph_id,
+    }
+    assert submission.status_code == 409
+    assert submission.json()["detail"] == {
+        "code": "syllabus_already_exists",
+        "message": (
+            "Este nome já existe. Você está adicionando uma versão a esse syllabus."
+        ),
+        "syllabus_id": historical_id,
+        "graph_id": historical_graph_id,
+    }
+
+
+@pytest.mark.parametrize("has_stored_graph_id", [True, False])
+def test_graph_id_proposal_reports_a_different_owner_of_the_normalized_id(
+    test_database_url, applied_migrations, has_stored_graph_id, tmp_path
+):
+    marker = uuid.uuid4().hex[:8]
+    existing_name = f"Math 101 {marker}"
+    colliding_name = f"Math-101-{marker}"
+    syllabus_id = f"math-101-{marker}"
+    stored_graph_id = (
+        f"graph-web-other-{syllabus_id}" if has_stored_graph_id else None
+    )
+    with psycopg.connect(test_database_url) as conn:
+        conn.execute(
+            "INSERT INTO institution (id, name) VALUES ('web-other', 'Other')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        conn.execute(
+            "INSERT INTO syllabus (id, title, institution_id, graph_id)"
+            " VALUES (%s, %s, 'web-other', %s)",
+            (syllabus_id, existing_name, stored_graph_id),
+        )
+
+    with TestClient(_app(test_database_url)) as client:
+        proposal = client.get(
+            "/api/syllabi/graph-id-proposal",
+            params={"institution_id": "web-inteli", "name": colliding_name},
+        )
+        path = _workbook(
+            tmp_path / "occupied-syllabus-id.xlsx", project="Project", lesson="Aula"
+        )
+        submission = _upload(client, path, colliding_name)
+
+    assert proposal.status_code == 200, proposal.text
+    assert proposal.json()["existing_syllabus"] is None
+    assert proposal.json()["syllabus_id_owner"] == {
+        "id": syllabus_id,
+        "title": existing_name,
+        "graph_id": stored_graph_id,
+    }
+    proposed_graph_id = f"graph-web-inteli-{syllabus_id}"
+    assert submission.status_code == 409
+    assert submission.json()["detail"] == {
+        "code": "graph_id_conflict",
+        "message": (
+            "Este ID já está em uso no Companion. "
+            "Escolha outro nome para o syllabus."
+        ),
+        "graph_id": proposed_graph_id,
+    }
 
 
 def test_graph_id_proposal_treats_a_different_name_with_the_same_slug_as_occupied(
@@ -462,6 +558,11 @@ def test_graph_id_proposal_treats_a_different_name_with_the_same_slug_as_occupie
         "display_name": colliding_name,
         "graph_id": graph_id,
         "existing_syllabus": None,
+        "syllabus_id_owner": {
+            "id": created.json()["syllabus_id"],
+            "title": existing_name,
+            "graph_id": graph_id,
+        },
         "graph_owner": {
             "id": created.json()["syllabus_id"],
             "title": existing_name,

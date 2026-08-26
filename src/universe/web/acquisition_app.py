@@ -1372,7 +1372,12 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         with connect_factory() as conn:
-            existing = conn.execute(
+            exact_title = conn.execute(
+                "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
+                " ORDER BY created_at, id LIMIT 1",
+                (clean_name,),
+            ).fetchone()
+            syllabus_id_owner = conn.execute(
                 "SELECT id, title, graph_id FROM syllabus WHERE id = %s",
                 (syllabus_id,),
             ).fetchone()
@@ -1388,9 +1393,8 @@ def create_app(
         return {
             "display_name": clean_name,
             "graph_id": graph_id,
-            "existing_syllabus": serialize(
-                existing if existing is not None and existing[1] == clean_name else None
-            ),
+            "existing_syllabus": serialize(exact_title),
+            "syllabus_id_owner": serialize(syllabus_id_owner),
             "graph_owner": serialize(graph_owner),
         }
 

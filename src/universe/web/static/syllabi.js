@@ -1790,7 +1790,8 @@ async function refreshGraphProposal() {
       });
       return;
     }
-    const occupied = body.graph_owner
+    const occupied = body.syllabus_id_owner
+      || body.graph_owner
       || state.catalog.graphIds.includes(state.upload.proposedGraphId);
     if (occupied) {
       showGraphConflict({ graph_id: state.upload.proposedGraphId });

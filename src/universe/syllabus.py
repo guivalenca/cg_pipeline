@@ -730,6 +730,15 @@ def import_workbook(
     ).fetchone()
     syllabus_exists = stored is not None
     creation_requested = require_syllabus_metadata and syllabus_id is None
+    exact_title = (
+        conn.execute(
+            "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
+            " ORDER BY created_at, id LIMIT 1",
+            (name,),
+        ).fetchone()
+        if creation_requested
+        else None
+    )
     clean_institution_id = str(institution_id or "").strip()
     if syllabus_exists and not clean_institution_id:
         clean_institution_id = stored[1] or ""
@@ -744,6 +753,10 @@ def import_workbook(
             raise ValueError("Selecione uma instituição existente no Companion.")
     if clean_institution_id:
         resolved_id = validate_syllabus_id(resolved_id)
+    if exact_title is not None:
+        raise SyllabusAlreadyExists(exact_title[0], exact_title[1], exact_title[2])
+    if creation_requested and syllabus_exists:
+        raise GraphIdConflict(graph_id_for(clean_institution_id, name))
     resolved_graph_id = (stored[2] or "") if syllabus_exists else ""
     if not resolved_graph_id and clean_institution_id:
         resolved_graph_id = graph_id_for(clean_institution_id, name)
