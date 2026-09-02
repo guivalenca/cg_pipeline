@@ -63,10 +63,13 @@ pipeline. Start it locally with:
 
     python serve.py
 
-Then open `http://127.0.0.1:8100`. Uploading a workbook requires a human name,
-stores the original XLSX and an immutable parsed version, and **does not queue
-any source**. From a Syllabus version, the operator explicitly queues one
-Source at a time. A successful acquisition creates a successful
+Then open `http://127.0.0.1:8100`. Uploading a workbook requires a human name
+and a full-fidelity Adalove observer export produced by
+`tools/adalove_observer_export.js`. Compatibility and legacy workbook shapes
+are rejected. The intake stores the original XLSX and an immutable parsed
+version, drops orientations and their self-studies, reports those drops, and
+**does not queue any source**. From a Syllabus version, the operator explicitly
+queues one Source at a time. A successful acquisition creates a successful
 `source_snapshot` and an `artifact(kind = 'markdown')`, then stops. It does not
 automatically create Blocks, Passages, Tasks, statements, or KCs. Markdown and
 KC progress are therefore displayed independently. This boundary is fixed in
@@ -75,9 +78,20 @@ the same Source can instead be acquired from one uploaded PDF or an explicitly
 ordered set of images (ADR 0013); this is a new acquisition attempt, not a new
 Source or a Syllabus edit.
 
+Creating a Syllabus reads only Companion's Institution slugs/names and occupied
+graph ids through the sibling repository. The graph id is generated from the
+chosen Institution and Syllabus name; Lesson Subject names/codes come from the
+workbook. Course and Group never cross this seam. The repository also has an
+adapter for checking a finished graph package with Companion's runtime loader,
+but production code does not call it yet. The planned export button will wire
+that check before it presents a package as exportable. If the sibling
+repository uses a different database or Python executable, set the optional
+`COMPANION_*` values in `.env.example`.
+
 The same operations are available without the browser:
 
-    python -m universe.syllabus import path/to/syllabus.xlsx --name "SI module 7"
+    python -m universe.syllabus import path/to/syllabus.xlsx \
+      --name "SI module 7" --institution-id inteli
     python -m universe.syllabus list
     python -m universe.acquisition enqueue SOURCE_ID
     python -m universe.acquisition work
@@ -287,8 +301,9 @@ Reconciliation Scope still freezes publications as described above.
 `http://127.0.0.1:8100`. The rich Syllabus surface owns version review,
 source acquisition, Markdown publication and manual PDF/image fallback. The
 same process also preserves the overview and attention queue, organizational
-structure, per-source pipeline progress, universe graph, and run ledger from
-the KC dashboard. Static pages require no frontend build step.
+labels on historical records, per-source pipeline progress, universe graph,
+and run ledger from the KC dashboard. Static pages require no frontend build
+step.
 
 `report` and `compare` write self-contained HTML into `reports/`, which is
 git-ignored because it is regenerable from the database. Historical judge

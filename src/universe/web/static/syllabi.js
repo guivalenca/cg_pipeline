@@ -16,7 +16,11 @@ const state = {
   reviewBusyReferenceIds: new Set(),
   editor: { active: false, busy: false, dirty: false, lessons: null, targetLessonId: null, note: '' },
   versionDialog: { mode: 'history', trigger: null, error: null },
-  upload: { mode: 'new', syllabusId: null, busy: false },
+  upload: {
+    mode: 'new', syllabusId: null, busy: false,
+    identityStatus: 'idle', proposedGraphId: '', proposalToken: 0,
+  },
+  catalog: { institutions: [], graphIds: [], loaded: false, loading: false, error: null },
   reconciliation: null,
   reconciliationCleanup: null,
   manualUpload: { sourceId: null, title: '', kind: null, items: [], busy: false },
@@ -83,6 +87,38 @@ const ICON = {
 
 function announce(message) {
   $('[data-status]').textContent = message || '';
+}
+
+function intakeDropNote(summary) {
+  const dropped = summary || {};
+  if (!dropped.total_count) return '';
+  const parts = [
+    `${dropped.orientation_count || 0} orientações`,
+    `${dropped.orientation_self_study_count || 0} autoestudos ligados a orientações`,
+  ];
+  if (dropped.no_parent_count) parts.push(`${dropped.no_parent_count} autoestudos sem aula anterior na semana`);
+  return ` O intake descartou ${parts.slice(0, -1).join(', ')} e ${parts[parts.length - 1]}.`;
+}
+
+const INTAKE_NOTE_KEY = 'syllabus-intake-note:';
+
+function storeIntakeNote(syllabusId, message) {
+  try {
+    window.sessionStorage.setItem(`${INTAKE_NOTE_KEY}${syllabusId}`, message);
+  } catch {
+    // Storage may be unavailable; the note was already announced on this page.
+  }
+}
+
+function announceStoredIntakeNote(syllabusId) {
+  let message = null;
+  try {
+    message = window.sessionStorage.getItem(`${INTAKE_NOTE_KEY}${syllabusId}`);
+    window.sessionStorage.removeItem(`${INTAKE_NOTE_KEY}${syllabusId}`);
+  } catch {
+    return;
+  }
+  if (message) announce(message);
 }
 
 function fmtDate(value, withTime = false) {
@@ -248,6 +284,17 @@ function scopeLabel(source) {
     pages: 'Páginas', chapters: 'Capítulos', units: 'Unidades', exercises: 'Exercícios',
   };
   return `${names[scope.kind] || scope.kind} ${scope.value}`;
+}
+
+function parentInferenceLabel(source) {
+  const inference = String(source.parent_inference || '').trim();
+  if (!inference) return null;
+  const labels = {
+    inferred_from_activity_order: 'Pai inferido pela ordem da atividade',
+    inferred_from_display_order: 'Pai inferido pela ordem exibida',
+    curated_explicit_parent: 'Pai definido na curadoria',
+  };
+  return labels[inference] || `Vínculo do pai: ${inference}`;
 }
 
 function versionsOf(detail) {
@@ -751,7 +798,7 @@ function sourceMarkup(source) {
   // is no longer an actionable problem for this source. Keep the fallback
   // upload action visible, but do not contradict the successful outcome.
   const adapterNotice = !markdownReady && !capability.supported ? capability.reason : null;
-  const meta = [scopeLabel(source)].filter(Boolean);
+  const meta = [scopeLabel(source), parentInferenceLabel(source)].filter(Boolean);
   const bookCode = source.resource_code ? String(source.resource_code) : '';
   return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
     <div class="syl-source__main">
@@ -1630,27 +1677,235 @@ async function loadReconciliation(reconciliationId) {
   }
 }
 
+function renderUploadCatalog() {
+  const select = uploadForm.elements.institution_id;
+  const error = $('[data-catalog-error]');
+  if (state.catalog.error) {
+    select.innerHTML = '<option value="">Não foi possível carregar</option>';
+    select.disabled = true;
+    error.textContent = `Não foi possível carregar o cadastro: ${state.catalog.error}`;
+    return;
+  }
+  const institutions = state.catalog.institutions;
+  if (!institutions.length) {
+    select.innerHTML = '<option value="">Nenhuma instituição cadastrada</option>';
+    select.disabled = true;
+    error.textContent = 'O Companion não retornou nenhuma instituição.';
+    return;
+  }
+  select.innerHTML = `<option value="">Selecione a instituição</option>${institutions.map((institution) => (
+    `<option value="${esc(institution.slug)}">${esc(institution.name)}</option>`
+  )).join('')}`;
+  select.disabled = false;
+  error.textContent = '';
+}
+
+async function loadUploadCatalog() {
+  if (state.catalog.loaded) {
+    renderUploadCatalog();
+    scheduleGraphProposal();
+    return;
+  }
+  if (state.catalog.loading) return;
+  state.catalog.loading = true;
+  const select = uploadForm.elements.institution_id;
+  select.innerHTML = '<option value="">Carregando instituições…</option>';
+  select.disabled = true;
+  try {
+    const response = await fetch('/api/companion/graph-namespace', { headers: { Accept: 'application/json' } });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    state.catalog.institutions = body.institutions || [];
+    state.catalog.graphIds = body.graph_ids || [];
+    state.catalog.error = null;
+    state.catalog.loaded = true;
+  } catch (error) {
+    state.catalog.error = error.message;
+  } finally {
+    state.catalog.loading = false;
+    if (state.upload.mode === 'new' && uploadDialog.open) {
+      renderUploadCatalog();
+      scheduleGraphProposal();
+    }
+  }
+}
+
+let graphProposalTimer = null;
+
+function hideIdentityConflicts() {
+  $('[data-graph-conflict]').hidden = true;
+  $('[data-syllabus-conflict]').hidden = true;
+}
+
+function renderUploadSubmitState() {
+  const submit = $('[data-upload-submit]');
+  const isVersion = state.upload.mode === 'version';
+  submit.disabled = state.upload.busy || (!isVersion && state.upload.identityStatus !== 'verified');
+  if (state.upload.busy) {
+    submit.textContent = isVersion ? 'Comparando…' : 'Registrando…';
+  } else {
+    submit.textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
+  }
+}
+
+function setGraphIdentityStatus(statusName, message = '') {
+  state.upload.identityStatus = statusName;
+  const status = $('[data-graph-id-status]');
+  status.hidden = !message;
+  status.textContent = message;
+  status.dataset.state = statusName;
+  renderUploadSubmitState();
+}
+
+function resetGraphIdentity() {
+  if (graphProposalTimer) window.clearTimeout(graphProposalTimer);
+  graphProposalTimer = null;
+  state.upload.proposalToken += 1;
+  state.upload.proposedGraphId = '';
+  $('[data-graph-preview]').hidden = true;
+  $('[data-graph-display-name]').textContent = '';
+  $('[data-proposed-graph-id]').textContent = '';
+  hideIdentityConflicts();
+  setGraphIdentityStatus('idle');
+}
+
+function showGraphConflict(detail) {
+  $('[data-syllabus-conflict]').hidden = true;
+  const conflict = $('[data-graph-conflict]');
+  const graphId = String(detail?.graph_id || '').trim();
+  if (graphId) {
+    state.upload.proposedGraphId = graphId;
+    $('[data-proposed-graph-id]').textContent = graphId;
+    $('[data-graph-preview]').hidden = false;
+  }
+  setGraphIdentityStatus('conflict');
+  conflict.hidden = false;
+  conflict.scrollIntoView({ block: 'nearest' });
+}
+
+function showSyllabusConflict(detail) {
+  $('[data-graph-conflict]').hidden = true;
+  const conflict = $('[data-syllabus-conflict]');
+  const syllabusId = String(detail?.syllabus_id || detail?.id || '').trim();
+  $('[data-open-existing]').href = `/syllabi?id=${encodeURIComponent(syllabusId)}`;
+  setGraphIdentityStatus('conflict');
+  conflict.hidden = false;
+  conflict.scrollIntoView({ block: 'nearest' });
+}
+
+async function refreshGraphProposal() {
+  if (state.upload.mode !== 'new' || !uploadDialog.open) return;
+  const name = String(uploadForm.elements.name.value || '').trim();
+  const institutionId = String(uploadForm.elements.institution_id.value || '').trim();
+  const preview = $('[data-graph-preview]');
+  hideIdentityConflicts();
+  if (!name || !institutionId) {
+    state.upload.proposedGraphId = '';
+    preview.hidden = true;
+    setGraphIdentityStatus('idle');
+    return;
+  }
+  const token = ++state.upload.proposalToken;
+  try {
+    const query = new URLSearchParams({ institution_id: institutionId, name });
+    const response = await fetch(`/api/syllabi/graph-id-proposal?${query}`, {
+      headers: { Accept: 'application/json' },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (token !== state.upload.proposalToken) return;
+    if (!response.ok && response.status === 422) {
+      preview.hidden = false;
+      $('[data-graph-display-name]').textContent = name;
+      $('[data-proposed-graph-id]').textContent = 'Continue digitando…';
+      setGraphIdentityStatus('error', 'Continue digitando para gerar um ID válido.');
+      return;
+    }
+    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    state.upload.proposedGraphId = String(body.graph_id || '');
+    $('[data-graph-display-name]').textContent = body.display_name || name;
+    $('[data-proposed-graph-id]').textContent = state.upload.proposedGraphId;
+    preview.hidden = false;
+    if (body.existing_syllabus) {
+      showSyllabusConflict({
+        ...body.existing_syllabus,
+        syllabus_id: body.existing_syllabus.id,
+        title: body.existing_syllabus.title,
+      });
+      return;
+    }
+    const occupied = body.syllabus_id_owner
+      || body.graph_owner
+      || state.catalog.graphIds.includes(state.upload.proposedGraphId);
+    if (occupied) {
+      showGraphConflict({ graph_id: state.upload.proposedGraphId });
+      return;
+    }
+    setGraphIdentityStatus('verified', 'ID verificado e disponível.');
+  } catch (error) {
+    if (token !== state.upload.proposalToken) return;
+    preview.hidden = false;
+    $('[data-graph-display-name]').textContent = name;
+    $('[data-proposed-graph-id]').textContent = 'Não foi possível calcular';
+    setGraphIdentityStatus('error', 'Não foi possível verificar o ID.');
+    $('[data-upload-error]').textContent = `Não foi possível gerar o graph ID: ${error.message}`;
+  }
+}
+
+function scheduleGraphProposal({ resetManual = false } = {}) {
+  if (resetManual) {
+    const name = String(uploadForm.elements.name.value || '').trim();
+    const institutionId = String(uploadForm.elements.institution_id.value || '').trim();
+    state.upload.proposalToken += 1;
+    state.upload.proposedGraphId = '';
+    $('[data-graph-preview]').hidden = !name || !institutionId;
+    $('[data-graph-display-name]').textContent = name;
+    $('[data-proposed-graph-id]').textContent = name && institutionId ? 'Calculando…' : '';
+    hideIdentityConflicts();
+    setGraphIdentityStatus(
+      name && institutionId ? 'calculating' : 'idle',
+      name && institutionId ? 'Calculando e verificando o ID…' : '',
+    );
+  }
+  if (graphProposalTimer) window.clearTimeout(graphProposalTimer);
+  graphProposalTimer = window.setTimeout(refreshGraphProposal, 120);
+}
+
 function openUpload(mode) {
-  state.upload = { mode, syllabusId: mode === 'version' ? routeId : null, busy: false };
+  state.upload = {
+    mode,
+    syllabusId: mode === 'version' ? routeId : null,
+    busy: false,
+    identityStatus: 'idle',
+    proposedGraphId: '',
+    proposalToken: state.upload.proposalToken + 1,
+  };
   uploadForm.reset();
+  resetGraphIdentity();
   $('[data-upload-error]').textContent = '';
   $('[data-file-name]').textContent = 'Escolher arquivo .xlsx';
   const nameField = $('[data-name-field]');
-  const graphFields = $('[data-graph-fields]');
+  const syllabusFields = $('[data-syllabus-fields]');
   const nameInput = uploadForm.elements.name;
   const isVersion = mode === 'version';
+  $('[data-new-upload-mode]').hidden = isVersion;
+  $('[data-version-upload-mode]').hidden = !isVersion;
   nameField.hidden = isVersion;
-  graphFields.hidden = isVersion;
-  graphFields.disabled = isVersion;
+  syllabusFields.hidden = isVersion;
+  syllabusFields.disabled = isVersion;
   nameInput.required = !isVersion;
+  nameInput.disabled = isVersion;
   nameInput.value = isVersion ? (state.detail?.title || state.detail?.name || '') : '';
-  for (const fieldName of ['display_name', 'institution_slug', 'graph_id']) {
-    uploadForm.elements[fieldName].required = !isVersion;
+  uploadForm.elements.institution_id.required = !isVersion;
+  if (isVersion) {
+    $('[data-version-syllabus-name]').textContent = state.detail?.title || 'Syllabus';
+    $('[data-version-institution]').textContent = state.detail?.institution?.name || 'Não definida';
+    $('[data-version-graph-id]').textContent = state.detail?.graph_id || 'Não definido';
   }
   $('[data-upload-eyebrow]').textContent = isVersion ? 'Nova versão' : 'Novo syllabus';
   $('[data-upload-title]').textContent = isVersion ? `Atualizar ${state.detail?.title || 'syllabus'}` : 'Adicionar syllabus';
-  $('[data-upload-submit]').textContent = isVersion ? 'Comparar planilha' : 'Adicionar syllabus';
+  renderUploadSubmitState();
   uploadDialog.showModal();
+  if (!isVersion) loadUploadCatalog();
   window.setTimeout(() => (isVersion ? $('[data-upload-file]') : nameInput).focus(), 0);
 }
 
@@ -1665,7 +1920,7 @@ async function submitUpload(event) {
   const data = new FormData(uploadForm);
   const file = data.get('file');
   const name = String(data.get('name') || '').trim();
-  for (const fieldName of ['name', 'display_name', 'institution_slug', 'graph_id']) {
+  for (const fieldName of ['name', 'institution_id']) {
     if (data.has(fieldName)) data.set(fieldName, String(data.get(fieldName) || '').trim());
   }
   if (!file?.name || !/\.xlsx$/i.test(file.name)) {
@@ -1676,10 +1931,17 @@ async function submitUpload(event) {
     $('[data-upload-error]').textContent = 'Dê um nome ao syllabus.';
     return;
   }
+  if (state.upload.mode === 'new' && !data.get('institution_id')) {
+    $('[data-upload-error]').textContent = 'Selecione uma instituição cadastrada.';
+    return;
+  }
+  if (state.upload.mode === 'new' && state.upload.identityStatus !== 'verified') {
+    scheduleGraphProposal({ resetManual: true });
+    return;
+  }
   if (state.upload.syllabusId) data.set('syllabus_id', state.upload.syllabusId);
   state.upload.busy = true;
-  $('[data-upload-submit]').disabled = true;
-  $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparando…' : 'Registrando…';
+  renderUploadSubmitState();
   $('[data-upload-error]').textContent = '';
   try {
     const endpoint = state.upload.mode === 'version'
@@ -1687,21 +1949,40 @@ async function submitUpload(event) {
       : '/api/syllabi/upload';
     const response = await fetch(endpoint, { method: 'POST', body: data });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.detail || `o servidor respondeu ${response.status}`);
+    if (!response.ok && body.detail?.code === 'graph_id_conflict') {
+      showGraphConflict(body.detail);
+      return;
+    }
+    if (!response.ok && body.detail?.code === 'syllabus_already_exists') {
+      showSyllabusConflict({
+        ...body.detail,
+        title: name,
+      });
+      return;
+    }
+    if (!response.ok) {
+      const detail = typeof body.detail === 'string' ? body.detail : body.detail?.message;
+      throw new Error(detail || `o servidor respondeu ${response.status}`);
+    }
     uploadDialog.close();
+    const droppedNote = intakeDropNote(body.dropped_summary || body.incoming?.dropped_summary);
     if (state.upload.mode === 'new') {
-      announce(body.unchanged ? 'A planilha é igual à versão atual.' : 'Syllabus adicionado. Nenhuma fonte foi processada automaticamente.');
+      const message = body.unchanged
+        ? `A planilha é igual à versão atual.${droppedNote}`
+        : `Syllabus adicionado. Nenhuma fonte foi processada automaticamente.${droppedNote}`;
+      announce(message);
+      // The page navigates away right now; the destination announces the note.
+      storeIntakeNote(body.syllabus_id, message);
       window.location.assign(`/syllabi?id=${encodeURIComponent(body.syllabus_id)}`);
     } else {
-      announce('Planilha comparada. Revise as mudanças antes de criar a nova versão.');
+      announce(`Planilha comparada. Revise as mudanças antes de criar a nova versão.${droppedNote}`);
       await showReconciliation(body);
     }
   } catch (error) {
     $('[data-upload-error]').textContent = `Não foi possível registrar a planilha: ${error.message}`;
   } finally {
     state.upload.busy = false;
-    $('[data-upload-submit]').disabled = false;
-    $('[data-upload-submit]').textContent = state.upload.mode === 'version' ? 'Comparar planilha' : 'Adicionar syllabus';
+    renderUploadSubmitState();
   }
 }
 
@@ -2692,6 +2973,14 @@ document.querySelector('main').addEventListener('change', (event) => {
 });
 
 uploadForm.addEventListener('submit', submitUpload);
+uploadForm.elements.name.addEventListener('input', () => {
+  $('[data-upload-error]').textContent = '';
+  scheduleGraphProposal({ resetManual: true });
+});
+uploadForm.elements.institution_id.addEventListener('change', () => {
+  $('[data-upload-error]').textContent = '';
+  scheduleGraphProposal({ resetManual: true });
+});
 uploadDialog.addEventListener('click', (event) => {
   if (event.target.closest('[data-dialog-close]')) closeUpload();
   else if (event.target === uploadDialog) closeUpload();
@@ -2773,6 +3062,7 @@ window.addEventListener('beforeunload', (event) => {
 if (routeId && initialReconciliationId) {
   loadReconciliation(initialReconciliationId);
 } else if (routeId) {
+  announceStoredIntakeNote(routeId);
   loadDetail();
 } else {
   loadList();

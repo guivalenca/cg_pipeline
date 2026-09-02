@@ -1,28 +1,41 @@
 """Curation edits: founder corrections overlay syllabus facts, never rewrite them."""
 
 import pytest
-from openpyxl import Workbook
 
 from universe.curation import edit_history, effective_fields, record_edit
-from universe.syllabus import COLUMNS, import_workbook
+from universe.syllabus import import_workbook
+from adalove_workbook import activity, write_adalove_workbook
 
 
 def _row(project, week, seq, title, kind="Autoestudo", description="Desc", url=None):
-    return [
-        project, f"Semana {week:02d}", str(seq), title, kind, description,
-        None, None, "Sim", "0", None, None, url,
-        "Não", None, "Não", "Não", "Não", "Não", None, "Não",
-    ]
+    return {
+        "project": project,
+        "week": week,
+        "seq": seq,
+        "title": title,
+        "description": description,
+        "url": url,
+    }
 
 
 def _save(path, rows):
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(COLUMNS)
-    for row in rows:
-        sheet.append(row)
-    workbook.save(path)
+    project = rows[0]["project"]
+    week = rows[0]["week"]
+    lesson = activity(title="Lesson", week=week, order=1, subject="COM")
+    sources = [
+        activity(
+            title=row["title"],
+            kind="Self-study",
+            week=row["week"],
+            order=row["seq"] + 1,
+            parent_uuid=lesson["Activity UUID"],
+            parent_title=lesson["Title"],
+            description=row["description"],
+            url=row["url"],
+        )
+        for row in rows
+    ]
+    write_adalove_workbook(path, [lesson, *sources], project=project)
 
 
 class TestRecordEdit:
@@ -32,8 +45,10 @@ class TestRecordEdit:
         path = tmp_path / "cur-title.xlsx"
         _save(path, [_row("TEST-CURA-TITLE", 1, 1, "Original title",
                           url="https://curation.test/title")])
-        version_id = import_workbook(db, path)["version_id"]
-        item_id = f"{version_id}:0001"
+        version_id = import_workbook(
+            db, path, "TEST-CURA-TITLE", require_syllabus_metadata=False
+        )["version_id"]
+        item_id = f"{version_id}:source:0001"
 
         event = record_edit(db, item_id, "title", "Fixed title", "founder", "typo fix")
 
@@ -54,8 +69,10 @@ class TestRecordEdit:
         path = tmp_path / "cur-chain.xlsx"
         _save(path, [_row("TEST-CURA-CHAIN", 1, 1, "First",
                           url="https://curation.test/chain")])
-        version_id = import_workbook(db, path)["version_id"]
-        item_id = f"{version_id}:0001"
+        version_id = import_workbook(
+            db, path, "TEST-CURA-CHAIN", require_syllabus_metadata=False
+        )["version_id"]
+        item_id = f"{version_id}:source:0001"
 
         record_edit(db, item_id, "title", "Second", "founder")
         record_edit(db, item_id, "title", "Third", "founder")
@@ -71,8 +88,10 @@ class TestRecordEdit:
         path = tmp_path / "cur-url.xlsx"
         _save(path, [_row("TEST-CURA-URL", 1, 1, "Reading",
                           url="https://curation.test/before")])
-        version_id = import_workbook(db, path)["version_id"]
-        item_id = f"{version_id}:0001"
+        version_id = import_workbook(
+            db, path, "TEST-CURA-URL", require_syllabus_metadata=False
+        )["version_id"]
+        item_id = f"{version_id}:source:0001"
         original_source = db.execute(
             "SELECT source_id FROM syllabus_item WHERE id = %s", (item_id,)
         ).fetchone()[0]
@@ -101,8 +120,10 @@ class TestRecordEdit:
         path = tmp_path / "cur-reject.xlsx"
         _save(path, [_row("TEST-CURA-REJECT", 1, 1, "Lesson",
                           url="https://curation.test/reject")])
-        version_id = import_workbook(db, path)["version_id"]
-        item_id = f"{version_id}:0001"
+        version_id = import_workbook(
+            db, path, "TEST-CURA-REJECT", require_syllabus_metadata=False
+        )["version_id"]
+        item_id = f"{version_id}:source:0001"
 
         with pytest.raises(ValueError, match="field must be one of"):
             record_edit(db, item_id, "week", "2", "founder")
@@ -119,11 +140,15 @@ class TestEditsBesideImport:
         path = tmp_path / "cur-reup.xlsx"
         _save(path, [_row("TEST-CURA-REUP", 1, 1, "Lesson",
                           url="https://curation.test/reup")])
-        first = import_workbook(db, path)
-        item_id = f"{first['version_id']}:0001"
+        first = import_workbook(
+            db, path, "TEST-CURA-REUP", require_syllabus_metadata=False
+        )
+        item_id = f"{first['version_id']}:source:0001"
         record_edit(db, item_id, "title", "Edited", "founder")
 
-        again = import_workbook(db, path)
+        again = import_workbook(
+            db, path, "TEST-CURA-REUP", require_syllabus_metadata=False
+        )
 
         assert again["unchanged"] is True
         assert again["version_id"] == first["version_id"]

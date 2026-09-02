@@ -51,3 +51,16 @@ the universe's fact layer never knows the Companion exists. The shape of
 the new seam — what exactly the Companion will consume, at what boundary —
 is undesigned; it is tracked as an open question in the vision document
 and depends on the segment design, itself open.
+
+## Amendment (2026-08-23)
+
+The local authoring shell may read Companion's versioned, read-only graph
+namespace: Institution slugs/names and occupied graph ids. It does not mirror
+Course or Group. The `companion_seam.validate_package` and
+`require_export_acceptance` functions provide a second Companion-owned
+interface for assessing the exact finished package with Companion's runtime
+Graph Catalog loader. No production flow calls that interface yet. The planned
+export button will wire it before presenting a package as exportable. Generated
+content will still leave Concept Universe as an explicit JSON package installed
+in Companion. The check will not deploy either repository or assign the graph
+to a Group.

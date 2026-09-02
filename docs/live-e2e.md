@@ -57,10 +57,10 @@ not implicitly import the workbook.
 
 The authorized workbook is:
 
-- `/Users/guilhermevalenca/Desktop/concept-universe/data/GRAD CC07 - 2026-2A.xlsx`
-- SHA-256: `873b45e428304988f23446b20e0e58d3ed9edfb8cfb8ba50e9ebe22b81e18fc5`
-- expected: 64 lessons, 130 references, 128 logical Sources, with 81 articles,
-  29 videos, and 20 books.
+- `/Users/guilhermevalenca/Downloads/adalove_2026-2A-T15_GRAD CC07 - 2026-2A_20260825T180303Z.xlsx`
+- SHA-256: `bbc48a8b71c50b9a6fe3951d8c92f5c5d3e0df9d8d7a78191a963585b586cd97`
+- expected after dropping 12 orientations: 52 lessons, 151 references, 139
+  logical Sources, with 89 articles, 42 videos, and 20 books.
 
 The characterized PDF is immutable local evidence produced by the previously
 tested syllabus pipeline:
@@ -78,11 +78,9 @@ The deterministic vertical-slice candidates are:
 | Video | `https://www.youtube.com/watch?v=UFtXy0KRxVI` | Known publisher-caption route, about 386 seconds and 129 cues |
 | Book | resource `9788522128303`, pages `198-205` | Exactly eight known reader pages |
 
-The workbook also contains later corpus-expansion candidates: Lucidchart's UML
-deployment article, `https://theodpbook.lcc.uma.es/docs/Chapter1.pdf`, YouTube
-video `vmvSMYaV4oE`, and book `9788577800643` pages `66-72`. They are asserted
-as workbook facts but are not silently substituted for the characterized
-fixtures.
+The workbook also contains later corpus-expansion candidates: YouTube video
+`vmvSMYaV4oE` and book `9788577800643` pages `66-72`. They are asserted as
+workbook facts but are not silently substituted for the characterized fixtures.
 
 Before spending on the live book case, its ordered reconstruction can be
 replayed entirely offline from the complete eight-page CG capture:
@@ -154,7 +152,7 @@ set -a
 source /Users/guilhermevalenca/Desktop/concept-universe/.env
 source /Users/guilhermevalenca/Desktop/cg_pipeline/.env
 set +a
-export LIVE_E2E_WORKBOOK='/Users/guilhermevalenca/Desktop/concept-universe/data/GRAD CC07 - 2026-2A.xlsx'
+export LIVE_E2E_WORKBOOK='/Users/guilhermevalenca/Downloads/adalove_2026-2A-T15_GRAD CC07 - 2026-2A_20260825T180303Z.xlsx'
 export LIVE_E2E_PDF='/Users/guilhermevalenca/Desktop/concept-universe-syllabus/.data/source-assets/sha256/e2/e22b6b7ea0d7e67151b1585ea3108a6eabcf76ccf6a03b69b29adbdbf4920f4f'
 export RUN_LIVE_SOURCE_E2E='I_UNDERSTAND_THIS_CALLS_EXTERNAL_PROVIDERS'
 ```

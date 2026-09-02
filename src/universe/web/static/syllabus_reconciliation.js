@@ -327,6 +327,7 @@ export function mountSyllabusReconciliation({ headingHost, viewHost, reconciliat
 
   function identityReason(identity) {
     return {
+      same_activity: 'A atividade tem o mesmo UUID do Adalove na versão anterior.',
       exact_text: 'Título, descrição e matéria coincidem com a versão anterior.',
       small_text_edit: 'As mudanças de título e descrição ficaram dentro do limite automático.',
       subject_changed: 'A matéria mudou. O sistema não mantém o ID sem sua decisão.',

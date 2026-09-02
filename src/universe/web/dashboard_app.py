@@ -10,12 +10,11 @@ pages and generated reports used by this unauthenticated local-only tool.
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 from typing import Any
 
 import psycopg
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg.types.json import Jsonb
@@ -813,54 +812,6 @@ def create_app() -> FastAPI:
         with connect() as conn:
             return {"syllabi": _syllabi(conn)}
 
-    @app.post("/api/syllabi/upload")
-    def upload_syllabus(file: UploadFile) -> dict:
-        file_name = Path(file.filename or "syllabus.xlsx").name or "syllabus.xlsx"
-        temporary_directory: tempfile.TemporaryDirectory | None = None
-        temp_path: Path | None = None
-        try:
-            temporary_directory = tempfile.TemporaryDirectory()
-            temp_path = Path(temporary_directory.name) / file_name
-            with temp_path.open("wb") as temporary:
-                while chunk := file.file.read(1024 * 1024):
-                    temporary.write(chunk)
-            with connect() as conn:
-                imported = syllabus.import_workbook(conn, temp_path, "founder")
-                if imported["unchanged"]:
-                    item_count = imported.get("item_count", 0)
-                    source_count = imported.get("source_count", 0)
-                else:
-                    # The importer reports newly inserted canonical sources.  The
-                    # upload result reports linked workbook rows, including two
-                    # activities that intentionally reuse an existing source.
-                    item_count, source_count = conn.execute(
-                        "SELECT count(*),"
-                        " count(*) FILTER (WHERE source_id IS NOT NULL)"
-                        " FROM syllabus_item WHERE version_id = %s",
-                        (imported["version_id"],),
-                    ).fetchone()
-            diff = imported.get("diff") or {}
-            return {
-                "syllabus_id": imported["syllabus_id"],
-                "version_id": imported["version_id"],
-                "unchanged": bool(imported["unchanged"]),
-                "item_count": item_count,
-                "source_count": source_count,
-                "diff": {
-                    name: [
-                        {"week": item.get("week"), "title": item.get("title", "")}
-                        for item in diff.get(name, [])
-                    ]
-                    for name in ("added", "removed", "changed")
-                },
-            }
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        finally:
-            file.file.close()
-            if temporary_directory is not None:
-                temporary_directory.cleanup()
-
     @app.get("/api/syllabi/{syllabus_id}")
     def syllabus_detail(syllabus_id: str) -> dict:
         with connect() as conn:
@@ -941,70 +892,6 @@ def create_app() -> FastAPI:
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             return _effective_item(conn, item_id)
-
-    @app.get("/api/org")
-    def org_tree() -> dict:
-        with connect() as conn:
-            return {"institutions": org.structure(conn)}
-
-    def _org_write(operation, conn: psycopg.Connection, *args) -> dict:
-        try:
-            return operation(conn, *args)
-        except LookupError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    def _required(payload: dict, key: str) -> str:
-        value = payload.get(key)
-        if not isinstance(value, str) or not value.strip():
-            raise HTTPException(status_code=400, detail=f"{key} is required")
-        return value
-
-    @app.post("/api/org/institutions")
-    def create_institution(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_institution,
-                conn,
-                _required(payload, "slug"),
-                _required(payload, "name"),
-            )
-
-    @app.post("/api/org/courses")
-    def create_course(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_course,
-                conn,
-                _required(payload, "institution_id"),
-                _required(payload, "name"),
-            )
-
-    @app.post("/api/org/groups")
-    def create_group(payload: dict) -> dict:
-        with connect() as conn:
-            return _org_write(
-                org.create_group,
-                conn,
-                _required(payload, "institution_id"),
-                _required(payload, "name"),
-                payload.get("course_id") or None,
-            )
-
-    @app.post("/api/syllabi/{syllabus_id}/assign-group")
-    def assign_syllabus_group(syllabus_id: str, payload: dict) -> dict:
-        # group_id must be sent explicitly: a group id assigns, null clears
-        # the assignment (back to "not assigned to a group yet").
-        if "group_id" not in payload:
-            raise HTTPException(status_code=400, detail="group_id is required")
-        group_id = payload["group_id"]
-        if group_id is not None and (not isinstance(group_id, str) or not group_id.strip()):
-            raise HTTPException(
-                status_code=400, detail="group_id must be a group id or null"
-            )
-        with connect() as conn:
-            return _org_write(org.assign_syllabus, conn, syllabus_id, group_id)
 
     @app.get("/api/sources")
     def list_sources() -> dict:
@@ -1121,7 +1008,6 @@ def create_app() -> FastAPI:
 
     page_files = {
         "/": "index.html",
-        "/structure": "structure.html",
         "/syllabi": "syllabi.html",
         "/sources": "sources.html",
         "/graph": "universe.html",

@@ -35,6 +35,7 @@ DECISIONS = {"keep", "transition", "custom"}
 IDENTITY_DECISIONS = {"same", "new", "keep"}
 IDENTITY_STATES = {"carried", "review", "new", "removed"}
 IDENTITY_REASONS = {
+    "same_activity",
     "exact_text",
     "small_text_edit",
     "subject_changed",
@@ -47,7 +48,7 @@ IDENTITY_REASONS = {
     "removed",
 }
 IDENTITY_REASONS_BY_STATE = {
-    "carried": {"exact_text", "small_text_edit"},
+    "carried": {"same_activity", "exact_text", "small_text_edit"},
     "review": {
         "subject_changed",
         "kind_changed",
@@ -59,16 +60,20 @@ IDENTITY_REASONS_BY_STATE = {
     "new": {"no_predecessor"},
     "removed": {"removed"},
 }
-PLAN_VERSION = 6
+# 7: DEV-29 identity plans (6) plus the Adalove identity and order fields
+# carried on every lesson and source projection (DEV-53).
+PLAN_VERSION = 7
 AUTO_TITLE_SIMILARITY = 0.86
 AUTO_DESCRIPTION_SIMILARITY = 0.80
 AUTO_MATCH_MARGIN = 8.0
 LESSON_AUTHORED_FIELDS = (
     "week", "kind", "title", "subject", "subjects", "date", "description",
+    "activity_uuid", "folder_uuid", "week_order", "activity_order", "fields",
 )
 SOURCE_AUTHORED_FIELDS = (
     "title", "description", "url", "media_type", "resource_code",
-    "scope_kind", "scope_value",
+    "scope_kind", "scope_value", "activity_uuid", "folder_uuid", "week_order",
+    "activity_order", "parent_activity_uuid", "parent_inference", "fields",
 )
 
 
@@ -101,7 +106,13 @@ def _source_projection(source: dict, order: int) -> dict:
     return {
         "reference_id": source.get("reference_id"),
         "source_id": source.get("source_id"),
-        "seq": order,
+        "seq": source.get("seq", order),
+        "activity_uuid": source.get("activity_uuid"),
+        "folder_uuid": source.get("folder_uuid"),
+        "week_order": source.get("week_order"),
+        "activity_order": source.get("activity_order"),
+        "parent_activity_uuid": source.get("parent_activity_uuid"),
+        "parent_inference": source.get("parent_inference"),
         "title": source.get("title") or "",
         "description": source.get("description"),
         "url": source.get("url"),
@@ -121,7 +132,11 @@ def _lesson_projection(lesson: dict, order: int, source_key: str) -> dict:
         "id": lesson.get("id"),
         "incoming_key": lesson.get("incoming_key"),
         "week": lesson.get("week"),
-        "seq": order,
+        "seq": lesson.get("seq", order),
+        "activity_uuid": lesson.get("activity_uuid"),
+        "folder_uuid": lesson.get("folder_uuid"),
+        "week_order": lesson.get("week_order"),
+        "activity_order": lesson.get("activity_order"),
         "kind": lesson.get("kind") or "Class",
         "title": lesson.get("title") or "",
         "subject": lesson.get("subject"),
@@ -149,7 +164,11 @@ def _parsed_projection(parsed: dict) -> dict:
         projected = _lesson_projection(lesson, index, "source_references")
         projected["incoming_key"] = f"incoming-{index:04d}"
         lessons.append(projected)
-    return {"lessons": lessons}
+    return {
+        "lessons": lessons,
+        "dropped": _json_value(parsed.get("dropped") or []),
+        "dropped_summary": _json_value(parsed.get("dropped_summary") or {}),
+    }
 
 
 def _ensure_incoming_keys(projection: dict) -> dict:
@@ -163,6 +182,10 @@ def _lesson_signature(item: dict | None) -> tuple:
     if not item:
         return ()
     return (
+        item.get("activity_uuid"),
+        item.get("folder_uuid"),
+        item.get("week_order"),
+        item.get("activity_order"),
         item.get("week"),
         _norm(item.get("kind")),
         _norm(item.get("title")),
@@ -170,13 +193,42 @@ def _lesson_signature(item: dict | None) -> tuple:
         tuple(_norm(subject) for subject in parse_subjects(item.get("subjects"))),
         _date(item.get("date")),
         _norm(item.get("description")),
+        json.dumps(_json_value(item.get("fields") or {}), sort_keys=True),
     )
 
 
+PARENT_LINK_FIELDS = ("parent_activity_uuid", "parent_inference")
+PARENT_LINK_WORKBOOK_KEYS = frozenset(
+    {"Parent activity UUID", "Parent title", "Parent date", "Parent inference"}
+)
+
+
+def _without_parent_link(value: object) -> object:
+    if isinstance(value, dict):
+        return {
+            key: _without_parent_link(item)
+            for key, item in value.items()
+            if key not in PARENT_LINK_WORKBOOK_KEYS
+        }
+    if isinstance(value, list):
+        return [_without_parent_link(item) for item in value]
+    return value
+
+
 def _source_signature(item: dict | None) -> tuple:
+    """What counts as a change on one source.
+
+    The Adalove parent link is not part of it: a source already sits under
+    its parent Lesson in the projection, so a recreated parent activity
+    (new UUID) is the Lesson's change, not one decision per Self-study.
+    """
     if not item:
         return ()
     return (
+        item.get("activity_uuid"),
+        item.get("folder_uuid"),
+        item.get("week_order"),
+        item.get("activity_order"),
         _norm(item.get("title")),
         _norm(item.get("description")),
         _norm(item.get("url")),
@@ -184,6 +236,10 @@ def _source_signature(item: dict | None) -> tuple:
         _norm(item.get("resource_code")),
         item.get("scope_kind"),
         _norm(item.get("scope_value")),
+        json.dumps(
+            _without_parent_link(_json_value(item.get("fields") or {})),
+            sort_keys=True,
+        ),
     )
 
 
@@ -236,9 +292,23 @@ def _plan_similarity():
     return compare
 
 
+def _same_activity(left: dict, right: dict) -> bool:
+    """Both rows carry the same Adalove activity UUID.
+
+    The exporter preserves activity UUIDs across re-exports, so an equal UUID
+    is the strongest identity evidence available: it survives renames,
+    reorders, and subject changes that text matching alone would send to
+    founder review.
+    """
+    left_uuid = _text(left.get("activity_uuid"))
+    return bool(left_uuid) and left_uuid == _text(right.get("activity_uuid"))
+
+
 def _lesson_score(left: dict, right: dict, *, similarity=_similarity) -> float:
     left_id, right_id = _text(left.get("id")), _text(right.get("id"))
     if left_id and left_id == right_id:
+        return 1000.0
+    if _same_activity(left, right):
         return 1000.0
     subject_same = _norm(left.get("subject")) == _norm(right.get("subject"))
     kind_same = _norm(left.get("kind")) == _norm(right.get("kind"))
@@ -262,6 +332,8 @@ def _lesson_pair_is_plausible(
 ) -> bool:
     left_id, right_id = _text(left.get("id")), _text(right.get("id"))
     if left_id and left_id == right_id:
+        return True
+    if _same_activity(left, right):
         return True
     title_similarity = similarity(left.get("title"), right.get("title"))
     description_similarity = similarity(
@@ -289,6 +361,8 @@ def _identity_reason(
     unambiguous: bool,
     similarity=_similarity,
 ) -> str:
+    if _same_activity(left, right):
+        return "same_activity"
     if _norm(left.get("subject")) != _norm(right.get("subject")):
         return "subject_changed"
     if _norm(left.get("kind")) != _norm(right.get("kind")):
@@ -349,7 +423,7 @@ def _match_lessons(
             bool(_text(left_item.get("id")))
             and _text(left_item.get("id")) == _text(right_item.get("id"))
         )
-        automatic = same_id or (
+        automatic = same_id or _same_activity(left_item, right_item) or (
             unambiguous
             and _norm(left_item.get("subject")) == _norm(right_item.get("subject"))
             and _norm(left_item.get("kind")) == _norm(right_item.get("kind"))
@@ -377,6 +451,15 @@ def _match_lessons(
 
 def _source_score(left: dict, right: dict) -> float:
     score = 0.0
+    if _same_activity(left, right):
+        score += 500
+        left_material = (left.get("fields") or {}).get("adalove_material") or {}
+        right_material = (right.get("fields") or {}).get("adalove_material") or {}
+        if (
+            left_material.get("Source path")
+            and left_material.get("Source path") == right_material.get("Source path")
+        ):
+            score += 500
     if _norm(left.get("title")) == _norm(right.get("title")):
         score += 100
     else:
@@ -495,7 +578,17 @@ def _effective_incoming(
     incoming: dict | None,
     merged: dict | None = None,
 ) -> dict | None:
-    return copy.deepcopy(current if status == "unchanged" else (merged or incoming))
+    if status != "unchanged":
+        return copy.deepcopy(merged or incoming)
+    effective = copy.deepcopy(current)
+    if effective is not None and incoming is not None:
+        # An unchanged source still follows the parent link the workbook
+        # reports today, so a recreated parent activity never leaves a stale
+        # UUID on the stored reference.
+        for field in PARENT_LINK_FIELDS:
+            if field in incoming:
+                effective[field] = copy.deepcopy(incoming.get(field))
+    return effective
 
 
 def _build_source_plans(
@@ -901,6 +994,10 @@ def _row_payload(row: tuple) -> dict:
     payload["incoming"] = dict(payload.get("incoming") or {})
     payload["plan"] = dict(payload.get("plan") or {})
     payload["decisions"] = dict(payload.get("decisions") or {})
+    payload["dropped"] = list(payload["incoming"].get("dropped") or [])
+    payload["dropped_summary"] = dict(
+        payload["incoming"].get("dropped_summary") or {}
+    )
     payload.update(payload["plan"])
     return payload
 
@@ -1050,6 +1147,10 @@ def _selected_projection(
                 if lesson_id is _LESSON_ID_UNSET
                 else lesson_id
             ),
+            "activity_uuid": anchor.get("activity_uuid"),
+            "folder_uuid": anchor.get("folder_uuid"),
+            "week_order": anchor.get("week_order"),
+            "activity_order": anchor.get("activity_order"),
             "week": draft.get("week") if draft.get("week") not in {None, ""} else None,
             "kind": _text(draft.get("kind")) or anchor.get("kind") or "Class",
             "title": title,
@@ -1068,6 +1169,12 @@ def _selected_projection(
     return {
         "reference_id": (current or {}).get("reference_id"),
         "source_id": (current or {}).get("source_id"),
+        "activity_uuid": anchor.get("activity_uuid"),
+        "folder_uuid": anchor.get("folder_uuid"),
+        "week_order": anchor.get("week_order"),
+        "activity_order": anchor.get("activity_order"),
+        "parent_activity_uuid": anchor.get("parent_activity_uuid"),
+        "parent_inference": anchor.get("parent_inference"),
         "title": title,
         "description": _text(draft.get("description")) or None,
         "url": _text(draft.get("url")) or None,
@@ -1396,6 +1503,7 @@ def apply_reconciliation(
         projection,
         actor=actor,
         note=f"Reconciliação da planilha {record['file_name']} ({reconciliation_id})",
+        trust_workbook_metadata=True,
     )
     created = get_syllabus_version(conn, syllabus_id, result["version_id"])
     accepted_incoming, identity_outcomes = _accepted_incoming(
