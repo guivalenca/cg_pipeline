@@ -1,7 +1,7 @@
 # 0025: Stable meeting identity carried by reconciliation
 
 Date: 2026-08-21
-Status: accepted, amended 2026-08-22 and 2026-08-23 (see Amendments).
+Status: accepted, amended 2026-08-22, 2026-08-23 and 2026-09-02 (see Amendments).
 
 ## Context
 

@@ -451,7 +451,7 @@ def _match_lessons(
 
 def _source_score(left: dict, right: dict) -> float:
     score = 0.0
-    if left.get("activity_uuid") and left.get("activity_uuid") == right.get("activity_uuid"):
+    if _same_activity(left, right):
         score += 500
         left_material = (left.get("fields") or {}).get("adalove_material") or {}
         right_material = (right.get("fields") or {}).get("adalove_material") or {}
