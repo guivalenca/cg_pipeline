@@ -37,6 +37,9 @@ operators refresh that snapshot from Companion before deploying against a
 different graph catalog. No package assembler or runtime-graph fixture crosses
 the Source Publication boundary.
 
+ADR 0030 later supersedes only that final export restriction after Accepted Lesson
+Refs and immutable Graph Revisions establish a new audited downstream boundary.
+
 ## Consequences
 
 - A fresh stack has one product boundary and no reachable downstream phase.

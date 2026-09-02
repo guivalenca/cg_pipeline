@@ -167,3 +167,9 @@ _Avoid_: graph-ready state, mutable graph, build output
 The Graph Revision served by default for a Lesson Subject while its prior revisions
 remain addressable.
 _Avoid_: latest build, complete graph, final graph
+
+**Companion Package**:
+A two-document installation candidate derived from one exact Graph Revision and accepted
+by Companion's package validator before download. It contains the runtime graph and its
+Lesson Intro Notes, but installation remains a manual Companion-side action.
+_Avoid_: raw graph, publication, installed graph

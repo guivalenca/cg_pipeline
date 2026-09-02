@@ -14,9 +14,10 @@ through Whole-Lesson Review automatically creates an immutable Subject Graph Rev
 - article, YouTube, authenticated-book, PDF, and ordered-image acquisition;
 - hide, remove, replace, retry, validation, and source-cleanup controls;
 - PostgreSQL queues with fair claiming and recoverable leases;
-- content-addressed Source Assets on an application-managed filesystem; and
-- a per-Lesson build with six auditable creation stages and raw checkpoints; and
-- Whole-Lesson Review with current and historical raw `graph.json` downloads.
+- content-addressed Source Assets on an application-managed filesystem;
+- a per-Lesson build with six auditable creation stages and raw checkpoints;
+- Whole-Lesson Review with current and historical raw `graph.json` downloads; and
+- fail-closed current and historical Companion package downloads.
 
 The accepted workbook has exactly these six sheets: `Activities`, `Subjects`,
 `Materials`, `Order audit`, `Read me`, and `Errors`. The importer models
@@ -101,12 +102,15 @@ Accepting a finished build replaces only that stable Lesson's accepted fragment 
 creates the next deterministic Graph Revision from all accepted Lessons. A running,
 failed, or rejected replacement leaves the current revision unchanged. The Lesson
 Build dialog exposes the current `graph.json` plus view/download links for prior
-revisions.
+revisions. Each current or selected revision can also be downloaded as a validated
+two-file Companion package. Follow the
+[`Companion package handoff`](docs/companion-package-handoff.md) runbook to generate
+Lesson Previews, validate the completed package, and install it manually.
 
 ## Architecture
 
 Read [`CONTEXT.md`](CONTEXT.md) for the domain vocabulary and
 [`docs/adr/`](docs/adr/) for active decisions. The fork provenance and the
 Source Publication boundary are recorded in ADR 0027.
-Vendored Lesson Creation and Graph Revision behavior are recorded in ADRs 0028 and
-0029.
+Vendored Lesson Creation, Graph Revision behavior, and validated Companion Package
+export are recorded in ADRs 0028, 0029, and 0030.

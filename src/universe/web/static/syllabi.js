@@ -286,7 +286,28 @@ function graphRevisionMarkup(subjectGraph, acceptedRevision = null) {
   const currentRevision = subjectGraph?.current_revision;
   const graphRevisions = subjectGraph?.revisions || [];
   if (!graphId || !currentRevision) return '';
-  return `<section class="graph-revision"><strong>Graph Revision atual · ${Number(currentRevision.number)}</strong><div class="source__actions"><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json" target="_blank" rel="noreferrer">Ver graph.json</a><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json?download=true">Baixar graph.json</a>${acceptedRevision ? `<a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json" target="_blank" rel="noreferrer">Ver revisão aceita</a><a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json?download=true">Baixar revisão aceita</a>` : ''}</div>${graphRevisions.length > 1 ? `<details><summary>Histórico de revisões</summary><ul>${graphRevisions.map((revision) => `<li>Revisão ${Number(revision.number)}${revision.is_current ? ' · atual' : ''} · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json" target="_blank" rel="noreferrer">ver</a> · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json?download=true">baixar</a></li>`).join('')}</ul></details>` : ''}</section>`;
+  return `<section class="graph-revision"><strong>Graph Revision atual · ${Number(currentRevision.number)}</strong><div class="source__actions"><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json" target="_blank" rel="noreferrer">Ver graph.json</a><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json?download=true">Baixar graph.json</a><button data-companion-package="/api/graphs/${encodeURIComponent(graphId)}/companion-package.zip">Baixar pacote Companion</button>${acceptedRevision ? `<a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json" target="_blank" rel="noreferrer">Ver revisão aceita</a><a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json?download=true">Baixar revisão aceita</a><button data-companion-package="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/companion-package.zip">Baixar pacote da revisão aceita</button>` : ''}</div>${graphRevisions.length > 1 ? `<details><summary>Histórico de revisões</summary><ul>${graphRevisions.map((revision) => `<li>Revisão ${Number(revision.number)}${revision.is_current ? ' · atual' : ''} · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json" target="_blank" rel="noreferrer">ver</a> · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json?download=true">baixar</a> · <button data-companion-package="/api/graph-revisions/${encodeURIComponent(revision.id)}/companion-package.zip">baixar pacote</button></li>`).join('')}</ul></details>` : ''}</section>`;
+}
+
+async function downloadCompanionPackage(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    const type = response.headers.get('content-type') || '';
+    const body = type.includes('json') ? await response.json() : null;
+    const detail = body?.detail;
+    throw new Error(detail?.message || (typeof detail === 'string' ? detail : `Falha HTTP ${response.status}`));
+  }
+  const disposition = response.headers.get('content-disposition') || '';
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  const blobUrl = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = match?.[1] || 'companion-package.zip';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(blobUrl);
+  announce('Pacote Companion validado e baixado.');
 }
 
 function renderLessonBuild() {
@@ -369,6 +390,8 @@ document.addEventListener('click', async (event) => {
   if (event.target.closest('[data-reupload]')) { await openUpload({ forVersion: true }); return; }
   const buildButton = event.target.closest('[data-open-lesson-build]');
   if (buildButton) { try { await openLessonBuild(buildButton.dataset.openLessonBuild); } catch (error) { announce(error.message, true); } return; }
+  const packageButton = event.target.closest('[data-companion-package]');
+  if (packageButton) { try { $('[data-lesson-build-error]').textContent = ''; await downloadCompanionPackage(packageButton.dataset.companionPackage); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-start]')) { try { await startLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-resume]')) { try { state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/resume`, { method: 'POST' }); renderLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-accept]')) { try { await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actor: 'founder' }) }); await refreshLessonBuild(); announce('Lesson aceita e nova Graph Revision criada.'); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }

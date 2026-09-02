@@ -1,15 +1,21 @@
 """Focused API/static tests for the Source Publication pilot."""
 
 import hashlib
+from io import BytesIO
 import json
 import uuid
 from pathlib import Path
+import textwrap
+from zipfile import ZipFile
 
 import psycopg
 from fastapi.testclient import TestClient
 from openpyxl import Workbook, load_workbook
 
 from adalove_workbook import activity, write_adalove_workbook
+from fake_companion import accepting_companion
+from test_graph_revision import _seed_finished_build, _seed_subject
+from universe import graph_revision
 from universe.graph_identity import GRAPH_ID_CONFLICT_MESSAGE, subject_graph_id_for
 from universe.web.acquisition_app import _markdown_renderer
 from universe.web.app import create_app
@@ -23,11 +29,36 @@ def _namespace(graph_ids=()):
     }
 
 
-def _app(database_url: str, *, graph_ids=()):
+def _app(database_url: str, *, graph_ids=(), companion_repo: Path | None = None):
     return create_app(
         lambda: psycopg.connect(database_url),
         companion_namespace_provider=lambda: _namespace(graph_ids),
+        companion_repo=companion_repo,
     )
+
+
+def _rejecting_companion(tmp_path: Path, code: str) -> Path:
+    companion = tmp_path / "rejecting-companion"
+    scripts = companion / "scripts"
+    scripts.mkdir(parents=True)
+    (scripts / "validate_graph_package.py").write_text(
+        textwrap.dedent(
+            f"""
+            import json
+
+            print(json.dumps({{
+                "schema_version": "companion_graph_package_acceptance.v1",
+                "accepted": False,
+                "graph_id": None,
+                "package_sha256": None,
+                "issues": [{{"code": {code!r}}}],
+            }}))
+            raise SystemExit(2)
+            """
+        ),
+        encoding="utf-8",
+    )
+    return companion
 
 
 def _upload(client: TestClient, path: Path, name: str, syllabus_id: str | None = None):
@@ -120,6 +151,14 @@ def test_static_surface_has_only_the_syllabus_operator_route(test_database_url):
         assert "data-lesson-build-accept" in script.text
         assert "data-lesson-build-reject" in script.text
         assert "graphRevisionMarkup(state.lessonBuildGraph)" in script.text
+        assert "data-companion-package" in script.text
+        assert "Baixar pacote Companion" in script.text
+        assert "await downloadCompanionPackage" in script.text
+        package_handler = script.text.split("if (packageButton)", 1)[1].split(
+            "return;", 1
+        )[0]
+        assert "data-lesson-build-error" in package_handler
+        assert "error.message" in package_handler
         assert client.get("/graph").status_code == 404
 
 def test_six_sheet_workbook_exposes_five_curricular_subjects_and_sources(
@@ -251,7 +290,14 @@ def test_source_review_is_persisted_through_the_operator_api(test_database_url, 
 
 def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, tmp_path):
     path = _five_subject_workbook(tmp_path / "lesson-build.xlsx")
-    with TestClient(_app(test_database_url)) as client:
+    with TestClient(
+        _app(
+            test_database_url,
+            companion_repo=accepting_companion(
+                tmp_path, require_replacement=False
+            ),
+        )
+    ) as client:
         uploaded = _upload(client, path, f"Build {uuid.uuid4().hex[:8]}").json()
         detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
         lesson = detail["lessons"][0]
@@ -313,9 +359,12 @@ def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, 
             "schema_version": "runtime_graph.v0",
             "generated_at": "2026-09-02T12:00:00+00:00",
             "subject": {
+                "course_id": uploaded["syllabus_id"],
+                "module_id": detail["version"]["id"],
                 "pipeline_subject_id": lesson["subject"],
                 "title": lesson["lesson_subject"]["display_name"],
                 "language": "pt-BR",
+                "professors": [],
             },
             "concepts": [
                 {
@@ -391,6 +440,13 @@ def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, 
             "/api/graph-revisions/"
             f"{accepted.json()['revision']['id']}/graph.json?download=true"
         )
+        current_package = client.get(
+            f"/api/graphs/{graph_id}/companion-package.zip"
+        )
+        selected_package = client.get(
+            "/api/graph-revisions/"
+            f"{accepted.json()['revision']['id']}/companion-package.zip"
+        )
 
     assert fetched.status_code == 200
     assert fetched.json()["manifest"]["references"][0]["reference_id"] == source["reference_id"]
@@ -406,3 +462,60 @@ def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, 
     assert "Content-Disposition" not in current_graph.headers
     assert "attachment;" in downloaded_graph.headers["Content-Disposition"]
     assert historical_graph.content == downloaded_graph.content
+    assert current_package.status_code == 200, current_package.text
+    assert current_package.headers["content-type"] == "application/zip"
+    assert selected_package.status_code == 200, selected_package.text
+    with ZipFile(BytesIO(selected_package.content)) as archive:
+        assert set(archive.namelist()) == {
+            f"{graph_id}/graph.json",
+            f"{graph_id}/intro_notes.json",
+        }
+
+
+def test_companion_rejection_blocks_package_but_keeps_raw_graph_download(
+    test_database_url, tmp_path
+):
+    with psycopg.connect(test_database_url) as conn:
+        syllabus_id, version_id, graph_id = _seed_subject(conn, "web-package-blocked")
+        conn.execute(
+            "INSERT INTO institution (id, name) VALUES ('web-inteli', 'Inteli Web')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        conn.execute(
+            "UPDATE syllabus SET institution_id = 'web-inteli' WHERE id = %s",
+            (syllabus_id,),
+        )
+        conn.commit()
+        build_id, _ = _seed_finished_build(
+            conn,
+            version_id=version_id,
+            graph_id=graph_id,
+            lesson_id="lesson-package-blocked",
+            build_label="v1",
+            lesson_seq=1,
+        )
+        graph_revision.accept(conn, build_id, actor="founder")
+
+    with TestClient(
+        _app(
+            test_database_url,
+            companion_repo=_rejecting_companion(
+                tmp_path, "malformed_runtime_graph"
+            ),
+        )
+    ) as client:
+        raw_before = client.get(f"/api/graphs/{graph_id}/graph.json?download=true")
+        package = client.get(f"/api/graphs/{graph_id}/companion-package.zip")
+        raw_after = client.get(f"/api/graphs/{graph_id}/graph.json?download=true")
+
+    assert raw_before.status_code == 200
+    assert package.status_code == 422
+    assert package.json()["detail"] == {
+        "code": "companion_package_blocked",
+        "message": (
+            "Companion rejected the package (malformed_runtime_graph): graph.json "
+            "does not satisfy Companion's runtime_graph.v0 contract. Inspect the raw "
+            "Graph Revision and regenerate the affected Lesson Build."
+        ),
+    }
+    assert raw_after.content == raw_before.content

@@ -10,3 +10,5 @@ changed and use the vocabulary in the repository-root `CONTEXT.md`.
 
 ADR 0028 resumes post-publication work only through the explicit per-Lesson
 build boundary; it does not weaken Source Publication as the trust boundary.
+ADR 0030 adds a separate fail-closed export boundary from immutable Graph Revisions
+to manually installed Companion Packages.

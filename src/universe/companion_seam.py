@@ -20,7 +20,8 @@ class CompanionSeamError(RuntimeError):
     """Companion's graph namespace could not be read."""
 
 
-def _environment() -> dict[str, str]:
+def companion_environment() -> dict[str, str]:
+    """Isolate Companion subprocesses from the authoring database settings."""
     environment = os.environ.copy()
     configured_url = environment.get("COMPANION_DATABASE_URL", "").strip()
     if configured_url:
@@ -44,7 +45,7 @@ def _run_json(
     script = companion_repo / "scripts" / script_name
     if not script.is_file():
         raise CompanionSeamError(f"Companion interface not found at {script}")
-    environment = _environment()
+    environment = companion_environment()
     python = environment.get("COMPANION_PYTHON", "python3").strip() or "python3"
     try:
         result = run(

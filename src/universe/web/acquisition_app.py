@@ -28,7 +28,13 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import companion_seam, graph_revision, lesson_build
+from universe import (
+    companion_export,
+    companion_package,
+    companion_seam,
+    graph_revision,
+    lesson_build,
+)
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -979,6 +985,7 @@ def create_app(
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
     video_adapter_factory: Callable[[], VideoAdapter] = YtDlpYouTubeAdapter,
     companion_namespace_provider: Callable[[], dict] | None = None,
+    companion_repo: Path | None = None,
 ) -> FastAPI:
     namespace_provider = companion_namespace_provider or companion_seam.graph_namespace
     @asynccontextmanager
@@ -1325,6 +1332,60 @@ def create_app(
             media_type="application/json; charset=utf-8",
             headers=headers,
         )
+
+    def companion_package_response(
+        *, graph_id: str | None = None, revision_id: str | None = None
+    ) -> Response:
+        try:
+            namespace = namespace_provider()
+            occupied_graph_ids = namespace.get("graph_ids")
+            if not isinstance(occupied_graph_ids, list):
+                raise companion_seam.CompanionSeamError(
+                    "Companion graph namespace is incomplete"
+                )
+            with connect_factory() as conn:
+                if graph_id is not None:
+                    archive = companion_export.current_package(
+                        conn,
+                        graph_id,
+                        companion_repo=companion_repo,
+                        occupied_graph_ids=occupied_graph_ids,
+                    )
+                else:
+                    assert revision_id is not None
+                    archive = companion_export.revision_package(
+                        conn,
+                        revision_id,
+                        companion_repo=companion_repo,
+                        occupied_graph_ids=occupied_graph_ids,
+                    )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except companion_seam.CompanionSeamError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail={"code": "companion_unavailable", "message": str(exc)},
+            ) from exc
+        except companion_package.PackageAssemblyError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "companion_package_blocked", "message": str(exc)},
+            ) from exc
+        return Response(
+            archive.body,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{archive.filename}"'
+            },
+        )
+
+    @app.get("/api/graphs/{graph_id}/companion-package.zip")
+    def current_companion_package(graph_id: str) -> Response:
+        return companion_package_response(graph_id=graph_id)
+
+    @app.get("/api/graph-revisions/{revision_id}/companion-package.zip")
+    def selected_companion_package(revision_id: str) -> Response:
+        return companion_package_response(revision_id=revision_id)
 
     @app.post("/api/lesson-builds/{build_id}/resume")
     def resume_lesson_build(build_id: str) -> dict:

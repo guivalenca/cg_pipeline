@@ -2,6 +2,7 @@
 
 import os
 from collections.abc import Callable
+from pathlib import Path
 
 import psycopg
 from fastapi import FastAPI
@@ -44,6 +45,7 @@ def create_app(
     asset_store_factory: Callable[[], AssetStore] = asset_store_from_env,
     video_adapter_factory=acquisition_app.YtDlpYouTubeAdapter,
     companion_namespace_provider: Callable[[], dict] | None = None,
+    companion_repo: Path | None = None,
 ) -> FastAPI:
     """Create the syllabus and Source Publication application."""
     connect_factory = connect_factory or connect
@@ -53,6 +55,7 @@ def create_app(
         asset_store_factory=asset_store_factory,
         video_adapter_factory=video_adapter_factory,
         companion_namespace_provider=companion_namespace_provider,
+        companion_repo=companion_repo,
     )
 
 
