@@ -1526,6 +1526,7 @@ def create_app(
                     reconciliation_id,
                     payload.get("decisions"),
                     payload.get("drafts"),
+                    payload.get("identity_decisions"),
                 )
         except SyllabusVersionConflict as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
