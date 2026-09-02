@@ -89,6 +89,38 @@ function announce(message) {
   $('[data-status]').textContent = message || '';
 }
 
+function intakeDropNote(summary) {
+  const dropped = summary || {};
+  if (!dropped.total_count) return '';
+  const parts = [
+    `${dropped.orientation_count || 0} orientações`,
+    `${dropped.orientation_self_study_count || 0} autoestudos ligados a orientações`,
+  ];
+  if (dropped.no_parent_count) parts.push(`${dropped.no_parent_count} autoestudos sem aula anterior na semana`);
+  return ` O intake descartou ${parts.slice(0, -1).join(', ')} e ${parts[parts.length - 1]}.`;
+}
+
+const INTAKE_NOTE_KEY = 'syllabus-intake-note:';
+
+function storeIntakeNote(syllabusId, message) {
+  try {
+    window.sessionStorage.setItem(`${INTAKE_NOTE_KEY}${syllabusId}`, message);
+  } catch {
+    // Storage may be unavailable; the note was already announced on this page.
+  }
+}
+
+function announceStoredIntakeNote(syllabusId) {
+  let message = null;
+  try {
+    message = window.sessionStorage.getItem(`${INTAKE_NOTE_KEY}${syllabusId}`);
+    window.sessionStorage.removeItem(`${INTAKE_NOTE_KEY}${syllabusId}`);
+  } catch {
+    return;
+  }
+  if (message) announce(message);
+}
+
 function fmtDate(value, withTime = false) {
   if (!value) return 'Data não informada';
   const date = new Date(value);
@@ -1933,14 +1965,14 @@ async function submitUpload(event) {
       throw new Error(detail || `o servidor respondeu ${response.status}`);
     }
     uploadDialog.close();
-    const dropped = body.dropped_summary || body.incoming?.dropped_summary || {};
-    const droppedNote = dropped.total_count
-      ? ` O intake descartou ${dropped.orientation_count || 0} orientações e ${dropped.orientation_self_study_count || 0} autoestudos ligados a orientações.`
-      : '';
+    const droppedNote = intakeDropNote(body.dropped_summary || body.incoming?.dropped_summary);
     if (state.upload.mode === 'new') {
-      announce(body.unchanged
+      const message = body.unchanged
         ? `A planilha é igual à versão atual.${droppedNote}`
-        : `Syllabus adicionado. Nenhuma fonte foi processada automaticamente.${droppedNote}`);
+        : `Syllabus adicionado. Nenhuma fonte foi processada automaticamente.${droppedNote}`;
+      announce(message);
+      // The page navigates away right now; the destination announces the note.
+      storeIntakeNote(body.syllabus_id, message);
       window.location.assign(`/syllabi?id=${encodeURIComponent(body.syllabus_id)}`);
     } else {
       announce(`Planilha comparada. Revise as mudanças antes de criar a nova versão.${droppedNote}`);
@@ -3030,6 +3062,7 @@ window.addEventListener('beforeunload', (event) => {
 if (routeId && initialReconciliationId) {
   loadReconciliation(initialReconciliationId);
 } else if (routeId) {
+  announceStoredIntakeNote(routeId);
   loadDetail();
 } else {
   loadList();

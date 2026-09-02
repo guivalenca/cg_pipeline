@@ -784,6 +784,20 @@ def _assemble_adalove(
             )
             parent_uuid = activity.get("parent_activity_uuid") or ""
             inference = activity.get("parent_inference") or ""
+            if not parent_uuid and inference == "no_preceding_anchor_in_week":
+                # The exporter labels a self-study that opens its week; nothing
+                # upstream can re-parent it, so report it instead of rejecting.
+                dropped.append(
+                    {
+                        "activity_uuid": activity["activity_uuid"],
+                        "type": activity["kind"],
+                        "title": activity["title"],
+                        "parent_activity_uuid": None,
+                        "parent_inference": inference,
+                        "reason": "no_parent",
+                    }
+                )
+                continue
             if not parent_uuid or not inference:
                 raise ValueError(
                     f"A linha {activity['row_number']} da aba Activities descreve o "
@@ -886,6 +900,7 @@ def _assemble_adalove(
         )
     orientation_count = sum(item["reason"] == "orientation" for item in dropped)
     child_count = sum(item["reason"] == "parent_orientation" for item in dropped)
+    no_parent_count = sum(item["reason"] == "no_parent" for item in dropped)
     return {
         "format": "adalove-observer",
         "workbook_title": workbook_metadata.get("Project"),
@@ -897,6 +912,7 @@ def _assemble_adalove(
         "dropped_summary": {
             "orientation_count": orientation_count,
             "orientation_self_study_count": child_count,
+            "no_parent_count": no_parent_count,
             "total_count": len(dropped),
         },
     }
@@ -1606,6 +1622,92 @@ def _base_fields(item: dict | None) -> dict:
     return dict(fields) if isinstance(fields, dict) else {}
 
 
+def _workbook_order(item: dict | None, key: str, fallback: int | None) -> int | None:
+    """Return the stored Adalove order key of ``item``, or ``fallback`` when absent."""
+    value = (item or {}).get(key)
+    return fallback if value is None else value
+
+
+def _submitted_week(raw_lesson: dict) -> int | None:
+    try:
+        return int(raw_lesson.get("week")) if raw_lesson.get("week") not in {None, ""} else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _order_keys_agree(rows: list[tuple[int, dict | None]]) -> bool:
+    """Tell whether editor order matches the stored keys of the kept rows.
+
+    Rows without a kept base row are minted after the highest key of their
+    week, so they only round-trip when they come last.
+    """
+    previous = None
+    authored_seen = False
+    for _, kept in rows:
+        if kept is None:
+            authored_seen = True
+            continue
+        if authored_seen:
+            return False
+        key = (kept.get("week_order") or 0, kept.get("activity_order") or 0)
+        if previous is not None and key < previous:
+            return False
+        previous = key
+    return True
+
+
+def _inherited_order_rows(
+    base: dict, submitted_lessons: list
+) -> tuple[dict[int, dict | None], dict[tuple[int, int], dict | None]]:
+    """Map submitted rows to the base rows whose Adalove order keys they keep.
+
+    A row keeps its keys only while the editor order still agrees with them:
+    a week whose lessons were reordered, moved in, or inserted mid-week is
+    renumbered, and so are the sources of a lesson whose source order changed.
+    Invalid payload rows are skipped here and rejected by the caller.
+    """
+    base_lessons = {lesson["id"]: lesson for lesson in base.get("lessons", [])}
+    base_sources = {
+        source["reference_id"]: (lesson["id"], source)
+        for lesson in base.get("lessons", [])
+        for source in lesson.get("sources", [])
+    }
+    weeks: dict[int | None, list[tuple[int, dict | None]]] = {}
+    sources_by_lesson: dict[int, list[tuple[int, dict | None]]] = {}
+    for lesson_index, raw_lesson in enumerate(submitted_lessons, 1):
+        if not isinstance(raw_lesson, dict):
+            continue
+        week = _submitted_week(raw_lesson)
+        base_lesson = base_lessons.get(str(raw_lesson.get("id") or ""))
+        kept = base_lesson if base_lesson and base_lesson.get("week") == week else None
+        weeks.setdefault(week, []).append((lesson_index, kept))
+        raw_sources = raw_lesson.get("sources", [])
+        for source_index, raw_source in enumerate(
+            raw_sources if isinstance(raw_sources, list) else [], 1
+        ):
+            if not isinstance(raw_source, dict):
+                continue
+            owner, base_source = base_sources.get(
+                str(raw_source.get("reference_id") or ""), (None, None)
+            )
+            kept_source = base_source if kept is not None and owner == kept["id"] else None
+            sources_by_lesson.setdefault(lesson_index, []).append((source_index, kept_source))
+
+    kept_lessons: dict[int, dict | None] = {}
+    kept_sources: dict[tuple[int, int], dict | None] = {}
+    for rows in weeks.values():
+        week_agrees = _order_keys_agree(rows)
+        for lesson_index, kept in rows:
+            kept_lessons[lesson_index] = kept if week_agrees else None
+            lesson_sources = sources_by_lesson.get(lesson_index, [])
+            sources_agree = week_agrees and kept is not None and _order_keys_agree(lesson_sources)
+            for source_index, kept_source in lesson_sources:
+                kept_sources[(lesson_index, source_index)] = (
+                    kept_source if sources_agree else None
+                )
+    return kept_lessons, kept_sources
+
+
 def _normalize_curation_projection(
     base: dict,
     submitted_lessons: object,
@@ -1631,9 +1733,27 @@ def _normalize_curation_projection(
         for lesson in base.get("lessons", [])
         for source in lesson.get("sources", [])
     }
+    base_lesson_of_reference = {
+        source["reference_id"]: lesson["id"]
+        for lesson in base.get("lessons", [])
+        for source in lesson.get("sources", [])
+    }
+    kept_lessons, kept_sources = (
+        ({}, {}) if trust_workbook_metadata
+        else _inherited_order_rows(base, submitted_lessons)
+    )
     normalized: list[dict] = []
     source_total = 0
+    # Authored rows are numbered after the highest order key their week
+    # already holds, so minted keys never collide with the Adalove ones.
     curated_activity_order_by_week: dict[int | None, int] = {}
+    for lesson in base.get("lessons", []):
+        week_key = lesson.get("week")
+        curated_activity_order_by_week[week_key] = max(
+            curated_activity_order_by_week.get(week_key, 0),
+            lesson.get("activity_order") or 0,
+            *(source.get("activity_order") or 0 for source in lesson.get("sources", [])),
+        )
     for lesson_index, raw_lesson in enumerate(submitted_lessons, 1):
         if not isinstance(raw_lesson, dict):
             raise ValueError(f"lesson {lesson_index} is invalid")
@@ -1658,6 +1778,7 @@ def _normalize_curation_projection(
         curated_activity_order_by_week[week] = (
             curated_activity_order_by_week.get(week, 0) + 1
         )
+        kept_lesson = kept_lessons.get(lesson_index)
         lesson_fields = (
             dict(raw_lesson.get("fields") or {})
             if trust_workbook_metadata
@@ -1672,12 +1793,14 @@ def _normalize_curation_projection(
             "week_order": (
                 lesson_metadata.get("week_order", week)
                 if trust_workbook_metadata
-                else week
+                else _workbook_order(kept_lesson, "week_order", week)
             ),
             "activity_order": (
                 lesson_metadata.get("activity_order", lesson_index)
                 if trust_workbook_metadata
-                else curated_activity_order_by_week[week]
+                else _workbook_order(
+                    kept_lesson, "activity_order", curated_activity_order_by_week[week]
+                )
             ),
             "kind": _clean_edit_text(
                 raw_lesson.get("kind") or (base_lesson or {}).get("kind") or "Class",
@@ -1751,6 +1874,28 @@ def _normalize_curation_projection(
                 curated_source_orders[source_group_identity] = (
                     curated_activity_order_by_week[week]
                 )
+            kept_source = kept_sources.get((lesson_index, source_index))
+            same_lesson_source = (
+                base_source is not None
+                and base_lesson is not None
+                and base_lesson_of_reference.get(base_source["reference_id"])
+                == base_lesson["id"]
+            )
+            if lesson["kind"] == "Deliverable":
+                # A Deliverable's own materials hang on the Deliverable row;
+                # they never have a parent activity.
+                parent_activity_uuid = None
+                parent_inference = None
+            elif trust_workbook_metadata or same_lesson_source:
+                parent_activity_uuid = source_metadata.get("parent_activity_uuid") or (
+                    lesson_metadata.get("activity_uuid")
+                )
+                parent_inference = source_metadata.get("parent_inference") or (
+                    "curated_explicit_parent"
+                )
+            else:
+                parent_activity_uuid = lesson_metadata.get("activity_uuid")
+                parent_inference = "curated_explicit_parent"
             reference = {
                 "seq": source_index,
                 "activity_uuid": source_metadata.get("activity_uuid"),
@@ -1758,19 +1903,19 @@ def _normalize_curation_projection(
                 "week_order": (
                     source_metadata.get("week_order", week)
                     if trust_workbook_metadata
-                    else week
+                    else _workbook_order(kept_source, "week_order", week)
                 ),
                 "activity_order": (
                     source_metadata.get("activity_order", source_index)
                     if trust_workbook_metadata
-                    else curated_source_orders[source_group_identity]
+                    else _workbook_order(
+                        kept_source,
+                        "activity_order",
+                        curated_source_orders[source_group_identity],
+                    )
                 ),
-                "parent_activity_uuid": (
-                    source_metadata.get("parent_activity_uuid")
-                    or lesson_metadata.get("activity_uuid")
-                ),
-                "parent_inference": source_metadata.get("parent_inference")
-                or "curated_explicit_parent",
+                "parent_activity_uuid": parent_activity_uuid,
+                "parent_inference": parent_inference,
                 "title": _clean_edit_text(
                     raw_source.get("title"),
                     field=f"lesson {lesson_index}, source {source_index} title",

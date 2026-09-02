@@ -648,6 +648,7 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
     assert preview["dropped_summary"] == {
         "orientation_count": 1,
         "orientation_self_study_count": 0,
+        "no_parent_count": 0,
         "total_count": 1,
     }
     source = preview["lessons"][0]["sources"][0]

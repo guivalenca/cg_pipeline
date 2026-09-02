@@ -362,6 +362,44 @@ def test_upload_dialog_derives_companion_identity_and_requires_a_new_name_on_con
         browser.close()
 
 
+def test_new_upload_shows_the_intake_drop_report_on_the_syllabus_page(
+    test_database_url, applied_migrations, tmp_path
+):
+    workbook_path = _subject_workbook(tmp_path / "dropped-orientation.xlsx")
+    name = f"Upload drop report {uuid.uuid4().hex[:10]}"
+    namespace = {
+        "schema_version": "companion_graph_namespace.v1",
+        "institutions": [{"slug": "inteli", "name": "Inteli"}],
+        "graph_ids": [],
+    }
+    app = create_app(
+        lambda: psycopg.connect(test_database_url),
+        companion_namespace_provider=lambda: namespace,
+    )
+
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{base_url}/syllabi")
+        page.locator("[data-new-syllabus]").first.click()
+        dialog = page.locator("[data-upload-dialog]")
+        dialog.locator('[name="institution_id"]').select_option("inteli")
+        dialog.locator('[name="name"]').fill(name)
+        dialog.locator('[name="file"]').set_input_files(workbook_path)
+        dialog.get_by_role("button", name="Adicionar syllabus").click()
+
+        page.wait_for_url("**/syllabi?id=*")
+        status = page.locator("[data-status]")
+        expect(status).to_contain_text("Syllabus adicionado.")
+        expect(status).to_contain_text("O intake descartou 1 orientações")
+        expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
+
+        page.reload()
+        expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
+        expect(status).not_to_contain_text("O intake descartou")
+        browser.close()
+
+
 def test_upload_dialog_blocks_an_existing_syllabus_and_can_open_it(
     test_database_url, applied_migrations, tmp_path
 ):
