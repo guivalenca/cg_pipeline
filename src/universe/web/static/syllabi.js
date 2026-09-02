@@ -9,6 +9,9 @@ const state = {
   detail: null,
   subject: 'all',
   manualSource: null,
+  lessonBuild: null,
+  buildLessonId: null,
+  selectedReferences: {},
 };
 const view = $('[data-view]');
 const heading = $('[data-heading]');
@@ -17,6 +20,7 @@ const uploadDialog = $('[data-upload-dialog]');
 const uploadForm = $('[data-upload-form]');
 const manualDialog = $('[data-manual-dialog]');
 const markdownDialog = $('[data-markdown-dialog]');
+const lessonBuildDialog = $('[data-lesson-build-dialog]');
 
 function announce(message, isError = false) {
   status.textContent = message || '';
@@ -86,6 +90,9 @@ function sourceStatus(source) {
 function sourceMarkup(source, lessonId) {
   const capability = source.acquisition_capability || {};
   const canAcquire = Boolean(source.source_id && capability.supported);
+  const canBuild = Boolean(!source.hidden && source.has_markdown && source.review?.validated);
+  const lessonSelection = state.selectedReferences[lessonId];
+  const selected = lessonSelection ? lessonSelection.has(source.reference_id) : canBuild;
   return `<article class="source" data-reference-id="${esc(source.reference_id)}" data-lesson-id="${esc(lessonId)}">
     <div class="source__top"><div><h3>${esc(source.title || 'Fonte sem título')}</h3>
       <p>${esc(source.media_type || 'fonte')} · ${esc(sourceStatus(source))}${source.hidden ? ' · oculta' : ''}</p></div>
@@ -95,6 +102,7 @@ function sourceMarkup(source, lessonId) {
     <div class="source__review">
       <label><input type="checkbox" data-review-validated ${source.review?.validated ? 'checked' : ''}> Source Publication validada</label>
       <label>Complexidade <select data-review-complexity><option value="">Não definida</option><option value="simple" ${source.review?.complexity === 'simple' ? 'selected' : ''}>Simples</option><option value="complex" ${source.review?.complexity === 'complex' ? 'selected' : ''}>Complexa</option></select></label>
+      <label class="build-source"><input type="checkbox" data-build-source ${selected ? 'checked' : ''} ${canBuild ? '' : 'disabled'}> Usar no Lesson Build</label>
     </div>
     <div class="source__actions">
       <button class="primary" data-acquire="${esc(source.source_id || '')}" ${canAcquire ? '' : 'disabled'}>Adquirir, limpar e publicar</button>
@@ -120,7 +128,7 @@ function renderDetail() {
       <div class="usage">${esc(usageMarkup(detail.usage))}</div>
     </section>
     <div class="lessons">${lessons.map((lesson) => `<article class="lesson" data-lesson-id="${esc(lesson.id)}">
-      <header><div><small>${esc(lesson.lesson_subject?.code || lesson.subject || '')} · semana ${esc(lesson.week || '—')}</small><h2>${esc(lesson.title)}</h2></div><span>${Number(lesson.sources?.length || 0)} fontes</span></header>
+      <header><div><small>${esc(lesson.lesson_subject?.code || lesson.subject || '')} · semana ${esc(lesson.week || '—')}</small><h2>${esc(lesson.title)}</h2></div><div class="lesson__actions"><span>${Number(lesson.sources?.length || 0)} fontes</span><button data-open-lesson-build="${esc(lesson.id)}">Lesson Build</button></div></header>
       <div class="lesson__body">${(lesson.sources || []).map((source) => sourceMarkup(source, lesson.id)).join('') || '<p class="empty">Sem autoestudos nesta aula.</p>'}</div>
     </article>`).join('') || '<p class="empty">Nenhuma aula neste filtro.</p>'}</div>`;
   view.ariaBusy = 'false';
@@ -268,12 +276,83 @@ async function openMarkdown(sourceId, title) {
   } catch (error) { announce(error.message, true); }
 }
 
+function buildStatusLabel(value) {
+  return ({ queued: 'Na fila', running: 'Em execução', succeeded: 'Concluído', failed: 'Falhou' })[value] || value;
+}
+
+function renderLessonBuild() {
+  const build = state.lessonBuild;
+  const body = $('[data-lesson-build-body]');
+  if (!build) {
+    const lesson = state.detail.lessons.find((item) => item.id === state.buildLessonId);
+    const selected = state.selectedReferences[state.buildLessonId] || new Set();
+    body.innerHTML = `<p>Serão fixadas ${selected.size} Source Publication(s) validada(s) para <strong>${esc(lesson?.title)}</strong>.</p><p class="help">Mudanças de seleção só passam a valer quando o build é iniciado.</p>`;
+    $('[data-lesson-build-start]').hidden = false;
+    return;
+  }
+  const completed = new Set((build.checkpoints || []).filter((item) => item.is_stage_result).map((item) => item.stage));
+  const families = [...new Set((build.checkpoints || []).map((item) => item.family))];
+  body.innerHTML = `<section class="build-summary"><strong>${esc(buildStatusLabel(build.status))}</strong><code>${esc(build.id)}</code>
+    ${build.failure_message ? `<p class="error">${esc(build.failure_message)}</p>` : ''}
+    <ol class="build-stages">${(build.stages || []).map((stage) => `<li class="${completed.has(stage.name) ? 'done' : ''}">${completed.has(stage.name) ? '✓' : '○'} ${esc(stage.label)}</li>`).join('')}</ol>
+    <details><summary>Manifesto congelado</summary><pre>${esc(JSON.stringify(build.manifest, null, 2))}</pre></details>
+    ${families.length ? `<div><h3>Artefatos brutos</h3>${families.map((family) => `<section><strong>${esc(family.replaceAll('_', ' '))}</strong><ul>${(build.checkpoints || []).filter((item) => item.family === family).map((item) => `<li><a href="/api/lesson-builds/${encodeURIComponent(build.id)}/checkpoints/${encodeURIComponent(item.id)}">${esc(item.path)}</a></li>`).join('')}</ul></section>`).join('')}</div>` : ''}
+    <p class="usage">OpenRouter: ${Number(build.usage?.calls || 0)} chamadas · US$ ${Number(build.usage?.cost_usd || 0).toFixed(4)}</p>
+    ${(build.attempts || []).length ? `<details><summary>Attempts</summary><ul>${build.attempts.map((item) => `<li>${esc(item.stage)} · ${esc(item.requested_model || 'modelo desconhecido')} · ${esc(item.provider || 'provider desconhecido')} · ${esc(item.outcome)}</li>`).join('')}</ul></details>` : ''}
+    ${build.status === 'failed' ? '<div class="source__actions"><button data-lesson-build-resume>Retomar do checkpoint</button><button data-lesson-build-regenerate>Regenerar desde o início</button></div>' : (build.status === 'succeeded' ? '<div class="source__actions"><button data-lesson-build-regenerate>Regenerar desde o início</button></div>' : '')}</section>`;
+  $('[data-lesson-build-start]').hidden = true;
+  if (['queued', 'running'].includes(build.status)) {
+    const buildId = build.id;
+    window.setTimeout(async () => {
+      if (!lessonBuildDialog.open || state.lessonBuild?.id !== buildId) return;
+      try { await refreshLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; }
+    }, 2000);
+  }
+}
+
+async function openLessonBuild(lessonId) {
+  state.buildLessonId = lessonId;
+  $('[data-lesson-build-error]').textContent = '';
+  const lesson = state.detail.lessons.find((item) => item.id === lessonId);
+  $('[data-lesson-build-heading]').textContent = lesson?.title || 'Lesson Build';
+  const offer = await request(`/api/syllabi/${encodeURIComponent(state.detail.id)}/versions/${encodeURIComponent(state.detail.version.id)}/lessons/${encodeURIComponent(lessonId)}/lesson-build`);
+  if (!state.selectedReferences[lessonId]) {
+    state.selectedReferences[lessonId] = new Set(offer.references.filter((item) => item.eligible && item.selected).map((item) => item.reference_id));
+  }
+  state.lessonBuild = offer.latest_build;
+  renderLessonBuild();
+  lessonBuildDialog.showModal();
+}
+
+async function startLessonBuild() {
+  const selected = [...(state.selectedReferences[state.buildLessonId] || new Set())];
+  if (!selected.length) throw new Error('Selecione pelo menos uma Source Publication validada.');
+  state.lessonBuild = await request(`/api/syllabi/${encodeURIComponent(state.detail.id)}/versions/${encodeURIComponent(state.detail.version.id)}/lessons/${encodeURIComponent(state.buildLessonId)}/lesson-builds`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ request_key: crypto.randomUUID(), reference_ids: selected }),
+  });
+  renderLessonBuild();
+  announce('Lesson Build colocado na fila.');
+}
+
+async function refreshLessonBuild() {
+  if (!state.lessonBuild) return;
+  state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}`);
+  renderLessonBuild();
+}
+
 document.addEventListener('click', async (event) => {
   const open = event.target.closest('[data-open-syllabus]');
   if (open) { event.preventDefault(); setSyllabusInUrl(open.dataset.openSyllabus); await loadDetail(open.dataset.openSyllabus); return; }
   if (event.target.closest('[data-new-syllabus]')) { await openUpload(); return; }
   if (event.target.closest('[data-back]')) { setSyllabusInUrl(null); state.detail = null; await loadIndex(); return; }
   if (event.target.closest('[data-reupload]')) { await openUpload({ forVersion: true }); return; }
+  const buildButton = event.target.closest('[data-open-lesson-build]');
+  if (buildButton) { try { await openLessonBuild(buildButton.dataset.openLessonBuild); } catch (error) { announce(error.message, true); } return; }
+  if (event.target.closest('[data-lesson-build-start]')) { try { await startLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
+  if (event.target.closest('[data-lesson-build-resume]')) { try { state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/resume`, { method: 'POST' }); renderLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
+  if (event.target.closest('[data-lesson-build-regenerate]')) { try { state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/regenerate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ request_key: crypto.randomUUID() }) }); renderLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
+  if (event.target.closest('[data-lesson-build-dialog]') && state.lessonBuild?.status === 'running') { await refreshLessonBuild(); return; }
   const { card, lesson, source } = findSourceElement(event.target);
   if (!source) return;
   try {
@@ -299,6 +378,14 @@ view.addEventListener('change', async (event) => {
     const { card, source } = findSourceElement(event.target);
     try { await patchReview(card, source); } catch (error) { announce(error.message, true); }
   }
+  if (event.target.matches('[data-build-source]')) {
+    const { card, source } = findSourceElement(event.target);
+    const lessonId = card.dataset.lessonId;
+    const selected = state.selectedReferences[lessonId] || new Set();
+    if (event.target.checked) selected.add(source.reference_id);
+    else selected.delete(source.reference_id);
+    state.selectedReferences[lessonId] = selected;
+  }
 });
 
 uploadForm.addEventListener('submit', submitUpload);
@@ -313,5 +400,6 @@ $('[data-manual-form]').addEventListener('submit', submitManual);
 $$('[data-upload-close]').forEach((button) => button.addEventListener('click', () => uploadDialog.close()));
 $$('[data-manual-close]').forEach((button) => button.addEventListener('click', () => manualDialog.close()));
 $$('[data-markdown-close]').forEach((button) => button.addEventListener('click', () => markdownDialog.close()));
+$$('[data-lesson-build-close]').forEach((button) => button.addEventListener('click', () => lessonBuildDialog.close()));
 window.addEventListener('popstate', () => loadRoute().catch((error) => announce(error.message, true)));
 loadRoute().catch((error) => { view.ariaBusy = 'false'; view.innerHTML = `<p class="empty">${esc(error.message)}</p>`; });

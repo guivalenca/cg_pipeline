@@ -111,7 +111,9 @@ def test_markdown_renderer_typesets_math_and_blocks_unsafe_media():
 def test_static_surface_has_only_the_syllabus_operator_route(test_database_url):
     with TestClient(_app(test_database_url)) as client:
         assert client.get("/", follow_redirects=False).headers["location"] == "/syllabi"
-        assert client.get("/syllabi").status_code == 200
+        surface = client.get("/syllabi")
+        assert surface.status_code == 200
+        assert "data-lesson-build-dialog" in surface.text
         assert client.get("/graph").status_code == 404
 
 def test_six_sheet_workbook_exposes_five_curricular_subjects_and_sources(
@@ -239,3 +241,63 @@ def test_source_review_is_persisted_through_the_operator_api(test_database_url, 
         "validated": False,
         "complexity": "simple",
     }
+
+
+def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, tmp_path):
+    path = _five_subject_workbook(tmp_path / "lesson-build.xlsx")
+    with TestClient(_app(test_database_url)) as client:
+        uploaded = _upload(client, path, f"Build {uuid.uuid4().hex[:8]}").json()
+        detail = client.get(f"/api/syllabi/{uploaded['syllabus_id']}").json()
+        lesson = detail["lessons"][0]
+        source = lesson["sources"][0]
+        with psycopg.connect(test_database_url) as conn:
+            conn.execute(
+                "INSERT INTO source_snapshot"
+                " (id, source_id, content_hash, status) VALUES (%s, %s, %s, 'ok')",
+                (f"build-snapshot-{source['reference_id']}", source["source_id"], "c" * 64),
+            )
+            conn.execute(
+                "INSERT INTO artifact (id, snapshot_id, kind, tool, body)"
+                " VALUES (%s, %s, 'markdown', 'test', '# Fonte')",
+                (f"build-artifact-{source['reference_id']}", f"build-snapshot-{source['reference_id']}"),
+            )
+        reviewed = client.patch(
+            f"/api/syllabi/{uploaded['syllabus_id']}/sources/{source['reference_id']}/review",
+            json={"validated": True, "complexity": "simple"},
+        )
+        assert reviewed.status_code == 200
+        offer = client.get(
+            f"/api/syllabi/{uploaded['syllabus_id']}/versions/"
+            f"{detail['version']['id']}/lessons/{lesson['id']}/lesson-build"
+        )
+        assert offer.status_code == 200
+        assert offer.json()["references"] == [
+            {
+                "reference_id": source["reference_id"],
+                "title": source["title"],
+                "eligible": True,
+                "selected": True,
+            }
+        ]
+        start_url = (
+            f"/api/syllabi/{uploaded['syllabus_id']}/versions/"
+            f"{detail['version']['id']}/lessons/{lesson['id']}/lesson-builds"
+        )
+        omitted = client.post(
+            start_url,
+            json={"request_key": f"browser-omitted-{uuid.uuid4().hex}"},
+        )
+        assert omitted.status_code == 422
+        assert omitted.json()["detail"]["code"] == "no_selected_references"
+        started = client.post(
+            start_url,
+            json={
+                "request_key": f"browser-{uuid.uuid4().hex}",
+                "reference_ids": [source["reference_id"]],
+            },
+        )
+        assert started.status_code == 201, started.text
+        fetched = client.get(f"/api/lesson-builds/{started.json()['id']}")
+
+    assert fetched.status_code == 200
+    assert fetched.json()["manifest"]["references"][0]["reference_id"] == source["reference_id"]

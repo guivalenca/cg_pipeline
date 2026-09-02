@@ -3,8 +3,9 @@
 CG Pipeline is the Source Publication pilot for Companion. It imports a
 full-fidelity Adalove Observer Exporter workbook, preserves Syllabus history,
 acquires each selected Source, and publishes auditable canonical Markdown.
-This branch deliberately stops there: it does not generate or reconcile
-derived knowledge, tasks, graphs, or learning activities.
+An operator can then pin selected validated publications into a resumable,
+per-Lesson creation build. The pilot produces a Lesson fragment; accepting it
+into a published Concept Graph remains a separate boundary.
 
 ## What the pilot keeps
 
@@ -14,7 +15,7 @@ derived knowledge, tasks, graphs, or learning activities.
 - hide, remove, replace, retry, validation, and source-cleanup controls;
 - PostgreSQL queues with fair claiming and recoverable leases;
 - content-addressed Source Assets on an application-managed filesystem; and
-- a per-Lesson build boundary whose stage registry is intentionally empty.
+- a per-Lesson build with six auditable creation stages and raw checkpoints.
 
 The accepted workbook has exactly these six sheets: `Activities`, `Subjects`,
 `Materials`, `Order audit`, `Read me`, and `Errors`. The importer models
@@ -24,8 +25,8 @@ preserves Deliverables and Evaluations as curricular records. The exporter is
 
 ## Boot the complete local stack
 
-Docker Compose starts PostgreSQL 16, applies the single baseline migration,
-then starts the web app and one worker:
+Docker Compose starts PostgreSQL 16, applies pending migrations, then starts
+the web app and one worker:
 
 ```sh
 docker compose up --build
@@ -82,6 +83,7 @@ The durable flow is:
 
 ```text
 Syllabus Version → Source → Source Evidence → canonical cleanup → Source Publication
+                 → selected Lesson Build → six checkpoints → Lesson fragment
 ```
 
 Uploading a workbook never queues provider work. Acquisition is explicit and
@@ -90,6 +92,9 @@ Markdown with complete lineage to its Source Evidence. Failed and superseded
 attempts remain auditable beside the current publication.
 Operator validation records the exact publication artifact and content hash;
 a newer publication must be validated again before a Lesson Build can pin it.
+Starting a build freezes the exact reference order, publication artifacts and
+hashes, Lesson metadata, prompt hashes, and model routes. A failed build resumes
+from valid checkpoints; “regenerate from the beginning” creates a fresh lineage.
 
 ## Architecture
 

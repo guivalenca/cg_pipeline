@@ -16,7 +16,7 @@ from typing import Any
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import lesson_build_plan, pipeline_lease
+from universe import lesson_build_plan, lesson_creation, pipeline_lease
 from universe.db import connect
 
 
@@ -33,6 +33,7 @@ def _claim_next(conn: psycopg.Connection) -> dict[str, Any] | None:
         " SELECT work.id FROM lesson_build_work work"
         " JOIN lesson_build build ON build.id = work.build_id"
         " WHERE work.status IN ('queued', 'running')"
+        " AND work.seq = 1 AND build.is_active"
         " AND work.available_at <= clock_timestamp()"
         " AND (work.claim_token IS NULL"
         "      OR work.lease_expires_at <= clock_timestamp())"
@@ -74,7 +75,13 @@ def _claim_next(conn: psycopg.Connection) -> dict[str, Any] | None:
     )
 
 
-def _completed_stages(claim: Mapping[str, Any]) -> tuple[str, ...]:
+def _completed_stages(
+    claim: Mapping[str, Any], conn: psycopg.Connection | None = None
+) -> tuple[str, ...]:
+    if conn is not None:
+        checkpointed = lesson_creation.completed_stages(conn, str(claim["build_id"]))
+        if checkpointed:
+            return checkpointed
     diagnostics = claim.get("diagnostics")
     raw = diagnostics.get("completed_stages", []) if isinstance(diagnostics, Mapping) else []
     if not isinstance(raw, list):
@@ -180,7 +187,7 @@ def _fail_launch(
 ) -> None:
     diagnostics = _diagnostics(
         claim,
-        completed_stages=list(_completed_stages(claim)),
+        completed_stages=list(_completed_stages(claim, conn)),
         last_action="attention",
         exception=type(exc).__name__,
         message=str(exc),
@@ -191,6 +198,12 @@ def _fail_launch(
         " WHERE id = %s AND status = 'running' AND stage = %s"
         " AND last_launched_stage = %s",
         (Jsonb(diagnostics), claim["id"], stage, stage),
+    )
+    conn.execute(
+        "UPDATE lesson_build SET status = 'failed', is_active = false,"
+        " failure_code = 'stage_launch_failed', failure_message = %s,"
+        " finished_at = now() WHERE id = %s",
+        (str(exc), claim["build_id"]),
     )
     conn.commit()
 
@@ -228,7 +241,39 @@ def process_next(
     claim = _claim_next(conn)
     if claim is None:
         return None
-    completed = _completed_stages(claim)
+    try:
+        completed = _completed_stages(claim, conn)
+    except RuntimeError as exc:
+        diagnostics = _diagnostics(
+            claim,
+            last_action="attention",
+            exception=type(exc).__name__,
+            message=str(exc),
+        )
+        stored = _finish(
+            conn,
+            claim,
+            status="failed",
+            stage=None,
+            diagnostics=diagnostics,
+            failure_code="checkpoint_invalid",
+        )
+        if stored:
+            conn.execute(
+                "UPDATE lesson_build SET status = 'failed', is_active = false,"
+                " failure_code = 'checkpoint_invalid', failure_message = %s,"
+                " finished_at = now() WHERE id = %s",
+                (str(exc), claim["build_id"]),
+            )
+            conn.commit()
+        return {
+            "action": "attention" if stored else "claim_lost",
+            "build_id": claim["build_id"],
+            "work_id": claim["id"],
+            "status": "failed" if stored else "running",
+            "stage": None,
+            "claim_count": claim["claim_count"],
+        }
     stage = lesson_build_plan.next_stage(completed=completed)
     if stage is None:
         _finish(
@@ -241,6 +286,18 @@ def process_next(
         action = "completed"
         status = "succeeded"
         stage_name = None
+        conn.execute(
+            "UPDATE lesson_build SET status = 'succeeded', is_active = false,"
+            " failure_code = NULL, failure_message = NULL, finished_at = now()"
+            " WHERE id = %s",
+            (claim["build_id"],),
+        )
+        conn.execute(
+            "UPDATE lesson_build_work SET status = 'succeeded', stage = NULL,"
+            " failure_code = NULL, updated_at = now() WHERE build_id = %s",
+            (claim["build_id"],),
+        )
+        conn.commit()
     else:
         stage_name = stage.name
         held = _active_lease(conn, claim, stage_name)
@@ -259,22 +316,6 @@ def process_next(
             )
             action = "observed"
             status = "running"
-        elif claim.get("last_launched_stage") == stage_name:
-            _finish(
-                conn,
-                claim,
-                status="failed",
-                stage=stage_name,
-                failure_code="stage_ended_without_result",
-                diagnostics=_diagnostics(
-                    claim,
-                    completed_stages=list(completed),
-                    last_action="attention",
-                    message=f"Lesson build stage {stage_name} ended without a result",
-                ),
-            )
-            action = "attention"
-            status = "failed"
         else:
             database_url = pipeline_lease.connection_dsn(conn)
             lease = _acquire_lease(database_url, claim, stage_name)
@@ -312,6 +353,11 @@ def process_next(
                     action = "claim_lost"
                     status = "running"
                 else:
+                    conn.execute(
+                        "UPDATE lesson_build SET status = 'running' WHERE id = %s",
+                        (claim["build_id"],),
+                    )
+                    conn.commit()
                     try:
                         if spawn is _DEFAULT_SPAWN:
                             process = _spawn(argv, lease, database_url=database_url)

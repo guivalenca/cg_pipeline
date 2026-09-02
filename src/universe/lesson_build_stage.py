@@ -84,6 +84,14 @@ def _record(
     ).fetchone()
     if updated is None:
         raise pipeline_lease.LeaseLost("Lesson stage lost its work before publication")
+    if not succeeded:
+        conn.execute(
+            "UPDATE lesson_build SET status = 'failed', is_active = false,"
+            " failure_code = 'stage_failed', failure_message = %s,"
+            " finished_at = now() WHERE id = ("
+            " SELECT build_id FROM lesson_build_work WHERE id = %s)",
+            (str(exception) if exception is not None else stage, work_id),
+        )
     conn.commit()
 
 

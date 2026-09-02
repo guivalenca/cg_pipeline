@@ -28,7 +28,7 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import companion_seam
+from universe import companion_seam, lesson_build
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -678,9 +678,11 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
     return states
 
 
-def _syllabus_usage(conn: psycopg.Connection, source_ids: list[str]) -> dict:
+def _syllabus_usage(
+    conn: psycopg.Connection, source_ids: list[str], version_id: str | None = None
+) -> dict:
     """Summarize paid calls recorded for the sources visible in one version."""
-    if not source_ids:
+    if not source_ids and not version_id:
         return {}
 
     usage_rows = conn.execute(
@@ -700,8 +702,12 @@ def _syllabus_usage(conn: psycopg.Connection, source_ids: list[str]) -> dict:
         " UNION ALL"
         " SELECT c.usage FROM pdf_figure_localization_call c"
         " JOIN acquisition_job j ON j.id = c.acquisition_job_id"
-        " WHERE j.source_id = ANY(%s) AND c.status = 'succeeded'",
-        (source_ids, source_ids, source_ids, source_ids),
+        " WHERE j.source_id = ANY(%s) AND c.status = 'succeeded'"
+        " UNION ALL"
+        " SELECT ri.usage FROM run_item ri"
+        " JOIN lesson_build build ON build.id = ri.lesson_build_id"
+        " WHERE build.version_id = %s",
+        (source_ids, source_ids, source_ids, source_ids, version_id),
     ).fetchall()
     cost = 0.0
     total_tokens = 0
@@ -774,7 +780,7 @@ def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
         )
     )
     operational = _latest_source_state(conn, source_ids)
-    usage = _syllabus_usage(conn, source_ids)
+    usage = _syllabus_usage(conn, source_ids, detail.get("version", {}).get("id"))
     if usage:
         detail["usage"] = usage
     for lesson in detail.get("lessons", []):
@@ -1171,6 +1177,116 @@ def create_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}/lessons/"
+        "{lesson_id}/lesson-build"
+    )
+    def lesson_build_offer(
+        syllabus_id: str, version_id: str, lesson_id: str
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_build.offer(
+                    conn,
+                    syllabus_id=syllabus_id,
+                    version_id=version_id,
+                    lesson_id=lesson_id,
+                )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except lesson_build.LessonBuildNotReady as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+
+    @app.post(
+        "/api/syllabi/{syllabus_id}/versions/{version_id}/lessons/"
+        "{lesson_id}/lesson-builds",
+        status_code=201,
+    )
+    def start_lesson_build(
+        syllabus_id: str, version_id: str, lesson_id: str, payload: dict = Body(...)
+    ) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_build.request(
+                    conn,
+                    syllabus_id=syllabus_id,
+                    version_id=version_id,
+                    lesson_id=lesson_id,
+                    reference_ids=payload.get("reference_ids"),
+                    request_key=payload.get("request_key"),
+                    requested_by=payload.get("requested_by", "founder"),
+                )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except lesson_build.LessonBuildNotReady as exc:
+            raise HTTPException(
+                status_code=409 if exc.code == "build_already_active" else 422,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/api/lesson-builds/{build_id}")
+    def lesson_build_detail(build_id: str) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_build.read(conn, build_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/lesson-builds/{build_id}/resume")
+    def resume_lesson_build(build_id: str) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_build.resume(conn, build_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except lesson_build.LessonBuildNotReady as exc:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+
+    @app.post("/api/lesson-builds/{build_id}/regenerate", status_code=201)
+    def regenerate_lesson_build(build_id: str, payload: dict = Body(...)) -> dict:
+        try:
+            with connect_factory() as conn:
+                return lesson_build.regenerate(
+                    conn,
+                    build_id,
+                    request_key=payload.get("request_key"),
+                    requested_by=payload.get("requested_by", "founder"),
+                )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except lesson_build.LessonBuildNotReady as exc:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/api/lesson-builds/{build_id}/checkpoints/{checkpoint_id}")
+    def download_lesson_checkpoint(build_id: str, checkpoint_id: str) -> Response:
+        try:
+            with connect_factory() as conn:
+                path, body = lesson_build.checkpoint_body(conn, build_id, checkpoint_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return Response(
+            body,
+            media_type="application/json; charset=utf-8",
+            headers={
+                "Content-Disposition": (
+                    "attachment; filename*=UTF-8''" + quote(Path(path).name)
+                )
+            },
+        )
 
     @app.post("/api/syllabi/{syllabus_id}/curate", status_code=201)
     def curate_syllabus_version(

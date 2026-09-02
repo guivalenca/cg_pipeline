@@ -77,8 +77,8 @@ _Avoid_: validated Source, permanent checkbox
 ## Lesson Creation
 
 **Source Ledger**:
-An immutable per-Lesson manifest of the stable Lesson identity and the exact
-Source Publications pinned for one Lesson Build.
+The per-Lesson presentation of stable Lesson identity and pinned Source Bodies
+consumed by Lesson Creation.
 _Avoid_: workbook, Subject ledger, current Sources
 
 **Source Body**:
@@ -126,6 +126,21 @@ _Avoid_: Lesson Reconciliation, one-Lesson projection
 A durable request pinned to a Lesson and its current Source Publications. It is
 the sole boundary for requesting post-publication Lesson Creation.
 _Avoid_: implicit pipeline, source acquisition, background interpretation
+
+**Lesson Build Manifest**:
+The immutable statement of a Lesson Build's ordered Source Publications,
+Lesson metadata, prompt identities, and model routes.
+_Avoid_: KC Corpus Manifest, current selection, Source Ledger
+
+**Lesson Build Checkpoint**:
+An immutable output of one Lesson Creation stage, reusable only when its Lesson
+Build Manifest and stage fingerprint still match.
+_Avoid_: cache, mutable draft, latest artifact
+
+**Attempt**:
+One model-provider invocation attributed to a Lesson Build, including its model
+identity, outcome, usage, and cost.
+_Avoid_: call row, retry counter
 
 **Claim Lease**:
 A PostgreSQL-backed, expiring right for one worker to process one queued item.
