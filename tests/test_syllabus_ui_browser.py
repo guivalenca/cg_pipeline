@@ -284,18 +284,17 @@ def _snapshot(
     }
 
 
-def test_upload_dialog_previews_companion_identity_and_offers_conflict_choices(
+def test_upload_dialog_derives_companion_identity_and_requires_a_new_name_on_conflict(
     test_database_url, applied_migrations, tmp_path
 ):
     workbook_path = _editable_workbook(tmp_path / "syllabus-identity.xlsx")
     marker = uuid.uuid4().hex[:10]
     name = f"Upload identity {marker}"
     occupied = f"graph-inteli-upload-identity-{marker}"
-    also_occupied = f"{occupied}-reserved"
     namespace = {
         "schema_version": "companion_graph_namespace.v1",
         "institutions": [{"slug": "inteli", "name": "Inteli"}],
-        "graph_ids": [occupied, also_occupied],
+        "graph_ids": [occupied],
     }
     app = create_app(
         lambda: psycopg.connect(test_database_url),
@@ -310,11 +309,11 @@ def test_upload_dialog_previews_companion_identity_and_offers_conflict_choices(
 
         dialog = page.locator("[data-upload-dialog]")
         expect(dialog).to_be_visible()
+        expect(dialog.locator("[data-new-upload-mode]")).to_be_visible()
+        expect(dialog.locator("[data-version-upload-mode]")).to_be_hidden()
         expect(dialog.locator('[name="display_name"]')).to_have_count(0)
         expect(dialog.locator('[name="lesson_subject_ids"]')).to_have_count(0)
-        graph_id = dialog.locator('[name="graph_id"]')
-        expect(graph_id).to_be_hidden()
-        assert graph_id.is_disabled()
+        expect(dialog.locator('[name="graph_id"]')).to_have_count(0)
 
         dialog.locator('[name="institution_id"]').select_option("inteli")
         dialog.locator('[name="name"]').fill(name)
@@ -326,12 +325,18 @@ def test_upload_dialog_previews_companion_identity_and_offers_conflict_choices(
 
         conflict = dialog.locator("[data-graph-conflict]")
         expect(conflict).to_be_visible()
-        expect(conflict).to_contain_text(occupied)
+        expect(conflict).to_have_text(
+            "Este ID já está em uso no Companion. Escolha outro nome para o syllabus."
+        )
+        expect(dialog.get_by_role("button", name="Adicionar syllabus")).to_be_disabled()
 
         dialog.locator('[name="name"]').fill("C")
         assert preview.evaluate("element => element.hidden") is False
         expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
         expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Continue digitando…")
+        expect(preview.locator("[data-graph-id-status]")).to_have_text(
+            "Continue digitando para gerar um ID válido."
+        )
         assert preview.evaluate("element => element.hidden") is False
 
         changed_name = f"{name} changed"
@@ -339,50 +344,15 @@ def test_upload_dialog_previews_companion_identity_and_offers_conflict_choices(
         assert preview.evaluate("element => element.hidden") is False
         expect(preview.locator("[data-graph-display-name]")).to_have_text(changed_name)
         expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
-        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
-        assert conflict.evaluate("element => element.hidden") is True
-        expect(preview).to_be_visible()
-        expect(preview.locator("[data-graph-display-name]")).to_have_text(changed_name)
-
-        dialog.locator('[name="name"]').fill(name)
-        assert preview.evaluate("element => element.hidden") is False
-        expect(preview.locator("[data-proposed-graph-id]")).to_have_text("Calculando…")
-        expect(conflict).to_be_visible()
-        expect(dialog.get_by_role("button", name="Mudar nome do syllabus")).to_have_count(0)
-        dialog.get_by_role("button", name="Editar somente o ID").click()
-        expect(graph_id).to_be_visible()
-        expect(graph_id).to_be_enabled()
-        expect(dialog.get_by_role("button", name="Salvar ID")).to_be_visible()
-        expect(dialog.get_by_role("button", name="Cancelar edição")).to_be_visible()
-
-        graph_id.fill(f"{occupied}-rascunho")
-        expect(conflict).to_be_visible()
-        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(occupied)
-        dialog.get_by_role("button", name="Cancelar edição").click()
-        expect(graph_id).to_be_hidden()
-        assert graph_id.is_disabled()
-        expect(conflict).to_be_visible()
-
-        dialog.get_by_role("button", name="Editar somente o ID").click()
-        graph_id.fill(also_occupied)
-        expect(conflict).to_be_visible()
-        dialog.get_by_role("button", name="Salvar ID").click()
-        expect(dialog.locator("[data-graph-id-error]")).to_contain_text("já está em uso")
-        expect(conflict).to_be_visible()
-        expect(graph_id).to_be_visible()
-
-        graph_id.fill(f"{occupied}-2")
-        dialog.get_by_role("button", name="Salvar ID").click()
         expect(preview.locator("[data-graph-id-status]")).to_have_text(
-            "ID verificado. Será salvo ao adicionar o syllabus."
+            "Calculando e verificando o ID…"
         )
-        expect(graph_id).to_be_visible()
-        assert graph_id.is_enabled()
-        assert graph_id.evaluate("input => input.readOnly") is True
-        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(f"{occupied}-2")
-        expect(dialog.get_by_role("button", name="Salvar ID")).to_be_hidden()
-        expect(dialog.get_by_role("button", name="Cancelar edição")).to_be_hidden()
-        expect(conflict).to_be_hidden()
+        assert conflict.evaluate("element => element.hidden") is True
+        expect(preview.locator("[data-proposed-graph-id]")).to_have_text(f"{occupied}-changed")
+        expect(preview.locator("[data-graph-id-status]")).to_have_text(
+            "ID verificado e disponível."
+        )
+        expect(dialog.get_by_role("button", name="Adicionar syllabus")).to_be_enabled()
 
         dialog.locator('[name="file"]').set_input_files(workbook_path)
         dialog.get_by_role("button", name="Adicionar syllabus").click()
@@ -426,14 +396,14 @@ def test_upload_dialog_blocks_an_existing_syllabus_and_can_open_it(
 
         conflict = dialog.locator("[data-syllabus-conflict]")
         expect(conflict).to_be_visible()
-        expect(conflict).to_contain_text(name)
-        expect(conflict).not_to_contain_text("mude o nome")
-        expect(dialog.get_by_role("button", name="Mudar nome do syllabus")).to_have_count(0)
-        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
+        expect(conflict.locator("p")).to_have_text(
+            "Este nome já existe. Você está adicionando uma versão a esse syllabus."
+        )
+        expect(dialog.get_by_role("button", name="Adicionar syllabus")).to_be_disabled()
         actions = conflict.locator(".syl-graph-conflict__actions")
         assert actions.evaluate("element => getComputedStyle(element).display") == "grid"
         assert actions.locator(".button").count() == 1
-        open_existing = dialog.get_by_role("link", name="Abrir syllabus existente")
+        open_existing = dialog.get_by_role("link", name="Abrir syllabus e adicionar versão")
         assert "button--primary" not in (open_existing.get_attribute("class") or "")
         assert "button--quiet" not in (open_existing.get_attribute("class") or "")
         button_geometry = open_existing.evaluate(
@@ -460,11 +430,24 @@ def test_upload_dialog_blocks_an_existing_syllabus_and_can_open_it(
         expect(conflict).to_be_hidden()
         dialog.locator('[name="name"]').fill(name)
         expect(conflict).to_be_visible()
-        expect(dialog.get_by_role("button", name="Escolher outro ID")).to_be_disabled()
         open_existing.click()
 
         page.wait_for_url(f"**/syllabi?id={imported['syllabus_id']}")
-        expect(page.get_by_role("button", name="Enviar nova versão")).to_be_visible()
+        new_version = page.get_by_role("button", name="Enviar nova versão")
+        expect(new_version).to_be_visible()
+        new_version.click()
+
+        expect(dialog.locator("[data-new-upload-mode]")).to_be_hidden()
+        version_mode = dialog.locator("[data-version-upload-mode]")
+        expect(version_mode).to_be_visible()
+        expect(version_mode.locator("[data-version-syllabus-name]")).to_have_text(name)
+        expect(version_mode.locator("[data-version-institution]")).to_have_text("Inteli")
+        expect(version_mode.locator("[data-version-graph-id]")).to_have_text(
+            f"graph-inteli-{imported['syllabus_id']}"
+        )
+        expect(dialog.locator("[data-name-field]")).to_be_hidden()
+        expect(dialog.locator("[data-syllabus-fields]")).to_be_hidden()
+        expect(dialog.get_by_role("button", name="Comparar planilha")).to_be_enabled()
         browser.close()
 
 

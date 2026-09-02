@@ -9,6 +9,9 @@ import unicodedata
 
 GRAPH_ID = re.compile(r"^[a-z][a-z0-9_.-]{1,127}$")
 INSTITUTION_SLUG = re.compile(r"^[a-z][a-z0-9-]{1,63}$")
+GRAPH_ID_CONFLICT_MESSAGE = (
+    "Este ID já está em uso no Companion. Escolha outro nome para o syllabus."
+)
 
 
 class GraphIdConflict(ValueError):
@@ -16,7 +19,7 @@ class GraphIdConflict(ValueError):
 
     def __init__(self, graph_id: str) -> None:
         self.graph_id = graph_id
-        super().__init__(f"O identificador {graph_id!r} já está em uso.")
+        super().__init__(GRAPH_ID_CONFLICT_MESSAGE)
 
 
 def slug_component(value: str) -> str:

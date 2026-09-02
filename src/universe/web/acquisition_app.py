@@ -49,7 +49,11 @@ from universe.acquisition.videos import (
 )
 from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect
-from universe.graph_identity import GraphIdConflict, graph_id_for, validate_graph_id
+from universe.graph_identity import (
+    GRAPH_ID_CONFLICT_MESSAGE,
+    GraphIdConflict,
+    graph_id_for,
+)
 from universe.syllabus import (
     SyllabusAlreadyExists,
     SyllabusVersionConflict,
@@ -1125,7 +1129,7 @@ def _legacy_latest_projection(conn: psycopg.Connection, version_id: str) -> dict
 def _graph_id_conflict_detail(graph_id: str) -> dict:
     return {
         "code": "graph_id_conflict",
-        "message": f"O identificador {graph_id!r} já está em uso.",
+        "message": GRAPH_ID_CONFLICT_MESSAGE,
         "graph_id": graph_id,
     }
 
@@ -1368,7 +1372,12 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         with connect_factory() as conn:
-            existing = conn.execute(
+            exact_title = conn.execute(
+                "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
+                " ORDER BY created_at, id LIMIT 1",
+                (clean_name,),
+            ).fetchone()
+            syllabus_id_owner = conn.execute(
                 "SELECT id, title, graph_id FROM syllabus WHERE id = %s",
                 (syllabus_id,),
             ).fetchone()
@@ -1384,32 +1393,10 @@ def create_app(
         return {
             "display_name": clean_name,
             "graph_id": graph_id,
-            "existing_syllabus": serialize(existing),
+            "existing_syllabus": serialize(exact_title),
+            "syllabus_id_owner": serialize(syllabus_id_owner),
             "graph_owner": serialize(graph_owner),
         }
-
-    @app.get("/api/syllabi/graph-id-availability")
-    def syllabus_graph_id_availability(graph_id: str = Query(...)) -> dict:
-        try:
-            clean_graph_id = validate_graph_id(graph_id)
-            namespace = namespace_provider()
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
-        except companion_seam.CompanionSeamError as exc:
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-        with connect_factory() as conn:
-            local_owner = conn.execute(
-                "SELECT id FROM syllabus WHERE graph_id = %s",
-                (clean_graph_id,),
-            ).fetchone()
-        companion_owns_id = clean_graph_id in set(namespace.get("graph_ids", []))
-        if local_owner is not None or companion_owns_id:
-            raise HTTPException(
-                status_code=409,
-                detail=_graph_id_conflict_detail(clean_graph_id),
-            )
-        return {"graph_id": clean_graph_id, "available": True}
 
     @app.post("/api/syllabi/upload", status_code=201)
     async def upload_syllabus(
@@ -1417,7 +1404,6 @@ def create_app(
         file: UploadFile = File(...),
         syllabus_id: str | None = Form(default=None),
         institution_id: str | None = Form(default=None),
-        graph_id: str | None = Form(default=None),
     ) -> dict:
         clean_name = name.strip()
         if not clean_name:
@@ -1456,7 +1442,6 @@ def create_app(
                         clean_name,
                         syllabus_id=syllabus_id,
                         institution_id=institution_id,
-                        graph_id=graph_id,
                         occupied_graph_ids=(namespace or {}).get("graph_ids", []),
                         require_syllabus_metadata=True,
                     )

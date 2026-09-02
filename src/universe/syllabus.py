@@ -120,7 +120,9 @@ class SyllabusAlreadyExists(ValueError):
         self.syllabus_id = syllabus_id
         self.title = title
         self.graph_id = graph_id
-        super().__init__(f"Já existe um syllabus chamado {title!r}.")
+        super().__init__(
+            "Este nome já existe. Você está adicionando uma versão a esse syllabus."
+        )
 LESSON_SUBJECT_CODES = {
     "com": "COM",
     "computacao": "COM",
@@ -967,14 +969,14 @@ def import_workbook(
     *,
     syllabus_id: str | None = None,
     institution_id: str | None = None,
-    graph_id: str | None = None,
     occupied_graph_ids: set[str] | tuple[str, ...] | list[str] = (),
     require_syllabus_metadata: bool = True,
     actor: str = "founder",
 ) -> dict:
     """Author one complete uploaded version under a manually named syllabus.
 
-    New named Syllabi require a Companion Institution and durable graph id.
+    New named Syllabi require a Companion Institution. Their graph id derives
+    from that Institution and the Syllabus name.
     Passing ``require_syllabus_metadata=False`` is the explicit compatibility
     path for historical fixtures and migrations that predate that model.
     """
@@ -991,6 +993,15 @@ def import_workbook(
     ).fetchone()
     syllabus_exists = stored is not None
     creation_requested = require_syllabus_metadata and syllabus_id is None
+    exact_title = (
+        conn.execute(
+            "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
+            " ORDER BY created_at, id LIMIT 1",
+            (name,),
+        ).fetchone()
+        if creation_requested
+        else None
+    )
     clean_institution_id = str(institution_id or "").strip()
     if syllabus_exists and not clean_institution_id:
         clean_institution_id = stored[1] or ""
@@ -1005,9 +1016,11 @@ def import_workbook(
             raise ValueError("Selecione uma instituição existente no Companion.")
     if clean_institution_id:
         resolved_id = validate_syllabus_id(resolved_id)
-    resolved_graph_id = str(graph_id or "").strip()
-    if syllabus_exists and not resolved_graph_id:
-        resolved_graph_id = stored[2] or ""
+    if exact_title is not None:
+        raise SyllabusAlreadyExists(exact_title[0], exact_title[1], exact_title[2])
+    if creation_requested and syllabus_exists:
+        raise GraphIdConflict(graph_id_for(clean_institution_id, name))
+    resolved_graph_id = (stored[2] or "") if syllabus_exists else ""
     if not resolved_graph_id and clean_institution_id:
         resolved_graph_id = graph_id_for(clean_institution_id, name)
     if resolved_graph_id:
@@ -1027,24 +1040,31 @@ def import_workbook(
     file_sha = hashlib.sha256(file_body).hexdigest()
     parsed = parse_workbook(path)
 
-    inserted = conn.execute(
-        "INSERT INTO syllabus"
-        " (id, title, institution_id, graph_id)"
-        " VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
-        (
-            resolved_id,
-            name,
-            clean_institution_id or None,
-            resolved_graph_id or None,
-        ),
-    ).rowcount
+    try:
+        inserted = conn.execute(
+            "INSERT INTO syllabus"
+            " (id, title, institution_id, graph_id)"
+            " VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
+            (
+                resolved_id,
+                name,
+                clean_institution_id or None,
+                resolved_graph_id or None,
+            ),
+        ).rowcount
+    except psycopg.errors.UniqueViolation as exc:
+        if exc.diag.constraint_name == "syllabus_graph_id_key":
+            raise GraphIdConflict(resolved_graph_id) from exc
+        raise
     stored = conn.execute(
         "SELECT title, institution_id, graph_id, group_id"
         " FROM syllabus WHERE id = %s FOR UPDATE",
         (resolved_id,),
     ).fetchone()
     if creation_requested and not inserted:
-        raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
+        if stored[0] == name:
+            raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
+        raise GraphIdConflict(resolved_graph_id)
     if stored[0] != name:
         raise ValueError(
             f"syllabus id {resolved_id!r} already belongs to {stored[0]!r}, not {name!r}"
@@ -2255,10 +2275,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--institution-id",
         help="Companion Institution slug for a new Syllabus",
     )
-    import_cmd.add_argument(
-        "--graph-id",
-        help="manual graph id override; normally generated from the Syllabus name",
-    )
     import_cmd.set_defaults(func=cmd_import)
     sub.add_parser("list", help="list syllabi").set_defaults(func=cmd_list)
     return parser
@@ -2277,7 +2293,6 @@ def cmd_import(args: argparse.Namespace) -> None:
             args.name,
             syllabus_id=args.syllabus_id,
             institution_id=args.institution_id,
-            graph_id=args.graph_id,
             occupied_graph_ids=namespace["graph_ids"],
             require_syllabus_metadata=True,
         )

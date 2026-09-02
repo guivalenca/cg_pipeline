@@ -19,6 +19,6 @@ def test_long_graph_id_is_deterministically_bounded():
 
 
 @pytest.mark.parametrize("value", ["", "Bad ID", "1graph", "a" * 129])
-def test_manual_graph_id_uses_the_companion_shape(value):
+def test_graph_id_validator_uses_the_companion_shape(value):
     with pytest.raises(ValueError, match="graph ID"):
         validate_graph_id(value)
