@@ -17,6 +17,7 @@ import hashlib
 import json
 import re
 import unicodedata
+from dataclasses import dataclass
 from datetime import date, datetime
 from io import BytesIO
 from pathlib import Path
@@ -113,6 +114,10 @@ ADALOVE_SHEETS = {
 }
 
 
+def _ascii(value: str) -> str:
+    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+
+
 class SyllabusAlreadyExists(ValueError):
     """A create request resolved to an existing Syllabus."""
 
@@ -123,25 +128,37 @@ class SyllabusAlreadyExists(ValueError):
         super().__init__(
             "Este nome já existe. Você está adicionando uma versão a esse syllabus."
         )
+
+
+@dataclass(frozen=True)
+class LessonSubject:
+    """One Lesson Subject: its code, the Eixo spellings accepted at intake,
+    and the display name the Companion themes by."""
+
+    code: str
+    accepted_spellings: tuple[str, ...]
+    display_name: str
+
+
+# Keep LESSON_SUBJECTS aligned with AXIS_CAPTIONS in
+# concept-universe/tools/adalove_observer_export.js and SUBJECT_THEMES in
+# companion/static/js/subject_theme.js until "Unify subject identities under
+# institutions" (DEV-51) replaces the cross-repository copies. "Matemática e
+# Física" stays accepted so exports made by older exporter versions still parse.
+LESSON_SUBJECTS = (
+    LessonSubject("COM", ("COM", "Computação"), "Computação"),
+    LessonSubject("LID", ("LID", "Liderança"), "Liderança"),
+    LessonSubject("NEG", ("NEG", "Negócios"), "Negócios"),
+    LessonSubject("UEX", ("UEX", "User Experience"), "User Experience"),
+    LessonSubject("MTF", ("MTF", "Matemática", "Matemática e Física"), "Matemática"),
+)
 LESSON_SUBJECT_CODES = {
-    "com": "COM",
-    "computacao": "COM",
-    "lid": "LID",
-    "lideranca": "LID",
-    "neg": "NEG",
-    "negocios": "NEG",
-    "uex": "UEX",
-    "user experience": "UEX",
-    "mtf": "MTF",
-    "matematica": "MTF",
-    "matematica e fisica": "MTF",
+    _ascii(spelling).casefold(): subject.code
+    for subject in LESSON_SUBJECTS
+    for spelling in subject.accepted_spellings
 }
 LESSON_SUBJECT_NAMES = {
-    "COM": "Computação",
-    "LID": "Liderança",
-    "NEG": "Negócios",
-    "UEX": "User Experience",
-    "MTF": "Matemática",
+    subject.code: subject.display_name for subject in LESSON_SUBJECTS
 }
 ADALOVE_ACTIVITY_TYPES = {"Class", "Orientation", "Self-study", "Deliverable", "Evaluation"}
 BOOK_SCOPE = re.compile(
@@ -349,10 +366,6 @@ def _normalize_scope_value(value: str) -> str:
     normalized = re.sub(r"\s*(?:[-–—]|\ba\b|\bà\b|\bat[eé]\b|\bto\b)\s*", "-", value, flags=re.I)
     normalized = re.sub(r"\s*([,;])\s*", r"\1", normalized)
     return normalized.strip()
-
-
-def _ascii(value: str) -> str:
-    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
 
 
 def _text(value) -> str | None:

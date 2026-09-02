@@ -9,6 +9,8 @@ from openpyxl import Workbook, load_workbook
 
 from universe.graph_identity import GraphIdConflict, graph_id_for
 from universe.syllabus import (
+    LESSON_SUBJECTS,
+    _lesson_subjects_by_syllabus,
     SyllabusVersionConflict,
     XLSX_MIME,
     build_parser,
@@ -102,6 +104,43 @@ def write_syllabus(path, rows):
 
 
 class TestWorkbookAdapters:
+    def test_lesson_subject_catalog_has_the_shared_five_subjects(self):
+        assert [
+            (subject.code, subject.accepted_spellings, subject.display_name)
+            for subject in LESSON_SUBJECTS
+        ] == [
+            ("COM", ("COM", "Computação"), "Computação"),
+            ("LID", ("LID", "Liderança"), "Liderança"),
+            ("NEG", ("NEG", "Negócios"), "Negócios"),
+            ("UEX", ("UEX", "User Experience"), "User Experience"),
+            ("MTF", ("MTF", "Matemática", "Matemática e Física"), "Matemática"),
+        ]
+
+    def test_every_accepted_eixo_spelling_maps_to_its_subject_code(self, tmp_path):
+        path = tmp_path / "spellings.xlsx"
+        spellings = [
+            ("Computação", "COM"),
+            ("User Experience", "UEX"),
+            ("Liderança", "LID"),
+            ("Negócios", "NEG"),
+            ("Matemática", "MTF"),
+            ("Matemática e Física", "MTF"),
+            ("uex", "UEX"),
+        ]
+        write_syllabus(
+            path,
+            [
+                syllabus_row(title=f"Aula {seq}", seq=seq, subject=spelling)
+                for seq, (spelling, _) in enumerate(spellings, 1)
+            ],
+        )
+
+        parsed = parse_workbook(path)
+
+        assert [lesson["subject"] for lesson in parsed["lessons"]] == [
+            code for _, code in spellings
+        ]
+
     def test_full_fidelity_sheets_become_lessons_and_material_sources(self, tmp_path):
         path = tmp_path / "adalove.xlsx"
         write_syllabus(
@@ -419,6 +458,29 @@ class TestVersionedImport:
         assert db.execute(
             "SELECT 1 FROM syllabus WHERE id = 'metadata-required'"
         ).fetchone() is None
+
+    def test_lesson_subjects_carry_the_display_name_the_companion_themes_by(
+        self, db, tmp_path
+    ):
+        path = tmp_path / "subject-display-names.xlsx"
+        write_syllabus(
+            path,
+            [
+                syllabus_row(title="UX", seq=1, subject="User Experience"),
+                syllabus_row(title="Cálculo", seq=2, subject="MTF"),
+                syllabus_row(title="Física", seq=3, subject="Matemática e Física"),
+            ],
+        )
+        result = import_workbook(
+            db, path, "Subject display names", require_syllabus_metadata=False
+        )
+
+        subjects = _lesson_subjects_by_syllabus(db, [result["syllabus_id"]])
+
+        assert subjects[result["syllabus_id"]] == [
+            {"code": "MTF", "display_name": "Matemática"},
+            {"code": "UEX", "display_name": "User Experience"},
+        ]
 
     def test_new_version_keeps_stored_graph_id_even_when_companion_lists_it(
         self, db, tmp_path

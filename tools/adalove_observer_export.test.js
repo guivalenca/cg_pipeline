@@ -46,4 +46,17 @@ const activityHeaders = [...activitiesColumns.matchAll(/header: '([^']+)'/g)]
 assert.deepEqual(activityHeaders.slice(0, 2), ['Activity order', 'Week']);
 assert.equal(activityHeaders.includes('Week order'), false);
 
+const axisCaptions = Object.fromEntries(
+  [...source.match(/const AXIS_CAPTIONS = \{([\s\S]*?)\n  \};/)[1]
+    .matchAll(/([A-Z]+): '([^']+)'/g)]
+    .map(match => [match[1], match[2]]),
+);
+assert.deepEqual(axisCaptions, {
+  COM: 'Computação',
+  LID: 'Liderança',
+  NEG: 'Negócios',
+  UEX: 'User Experience',
+  MTF: 'Matemática',
+});
+
 console.log('adalove_observer_export tests passed');

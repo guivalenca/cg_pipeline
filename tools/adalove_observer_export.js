@@ -25,12 +25,16 @@
     21: 'Deliverable',
     31: 'Evaluation',
   };
+  // Keep AXIS_CAPTIONS aligned with LESSON_SUBJECTS in
+  // concept-universe/src/universe/syllabus.py and SUBJECT_THEMES in
+  // companion/static/js/subject_theme.js until "Unify subject identities under
+  // institutions" replaces the cross-repository copies.
   const AXIS_CAPTIONS = {
     COM: 'Computação',
     LID: 'Liderança',
-    MTF: 'Matemática e Física',
     NEG: 'Negócios',
     UEX: 'User Experience',
+    MTF: 'Matemática',
   };
   const ANCHOR_TYPES = new Set([1, 2]);
   const STATUS_KEY = 'adaloveObserverExportStatus';
