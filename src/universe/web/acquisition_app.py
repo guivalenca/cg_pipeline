@@ -1429,6 +1429,8 @@ def create_app(
                         history = get_syllabus_history(conn, syllabus_id)
                         if history["title"] != clean_name:
                             raise ValueError("o nome de uma nova versão deve ser igual ao syllabus existente")
+                        if not history["graph_id"]:
+                            namespace = namespace_provider()
                     else:
                         namespace = namespace_provider()
                         companion_seam.remember_institution(

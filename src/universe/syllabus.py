@@ -1031,7 +1031,8 @@ def import_workbook(
         ).fetchone()
         if local_owner is not None and local_owner[0] != resolved_id:
             raise GraphIdConflict(resolved_graph_id)
-        if not syllabus_exists and resolved_graph_id in set(occupied_graph_ids):
+        graph_id_is_new = not syllabus_exists or not stored[2]
+        if graph_id_is_new and resolved_graph_id in set(occupied_graph_ids):
             raise GraphIdConflict(resolved_graph_id)
     elif require_syllabus_metadata:
         raise ValueError("Não foi possível gerar o graph ID do syllabus.")
