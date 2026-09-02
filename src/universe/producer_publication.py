@@ -19,9 +19,7 @@ import psycopg
 from universe import pipeline_lease
 
 
-PRODUCER_STAGES = frozenset(
-    {"passage-cuts", "task-generation", "task-granularity"}
-)
+PRODUCER_STAGES = frozenset({"passage-cuts"})
 TARGET_MANIFEST_VERSION = 1
 
 
@@ -51,7 +49,6 @@ def target_manifest(targets: Sequence, rendered: Sequence[str]) -> dict:
             "index": index,
             "artifact_id": target.artifact_id,
             "passage_id": target.passage_id,
-            "task_id": target.task_id,
             "input_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         }
         for index, (target, text) in enumerate(zip(targets, rendered), 1)
@@ -86,7 +83,6 @@ def _valid_manifest(manifest: object) -> bool:
             "index",
             "artifact_id",
             "passage_id",
-            "task_id",
             "input_sha256",
         }:
             return False
@@ -96,8 +92,6 @@ def _valid_manifest(manifest: object) -> bool:
             or not target["artifact_id"]
             or target["passage_id"] is not None
             and not isinstance(target["passage_id"], str)
-            or target["task_id"] is not None
-            and not isinstance(target["task_id"], str)
             or not isinstance(target["input_sha256"], str)
             or len(target["input_sha256"]) != 64
         ):
@@ -116,14 +110,6 @@ def _parseable(stage: str, item: dict) -> bool:
         except (TypeError, ValueError):
             return False
         return True
-    if stage == "task-generation":
-        from universe.taskgen import tasks_of
-
-        return isinstance(tasks_of(item), list)
-    if stage == "task-granularity":
-        from universe.task_granularity import granularity_of
-
-        return isinstance(granularity_of(item), dict)
     return False
 
 
@@ -138,7 +124,7 @@ def _complete_items(
     if not _valid_manifest(manifest):
         return None
     rows = conn.execute(
-        "SELECT id, artifact_id, passage_id, task_id, response, error"
+        "SELECT id, artifact_id, passage_id, response, error"
         " FROM run_item WHERE run_id = %s ORDER BY id",
         (run_id,),
     ).fetchall()
@@ -147,12 +133,11 @@ def _complete_items(
         return None
     ok = failed = 0
     for target, row in zip(expected, rows):
-        item_id, artifact_id, passage_id, task_id, response, error = row
+        item_id, artifact_id, passage_id, response, error = row
         if (
             item_id != f"{run_id}-{target['index']:04d}"
             or artifact_id != target["artifact_id"]
             or passage_id != target["passage_id"]
-            or task_id != target["task_id"]
         ):
             return None
         item = {"response": response, "error": error}
@@ -210,14 +195,6 @@ def _publisher(
         from universe.passages import materialize
 
         return materialize
-    if stage == "task-generation":
-        from universe.tasks import materialize
-
-        return materialize
-    if stage == "task-granularity":
-        from universe.task_granularity import materialize_parts
-
-        return materialize_parts
     return None
 
 

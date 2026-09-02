@@ -30,10 +30,12 @@ from psycopg.types.json import Jsonb
 from universe.db import connect
 from universe.graph_identity import (
     GraphIdConflict,
-    graph_id_for,
     slug_component,
+    subject_graph_id_for,
     validate_graph_id,
 )
+from universe.source_publication import current as current_source_publication
+from universe.source_publication import current_many as current_source_publications
 
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 HIDDEN_COLUMN = "Hidden"
@@ -121,10 +123,9 @@ def _ascii(value: str) -> str:
 class SyllabusAlreadyExists(ValueError):
     """A create request resolved to an existing Syllabus."""
 
-    def __init__(self, syllabus_id: str, title: str, graph_id: str | None) -> None:
+    def __init__(self, syllabus_id: str, title: str) -> None:
         self.syllabus_id = syllabus_id
         self.title = title
-        self.graph_id = graph_id
         super().__init__(
             "Este nome já existe. Você está adicionando uma versão a esse syllabus."
         )
@@ -748,7 +749,7 @@ def _assemble_adalove(
                 "Class sem 'Lesson Subject code'. Informe o Eixo no Adalove e exporte novamente."
             )
         subject_rows = subjects_by_activity[activity["activity_uuid"]]
-        lesson = {
+        lesson_record = {
             "week": activity["week_order"],
             "seq": activity["activity_order"],
             "week_order": activity["week_order"],
@@ -770,7 +771,7 @@ def _assemble_adalove(
             "row_number": activity["row_number"],
             "source_references": [],
         }
-        lessons_by_activity[activity["activity_uuid"]] = lesson
+        lessons_by_activity[activity["activity_uuid"]] = lesson_record
 
     for activity in ordered:
         if activity["kind"] not in {"Self-study", "Deliverable"}:
@@ -816,15 +817,15 @@ def _assemble_adalove(
                     }
                 )
                 continue
-            lesson = lessons_by_activity.get(parent_uuid)
-            if lesson is None or lesson["kind"] != "Class":
+            target_lesson = lessons_by_activity.get(parent_uuid)
+            if target_lesson is None or target_lesson["kind"] != "Class":
                 raise ValueError(
                     f"A linha {activity['row_number']} da aba Activities liga o "
                     f"Self-study {activity['title']!r} ao Activity UUID {parent_uuid!r}, "
                     "mas esse pai não é uma Class da planilha."
                 )
         else:
-            lesson = lessons_by_activity[activity["activity_uuid"]]
+            target_lesson = lessons_by_activity[activity["activity_uuid"]]
         subject_rows = subjects_by_activity[activity["activity_uuid"]]
         activity_materials = materials_by_activity[activity["activity_uuid"]]
         if not activity_materials:
@@ -858,7 +859,7 @@ def _assemble_adalove(
                 if kind == "book"
                 else None
             )
-            lesson["source_references"].append(
+            target_lesson["source_references"].append(
                 {
                     "seq": activity["activity_order"],
                     "week_order": activity["week_order"],
@@ -961,15 +962,15 @@ def resolve_source(
         canonical = canonical_url(url)
         if not canonical:
             return None, False
-        identity = {"canonical_url": canonical}
+        canonical_identity = {"canonical_url": canonical}
         encoded = json.dumps(
-            identity, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            canonical_identity, ensure_ascii=False, sort_keys=True, separators=(",", ":")
         )
         source_id = "src-" + hashlib.sha256(encoded.encode()).hexdigest()[:16]
         cursor = conn.execute(
             "INSERT INTO source (id, identity, title, media_type)"
             " VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
-            (source_id, Jsonb(identity), title, media_type(url)),
+            (source_id, Jsonb(canonical_identity), title, media_type(url)),
         )
         return source_id, bool(cursor.rowcount)
     identity = source_identity(
@@ -1004,8 +1005,9 @@ def import_workbook(
 ) -> dict:
     """Author one complete uploaded version under a manually named syllabus.
 
-    New named Syllabi require a Companion Institution. Their graph id derives
-    from that Institution and the Syllabus name.
+    New named Syllabi require a Companion Institution. Each Lesson Subject gets
+    one graph id derived from that Institution, the curriculum name, and its
+    stable subject code.
     Passing ``require_syllabus_metadata=False`` is the explicit compatibility
     path for historical fixtures and migrations that predate that model.
     """
@@ -1015,16 +1017,26 @@ def import_workbook(
     resolved_id = (syllabus_id or slugify(name)).strip()
     if not resolved_id:
         raise ValueError("syllabus id is empty after normalizing its name")
+    path = Path(path)
+    file_body = path.read_bytes()
+    file_sha = hashlib.sha256(file_body).hexdigest()
+    parsed = parse_workbook(path)
+    subject_codes = sorted(
+        {
+            lesson["subject"]
+            for lesson in parsed["lessons"]
+            if lesson.get("subject") is not None
+        }
+    )
     stored = conn.execute(
-        "SELECT title, institution_id, graph_id, group_id"
-        " FROM syllabus WHERE id = %s",
+        "SELECT title, institution_id FROM syllabus WHERE id = %s",
         (resolved_id,),
     ).fetchone()
     syllabus_exists = stored is not None
     creation_requested = require_syllabus_metadata and syllabus_id is None
     exact_title = (
         conn.execute(
-            "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
+            "SELECT id, title FROM syllabus WHERE title = %s"
             " ORDER BY created_at, id LIMIT 1",
             (name,),
         ).fetchone()
@@ -1046,55 +1058,64 @@ def import_workbook(
     if clean_institution_id:
         resolved_id = validate_syllabus_id(resolved_id)
     if exact_title is not None:
-        raise SyllabusAlreadyExists(exact_title[0], exact_title[1], exact_title[2])
+        raise SyllabusAlreadyExists(exact_title[0], exact_title[1])
     if creation_requested and syllabus_exists:
-        raise GraphIdConflict(graph_id_for(clean_institution_id, name))
-    resolved_graph_id = (stored[2] or "") if syllabus_exists else ""
-    if not resolved_graph_id and clean_institution_id:
-        resolved_graph_id = graph_id_for(clean_institution_id, name)
-    if resolved_graph_id:
-        resolved_graph_id = validate_graph_id(resolved_graph_id)
-        local_owner = conn.execute(
-            "SELECT id FROM syllabus WHERE graph_id = %s",
-            (resolved_graph_id,),
-        ).fetchone()
-        if local_owner is not None and local_owner[0] != resolved_id:
-            raise GraphIdConflict(resolved_graph_id)
-        graph_id_is_new = not syllabus_exists or not stored[2]
-        if graph_id_is_new and resolved_graph_id in set(occupied_graph_ids):
-            raise GraphIdConflict(resolved_graph_id)
-    elif require_syllabus_metadata:
-        raise ValueError("Não foi possível gerar o graph ID do syllabus.")
-    path = Path(path)
-    file_body = path.read_bytes()
-    file_sha = hashlib.sha256(file_body).hexdigest()
-    parsed = parse_workbook(path)
+        collision_code = subject_codes[0] if subject_codes else "subject"
+        raise GraphIdConflict(
+            subject_graph_id_for(clean_institution_id, name, collision_code)
+        )
+
+    existing_subjects = dict(
+        conn.execute(
+            "SELECT lesson_subject_code, graph_id FROM syllabus_subject"
+            " WHERE syllabus_id = %s",
+            (resolved_id,),
+        ).fetchall()
+    )
+    subject_graph_ids: dict[str, str] = {}
+    occupied = set(occupied_graph_ids)
+    for code in subject_codes:
+        graph_id = existing_subjects.get(code)
+        if graph_id is None and clean_institution_id:
+            graph_id = validate_graph_id(
+                subject_graph_id_for(clean_institution_id, name, code)
+            )
+            local_owner = conn.execute(
+                "SELECT syllabus_id FROM syllabus_subject WHERE graph_id = %s",
+                (graph_id,),
+            ).fetchone()
+            if local_owner is not None and local_owner[0] != resolved_id:
+                raise GraphIdConflict(graph_id)
+            if graph_id in occupied:
+                raise GraphIdConflict(graph_id)
+        if graph_id is not None:
+            subject_graph_ids[code] = graph_id
 
     try:
         inserted = conn.execute(
             "INSERT INTO syllabus"
-            " (id, title, institution_id, graph_id)"
-            " VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
+            " (id, title, institution_id)"
+            " VALUES (%s, %s, %s) ON CONFLICT (id) DO NOTHING",
             (
                 resolved_id,
                 name,
                 clean_institution_id or None,
-                resolved_graph_id or None,
             ),
         ).rowcount
-    except psycopg.errors.UniqueViolation as exc:
-        if exc.diag.constraint_name == "syllabus_graph_id_key":
-            raise GraphIdConflict(resolved_graph_id) from exc
+    except psycopg.errors.UniqueViolation:
         raise
     stored = conn.execute(
-        "SELECT title, institution_id, graph_id, group_id"
+        "SELECT title, institution_id"
         " FROM syllabus WHERE id = %s FOR UPDATE",
         (resolved_id,),
     ).fetchone()
     if creation_requested and not inserted:
         if stored[0] == name:
-            raise SyllabusAlreadyExists(resolved_id, stored[0], stored[2])
-        raise GraphIdConflict(resolved_graph_id)
+            raise SyllabusAlreadyExists(resolved_id, stored[0])
+        collision_code = subject_codes[0] if subject_codes else "subject"
+        raise GraphIdConflict(
+            subject_graph_id_for(clean_institution_id, name, collision_code)
+        )
     if stored[0] != name:
         raise ValueError(
             f"syllabus id {resolved_id!r} already belongs to {stored[0]!r}, not {name!r}"
@@ -1102,19 +1123,16 @@ def import_workbook(
     if clean_institution_id and not inserted:
         if stored[1] not in {None, clean_institution_id}:
             raise ValueError("a instituição não corresponde ao syllabus existente")
-        if stored[2] not in {None, resolved_graph_id}:
-            raise ValueError("o graph ID não corresponde ao syllabus existente")
-        if stored[3] is not None:
-            group_institution = conn.execute(
-                "SELECT institution_id FROM study_group WHERE id = %s",
-                (stored[3],),
-            ).fetchone()
-            if group_institution and group_institution[0] != clean_institution_id:
-                raise ValueError("a instituição não corresponde ao grupo do syllabus")
         conn.execute(
-            "UPDATE syllabus SET institution_id = %s, graph_id = %s"
-            " WHERE id = %s",
-            (clean_institution_id, resolved_graph_id or None, resolved_id),
+            "UPDATE syllabus SET institution_id = %s WHERE id = %s",
+            (clean_institution_id, resolved_id),
+        )
+    for code, graph_id in subject_graph_ids.items():
+        conn.execute(
+            "INSERT INTO syllabus_subject"
+            " (syllabus_id, lesson_subject_code, graph_id) VALUES (%s, %s, %s)"
+            " ON CONFLICT (syllabus_id, lesson_subject_code) DO NOTHING",
+            (resolved_id, code, graph_id),
         )
     previous = _latest_version_row(conn, resolved_id)
     if previous and previous["file_sha"] == file_sha:
@@ -1285,11 +1303,15 @@ def _lesson_subjects_by_syllabus(
         " SELECT syllabus_id, max(seq) AS seq FROM syllabus_version"
         " GROUP BY syllabus_id"
         ")"
-        " SELECT version.syllabus_id, lesson.subject, lesson.fields"
+        " SELECT version.syllabus_id, lesson.subject, lesson.fields,"
+        " subject.graph_id"
         " FROM latest"
         " JOIN syllabus_version version"
         " ON version.syllabus_id = latest.syllabus_id AND version.seq = latest.seq"
         " JOIN syllabus_lesson lesson ON lesson.version_id = version.id"
+        " LEFT JOIN syllabus_subject subject"
+        " ON subject.syllabus_id = version.syllabus_id"
+        " AND subject.lesson_subject_code = lesson.subject"
         " WHERE lesson.subject IS NOT NULL"
     )
     params: tuple[object, ...] = ()
@@ -1300,7 +1322,7 @@ def _lesson_subjects_by_syllabus(
         params = (list(syllabus_ids),)
     query += " ORDER BY version.syllabus_id, lesson.subject, lesson.id"
     by_code: dict[str, dict[str, dict]] = {}
-    for syllabus_id, code, fields in conn.execute(query, params).fetchall():
+    for syllabus_id, code, fields, graph_id in conn.execute(query, params).fetchall():
         fields = fields if isinstance(fields, dict) else {}
         activity = fields.get("adalove_activity") or {}
         workbook_name = str(activity.get("Lesson Subject code") or "").strip()
@@ -1312,7 +1334,7 @@ def _lesson_subjects_by_syllabus(
         )
         by_code.setdefault(syllabus_id, {}).setdefault(
             code,
-            {"code": code, "display_name": display_name},
+            {"code": code, "display_name": display_name, "graph_id": graph_id},
         )
     result = {
         syllabus_id: [subjects[code] for code in sorted(subjects)]
@@ -1322,7 +1344,7 @@ def _lesson_subjects_by_syllabus(
 
 
 def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
-    syllabus_id, title, graph_id, institution_id, institution_name, created_at = row
+    syllabus_id, title, institution_id, institution_name, created_at = row
     institution = (
         {"id": institution_id, "name": institution_name}
         if institution_id is not None
@@ -1330,18 +1352,20 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
     )
     metadata_complete = bool(
         institution_id
-        and graph_id
         and SYLLABUS_ID.fullmatch(syllabus_id)
+        and lesson_subjects
+        and all(subject.get("graph_id") for subject in lesson_subjects)
     )
-    export_identity = (
+    export_identities = [
         {
-            "graph_id": graph_id,
-            "display_name": title,
+            "graph_id": subject["graph_id"],
+            "display_name": f"{title} · {subject['display_name']}",
             "institution_slug": institution_id,
+            "lesson_subject_code": subject["code"],
         }
-        if metadata_complete
-        else None
-    )
+        for subject in lesson_subjects
+        if subject.get("graph_id")
+    ]
     return {
         "id": syllabus_id,
         "title": title,
@@ -1350,9 +1374,8 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
         "institution": institution,
         "lesson_subjects": lesson_subjects,
         "metadata_complete": metadata_complete,
-        "graph_id": graph_id,
         "institution_slug": institution_id,
-        "export_identity": export_identity,
+        "export_identities": export_identities,
         "created_at": created_at,
     }
 
@@ -1360,7 +1383,7 @@ def _syllabus_payload(row: tuple, lesson_subjects: list[dict]) -> dict:
 def list_syllabi(conn: psycopg.Connection) -> list[dict]:
     """List syllabi with a compact summary of only their latest version."""
     rows = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
+        "SELECT syllabus.id, syllabus.title,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1383,7 +1406,7 @@ def list_syllabi(conn: psycopg.Connection) -> list[dict]:
 def get_syllabus_history(conn: psycopg.Connection, syllabus_id: str) -> dict:
     """Return immutable versions newest first, each with full-state counts."""
     syllabus = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
+        "SELECT syllabus.id, syllabus.title,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1438,7 +1461,7 @@ def get_syllabus_version(
 ) -> dict:
     """Return one full version; omitting ``version_id`` means latest."""
     syllabus = conn.execute(
-        "SELECT syllabus.id, syllabus.title, syllabus.graph_id,"
+        "SELECT syllabus.id, syllabus.title,"
         " institution.id, institution.name, syllabus.created_at"
         " FROM syllabus LEFT JOIN institution"
         " ON institution.id = syllabus.institution_id"
@@ -1487,7 +1510,8 @@ def get_syllabus_version(
             "SELECT sr.id, sr.source_id, sr.seq, sr.title, sr.description, sr.url,"
             " sr.media_type, sr.resource_code, sr.scope_kind, sr.scope_value, sr.is_hidden,"
             " sr.fields, sr.created_at, s.identity,"
-            " coalesce(rr.is_validated, false), rr.complexity,"
+            " coalesce(rr.is_validated, false), rr.validated_artifact_id,"
+            " rr.validated_content_hash, rr.complexity,"
             " sr.activity_uuid, sr.folder_uuid, sr.week_order, sr.activity_order,"
             " sr.parent_activity_uuid, sr.parent_inference"
             " FROM syllabus_source_reference sr"
@@ -1497,6 +1521,10 @@ def get_syllabus_version(
             " ORDER BY sr.seq, sr.id",
             (version["id"], lesson["id"]),
         ).fetchall()
+        publications = current_source_publications(
+            conn,
+            [row[1] for row in reference_rows if row[1] is not None],
+        )
         sources = []
         for reference_row in reference_rows:
             source = dict(
@@ -1505,15 +1533,27 @@ def get_syllabus_version(
                         "reference_id", "source_id", "seq", "title", "description", "url",
                         "media_type", "resource_code", "scope_kind", "scope_value", "hidden",
                         "fields", "created_at", "identity",
-                        "validated", "complexity", "activity_uuid", "folder_uuid",
+                        "validated", "validated_artifact_id", "validated_content_hash",
+                        "complexity", "activity_uuid", "folder_uuid",
                         "week_order", "activity_order", "parent_activity_uuid",
                         "parent_inference",
                     ),
                     reference_row,
                 )
             )
+            publication = publications.get(source["source_id"])
+            stored_validated = source.pop("validated")
+            validated_artifact_id = source.pop("validated_artifact_id")
+            validated_content_hash = source.pop("validated_content_hash")
+            validated = bool(
+                stored_validated
+                and publication is not None
+                and not publication.is_previous_attempt
+                and validated_artifact_id == publication.artifact_id
+                and validated_content_hash == publication.content_hash
+            )
             source["review"] = {
-                "validated": source.pop("validated"),
+                "validated": validated,
                 "complexity": source.pop("complexity"),
             }
             source["scope"] = (
@@ -1550,7 +1590,7 @@ def update_source_review(
     if unknown:
         raise ValueError("A revisão contém campos desconhecidos.")
     reference = conn.execute(
-        "SELECT 1 FROM syllabus_source_reference sr"
+        "SELECT sr.source_id FROM syllabus_source_reference sr"
         " JOIN syllabus_version sv ON sv.id = sr.version_id"
         " WHERE sr.id = %s AND sv.syllabus_id = %s",
         (reference_id, syllabus_id),
@@ -1560,30 +1600,68 @@ def update_source_review(
             f"unknown source reference {reference_id!r} for syllabus {syllabus_id!r}"
         )
 
-    current = conn.execute(
-        "SELECT is_validated, complexity FROM syllabus_source_review WHERE reference_id = %s",
+    stored = conn.execute(
+        "SELECT is_validated, validated_artifact_id, validated_content_hash, complexity"
+        " FROM syllabus_source_review WHERE reference_id = %s",
         (reference_id,),
-    ).fetchone() or (False, None)
-    validated, complexity = current
+    ).fetchone() or (False, None, None, None)
+    validated, validated_artifact_id, validated_content_hash, complexity = stored
     if "validated" in changes:
         if not isinstance(changes["validated"], bool):
             raise ValueError("O marcador de validação deve ser verdadeiro ou falso.")
         validated = changes["validated"]
+        if validated:
+            source_id = reference[0]
+            publication = (
+                current_source_publication(conn, source_id) if source_id else None
+            )
+            if publication is None or publication.is_previous_attempt:
+                raise ValueError(
+                    "A Source Publication atual deve existir antes da validação."
+                )
+            validated_artifact_id = publication.artifact_id
+            validated_content_hash = publication.content_hash
+        else:
+            validated_artifact_id = None
+            validated_content_hash = None
     if "complexity" in changes:
         complexity = changes["complexity"]
         if complexity not in {None, "simple", "complex"}:
             raise ValueError("A complexidade deve ser simples, complexa ou vazia.")
 
+    effective_publication = (
+        current_source_publication(conn, reference[0])
+        if validated and reference[0]
+        else None
+    )
+    effective_validation = bool(
+        effective_publication is not None
+        and not effective_publication.is_previous_attempt
+        and effective_publication.artifact_id == validated_artifact_id
+        and effective_publication.content_hash == validated_content_hash
+    )
+
     conn.execute(
-        "INSERT INTO syllabus_source_review (reference_id, is_validated, complexity)"
-        " VALUES (%s, %s, %s)"
+        "INSERT INTO syllabus_source_review"
+        " (reference_id, is_validated, validated_artifact_id,"
+        " validated_content_hash, complexity)"
+        " VALUES (%s, %s, %s, %s, %s)"
         " ON CONFLICT (reference_id) DO UPDATE SET"
-        " is_validated = excluded.is_validated, complexity = excluded.complexity,"
+        " is_validated = excluded.is_validated,"
+        " validated_artifact_id = excluded.validated_artifact_id,"
+        " validated_content_hash = excluded.validated_content_hash,"
+        " complexity = excluded.complexity,"
         " updated_at = now()",
-        (reference_id, validated, complexity),
+        (
+            reference_id,
+            validated,
+            validated_artifact_id,
+            validated_content_hash,
+            complexity,
+        ),
     )
     conn.commit()
-    return {"validated": validated, "complexity": complexity}
+    return {"validated": effective_validation, "complexity": complexity}
 
 
 class SyllabusVersionConflict(ValueError):
@@ -1629,8 +1707,9 @@ def _workbook_order(item: dict | None, key: str, fallback: int | None) -> int | 
 
 
 def _submitted_week(raw_lesson: dict) -> int | None:
+    raw_week = raw_lesson.get("week")
     try:
-        return int(raw_lesson.get("week")) if raw_lesson.get("week") not in {None, ""} else None
+        return int(raw_week) if raw_week not in {None, ""} else None
     except (TypeError, ValueError):
         return None
 
@@ -1758,8 +1837,9 @@ def _normalize_curation_projection(
         if not isinstance(raw_lesson, dict):
             raise ValueError(f"lesson {lesson_index} is invalid")
         base_lesson = base_lessons.get(str(raw_lesson.get("id") or ""))
+        raw_week = raw_lesson.get("week")
         try:
-            week = int(raw_lesson.get("week")) if raw_lesson.get("week") not in {None, ""} else None
+            week = int(raw_week) if raw_week not in {None, ""} else None
         except (TypeError, ValueError) as exc:
             raise ValueError(f"lesson {lesson_index}: week must be a whole number") from exc
         if week is not None and not 0 < week <= 1000:
@@ -2333,10 +2413,24 @@ def curate_syllabus(
                 base_review.get("validated") and reference.get("_content_unchanged")
             )
             if complexity is not None or validated:
+                publication = (
+                    current_source_publication(conn, source_id)
+                    if validated and source_id
+                    else None
+                )
+                validated = bool(validated and publication is not None)
                 conn.execute(
                     "INSERT INTO syllabus_source_review"
-                    " (reference_id, is_validated, complexity) VALUES (%s, %s, %s)",
-                    (reference_id, validated, complexity),
+                    " (reference_id, is_validated, validated_artifact_id,"
+                    " validated_content_hash, complexity)"
+                    " VALUES (%s, %s, %s, %s, %s)",
+                    (
+                        reference_id,
+                        validated,
+                        publication.artifact_id if publication else None,
+                        publication.content_hash if publication else None,
+                        complexity,
+                    ),
                 )
 
     diff = diff_versions(conn, base_version_id, version_id)

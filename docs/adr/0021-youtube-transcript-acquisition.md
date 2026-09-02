@@ -16,7 +16,7 @@ through the same element-preserving canonical cleanup as other Markdown.
 
 The earlier CG Pipeline policy prohibited automatic speech-to-text when a
 publisher caption was absent. That decision belongs to a different system and
-does not govern Concept Universe. Video visual analysis is also a separate,
+does not govern CG Pipeline. Video visual analysis is also a separate,
 future capability; transcript acquisition must not imply that the visual
 content was read.
 
@@ -67,8 +67,8 @@ provider-neutral publication contract queues Blocks, Passage cuts,
 triage/refine/retriage and a canonical clean Artifact. Cleanup may remove only
 immutable elements; it cannot rewrite transcript text. The Syllabus modal
 withholds intermediate captions and STT and resolves only the succeeded
-canonical Artifact on the newest Source Snapshot. Task and KC generation are
-not part of this operation.
+canonical Artifact on the newest Source Snapshot. Nothing follows publication
+inside this pilot.
 
 Every video acquisition and canonical Artifact is stamped
 `visual_analysis: deferred`. No frames, screenshots, images, OCR, multimodal

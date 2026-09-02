@@ -5,8 +5,6 @@ import pytest
 from universe import blocks
 from universe.blocks import BLOCKER_VERSION, split_blocks
 
-SOURCE_0023 = "0023-an-introduction-to-bag-of-words-and-how-to-code-it-in-python-for-nlp.md"
-
 SYNTHETIC = """---
 id: "1"
 title: "Every kind"
@@ -214,34 +212,6 @@ def test_every_block_is_its_own_slice_and_nothing_is_lost(body):
 
     # Nothing but whitespace outside the blocks, once the front matter is past.
     previous = result[0].start_char if result else 0
-    for block in result:
-        assert not body[previous : block.start_char].strip()
-        previous = block.end_char
-    assert not body[previous:].strip()
-
-
-def test_the_real_source_0023_splits_cleanly(fixture_dir):
-    body = (fixture_dir / "source-bodies" / SOURCE_0023).read_text()
-    result = split_blocks(body)  # the invariants are asserted inside
-
-    assert len(result) > 30
-    assert {block.kind for block in result} >= {
-        "heading",
-        "paragraph",
-        "code_block",
-        "image",
-        "image_summary",
-    }
-    assert all(body[b.start_char : b.end_char] == b.text for b in result)
-
-    # The front matter is our metadata, so no block may carry any of it.
-    for key in ("content_sha256:", "firecrawl_title:", "gate_status:", "cache_key:"):
-        assert all(key not in block.text for block in result), key
-    assert result[0].start_char > body.index("\n---\n", 3)
-
-    # Non-whitespace completeness after the front matter.
-    content_start = result[0].start_char
-    previous = content_start
     for block in result:
         assert not body[previous : block.start_char].strip()
         previous = block.end_char

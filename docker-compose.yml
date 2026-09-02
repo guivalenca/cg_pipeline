@@ -1,13 +1,31 @@
+x-app: &app
+  build: .
+  environment: &app-environment
+    DATABASE_URL: postgresql://universe:universe@postgres:5432/universe
+    COMPANION_GRAPH_NAMESPACE_FILE: /app/config/companion-graph-namespace.json
+    CONCEPT_UNIVERSE_ASSET_ROOT: /var/lib/cg-pipeline/assets
+    ACQUISITION_WORKER_IN_WEB: "0"
+    FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY:-}
+    FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS: ${FIRECRAWL_ALLOW_PRIVATE_PDF_UPLOADS:-0}
+    MODEL_API_BASE: ${MODEL_API_BASE:-https://openrouter.ai/api/v1}
+    MODEL_API_KEY: ${MODEL_API_KEY:-}
+    OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    OPENROUTER_ALLOW_PRIVATE_PDF_PAGE_UPLOADS: ${OPENROUTER_ALLOW_PRIVATE_PDF_PAGE_UPLOADS:-0}
+    BROWSERBASE_API_KEY: ${BROWSERBASE_API_KEY:-}
+    BROWSERBASE_PROJECT_ID: ${BROWSERBASE_PROJECT_ID:-}
+    BROWSERBASE_CONTEXT_ID: ${BROWSERBASE_CONTEXT_ID:-}
+    CG_PIPELINE_LIBRARY_USERNAME: ${CG_PIPELINE_LIBRARY_USERNAME:-}
+    CG_PIPELINE_LIBRARY_PASSWORD: ${CG_PIPELINE_LIBRARY_PASSWORD:-}
+
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    image: postgres:16
     environment:
       POSTGRES_USER: universe
       POSTGRES_PASSWORD: universe
       POSTGRES_DB: universe
     ports:
-      # 5432 on the host belongs to the Companion project's compose.
-      - "${UNIVERSE_POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${UNIVERSE_POSTGRES_PORT:-5433}:5432"
     volumes:
       - universe-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,5 +34,36 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    <<: *app
+    command: python -m universe.migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    <<: *app
+    command: uvicorn universe.web.app:app --host 0.0.0.0 --port 8000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${UNIVERSE_WEB_PORT:-8100}:8000"
+    volumes:
+      - source-assets:/var/lib/cg-pipeline/assets
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    command: python -m universe.acquisition work --forever
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - source-assets:/var/lib/cg-pipeline/assets
+    restart: unless-stopped
+
 volumes:
   universe-pgdata:
+  source-assets:

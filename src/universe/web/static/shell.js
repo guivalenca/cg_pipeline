@@ -1,6 +1,5 @@
 const PAGES = [
   { path: '/syllabi', label: 'Syllabi' },
-  { path: '/graph', label: 'Graph Visualization' },
 ];
 
 const mountedShells = new WeakMap();

@@ -1,24 +1,26 @@
-# 0002: Postgres plus pgvector, no additional stores
+# 0002: PostgreSQL plus a local Asset Store
 
 Date: 2026-07-23 (records the standing technology verdict)
 Status: accepted
 
 ## Context
 
-The grouping loop needs embedding search; the rest of the system needs
-ordinary relational storage with transactions. Graph databases, GraphRAG
-stacks, and dedicated vector databases were evaluated and rejected during the
-technology research phase (`docs/technology-foundations.md`, removed from
-the tree 2026-07-28, available in git history).
+The source ledger, queues, leases, and publication lineage need relational
+transactions. Original PDFs, images, and video frames are too large to store
+comfortably as database values but still need immutable content identity.
 
 ## Decision
 
-Postgres stores both ledgers and every interpretation layer. pgvector, inside
-the same database, handles embedding search, keeping vectors and rows under
-the same transactions. No graph database, no separate vector store.
+PostgreSQL 16 stores the source ledger, every cleanup interpretation, and all
+operational queues and leases. Binary Source Assets live in one
+application-managed filesystem, addressed by SHA-256; PostgreSQL stores their
+hashes, lineage, order, MIME type, and storage keys.
+
+The pilot has no vector extension, graph database, Redis, Celery, S3-compatible
+backend, or separate queue service.
 
 ## Consequences
 
-- Blocking-stage search is transactional with the rows it serves.
-- Swapping embedding models is a re-embed of derived data, not a migration.
-- Infrastructure stays within what the team already operates.
+- Queue claims and publication writes are transactional.
+- Binary integrity is verified whenever an Asset is stored or read.
+- Web and worker containers must share the same Asset Store volume.

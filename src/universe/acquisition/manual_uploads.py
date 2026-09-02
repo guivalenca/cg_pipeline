@@ -3,7 +3,7 @@
 The module is deliberately independent of the web layer: callers persist one
 explicit source-local job with :func:`create_manual_upload_job`, then execute
 that exact job with :func:`acquire_manual_upload`.  Successful execution stops
-at an immutable Markdown artifact and never starts KC extraction.
+at an immutable Markdown artifact and never starts later transformations.
 """
 
 from __future__ import annotations

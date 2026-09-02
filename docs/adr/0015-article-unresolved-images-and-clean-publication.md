@@ -52,7 +52,7 @@ resolves that artifact from the newest acquisition snapshot. Refreshes and
 repeated queue actions reuse an active acquisition/image/cleanup chain rather
 than creating a second paid chain.
 
-Task generation is not part of this user action.
+No post-publication operation is part of this user action.
 
 This decision supersedes ADR 0014 only for the unresolved-image retention and
 whole-passage protection rules on incidental public-article images. ADR 0014

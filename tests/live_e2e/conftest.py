@@ -26,9 +26,7 @@ from universe.migrate import migrate
 
 
 LIVE_ACKNOWLEDGEMENT = "I_UNDERSTAND_THIS_CALLS_EXTERNAL_PROVIDERS"
-ALLOWED_CASES = frozenset(
-    {"xlsx", "article", "knowledge", "pdf", "video", "book"}
-)
+ALLOWED_CASES = frozenset({"xlsx", "article", "pdf", "video", "book"})
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LIVE_TEST_DIRECTORY = Path(__file__).resolve().parent
 
@@ -97,11 +95,9 @@ def live_cases() -> tuple[str, ...]:
     unknown = sorted(set(requested) - ALLOWED_CASES)
     if unknown:
         pytest.fail(f"unknown LIVE_E2E_CASES: {', '.join(unknown)}")
-    if "knowledge" in requested and "article" not in requested:
-        pytest.fail("the knowledge live tracer requires the article case")
     return tuple(
         case
-        for case in ("xlsx", "article", "knowledge", "pdf", "video", "book")
+        for case in ("xlsx", "article", "pdf", "video", "book")
         if case in requested
     )
 

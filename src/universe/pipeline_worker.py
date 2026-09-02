@@ -1,8 +1,7 @@
 """Run one planned pipeline command under child-owned lease supervision.
 
-This is the production subprocess boundary used by ``kc_pipeline.advance``.
-It invokes the target module in the same Python process, so every runner sees
-one authoritative lease supervisor through ``pipeline_lease``. Selected model
+It invokes a target module in the same Python process, so every runner sees one
+authoritative lease supervisor through ``pipeline_lease``. Source-cleanup
 producers publish their deterministic rows before the lease is released.
 """
 

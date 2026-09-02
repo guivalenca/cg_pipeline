@@ -105,14 +105,13 @@ class Prompt:
 
 @dataclass(frozen=True)
 class Target:
-    """One call the run will make: an artifact, or one passage or task of it."""
+    """One call the run will make: an artifact or one passage of it."""
 
     source_id: str
     source_title: str | None
     artifact_id: str
     body: str
     passage_id: str | None = None
-    task_id: str | None = None
     extra_fields: dict | None = None
     passage_revision_id: str | None = None
 
@@ -306,10 +305,10 @@ def claim_run(
     lease = {
         name: value
         for name, environment in (
-            ("scope_key", "UNIVERSE_KC_LEASE_SCOPE"),
-            ("stage", "UNIVERSE_KC_LEASE_STAGE"),
-            ("token", "UNIVERSE_KC_LEASE_TOKEN"),
-            ("owner_id", "UNIVERSE_KC_LEASE_OWNER"),
+            ("scope_key", "UNIVERSE_PIPELINE_LEASE_SCOPE"),
+            ("stage", "UNIVERSE_PIPELINE_LEASE_STAGE"),
+            ("token", "UNIVERSE_PIPELINE_LEASE_TOKEN"),
+            ("owner_id", "UNIVERSE_PIPELINE_LEASE_OWNER"),
         )
         if (value := os.environ.get(environment))
     }
@@ -476,15 +475,14 @@ def _execute(
             supervisor.fence(conn)
             conn.execute(
                 "INSERT INTO run_item"
-                " (id, run_id, artifact_id, passage_id, task_id, passage_revision_id,"
+                " (id, run_id, artifact_id, passage_id, passage_revision_id,"
                 "  response, usage, duration_ms, error)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     f"{run_id}-{index:04d}",
                     run_id,
                     target.artifact_id,
                     target.passage_id,
-                    target.task_id,
                     target.passage_revision_id,
                     text,
                     Jsonb(usage),
@@ -546,7 +544,7 @@ def fetch_run(conn: psycopg.Connection, run_id: str) -> dict:
 
 def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
-        "SELECT i.id, i.artifact_id, i.passage_id, i.task_id, i.passage_revision_id,"
+        "SELECT i.id, i.artifact_id, i.passage_id, i.passage_revision_id,"
         " s.id, s.title,"
         " i.response, i.usage, i.duration_ms, i.error"
         " FROM run_item i"
@@ -557,7 +555,7 @@ def fetch_items(conn: psycopg.Connection, run_id: str) -> list[dict]:
         (run_id,),
     ).fetchall()
     keys = (
-        "id artifact_id passage_id task_id passage_revision_id source_id source_title"
+        "id artifact_id passage_id passage_revision_id source_id source_title"
         " response usage duration_ms error"
     ).split()
     return [dict(zip(keys, row)) for row in rows]

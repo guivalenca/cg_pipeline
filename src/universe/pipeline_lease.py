@@ -31,14 +31,14 @@ DEFAULT_TTL_SECONDS = 300.0
 DEFAULT_HEARTBEAT_SECONDS = 60.0
 
 _ENVIRONMENT = {
-    "scope_key": "UNIVERSE_KC_LEASE_SCOPE",
-    "stage": "UNIVERSE_KC_LEASE_STAGE",
-    "token": "UNIVERSE_KC_LEASE_TOKEN",
-    "owner_id": "UNIVERSE_KC_LEASE_OWNER",
+    "scope_key": "UNIVERSE_PIPELINE_LEASE_SCOPE",
+    "stage": "UNIVERSE_PIPELINE_LEASE_STAGE",
+    "token": "UNIVERSE_PIPELINE_LEASE_TOKEN",
+    "owner_id": "UNIVERSE_PIPELINE_LEASE_OWNER",
 }
 
 _CURRENT_SUPERVISOR: ContextVar["LeaseSupervisor | None"] = ContextVar(
-    "kc_pipeline_lease_supervisor", default=None
+    "pipeline_lease_supervisor", default=None
 )
 
 
@@ -105,7 +105,7 @@ def acquire(
     ttl = _ttl(ttl_seconds)
     token = uuid.uuid4().hex
     row = conn.execute(
-        "INSERT INTO kc_pipeline_lease AS held"
+        "INSERT INTO pipeline_lease AS held"
         " (scope_key, stage, token, owner_id, acquired_at, heartbeat_at, expires_at)"
         " VALUES (%s, %s, %s, %s, clock_timestamp(), clock_timestamp(),"
         " clock_timestamp() + (%s * interval '1 second'))"
@@ -132,7 +132,7 @@ def read(
     scope_key = _required_text(scope_key, "scope_key")
     stage = _required_text(stage, "stage")
     row = conn.execute(
-        f"SELECT {_COLUMNS} FROM kc_pipeline_lease"
+        f"SELECT {_COLUMNS} FROM pipeline_lease"
         " WHERE scope_key = %s AND stage = %s",
         (scope_key, stage),
     ).fetchone()
@@ -149,7 +149,7 @@ def active(
     scope_key = _required_text(scope_key, "scope_key")
     stage = _required_text(stage, "stage")
     row = conn.execute(
-        f"SELECT {_COLUMNS} FROM kc_pipeline_lease"
+        f"SELECT {_COLUMNS} FROM pipeline_lease"
         " WHERE scope_key = %s AND stage = %s"
         " AND expires_at > clock_timestamp()",
         (scope_key, stage),
@@ -172,7 +172,7 @@ def heartbeat(
         raise TypeError("lease must be a Lease")
     ttl = _ttl(ttl_seconds)
     row = conn.execute(
-        "UPDATE kc_pipeline_lease SET"
+        "UPDATE pipeline_lease SET"
         " heartbeat_at = clock_timestamp(),"
         " expires_at = clock_timestamp() + (%s * interval '1 second')"
         " WHERE scope_key = %s AND stage = %s AND token = %s"
@@ -188,7 +188,7 @@ def release(conn: psycopg.Connection, lease: Lease) -> bool:
     if not isinstance(lease, Lease):
         raise TypeError("lease must be a Lease")
     row = conn.execute(
-        "DELETE FROM kc_pipeline_lease"
+        "DELETE FROM pipeline_lease"
         " WHERE scope_key = %s AND stage = %s AND token = %s"
         " RETURNING token",
         (lease.scope_key, lease.stage, lease.token),
@@ -207,7 +207,7 @@ def fence(conn: psycopg.Connection, lease: Lease) -> bool:
     if not isinstance(lease, Lease):
         raise TypeError("lease must be a Lease")
     row = conn.execute(
-        "SELECT token FROM kc_pipeline_lease"
+        "SELECT token FROM pipeline_lease"
         " WHERE scope_key = %s AND stage = %s AND token = %s"
         " AND expires_at > clock_timestamp()"
         " FOR UPDATE",
@@ -259,7 +259,7 @@ class LeaseSupervisor:
             self._thread = threading.Thread(
                 target=self._heartbeat_loop,
                 daemon=True,
-                name=f"kc-child-lease-{lease.stage}",
+                name=f"pipeline-child-lease-{lease.stage}",
             )
             self._thread.start()
 

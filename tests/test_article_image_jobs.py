@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 import psycopg
 import pytest
 from PIL import Image
-from psycopg import sql
 from psycopg.conninfo import make_conninfo
 from psycopg.types.json import Jsonb
 
@@ -40,7 +39,6 @@ from universe.acquisition.source_images import (
     prompt_stamp,
 )
 from universe.assets import LocalAssetStore
-from universe.migrate import migrate
 from universe.model_client import ModelError
 from universe.settings import openrouter_multimodal_provider_routing
 
@@ -82,17 +80,8 @@ def _animated_gif_body():
 
 @pytest.fixture(scope="module")
 def article_image_db(test_database_url):
-    """Keep durable image-job facts out of the session-wide backfill schema."""
-    schema = "article_image_test"
-    with psycopg.connect(test_database_url) as admin:
-        admin.execute("CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public")
-        admin.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
-        admin.commit()
-    scoped_url = make_conninfo(
-        test_database_url, options=f"-csearch_path={schema},public"
-    )
-    with psycopg.connect(scoped_url) as conn:
-        migrate(conn)
+    """The module's fresh database, already created from the pilot baseline."""
+    with psycopg.connect(test_database_url) as conn:
         yield conn
 
 
@@ -216,9 +205,7 @@ def test_a_slow_image_download_renews_its_claim_before_a_second_download(
 
     monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
     monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
-    worker_url = make_conninfo(
-        test_database_url, options="-csearch_path=article_image_test,public"
-    )
+    worker_url = make_conninfo(test_database_url)
 
     def work():
         try:
@@ -283,9 +270,7 @@ def test_competing_workers_claim_one_source_call_once(
         (ids["artifact"],),
     ).fetchone()[0]
     db.commit()
-    scoped_url = make_conninfo(
-        test_database_url, options="-csearch_path=article_image_test,public"
-    )
+    scoped_url = make_conninfo(test_database_url)
     barrier = threading.Barrier(2)
 
     def claim_once():
@@ -372,9 +357,7 @@ def test_a_slow_grouped_image_analysis_renews_before_a_second_model_call(
 
     monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
     monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
-    worker_url = make_conninfo(
-        test_database_url, options="-csearch_path=article_image_test,public"
-    )
+    worker_url = make_conninfo(test_database_url)
 
     def work():
         try:
@@ -475,9 +458,7 @@ def test_grouped_image_analysis_renews_while_preparing_stored_images(
 
     monkeypatch.setattr(image_jobs, "acquisition_lease_minutes", lambda: 0.002)
     monkeypatch.setattr(job_lease, "acquisition_lease_minutes", lambda: 0.002)
-    worker_url = make_conninfo(
-        test_database_url, options="-csearch_path=article_image_test,public"
-    )
+    worker_url = make_conninfo(test_database_url)
 
     def work():
         try:

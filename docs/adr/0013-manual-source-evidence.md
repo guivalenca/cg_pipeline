@@ -30,8 +30,8 @@ The operator explicitly queues exactly one of these mutually exclusive inputs:
 The combined upload is limited to 30 MB. MIME type, original safe filename,
 SHA-256, byte size, kind, ordinal, and a `storage_key` are stored as immutable
 `source_asset` facts before extraction begins. The binary body lives outside
-Postgres: on a managed local filesystem in development and S3-compatible object
-storage in deployed environments. Reordering is completed before submission;
+Postgres in an application-managed content-addressed filesystem. Reordering is
+completed before submission;
 the persisted ordinal is part of the evidence and determines the Markdown
 order. A retry or a different upload creates a new acquisition job and new
 assets beside the old ones.
@@ -53,7 +53,7 @@ not a post-hoc scan and not a prerequisite for textual Markdown:
 Model requests may transport a local raster as an inline `data:` URL, but that
 transport payload is never durable state. The ledger stores only its transport
 kind, source/reference IDs, hashes, model stamps, usage, and outcome; the bytes
-remain exclusively in object storage.
+remain exclusively in the local Asset Store.
 
 1. collect image candidates with the source response;
 2. apply a cheap metadata/URL/placement filter to discard only obvious logos,
@@ -61,7 +61,7 @@ remain exclusively in object storage.
 3. download only the surviving candidates;
 4. queue their structured visual readings independently so workers can run
    them concurrently with downstream textual work and with one another;
-5. persist each successful image and its stamped reading in the asset ledger;
+5. persist each successful image and its stamped reading in the Asset Store;
 6. associate it with the Source and corresponding canonical Markdown.
 
 Each candidate has its own state. A download or visual-reading failure becomes
@@ -76,15 +76,12 @@ order and successful reconstruction are part of that acquisition's success.
 
 Success creates a new immutable Source Snapshot and
 `artifact(kind = 'markdown')`, exactly like any other acquisition Adapter.
-The Markdown boundary from ADR 0012 remains in force: manual acquisition never
-automatically creates Blocks, Passages, Tasks, statements, or KCs.
+The Source Publication boundary from ADR 0012 remains in force.
 
 Postgres stores asset identity, order, hashes, metadata, lineage, and
 `storage_key`, but not binary bodies. The local backend keeps files under
-a dedicated application-managed directory. Railway uses Railway Buckets or
-another S3-compatible object store. Canonical Markdown remains in Postgres and
-the meaning of a Snapshot or Artifact does not change when the storage backend
-changes.
+a dedicated application-managed directory shared by the web and worker
+processes. Canonical Markdown remains in Postgres.
 
 ## Consequences
 
@@ -95,10 +92,9 @@ changes.
   visual evidence.
 - Scanned PDF pages use their derived renders as primary evidence (ADR 0016).
 - The current 30 MB / 50-image limits bound storage growth and model cost.
-- Railway deployment needs Poppler in the worker image and S3-compatible
-  object storage configured from the start.
+- Worker deployment needs Poppler and the shared Asset Store volume.
 - Article images are independently observable enrichment: one image failure
   raises attention without turning successful textual Markdown into failure.
 - Manual screenshots remain primary evidence and collectively form their
   acquisition's Markdown rather than acting as optional enrichment.
-- KC generation remains an independent, explicit action.
+- Manual evidence never crosses the Source Publication boundary.

@@ -1,91 +1,87 @@
-# Concept Universe
+# CG Pipeline
 
-Concept Universe turns an evolving syllabus and its learning sources into auditable source publications, then derives reusable knowledge from those publications.
+CG Pipeline turns an evolving institutional syllabus and its learning sources
+into auditable Source Publications. Source Publication is the boundary of this
+pilot; concepts that would interpret or compile those publications belong to a
+later slice and are absent here.
 
 ## Syllabus
 
 **Syllabus Version**:
-An immutable import of the workbook accepted as the syllabus at a point in time.
-_Avoid_: Spreadsheet upload, current sheet
+An immutable import of one accepted Adalove workbook at a point in time.
+_Avoid_: spreadsheet upload, current sheet
 
 **Syllabus Reconciliation**:
-An operator-reviewed comparison between the current Syllabus Version and an incoming workbook, including lesson and source disposition decisions.
-_Avoid_: Blind re-import, spreadsheet diff
+An auditable comparison between the current and incoming Syllabus Versions.
+Unambiguous institutional identities carry forward automatically; ambiguous
+matches require an operator decision.
+_Avoid_: merge, overwrite, row edit
+
+**Lesson**:
+One dated curricular activity imported from `Activities`. A Lesson keeps a
+stable identity across reconciled Syllabus Versions.
+_Avoid_: row, meeting title, source
 
 **Lesson Subject**:
-The curricular area assigned to a lesson, expressed by the standard code shared across syllabus formats, such as COM, UEX, NEG, or LID.
-_Avoid_: Eixo text
+The institution/curriculum/code identity used to group Lessons. Its graph id is
+allocated once per Subject and reused across imports and reconciliations.
+_Avoid_: syllabus graph, free-text tag
 
-**Lesson Kind**:
-The role a lesson plays in a syllabus: Class, Orientation, Deliverable, or Evaluation.
-_Avoid_: Tipo da atividade text
+**Self-study**:
+A curricular activity whose institutional parent identity links it to a
+Lesson. It is not flattened into an independent Lesson.
+_Avoid_: orphan activity, source card
 
-**Source Review**:
-The syllabus-level decision that preserves, moves, hides, or replaces one Source while reconciling versions.
-_Avoid_: Row edit, automatic deletion
+**Source Reference**:
+A Syllabus Version's use of a Source. Visibility, replacement, and removal are
+versioned reference decisions and do not mutate Source evidence.
+_Avoid_: source, URL row, acquisition
 
-## Source publication
+## Source Publication
 
 **Source**:
-The stable identity of one learning resource across repeated acquisitions and Syllabus Versions.
-_Avoid_: URL row, artifact, extraction job
+The stable identity of one learning resource across references, retries, and
+Syllabus Versions.
+_Avoid_: URL row, artifact, acquisition job
 
 **Source Evidence**:
-Immutable material acquired from a Source before interpretation or cleanup, including provider Markdown, pages, captions, speech segments, frames, figures, and original bytes.
-_Avoid_: Final Markdown, temporary download
+Immutable acquired material, including provider Markdown, document pages,
+captions, speech segments, frames, figures, and original bytes.
+_Avoid_: final Markdown, temporary download
 
 **Source Asset**:
-A content-addressed visual or document byte object retained as Source Evidence with provenance and a stable same-origin reference.
-_Avoid_: Temporary file, remote image URL
+A content-addressed byte object retained on the local Asset Store with its
+hash, provenance, and stable same-origin reference recorded in PostgreSQL.
+_Avoid_: temporary file, remote image URL, database blob
 
 **Passage**:
-A stable, ordered range of source blocks evaluated as one unit by triage and refinement.
-_Avoid_: Chunk, paragraph batch
+A stable ordered range of Source Evidence evaluated as one unit during
+canonical cleanup.
+_Avoid_: arbitrary chunk, rewritten summary
 
 **Canonical Source Markdown**:
-The only publishable Markdown for a Source Snapshot, produced after visual evidence handling and passage cleanup preserve at least one teachable element.
-_Avoid_: Raw Markdown, enriched intermediate, transcript artifact
+The publishable Markdown produced after visual evidence handling and
+element-preserving cleanup retain at least one teachable element.
+_Avoid_: raw Markdown, provider response, transcript artifact
 
 **Source Publication**:
-A successful Canonical Source Markdown artifact together with its complete lineage back to Source Evidence.
-_Avoid_: Successful download, acquisition result
+A successful Canonical Source Markdown artifact with complete lineage back to
+Source Evidence.
+_Avoid_: successful download, acquisition result
 
-## Video evidence
+**Source Publication Validation**:
+An operator decision bound to one immutable publication artifact and content
+hash. A later acquisition or cleanup result does not inherit it.
+_Avoid_: validated Source, permanent checkbox
 
-**Speech Evidence**:
-Exact ordered publisher-caption cues or speech-to-text segments with timestamps and acquisition lineage.
-_Avoid_: Summary, rewritten transcript
+## Scheduling
 
-**Visual Teaching Beat**:
-One major instructional idea communicated visually during a video, represented by an ordered time range, a representative frame, visible text, and teaching explanation.
-_Avoid_: Sampled frame, screenshot candidate
+**Lesson Build**:
+A durable request pinned to a Lesson and its current Source Publications. The
+pilot retains the fenced stage planner and worker process but registers no
+build stages.
+_Avoid_: implicit pipeline, source acquisition, background interpretation
 
-**Referenced Visual**:
-A figure, image, page crop, or video frame retained because it contributes distinct teachable information to its Source Publication.
-_Avoid_: Decoration, unresolved remote image
-
-## Knowledge
-
-**Knowledge Component**:
-A reusable unit of knowledge derived downstream from source-grounded tasks and statements, never created implicitly by Source acquisition.
-_Avoid_: Passage, task, Markdown section
-
-**KC Candidate**:
-A unitary unit of knowledge produced by KC Generation — one task with its answer, statement, and axes — before any lesson has selected it. It joins the Universe only when at least one active lesson selects it.
-_Avoid_: KC, task row, rejected knowledge
-
-**KC Generation**:
-The first explicit checkpoint: turns one lesson's validated Source Publications into KC Candidates by running the whole per-source generation chain. Work is keyed by Source Publication, so a publication shared by two lessons is generated once and reused.
-_Avoid_: Lesson-owned KC, opening the KC viewer as a write, Lesson Knowledge Build (former name)
-
-**KC Selection**:
-The second explicit checkpoint: selects, from one lesson's KC Candidates, the set that best fulfills the lesson's curricular record — title and description carry the intention, subjects detail it. Selection is optimization, not reduction, and is local to the lesson: an omitted candidate remains reusable and may be selected by another lesson.
-_Avoid_: Deletion, quality gate, per-source quota, Lesson Purpose (removed intermediate)
-
-**Reconciliation Scope**:
-The frozen, exact list of what one Universe Reconciliation runs over — locked before reconciling starts so the result can never silently drift.
-_Avoid_: Latest global corpus, visible Sources in the DOM, syllabus id alone, KC Corpus Manifest (former name)
-
-**Universe Reconciliation**:
-The third explicit checkpoint: decides cross-source identity over its frozen Reconciliation Scope — near-identical KC Candidates merge into one composite KC with a canonical statement. Also the only producer of the directional (one-way implication) signal, unused downstream today.
-_Avoid_: Syllabus Reconciliation, automatic fallthrough from local KC creation, mutable Universe, Syllabus Knowledge Build (former name)
+**Claim Lease**:
+A PostgreSQL-backed, expiring right for one worker to process one queued item.
+_Avoid_: Redis lock, process ownership

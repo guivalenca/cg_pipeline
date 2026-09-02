@@ -3,13 +3,12 @@
 The page reads immutable syllabus versions and operational acquisition state.
 Queueing is always source-local and explicit. For public articles the worker
 publishes Markdown only after acquisition, visual enrichment and passage
-cleanup. Task and Knowledge Component generation remain separate actions.
+cleanup.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 import re
@@ -18,6 +17,7 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager
 from html import escape
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote, urlsplit
 
 import psycopg
@@ -28,7 +28,7 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import companion_seam, curation, kc_pipeline, lesson_knowledge, syllabus_knowledge
+from universe import companion_seam
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -52,7 +52,6 @@ from universe.db import connect
 from universe.graph_identity import (
     GRAPH_ID_CONFLICT_MESSAGE,
     GraphIdConflict,
-    graph_id_for,
 )
 from universe.syllabus import (
     SyllabusAlreadyExists,
@@ -63,9 +62,7 @@ from universe.syllabus import (
     get_syllabus_workbook,
     import_workbook,
     list_syllabi,
-    slugify,
     update_source_review,
-    validate_syllabus_id,
 )
 from universe.syllabus_reconciliation import (
     apply_reconciliation,
@@ -230,7 +227,7 @@ def _acquisition_capability(media_type: str | None) -> dict:
             "adapter": "youtube",
             "label": "YouTube",
         }
-    kind = {"video": "vídeo", "book": "livro"}.get(media_type, "fonte")
+    kind = {"video": "vídeo", "book": "livro"}.get(media_type or "", "fonte")
     return {
         "supported": False,
         "adapter": None,
@@ -327,7 +324,7 @@ def _diagnostic_message(diagnostics: dict, failure_code: str) -> str:
             else "O Firecrawl recusou a autenticação ou o acesso da API (401/403)."
         )
     else:
-        base = labels.get(category) or failure_code.replace("_", " ")
+        base = labels.get(str(category)) or failure_code.replace("_", " ")
     if target_status and str(target_status) not in base:
         base = f"{base} HTTP da fonte: {target_status}."
     elif provider_status and str(provider_status) not in base:
@@ -367,7 +364,7 @@ def _image_failure_message(diagnostics: dict, failure_code: str | None) -> str:
         "model_unavailable": "O provider visual do OpenRouter ficou indisponível.",
         "image_processing_failed": "A imagem foi preservada quando possível, mas sua análise falhou.",
     }
-    message = labels.get(category)
+    message = labels.get(str(category)) if category is not None else None
     if message is None:
         message = (failure_code or "image_processing_failed").replace("_", " ")
     status = diagnostics.get("http_status")
@@ -424,10 +421,10 @@ def _summarize_image_counts(counts: dict[str, int]) -> dict:
 
 
 def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dict[str, dict]:
-    """Return the latest pipeline, canonical Markdown and KC signal per source."""
+    """Return the latest acquisition and canonical Markdown state per source."""
     if not source_ids:
         return {}
-    states = {source_id: {} for source_id in source_ids}
+    states: dict[str, dict[str, Any]] = {source_id: {} for source_id in source_ids}
 
     jobs = conn.execute(
         "SELECT DISTINCT ON (source_id) source_id, id, status, provider,"
@@ -513,18 +510,18 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
     for source_id, publication in current_source_publications(
         conn, source_ids
     ).items():
-        job = latest_job_by_source.get(source_id)
+        latest_job = latest_job_by_source.get(source_id)
         baseline_id = (
             publication.metadata.get("source_markdown_artifact_id")
             or publication.artifact_id
         )
         if (
-            job
-            and (job.get("diagnostics") or {}).get("pipeline_requires_cleanup")
-            and job.get("artifact_id")
+            latest_job
+            and (latest_job.get("diagnostics") or {}).get("pipeline_requires_cleanup")
+            and latest_job.get("artifact_id")
             and not publication.is_previous_attempt
         ):
-            baseline_id = job["artifact_id"]
+            baseline_id = latest_job["artifact_id"]
         image_artifact_sources[baseline_id] = source_id
         states[source_id]["has_markdown"] = True
         states[source_id]["markdown"] = {
@@ -671,91 +668,8 @@ def _latest_source_state(conn: psycopg.Connection, source_ids: list[str]) -> dic
             "speech_diagnostics": stt_counts_by_job.get(job["id"], {}),
         }
 
-    # Knowledge Components are an optional downstream interpretation.  Merely
-    # acquiring Markdown never creates or queues them; this read only reflects
-    # work that another Concept Universe process may already have stamped.
-    # Associate knowledge only with each Source's newest Markdown Artifact.
-    # KCs from an older acquisition must not make a new Markdown look done.
-    latest_artifacts = {
-        value["markdown"]["artifact_id"]: source_id
-        for source_id, value in states.items()
-        if value.get("markdown")
-    }
-    if latest_artifacts:
-        kc_rows = conn.execute(
-            "WITH latest_run AS ("
-            " SELECT DISTINCT ON (ri.artifact_id) ri.artifact_id,"
-            " r.id AS run_id, r.status"
-            " FROM run_item ri JOIN run r ON r.id = ri.run_id"
-            " WHERE ri.artifact_id = ANY(%s) AND r.stage = 'kc-statement'"
-            " ORDER BY ri.artifact_id, r.started_at DESC, r.id DESC"
-            ")"
-            " SELECT latest_run.artifact_id, latest_run.run_id, latest_run.status,"
-            " ri.response, ri.error"
-            " FROM latest_run JOIN run_item ri"
-            " ON ri.artifact_id = latest_run.artifact_id"
-            " AND ri.run_id = latest_run.run_id"
-            " ORDER BY latest_run.artifact_id, ri.created_at, ri.id",
-            (list(latest_artifacts),),
-        ).fetchall()
-        summaries: dict[str, dict] = {}
-        for artifact_id, run_id, run_status, response, error in kc_rows:
-            source_id = latest_artifacts[artifact_id]
-            summary = summaries.setdefault(
-                source_id,
-                {
-                    "run_id": run_id,
-                    "run_status": run_status,
-                    "count": 0,
-                    "failed_count": 0,
-                    "invalid_count": 0,
-                },
-            )
-            if error:
-                summary["failed_count"] += 1
-                continue
-            if not response:
-                summary["invalid_count"] += 1
-                continue
-            try:
-                parsed = json.loads(response)
-            except (TypeError, json.JSONDecodeError):
-                summary["invalid_count"] += 1
-                continue
-            if not isinstance(parsed, dict) or parsed.get("verdict") not in {
-                "stated", "unsure"
-            }:
-                summary["invalid_count"] += 1
-                continue
-            if parsed.get("verdict") == "stated":
-                statement = parsed.get("statement")
-                if isinstance(statement, str) and statement.strip():
-                    summary["count"] += 1
-                else:
-                    summary["invalid_count"] += 1
-        for source_id, summary in summaries.items():
-            states[source_id]["has_kcs"] = summary["count"] > 0
-            states[source_id]["kc_count"] = summary["count"]
-            states[source_id]["kc_run_id"] = summary["run_id"]
-            states[source_id]["kc_failed_count"] = summary["failed_count"]
-            states[source_id]["kc_invalid_count"] = summary["invalid_count"]
-            if summary["run_status"] == "running":
-                kc_state = "running"
-            elif summary["run_status"] == "failed":
-                kc_state = "failed"
-            elif summary["failed_count"] or summary["invalid_count"]:
-                kc_state = "partial"
-            else:
-                kc_state = "ready"
-            states[source_id]["kc_state"] = kc_state
-
     for source_id in source_ids:
         states[source_id].setdefault("has_markdown", False)
-        states[source_id].setdefault("has_kcs", False)
-        states[source_id].setdefault("kc_count", 0)
-        states[source_id].setdefault("kc_failed_count", 0)
-        states[source_id].setdefault("kc_invalid_count", 0)
-        states[source_id].setdefault("kc_state", "not_started")
         states[source_id].setdefault("image_branch", _empty_image_branch())
         states[source_id].setdefault(
             "pipeline",
@@ -850,137 +764,6 @@ def _syllabus_usage(conn: psycopg.Connection, source_ids: list[str]) -> dict:
     return summary
 
 
-def _reusable_source_knowledge(
-    conn: psycopg.Connection,
-    source_ids: list[str],
-) -> dict[str, dict]:
-    """Project completed local KC work by current Source Publication.
-
-    A Source Publication is immutable and may be referenced by more than one
-    lesson.  Reusing its completed interpretation is a read-model concern: it
-    must not create another lesson build or another unit of paid work.  The
-    checks below deliberately use only batch reads and require both the target
-    work and every sibling in its owning build to remain complete and pinned to
-    the exact publications that are current now.
-    """
-    source_ids = list(dict.fromkeys(source_ids))
-    publications = {
-        source_id: publication
-        for source_id, publication in current_source_publications(
-            conn, source_ids
-        ).items()
-        if not publication.is_previous_attempt
-    }
-    if not publications:
-        return {}
-
-    candidate_rows = conn.execute(
-        "SELECT build.id, build.request_seq, work.id, work.source_id,"
-        " work.snapshot_id, work.artifact_id, work.content_hash,"
-        " work.publication_is_previous_attempt, work.status, work.stage,"
-        " work.diagnostics"
-        " FROM lesson_knowledge_work work"
-        " JOIN lesson_knowledge_build build ON build.id = work.build_id"
-        " WHERE work.source_id = ANY(%s) AND work.status = 'succeeded'"
-        " ORDER BY work.source_id, build.request_seq DESC, work.seq, work.id",
-        (list(publications),),
-    ).fetchall()
-    if not candidate_rows:
-        return {}
-
-    candidate_build_ids = list(dict.fromkeys(row[0] for row in candidate_rows))
-    build_rows: dict[str, list[tuple]] = {}
-    build_source_ids: list[str] = []
-    for row in conn.execute(
-        "SELECT build_id, source_id, snapshot_id, artifact_id, content_hash,"
-        " publication_is_previous_attempt, status, stage, diagnostics"
-        " FROM lesson_knowledge_work WHERE build_id = ANY(%s)"
-        " ORDER BY build_id, seq, id",
-        (candidate_build_ids,),
-    ).fetchall():
-        build_rows.setdefault(row[0], []).append(row[1:])
-        build_source_ids.append(row[1])
-    build_publications = current_source_publications(
-        conn, list(dict.fromkeys(build_source_ids))
-    )
-
-    def complete_current(row: tuple) -> bool:
-        (
-            source_id,
-            snapshot_id,
-            artifact_id,
-            content_hash,
-            was_previous_attempt,
-            status,
-            stage,
-            diagnostics,
-        ) = row
-        publication = build_publications.get(source_id)
-        diagnostics = dict(diagnostics or {})
-        try:
-            completed = int(diagnostics.get("completed_stage_count"))
-            total = int(diagnostics.get("total_stage_count"))
-            kc_count = int(diagnostics.get("kc_count"))
-        except (TypeError, ValueError):
-            return False
-        return bool(
-            publication is not None
-            and not publication.is_previous_attempt
-            and not was_previous_attempt
-            and publication.snapshot_id == snapshot_id
-            and publication.artifact_id == artifact_id
-            and publication.content_hash == content_hash
-            and status == "succeeded"
-            and stage in (None, "local-complete")
-            and completed == len(kc_pipeline.LOCAL_STAGES)
-            and total == len(kc_pipeline.LOCAL_STAGES)
-            and kc_count >= 0
-        )
-
-    current_builds = {
-        build_id
-        for build_id, rows in build_rows.items()
-        if rows and all(complete_current(row) for row in rows)
-    }
-    projected: dict[str, dict] = {}
-    for (
-        build_id,
-        _,
-        work_id,
-        source_id,
-        snapshot_id,
-        artifact_id,
-        content_hash,
-        was_previous_attempt,
-        status,
-        stage,
-        diagnostics,
-    ) in candidate_rows:
-        if source_id in projected or build_id not in current_builds:
-            continue
-        publication = publications.get(source_id)
-        if (
-            publication is None
-            or was_previous_attempt
-            or publication.snapshot_id != snapshot_id
-            or publication.artifact_id != artifact_id
-            or publication.content_hash != content_hash
-            or status != "succeeded"
-            or stage not in (None, "local-complete")
-        ):
-            continue
-        diagnostics = dict(diagnostics or {})
-        projected[source_id] = {
-            "build_id": build_id,
-            "work_id": work_id,
-            "status": "succeeded",
-            "current": True,
-            "kc_count": int(diagnostics["kc_count"]),
-            "snapshot": None,
-        }
-    return projected
-
-
 def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
     source_ids = list(
         dict.fromkeys(
@@ -994,66 +777,12 @@ def _enrich_version(conn: psycopg.Connection, detail: dict) -> dict:
     usage = _syllabus_usage(conn, source_ids)
     if usage:
         detail["usage"] = usage
-    version_id = detail.get("version", {}).get("id")
-    lesson_ids = [
-        lesson["id"]
-        for lesson in detail.get("lessons", [])
-        if lesson.get("id")
-    ]
-    offers = (
-        lesson_knowledge.offer_many(
-            conn,
-            detail["id"],
-            version_id,
-            lesson_ids,
-        )
-        if version_id and lesson_ids
-        else {}
-    )
-    if version_id:
-        syllabus_offer = syllabus_knowledge.offer_summary(
-            conn, detail["id"], version_id
-        )
-        detail["knowledge"] = syllabus_offer
-        published_corpus = syllabus_offer.get("published_build")
-        if (
-            published_corpus
-            and published_corpus.get("current") is True
-        ):
-            detail["knowledge_manifest_id"] = published_corpus["manifest_id"]
-    reusable_knowledge = _reusable_source_knowledge(conn, source_ids)
     for lesson in detail.get("lessons", []):
-        offer = offers.get(lesson.get("id"))
-        if offer is not None:
-            lesson["knowledge"] = offer
-        work_by_reference = {
-            reference["reference_id"]: work_by_id.get(reference["work_id"])
-            for build in [offer.get("latest_build") if offer else None]
-            if build
-            for work_by_id in [
-                {work["id"]: work for work in build.get("work", [])}
-            ]
-            for reference in build.get("references", [])
-        }
         for source in lesson.get("sources", []):
             source["acquisition_capability"] = _acquisition_capability(
                 source.get("media_type")
             )
             source.update(operational.get(source.get("source_id"), {}))
-            work = work_by_reference.get(source.get("reference_id"))
-            if work is not None:
-                source["knowledge"] = {
-                    "build_id": offer["latest_build"]["id"],
-                    "work_id": work["id"],
-                    "status": work["status"],
-                    "current": work["current"],
-                    "kc_count": work.get("kc_count", 0),
-                    "snapshot": work.get("snapshot"),
-                }
-            elif offer is None or offer.get("latest_build") is None:
-                reusable = reusable_knowledge.get(source.get("source_id"))
-                if reusable is not None:
-                    source["knowledge"] = reusable
     return detail
 
 
@@ -1072,7 +801,7 @@ def _enrich_reconciliation(conn: psycopg.Connection, reconciliation: dict) -> di
     for lesson in reconciliation.get("lessons", []):
         for item in lesson.get("sources", []):
             source_id = (item.get("current") or {}).get("source_id")
-            item["extraction"] = operational.get(source_id, {})
+            item["extraction"] = operational.get(str(source_id), {}) if source_id else {}
     base = get_syllabus_version(
         conn,
         reconciliation["syllabus_id"],
@@ -1082,48 +811,6 @@ def _enrich_reconciliation(conn: psycopg.Connection, reconciliation: dict) -> di
     reconciliation["current_version"] = base["version"]
     reconciliation["next_version_seq"] = int(base["version"]["seq"]) + 1
     return reconciliation
-
-
-def _legacy_latest_projection(conn: psycopg.Connection, version_id: str) -> dict:
-    """Expose the former flat syllabus shape as a read-only compatibility key."""
-    rows = conn.execute(
-        "SELECT id, week, seq, kind, title, description, url, parent_title, source_id"
-        " FROM syllabus_item WHERE version_id = %s"
-        " ORDER BY week NULLS LAST, seq NULLS LAST, id",
-        (version_id,),
-    ).fetchall()
-    by_week: dict[int | None, list[dict]] = {}
-    for row in rows:
-        item = dict(
-            zip(
-                "id week seq kind title description url parent_title source_id".split(),
-                row,
-            )
-        )
-        source_id = item.get("source_id")
-        if source_id and curation.source_is_skipped(conn, source_id):
-            item["source_status"] = "skipped by founder"
-        elif source_id:
-            has_artifact, has_failed = conn.execute(
-                "SELECT EXISTS (SELECT 1 FROM source_snapshot sn"
-                " JOIN artifact a ON a.snapshot_id = sn.id"
-                " WHERE sn.source_id = %s AND sn.status = 'ok'),"
-                " EXISTS (SELECT 1 FROM source_snapshot"
-                " WHERE source_id = %s AND status = 'failed')",
-                (source_id, source_id),
-            ).fetchone()
-            item["source_status"] = (
-                "ingested" if has_artifact else "failed" if has_failed else "pending"
-            )
-        else:
-            item["source_status"] = "unlinked"
-        by_week.setdefault(item.pop("week"), []).append(item)
-    return {
-        "version_id": version_id,
-        "weeks": [
-            {"week": week, "items": items} for week, items in by_week.items()
-        ],
-    }
 
 
 def _graph_id_conflict_detail(graph_id: str) -> dict:
@@ -1149,7 +836,6 @@ def _workbook_error(exc: Exception) -> HTTPException:
                 "code": "syllabus_already_exists",
                 "message": str(exc),
                 "syllabus_id": exc.syllabus_id,
-                "graph_id": exc.graph_id,
             },
         )
     if isinstance(exc, LookupError):
@@ -1157,30 +843,6 @@ def _workbook_error(exc: Exception) -> HTTPException:
     if isinstance(exc, ValueError):
         return HTTPException(status_code=422, detail=str(exc))
     return HTTPException(status_code=500, detail="Não foi possível registrar o syllabus.")
-
-
-def _knowledge_error(exc: Exception) -> HTTPException:
-    if isinstance(
-        exc,
-        (
-            lesson_knowledge.LessonKnowledgeNotReady,
-            syllabus_knowledge.SyllabusKnowledgeNotReady,
-        ),
-    ):
-        return HTTPException(
-            status_code=409,
-            detail={
-                "code": exc.code,
-                "message": str(exc),
-                "reference_ids": list(exc.reference_ids),
-                "source_ids": list(exc.source_ids),
-            },
-        )
-    if isinstance(exc, LookupError):
-        return HTTPException(status_code=404, detail=str(exc))
-    if isinstance(exc, ValueError):
-        return HTTPException(status_code=422, detail=str(exc))
-    return HTTPException(status_code=500, detail="Não foi possível acessar os KCs.")
 
 
 def _manual_upload_mime(file: UploadFile) -> str:
@@ -1275,10 +937,17 @@ async def _worker_loop(
     while not stop.is_set():
         worked = False
         try:
-            args = (connect_factory, asset_store_factory)
             if video_adapter_factory is not None:
-                args = (*args, video_adapter_factory)
-            worked = await asyncio.to_thread(_work_one, *args)
+                worked = await asyncio.to_thread(
+                    _work_one,
+                    connect_factory,
+                    asset_store_factory,
+                    video_adapter_factory,
+                )
+            else:
+                worked = await asyncio.to_thread(
+                    _work_one, connect_factory, asset_store_factory
+                )
         except psycopg.Error:
             LOGGER.exception("acquisition worker could not reach PostgreSQL")
         except Exception:
@@ -1328,7 +997,7 @@ def create_app(
             if task is not None:
                 await task
 
-    app = FastAPI(title="Concept Universe Syllabi", lifespan=lifespan)
+    app = FastAPI(title="CG Pipeline Syllabi", lifespan=lifespan)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/", include_in_schema=False)
@@ -1338,10 +1007,6 @@ def create_app(
     @app.get("/syllabi", include_in_schema=False)
     def syllabi_page() -> FileResponse:
         return FileResponse(STATIC_DIR / "syllabi.html")
-
-    @app.get("/graph", include_in_schema=False)
-    def graph_page() -> FileResponse:
-        return FileResponse(STATIC_DIR / "universe.html")
 
     @app.get("/api/syllabi")
     def syllabi_index() -> dict:
@@ -1354,49 +1019,6 @@ def create_app(
             return namespace_provider()
         except companion_seam.CompanionSeamError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    @app.get("/api/syllabi/graph-id-proposal")
-    def syllabus_graph_id_proposal(
-        institution_id: str = Query(...),
-        name: str = Query(...),
-    ) -> dict:
-        clean_name = name.strip()
-        if not clean_name:
-            raise HTTPException(status_code=422, detail="Dê um nome ao syllabus.")
-        try:
-            graph_id = graph_id_for(institution_id, clean_name)
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
-        try:
-            syllabus_id = validate_syllabus_id(slugify(clean_name))
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
-        with connect_factory() as conn:
-            exact_title = conn.execute(
-                "SELECT id, title, graph_id FROM syllabus WHERE title = %s"
-                " ORDER BY created_at, id LIMIT 1",
-                (clean_name,),
-            ).fetchone()
-            syllabus_id_owner = conn.execute(
-                "SELECT id, title, graph_id FROM syllabus WHERE id = %s",
-                (syllabus_id,),
-            ).fetchone()
-            graph_owner = conn.execute(
-                "SELECT id, title, graph_id FROM syllabus WHERE graph_id = %s",
-                (graph_id,),
-            ).fetchone()
-        def serialize(row) -> dict | None:
-            if row is None:
-                return None
-            return {"id": row[0], "title": row[1], "graph_id": row[2]}
-
-        return {
-            "display_name": clean_name,
-            "graph_id": graph_id,
-            "existing_syllabus": serialize(exact_title),
-            "syllabus_id_owner": serialize(syllabus_id_owner),
-            "graph_owner": serialize(graph_owner),
-        }
 
     @app.post("/api/syllabi/upload", status_code=201)
     async def upload_syllabus(
@@ -1424,15 +1046,12 @@ def create_app(
                 temporary_path = Path(directory) / filename
                 temporary_path.write_bytes(body)
                 with connect_factory() as conn:
-                    namespace = None
+                    namespace = namespace_provider()
                     if syllabus_id:
                         history = get_syllabus_history(conn, syllabus_id)
                         if history["title"] != clean_name:
                             raise ValueError("o nome de uma nova versão deve ser igual ao syllabus existente")
-                        if not history["graph_id"]:
-                            namespace = namespace_provider()
                     else:
-                        namespace = namespace_provider()
                         companion_seam.remember_institution(
                             conn,
                             namespace,
@@ -1444,7 +1063,7 @@ def create_app(
                         clean_name,
                         syllabus_id=syllabus_id,
                         institution_id=institution_id,
-                        occupied_graph_ids=(namespace or {}).get("graph_ids", []),
+                        occupied_graph_ids=namespace.get("graph_ids", []),
                         require_syllabus_metadata=True,
                     )
         except HTTPException:
@@ -1532,124 +1151,9 @@ def create_app(
                 history = get_syllabus_history(conn, syllabus_id)
                 detail = get_syllabus_version(conn, syllabus_id, version_id)
                 detail["versions"] = history["versions"]
-                enriched = _enrich_version(conn, detail)
-                enriched["latest"] = _legacy_latest_projection(
-                    conn, detail["version"]["id"]
-                )
-                return enriched
+                return _enrich_version(conn, detail)
         except LookupError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-    @app.get(
-        "/api/syllabi/{syllabus_id}/versions/{version_id}/knowledge"
-    )
-    def syllabus_knowledge_offer(
-        syllabus_id: str,
-        version_id: str,
-    ) -> dict:
-        try:
-            with connect_factory() as conn:
-                return syllabus_knowledge.offer(conn, syllabus_id, version_id)
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-
-    @app.post(
-        "/api/syllabi/{syllabus_id}/versions/{version_id}/knowledge-builds",
-        status_code=202,
-    )
-    def request_syllabus_knowledge_build(
-        syllabus_id: str,
-        version_id: str,
-        payload: dict = Body(...),
-    ) -> dict:
-        try:
-            with connect_factory() as conn:
-                return syllabus_knowledge.request(
-                    conn,
-                    syllabus_id,
-                    version_id,
-                    payload.get("request_key"),
-                    actor="founder",
-                )
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-
-    @app.get(
-        "/api/syllabi/{syllabus_id}/versions/{version_id}"
-        "/knowledge-builds/{build_id}"
-    )
-    def read_syllabus_knowledge_build(
-        syllabus_id: str,
-        version_id: str,
-        build_id: str,
-    ) -> dict:
-        try:
-            with connect_factory() as conn:
-                build = syllabus_knowledge.read(
-                    conn, syllabus_id, version_id, build_id
-                )
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-        if build is None:
-            raise HTTPException(
-                status_code=404, detail="Syllabus Knowledge Build not found"
-            )
-        return build
-
-    @app.get(
-        "/api/syllabi/{syllabus_id}/versions/{version_id}"
-        "/lessons/{lesson_id}/knowledge"
-    )
-    def lesson_knowledge_offer(
-        syllabus_id: str,
-        version_id: str,
-        lesson_id: str,
-    ) -> dict:
-        try:
-            with connect_factory() as conn:
-                return lesson_knowledge.offer(
-                    conn,
-                    syllabus_id,
-                    version_id,
-                    lesson_id,
-                )
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-
-    @app.post(
-        "/api/syllabi/{syllabus_id}/versions/{version_id}"
-        "/lessons/{lesson_id}/knowledge-builds",
-        status_code=202,
-    )
-    def request_lesson_knowledge_build(
-        syllabus_id: str,
-        version_id: str,
-        lesson_id: str,
-        payload: dict = Body(...),
-    ) -> dict:
-        try:
-            with connect_factory() as conn:
-                return lesson_knowledge.request(
-                    conn,
-                    syllabus_id,
-                    version_id,
-                    lesson_id,
-                    payload.get("request_key"),
-                    actor="founder",
-                )
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-
-    @app.get("/api/knowledge-builds/{build_id}")
-    def read_lesson_knowledge_build(build_id: str) -> dict:
-        try:
-            with connect_factory() as conn:
-                build = lesson_knowledge.read_by_id(conn, build_id)
-        except (LookupError, ValueError) as exc:
-            raise _knowledge_error(exc) from exc
-        if build is None:
-            raise HTTPException(status_code=404, detail="Knowledge Build not found")
-        return build
 
     @app.patch("/api/syllabi/{syllabus_id}/sources/{reference_id}/review")
     def patch_source_review(

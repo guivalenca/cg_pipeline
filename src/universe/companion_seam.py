@@ -1,4 +1,4 @@
-"""Small local adapter to Companion's graph namespace and package acceptance."""
+"""Small local adapter to Companion's graph-authoring namespace."""
 
 from __future__ import annotations
 
@@ -12,24 +12,12 @@ import psycopg
 
 
 NAMESPACE_SCHEMA = "companion_graph_namespace.v1"
-ACCEPTANCE_SCHEMA = "companion_graph_package_acceptance.v1"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_COMPANION_REPO = PROJECT_ROOT.parent / "companion"
 
 
 class CompanionSeamError(RuntimeError):
-    """Companion could not answer a namespace or package-acceptance request."""
-
-
-class CompanionRejectedPackage(ValueError):
-    """Companion assessed the exact package and rejected its export."""
-
-    def __init__(self, result: dict) -> None:
-        self.result = result
-        codes = ", ".join(
-            str(issue.get("code")) for issue in result.get("issues", [])
-        ) or "unknown_rejection"
-        super().__init__(f"Companion rejected the graph package: {codes}")
+    """Companion's graph namespace could not be read."""
 
 
 def _environment() -> dict[str, str]:
@@ -50,9 +38,7 @@ def _environment() -> dict[str, str]:
 def _run_json(
     companion_repo: Path,
     script_name: str,
-    arguments: list[str] | None = None,
     *,
-    accepted_return_codes: tuple[int, ...] = (0,),
     run: Callable[..., subprocess.CompletedProcess] = subprocess.run,
 ) -> dict:
     script = companion_repo / "scripts" / script_name
@@ -62,7 +48,7 @@ def _run_json(
     python = environment.get("COMPANION_PYTHON", "python3").strip() or "python3"
     try:
         result = run(
-            [python, str(script), *(arguments or [])],
+            [python, str(script)],
             cwd=companion_repo,
             env=environment,
             capture_output=True,
@@ -72,7 +58,7 @@ def _run_json(
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise CompanionSeamError(f"Companion interface failed: {exc}") from exc
-    if result.returncode not in accepted_return_codes:
+    if result.returncode != 0:
         detail = (result.stderr or "").strip().splitlines()
         reason = detail[-1] if detail else f"process exited {result.returncode}"
         raise CompanionSeamError(f"Companion interface failed: {reason}")
@@ -85,16 +71,9 @@ def _run_json(
     return document
 
 
-def graph_namespace(
-    companion_repo: Path | None = None,
-    *,
-    run: Callable[..., subprocess.CompletedProcess] = subprocess.run,
-) -> dict:
-    document = _run_json(
-        companion_repo or DEFAULT_COMPANION_REPO,
-        "export_graph_namespace.py",
-        run=run,
-    )
+def _validated_namespace(document: object) -> dict:
+    if not isinstance(document, dict):
+        raise CompanionSeamError("Companion returned an invalid document")
     if document.get("schema_version") != NAMESPACE_SCHEMA:
         raise CompanionSeamError("Companion graph namespace version is not supported")
     institutions = document.get("institutions")
@@ -104,54 +83,26 @@ def graph_namespace(
     return document
 
 
-def validate_package(
-    candidate_root: Path,
+def graph_namespace(
     companion_repo: Path | None = None,
     *,
-    replace_graph_id: str | None = None,
     run: Callable[..., subprocess.CompletedProcess] = subprocess.run,
 ) -> dict:
-    arguments = [str(candidate_root.resolve())]
-    if replace_graph_id:
-        arguments.extend(("--replace-graph-id", replace_graph_id))
-    document = _run_json(
-        companion_repo or DEFAULT_COMPANION_REPO,
-        "validate_graph_package.py",
-        arguments,
-        accepted_return_codes=(0, 2),
-        run=run,
-    )
-    if document.get("schema_version") != ACCEPTANCE_SCHEMA:
-        raise CompanionSeamError("Companion package acceptance version is not supported")
-    if not isinstance(document.get("accepted"), bool):
-        raise CompanionSeamError("Companion package acceptance result is incomplete")
-    package_hash = document.get("package_sha256")
-    if document["accepted"] and (
-        not isinstance(package_hash, str)
-        or len(package_hash) != 64
-        or any(character not in "0123456789abcdef" for character in package_hash)
-    ):
-        raise CompanionSeamError("Companion acceptance receipt has no valid package hash")
-    return document
-
-
-def require_export_acceptance(
-    candidate_root: Path,
-    companion_repo: Path | None = None,
-    *,
-    replace_graph_id: str | None = None,
-    run: Callable[..., subprocess.CompletedProcess] = subprocess.run,
-) -> dict:
-    """Return a hash-bound acceptance receipt or stop the export."""
-    result = validate_package(
-        candidate_root,
-        companion_repo,
-        replace_graph_id=replace_graph_id,
-        run=run,
-    )
-    if not result["accepted"]:
-        raise CompanionRejectedPackage(result)
-    return result
+    configured_snapshot = os.environ.get("COMPANION_GRAPH_NAMESPACE_FILE", "").strip()
+    if configured_snapshot:
+        try:
+            document = json.loads(Path(configured_snapshot).read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            raise CompanionSeamError(
+                f"Companion graph namespace snapshot could not be read: {exc}"
+            ) from exc
+    else:
+        document = _run_json(
+            companion_repo or DEFAULT_COMPANION_REPO,
+            "export_graph_namespace.py",
+            run=run,
+        )
+    return _validated_namespace(document)
 
 
 def select_institution(document: dict, slug: str) -> dict:

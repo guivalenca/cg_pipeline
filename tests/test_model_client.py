@@ -3,7 +3,7 @@
 import pytest
 
 from universe import model_client
-from universe.model_client import EmbeddingClient, ModelClient, ModelError
+from universe.model_client import ModelClient, ModelError
 
 
 TOOL = {
@@ -27,17 +27,6 @@ def _chat_client(body):
 
     return ModelClient(
         "request/model",
-        api_base="https://example.invalid/v1",
-        transport=transport,
-    )
-
-
-def _embedding_client(body):
-    def transport(url, headers, payload, timeout):
-        return body
-
-    return EmbeddingClient(
-        "request/embedding-model",
         api_base="https://example.invalid/v1",
         transport=transport,
     )
@@ -109,28 +98,6 @@ def test_call_tool_wraps_non_mapping_message_with_response_telemetry():
     assert caught.value.duration_ms == 125
 
 
-def test_embed_wraps_non_mapping_data_item_with_response_telemetry():
-    client = _embedding_client(
-        {
-            "data": ["not-an-object"],
-            "usage": {"cost": 0.0009, "total_tokens": 7},
-            "provider": "embedding-provider",
-            "model": "response/embedding-model",
-        }
-    )
-
-    with pytest.raises(ModelError, match="unexpected response shape") as caught:
-        client.embed(["hello"])
-
-    assert caught.value.usage == {
-        "cost": 0.0009,
-        "total_tokens": 7,
-        "provider": "embedding-provider",
-        "response_model": "response/embedding-model",
-    }
-    assert caught.value.duration_ms == 125
-
-
 def test_complete_wraps_non_mapping_response_body_with_duration():
     client = _chat_client(["not", "an", "object"])
 
@@ -146,16 +113,6 @@ def test_call_tool_wraps_non_mapping_response_body_with_duration():
 
     with pytest.raises(ModelError, match="unexpected response shape") as caught:
         client.call_tool([{"role": "user", "content": "hello"}], TOOL)
-
-    assert caught.value.usage == {}
-    assert caught.value.duration_ms == 125
-
-
-def test_embed_wraps_non_mapping_response_body_with_duration():
-    client = _embedding_client(["not", "an", "object"])
-
-    with pytest.raises(ModelError, match="unexpected response shape") as caught:
-        client.embed(["hello"])
 
     assert caught.value.usage == {}
     assert caught.value.duration_ms == 125
@@ -244,16 +201,6 @@ def test_call_tool_wraps_scalar_response_body_with_duration():
 
     with pytest.raises(ModelError, match="unexpected response shape") as caught:
         client.call_tool([{"role": "user", "content": "hello"}], TOOL)
-
-    assert caught.value.usage == {}
-    assert caught.value.duration_ms == 125
-
-
-def test_embed_wraps_scalar_response_body_with_duration():
-    client = _embedding_client(31)
-
-    with pytest.raises(ModelError, match="unexpected response shape") as caught:
-        client.embed(["hello"])
 
     assert caught.value.usage == {}
     assert caught.value.duration_ms == 125

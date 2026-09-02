@@ -263,12 +263,8 @@ class BrowserbaseBookAdapter:
             identity=identity,
             lock_file=self.context_file.with_suffix(self.context_file.suffix + ".lock"),
             event_sink=self._sink,
-            redis_url=os.getenv("REDIS_URL", ""),
             wait_seconds=max(
                 0.0, float(os.getenv("BROWSERBASE_LOCK_WAIT_SECONDS", "3720"))
-            ),
-            lease_seconds=max(
-                30.0, float(os.getenv("BROWSERBASE_LOCK_LEASE_SECONDS", "300"))
             ),
         )
 

@@ -1,20 +1,22 @@
 import pytest
 
-from universe.graph_identity import graph_id_for, validate_graph_id
+from universe.graph_identity import subject_graph_id_for, validate_graph_id
 
 
-def test_graph_id_is_generated_from_companion_institution_and_syllabus_name():
-    assert graph_id_for("inteli", "Sistemas de Informação · Módulo 7") == (
-        "graph-inteli-sistemas-de-informacao-modulo-7"
+def test_graph_id_is_generated_from_institution_curriculum_and_lesson_subject():
+    assert subject_graph_id_for(
+        "inteli", "Sistemas de Informação · Módulo 7", "COM"
+    ) == (
+        "graph-inteli-sistemas-de-informacao-modulo-7-com"
     )
 
 
 def test_long_graph_id_is_deterministically_bounded():
-    first = graph_id_for("inteli", "Nome muito longo " * 30)
-    second = graph_id_for("inteli", "Nome muito longo " * 30)
+    first = subject_graph_id_for("inteli", "Nome muito longo " * 30, "MTF")
+    second = subject_graph_id_for("inteli", "Nome muito longo " * 30, "MTF")
 
     assert first == second
-    assert len(first) == 128
+    assert len(first) <= 128
     assert validate_graph_id(first) == first
 
 

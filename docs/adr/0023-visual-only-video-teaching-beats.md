@@ -59,12 +59,11 @@ association Implementation localizes each image and attaches the teaching
 explanation plus visual organization as `Image description`, visible text as
 `OCR`, and uncertainty as `Image limitations`. Those fields and the frame are
 one ordinary atomic image Block. Blocks, Passage cuts, triage,
-refine/retriage, canonical publication and later KC extraction remain
-source-neutral and unchanged.
+refine/retriage, and canonical publication remain source-neutral and unchanged.
 
 Caption and OpenRouter-STT routes keep ADR 0022's Summarize candidate-frame
 Adapter and grouped contextual image analysis because speech already provides
-their document spine and the visual task is supplemental selection.
+their document spine and visual analysis is supplemental evidence.
 
 ## Consequences
 

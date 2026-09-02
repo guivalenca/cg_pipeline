@@ -1,4 +1,4 @@
-"""Stable graph identity generated from an Institution and Syllabus name."""
+"""Stable graph identity for one curriculum Subject."""
 
 from __future__ import annotations
 
@@ -10,7 +10,8 @@ import unicodedata
 GRAPH_ID = re.compile(r"^[a-z][a-z0-9_.-]{1,127}$")
 INSTITUTION_SLUG = re.compile(r"^[a-z][a-z0-9-]{1,63}$")
 GRAPH_ID_CONFLICT_MESSAGE = (
-    "Este ID já está em uso no Companion. Escolha outro nome para o syllabus."
+    "Este ID de Subject já está em uso no Companion. Revise a instituição, "
+    "o currículo ou o código do Subject."
 )
 
 
@@ -28,20 +29,31 @@ def slug_component(value: str) -> str:
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", ascii_value.lower())).strip("-")
 
 
-def graph_id_for(institution_slug: str, syllabus_name: str) -> str:
-    """Generate a deterministic Companion graph id, bounded to 128 chars."""
+def subject_graph_id_for(
+    institution_slug: str,
+    curriculum_name: str,
+    lesson_subject_code: str,
+) -> str:
+    """Generate one stable graph id from its full institutional identity."""
     institution_slug = str(institution_slug or "").strip()
     if INSTITUTION_SLUG.fullmatch(institution_slug) is None:
         raise ValueError("A instituição não tem um slug compatível com o Companion.")
-    name_slug = slug_component(str(syllabus_name or "").strip())
-    if not name_slug:
-        raise ValueError("O nome do syllabus não produz um identificador válido.")
+    curriculum_slug = slug_component(str(curriculum_name or "").strip())
+    if not curriculum_slug:
+        raise ValueError("O currículo não produz um identificador válido.")
+    subject_slug = slug_component(str(lesson_subject_code or "").strip())
+    if not subject_slug:
+        raise ValueError("O código do Subject não produz um identificador válido.")
+
     prefix = f"graph-{institution_slug}-"
-    candidate = prefix + name_slug
+    suffix = f"-{subject_slug}"
+    candidate = prefix + curriculum_slug + suffix
     if len(candidate) > 128:
-        suffix = "-" + hashlib.sha256(candidate.encode()).hexdigest()[:8]
-        name_slug = name_slug[: 128 - len(prefix) - len(suffix)].rstrip("-")
-        candidate = prefix + name_slug + suffix
+        digest = "-" + hashlib.sha256(candidate.encode()).hexdigest()[:8]
+        curriculum_slug = curriculum_slug[
+            : 128 - len(prefix) - len(digest) - len(suffix)
+        ].rstrip("-")
+        candidate = prefix + curriculum_slug + digest + suffix
     return candidate
 
 

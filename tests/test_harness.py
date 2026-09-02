@@ -12,7 +12,6 @@ from universe import harness
 from universe.model_client import (
     DEFAULT_API_BASE,
     DEFAULT_ROUTING,
-    EmbeddingClient,
     ModelClient,
     ModelError,
     is_transient_failure,
@@ -143,14 +142,6 @@ def test_prompt_ref_and_sha_come_from_the_file_on_disk(prompt):
     assert prompt.ref == f"{STAGE}/{VERSION}"
     assert prompt.sha == hashlib.sha256(path.read_bytes()).hexdigest()
     assert "{{body}}" not in prompt.render("SOMETHING")
-
-
-def test_bodyless_prompts_require_explicit_opt_in():
-    with pytest.raises(SystemExit):
-        harness.load_prompt("task-revision", "v004")
-    assert harness.load_prompt(
-        "task-revision", "v004", require_body=False
-    ).ref == "task-revision/v004"
 
 
 def test_run_records_the_stamp_the_items_and_the_usage(db, prompt, targets):
@@ -618,91 +609,6 @@ def test_model_client_api_key_fallback_order(monkeypatch):
 
     monkeypatch.setenv("MODEL_API_KEY", "model-key")
     assert ModelClient("fake/model", api_key="explicit-key").api_key == "explicit-key"
-
-
-def test_embedding_client_embed_returns_ordered_vectors_and_usage():
-    calls = []
-
-    def transport(url, headers, payload, timeout):
-        calls.append((url, headers, payload, timeout))
-        return {
-            "data": [
-                {"index": 1, "embedding": [3.0, 4.0]},
-                {"index": 0, "embedding": [1.0, 2.0]},
-            ],
-            "usage": {"prompt_tokens": 2, "total_tokens": 2},
-        }
-
-    client = EmbeddingClient(
-        "fake/embedding-model",
-        api_base="https://example.invalid/v1",
-        transport=transport,
-    )
-    vectors, usage, duration_ms = client.embed(["hello", "world"])
-
-    url, _, payload, _ = calls[0]
-    assert url.endswith("/embeddings")
-    assert payload == {
-        "model": "fake/embedding-model",
-        "input": ["hello", "world"],
-    }
-    assert vectors == [[1.0, 2.0], [3.0, 4.0]]
-    assert usage == {"prompt_tokens": 2, "total_tokens": 2}
-    assert duration_ms >= 0
-
-
-@pytest.mark.parametrize(
-    ("body", "message"),
-    [
-        ({"error": {"message": "upstream failed"}}, "api error"),
-        ({"data": [{"index": 0, "embedding": [1.0]}]}, "expected 2 embeddings, got 1"),
-        (
-            {"data": [{"index": 0}, {"index": 1, "embedding": [2.0]}]},
-            "item without embedding",
-        ),
-        (
-            {"data": [{"index": 0, "embedding": []}, {"index": 1, "embedding": [2.0]}]},
-            "empty embedding vector",
-        ),
-    ],
-)
-def test_embedding_client_rejects_error_responses(body, message):
-    def transport(url, headers, payload, timeout):
-        return body
-
-    client = EmbeddingClient(
-        "fake/embedding-model",
-        api_base="https://example.invalid/v1",
-        transport=transport,
-    )
-    with pytest.raises(ModelError, match=message):
-        client.embed(["hello", "world"])
-
-
-def test_embedding_client_preserves_usage_on_malformed_billed_response():
-    def transport(url, headers, payload, timeout):
-        return {
-            "data": [{"index": 0}],
-            "usage": {"cost": 0.0027, "total_tokens": 19},
-            "provider": "example-provider",
-            "model": "fake/embedding-response",
-        }
-
-    client = EmbeddingClient(
-        "fake/embedding-model",
-        api_base="https://example.invalid/v1",
-        transport=transport,
-    )
-    with pytest.raises(ModelError, match="item without embedding") as caught:
-        client.embed(["hello"])
-
-    assert caught.value.usage == {
-        "cost": 0.0027,
-        "total_tokens": 19,
-        "provider": "example-provider",
-        "response_model": "fake/embedding-response",
-    }
-    assert caught.value.duration_ms >= 0
 
 
 def test_load_tool_includes_parallel_tool_calls_false(tmp_path):

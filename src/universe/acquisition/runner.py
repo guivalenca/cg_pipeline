@@ -2,14 +2,13 @@
 
 Queueing and claiming are deliberately separate transactions.  The job is
 therefore visible before Firecrawl is contacted, and a crashed web process
-does not erase the user's request.  Workers claim with ``SKIP LOCKED`` so
-several Railway workers can share PostgreSQL without a Redis queue.
+does not erase the user's request. Workers claim with ``SKIP LOCKED`` so
+several processes can share PostgreSQL without a separate queue service.
 
 The acquisition fact still stops at its ``markdown`` artifact. Public article
 jobs then enqueue image enrichment and canonical passage cleanup as separate
-durable work. Lesson-local Knowledge Component builds consume pinned Source
-Publications, while Syllabus Version builds consume sealed corpus manifests.
-Both join the same fair scheduler without extending acquisition.
+durable work. Generic per-lesson builds consume pinned Source Publications and
+join the same fair scheduler. This pilot intentionally registers no stages.
 """
 
 import argparse
@@ -23,7 +22,7 @@ from typing import Any
 import psycopg
 from psycopg.types.json import Jsonb
 
-from universe import lesson_knowledge_worker, syllabus_knowledge
+from universe import lesson_build_worker
 from universe.acquisition.articles import ArticleFetch, fetch_article_detailed
 from universe.acquisition.book_acquisition import (
     BOOK_PROVIDER,
@@ -874,13 +873,8 @@ def _oldest_ready_work_kind(conn: psycopg.Connection) -> str | None:
         " WHERE available_at <= now() AND (status = 'queued'"
         "   OR (status = 'running' AND lease_expires_at < now()))"
         " UNION ALL"
-        " SELECT 'lesson_knowledge'::text AS kind, available_at, created_at, id"
-        " FROM lesson_knowledge_work"
-        " WHERE available_at <= now() AND status IN ('queued', 'running')"
-        "   AND (claim_token IS NULL OR lease_expires_at <= now())"
-        " UNION ALL"
-        " SELECT 'syllabus_knowledge'::text AS kind, available_at, created_at, id"
-        " FROM syllabus_knowledge_build"
+        " SELECT 'lesson_build'::text AS kind, available_at, created_at, id"
+        " FROM lesson_build_work"
         " WHERE available_at <= now() AND status IN ('queued', 'running')"
         "   AND (claim_token IS NULL OR lease_expires_at <= now())"
         " UNION ALL"
@@ -938,8 +932,7 @@ def process_next_work_item(
         "source_cleanup": lambda: process_next_source_cleanup(
             conn, **lease_kwargs
         ),
-        "lesson_knowledge": lambda: lesson_knowledge_worker.process_next(conn),
-        "syllabus_knowledge": lambda: syllabus_knowledge.process_next(conn),
+        "lesson_build": lambda: lesson_build_worker.process_next(conn),
     }
     for kind in (
         preferred,
@@ -1039,10 +1032,7 @@ def cmd_work(args: argparse.Namespace) -> None:
                 ),
                 flush=True,
             )
-        elif work_payload is not None and work_kind in {
-            "lesson_knowledge",
-            "syllabus_knowledge",
-        }:
+        elif work_payload is not None and work_kind == "lesson_build":
             print(
                 json.dumps(
                     {"kind": work_kind, **work_payload},

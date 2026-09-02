@@ -1,21 +1,14 @@
-"""Compose rich source acquisition with the existing KC dashboard.
-
-The acquisition application owns syllabus and source-publication routes.
-Dashboard-only routes are appended without shadowing that newer contract.
-"""
+"""Source-publication pilot web application."""
 
 import os
 from collections.abc import Callable
 
 import psycopg
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from universe.assets import AssetStore, asset_store_from_env
 from universe.db import connect as default_connect
-from universe.web import acquisition_app, dashboard_app
-
-REPORTS_DIR = dashboard_app.REPORTS_DIR
+from universe.web import acquisition_app
 connect = default_connect
 
 # Keep the acquisition helpers import-compatible for tests and local tools.
@@ -52,38 +45,15 @@ def create_app(
     video_adapter_factory=acquisition_app.YtDlpYouTubeAdapter,
     companion_namespace_provider: Callable[[], dict] | None = None,
 ) -> FastAPI:
-    """Create one application containing acquisition and KC-review surfaces."""
+    """Create the syllabus and Source Publication application."""
     connect_factory = connect_factory or connect
-    app = acquisition_app.create_app(
+    return acquisition_app.create_app(
         connect_factory,
         start_worker=start_worker,
         asset_store_factory=asset_store_factory,
         video_adapter_factory=video_adapter_factory,
         companion_namespace_provider=companion_namespace_provider,
     )
-    # The older dashboard was written against a module-level connection
-    # helper. Point it at the same factory so the composed app has one DB.
-    dashboard_app.connect = connect_factory
-    dashboard = dashboard_app.create_app()
-    occupied = {
-        (route.path, tuple(sorted(getattr(route, "methods", None) or ())))
-        for route in app.routes
-    }
-    for route in dashboard.routes:
-        key = (
-            route.path,
-            tuple(sorted(getattr(route, "methods", None) or ())),
-        )
-        if route.path in {"/static", "/reports"} or key in occupied:
-            continue
-        app.router.routes.append(route)
-        occupied.add(key)
-    app.mount(
-        "/reports",
-        StaticFiles(directory=REPORTS_DIR, check_dir=False),
-        name="reports",
-    )
-    return app
 
 
 app = create_app(

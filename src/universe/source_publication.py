@@ -226,8 +226,8 @@ def read(
 ) -> Publication | None:
     """Read one exact current or historical Source Publication.
 
-    Historical reads are needed by immutable Lesson Knowledge Builds after a
-    Source publishes a newer attempt.  They deliberately apply the same
+    Historical reads are needed by immutable lesson builds after a Source
+    publishes a newer attempt. They deliberately apply the same
     publication boundary as :func:`current_many`: an arbitrary Markdown
     intermediate is never made readable merely because a build names it.
     """

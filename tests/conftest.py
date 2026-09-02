@@ -76,11 +76,6 @@ def adalove_workbook():
 
 
 @pytest.fixture(scope="session")
-def fixture_dir() -> Path:
-    return Path(__file__).resolve().parents[1] / "data" / "si-mod6-com"
-
-
-@pytest.fixture(scope="session")
 def migrated_database_template():
     database_name = f"{TEST_DATABASE_PREFIX}_template_{os.getpid()}"
     admin_url = make_conninfo(database_url(), dbname="postgres")

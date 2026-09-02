@@ -168,6 +168,8 @@ def write_adalove_workbook(
     read_me = workbook.create_sheet("Read me")
     read_me.append(("Field", "Value / note"))
     read_me.append(("Project", project))
+    errors = workbook.create_sheet("Errors")
+    errors.append(("Activity UUID", "Error"))
     workbook.save(path)
     workbook.close()
     return path

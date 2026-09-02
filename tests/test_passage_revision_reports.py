@@ -11,7 +11,6 @@ from universe import (
     passage_refine,
     passage_report,
     passages,
-    taskgen_report,
     triage_report,
 )
 from universe.blocks import BLOCKER_VERSION
@@ -122,22 +121,6 @@ def report_states(db) -> dict:
         revision_id=revision["id"],
         response={"verdict": "keep"},
     )
-    taskgen_raw, _ = model_run_item(
-        db,
-        stage="task-generation",
-        passage=passage,
-        response={"tasks": [{"task": "Raw task", "answer": "Raw answer"}]},
-    )
-    taskgen_revised, _ = model_run_item(
-        db,
-        stage="task-generation",
-        passage=passage,
-        revision_id=revision["id"],
-        response={
-            "tasks": [{"task": "Revised task", "answer": "Revised answer"}]
-        },
-    )
-
     cuts_run = harness.next_run_id(db)
     db.execute(
         "INSERT INTO run"
@@ -156,7 +139,6 @@ def report_states(db) -> dict:
         "passage": passage,
         "revision": revision,
         "triage_runs": [triage_raw, triage_revised],
-        "taskgen_runs": [taskgen_raw, taskgen_revised],
         "cuts_run": cuts_run,
     }
 
@@ -178,15 +160,6 @@ def test_triage_report_separates_raw_and_revised_states(db, report_states):
     assert text.count("Kept paragraph.") == 2
     assert f"revision: `{report_states['revision']['id']}`" in text
     assert all(run_id in text for run_id in report_states["triage_runs"])
-
-
-def test_task_generation_report_separates_raw_and_revised_states(db, report_states):
-    text = taskgen_report.render_runs(db, report_states["taskgen_runs"])
-
-    assert text.count("Removed paragraph.") == 1
-    assert text.count("Kept paragraph.") == 2
-    assert f"revision: `{report_states['revision']['id']}`" in text
-    assert "Raw task" in text and "Revised task" in text
 
 
 def test_passage_cuts_report_uses_the_run_stamped_blocker_version(db, report_states):

@@ -1,1 +1,1 @@
-"""Concept Universe: the content ledger."""
+"""CG Pipeline: the auditable Source Publication ledger."""

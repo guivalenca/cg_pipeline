@@ -9,8 +9,7 @@ This repo is **single-context**: one `CONTEXT.md` at the root, one `docs/adr/` d
 - **`CONTEXT.md`** at the repo root — the glossary of domain terms, each with an `_Avoid_`
   line naming the synonyms this project rejects.
 - **`docs/adr/`** — read the ADRs that touch the area you're about to work in.
-  `docs/adr/README.md` explains the numbering and points at the maintained design
-  narrative, `docs/concept-system-vision-compilation.md`.
+  `docs/adr/README.md` explains the retained historical numbering.
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't
 suggest creating them upfront. The `/domain-modeling` skill (reached via
@@ -27,7 +26,6 @@ decisions actually get resolved.
 │   │   ├── README.md
 │   │   ├── 0001-facts-versus-interpretations.md
 │   │   └── …
-│   └── concept-system-vision-compilation.md
 └── src/universe/
 ```
 
@@ -50,4 +48,4 @@ inventing language the project doesn't use (reconsider) or there's a real gap (n
 An ADR here closes only when the founder closes it explicitly. If your output contradicts
 an existing ADR, surface it rather than silently overriding:
 
-> _Contradicts ADR-0008 (frozen KC ids) — but worth reopening because…_
+> _Contradicts ADR-0012 (Source Publication boundary) — but worth reopening because…_

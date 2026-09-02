@@ -53,7 +53,7 @@ home, an allowlisted environment, and a `PATH` containing only `node`,
 endpoints, ONNX runtimes, and Whisper binaries are undiscoverable. Summarize
 therefore selects candidate frames and calls local media tools; it does not
 enter transcript selection, summarize, transcribe missing speech, OCR frames,
-or call a model on Concept Universe's behalf.
+or call a model on CG Pipeline's behalf.
 
 The Summarize output is untrusted Adapter input. Code verifies that the result
 belongs to the requested YouTube id, accepts only unique positive slide
@@ -89,9 +89,9 @@ URL while preserving the clickable YouTube timestamp.
 The enriched Artifact, not the preliminary caption/frame manifest, is the
 input to deterministic Blocks, Passage cuts, triage/refine/retriage, and
 canonical clean Markdown. Each retained image, description, OCR, limitation,
-asset reference, and timestamp link is one atomic image Block. Tasks,
-statements, and KCs remain separate explicit operations. This keeps the new
-Adapter shallow and the existing downstream Modules deep.
+asset reference, and timestamp link is one atomic image Block. No
+post-publication interpretation exists in this pilot. This keeps the new
+Adapter shallow and the publication Module deep.
 
 ## Consequences
 
@@ -102,13 +102,13 @@ Adapter shallow and the existing downstream Modules deep.
   STT, avoiding silent loss of speech while never running local Whisper.
 - Captioned videos preserve exact speech while gaining visual evidence from
   the same timeline.
-- Summarize owns candidate-frame extraction only; Concept Universe owns
+- Summarize owns candidate-frame extraction only; CG Pipeline owns
   evidence storage, model policy, relevance, Markdown composition, and
   publication.
 - Near-duplicate and low-value frames are decided once with full source
   context. Byte-identical duplicates are removed deterministically before the
   model call.
-- Frame bytes use the existing object-storage contract and are retrievable by
+- Frame bytes use the local Asset Store contract and are retrievable by
   the same authenticated Source Asset Interface as article and manual images.
 - Worker deployments add Node.js 24+, the pinned npm dependency, `yt-dlp`,
   `ffmpeg`, and `ffprobe`; routed STT and frame analysis need the existing

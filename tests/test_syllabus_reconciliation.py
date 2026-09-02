@@ -1,4 +1,5 @@
 import copy
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -79,6 +80,26 @@ def _transition_changed(lesson: dict) -> dict[str, str]:
         for item in (lesson, *lesson["sources"])
         if item["status"] != "unchanged"
     }
+
+
+def _publish_reference(db, reference_id: str) -> None:
+    source_id, = db.execute(
+        "SELECT source_id FROM syllabus_source_reference WHERE id = %s",
+        (reference_id,),
+    ).fetchone()
+    suffix = hashlib.sha256(reference_id.encode()).hexdigest()[:16]
+    snapshot_id = f"review-snapshot-{suffix}"
+    db.execute(
+        "INSERT INTO source_snapshot (id, source_id, content_hash, status)"
+        " VALUES (%s, %s, %s, 'ok')",
+        (snapshot_id, source_id, hashlib.sha256(snapshot_id.encode()).hexdigest()),
+    )
+    db.execute(
+        "INSERT INTO artifact (id, snapshot_id, kind, tool, body)"
+        " VALUES (%s, %s, 'markdown', 'legacy-import', '# Fonte')",
+        (f"review-artifact-{suffix}", snapshot_id),
+    )
+    db.commit()
 
 
 def _manual_projection(detail: dict, *, url: str) -> list[dict]:
@@ -634,6 +655,7 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
     )
     current = get_syllabus_version(db, imported["syllabus_id"])
     reference_id = current["lessons"][0]["sources"][0]["reference_id"]
+    _publish_reference(db, reference_id)
     update_source_review(
         db,
         imported["syllabus_id"],
@@ -690,6 +712,7 @@ def test_transition_applies_only_changed_workbook_fields_over_manual_settings(
     )
     current = get_syllabus_version(db, imported["syllabus_id"])
     reference_id = current["lessons"][0]["sources"][0]["reference_id"]
+    _publish_reference(db, reference_id)
     update_source_review(
         db,
         imported["syllabus_id"],

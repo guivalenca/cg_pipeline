@@ -1,7 +1,9 @@
 # Architecture Decision Records
 
-ADRs for the Concept Universe. One file per decision, numbered (`0001-…`).
+ADRs describe the decisions still active in the CG Pipeline Source Publication
+pilot. Earlier Concept Universe decisions about downstream interpretation were
+removed when the pilot forked at the Source Publication boundary (ADR 0027).
 
-The maintained design narrative is `../concept-system-vision-compilation.md`;
-ADRs record the formally closed decisions with their context and consequences.
-A decision closes only when the founder closes it explicitly.
+The active sequence intentionally keeps its historical numbers so provenance
+remains easy to inspect in git. Read the ADRs relevant to the subsystem being
+changed and use the vocabulary in the repository-root `CONTEXT.md`.

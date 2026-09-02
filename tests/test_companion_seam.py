@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 import subprocess
 
 import pytest
@@ -42,58 +41,35 @@ def test_reads_the_narrow_namespace_without_mirroring_courses_or_groups(
     assert "groups" not in document["institutions"][0]
 
 
-def test_preserves_a_companion_rejection_document(companion_repo):
-    rejected = {
-        "schema_version": "companion_graph_package_acceptance.v1",
-        "accepted": False,
-        "graph_id": "graph-inteli-existing",
-        "package_sha256": None,
-        "issues": [{"code": "graph_id_conflict"}],
-    }
-    result = companion_seam.validate_package(
-        Path("candidate"),
-        companion_repo,
-        run=_completed(rejected, returncode=2),
-    )
+def test_reads_a_namespace_snapshot_without_a_companion_checkout(
+    tmp_path, monkeypatch
+):
+    snapshot = tmp_path / "namespace.json"
+    snapshot.write_text(json.dumps(NAMESPACE))
+    monkeypatch.setenv("COMPANION_GRAPH_NAMESPACE_FILE", str(snapshot))
 
-    assert result == rejected
+    document = companion_seam.graph_namespace(tmp_path / "missing-companion")
+
+    assert document == NAMESPACE
 
 
-def test_export_gate_cannot_return_a_rejected_package(companion_repo):
-    rejected = {
-        "schema_version": "companion_graph_package_acceptance.v1",
-        "accepted": False,
-        "graph_id": "graph-inteli-existing",
-        "package_sha256": None,
-        "issues": [{"code": "graph_id_conflict"}],
-    }
+@pytest.mark.parametrize(
+    "document",
+    [
+        {},
+        [],
+        {"schema_version": "wrong", "institutions": [], "graph_ids": []},
+        {
+            "schema_version": "companion_graph_namespace.v1",
+            "institutions": {},
+            "graph_ids": [],
+        },
+    ],
+)
+def test_rejects_an_invalid_namespace_snapshot(tmp_path, monkeypatch, document):
+    snapshot = tmp_path / "namespace.json"
+    snapshot.write_text(json.dumps(document))
+    monkeypatch.setenv("COMPANION_GRAPH_NAMESPACE_FILE", str(snapshot))
 
-    with pytest.raises(
-        companion_seam.CompanionRejectedPackage,
-        match="graph_id_conflict",
-    ):
-        companion_seam.require_export_acceptance(
-            Path("candidate"),
-            companion_repo,
-            run=_completed(rejected, returncode=2),
-        )
-
-
-def test_export_gate_rejects_an_unbound_acceptance_receipt(companion_repo):
-    accepted_without_hash = {
-        "schema_version": "companion_graph_package_acceptance.v1",
-        "accepted": True,
-        "graph_id": "graph-inteli-new",
-        "package_sha256": None,
-        "issues": [],
-    }
-
-    with pytest.raises(
-        companion_seam.CompanionSeamError,
-        match="package hash",
-    ):
-        companion_seam.require_export_acceptance(
-            Path("candidate"),
-            companion_repo,
-            run=_completed(accepted_without_hash),
-        )
+    with pytest.raises(companion_seam.CompanionSeamError):
+        companion_seam.graph_namespace(tmp_path / "missing-companion")

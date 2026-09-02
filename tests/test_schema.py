@@ -2,21 +2,42 @@ from universe.migrate import migrate
 
 
 def test_migrations_apply_on_a_fresh_database(applied_migrations, db):
-    assert "0001_ingestion_chain" in applied_migrations
-    assert applied_migrations[-3:] == [
-        "0058_syllabus_metadata",
-        "0060_stable_syllabus_lesson_ids",
-        "0063_adalove_activity_identity",
-    ]
+    assert applied_migrations == ["0001_baseline"]
     recorded = {row[0] for row in db.execute("SELECT version FROM schema_migrations")}
     assert recorded == set(applied_migrations)
+
+
+def test_baseline_stops_at_the_source_publication_boundary(db):
+    tables = {
+        row[0]
+        for row in db.execute(
+            "SELECT table_name FROM information_schema.tables"
+            " WHERE table_schema = current_schema() AND table_type = 'BASE TABLE'"
+        ).fetchall()
+    }
+
+    assert {
+        "source",
+        "source_snapshot",
+        "artifact",
+        "syllabus",
+        "syllabus_version",
+        "syllabus_lesson",
+        "syllabus_source_reference",
+        "lesson_build",
+        "lesson_build_work",
+        "pipeline_lease",
+    } <= tables
+    assert "vector" not in {
+        row[0] for row in db.execute("SELECT extname FROM pg_extension").fetchall()
+    }
 
 
 def test_rerunning_applies_nothing(db):
     assert migrate(db) == []
 
 
-def test_syllabus_metadata_schema_stores_only_the_export_identity(db):
+def test_subject_graph_identity_is_stored_at_the_subject_boundary(db):
     syllabus_columns = {
         row[0]
         for row in db.execute(
@@ -24,9 +45,19 @@ def test_syllabus_metadata_schema_stores_only_the_export_identity(db):
             " WHERE table_schema = current_schema() AND table_name = 'syllabus'"
         ).fetchall()
     }
-    assert {"institution_id", "graph_id"} <= syllabus_columns
+    assert "institution_id" in syllabus_columns
+    assert "graph_id" not in syllabus_columns
     assert "display_name" not in syllabus_columns
     assert "institution_slug" not in syllabus_columns
+
+    subject_columns = {
+        row[0]
+        for row in db.execute(
+            "SELECT column_name FROM information_schema.columns"
+            " WHERE table_schema = current_schema() AND table_name = 'syllabus_subject'"
+        ).fetchall()
+    }
+    assert {"syllabus_id", "lesson_subject_code", "graph_id"} <= subject_columns
 
     lesson_columns = {
         row[0]
@@ -37,6 +68,19 @@ def test_syllabus_metadata_schema_stores_only_the_export_identity(db):
         ).fetchall()
     }
     assert "subjects" in lesson_columns
+
+
+def test_source_review_binds_validation_to_an_immutable_publication(db):
+    columns = {
+        row[0]
+        for row in db.execute(
+            "SELECT column_name FROM information_schema.columns"
+            " WHERE table_schema = current_schema()"
+            " AND table_name = 'syllabus_source_review'"
+        ).fetchall()
+    }
+
+    assert {"validated_artifact_id", "validated_content_hash"} <= columns
 
 
 def test_source_asset_accepts_the_complete_preservable_mime_union(db):
@@ -88,16 +132,3 @@ def test_source_asset_accepts_the_complete_preservable_mime_union(db):
     ).fetchall()
 
     assert actual == expected
-
-
-def test_pgvector_is_usable(db):
-    db.execute("CREATE TEMP TABLE embedding_probe (id TEXT PRIMARY KEY, vec vector(3))")
-    db.execute(
-        "INSERT INTO embedding_probe VALUES ('a', '[1,0,0]'), ('b', '[0,1,0]'), ('c', '[0.9,0.1,0]')"
-    )
-    nearest = db.execute(
-        "SELECT id FROM embedding_probe ORDER BY vec <-> '[1,0,0]' LIMIT 2"
-    ).fetchall()
-    assert [row[0] for row in nearest] == ["a", "c"]
-    db.execute("DROP TABLE embedding_probe")
-    db.commit()

@@ -32,7 +32,6 @@ The canonical source path is:
         -> passage cuts
         -> triage -> refine -> triage
         -> canonical cleaned Markdown
-        -> optional task generation
 
 ### Images
 
@@ -42,7 +41,7 @@ URL, an unreadable payload, a byte-identical duplicate, or an unsupported
 image. Filename, placement, dimensions, alt text, or apparent site-chrome
 semantics are not sufficient to delete an otherwise valid image.
 
-Downloaded originals remain immutable assets in object storage. Postgres
+Downloaded originals remain immutable assets in the Asset Store. Postgres
 stores identity, hashes, order, lineage, analysis state, and references; it
 does not store the binary bodies or multimodal data URLs.
 
@@ -90,11 +89,6 @@ finite without an arbitrary iteration limit.
 The canonical Markdown is assembled deterministically from terminal `keep`
 and `unknown` states. `drop` states are omitted. Original artifacts, blocks,
 passages, model calls, revisions, and removal lineage remain queryable.
-
-Task generation consumes the exact terminal passage revision. `keep` and
-`unknown` are eligible, `drop` is not, and `refine` is never terminal. A valid
-task-generation response may contain zero tasks when a preserved passage has
-no suitable learner task.
 
 ## Consequences
 

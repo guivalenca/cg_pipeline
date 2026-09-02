@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from openpyxl import Workbook, load_workbook
 
-from universe.graph_identity import GraphIdConflict, graph_id_for
+from universe.graph_identity import GraphIdConflict, subject_graph_id_for
 from universe.syllabus import (
     LESSON_SUBJECTS,
     _lesson_subjects_by_syllabus,
@@ -520,6 +520,10 @@ class TestVersionedImport:
     def test_lesson_subjects_carry_the_display_name_the_companion_themes_by(
         self, db, tmp_path
     ):
+        db.execute(
+            "INSERT INTO institution (id, name) VALUES ('inteli', 'Inteli')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
         path = tmp_path / "subject-display-names.xlsx"
         write_syllabus(
             path,
@@ -530,17 +534,25 @@ class TestVersionedImport:
             ],
         )
         result = import_workbook(
-            db, path, "Subject display names", require_syllabus_metadata=False
+            db, path, "Subject display names", institution_id="inteli"
         )
 
         subjects = _lesson_subjects_by_syllabus(db, [result["syllabus_id"]])
 
         assert subjects[result["syllabus_id"]] == [
-            {"code": "MTF", "display_name": "Matemática"},
-            {"code": "UEX", "display_name": "User Experience"},
+            {
+                "code": "MTF",
+                "display_name": "Matemática",
+                "graph_id": "graph-inteli-subject-display-names-mtf",
+            },
+            {
+                "code": "UEX",
+                "display_name": "User Experience",
+                "graph_id": "graph-inteli-subject-display-names-uex",
+            },
         ]
 
-    def test_new_version_keeps_stored_graph_id_even_when_companion_lists_it(
+    def test_new_version_keeps_stored_subject_graph_id_even_when_companion_lists_it(
         self, db, tmp_path
     ):
         db.execute(
@@ -551,9 +563,11 @@ class TestVersionedImport:
         write_syllabus(path, [syllabus_row(project="Own graph id")])
         first = import_workbook(db, path, "Own graph id", institution_id="inteli")
         minted = db.execute(
-            "SELECT graph_id FROM syllabus WHERE id = %s", (first["syllabus_id"],)
+            "SELECT graph_id FROM syllabus_subject"
+            " WHERE syllabus_id = %s AND lesson_subject_code = 'COM'",
+            (first["syllabus_id"],),
         ).fetchone()[0]
-        assert minted == graph_id_for("inteli", "Own graph id")
+        assert minted == subject_graph_id_for("inteli", "Own graph id", "COM")
 
         write_syllabus(
             path,
@@ -570,10 +584,12 @@ class TestVersionedImport:
         assert second["seq"] == 2
         assert second["version_id"] != first["version_id"]
         assert db.execute(
-            "SELECT graph_id FROM syllabus WHERE id = %s", (first["syllabus_id"],)
+            "SELECT graph_id FROM syllabus_subject"
+            " WHERE syllabus_id = %s AND lesson_subject_code = 'COM'",
+            (first["syllabus_id"],),
         ).fetchone()[0] == minted
 
-    def test_new_version_rejects_occupied_graph_id_when_syllabus_has_none(
+    def test_new_subject_rejects_an_occupied_graph_id(
         self, db, tmp_path
     ):
         db.execute(
@@ -589,7 +605,7 @@ class TestVersionedImport:
             " VALUES ('no-graph-id:v0001', 'no-graph-id', 1, 'upload')"
         )
         db.commit()
-        derived = graph_id_for("inteli", "No graph id")
+        derived = subject_graph_id_for("inteli", "No graph id", "COM")
         path = tmp_path / "no-graph-id.xlsx"
         write_syllabus(path, [syllabus_row(project="No graph id")])
 
@@ -605,8 +621,8 @@ class TestVersionedImport:
 
         assert raised.value.graph_id == derived
         assert db.execute(
-            "SELECT graph_id FROM syllabus WHERE id = 'no-graph-id'"
-        ).fetchone()[0] is None
+            "SELECT count(*) FROM syllabus_subject WHERE syllabus_id = 'no-graph-id'"
+        ).fetchone()[0] == 0
         assert db.execute(
             "SELECT count(*) FROM syllabus_version WHERE syllabus_id = 'no-graph-id'"
         ).fetchone()[0] == 1
