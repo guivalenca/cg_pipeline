@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 from psycopg.types.json import Jsonb
 
 from universe.assets import LocalAssetStore
+from universe.graph_identity import GRAPH_ID_CONFLICT_MESSAGE
 from adalove_workbook import activity, write_adalove_workbook
 from universe.web import app as web_app
 from universe.web.acquisition_app import _markdown_renderer
@@ -363,7 +364,7 @@ def test_new_version_rejects_companion_graph_id_when_syllabus_needs_one(
     assert conflict.status_code == 409
     assert conflict.json()["detail"] == {
         "code": "graph_id_conflict",
-        "message": f"O identificador {occupied_graph_id!r} já está em uso.",
+        "message": GRAPH_ID_CONFLICT_MESSAGE,
         "graph_id": occupied_graph_id,
     }
 

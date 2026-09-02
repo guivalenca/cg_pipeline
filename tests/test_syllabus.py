@@ -428,16 +428,16 @@ class TestVersionedImport:
             " ON CONFLICT (id) DO NOTHING"
         )
         path = tmp_path / "own-graph-id.xlsx"
-        write_project(path, [project_row(project="Own graph id")])
+        write_syllabus(path, [syllabus_row(project="Own graph id")])
         first = import_workbook(db, path, "Own graph id", institution_id="inteli")
         minted = db.execute(
             "SELECT graph_id FROM syllabus WHERE id = %s", (first["syllabus_id"],)
         ).fetchone()[0]
         assert minted == graph_id_for("inteli", "Own graph id")
 
-        write_project(
+        write_syllabus(
             path,
-            [project_row(project="Own graph id", title="Lesson renamed")],
+            [syllabus_row(project="Own graph id", title="Lesson renamed")],
         )
         second = import_workbook(
             db,
@@ -471,7 +471,7 @@ class TestVersionedImport:
         db.commit()
         derived = graph_id_for("inteli", "No graph id")
         path = tmp_path / "no-graph-id.xlsx"
-        write_project(path, [project_row(project="No graph id")])
+        write_syllabus(path, [syllabus_row(project="No graph id")])
 
         with pytest.raises(GraphIdConflict) as raised:
             import_workbook(
