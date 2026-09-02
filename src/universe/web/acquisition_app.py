@@ -28,7 +28,7 @@ from latex2mathml import converter as latex2mathml
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 
-from universe import companion_seam, lesson_build
+from universe import companion_seam, graph_revision, lesson_build
 from universe.acquisition.image_jobs import (
     list_article_images_for_artifact,
 )
@@ -1237,6 +1237,94 @@ def create_app(
                 return lesson_build.read(conn, build_id)
         except LookupError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/lesson-builds/{build_id}/accept")
+    def accept_lesson_build(build_id: str, payload: dict = Body(...)) -> dict:
+        try:
+            with connect_factory() as conn:
+                return graph_revision.accept(
+                    conn,
+                    build_id,
+                    actor=payload.get("actor", "founder"),
+                    note=payload.get("note"),
+                )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except graph_revision.WholeLessonReviewError as exc:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/api/lesson-builds/{build_id}/reject")
+    def reject_lesson_build(build_id: str, payload: dict = Body(...)) -> dict:
+        try:
+            with connect_factory() as conn:
+                return graph_revision.reject(
+                    conn,
+                    build_id,
+                    actor=payload.get("actor", "founder"),
+                    note=payload.get("note"),
+                )
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except graph_revision.WholeLessonReviewError as exc:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": exc.code, "message": str(exc)},
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/api/graphs/{graph_id}")
+    def subject_graph_history(graph_id: str) -> dict:
+        try:
+            with connect_factory() as conn:
+                return graph_revision.read_graph(conn, graph_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/graphs/{graph_id}/graph.json")
+    def current_graph_json(
+        graph_id: str, download: bool = Query(default=False)
+    ) -> Response:
+        try:
+            with connect_factory() as conn:
+                path, body = graph_revision.current_body(conn, graph_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        headers = (
+            {"Content-Disposition": "attachment; filename=graph.json"}
+            if download
+            else None
+        )
+        return Response(
+            body,
+            media_type="application/json; charset=utf-8",
+            headers=headers,
+        )
+
+    @app.get("/api/graph-revisions/{revision_id}/graph.json")
+    def graph_revision_json(
+        revision_id: str, download: bool = Query(default=False)
+    ) -> Response:
+        try:
+            with connect_factory() as conn:
+                path, body = graph_revision.revision_body(conn, revision_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        headers = (
+            {"Content-Disposition": f"attachment; filename={path}"}
+            if download
+            else None
+        )
+        return Response(
+            body,
+            media_type="application/json; charset=utf-8",
+            headers=headers,
+        )
 
     @app.post("/api/lesson-builds/{build_id}/resume")
     def resume_lesson_build(build_id: str) -> dict:

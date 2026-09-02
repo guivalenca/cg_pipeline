@@ -5,7 +5,7 @@ full-fidelity Adalove Observer Exporter workbook, preserves Syllabus history,
 acquires each selected Source, and publishes auditable canonical Markdown.
 An operator can then pin selected validated publications into a resumable,
 per-Lesson creation build. The pilot produces a Lesson fragment; accepting it
-into a published Concept Graph remains a separate boundary.
+through Whole-Lesson Review automatically creates an immutable Subject Graph Revision.
 
 ## What the pilot keeps
 
@@ -15,7 +15,8 @@ into a published Concept Graph remains a separate boundary.
 - hide, remove, replace, retry, validation, and source-cleanup controls;
 - PostgreSQL queues with fair claiming and recoverable leases;
 - content-addressed Source Assets on an application-managed filesystem; and
-- a per-Lesson build with six auditable creation stages and raw checkpoints.
+- a per-Lesson build with six auditable creation stages and raw checkpoints; and
+- Whole-Lesson Review with current and historical raw `graph.json` downloads.
 
 The accepted workbook has exactly these six sheets: `Activities`, `Subjects`,
 `Materials`, `Order audit`, `Read me`, and `Errors`. The importer models
@@ -84,6 +85,7 @@ The durable flow is:
 ```text
 Syllabus Version → Source → Source Evidence → canonical cleanup → Source Publication
                  → selected Lesson Build → six checkpoints → Lesson fragment
+                 → Whole-Lesson Review → Accepted Lesson Ref → Graph Revision
 ```
 
 Uploading a workbook never queues provider work. Acquisition is explicit and
@@ -95,9 +97,16 @@ a newer publication must be validated again before a Lesson Build can pin it.
 Starting a build freezes the exact reference order, publication artifacts and
 hashes, Lesson metadata, prompt hashes, and model routes. A failed build resumes
 from valid checkpoints; “regenerate from the beginning” creates a fresh lineage.
+Accepting a finished build replaces only that stable Lesson's accepted fragment and
+creates the next deterministic Graph Revision from all accepted Lessons. A running,
+failed, or rejected replacement leaves the current revision unchanged. The Lesson
+Build dialog exposes the current `graph.json` plus view/download links for prior
+revisions.
 
 ## Architecture
 
 Read [`CONTEXT.md`](CONTEXT.md) for the domain vocabulary and
 [`docs/adr/`](docs/adr/) for active decisions. The fork provenance and the
-intentional stopping boundary are recorded in ADR 0027.
+Source Publication boundary are recorded in ADR 0027.
+Vendored Lesson Creation and Graph Revision behavior are recorded in ADRs 0028 and
+0029.

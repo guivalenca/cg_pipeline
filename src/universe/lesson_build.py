@@ -14,7 +14,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from concept_graph_creation.runtime.stage_runner import ModelRouter
-from universe import lesson_build_identity, lesson_build_plan
+from universe import graph_revision, lesson_build_identity, lesson_build_plan
 from universe.source_publication import Publication, current_many
 
 
@@ -33,6 +33,18 @@ def _canonical(value: Any) -> bytes:
     return json.dumps(
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
+
+
+def _subject_graph_or_none(
+    conn: psycopg.Connection, graph_id: str | None
+) -> dict[str, Any] | None:
+    clean_graph_id = str(graph_id or "").strip()
+    if not clean_graph_id:
+        return None
+    try:
+        return graph_revision.read_graph(conn, clean_graph_id)
+    except LookupError:
+        return None
 
 
 def _sha256(value: Any) -> str:
@@ -288,14 +300,22 @@ def read(conn: psycopg.Connection, build_id: str) -> dict[str, Any]:
             cost += float(raw_cost)
         if isinstance(raw_tokens, (int, float)) and not isinstance(raw_tokens, bool):
             tokens += int(raw_tokens)
+    review = graph_revision.review_for_build(conn, build_id)
+    accepted_revision = graph_revision.revision_for_build(conn, build_id)
+    manifest = row[8] if isinstance(row[8], dict) else {}
+    subject_graph = _subject_graph_or_none(
+        conn, (manifest.get("lesson") or {}).get("subject_graph_id")
+    )
     return {
         "id": build_id, "syllabus_id": row[0], "version_id": row[1],
         "lesson_id": row[2], "lesson_title": row[3], "request_key": row[4],
         "requested_by": row[5], "created_at": row[6],
-        "status": _status(work, row[7]), "manifest": row[8],
+        "status": _status(work, row[7]), "manifest": manifest,
         "manifest_sha256": row[9], "lineage_id": row[10],
         "previous_build_id": row[11], "failure_code": row[12],
-        "failure_message": row[13], "work": work, "checkpoints": checkpoints,
+        "failure_message": row[13], "review": review,
+        "graph_revision": accepted_revision, "subject_graph": subject_graph,
+        "work": work, "checkpoints": checkpoints,
         "attempts": attempts,
         "usage": {"calls": len(attempts), "cost_usd": round(cost, 10), "total_tokens": tokens},
         "stages": [
@@ -337,10 +357,12 @@ def offer(
         "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
         " ORDER BY request_seq DESC LIMIT 1", (version_id, lesson_id),
     ).fetchone()
+    subject_graph = _subject_graph_or_none(conn, lesson.get("subject_graph_id"))
     return {
         "lesson": {key: lesson[key] for key in ("id", "title", "kind")},
         "references": references,
         "latest_build": read(conn, latest[0]) if latest else None,
+        "subject_graph": subject_graph,
     }
 
 
@@ -376,6 +398,10 @@ def request(
         "SELECT id FROM syllabus_lesson WHERE version_id = %s AND id = %s FOR UPDATE",
         (version_id, lesson_id),
     )
+    conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtext(%s))",
+        (f"lesson-build:{syllabus_id}:{lesson_id}",),
+    )
     existing = conn.execute(
         "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
         " AND request_key = %s", (version_id, lesson_id, request_key),
@@ -386,8 +412,8 @@ def request(
         conn, version_id=version_id, lesson_id=lesson_id, reference_ids=reference_ids,
     )
     active = conn.execute(
-        "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
-        " AND is_active FOR UPDATE", (version_id, lesson_id),
+        "SELECT id FROM lesson_build WHERE syllabus_id = %s AND lesson_id = %s"
+        " AND is_active FOR UPDATE", (syllabus_id, lesson_id),
     ).fetchone()
     if active is not None:
         raise LessonBuildNotReady(
@@ -436,11 +462,11 @@ def request(
     manifest_sha256 = _sha256(manifest)
     conn.execute(
         "INSERT INTO lesson_build"
-        " (id, version_id, lesson_id, request_key, requested_by, manifest,"
+        " (id, syllabus_id, version_id, lesson_id, request_key, requested_by, manifest,"
         " manifest_sha256, lineage_id, previous_build_id)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-        (build_id, version_id, lesson_id, request_key, requested_by, Jsonb(manifest),
-         manifest_sha256, lineage_id, previous_build_id),
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        (build_id, syllabus_id, version_id, lesson_id, request_key, requested_by,
+         Jsonb(manifest), manifest_sha256, lineage_id, previous_build_id),
     )
     work_by_artifact: dict[str, str] = {}
     for seq, (row, publication) in enumerate(pinned, 1):
@@ -468,17 +494,21 @@ def request(
 def resume(conn: psycopg.Connection, build_id: str) -> dict[str, Any]:
     """Resume the same checkpoint lineage after an explicit failure."""
     row = conn.execute(
-        "SELECT status, version_id, lesson_id FROM lesson_build"
+        "SELECT status, syllabus_id, version_id, lesson_id FROM lesson_build"
         " WHERE id = %s FOR UPDATE", (build_id,)
     ).fetchone()
     if row is None:
         raise LookupError(f"unknown Lesson build {build_id!r}")
     if row[0] != "failed":
         raise LessonBuildNotReady("build_not_failed", "only a failed build can resume")
+    conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtext(%s))",
+        (f"lesson-build:{row[1]}:{row[3]}",),
+    )
     active = conn.execute(
-        "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
+        "SELECT id FROM lesson_build WHERE syllabus_id = %s AND lesson_id = %s"
         " AND is_active AND id <> %s",
-        (row[1], row[2], build_id),
+        (row[1], row[3], build_id),
     ).fetchone()
     if active is not None:
         raise LessonBuildNotReady(
@@ -512,6 +542,10 @@ def regenerate(
         "SELECT id FROM syllabus_lesson WHERE version_id = %s AND id = %s FOR UPDATE",
         (prior["version_id"], prior["lesson_id"]),
     )
+    conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtext(%s))",
+        (f"lesson-build:{prior['syllabus_id']}:{prior['lesson_id']}",),
+    )
     existing = conn.execute(
         "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
         " AND request_key = %s",
@@ -520,9 +554,9 @@ def regenerate(
     if existing is not None:
         return read(conn, existing[0])
     active = conn.execute(
-        "SELECT id FROM lesson_build WHERE version_id = %s AND lesson_id = %s"
+        "SELECT id FROM lesson_build WHERE syllabus_id = %s AND lesson_id = %s"
         " AND is_active FOR UPDATE",
-        (prior["version_id"], prior["lesson_id"]),
+        (prior["syllabus_id"], prior["lesson_id"]),
     ).fetchone()
     if active is not None:
         raise LessonBuildNotReady(
@@ -537,11 +571,12 @@ def regenerate(
     manifest_sha256 = _sha256(manifest)
     conn.execute(
         "INSERT INTO lesson_build"
-        " (id, version_id, lesson_id, request_key, requested_by, manifest,"
+        " (id, syllabus_id, version_id, lesson_id, request_key, requested_by, manifest,"
         " manifest_sha256, lineage_id, previous_build_id)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         (
             new_build_id,
+            prior["syllabus_id"],
             prior["version_id"],
             prior["lesson_id"],
             request_key,

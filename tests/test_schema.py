@@ -2,7 +2,11 @@ from universe.migrate import migrate
 
 
 def test_migrations_apply_on_a_fresh_database(applied_migrations, db):
-    assert applied_migrations == ["0001_baseline", "0002_lesson_creation"]
+    assert applied_migrations == [
+        "0001_baseline",
+        "0002_lesson_creation",
+        "0003_graph_revisions",
+    ]
     recorded = {row[0] for row in db.execute("SELECT version FROM schema_migrations")}
     assert recorded == set(applied_migrations)
 

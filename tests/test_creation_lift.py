@@ -61,6 +61,9 @@ def test_archived_source_bodies_lift_reconciliation_and_segmentation(tmp_path):
         )
         self_study["source_body"]["path"] = str(source_body_path)
     source_ledger = build_lesson_ledger(subject_ledger, LESSON_ID)
+    source_ledger.setdefault("inputs", {})["lesson_build_id"] = (
+        "archived-backtracking-fixture-build"
+    )
     run_dir = tmp_path / "creation-run"
     _write_json(run_dir / "source_ledger.json", source_ledger)
     fixture_model = FixtureModelClient.from_file(FIXTURE_ROOT / "fixture-model.json")

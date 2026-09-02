@@ -8,6 +8,7 @@ from concept_graph_creation.stages.dependency_deferral import (
     run_dependency_deferral_phase,
 )
 from concept_graph_creation.stages.final_graph_assembly import (
+    assemble_runtime_graph_from_build_graph,
     run_final_graph_assembly_phase,
 )
 from concept_graph_creation.stages.lesson_reconciliation_passthrough import (
@@ -152,3 +153,67 @@ def _write_json(path, payload):
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+
+def test_replacement_build_mints_new_runtime_lesson_segment_ids():
+    def build_graph(build_id):
+        return {
+            "subject": {"pipeline_subject_id": "COM", "title": "Computação"},
+            "source_inventory": {"inputs": {"lesson_build_id": build_id}},
+            "concepts": [
+                {
+                    "concept_id": "concept-stable-for-this-projection",
+                    "label": "Busca em profundidade",
+                    "knowledge_type": "conceptual",
+                    "description": "Exploração sistemática de estados.",
+                    "coverage_criteria": ["Explicar a ordem da busca."],
+                    "common_misconceptions": [],
+                    "dependencies": {"blocking": [], "hard": [], "soft": []},
+                    "provenance": {},
+                }
+            ],
+            "lessons": [
+                {
+                    "lesson_id": "stable-lesson-id",
+                    "display_code": "L01",
+                    "title": "Busca em profundidade",
+                    "description": "",
+                    "segments": [
+                        {
+                            "segment_id": "segment_001",
+                            "display_code": "L01-S01",
+                            "label": "Fundamentos",
+                            "instructional_role": "teach",
+                            "concept_ids": ["concept-stable-for-this-projection"],
+                        }
+                    ],
+                }
+            ],
+        }
+
+    first = assemble_runtime_graph_from_build_graph(
+        build_graph("lesson-build-first"), generated_at="2026-09-02T12:00:00+00:00"
+    )
+    repeated = assemble_runtime_graph_from_build_graph(
+        build_graph("lesson-build-first"), generated_at="2026-09-02T12:00:00+00:00"
+    )
+    replacement = assemble_runtime_graph_from_build_graph(
+        build_graph("lesson-build-replacement"),
+        generated_at="2026-09-02T12:00:00+00:00",
+    )
+
+    first_segment_id = first["lessons"][0]["segments"][0]["segment_id"]
+    first_concept_id = first["concepts"][0]["concept_id"]
+    assert repeated["lessons"][0]["segments"][0]["segment_id"] == first_segment_id
+    assert repeated["concepts"][0]["concept_id"] == first_concept_id
+    assert replacement["lessons"][0]["lesson_id"] == first["lessons"][0]["lesson_id"]
+    assert replacement["lessons"][0]["segments"][0]["segment_id"] != first_segment_id
+    assert replacement["concepts"][0]["concept_id"] != first_concept_id
+    assert replacement["lessons"][0]["segments"][0]["concept_ids"] == [
+        replacement["concepts"][0]["concept_id"]
+    ]
+
+    without_provenance = build_graph("ignored")
+    del without_provenance["source_inventory"]["inputs"]["lesson_build_id"]
+    with pytest.raises(ValueError, match="lesson_build_id"):
+        assemble_runtime_graph_from_build_graph(without_provenance)

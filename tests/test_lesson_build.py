@@ -270,6 +270,46 @@ def test_request_freezes_only_the_operator_selected_references(db):
         "selected-reference-2"
     ]
     assert [row["source_id"] for row in result["work"]] == ["selected-source-2"]
+    with pytest.raises(lesson_build.LessonBuildNotReady) as raised:
+        lesson_build.request(
+            db,
+            syllabus_id="selected",
+            version_id="selected:v0001",
+            lesson_id="selected-lesson",
+            reference_ids=["selected-reference-2"],
+            request_key="selected-click-while-active",
+        )
+    assert raised.value.code == "build_already_active"
+    db.execute(
+        "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+        " VALUES ('selected:v0002', 'selected', 2, 'upload')"
+    )
+    db.execute(
+        "INSERT INTO syllabus_lesson (id, version_id, seq, kind, title)"
+        " VALUES ('selected-lesson', 'selected:v0002', 1, 'Class', 'Aula revisada')"
+    )
+    db.execute(
+        "INSERT INTO syllabus_source_reference"
+        " (id, version_id, lesson_id, seq, title, media_type, source_id)"
+        " VALUES ('selected-reference-v2', 'selected:v0002', 'selected-lesson',"
+        " 1, 'Fonte 2', 'article', 'selected-source-2')"
+    )
+    db.execute(
+        "INSERT INTO syllabus_source_review"
+        " (reference_id, is_validated, validated_artifact_id, validated_content_hash)"
+        " VALUES ('selected-reference-v2', true, 'selected-artifact-2', 'hash-2')"
+    )
+    db.commit()
+    with pytest.raises(lesson_build.LessonBuildNotReady) as cross_version:
+        lesson_build.request(
+            db,
+            syllabus_id="selected",
+            version_id="selected:v0002",
+            lesson_id="selected-lesson",
+            reference_ids=["selected-reference-v2"],
+            request_key="selected-click-new-version",
+        )
+    assert cross_version.value.code == "build_already_active"
 
 
 def test_stage_checkpoint_is_fenced_and_prevents_repeating_completed_work(
@@ -330,9 +370,23 @@ def test_stage_checkpoint_is_fenced_and_prevents_repeating_completed_work(
         lesson_creation.run_stage(
             db, work_id=work_id, stage="candidate-concepts", model_call=lambda **_: "{}"
         )
-    db.execute(
-        "UPDATE lesson_build_checkpoint SET body = '{}' WHERE id = %s",
+    with pytest.raises(Exception, match="immutable"):
+        db.execute(
+            "UPDATE lesson_build_checkpoint SET body = '{}' WHERE id = %s",
+            (first["checkpoint_id"],),
+        )
+    db.rollback()
+    stage_fingerprint = db.execute(
+        "SELECT stage_fingerprint FROM lesson_build_checkpoint WHERE id = %s",
         (first["checkpoint_id"],),
+    ).fetchone()[0]
+    db.execute(
+        "INSERT INTO lesson_build_checkpoint"
+        " (id, build_id, stage, family, path, body, content_sha256,"
+        " stage_fingerprint, is_stage_result)"
+        " VALUES ('malformed-checkpoint', %s, 'candidate-concepts',"
+        " 'raw_artifacts', 'malformed.json', '{}', %s, %s, false)",
+        (build_id, "0" * 64, stage_fingerprint),
     )
     db.commit()
     with pytest.raises(RuntimeError, match="content hash"):

@@ -10,6 +10,7 @@ const state = {
   subject: 'all',
   manualSource: null,
   lessonBuild: null,
+  lessonBuildGraph: null,
   buildLessonId: null,
   selectedReferences: {},
 };
@@ -280,26 +281,43 @@ function buildStatusLabel(value) {
   return ({ queued: 'Na fila', running: 'Em execução', succeeded: 'Concluído', failed: 'Falhou' })[value] || value;
 }
 
+function graphRevisionMarkup(subjectGraph, acceptedRevision = null) {
+  const graphId = subjectGraph?.graph_id;
+  const currentRevision = subjectGraph?.current_revision;
+  const graphRevisions = subjectGraph?.revisions || [];
+  if (!graphId || !currentRevision) return '';
+  return `<section class="graph-revision"><strong>Graph Revision atual · ${Number(currentRevision.number)}</strong><div class="source__actions"><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json" target="_blank" rel="noreferrer">Ver graph.json</a><a href="/api/graphs/${encodeURIComponent(graphId)}/graph.json?download=true">Baixar graph.json</a>${acceptedRevision ? `<a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json" target="_blank" rel="noreferrer">Ver revisão aceita</a><a href="/api/graph-revisions/${encodeURIComponent(acceptedRevision.id)}/graph.json?download=true">Baixar revisão aceita</a>` : ''}</div>${graphRevisions.length > 1 ? `<details><summary>Histórico de revisões</summary><ul>${graphRevisions.map((revision) => `<li>Revisão ${Number(revision.number)}${revision.is_current ? ' · atual' : ''} · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json" target="_blank" rel="noreferrer">ver</a> · <a href="/api/graph-revisions/${encodeURIComponent(revision.id)}/graph.json?download=true">baixar</a></li>`).join('')}</ul></details>` : ''}</section>`;
+}
+
 function renderLessonBuild() {
   const build = state.lessonBuild;
   const body = $('[data-lesson-build-body]');
   if (!build) {
     const lesson = state.detail.lessons.find((item) => item.id === state.buildLessonId);
     const selected = state.selectedReferences[state.buildLessonId] || new Set();
-    body.innerHTML = `<p>Serão fixadas ${selected.size} Source Publication(s) validada(s) para <strong>${esc(lesson?.title)}</strong>.</p><p class="help">Mudanças de seleção só passam a valer quando o build é iniciado.</p>`;
+    body.innerHTML = `<p>Serão fixadas ${selected.size} Source Publication(s) validada(s) para <strong>${esc(lesson?.title)}</strong>.</p><p class="help">Mudanças de seleção só passam a valer quando o build é iniciado.</p>${graphRevisionMarkup(state.lessonBuildGraph)}`;
     $('[data-lesson-build-start]').hidden = false;
     return;
   }
   const completed = new Set((build.checkpoints || []).filter((item) => item.is_stage_result).map((item) => item.stage));
   const families = [...new Set((build.checkpoints || []).map((item) => item.family))];
+  const acceptedRevision = build.graph_revision;
+  const subjectGraph = build.subject_graph || state.lessonBuildGraph;
+  const graphLinks = graphRevisionMarkup(subjectGraph, acceptedRevision);
+  const reviewLabel = build.review?.decision === 'accepted' ? 'Aceito' : (build.review?.decision === 'rejected' ? 'Rejeitado' : 'Aguardando revisão');
+  let actions = '';
+  if (build.status === 'failed') actions = '<div class="source__actions"><button data-lesson-build-resume>Retomar do checkpoint</button><button data-lesson-build-regenerate>Regenerar desde o início</button></div>';
+  else if (build.status === 'succeeded' && !build.review) actions = '<div class="source__actions"><button class="primary" data-lesson-build-accept>Aceitar Lesson</button><button data-lesson-build-reject>Rejeitar Lesson</button><button data-lesson-build-regenerate>Regenerar desde o início</button></div>';
+  else if (build.status === 'succeeded') actions = '<div class="source__actions"><button data-lesson-build-regenerate>Regenerar desde o início</button></div>';
   body.innerHTML = `<section class="build-summary"><strong>${esc(buildStatusLabel(build.status))}</strong><code>${esc(build.id)}</code>
     ${build.failure_message ? `<p class="error">${esc(build.failure_message)}</p>` : ''}
+    ${build.status === 'succeeded' ? `<p class="review-decision">${esc(reviewLabel)}</p>` : ''}
     <ol class="build-stages">${(build.stages || []).map((stage) => `<li class="${completed.has(stage.name) ? 'done' : ''}">${completed.has(stage.name) ? '✓' : '○'} ${esc(stage.label)}</li>`).join('')}</ol>
     <details><summary>Manifesto congelado</summary><pre>${esc(JSON.stringify(build.manifest, null, 2))}</pre></details>
     ${families.length ? `<div><h3>Artefatos brutos</h3>${families.map((family) => `<section><strong>${esc(family.replaceAll('_', ' '))}</strong><ul>${(build.checkpoints || []).filter((item) => item.family === family).map((item) => `<li><a href="/api/lesson-builds/${encodeURIComponent(build.id)}/checkpoints/${encodeURIComponent(item.id)}">${esc(item.path)}</a></li>`).join('')}</ul></section>`).join('')}</div>` : ''}
     <p class="usage">OpenRouter: ${Number(build.usage?.calls || 0)} chamadas · US$ ${Number(build.usage?.cost_usd || 0).toFixed(4)}</p>
     ${(build.attempts || []).length ? `<details><summary>Attempts</summary><ul>${build.attempts.map((item) => `<li>${esc(item.stage)} · ${esc(item.requested_model || 'modelo desconhecido')} · ${esc(item.provider || 'provider desconhecido')} · ${esc(item.outcome)}</li>`).join('')}</ul></details>` : ''}
-    ${build.status === 'failed' ? '<div class="source__actions"><button data-lesson-build-resume>Retomar do checkpoint</button><button data-lesson-build-regenerate>Regenerar desde o início</button></div>' : (build.status === 'succeeded' ? '<div class="source__actions"><button data-lesson-build-regenerate>Regenerar desde o início</button></div>' : '')}</section>`;
+    ${graphLinks}${actions}</section>`;
   $('[data-lesson-build-start]').hidden = true;
   if (['queued', 'running'].includes(build.status)) {
     const buildId = build.id;
@@ -319,6 +337,7 @@ async function openLessonBuild(lessonId) {
   if (!state.selectedReferences[lessonId]) {
     state.selectedReferences[lessonId] = new Set(offer.references.filter((item) => item.eligible && item.selected).map((item) => item.reference_id));
   }
+  state.lessonBuildGraph = offer.subject_graph;
   state.lessonBuild = offer.latest_build;
   renderLessonBuild();
   lessonBuildDialog.showModal();
@@ -338,6 +357,7 @@ async function startLessonBuild() {
 async function refreshLessonBuild() {
   if (!state.lessonBuild) return;
   state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}`);
+  state.lessonBuildGraph = state.lessonBuild.subject_graph || state.lessonBuildGraph;
   renderLessonBuild();
 }
 
@@ -351,6 +371,8 @@ document.addEventListener('click', async (event) => {
   if (buildButton) { try { await openLessonBuild(buildButton.dataset.openLessonBuild); } catch (error) { announce(error.message, true); } return; }
   if (event.target.closest('[data-lesson-build-start]')) { try { await startLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-resume]')) { try { state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/resume`, { method: 'POST' }); renderLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
+  if (event.target.closest('[data-lesson-build-accept]')) { try { await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actor: 'founder' }) }); await refreshLessonBuild(); announce('Lesson aceita e nova Graph Revision criada.'); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
+  if (event.target.closest('[data-lesson-build-reject]')) { try { await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actor: 'founder' }) }); await refreshLessonBuild(); announce('Lesson rejeitada; o grafo aceito não mudou.'); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-regenerate]')) { try { state.lessonBuild = await request(`/api/lesson-builds/${encodeURIComponent(state.lessonBuild.id)}/regenerate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ request_key: crypto.randomUUID() }) }); renderLessonBuild(); } catch (error) { $('[data-lesson-build-error]').textContent = error.message; } return; }
   if (event.target.closest('[data-lesson-build-dialog]') && state.lessonBuild?.status === 'running') { await refreshLessonBuild(); return; }
   const { card, lesson, source } = findSourceElement(event.target);

@@ -145,3 +145,25 @@ _Avoid_: call row, retry counter
 **Claim Lease**:
 A PostgreSQL-backed, expiring right for one worker to process one queued item.
 _Avoid_: Redis lock, process ownership
+
+## Graph Review
+
+**Whole-Lesson Review**:
+The operator decision to accept or reject one finished Lesson Build as a whole.
+Only acceptance changes the Subject graph; rejection preserves its current content.
+_Avoid_: checkpoint review, partial acceptance, graph readiness
+
+**Accepted Lesson Ref**:
+The current accepted Lesson fragment for one stable Lesson inside a Lesson Subject.
+A replacement moves this ref without changing the curricular Lesson identity.
+_Avoid_: latest build, accepted checkpoint, merged Lesson
+
+**Graph Revision**:
+An immutable, numbered projection of every Accepted Lesson Ref in a Lesson Subject.
+Each accepted addition or replacement creates one; unaccepted work never appears in one.
+_Avoid_: graph-ready state, mutable graph, build output
+
+**Current Graph Revision**:
+The Graph Revision served by default for a Lesson Subject while its prior revisions
+remain addressable.
+_Avoid_: latest build, complete graph, final graph

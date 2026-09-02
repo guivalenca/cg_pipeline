@@ -1,5 +1,7 @@
 """Focused API/static tests for the Source Publication pilot."""
 
+import hashlib
+import json
 import uuid
 from pathlib import Path
 
@@ -114,6 +116,10 @@ def test_static_surface_has_only_the_syllabus_operator_route(test_database_url):
         surface = client.get("/syllabi")
         assert surface.status_code == 200
         assert "data-lesson-build-dialog" in surface.text
+        script = client.get("/static/syllabi.js")
+        assert "data-lesson-build-accept" in script.text
+        assert "data-lesson-build-reject" in script.text
+        assert "graphRevisionMarkup(state.lessonBuildGraph)" in script.text
         assert client.get("/graph").status_code == 404
 
 def test_six_sheet_workbook_exposes_five_curricular_subjects_and_sources(
@@ -299,5 +305,104 @@ def test_operator_can_start_and_read_a_selected_lesson_build(test_database_url, 
         assert started.status_code == 201, started.text
         fetched = client.get(f"/api/lesson-builds/{started.json()['id']}")
 
+        build_id = started.json()["id"]
+        graph_id = lesson["lesson_subject"]["graph_id"]
+        concept_id = f"concept-{lesson['id']}-accepted"
+        fragment = {
+            "artifact_type": "runtime_graph",
+            "schema_version": "runtime_graph.v0",
+            "generated_at": "2026-09-02T12:00:00+00:00",
+            "subject": {
+                "pipeline_subject_id": lesson["subject"],
+                "title": lesson["lesson_subject"]["display_name"],
+                "language": "pt-BR",
+            },
+            "concepts": [
+                {
+                    "concept_id": concept_id,
+                    "display_code": "COM-001",
+                    "label": "Conceito aceito",
+                    "knowledge_type": "conceptual",
+                    "description": "Conteúdo revisado.",
+                    "coverage_criteria": ["Explicar o conteúdo revisado."],
+                    "common_misconceptions": [],
+                    "dependencies": {"blocking": [], "hard": [], "soft": []},
+                }
+            ],
+            "lessons": [
+                {
+                    "lesson_id": lesson["id"],
+                    "display_code": lesson["id"],
+                    "title": lesson["title"],
+                    "description": "",
+                    "segments": [
+                        {
+                            "segment_id": f"segment-{lesson['id']}-accepted",
+                            "display_code": "L01-S01",
+                            "label": "Conceito aceito",
+                            "instructional_role": "teach",
+                            "concept_ids": [concept_id],
+                            "teaching_notes": "",
+                            "self_study_resource_ids": [],
+                            "self_study_resource_refs": [],
+                        }
+                    ],
+                }
+            ],
+            "self_study_resources": [],
+        }
+        body = json.dumps(fragment, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        with psycopg.connect(test_database_url) as conn:
+            conn.execute(
+                "UPDATE lesson_build SET status = 'succeeded', is_active = false,"
+                " finished_at = now() WHERE id = %s",
+                (build_id,),
+            )
+            conn.execute(
+                "UPDATE lesson_build_work SET status = 'succeeded', stage = NULL"
+                " WHERE build_id = %s",
+                (build_id,),
+            )
+            conn.execute(
+                "INSERT INTO lesson_build_checkpoint"
+                " (id, build_id, stage, family, path, body, content_sha256,"
+                " stage_fingerprint, is_stage_result)"
+                " VALUES (%s, %s, 'lesson-fragment', 'lesson_fragment',"
+                " 'final_graph/runtime_graph.json', %s, %s, %s, true)",
+                (
+                    f"checkpoint-{build_id}",
+                    build_id,
+                    body,
+                    hashlib.sha256(body.encode()).hexdigest(),
+                    hashlib.sha256(f"fingerprint-{build_id}".encode()).hexdigest(),
+                ),
+            )
+        accepted = client.post(
+            f"/api/lesson-builds/{build_id}/accept",
+            json={"actor": "founder"},
+        )
+        reviewed_build = client.get(f"/api/lesson-builds/{build_id}")
+        graph_history = client.get(f"/api/graphs/{graph_id}")
+        current_graph = client.get(f"/api/graphs/{graph_id}/graph.json")
+        downloaded_graph = client.get(
+            f"/api/graphs/{graph_id}/graph.json?download=true"
+        )
+        historical_graph = client.get(
+            "/api/graph-revisions/"
+            f"{accepted.json()['revision']['id']}/graph.json?download=true"
+        )
+
     assert fetched.status_code == 200
     assert fetched.json()["manifest"]["references"][0]["reference_id"] == source["reference_id"]
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["revision"]["number"] == 1
+    assert reviewed_build.json()["review"]["decision"] == "accepted"
+    assert reviewed_build.json()["graph_revision"]["id"] == (
+        accepted.json()["revision"]["id"]
+    )
+    assert graph_history.json()["current_revision"]["number"] == 1
+    assert current_graph.json()["graph_id"] == graph_id
+    assert current_graph.json()["concepts"][0]["concept_id"] == concept_id
+    assert "Content-Disposition" not in current_graph.headers
+    assert "attachment;" in downloaded_graph.headers["Content-Disposition"]
+    assert historical_graph.content == downloaded_graph.content

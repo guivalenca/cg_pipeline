@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from copy import deepcopy
@@ -207,6 +208,25 @@ def assemble_runtime_graph_from_build_graph(
 
 
 def _assemble_runtime_graph(build_graph: dict[str, Any], *, generated_at: str | None = None) -> dict[str, Any]:
+    source_inventory = build_graph.get("source_inventory")
+    inventory_inputs = (
+        source_inventory.get("inputs")
+        if isinstance(source_inventory, dict)
+        and isinstance(source_inventory.get("inputs"), dict)
+        else {}
+    )
+    lesson_build_id = str(inventory_inputs.get("lesson_build_id") or "").strip()
+    if not lesson_build_id:
+        raise ValueError(
+            "source_inventory.inputs.lesson_build_id is required for runtime IDs"
+        )
+    concept_id_map = {
+        str(concept.get("concept_id") or ""): _build_scoped_id(
+            str(concept.get("concept_id") or ""), lesson_build_id
+        )
+        for concept in build_graph.get("concepts") or []
+        if str(concept.get("concept_id") or "")
+    }
     resources_by_id = _self_study_resources_by_id(build_graph)
     resource_refs_by_concept_id = _self_study_resource_refs_by_concept_id(
         build_graph,
@@ -217,6 +237,8 @@ def _assemble_runtime_graph(build_graph: dict[str, Any], *, generated_at: str | 
             lesson,
             resource_refs_by_concept_id=resource_refs_by_concept_id,
             resources_by_id=resources_by_id,
+            concept_id_map=concept_id_map,
+            lesson_build_id=lesson_build_id,
         )
         for lesson in build_graph.get("lessons") or []
     ]
@@ -238,7 +260,10 @@ def _assemble_runtime_graph(build_graph: dict[str, Any], *, generated_at: str | 
         ),
         **({"source_extracted_at": source_extracted_at} if source_extracted_at else {}),
         "subject": deepcopy(build_graph["subject"]),
-        "concepts": [_runtime_concept(concept) for concept in build_graph.get("concepts") or []],
+        "concepts": [
+            _runtime_concept(concept, concept_id_map=concept_id_map)
+            for concept in build_graph.get("concepts") or []
+        ],
         "lessons": runtime_lessons,
         "self_study_resources": [
             resources_by_id[resource_id]
@@ -274,16 +299,21 @@ def _build_concept(
     }
 
 
-def _runtime_concept(concept: dict[str, Any]) -> dict[str, Any]:
+def _runtime_concept(
+    concept: dict[str, Any], *, concept_id_map: dict[str, str]
+) -> dict[str, Any]:
+    concept_id = str(concept["concept_id"])
     return {
-        "concept_id": concept["concept_id"],
+        "concept_id": concept_id_map.get(concept_id, concept_id),
         "display_code": concept.get("display_code"),
         "label": concept.get("label"),
         "knowledge_type": concept.get("knowledge_type"),
         "description": concept.get("description") or "",
         "coverage_criteria": deepcopy(concept.get("coverage_criteria") or []),
         "common_misconceptions": deepcopy(concept.get("common_misconceptions") or []),
-        "dependencies": deepcopy(concept.get("dependencies") or {"blocking": [], "hard": [], "soft": []}),
+        "dependencies": _runtime_dependencies(
+            concept.get("dependencies"), concept_id_map=concept_id_map
+        ),
     }
 
 
@@ -331,6 +361,8 @@ def _runtime_lesson(
     *,
     resource_refs_by_concept_id: dict[str, list[dict[str, Any]]],
     resources_by_id: dict[str, dict[str, Any]],
+    concept_id_map: dict[str, str],
+    lesson_build_id: str,
 ) -> dict[str, Any]:
     return {
         "lesson_id": lesson["lesson_id"],
@@ -343,6 +375,9 @@ def _runtime_lesson(
                 segment,
                 resource_refs_by_concept_id=resource_refs_by_concept_id,
                 resources_by_id=resources_by_id,
+                concept_id_map=concept_id_map,
+                lesson_build_id=lesson_build_id,
+                lesson_id=str(lesson["lesson_id"]),
             )
             for segment in lesson.get("segments") or []
         ],
@@ -354,22 +389,74 @@ def _runtime_segment(
     *,
     resource_refs_by_concept_id: dict[str, list[dict[str, Any]]],
     resources_by_id: dict[str, dict[str, Any]],
+    concept_id_map: dict[str, str],
+    lesson_build_id: str,
+    lesson_id: str,
 ) -> dict[str, Any]:
     resource_refs = _segment_self_study_resource_refs(
         segment,
         resource_refs_by_concept_id=resource_refs_by_concept_id,
         resources_by_id=resources_by_id,
     )
+    for ref in resource_refs:
+        ref["concept_ids"] = [
+            concept_id_map.get(str(concept_id), str(concept_id))
+            for concept_id in ref.get("concept_ids") or []
+        ]
+    original_segment_id = str(segment["segment_id"])
     return {
-        "segment_id": segment["segment_id"],
+        "segment_id": _build_scoped_id(
+            original_segment_id,
+            lesson_build_id,
+            lesson_id=lesson_id,
+        ),
         "display_code": segment.get("display_code"),
         "label": segment.get("label") or "",
         "instructional_role": segment.get("instructional_role") or "teach",
-        "concept_ids": deepcopy(segment.get("concept_ids") or []),
+        "concept_ids": [
+            concept_id_map.get(str(concept_id), str(concept_id))
+            for concept_id in segment.get("concept_ids") or []
+        ],
         "teaching_notes": segment.get("teaching_notes") or "",
         "self_study_resource_ids": [ref["resource_id"] for ref in resource_refs],
         "self_study_resource_refs": resource_refs,
     }
+
+
+def _build_scoped_id(
+    original_id: str,
+    lesson_build_id: str,
+    *,
+    lesson_id: str = "",
+) -> str:
+    if not lesson_build_id:
+        raise ValueError("lesson_build_id is required for runtime IDs")
+    digest = hashlib.sha1(
+        f"{lesson_build_id}:{lesson_id}:{original_id}".encode("utf-8")
+    ).hexdigest()[:8]
+    return f"{original_id}-{digest}"
+
+
+def _runtime_dependencies(
+    dependencies: Any, *, concept_id_map: dict[str, str]
+) -> dict[str, list[Any]]:
+    raw = dependencies if isinstance(dependencies, dict) else {}
+    projected: dict[str, list[Any]] = {}
+    for kind in ("blocking", "hard", "soft"):
+        values: list[Any] = []
+        for item in raw.get(kind) or []:
+            if isinstance(item, str):
+                values.append(concept_id_map.get(item, item))
+            elif isinstance(item, dict):
+                copied = deepcopy(item)
+                concept_id = copied.get("concept_id")
+                if isinstance(concept_id, str):
+                    copied["concept_id"] = concept_id_map.get(concept_id, concept_id)
+                values.append(copied)
+            else:
+                values.append(deepcopy(item))
+        projected[kind] = values
+    return projected
 
 
 def _self_study_resources_by_id(build_graph: dict[str, Any]) -> dict[str, dict[str, Any]]:
