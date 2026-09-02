@@ -81,10 +81,12 @@ Source or a Syllabus edit.
 Creating a Syllabus reads only Companion's Institution slugs/names and occupied
 graph ids through the sibling repository. The graph id is generated from the
 chosen Institution and Syllabus name; Lesson Subject names/codes come from the
-workbook. Course and Group never cross this seam. A finished graph package must
-pass Companion's own runtime package loader before it can be treated as
-exportable. If the sibling repository uses a different database or Python
-executable, set the optional `COMPANION_*` values in `.env.example`.
+workbook. Course and Group never cross this seam. The repository also has an
+adapter for checking a finished graph package with Companion's runtime loader,
+but production code does not call it yet. The planned export button will wire
+that check before it presents a package as exportable. If the sibling
+repository uses a different database or Python executable, set the optional
+`COMPANION_*` values in `.env.example`.
 
 The same operations are available without the browser:
 
