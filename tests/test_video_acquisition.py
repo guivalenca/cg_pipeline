@@ -12,7 +12,6 @@ from pathlib import Path
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
-from openpyxl import Workbook
 from PIL import Image
 from psycopg.types.json import Jsonb
 
@@ -35,7 +34,8 @@ from universe.assets import LocalAssetStore
 from universe.blocks import split_blocks
 from universe.harness import PROMPTS_DIR, load_tool
 from universe.model_client import ModelClient
-from universe.syllabus import PROJECT_COLUMNS, import_workbook
+from adalove_workbook import activity, write_adalove_workbook
+from universe.syllabus import import_workbook
 from universe.web.app import create_app
 
 
@@ -246,34 +246,25 @@ def _force_explicit_stt_preflight(db, source_id: str, adapter) -> dict:
 
 
 def _video_workbook(path, *, url: str) -> None:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-
-    def append(**values):
-        sheet.append([values.get(column) for column in PROJECT_COLUMNS])
-
-    append(
-        Projeto="Video project",
-        Semana="Semana 01",
-        Ordem="1",
-        Atividade="Aula",
-        **{"Tipo da atividade": "Encontro", "Eixo": "COM"},
+    lesson = activity(
+        title="Aula",
+        kind="Class",
+        week=1,
+        order=1,
+        subject="COM",
     )
-    append(
-        Projeto="Video project",
-        Semana="Semana 01",
-        Ordem="2",
-        Atividade="Vídeo sem legendas",
-        **{
-            "Tipo da atividade": "Autoestudo",
-            "Descrição da atividade": "Assista antes da aula.",
-            "URL": url,
-            "Encontro pai": "Aula",
-        },
+    source = activity(
+        title="Vídeo sem legendas",
+        kind="Self-study",
+        week=1,
+        order=2,
+        parent_uuid=lesson["Activity UUID"],
+        parent_title=lesson["Title"],
+        subject="COM",
+        description="Assista antes da aula.",
+        url=url,
     )
-    workbook.save(path)
+    write_adalove_workbook(path, [lesson, source], project="Video project")
 
 
 def _tool_response(name: str, arguments: dict) -> dict:

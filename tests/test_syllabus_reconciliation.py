@@ -2,11 +2,9 @@ import copy
 from pathlib import Path
 
 import pytest
-from openpyxl import Workbook
 
 import universe.syllabus_reconciliation as reconciliation_module
 from universe.syllabus import (
-    LEGACY_COLUMNS,
     curate_syllabus,
     get_syllabus_workbook,
     get_syllabus_version,
@@ -14,6 +12,7 @@ from universe.syllabus import (
     parse_workbook,
     update_source_review,
 )
+from adalove_workbook import activity, stable_uuid, write_adalove_workbook
 from universe.syllabus_reconciliation import (
     _projection_from_decisions,
     _validated_identity_decisions,
@@ -32,37 +31,54 @@ def _workbook(
     lesson_title: str = "Aula de arquitetura",
     lesson_description: str = "Descrição da aula",
     lesson_date: str = "11/08/2026",
-    axis: str = "SI",
+    axis: str = "COM",
+    lesson_uuid: str | None = None,
+    lesson_order: int = 1,
+    include_orientation: bool = False,
 ) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-    lesson = {
-        "Week": 1,
-        "Sort": 1,
-        "Type": "Class",
-        "Title": lesson_title,
-        "Date": lesson_date,
-        "Axis": axis,
-        "Description": lesson_description,
+    # The Class UUID derives from its title unless the caller fixes it, so a
+    # renamed Class models a recreated activity and exercises text matching.
+    lesson = activity(
+        title=lesson_title,
+        week=1,
+        order=lesson_order,
+        activity_uuid=lesson_uuid or stable_uuid("activity", lesson_title),
+        subject=axis,
+        description=lesson_description,
+        date=lesson_date,
+    )
+    source = activity(
+        title="Material principal",
+        kind="Self-study",
+        week=1,
+        order=lesson_order + 1,
+        parent_uuid=lesson["Activity UUID"],
+        parent_title=lesson["Title"],
+        subject=axis,
+        description=description,
+        date="11/08/2026",
+        url=url,
+    )
+    activities = [lesson, source]
+    if include_orientation:
+        activities.append(
+            activity(
+                title="Orientação descartada",
+                kind="Orientation",
+                week=1,
+                order=lesson_order + 2,
+                subject=None,
+            )
+        )
+    return write_adalove_workbook(path, activities)
+
+
+def _transition_changed(lesson: dict) -> dict[str, str]:
+    return {
+        item["item_id"]: "transition"
+        for item in (lesson, *lesson["sources"])
+        if item["status"] != "unchanged"
     }
-    source = {
-        "Week": 1,
-        "Sort": 2,
-        "Type": "Self-study",
-        "Title": "Material principal",
-        "Date": "11/08/2026",
-        "Parent class": lesson_title,
-        "Axis": axis,
-        "Description": description,
-        "URL": url,
-    }
-    sheet.append([lesson.get(column) for column in LEGACY_COLUMNS])
-    sheet.append([source.get(column) for column in LEGACY_COLUMNS])
-    workbook.save(path)
-    workbook.close()
-    return path
 
 
 def _manual_projection(detail: dict, *, url: str) -> list[dict]:
@@ -92,43 +108,6 @@ def _manual_projection(detail: dict, *, url: str) -> list[dict]:
                 }
             ],
         }
-    ]
-
-
-def test_related_workbook_infers_one_unambiguous_orphan_source_parent(tmp_path: Path):
-    path = tmp_path / "orphan-with-institutional-metadata.xlsx"
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-    source = {
-        "Week": 1,
-        "Sort": 1,
-        "Type": "Self-study",
-        "Title": "Fonte órfã",
-        "Professor": "Professora Única",
-        "Axis": "COM",
-        "URL": "https://example.com/orphan",
-    }
-    lesson = {
-        "Week": 1,
-        "Sort": 8,
-        "Type": "Class",
-        "Title": "Aula inferida",
-        "Date": "11/08/2026",
-        "Professor": "Professora Única",
-        "Axis": "COM",
-    }
-    sheet.append([source.get(column) for column in LEGACY_COLUMNS])
-    sheet.append([lesson.get(column) for column in LEGACY_COLUMNS])
-    workbook.save(path)
-    workbook.close()
-
-    parsed = parse_workbook(path)
-
-    assert parsed["lessons"][0]["title"] == "Aula inferida"
-    assert [item["title"] for item in parsed["lessons"][0]["source_references"]] == [
-        "Fonte órfã"
     ]
 
 
@@ -172,6 +151,84 @@ def test_source_reordering_uses_incoming_order_without_creating_a_decision():
         "B",
         "A",
     ]
+
+
+def test_adalove_uuids_match_renamed_and_reordered_activities():
+    def projection(
+        lesson_title: str,
+        source_title: str,
+        *,
+        week: int,
+        lesson_order: int,
+        source_order: int,
+        url: str,
+    ) -> dict:
+        return {
+            "lessons": [
+                {
+                    "activity_uuid": "lesson-stable-uuid",
+                    "folder_uuid": "folder-stable-uuid",
+                    "week_order": week,
+                    "activity_order": lesson_order,
+                    "week": week,
+                    "seq": lesson_order,
+                    "kind": "Class",
+                    "title": lesson_title,
+                    "subject": "COM",
+                    "subjects": [],
+                    "date": "2026-08-11",
+                    "description": "Descrição",
+                    "hidden": False,
+                    "fields": {},
+                    "sources": [
+                        {
+                            "activity_uuid": "source-stable-uuid",
+                            "folder_uuid": "folder-stable-uuid",
+                            "week_order": week,
+                            "activity_order": source_order,
+                            "parent_activity_uuid": "lesson-stable-uuid",
+                            "parent_inference": "inferred_from_activity_order",
+                            "seq": source_order,
+                            "title": source_title,
+                            "description": "Fonte",
+                            "url": url,
+                            "media_type": "article",
+                            "hidden": False,
+                            "fields": {
+                                "adalove_material": {
+                                    "Source path": "basic_activity_url"
+                                }
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+
+    baseline = projection(
+        "Nome anterior",
+        "Fonte anterior",
+        week=1,
+        lesson_order=1,
+        source_order=2,
+        url="https://example.com/antes",
+    )
+    incoming = projection(
+        "Nome totalmente novo",
+        "Fonte totalmente nova",
+        week=3,
+        lesson_order=14,
+        source_order=15,
+        url="https://example.com/depois",
+    )
+
+    plan = build_plan(baseline, baseline, incoming)
+
+    assert plan["summary"]["lesson_count"] == 1
+    assert plan["summary"]["source_count"] == 1
+    assert plan["summary"]["action_count"] == 2
+    assert plan["lessons"][0]["status"] == "changed"
+    assert plan["lessons"][0]["sources"][0]["status"] == "changed"
 
 
 def test_subject_changes_are_first_class_reconciliation_decisions():
@@ -561,6 +618,9 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
     db, tmp_path: Path
 ):
     original = _workbook(tmp_path / "recon-original.xlsx")
+    incoming = _workbook(
+        tmp_path / "recon-with-orientation.xlsx", include_orientation=True
+    )
     imported = import_workbook(
         db, original, "Reconciliação 1", require_syllabus_metadata=False
     )
@@ -581,10 +641,15 @@ def test_identical_institutional_workbook_preserves_manual_overlay_without_revie
         {"validated": True, "complexity": "complex"},
     )
 
-    preview = create_reconciliation(db, imported["syllabus_id"], original)
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
 
     assert preview["base_version_id"] == curated["version_id"]
     assert preview["summary"]["action_count"] == 0
+    assert preview["dropped_summary"] == {
+        "orientation_count": 1,
+        "orientation_self_study_count": 0,
+        "total_count": 1,
+    }
     source = preview["lessons"][0]["sources"][0]
     assert source["status"] == "unchanged"
     assert source["incoming"]["url"] == "https://example.com/manual"
@@ -710,6 +775,50 @@ def test_reconciliation_reuses_stable_lesson_id_and_keeps_versions_scoped(
     assert historical["lessons"][0]["sources"][0]["reference_id"] != after["lessons"][0]["sources"][0]["reference_id"]
 
 
+def test_renamed_and_reordered_adalove_activity_keeps_its_uuid_and_lesson_id(
+    db, tmp_path: Path
+):
+    lesson_uuid = "adalove-lesson-uuid-0001"
+    original = _workbook(tmp_path / "uuid-original.xlsx", lesson_uuid=lesson_uuid)
+    incoming = _workbook(
+        tmp_path / "uuid-incoming.xlsx",
+        lesson_uuid=lesson_uuid,
+        lesson_title="Estratégia comercial e canais de distribuição",
+        lesson_description="Discute proposta de valor, precificação e canais de venda.",
+        lesson_order=7,
+    )
+    imported = import_workbook(
+        db, original, "Identidade Adalove estável", require_syllabus_metadata=False
+    )
+    before = get_syllabus_version(db, imported["syllabus_id"])
+    stable_id = before["lessons"][0]["id"]
+    assert before["lessons"][0]["activity_uuid"] == lesson_uuid
+
+    preview = create_reconciliation(db, imported["syllabus_id"], incoming)
+    lesson = preview["lessons"][0]
+
+    assert lesson["status"] == "changed"
+    assert lesson["identity"] == {
+        "state": "carried",
+        "lesson_id": stable_id,
+        "reason": "same_activity",
+    }
+    actions = {
+        item["item_id"]: "transition"
+        for item in (lesson, *lesson["sources"])
+        if item["status"] != "unchanged"
+    }
+    applied = apply_reconciliation(
+        db, imported["syllabus_id"], preview["id"], actions, {}
+    )
+    after = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])
+
+    assert after["lessons"][0]["id"] == stable_id
+    assert after["lessons"][0]["activity_uuid"] == lesson_uuid
+    assert after["lessons"][0]["activity_order"] == 7
+    assert after["lessons"][0]["title"] == "Estratégia comercial e canais de distribuição"
+
+
 @pytest.mark.parametrize(
     ("identity_choice", "keeps_id"),
     [("same", True), ("new", False)],
@@ -746,7 +855,7 @@ def test_founder_resolves_large_lesson_change_as_same_or_new(
         db,
         imported["syllabus_id"],
         preview["id"],
-        {lesson["item_id"]: "transition"},
+        _transition_changed(lesson),
         {},
         {
             lesson["item_id"]: (
@@ -798,7 +907,11 @@ def test_keeping_a_reviewed_lesson_is_an_explicit_noop(
         db,
         imported["syllabus_id"],
         preview["id"],
-        {lesson["item_id"]: "keep"},
+        {
+            item["item_id"]: "keep"
+            for item in (lesson, *lesson["sources"])
+            if item["status"] != "unchanged"
+        },
         {},
         {lesson["item_id"]: {"choice": "keep"}},
     )
@@ -856,7 +969,7 @@ def test_manual_lesson_version_requires_an_explicit_identity_choice(
         db,
         imported["syllabus_id"],
         preview["id"],
-        {lesson["item_id"]: "custom"},
+        {**_transition_changed(lesson), lesson["item_id"]: "custom"},
         {lesson["item_id"]: draft},
         {
             lesson["item_id"]: (
@@ -874,13 +987,16 @@ def test_manual_lesson_version_requires_an_explicit_identity_choice(
     assert (after["lessons"][0]["id"] == before["lessons"][0]["id"]) is keeps_id
 
 
-def test_type2_update_round_trips_after_new_identity_decision(
-    db, tmp_path: Path, type2_workbook
+def test_adalove_update_round_trips_after_new_identity_decision(
+    db, tmp_path: Path, adalove_workbook
 ):
-    original = type2_workbook(tmp_path / "type2-original.xlsx")
-    incoming = type2_workbook(
-        tmp_path / "type2-incoming.xlsx",
+    original = adalove_workbook(tmp_path / "adalove-original.xlsx")
+    # A subject change on the same Adalove UUID carries identity automatically;
+    # only a recreated activity (new UUID) sends the change to founder review.
+    incoming = adalove_workbook(
+        tmp_path / "adalove-incoming.xlsx",
         lesson_axis="Negócios",
+        activity_uuid="recreated-activity-uuid",
     )
     imported = import_workbook(db, original, "GRAD CC07 estável", require_syllabus_metadata=False)
     before = get_syllabus_version(db, imported["syllabus_id"])
@@ -889,6 +1005,7 @@ def test_type2_update_round_trips_after_new_identity_decision(
 
     assert lesson["identity"]["state"] == "review"
     assert lesson["identity"]["reason"] == "subject_changed"
+    assert [source["status"] for source in lesson["sources"]] == ["unchanged"]
     applied = apply_reconciliation(
         db,
         imported["syllabus_id"],
@@ -899,7 +1016,7 @@ def test_type2_update_round_trips_after_new_identity_decision(
     )
     latest = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])
 
-    assert latest["version"]["input_format"] == "projetos-21"
+    assert latest["version"]["input_format"] == "adalove-observer"
     assert latest["lessons"][0]["id"] != before["lessons"][0]["id"]
     assert latest["lessons"][0]["subject"] == "NEG"
     assert latest["lessons"][0]["subjects"] == [
@@ -907,27 +1024,27 @@ def test_type2_update_round_trips_after_new_identity_decision(
         "SQL Básico",
     ]
     exported = get_syllabus_workbook(db, applied["version_id"])
-    round_trip = tmp_path / "type2-round-trip.xlsx"
+    round_trip = tmp_path / "adalove-round-trip.xlsx"
     round_trip.write_bytes(exported["body"])
     parsed = parse_workbook(round_trip)
-    assert parsed["format"] == "projetos-21"
+    assert parsed["format"] == "adalove-observer"
     assert parsed["lessons"][0]["title"] == latest["lessons"][0]["title"]
     assert [
         source["title"] for source in parsed["lessons"][0]["source_references"]
     ] == ["Tutorial MySQL"]
 
 
-def test_type2_update_accepts_realistic_long_lesson_descriptions(
-    db, tmp_path: Path, type2_workbook
+def test_adalove_update_accepts_realistic_long_lesson_descriptions(
+    db, tmp_path: Path, adalove_workbook
 ):
     original_description = "Infraestrutura, integração e observabilidade. " * 105
     incoming_description = original_description + "Revisão institucional pequena."
-    original = type2_workbook(
-        tmp_path / "type2-long-original.xlsx",
+    original = adalove_workbook(
+        tmp_path / "adalove-long-original.xlsx",
         lesson_description=original_description,
     )
-    incoming = type2_workbook(
-        tmp_path / "type2-long-incoming.xlsx",
+    incoming = adalove_workbook(
+        tmp_path / "adalove-long-incoming.xlsx",
         lesson_description=incoming_description,
     )
     imported = import_workbook(db, original, "GRAD CC07 descrição longa", require_syllabus_metadata=False)

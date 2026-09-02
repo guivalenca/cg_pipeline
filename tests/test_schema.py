@@ -122,6 +122,7 @@ def test_0061_preserves_versions_and_archives_conflicting_graph_metadata(tmp_pat
             assert migrate(conn) == [
                 "0061_syllabus_institution_lesson_subjects",
                 "0062_syllabus_graph_identity",
+                "0063_adalove_activity_identity",
             ]
 
             assert conn.execute(

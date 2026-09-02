@@ -255,6 +255,17 @@ function scopeLabel(source) {
   return `${names[scope.kind] || scope.kind} ${scope.value}`;
 }
 
+function parentInferenceLabel(source) {
+  const inference = String(source.parent_inference || '').trim();
+  if (!inference) return null;
+  const labels = {
+    inferred_from_activity_order: 'Pai inferido pela ordem da atividade',
+    inferred_from_display_order: 'Pai inferido pela ordem exibida',
+    curated_explicit_parent: 'Pai definido na curadoria',
+  };
+  return labels[inference] || `Vínculo do pai: ${inference}`;
+}
+
 function versionsOf(detail) {
   return [...(detail?.versions || [])].sort((a, b) => Number(b.seq || 0) - Number(a.seq || 0));
 }
@@ -756,7 +767,7 @@ function sourceMarkup(source) {
   // is no longer an actionable problem for this source. Keep the fallback
   // upload action visible, but do not contradict the successful outcome.
   const adapterNotice = !markdownReady && !capability.supported ? capability.reason : null;
-  const meta = [scopeLabel(source)].filter(Boolean);
+  const meta = [scopeLabel(source), parentInferenceLabel(source)].filter(Boolean);
   const bookCode = source.resource_code ? String(source.resource_code) : '';
   return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-source-status="${status.key}">
     <div class="syl-source__main">
@@ -1992,11 +2003,17 @@ async function submitUpload(event) {
       throw new Error(detail || `o servidor respondeu ${response.status}`);
     }
     uploadDialog.close();
+    const dropped = body.dropped_summary || body.incoming?.dropped_summary || {};
+    const droppedNote = dropped.total_count
+      ? ` O intake descartou ${dropped.orientation_count || 0} orientações e ${dropped.orientation_self_study_count || 0} autoestudos ligados a orientações.`
+      : '';
     if (state.upload.mode === 'new') {
-      announce(body.unchanged ? 'A planilha é igual à versão atual.' : 'Syllabus adicionado. Nenhuma fonte foi processada automaticamente.');
+      announce(body.unchanged
+        ? `A planilha é igual à versão atual.${droppedNote}`
+        : `Syllabus adicionado. Nenhuma fonte foi processada automaticamente.${droppedNote}`);
       window.location.assign(`/syllabi?id=${encodeURIComponent(body.syllabus_id)}`);
     } else {
-      announce('Planilha comparada. Revise as mudanças antes de criar a nova versão.');
+      announce(`Planilha comparada. Revise as mudanças antes de criar a nova versão.${droppedNote}`);
       await showReconciliation(body);
     }
   } catch (error) {

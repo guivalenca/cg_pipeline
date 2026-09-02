@@ -83,3 +83,14 @@ the result. These combinations are validated together, so an instruction to
 keep current content cannot also mint or claim another id. When every outcome
 keeps the current projection, the reconciliation is recorded without creating
 a new Syllabus Version.
+
+## Amendment (2026-09-02)
+
+The Adalove Observer Exporter (DEV-53) carries an activity UUID that the
+institution preserves across re-exports. When the current Lesson and the
+incoming row carry the same activity UUID, Syllabus Reconciliation carries the
+Lesson id automatically (reason `same_activity`) regardless of title,
+description, subject, kind, or order changes: the UUID is the institution's
+own identity assertion, stronger than any text comparison. The DEV-29 text
+rules above still govern rows without a UUID and rows whose UUID changed
+(a recreated activity), which keep going to founder review.

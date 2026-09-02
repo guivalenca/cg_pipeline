@@ -63,10 +63,13 @@ pipeline. Start it locally with:
 
     python serve.py
 
-Then open `http://127.0.0.1:8100`. Uploading a workbook requires a human name,
-stores the original XLSX and an immutable parsed version, and **does not queue
-any source**. From a Syllabus version, the operator explicitly queues one
-Source at a time. A successful acquisition creates a successful
+Then open `http://127.0.0.1:8100`. Uploading a workbook requires a human name
+and a full-fidelity Adalove observer export produced by
+`tools/adalove_observer_export.js`. Compatibility and legacy workbook shapes
+are rejected. The intake stores the original XLSX and an immutable parsed
+version, drops orientations and their self-studies, reports those drops, and
+**does not queue any source**. From a Syllabus version, the operator explicitly
+queues one Source at a time. A successful acquisition creates a successful
 `source_snapshot` and an `artifact(kind = 'markdown')`, then stops. It does not
 automatically create Blocks, Passages, Tasks, statements, or KCs. Markdown and
 KC progress are therefore displayed independently. This boundary is fixed in

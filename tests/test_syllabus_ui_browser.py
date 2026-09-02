@@ -10,17 +10,11 @@ import uuid
 from urllib.parse import quote, urlparse
 
 import psycopg
-from openpyxl import Workbook
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
-from universe.syllabus import (
-    LEGACY_COLUMNS,
-    PROJECT_COLUMNS,
-    get_syllabus_history,
-    get_syllabus_version,
-    import_workbook,
-)
+from adalove_workbook import activity, stable_uuid, write_adalove_workbook
+from universe.syllabus import get_syllabus_history, get_syllabus_version, import_workbook
 from universe.web.app import create_app
 
 
@@ -40,127 +34,162 @@ LOCAL_KC_STAGES = (
 
 
 def _editable_workbook(path: Path) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-
-    def append(**values):
-        sheet.append([values.get(column) for column in LEGACY_COLUMNS])
-
-    append(
-        Week=1,
-        Sort=1,
-        Type="Class",
-        Title="Primeira aula",
-        Description="Descrição curta.",
+    first_lesson = activity(
+        week=1,
+        order=1,
+        kind="Class",
+        title="Primeira aula",
+        description="Descrição curta.",
     )
-    append(
-        Week=1,
-        Sort=2,
-        Type="Self-study",
-        Title="Artigo da primeira aula",
-        **{
-            "Parent class": "Primeira aula",
-            "Description": "Uma fonte de teste.",
-            "URL": "https://example.com/primeira",
-        },
+    first_source = activity(
+        week=1,
+        order=2,
+        kind="Self-study",
+        title="Artigo da primeira aula",
+        parent_uuid=first_lesson["Activity UUID"],
+        parent_title=first_lesson["Title"],
+        description="Uma fonte de teste.",
+        url="https://example.com/primeira",
     )
-    append(
-        Week=2,
-        Sort=3,
-        Type="Class",
-        Title="Segunda aula",
-        Description=(
+    second_lesson = activity(
+        week=2,
+        order=3,
+        kind="Class",
+        title="Segunda aula",
+        description=(
             "Uma descrição longa o bastante para ocupar várias linhas no editor. "
             "Ela representa o conteúdo real que precisa permanecer inteiramente "
             "visível durante a curadoria da aula. " * 4
         ),
     )
-    append(
-        Week=2,
-        Sort=4,
-        Type="Self-study",
-        Title="Livro da segunda aula",
-        **{
-            "Parent class": "Segunda aula",
-            "Description": "Leitura do capítulo indicado.",
-            "URL": "https://integrada.minhabiblioteca.com.br/reader/books/9788521622888",
-            "Resource code": "9788521622888",
-        },
+    second_source = activity(
+        week=2,
+        order=4,
+        kind="Self-study",
+        title="Livro da segunda aula",
+        parent_uuid=second_lesson["Activity UUID"],
+        parent_title=second_lesson["Title"],
+        description="Leitura do capítulo indicado.",
+        url="https://integrada.minhabiblioteca.com.br/reader/books/9788521622888",
+        resource_code="9788521622888",
     )
-    workbook.save(path)
-    workbook.close()
-    return path
+    return write_adalove_workbook(
+        path, [first_lesson, first_source, second_lesson, second_source]
+    )
 
 
 def _subject_filter_workbook(path: Path) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "All"
-    sheet.append(LEGACY_COLUMNS)
-
-    def append(**values):
-        sheet.append([values.get(column) for column in LEGACY_COLUMNS])
-
-    append(
-        Week=1,
-        Sort=1,
-        Type="Class",
-        Title="Aula de comunicação",
-        Axis="COM",
-    )
-    append(
-        Week=1,
-        Sort=2,
-        Type="Orientation",
-        Title="Sprint Planning",
-    )
-    append(
-        Week=1,
-        Sort=3,
-        Type="Deliverable",
-        Title="Apresentação do artefato",
-        **{"Grade weight": 3},
-    )
-    append(
-        Week=1,
-        Sort=4,
-        Type="Evaluation",
-        Title="Avaliação em pares",
-        **{"Grade weight": 2},
-    )
-    workbook.save(path)
-    workbook.close()
-    return path
+    activities = [
+        activity(
+            week=1,
+            order=1,
+            kind="Class",
+            title="Aula de comunicação",
+            subject="COM",
+        ),
+        activity(
+            week=1,
+            order=2,
+            kind="Orientation",
+            title="Sprint Planning",
+            subject=None,
+        ),
+        activity(
+            week=1,
+            order=3,
+            kind="Deliverable",
+            title="Apresentação do artefato",
+            subject=None,
+            **{"Grade weight": 3},
+        ),
+        activity(
+            week=1,
+            order=4,
+            kind="Evaluation",
+            title="Avaliação em pares",
+            subject=None,
+            **{"Grade weight": 2},
+        ),
+    ]
+    return write_adalove_workbook(path, activities)
 
 
 def _identity_conflict_workbook(path: Path, *, incoming: bool) -> Path:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Projetos"
-    sheet.append(PROJECT_COLUMNS)
-    values = {
-        "Projeto": "GRAD CC07",
-        "Semana": "Semana 09" if incoming else "Semana 02",
-        "Ordem": 1,
-        "Atividade": (
-            "Estratégia comercial para novos mercados"
-            if incoming
-            else "Fundamentos de bancos de dados relacionais"
-        ),
-        "Tipo da atividade": "Encontro de instrução",
-        "Descrição da atividade": (
-            "Negociação, canais de venda e expansão internacional."
-            if incoming
-            else "Modelagem relacional, normalização e consultas SQL."
-        ),
-        "Eixo": "Negócios" if incoming else "Computação",
-    }
-    sheet.append([values.get(column) for column in PROJECT_COLUMNS])
-    workbook.save(path)
-    workbook.close()
-    return path
+    title = (
+        "Estratégia comercial para novos mercados"
+        if incoming
+        else "Fundamentos de bancos de dados relacionais"
+    )
+    return write_adalove_workbook(
+        path,
+        [
+            activity(
+                week=9 if incoming else 2,
+                order=1,
+                kind="Class",
+                title=title,
+                activity_uuid=stable_uuid("activity", title),
+                description=(
+                    "Negociação, canais de venda e expansão internacional."
+                    if incoming
+                    else "Modelagem relacional, normalização e consultas SQL."
+                ),
+                subject="Negócios" if incoming else "Computação",
+            )
+        ],
+        project="GRAD CC07",
+    )
+
+
+def _subject_workbook(path: Path) -> Path:
+    lesson = activity(
+        week=2,
+        order=1,
+        kind="Class",
+        title="Programação e Desenvolvimento de Banco de Dados",
+        description="Criação e manipulação de bancos relacionais.",
+        subject="Computação",
+        subjects=["Banco de dados relacional", "SQL Básico"],
+    )
+    source = activity(
+        week=2,
+        order=2,
+        kind="Self-study",
+        title="Tutorial MySQL",
+        parent_uuid=lesson["Activity UUID"],
+        parent_title=lesson["Title"],
+        subject="Computação",
+        url="https://example.com/mysql",
+    )
+    return write_adalove_workbook(
+        path,
+        [
+            lesson,
+            source,
+            activity(
+                week=2,
+                order=3,
+                kind="Orientation",
+                title="Sprint Planning",
+                subject=None,
+            ),
+            activity(
+                week=2,
+                order=4,
+                kind="Deliverable",
+                title="Entrega do artefato",
+                subject=None,
+            ),
+            activity(
+                week=2,
+                order=5,
+                kind="Evaluation",
+                title="Avaliação geral",
+                subject=None,
+            ),
+        ],
+        project="GRAD CC07",
+    )
 
 
 @contextmanager
@@ -439,21 +468,25 @@ def test_upload_dialog_blocks_an_existing_syllabus_and_can_open_it(
         browser.close()
 
 
-def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically(
-    test_database_url, applied_migrations, tmp_path, type2_workbook
+def test_adalove_reconciliation_reviews_new_identity_then_carries_it_automatically(
+    test_database_url, applied_migrations, tmp_path, adalove_workbook
 ):
     name = f"Browser stable identity {uuid.uuid4().hex[:8]}"
-    original = type2_workbook(
+    original = adalove_workbook(
         tmp_path / "identity-original.xlsx", include_course_events=True
     )
-    changed_subject = type2_workbook(
+    # The subject change arrives on a recreated activity (new Adalove UUID),
+    # so identity goes to review; the later small edit keeps that new UUID.
+    changed_subject = adalove_workbook(
         tmp_path / "identity-subject.xlsx",
         lesson_axis="Negócios",
+        activity_uuid="browser-recreated-activity",
         include_course_events=True,
     )
-    small_edit = type2_workbook(
+    small_edit = adalove_workbook(
         tmp_path / "identity-small-edit.xlsx",
         lesson_axis="Negócios",
+        activity_uuid="browser-recreated-activity",
         lesson_description=(
             "Criação e manipulação de bancos relacionais na nuvem."
         ),
@@ -515,10 +548,10 @@ def test_type2_reconciliation_reviews_new_identity_then_carries_it_automatically
 
 
 def test_reviewed_lesson_uses_one_coherent_action_and_labels_a_noop(
-    test_database_url, applied_migrations, tmp_path, type2_workbook
+    test_database_url, applied_migrations, tmp_path, adalove_workbook
 ):
-    original = type2_workbook(tmp_path / "coherent-original.xlsx")
-    rewritten = type2_workbook(
+    original = adalove_workbook(tmp_path / "coherent-original.xlsx")
+    rewritten = adalove_workbook(
         tmp_path / "coherent-rewritten.xlsx",
         lesson_title="Fundamentos de produto e estratégia comercial",
         lesson_description=(
@@ -831,7 +864,7 @@ def test_syllabus_costs_live_in_the_top_bar(
         browser.close()
 
 
-def test_subject_filter_includes_curricular_kinds_without_a_subject(
+def test_subject_filter_includes_curricular_kinds_and_omits_orientations(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser orientation {uuid.uuid4().hex[:8]}"
@@ -853,7 +886,8 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
         expect(subjects.get_by_role("option", name="COM")).to_have_count(1)
         expect(subjects.get_by_role("option", name="Artefatos")).to_have_count(1)
         expect(subjects.get_by_role("option", name="Avaliações")).to_have_count(1)
-        expect(subjects.get_by_role("option", name="Orientação")).to_have_count(1)
+        expect(subjects.get_by_role("option", name="Orientação")).to_have_count(0)
+        expect(page.get_by_text("Sprint Planning", exact=True)).to_have_count(0)
         subjects.select_option(label="Artefatos")
 
         expect(page.locator(".syl-lesson")).to_have_count(1)
@@ -861,16 +895,14 @@ def test_subject_filter_includes_curricular_kinds_without_a_subject(
         browser.close()
 
 
-def test_type2_lesson_shows_subjects_and_its_parented_source(
-    test_database_url, applied_migrations, tmp_path, type2_workbook
+def test_adalove_lesson_shows_subjects_and_its_parented_source(
+    test_database_url, applied_migrations, tmp_path
 ):
-    name = f"Browser type 2 {uuid.uuid4().hex[:8]}"
+    name = f"Browser Adalove {uuid.uuid4().hex[:8]}"
     with psycopg.connect(test_database_url) as conn:
         imported = import_workbook(
             conn,
-            type2_workbook(
-                tmp_path / "type2.xlsx", include_course_events=True
-            ),
+            _subject_workbook(tmp_path / "adalove.xlsx"),
             name,
             require_syllabus_metadata=False,
         )
@@ -891,15 +923,14 @@ def test_type2_lesson_shows_subjects_and_its_parented_source(
         expect(subjects.get_by_text("Banco de dados relacional", exact=True)).to_be_visible()
         expect(subjects.get_by_text("SQL Básico", exact=True)).to_be_visible()
         expect(lesson.get_by_role("heading", name="Tutorial MySQL")).to_be_visible()
+        expect(lesson.get_by_text("Pai inferido pela ordem da atividade")).to_be_visible()
 
         subject_filter = page.locator("[data-filter-subject]")
-        for label in ("COM", "Orientação", "Artefatos", "Avaliações"):
+        for label in ("COM", "Artefatos", "Avaliações"):
             expect(subject_filter.get_by_role("option", name=label)).to_have_count(1)
+        expect(subject_filter.get_by_role("option", name="Orientação")).to_have_count(0)
         expect(page.locator('.syl-lesson[data-subject="COM"]')).to_have_css(
             "border-left-color", "rgb(39, 93, 125)"
-        )
-        expect(page.locator('.syl-lesson[data-subject="ORIENTAÇÃO"]')).to_have_css(
-            "border-left-color", "rgb(102, 114, 72)"
         )
         browser.close()
 

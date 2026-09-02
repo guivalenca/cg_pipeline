@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 pytestmark = pytest.mark.live_e2e
 
-WORKBOOK_SHA256 = "873b45e428304988f23446b20e0e58d3ed9edfb8cfb8ba50e9ebe22b81e18fc5"
+WORKBOOK_SHA256 = "bbc48a8b71c50b9a6fe3951d8c92f5c5d3e0df9d8d7a78191a963585b586cd97"
 PDF_SHA256 = "e22b6b7ea0d7e67151b1585ea3108a6eabcf76ccf6a03b69b29adbdbf4920f4f"
 
 # Characterized, public logical Sources.  The PDF is immutable local evidence
@@ -64,8 +64,6 @@ BOOK_SCOPE = "198-205"
 # These alternatives are asserted to remain present in the authorized CC07
 # workbook.  They are useful for a later corpus-expansion tracer after the
 # characterized vertical slices below pass.
-WORKBOOK_NATIVE_ARTICLE = "https://www.lucidchart.com/pages/uml-deployment-diagram"
-WORKBOOK_NATIVE_PDF = "https://theodpbook.lcc.uma.es/docs/Chapter1.pdf"
 WORKBOOK_NATIVE_VIDEO_ID = "vmvSMYaV4oE"
 WORKBOOK_NATIVE_BOOK = ("9788577800643", "pages", "66-72")
 
@@ -724,23 +722,26 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
         for lesson in parsed["lessons"]
         for source in lesson["source_references"]
     ]
-    assert parsed["format"] == "projetos-21"
+    assert parsed["format"] == "adalove-observer"
     assert parsed["workbook_title"] == "GRAD CC07 - 2026-2A"
-    assert parsed["lesson_count"] == 64
-    assert parsed["source_count"] == 130
-    assert len(references) == 130
+    assert parsed["lesson_count"] == 52
+    assert parsed["source_count"] == 151
+    assert parsed["dropped_summary"] == {
+        "orientation_count": 12,
+        "orientation_self_study_count": 0,
+        "total_count": 12,
+    }
+    assert len(references) == 151
     media_counts = {
         kind: sum(item["media_type"] == kind for item in references)
         for kind in ("article", "video", "book")
     }
     assert media_counts == {
-        "article": 81,
-        "video": 29,
+        "article": 89,
+        "video": 42,
         "book": 20,
     }
 
-    assert any(item.get("url") == WORKBOOK_NATIVE_ARTICLE for item in references)
-    assert any(item.get("url") == WORKBOOK_NATIVE_PDF for item in references)
     assert any(
         WORKBOOK_NATIVE_VIDEO_ID in str(item.get("url") or "") for item in references
     )
@@ -770,9 +771,9 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
         require_syllabus_metadata=False,
         actor="live-e2e",
     )
-    assert imported["lesson_count"] == 64
-    assert imported["reference_count"] == 130
-    assert imported["new_source_count"] == 128
+    assert imported["lesson_count"] == 52
+    assert imported["reference_count"] == 151
+    assert imported["new_source_count"] == 139
     assert repeated["unchanged"] is True
     assert repeated["version_id"] == imported["version_id"]
     stored = live.conn.execute(
@@ -788,14 +789,14 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
         " FROM syllabus_source_reference WHERE version_id = %s",
         (imported["version_id"],),
     ).fetchone()
-    assert (linked, missing, distinct_sources) == (129, 1, 128)
+    assert (linked, missing, distinct_sources) == (150, 1, 139)
     return {
         "workbook_sha256": WORKBOOK_SHA256,
         "format": parsed["format"],
-        "lessons": 64,
-        "references": 130,
-        "linked_references": 129,
-        "logical_sources": 128,
+        "lessons": 52,
+        "references": 151,
+        "linked_references": 150,
+        "logical_sources": 139,
         "missing_scope_references": 1,
         "version_id": imported["version_id"],
         "idempotent_reimport": True,
