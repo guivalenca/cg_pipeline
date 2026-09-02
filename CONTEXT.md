@@ -1,9 +1,9 @@
 # CG Pipeline
 
 CG Pipeline turns an evolving institutional syllabus and its learning sources
-into auditable Source Publications. Source Publication is the boundary of this
-pilot; concepts that would interpret or compile those publications belong to a
-later slice and are absent here.
+into auditable Source Publications, then derives per-Lesson learning structure
+only through an explicit Lesson Build. Source Publication remains the trust
+boundary between acquired evidence and interpreted learning content.
 
 ## Syllabus
 
@@ -74,12 +74,57 @@ An operator decision bound to one immutable publication artifact and content
 hash. A later acquisition or cleanup result does not inherit it.
 _Avoid_: validated Source, permanent checkbox
 
+## Lesson Creation
+
+**Source Ledger**:
+An immutable per-Lesson manifest of the stable Lesson identity and the exact
+Source Publications pinned for one Lesson Build.
+_Avoid_: workbook, Subject ledger, current Sources
+
+**Source Body**:
+The hash-verified Canonical Source Markdown from one pinned Source Publication
+as presented to Lesson Creation.
+_Avoid_: raw response, transcript, unchecked file path
+
+**Candidate Concept**:
+A source-grounded teachable idea proposed from one Self-study before Lesson-wide
+reconciliation.
+_Avoid_: Concept, tag, topic
+
+**Lesson Reconciliation**:
+An auditable consolidation of Candidate Concepts within one Lesson that retains
+their evidence and assignment decisions.
+_Avoid_: Syllabus Reconciliation, Subject Merge
+
+**Concept**:
+A teachable unit accepted for one Lesson with identity rooted in that Lesson's
+stable identity.
+_Avoid_: Candidate Concept, label, keyword
+
+**Coverage Criterion**:
+An observable statement of what a learner must be able to explain, distinguish,
+or perform for a Concept.
+_Avoid_: objective, rubric item
+
+**Lesson Segment**:
+An ordered instructional grouping of Concepts within one Lesson.
+_Avoid_: arbitrary chunk, page section
+
+**Knowledge Type**:
+The primary teaching mode of a Concept: conceptual, procedural, factual, or
+applied.
+_Avoid_: difficulty, subject area
+
+**Subject Merge**:
+Cross-Lesson Concept consolidation within a Lesson Subject. The per-Lesson pilot
+deliberately excludes it.
+_Avoid_: Lesson Reconciliation, one-Lesson projection
+
 ## Scheduling
 
 **Lesson Build**:
-A durable request pinned to a Lesson and its current Source Publications. The
-pilot retains the fenced stage planner and worker process but registers no
-build stages.
+A durable request pinned to a Lesson and its current Source Publications. It is
+the sole boundary for requesting post-publication Lesson Creation.
 _Avoid_: implicit pipeline, source acquisition, background interpretation
 
 **Claim Lease**:

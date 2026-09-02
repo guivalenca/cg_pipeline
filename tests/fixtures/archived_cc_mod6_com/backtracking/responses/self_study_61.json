@@ -1,0 +1,295 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-61-001",
+      "label": "Brute Force Approach",
+      "description": "A direct problem-solving strategy that enumerates all possible solutions without optimization, often leading to combinatorial explosion. It is the baseline for introducing optimization techniques like backtracking.",
+      "coverage_criteria": [
+        "Describe when brute force is applicable and give examples.",
+        "Identify the computational complexity of brute force solutions.",
+        "Explain the drawbacks of brute force with respect to combinatorial explosion."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source defines brute force as the most direct approach, lists examples (bubble sort, selection sort, sequential search), and discusses its limitations and the need for optimization.",
+        "granularity_rationale": "This concept is fundamental and sets the stage for backtracking; it can be checked with a few questions about definition, examples, and complexity."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "00:33 Definition of Brute Force"},
+        {"kind": "markdown_heading", "locator": "01:25 Examples of Brute Force Algorithms"},
+        {"kind": "markdown_heading", "locator": "02:30 Limitations of Brute Force"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["bubble sort", "selection sort"]
+    },
+    {
+      "candidate_id": "candidate-61-002",
+      "label": "Backtracking Technique",
+      "description": "An algorithmic method that incrementally builds candidates and abandons ('backtracks') partial candidates as soon as they cannot lead to a valid solution, typically using depth-first search on the state space tree.",
+      "coverage_criteria": [
+        "Explain how backtracking systematically explores the state space.",
+        "Identify pruning opportunities in a backtracking search tree.",
+        "Trace backtracking execution on a small N-Queens instance."
+      ],
+      "source_roles": ["introducing", "demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The entire lecture centers on backtracking; it is defined, contrasted with branch-and-bound, demonstrated with TSP and N-Queens, and formalized with pseudocode.",
+        "granularity_rationale": "As the core topic, it is broken down into sub‑concepts (pruning, state representation, DFS) but this atomic idea captures the overall technique and can be checked with tracing and explanation tasks."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"},
+        {"kind": "markdown_heading", "locator": "15:21 Backtracking Depth-First Search Pattern"},
+        {"kind": "markdown_heading", "locator": "29:11 Generic Backtracking Algorithm Pseudocode"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["Backtracking", "Tentativa e Erro"]
+    },
+    {
+      "candidate_id": "candidate-61-003",
+      "label": "Branch and Bound Technique",
+      "description": "An algorithmic paradigm that uses a state space tree to solve optimization problems, pruning branches that cannot lead to a better solution than the current best (bounding). It extends backtracking by incorporating cost evaluation.",
+      "coverage_criteria": [
+        "Distinguish decision and optimization problems and identify when to use branch and bound.",
+        "Explain how bounding uses the cost of a known solution to prune the search space.",
+        "Outline the additional steps needed to convert backtracking into branch and bound."
+      ],
+      "source_roles": ["introducing", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "Branch and bound is introduced as a variant of backtracking for optimization; the source explains the added pruning based on cost and gives the TSP as an example.",
+        "granularity_rationale": "It is a distinct method that builds on backtracking; checking it through problem classification and explanation of bounding is appropriate."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"},
+        {"kind": "markdown_heading", "locator": "10:23 Trial and Error (Tentativa e Erro)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["Branch and Bound", "Branching Bound"]
+    },
+    {
+      "candidate_id": "candidate-61-004",
+      "label": "Decision vs Optimization Problems",
+      "description": "Classification of problems into decision (existence of a solution) versus optimization (best solution according to a cost function). Backtracking suits decision problems, while branch and bound handles optimization.",
+      "coverage_criteria": [
+        "Classify a given problem as decision or optimization.",
+        "Explain why backtracking is suitable for decision and branch and bound for optimization.",
+        "Modify a decision problem statement to turn it into an optimization problem."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source explicitly contrasts backtracking (for decision) and branch and bound (for optimization) and uses TSP to illustrate the difference.",
+        "granularity_rationale": "This distinction is a small, teachable idea that can be checked with classification and reasoning tasks."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026"
+    },
+    {
+      "candidate_id": "candidate-61-005",
+      "label": "Traveling Salesperson Problem (TSP)",
+      "description": "A classic NP‑hard problem: find the shortest Hamiltonian cycle that visits every vertex exactly once and returns to the start. It is used to demonstrate the need for brute force and the pruning capabilities of backtracking and branch and bound.",
+      "coverage_criteria": [
+        "Describe the TSP and its constraints.",
+        "Explain why a pure brute force approach is computationally prohibitive.",
+        "Sketch how backtracking or branch and bound can prune the search space for TSP."
+      ],
+      "source_roles": ["introducing", "demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The TSP is presented with a graph example, multiple cycles, and a state tree that illustrates pruning of invalid or sub‑optimal branches.",
+        "granularity_rationale": "As a canonical problem, it is a self‑contained example that ties together brute force, pruning, and the need for backtracking/branch and bound."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "04:32 The Traveling Salesperson Problem (TSP)"},
+        {"kind": "markdown_heading", "locator": "07:26 TSP Example: Cycle with Cost 22"},
+        {"kind": "markdown_heading", "locator": "07:55 TSP Example: Cycle with Cost 15"},
+        {"kind": "markdown_heading", "locator": "09:11 TSP Example: Invalid Circuit"},
+        {"kind": "markdown_heading", "locator": "13:04 TSP State Tree Exploration"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["Traveling Salesperson Problem", "TSP", "Caixeiro Viajante", "Ciclo Hamiltoniano"]
+    },
+    {
+      "candidate_id": "candidate-61-006",
+      "label": "State Representation in Backtracking",
+      "description": "The method of encoding partial solutions as states (e.g., an array for N‑Queens where each index represents a column and the value the row). It is essential for expansion and consistency checking in backtracking.",
+      "coverage_criteria": [
+        "Represent the board configuration for N‑Queens with an array.",
+        "Create a state representation for a given combinatorial problem.",
+        "Explain how state expansion generates child states by making one more assignment."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source shows exactly the array representation for N‑Queens and discusses how states are expanded in the generic algorithm.",
+        "granularity_rationale": "This is a concrete, checkable skill that is crucial for implementing backtracking; it can be tested with small modeling exercises."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "19:08 N-Queens State Representation"},
+        {"kind": "markdown_heading", "locator": "29:11 Generic Backtracking Algorithm Pseudocode"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026"
+    },
+    {
+      "candidate_id": "candidate-61-007",
+      "label": "Pruning in Backtracking",
+      "description": "The elimination of partial states that violate problem constraints or cannot possibly lead to a valid solution, thereby reducing the search space. Known as 'poda' in the lecture.",
+      "coverage_criteria": [
+        "Identify dead states in a backtracking search tree that should be pruned.",
+        "Explain how pruning reduces the number of explored states compared to brute force.",
+        "Apply pruning rules to a CSP problem during a backtracking simulation."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source repeatedly emphasizes pruning: in TSP (no connecting edge, repeated city), in N‑Queens (queens attacking), and in the generic algorithm's consistency check and dead‑end detection.",
+        "granularity_rationale": "Pruning is a core mechanism of backtracking; it is small enough to be checked with problem‑specific examples and reasoning."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"},
+        {"kind": "markdown_heading", "locator": "13:04 TSP State Tree Exploration"},
+        {"kind": "markdown_heading", "locator": "20:54 4-Queens Backtracking Simulation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["poda"]
+    },
+    {
+      "candidate_id": "candidate-61-008",
+      "label": "Backtracking Pseudocode",
+      "description": "The generic backtracking algorithm that maintains a collection of partial configurations, takes one, expands it, checks for consistency and solution, and either discards, returns, or enqueues further configurations.",
+      "coverage_criteria": [
+        "Explain the role of each step in the Backtrack(x) pseudocode.",
+        "Implement the algorithm in a programming language given expansion and consistency-checking functions.",
+        "Trace the execution of the generic algorithm on a small example like 4‑Queens."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source provides a complete pseudocode and walks through its steps: expansion, consistency check, solution detection, dead‑end handling.",
+        "granularity_rationale": "The pseudocode is a concise, teachable unit that captures the algorithm's logic; it can be checked through tracing and coding exercises."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "29:11 Generic Backtracking Algorithm Pseudocode"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026"
+    },
+    {
+      "candidate_id": "candidate-61-009",
+      "label": "N-Queens Problem",
+      "description": "A combinatorial decision problem: place N queens on an N×N chessboard such that no two attack each other. It serves as the primary running example for backtracking in this lecture.",
+      "coverage_criteria": [
+        "State the N‑Queens problem constraints and attack rules.",
+        "Set up the state representation for N‑Queens.",
+        "Simulate the backtracking algorithm for a 4‑Queens instance."
+      ],
+      "source_roles": ["introducing", "demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source dedicates substantial time to N‑Queens: from problem description, attack vectors, state representation, and a detailed step‑by‑step 4‑Queens simulation that illustrates pruning and backtracking.",
+        "granularity_rationale": "It is a classic example that can be thoroughly checked with a simulation and reasoning about constraints."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "16:28 The N-Queens Problem"},
+        {"kind": "markdown_heading", "locator": "19:08 N-Queens State Representation"},
+        {"kind": "markdown_heading", "locator": "20:54 4-Queens Backtracking Simulation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026",
+      "name_drops": ["N Rainhas", "N-Queens"]
+    },
+    {
+      "candidate_id": "candidate-61-010",
+      "label": "Backtracking as Depth‑First Search",
+      "description": "Backtracking traverses the state space tree in a depth‑first fashion, going as deep as possible along a branch, and backtracking to the nearest unexplored alternative upon failure. This is contrasted with breadth‑first search.",
+      "coverage_criteria": [
+        "Describe how backtracking corresponds to DFS on the state tree.",
+        "Illustrate the dfs‑backtracking process on a small TSP or N‑Queens tree.",
+        "Compare DFS backtracking with a breadth‑first approach for the same problem."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The source states it will use depth‑first search, shows the DFS pattern with blue arrows in the tree diagram, and contrasts with breadth‑first in the pseudocode discussion.",
+        "granularity_rationale": "This connection to graph search is a small, teachable insight that can be checked with a sketch or comparison."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15:21 Backtracking Depth-First Search Pattern"},
+        {"kind": "markdown_heading", "locator": "13:04 TSP State Tree Exploration"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Projeto e Análise de Algoritmos - Backtracking",
+      "source_year": "2026"
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-61-002",
+      "to_candidate_id": "candidate-61-007",
+      "reason": "Backtracking relies on pruning to eliminate invalid states and reduce the search space; the source repeatedly demonstrates pruning in both TSP and N‑Queens.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"},
+        {"kind": "markdown_heading", "locator": "20:54 4-Queens Backtracking Simulation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-004",
+      "to_candidate_id": "candidate-61-002",
+      "reason": "Backtracking is explicitly presented as the appropriate technique for decision problems, not requiring cost evaluation. The source states: 'backtracking está relacionado a problemas de decisão'.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-002",
+      "to_candidate_id": "candidate-61-003",
+      "reason": "Branch and bound is introduced as a variant of backtracking that adds bounding based on cost to solve optimization problems; the source says 'tem uma variante do backtracking que leva em consideração outras coisas que é o branching bound'.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "11:08 Backtracking vs. Branch-and-Bound"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-005",
+      "to_candidate_id": "candidate-61-007",
+      "reason": "The TSP example shows pruning states with no connecting edge or that repeat vertices; the source walks through the state tree, pruning invalid branches like [1,3] and [1,2,5].",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "13:04 TSP State Tree Exploration"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-006",
+      "to_candidate_id": "candidate-61-008",
+      "reason": "The generic pseudocode depends on a configuration (state) representation to expand and check; the N‑Queens array representation is a concrete instance.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "29:11 Generic Backtracking Algorithm Pseudocode"},
+        {"kind": "markdown_heading", "locator": "19:08 N-Queens State Representation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-009",
+      "to_candidate_id": "candidate-61-006",
+      "reason": "The N‑Queens problem is used to illustrate the array state representation, where each index is a column and the value is the row; the source explicitly shows the mapping.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "19:08 N-Queens State Representation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-61-002",
+      "to_candidate_id": "candidate-61-010",
+      "reason": "Backtracking is demonstrated as a depth‑first search on the state tree; the source draws blue arrows showing the DFS order and mentions 'vou fazer uma busca em profundidade'.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "15:21 Backtracking Depth-First Search Pattern"}
+      ]
+    }
+  ]
+}

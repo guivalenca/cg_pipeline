@@ -1,0 +1,147 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-64-001",
+      "label": "Backtracking Blueprint: Choices, Constraints, Goal",
+      "description": "Backtracking is a recursive strategy that involves making choices from a decision space, adhering to constraints, and aiming for a goal (base case). If a choice fails, undo it and try alternatives.",
+      "coverage_criteria": [
+        "Explain the three key components of backtracking: choices, constraints, and goal.",
+        "Trace a simple backtracking process, including undoing a choice."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video explicitly introduces 'the three keys to backtracking' as choice, constraints, and goal at 01:08 and uses them to structure the entire explanation.",
+        "granularity_rationale": "This provides a high-level conceptual framework that a student can use to approach any backtracking problem, making it an appropriate checkable concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "01:08 The Three Keys of Backtracking"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-64-002",
+      "label": "Identifying the Core Choice in Backtracking",
+      "description": "The first key is to determine the fundamental decision being made at each step. For Sudoku, the choice is which number (1-9) to place in a specific empty cell, iterated in a loop.",
+      "coverage_criteria": [
+        "Given a new backtracking problem, identify the atomic choice and its decision space.",
+        "Explain how the choice is expressed as a loop in the recursive function."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video emphasises 'the core choice that we are making at each step' (02:40) and demonstrates breaking down Sudoku into a per-cell choice from 1 to 9.",
+        "granularity_rationale": "This focuses on the first actionable step of the backtracking blueprint, small enough for a student to practice on different problems."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "02:40 Key 1: Choice"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-64-003",
+      "label": "Implementing Constraint Validation",
+      "description": "The second key: after making a choice, validate it against problem-specific constraints before recursing. For Sudoku, check that the placed number does not conflict in its row, column, or 3x3 subgrid.",
+      "coverage_criteria": [
+        "Write a function that validates a Sudoku placement for row, column, and subgrid constraints.",
+        "Explain why only valid placements should be recursed upon."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video says 'we need to validate the row, column, and sub grid' and shows a validPlacement() call inside the recursion at 05:49.",
+        "granularity_rationale": "Constraint checking is a distinct and error-prone implementation step that merits separate practice and questioning."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "05:49 Key 2: Constraints"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-64-004",
+      "label": "Exploration and Undoing Decisions (Backtracking)",
+      "description": "After a valid placement, recurse to solve the rest of the problem. If that subtree fails, undo the choice (e.g., reset cell to empty) and try the next candidate. This is the backtracking step.",
+      "coverage_criteria": [
+        "Trace the sequence: set value, recurse, if recursion returns false, unset value.",
+        "Implement the undoing step in a backtracking function."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states 'if the decision doesn't work out... we need to eject our decision' and shows `board[row][col] = EMPTY_ENTRY` at 07:42.",
+        "granularity_rationale": "The undo mechanism is the essence of backtracking; isolating it helps students understand state restoration."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "07:42 Key 3: Goal & Backtracking"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-64-005",
+      "label": "Defining Base Cases for Termination",
+      "description": "The goal of backtracking is to reach a base case. For Sudoku, when the column exceeds the board width, advance to the next row. When the row exceeds the board height, the puzzle is solved (success).",
+      "coverage_criteria": [
+        "Write the base cases for a Sudoku solver: handling column overflow and row overflow.",
+        "Explain the role of base cases in returning true/false to propagate success."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video clearly explains two base cases: 'when we over bound on the row... when I go out of bounds on the final row' at 07:42.",
+        "granularity_rationale": "Base cases are a distinct concept from the recursion mechanism, and getting them right is crucial for correct termination."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "07:42 Key 3: Goal & Backtracking"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-64-006",
+      "label": "Recognizing Backtracking Problems by Exhaustive Keywords",
+      "description": "Problems that ask to generate or compute all possibilities (e.g., 'generate all subsets', 'compute all permutations') often signal that backtracking is applicable.",
+      "coverage_criteria": [
+        "Given a set of problem statements, identify which ones are suitable for backtracking based on keywords like 'generate all' or 'compute all'."
+      ],
+      "source_roles": ["referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The video states 'if it says generate all if it says compute all... you have a really good chance that backtracking is going to be one of your solutions' at 09:24.",
+        "granularity_rationale": "This is a pattern-recognition heuristic separate from the algorithm itself, and can be checked with a simple classification exercise."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "09:24 Summary and Conclusion"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: The Backtracking Blueprint: The Legendary 3 Keys To Backtracking Algorithms",
+      "source_year": null,
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-64-002",
+      "to_candidate_id": "candidate-64-003",
+      "reason": "The video explains that after making a choice (placing a number), you must validate it against the constraints before recursing, linking the first and second keys.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "05:49 Key 2: Constraints"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-64-003",
+      "to_candidate_id": "candidate-64-004",
+      "reason": "After validating a choice, the video shows how recursion is attempted, and if it fails, the choice is undone, connecting constraint enforcement to the backtracking step.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "07:42 Key 3: Goal & Backtracking"}
+      ]
+    }
+  ]
+}

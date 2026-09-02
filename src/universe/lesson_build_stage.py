@@ -14,8 +14,10 @@ from universe.db import connect
 
 
 def execute_module(module_name: str, argv: list[str]) -> None:
-    if not module_name.startswith("universe."):
-        raise ValueError("Lesson build stages must be universe modules")
+    if not module_name.startswith(("universe.", "concept_graph_creation.stages.")):
+        raise ValueError(
+            "Lesson build stages must be universe or vendored creation stage modules"
+        )
     module = importlib.import_module(module_name)
     main = getattr(module, "main", None)
     if not callable(main):

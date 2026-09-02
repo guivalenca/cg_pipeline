@@ -1,0 +1,264 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-63-001",
+      "label": "Backtracking algorithm components",
+      "description": "Backtracking uses a solution vector, and three main functions: is_a_solution, process_solution, and construct_candidates to systematically explore all possibilities.",
+      "coverage_criteria": [
+        "Student can identify the four main components of a backtracking algorithm given a problem.",
+        "Student can explain the role of each component in the search process."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 13:17, the lecturer explicitly defines backtracking by its routine and the need to fill in stubs: is_a_solution, process_solution, construct_candidates.",
+        "granularity_rationale": "This is a foundational teachable unit that can be checked with a few direct questions about the backtracking framework."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 12:43 Constructing Derangements via Backtracking"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-002",
+      "label": "Bandwidth problem definition",
+      "description": "Given a graph, find a linear ordering of vertices that minimizes the maximum length of an edge (the maximum number of intervening vertices between any two adjacent vertices).",
+      "coverage_criteria": [
+        "Student can state the goal of the bandwidth problem.",
+        "Student can compute the bandwidth for a small example ordering."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 00:40, the lecturer defines the bandwidth problem as minimizing the number of intervening vertices, and provides an example at 01:35.",
+        "granularity_rationale": "The bandwidth problem is a concrete optimization task that can be assessed by asking the student to explain and compute bandwidth for a given graph."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 00:00 The Backtracking Contest: Bandwidth"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": ["bandwidth"]
+    },
+    {
+      "candidate_id": "candidate-63-003",
+      "label": "Derangement generation via backtracking",
+      "description": "A derangement is a permutation where no element is in its original position. To generate all derangements using backtracking, restrict candidates to numbers not yet used and not equal to the current index.",
+      "coverage_criteria": [
+        "Student can define a derangement.",
+        "Student can write the construct_candidates function for derangements by excluding the current index and already used numbers.",
+        "Student can contrast this with generating all permutations and filtering."
+      ],
+      "source_roles": ["introducing", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 12:00, the lecturer defines derangements and then walks through modifying the permutation backtracking code to generate only derangements by changing construct_candidates (16:57).",
+        "granularity_rationale": "This is a direct application of backtracking with a slight modification, making it a focused checkable exercise."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 10:55 Problem of the Day: Derangements"},
+        {"kind": "markdown_heading", "locator": "## 12:43 Constructing Derangements via Backtracking"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": ["derangement"]
+    },
+    {
+      "candidate_id": "candidate-63-004",
+      "label": "Efficiency of generating all permutations vs. pruning",
+      "description": "When the number of solutions is a sizable fraction of the search space (e.g., derangements are ~n!/e of permutations), generating all candidates and filtering may not be much slower, but for most problems pruning early is crucial.",
+      "coverage_criteria": [
+        "Student can explain why generating all permutations and filtering derangements is only about three times slower.",
+        "Student can argue that for bandwidth, early pruning is essential because few permutations are optimal."
+      ],
+      "source_roles": ["explaining", "comparing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 20:15, the lecturer discusses why generating all permutations and checking for derangements is not inefficient because derangements are roughly n!/e, a constant fraction of all permutations.",
+        "granularity_rationale": "This concept contrasts two backtracking strategies and can be assessed by asking the student to estimate relative search sizes."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 20:15 Efficiency of Derangement Generation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-005",
+      "label": "Eight-Queens problem definition",
+      "description": "Place 8 queens on an 8x8 chessboard so that no two queens threaten each other (same row, column, or diagonal). The goal is to generate all such configurations.",
+      "coverage_criteria": [
+        "Student can state the constraints of the Eight-Queens problem.",
+        "Student can verify whether a given configuration is valid."
+      ],
+      "source_roles": ["introducing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 25:26, the lecturer presents the Eight-Queens problem and its chess constraints.",
+        "granularity_rationale": "This is a classic constraint satisfaction problem often used to teach backtracking, suitable as a basic checkable definition."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 25:05 The Eight-Queens Problem"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": ["eight queens"]
+    },
+    {
+      "candidate_id": "candidate-63-006",
+      "label": "State space reduction via permutation representation in Eight-Queens",
+      "description": "By noting that each row must have exactly one queen, the search space can be reduced from 64^8 to 8! by representing a solution as a permutation of column indices.",
+      "coverage_criteria": [
+        "Student can explain why a solution can be encoded as a permutation of {1..8}.",
+        "Student can compare the number of states for bit vector (2^64), list of pairs (64^8), and permutation (8!) representations.",
+        "Student can justify that 8! = 40,320 is computationally tractable."
+      ],
+      "source_roles": ["demonstrating", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 35:43 to 41:52, the lecturer shows how representing the board as a row-wise column index reduces the search space to 8! and contrasts it with larger representations.",
+        "granularity_rationale": "This is a key insight about representation choice that can be checked by having the student perform similar state-space analysis for other problems."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 35:43 Concise Permutation Representation"},
+        {"kind": "markdown_heading", "locator": "## 29:55 Comparing Board Representations"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-007",
+      "label": "Candidate constructor for Eight-Queens with threat checking",
+      "description": "In the permutation representation, construct_candidates iterates over columns, and for each column checks if it conflicts with any previously placed queen via column or diagonal attack (|row_diff| = |col_diff|).",
+      "coverage_criteria": [
+        "Student can write pseudocode to check column and diagonal threats.",
+        "Student can trace the backtracking on a small example (e.g., 4-Queens)."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "At 42:38, the lecturer presents the C code for construct_candidates for Eight-Queens, explaining column and diagonal threat checks.",
+        "granularity_rationale": "The threat-checking logic is a specific, implementable detail that can be directly tested by asking the student to write or explain the condition."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 42:38 Candidate Constructor Implementation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-008",
+      "label": "Symmetry pruning in Eight-Queens",
+      "description": "By exploiting vertical symmetry, we can restrict the first queen to columns 1–4 and generate the mirror solution for each result, cutting the search space roughly in half.",
+      "coverage_criteria": [
+        "Student can explain how to generate all solutions by only exploring half the placements and then reflecting.",
+        "Student can argue that no solution is missed.",
+        "Student can calculate the approximate reduction in states (20,000)."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 51:25, the lecturer illustrates using a vertical mirror to reduce the search by half, explaining that any solution with first queen on the right has a mirror on the left.",
+        "granularity_rationale": "Symmetry pruning is a general optimization technique that can be checked by asking the student to apply it to a similar problem."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 51:25 Exploiting Symmetry to Prune Search Space"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-009",
+      "label": "Chessboard covering problem and backtracking search",
+      "description": "The problem is to place the 8 non-pawn pieces on a chessboard such that every square is threatened. The search uses an array of 8 piece position indices, and can be pruned by placing pieces in order of decreasing power and checking if the remaining pieces can cover the remaining holes.",
+      "coverage_criteria": [
+        "Student can define the covering problem.",
+        "Student can describe the representation and candidate construction.",
+        "Student can explain the pruning condition: total_max_coverage(remaining_pieces) < uncovered_squares => backtrack."
+      ],
+      "source_roles": ["introducing", "explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "From 59:01 to 1:14:14, the lecturer presents the covering problem, discusses representation, piece power ordering, and pruning by remaining coverage.",
+        "granularity_rationale": "This is a comprehensive example of backtracking with advanced pruning, suitable as a capstone checkable concept."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 59:01 Covering the Chessboard Problem"},
+        {"kind": "markdown_heading", "locator": "## 1:10:11 Pruning by Remaining Coverage"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-63-010",
+      "label": "Pruning principle in backtracking",
+      "description": "To make backtracking efficient, prune partial solutions that cannot possibly lead to a better or valid complete solution as early as possible, using problem-specific constraints.",
+      "coverage_criteria": [
+        "Student can explain why pruning is essential for backtracking performance.",
+        "Student can give examples of pruning (threat checks, symmetry, remaining coverage)."
+      ],
+      "source_roles": ["explaining", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The entire lecture emphasizes pruning: at 06:47 advice on pruning first, and repeated examples (symmetry, coverage) illustrate the principle.",
+        "granularity_rationale": "This is a high-level principle that ties together the examples and can be assessed by asking the student to design a pruning strategy for a new problem."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 06:47 Advice for Producing Efficient Programs"},
+        {"kind": "markdown_heading", "locator": "## 1:14:14 The Combinatorial Explosion and the End Game"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "CSE 373 -- Lecture 17, Fall 2020",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-63-001",
+      "to_candidate_id": "candidate-63-003",
+      "reason": "Derangement generation directly uses the backtracking algorithm components (is_a_solution, process_solution, construct_candidates) by customizing construct_candidates.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 12:43 Constructing Derangements via Backtracking"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-63-001",
+      "to_candidate_id": "candidate-63-007",
+      "reason": "The Eight-Queens solution uses the same backtracking framework with specific construct_candidates implementing threat checks.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 42:38 Candidate Constructor Implementation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-63-005",
+      "to_candidate_id": "candidate-63-006",
+      "reason": "The Eight-Queens problem definition leads to analyzing representations, showing that the permutation representation results in a much smaller search space.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 35:43 Concise Permutation Representation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-63-006",
+      "to_candidate_id": "candidate-63-008",
+      "reason": "The permutation representation sets the stage for symmetry pruning, which further reduces the search space.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 51:25 Exploiting Symmetry to Prune Search Space"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-63-010",
+      "to_candidate_id": "candidate-63-009",
+      "reason": "The pruning principle is exemplified in the chessboard covering problem by ordering pieces by power and checking remaining coverage.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 1:10:11 Pruning by Remaining Coverage"}
+      ]
+    }
+  ]
+}

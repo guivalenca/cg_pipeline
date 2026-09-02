@@ -1,0 +1,300 @@
+{
+  "candidate_concepts": [
+    {
+      "candidate_id": "candidate-62-001",
+      "label": "Shortest Path with Exactly k Edges Problem Definition",
+      "description": "Defines the problem of finding the shortest path between two vertices in a directed, positively weighted graph that uses exactly k edges, allowing cycles.",
+      "coverage_criteria": [
+        "The student can state the formal problem: given directed graph G with positive weights, vertices v,w, integer k, find minimum weight of a path from v to w with exactly k edges (not necessarily simple).",
+        "The student can explain why simple Dijkstra is not directly applicable and illustrate with a small example involving self-loops."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The problem is introduced at 00:20 and discussed in detail with a drawn example graph at 02:14; the professor explicitly states the problem statement and contrasts it with standard shortest path.",
+        "granularity_rationale": "This is a single well‑defined algorithmic problem; checking understanding requires only restating the constraints and giving a simple example, fitting 1–2 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 00:20 Problem of the Day: Shortest Path with Exactly $k$ Edges"},
+        {"kind": "markdown_heading", "locator": "## 02:14 Example Graph Illustration"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-002",
+      "label": "Dynamic Programming Recurrence for Shortest Path with k Edges",
+      "description": "Presents a DP recurrence D[x,y,k] = min_z ( D[x,z,k-1] + w(z,y) ) with base cases for k=0 and k=1, and derives O(n³k) time complexity.",
+      "coverage_criteria": [
+        "The student can write the recurrence and explain the meaning of each term.",
+        "The student can identify the base cases (k=0: 0 if x=y else ∞; k=1: weight of edge if exists else ∞) and reason why they are correct.",
+        "The student can analyze the complexity: O(n³k) by reasoning about table size and work per cell."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The recurrence is written on the board at 08:02 and explained step by step; the base cases and complexity are discussed at 11:55–18:05.",
+        "granularity_rationale": "The candidate focuses on a single algorithmic technique (DP recurrence) applied to one problem; verifying it requires writing the recurrence, base cases, and a brief complexity argument – about three short questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 08:02 Dynamic Programming Recurrence Relation"},
+        {"kind": "markdown_heading", "locator": "## 11:55 Base Cases and Complexity Analysis"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-003",
+      "label": "Layered Graph Reduction for Shortest Path with k Edges",
+      "description": "Shows a reduction: construct a layered DAG with k+1 copies of vertices where edges only go forward one layer; running standard shortest path (Dijkstra) on this graph solves the original k‑edge problem.",
+      "coverage_criteria": [
+        "The student can describe the transformation: create k+1 layers, for each original edge (u→v) add a directed edge from u in layer i to v in layer i+1 (0≤i<k).",
+        "The student can explain why any path of length k in the original graph corresponds to a path from the source in layer 0 to the destination in layer k, and why the new graph is acyclic.",
+        "The student can state the resulting complexity (e.g., O(k²n²) depending on Dijkstra implementation) and recognise this as a reduction that uses an existing algorithm as a black box."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The professor draws the layered graph at 20:20, walks through an example with four layers, and explains why it becomes a DAG and how Dijkstra solves it; the term ‘reduction’ is introduced explicitly.",
+        "granularity_rationale": "This is one specific transformation technique; the candidate can be tested by asking the student to sketch the construction for a small example, argue correctness, and mention complexity – fitting within 2–3 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 20:20 Layered Graph Reduction (DAG Approach)"},
+        {"kind": "markdown_heading", "locator": "## 27:35 Complexity of the Reduction Approach"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": ["Dijkstra's algorithm"]
+    },
+    {
+      "candidate_id": "candidate-62-004",
+      "label": "Backtracking as Exhaustive Search with Pruning",
+      "description": "Motivates backtracking as a systematic method to iterate through all possible solutions while using constraints to prune the search space early, illustrated with a Sudoku grid where the most constrained cell is filled first.",
+      "coverage_criteria": [
+        "The student can define backtracking as a form of exhaustive search that abandons partial solutions as soon as they cannot lead to a valid complete solution.",
+        "Using a Sudoku example, the student can explain why choosing the most constrained cell and testing only locally consistent values reduces the search effort."
+      ],
+      "source_roles": ["introducing", "explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The lecture introduces backtracking at 35:25 using Sudoku; the professor discusses trying numbers, recognising dead ends, and the advantage of picking a cell with fewest possibilities (the ‘most constrained’ heuristic).",
+        "granularity_rationale": "This is the high‑level idea of backtracking; it is sufficient to check whether the student can articulate the prune‑and‑backtrack loop using a familiar puzzle – typically 1–2 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 35:25 Introduction to Backtracking"},
+        {"kind": "markdown_heading", "locator": "## 35:28 Sudoku as an Exhaustive Search Problem"},
+        {"kind": "markdown_heading", "locator": "## 41:31 Solving Sudoku via Pruning"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": ["Sudoku"]
+    },
+    {
+      "candidate_id": "candidate-62-005",
+      "label": "Recursive Backtracking Algorithm (Pseudocode)",
+      "description": "Presents the generic recursive backtracking procedure: maintain a solution vector a[1..k], check if it is a complete solution, otherwise extend by computing candidates S_k for position k+1 and recursively explore each candidate, backtracking when none lead to a solution.",
+      "coverage_criteria": [
+        "The student can write (or sketch) the pseudocode for the recursive backtrack(a,k) function.",
+        "The student can trace its execution for a small problem (e.g., generating subsets of {1,2}) and explain the order in which partial solutions are explored.",
+        "The student can identify the three customization points (is_a_solution, construct_candidates, process_solution) that must be filled for a specific application."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The professor shows the pseudocode on a slide at 45:59 and walks through its logic; later shows the C implementation at 50:01, explicitly discussing the same structure.",
+        "granularity_rationale": "The core algorithm is a single recursive function with a clear contract; checking understanding requires reproducing the pseudocode and tracing one small example – about 2–3 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 45:59 Recursive Backtracking Pseudocode"},
+        {"kind": "markdown_heading", "locator": "## 50:01 Backtracking C Implementation"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-006",
+      "label": "Backtracking as Depth-First Search on Configuration Graph",
+      "description": "Explains that backtracking is equivalent to performing depth-first search (DFS) on an implicit graph whose vertices are partial solutions and edges represent adding one element; this ensures complete enumeration if no pruning is done.",
+      "coverage_criteria": [
+        "The student can state the relationship: backtracking explores the space of partial solutions in the same order as DFS would visit nodes in a tree/graph of configurations.",
+        "The student can argue why this guarantees that every complete solution is eventually reached (if the search space is finite).",
+        "The student can give a simple example, e.g., subset generation, and show how the backtracking tree corresponds to a DFS traversal."
+      ],
+      "source_roles": ["explaining"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The slide at 48:41 explicitly states ‘Backtracking is really just depth‑first search on an implicit graph of configurations’ and the professor reinforces this by comparing the recursion to DFS traversal.",
+        "granularity_rationale": "This is a single conceptual link; testing involves stating the equivalence and justifying it with one example – 1–2 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 48:41 Backtracking and Depth-First Search (DFS)"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-007",
+      "label": "Backtracking Customization Stubs",
+      "description": "Details the three functions that must be implemented to adapt the generic backtracking engine to a specific problem: is_a_solution (tests completeness), construct_candidates (lists valid choices for the next position), and process_solution (handles a complete solution).",
+      "coverage_criteria": [
+        "The student can describe the role of each stub and give a concrete example of its implementation for a known problem (e.g., subset generation: is_a_solution ⇔ k==n, construct_candidates ⇔ {true, false}).",
+        "The student can explain why separating these concerns makes the backtracking framework reusable."
+      ],
+      "source_roles": ["explaining", "demonstrating"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The stubs are introduced at 52:30 (is_a_solution), 53:18 (construct_candidates), and 54:11 (process_solution); each slide gives a precise contract, and the C code for subsets later shows concrete implementations.",
+        "granularity_rationale": "These are three tightly related but distinct customisation points; verifying understanding requires explaining each with an example – about 2 questions total."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 52:30 Backtracking Customization: `is_a_solution`"},
+        {"kind": "markdown_heading", "locator": "## 53:18 Backtracking Customization: `construct_candidates`"},
+        {"kind": "markdown_heading", "locator": "## 54:11 Backtracking Customization: `process_solution`"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-008",
+      "label": "Subset Generation via Backtracking",
+      "description": "Applies the backtracking framework to generate all 2ⁿ subsets of {1,…,n} by using a boolean array where a[i] indicates membership; the candidates are always {true, false} and a solution is reached when k == n.",
+      "coverage_criteria": [
+        "The student can write the is_a_solution and construct_candidates stubs for subset generation.",
+        "The student can draw the backtracking tree for n=3, showing the order subsets are generated and relate it to the binary representation.",
+        "The student can explain why this generates exactly 2ⁿ leaves without enumerating invalid configurations."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The mathematical formulation appears at 54:56, followed by a detailed walk‑through of the tree at 58:18 and the full C implementation at 1:03:58.",
+        "granularity_rationale": "This is one concrete, self‑contained application of the backtracking engine; verifying it requires the student to write the stubs and trace the tree – 2–3 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 54:56 Mathematical Formulation for Subset Generation"},
+        {"kind": "markdown_heading", "locator": "## 58:18 Subset Generation Tree Example"},
+        {"kind": "markdown_heading", "locator": "## 1:03:58 Implementing Backtracking for Subsets"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-009",
+      "label": "Permutation Generation via Backtracking",
+      "description": "Uses the same backtracking skeleton to generate all n! permutations of {1,…,n} by maintaining an array of chosen positions; the candidates for step k are the numbers not yet used in the prefix.",
+      "coverage_criteria": [
+        "The student can write the construct_candidates stub that checks a boolean ‘used’ array and builds a list of available numbers.",
+        "The student can trace the generation tree for n=3 and list the six permutations in the order produced by the algorithm.",
+        "The student can explain why this approach guarantees each permutation appears exactly once."
+      ],
+      "source_roles": ["demonstrating", "implementing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The lecture introduces permutations at 1:06:33, draws the tree at 1:09:34, and shows C code for construct_candidates at 1:13:39.",
+        "granularity_rationale": "This is another self‑contained application of backtracking; checking involves writing the candidate generation logic and tracing the tree – 2–3 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 1:06:33 Constructing Permutations"},
+        {"kind": "markdown_heading", "locator": "## 1:09:34 Permutation Generation Tree"},
+        {"kind": "markdown_heading", "locator": "## 1:13:39 Code for Constructing Permutation Candidates"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    },
+    {
+      "candidate_id": "candidate-62-010",
+      "label": "Bandwidth Problem and Backtracking Contest",
+      "description": "Defines the combinatorial optimization problem: given a graph, find a linear ordering (permutation) of its vertices that minimises the length of the longest edge (the ‘bandwidth’). A naive solution enumerates all n! permutations and checks the maximum edge span.",
+      "coverage_criteria": [
+        "The student can state the bandwidth problem: for a graph G=(V,E), find a permutation π:V→{1,…,|V|} that minimises max_{(u,v)∈E} |π(u) − π(v)|.",
+        "The student can explain why a brute‑force search over all permutations is prohibitively slow (Ω(n!·m)) and that no polynomial‑time algorithm is known (it is NP‑hard).",
+        "The student can outline how a backtracking solver for this problem would be structured using the same permutation‑generation skeleton, but with pruning based on the current best bandwidth."
+      ],
+      "source_roles": ["introducing", "referencing"],
+      "extraction_reason": {
+        "source_grounded_rationale": "The professor presents the bandwidth problem on slides at 1:15:04 and 1:19:05, showing a poor layout with bandwidth 7 and an optimal layout with bandwidth 1, and explains the contest structure.",
+        "granularity_rationale": "The candidate covers the problem definition and its connection to exhaustive permutation search; verifying requires defining the problem and sketching a backtracking‑based approach – 2–3 questions."
+      },
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 1:15:04 The Backtracking Contest: Bandwidth Problem"},
+        {"kind": "markdown_heading", "locator": "## 1:19:05 Bandwidth Complexity and Contest Rules"}
+      ],
+      "evidence_type": "source_body",
+      "source_name": "Videoaula: Backtracking - Parte 1",
+      "source_year": "2020",
+      "name_drops": []
+    }
+  ],
+  "source_local_connector_candidates": [
+    {
+      "from_candidate_id": "candidate-62-001",
+      "to_candidate_id": "candidate-62-002",
+      "reason": "The source explicitly derives the DP recurrence as the first solution to the Shortest Path with exactly k edges problem.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 08:02 Dynamic Programming Recurrence Relation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-001",
+      "to_candidate_id": "candidate-62-003",
+      "reason": "The source presents the layered graph reduction as an alternative approach to solve the same problem.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 20:20 Layered Graph Reduction (DAG Approach)"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-001",
+      "to_candidate_id": "candidate-62-005",
+      "reason": "The source notes that backtracking (exhaustive search) could be used to find all paths of length k and then pick the shortest, connecting the problem to backtracking.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 00:20 Problem of the Day: Shortest Path with Exactly $k$ Edges"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-005",
+      "to_candidate_id": "candidate-62-006",
+      "reason": "The slide and explanation directly state that backtracking is a depth‑first search on the implicit graph of partial solutions.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 48:41 Backtracking and Depth-First Search (DFS)"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-005",
+      "to_candidate_id": "candidate-62-007",
+      "reason": "The recursive backtracking pseudocode relies on the three customization stubs; the lecture immediately follows with detailed explanations of each stub.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 52:30 Backtracking Customization: `is_a_solution`"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-005",
+      "to_candidate_id": "candidate-62-008",
+      "reason": "Subset generation is the first concrete application of the backtracking framework shown in the source, illustrating how to fill the stubs.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 54:56 Mathematical Formulation for Subset Generation"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-005",
+      "to_candidate_id": "candidate-62-009",
+      "reason": "Permutation generation is presented as a second application of the same backtracking engine in the source.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 1:06:33 Constructing Permutations"}
+      ]
+    },
+    {
+      "from_candidate_id": "candidate-62-009",
+      "to_candidate_id": "candidate-62-010",
+      "reason": "The bandwidth problem is solved by searching over permutations; the source explicitly describes a brute‑force approach that generates all permutations (using backtracking) and checks the bandwidth.",
+      "source_anchors": [
+        {"kind": "markdown_heading", "locator": "## 1:15:04 The Backtracking Contest: Bandwidth Problem"}
+      ]
+    }
+  ]
+}

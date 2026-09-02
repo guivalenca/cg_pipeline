@@ -1,0 +1,78 @@
+{
+  "accepted_concepts": [
+    {
+      "id": "lr001",
+      "label": "Chessboard Covering Problem with Backtracking",
+      "description": "The problem is to place the 8 non-pawn pieces on a chessboard such that every square is threatened. The search uses an array of 8 piece position indices, and can be pruned by placing pieces in order of decreasing power and checking if the remaining pieces can cover the remaining holes.",
+      "coverage_criteria": [
+        "Student can define the covering problem.",
+        "Student can describe the representation and candidate construction.",
+        "Student can explain the pruning condition: total_max_coverage(remaining_pieces) < uncovered_squares => backtrack."
+      ],
+      "source_candidate_ids": ["c63_pro_thinking_009"],
+      "merge_rationale": "This candidate fully captures the backtracking approach to the chessboard covering problem with pruning techniques."
+    },
+    {
+      "id": "lr002",
+      "label": "Bandwidth Problem and Backtracking",
+      "description": "Defines the bandwidth optimization problem: given a graph, find a linear ordering of vertices that minimizes the maximum length of an edge. A naive solution enumerates all n! permutations and checks the maximum edge span. Backtracking can prune the search by comparing against the current best bandwidth.",
+      "coverage_criteria": [
+        "Student can state the bandwidth problem and compute bandwidth for a small example.",
+        "Student can explain why a brute-force search over all permutations is inefficient and that it is NP-hard.",
+        "Student can outline how a backtracking solver would be structured using permutation generation with pruning."
+      ],
+      "source_candidate_ids": ["c62_pro_thinking_010", "c63_pro_thinking_002"],
+      "merge_rationale": "These candidates together cover the problem definition, contest context, and backtracking application for the bandwidth problem."
+    },
+    {
+      "id": "lr003",
+      "label": "Recognizing Exhaustive Problems for Backtracking",
+      "description": "Problems that ask to generate or compute all possibilities (e.g., 'generate all subsets', 'compute all permutations') often signal that backtracking is applicable.",
+      "coverage_criteria": [
+        "Given a set of problem statements, identify which ones are suitable for backtracking based on keywords like 'generate all' or 'compute all'."
+      ],
+      "source_candidate_ids": ["c64_pro_thinking_006"],
+      "merge_rationale": "This candidate provides a heuristic for identifying problems suitable for backtracking."
+    }
+  ],
+  "candidate_assignments": [
+    {
+      "candidate_id": "c63_pro_thinking_009",
+      "status": "used_in",
+      "accepted_ids": ["lr001"]
+    },
+    {
+      "candidate_id": "c62_pro_thinking_010",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c63_pro_thinking_002",
+      "status": "used_in",
+      "accepted_ids": ["lr002"]
+    },
+    {
+      "candidate_id": "c64_pro_thinking_006",
+      "status": "used_in",
+      "accepted_ids": ["lr003"]
+    },
+    {
+      "candidate_id": "c62_pro_thinking_001",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "This candidate defines the shortest path with exactly k edges problem, which is solved via DP or graph reduction and is not related to backtracking."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_002",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "This candidate presents a DP recurrence, a non-backtracking technique."
+    },
+    {
+      "candidate_id": "c62_pro_thinking_003",
+      "status": "pruned",
+      "reason": "unrelated",
+      "explanation": "This candidate describes a layered graph reduction, not a backtracking approach."
+    }
+  ]
+}
