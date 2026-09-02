@@ -820,6 +820,77 @@ def test_renamed_and_reordered_adalove_activity_keeps_its_uuid_and_lesson_id(
     assert after["lessons"][0]["title"] == "Estratégia comercial e canais de distribuição"
 
 
+def test_swapped_and_renamed_adalove_activities_keep_their_lesson_ids(
+    db, tmp_path: Path
+):
+    def workbook(path: Path, *, swapped: bool) -> Path:
+        first_title = "Aula de arquitetura renomeada" if swapped else "Aula de arquitetura"
+        first = activity(
+            title=first_title,
+            week=1,
+            order=3 if swapped else 1,
+            activity_uuid="adalove-first-class",
+            description="Primeira aula",
+        )
+        second = activity(
+            title="Aula de dados",
+            week=1,
+            order=1 if swapped else 3,
+            activity_uuid="adalove-second-class",
+            description="Segunda aula",
+        )
+        return write_adalove_workbook(path, [first, second])
+
+    imported = import_workbook(
+        db,
+        workbook(tmp_path / "swap-original.xlsx", swapped=False),
+        "Aulas trocadas de lugar",
+        require_syllabus_metadata=False,
+    )
+    before = {
+        lesson["activity_uuid"]: lesson
+        for lesson in get_syllabus_version(db, imported["syllabus_id"])["lessons"]
+    }
+    assert [lesson["activity_uuid"] for lesson in
+            get_syllabus_version(db, imported["syllabus_id"])["lessons"]] == [
+        "adalove-first-class", "adalove-second-class",
+    ]
+
+    preview = create_reconciliation(
+        db, imported["syllabus_id"], workbook(tmp_path / "swap-incoming.xlsx", swapped=True)
+    )
+
+    identities = {
+        lesson["incoming"]["activity_uuid"]: lesson["identity"] for lesson in preview["lessons"]
+    }
+    assert identities["adalove-first-class"] == {
+        "state": "carried",
+        "lesson_id": before["adalove-first-class"]["id"],
+        "reason": "same_activity",
+    }
+    assert identities["adalove-second-class"] == {
+        "state": "carried",
+        "lesson_id": before["adalove-second-class"]["id"],
+        "reason": "same_activity",
+    }
+    actions = {
+        item["item_id"]: "transition"
+        for lesson in preview["lessons"]
+        for item in (lesson, *lesson["sources"])
+        if item["status"] != "unchanged"
+    }
+    applied = apply_reconciliation(db, imported["syllabus_id"], preview["id"], actions, {})
+    after = get_syllabus_version(db, imported["syllabus_id"], applied["version_id"])["lessons"]
+
+    assert [lesson["activity_uuid"] for lesson in after] == [
+        "adalove-second-class", "adalove-first-class",
+    ]
+    assert [lesson["id"] for lesson in after] == [
+        before["adalove-second-class"]["id"], before["adalove-first-class"]["id"],
+    ]
+    assert after[1]["title"] == "Aula de arquitetura renomeada"
+
+
 @pytest.mark.parametrize(
     ("identity_choice", "keeps_id"),
     [("same", True), ("new", False)],
