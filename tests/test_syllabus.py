@@ -164,11 +164,69 @@ class TestWorkbookAdapters:
         assert parsed["dropped_summary"] == {
             "orientation_count": 1,
             "orientation_self_study_count": 1,
+            "no_parent_count": 0,
             "total_count": 2,
         }
         assert [item["reason"] for item in parsed["dropped"]] == [
             "orientation", "parent_orientation",
         ]
+
+    def test_self_study_without_preceding_anchor_is_dropped_not_rejected(self, tmp_path):
+        path = tmp_path / "orphan-self-study.xlsx"
+        write_syllabus(
+            path,
+            [
+                activity(
+                    title="Leitura antes da aula",
+                    kind="Self-study",
+                    week=1,
+                    order=1,
+                    parent_inference="no_preceding_anchor_in_week",
+                    url="https://example.com/orphan",
+                ),
+                syllabus_row(title="Aula", seq=2),
+            ],
+        )
+
+        parsed = parse_workbook(path)
+
+        assert [lesson["title"] for lesson in parsed["lessons"]] == ["Aula"]
+        assert parsed["source_count"] == 0
+        assert parsed["dropped_summary"] == {
+            "orientation_count": 0,
+            "orientation_self_study_count": 0,
+            "no_parent_count": 1,
+            "total_count": 1,
+        }
+        assert parsed["dropped"] == [
+            {
+                "activity_uuid": stable_uuid("activity", 1, 1),
+                "type": "Self-study",
+                "title": "Leitura antes da aula",
+                "parent_activity_uuid": None,
+                "parent_inference": "no_preceding_anchor_in_week",
+                "reason": "no_parent",
+            }
+        ]
+
+    def test_self_study_without_parent_or_inference_is_still_rejected(self, tmp_path):
+        path = tmp_path / "unlabeled-self-study.xlsx"
+        write_syllabus(
+            path,
+            [
+                activity(
+                    title="Leitura solta",
+                    kind="Self-study",
+                    week=1,
+                    order=1,
+                    url="https://example.com/loose",
+                ),
+                syllabus_row(title="Aula", seq=2),
+            ],
+        )
+
+        with pytest.raises(ValueError, match="sem pai inferido e identificado"):
+            parse_workbook(path)
 
     @pytest.mark.parametrize(
         ("subject", "message"),
@@ -468,6 +526,7 @@ class TestVersionedImport:
         assert result["dropped_summary"] == {
             "orientation_count": 1,
             "orientation_self_study_count": 1,
+            "no_parent_count": 0,
             "total_count": 2,
         }
         assert result["lesson_count"] == 1
@@ -476,6 +535,39 @@ class TestVersionedImport:
             lesson["title"]
             for lesson in get_syllabus_version(db, result["syllabus_id"])["lessons"]
         ] == ["Aula"]
+
+    def test_import_reports_self_study_without_preceding_anchor(self, db, tmp_path):
+        path = tmp_path / "orphan-self-study.xlsx"
+        write_syllabus(
+            path,
+            [
+                activity(
+                    title="Leitura antes da aula",
+                    kind="Self-study",
+                    week=1,
+                    order=1,
+                    parent_inference="no_preceding_anchor_in_week",
+                    url="https://example.com/orphan",
+                ),
+                syllabus_row(title="Aula", seq=2),
+            ],
+        )
+
+        result = import_workbook(
+            db, path, "Orphan self-study report", require_syllabus_metadata=False
+        )
+
+        assert result["dropped_summary"] == {
+            "orientation_count": 0,
+            "orientation_self_study_count": 0,
+            "no_parent_count": 1,
+            "total_count": 1,
+        }
+        assert [item["reason"] for item in result["dropped"]] == ["no_parent"]
+        assert result["lesson_count"] == 1
+        assert result["reference_count"] == 0
+        stored = get_syllabus_version(db, result["syllabus_id"])["lessons"]
+        assert [(lesson["title"], lesson["sources"]) for lesson in stored] == [("Aula", [])]
 
     def test_same_file_is_idempotent_within_one_syllabus(self, db, tmp_path):
         path = tmp_path / "same.xlsx"
@@ -958,3 +1050,150 @@ class TestSyllabusCuration:
         assert result["unchanged"] is True
         assert result["version_id"] == imported["version_id"]
         assert get_syllabus_history(db, imported["syllabus_id"])["versions"] == history_before
+
+    def _import_with_dropped_orientation(self, db, tmp_path):
+        path = tmp_path / "gapped-orders.xlsx"
+        write_syllabus(
+            path,
+            [
+                syllabus_row(
+                    title="Orientação", seq=1, kind="Orientation", subject=None
+                ),
+                syllabus_row(title="Aula", seq=2),
+                syllabus_row(
+                    seq=3,
+                    kind="Self-study",
+                    title="Leitura",
+                    parent="Aula",
+                    parent_order=2,
+                    url="https://example.com/reading",
+                ),
+                syllabus_row(
+                    title="Entrega",
+                    seq=4,
+                    kind="Deliverable",
+                    subject=None,
+                    materials=[
+                        material(
+                            url="https://example.com/brief", label="Briefing"
+                        )
+                    ],
+                ),
+            ],
+        )
+        return import_workbook(
+            db, path, "Syllabus com ordem do Adalove", require_syllabus_metadata=False
+        )
+
+    @staticmethod
+    def _editor_payload(lessons):
+        return [
+            {
+                "id": lesson["id"],
+                "week": lesson["week"],
+                "kind": lesson["kind"],
+                "title": lesson["title"],
+                "subject": lesson["subject"],
+                "subjects": lesson["subjects"],
+                "date": str(lesson["date"] or ""),
+                "description": lesson["description"],
+                "hidden": lesson["hidden"],
+                "sources": lesson["sources"],
+            }
+            for lesson in lessons
+        ]
+
+    @staticmethod
+    def _order_keys(version):
+        return [
+            (
+                lesson["week_order"],
+                lesson["activity_order"],
+                [
+                    (
+                        source["week_order"],
+                        source["activity_order"],
+                        source["parent_activity_uuid"],
+                        source["parent_inference"],
+                    )
+                    for source in lesson["sources"]
+                ],
+            )
+            for lesson in version["lessons"]
+        ]
+
+    def test_noop_editor_save_keeps_adalove_order_keys_after_dropped_orientation(
+        self, db, tmp_path
+    ):
+        imported = self._import_with_dropped_orientation(db, tmp_path)
+        before = get_syllabus_version(db, imported["syllabus_id"])
+        class_uuid = before["lessons"][0]["activity_uuid"]
+        expected_keys = [
+            (1, 2, [(1, 3, class_uuid, "inferred_from_activity_order")]),
+            (1, 4, [(1, 4, None, None)]),
+        ]
+        assert self._order_keys(before) == expected_keys
+
+        result = curate_syllabus(
+            db,
+            imported["syllabus_id"],
+            imported["version_id"],
+            self._editor_payload(before["lessons"]),
+        )
+
+        assert result["unchanged"] is True
+        assert result["version_id"] == imported["version_id"]
+        assert self._order_keys(get_syllabus_version(db, imported["syllabus_id"])) == expected_keys
+
+    def test_editor_edit_keeps_adalove_order_keys_and_deliverable_material_parent(
+        self, db, tmp_path
+    ):
+        imported = self._import_with_dropped_orientation(db, tmp_path)
+        before = get_syllabus_version(db, imported["syllabus_id"])
+        class_uuid = before["lessons"][0]["activity_uuid"]
+        payload = self._editor_payload(before["lessons"])
+        payload[0]["title"] = "Aula revisada"
+        payload[1]["sources"][0]["title"] = "Briefing revisado"
+
+        curated = curate_syllabus(
+            db, imported["syllabus_id"], imported["version_id"], payload,
+            note="Revisa títulos sem mexer na ordem.",
+        )
+
+        assert curated["unchanged"] is False
+        latest = get_syllabus_version(db, imported["syllabus_id"])
+        assert [lesson["title"] for lesson in latest["lessons"]] == ["Aula revisada", "Entrega"]
+        assert latest["lessons"][1]["sources"][0]["title"] == "Briefing revisado"
+        assert self._order_keys(latest) == [
+            (1, 2, [(1, 3, class_uuid, "inferred_from_activity_order")]),
+            (1, 4, [(1, 4, None, None)]),
+        ]
+
+    def test_editor_mints_order_keys_only_for_authored_rows(self, db, tmp_path):
+        imported = self._import_with_dropped_orientation(db, tmp_path)
+        before = get_syllabus_version(db, imported["syllabus_id"])
+        class_uuid = before["lessons"][0]["activity_uuid"]
+        payload = self._editor_payload(before["lessons"])
+        payload[0]["sources"].append(
+            {
+                "title": "Fonte nova",
+                "url": "https://example.com/new",
+                "media_type": "article",
+            }
+        )
+
+        curate_syllabus(
+            db, imported["syllabus_id"], imported["version_id"], payload,
+            note="Adiciona uma fonte na aula.",
+        )
+
+        latest = get_syllabus_version(db, imported["syllabus_id"])
+        class_sources = latest["lessons"][0]["sources"]
+        assert [source["title"] for source in class_sources] == ["Leitura", "Fonte nova"]
+        assert (class_sources[0]["week_order"], class_sources[0]["activity_order"]) == (1, 3)
+        authored = class_sources[1]
+        assert authored["week_order"] == 1
+        assert authored["activity_order"] > 4
+        assert authored["parent_activity_uuid"] == class_uuid
+        assert authored["parent_inference"] == "curated_explicit_parent"
+        assert self._order_keys(latest)[1] == (1, 4, [(1, 4, None, None)])

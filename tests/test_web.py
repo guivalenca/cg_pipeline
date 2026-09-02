@@ -230,6 +230,33 @@ def test_named_upload_creates_a_visible_syllabus_without_queueing(
         ).fetchone()[0] == 0
 
 
+def test_new_upload_reports_dropped_orientations(
+    test_database_url, applied_migrations, tmp_path
+):
+    lesson_row = activity(title="Aula 1", kind="Class", week=1, order=1, subject="Negócios")
+    orientation_row = activity(
+        title="Sprint Planning", kind="Orientation", week=1, order=2, subject=None
+    )
+    path = write_adalove_workbook(
+        tmp_path / "dropped.xlsx", [lesson_row, orientation_row], project="Dropped"
+    )
+
+    with TestClient(_app(test_database_url)) as client:
+        uploaded = _upload(client, path, f"Syllabus Drop {uuid.uuid4().hex[:8]}")
+
+    assert uploaded.status_code == 201, uploaded.text
+    result = uploaded.json()
+    assert result["dropped_summary"] == {
+        "orientation_count": 1,
+        "orientation_self_study_count": 0,
+        "no_parent_count": 0,
+        "total_count": 1,
+    }
+    assert [(item["title"], item["reason"]) for item in result["dropped"]] == [
+        ("Sprint Planning", "orientation")
+    ]
+
+
 def test_new_syllabus_upload_requires_complete_valid_syllabus_metadata(
     test_database_url, applied_migrations, tmp_path
 ):

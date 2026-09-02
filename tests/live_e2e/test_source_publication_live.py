@@ -729,6 +729,7 @@ def _accept_workbook(live: LiveRun) -> dict[str, Any]:
     assert parsed["dropped_summary"] == {
         "orientation_count": 12,
         "orientation_self_study_count": 0,
+        "no_parent_count": 0,
         "total_count": 12,
     }
     assert len(references) == 151
