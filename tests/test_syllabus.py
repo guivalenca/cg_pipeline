@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from openpyxl import Workbook, load_workbook
 
+from universe.graph_identity import GraphIdConflict, graph_id_for
 from universe.syllabus import (
     LEGACY_COLUMNS,
     PROJECT_COLUMNS,
@@ -438,6 +439,77 @@ class TestVersionedImport:
         assert db.execute(
             "SELECT 1 FROM syllabus WHERE id = 'metadata-required'"
         ).fetchone() is None
+
+    def test_new_version_keeps_stored_graph_id_even_when_companion_lists_it(
+        self, db, tmp_path
+    ):
+        db.execute(
+            "INSERT INTO institution (id, name) VALUES ('inteli', 'Inteli')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        path = tmp_path / "own-graph-id.xlsx"
+        write_project(path, [project_row(project="Own graph id")])
+        first = import_workbook(db, path, "Own graph id", institution_id="inteli")
+        minted = db.execute(
+            "SELECT graph_id FROM syllabus WHERE id = %s", (first["syllabus_id"],)
+        ).fetchone()[0]
+        assert minted == graph_id_for("inteli", "Own graph id")
+
+        write_project(
+            path,
+            [project_row(project="Own graph id", title="Lesson renamed")],
+        )
+        second = import_workbook(
+            db,
+            path,
+            "Own graph id",
+            syllabus_id=first["syllabus_id"],
+            occupied_graph_ids={minted},
+        )
+
+        assert second["seq"] == 2
+        assert second["version_id"] != first["version_id"]
+        assert db.execute(
+            "SELECT graph_id FROM syllabus WHERE id = %s", (first["syllabus_id"],)
+        ).fetchone()[0] == minted
+
+    def test_new_version_rejects_occupied_graph_id_when_syllabus_has_none(
+        self, db, tmp_path
+    ):
+        db.execute(
+            "INSERT INTO institution (id, name) VALUES ('inteli', 'Inteli')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        db.execute(
+            "INSERT INTO syllabus (id, title, institution_id)"
+            " VALUES ('no-graph-id', 'No graph id', 'inteli')"
+        )
+        db.execute(
+            "INSERT INTO syllabus_version (id, syllabus_id, seq, origin)"
+            " VALUES ('no-graph-id:v0001', 'no-graph-id', 1, 'upload')"
+        )
+        db.commit()
+        derived = graph_id_for("inteli", "No graph id")
+        path = tmp_path / "no-graph-id.xlsx"
+        write_project(path, [project_row(project="No graph id")])
+
+        with pytest.raises(GraphIdConflict) as raised:
+            import_workbook(
+                db,
+                path,
+                "No graph id",
+                syllabus_id="no-graph-id",
+                occupied_graph_ids={derived},
+            )
+        db.rollback()
+
+        assert raised.value.graph_id == derived
+        assert db.execute(
+            "SELECT graph_id FROM syllabus WHERE id = 'no-graph-id'"
+        ).fetchone()[0] is None
+        assert db.execute(
+            "SELECT count(*) FROM syllabus_version WHERE syllabus_id = 'no-graph-id'"
+        ).fetchone()[0] == 1
 
     def test_name_is_manual_and_uploaded_xlsx_is_retained_exactly(self, db, tmp_path):
         path = tmp_path / "input.xlsx"
