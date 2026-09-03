@@ -58,6 +58,7 @@ from universe.db import connect
 from universe.graph_identity import (
     GRAPH_ID_CONFLICT_MESSAGE,
     GraphIdConflict,
+    subject_graph_id_for,
 )
 from universe.syllabus import (
     SyllabusAlreadyExists,
@@ -68,7 +69,9 @@ from universe.syllabus import (
     get_syllabus_workbook,
     import_workbook,
     list_syllabi,
+    slugify,
     update_source_review,
+    validate_syllabus_id,
 )
 from universe.syllabus_reconciliation import (
     apply_reconciliation,
@@ -1032,6 +1035,49 @@ def create_app(
             return namespace_provider()
         except companion_seam.CompanionSeamError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    @app.get("/api/syllabi/graph-id-proposal")
+    def syllabus_graph_id_proposal(
+        institution_id: str = Query(...),
+        name: str = Query(...),
+    ) -> dict:
+        """Preview the per-Subject Graph ID shape before parsing a workbook.
+
+        The upload dialog does not yet know which Lesson Subjects the workbook
+        contains, so it must not pretend to reserve or validate one concrete
+        Graph ID. The real IDs are checked atomically during import.
+        """
+        clean_name = name.strip()
+        if not clean_name:
+            raise HTTPException(status_code=422, detail="Dê um nome ao syllabus.")
+        try:
+            syllabus_id = validate_syllabus_id(slugify(clean_name))
+            sentinel = subject_graph_id_for(institution_id, clean_name, "subject")
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        graph_id_template = sentinel.removesuffix("-subject") + "-<subject>"
+        with connect_factory() as conn:
+            exact_title = conn.execute(
+                "SELECT id, title FROM syllabus WHERE title = %s"
+                " ORDER BY created_at, id LIMIT 1",
+                (clean_name,),
+            ).fetchone()
+            syllabus_id_owner = conn.execute(
+                "SELECT id, title FROM syllabus WHERE id = %s",
+                (syllabus_id,),
+            ).fetchone()
+
+        def serialize(row) -> dict | None:
+            if row is None:
+                return None
+            return {"id": row[0], "title": row[1]}
+
+        return {
+            "display_name": clean_name,
+            "graph_id_template": graph_id_template,
+            "existing_syllabus": serialize(exact_title),
+            "syllabus_id_owner": serialize(syllabus_id_owner),
+        }
 
     @app.post("/api/syllabi/upload", status_code=201)
     async def upload_syllabus(

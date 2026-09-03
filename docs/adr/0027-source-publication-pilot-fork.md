@@ -1,7 +1,7 @@
 # 0027: Fork CG Pipeline at the Source Publication boundary
 
 Date: 2026-09-02
-Status: accepted by DEV-74 and implemented by DEV-76
+Status: accepted by DEV-74, implemented by DEV-76, and amended by DEV-98
 
 ## Context
 
@@ -50,9 +50,27 @@ the Source Publication boundary.
 ADR 0030 later supersedes only that final export restriction after Accepted Lesson
 Refs and immutable Graph Revisions establish a new audited downstream boundary.
 
+DEV-76 initially expressed this cut as a complete rewrite of the syllabus static
+page. That rewrite made the fork boundary obvious, but also discarded donor UI
+that belonged on the retained side of the boundary: subject accents, light and
+dark themes, filters, collapse and validation behavior, inline version editing,
+version history, upload identity checks, ordered manual-image intake, Markdown
+and image inspection, retries, usage totals, and live source progress.
+
+DEV-98 restores the syllabus HTML, CSS, and JavaScript from the `46eab4b` donor
+as the presentation baseline. The restoration deliberately omits the donor
+Knowledge Build dialog, Knowledge Component status/actions, and Concept Universe
+link. The pilot's Lesson Build controls are grafted into the donor's per-Lesson
+footer and Source Publication selection seams; its build manifest, stages, raw
+artifacts, review actions, Graph Revision history, and validated Companion
+package downloads remain available there. This is a UI restoration across the
+same Source Publication fork boundary, not a reversal of that boundary.
+
 ## Consequences
 
 - A fresh stack has one product boundary and no reachable downstream phase.
 - Deployment consists of PostgreSQL, web, worker, and a local asset volume.
 - Future build stages must enter through the explicit Lesson Build registry.
 - Donor history remains recoverable from git without becoming runtime surface.
+- Retained donor UI should be evolved in place; removing a downstream domain
+  does not imply replacing unrelated upstream interaction design.
