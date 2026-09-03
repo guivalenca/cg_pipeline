@@ -137,6 +137,9 @@ def test_saved_real_book_pages_form_one_lossless_ordered_document(db, tmp_path):
                 ),
                 original_library_url="https://philos.sophia.com.br/terminal/9418",
                 capture_version="saved-browserbase-fixture-v1",
+                resolved_page_labels=tuple(
+                    item["requested_label"] for item in manifest["pages"]
+                ),
                 diagnostics={"warnings": []},
             )
 

@@ -567,9 +567,7 @@ def test_graph_id_proposal_describes_a_template_and_existing_syllabus_owners(
     marker = uuid.uuid4().hex[:8]
     name = f"Proposal {marker}"
     path = _workbook(tmp_path / "proposal.xlsx", project="Project", lesson="Aula")
-    template = subject_graph_id_for("web-inteli", name, "subject").removesuffix(
-        "-subject"
-    ) + "-<subject>"
+    template = f"graph-web-inteli-proposal-{marker}-<subject>"
 
     with TestClient(_app(test_database_url)) as client:
         before = client.get(

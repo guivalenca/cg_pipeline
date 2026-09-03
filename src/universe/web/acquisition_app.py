@@ -58,7 +58,7 @@ from universe.db import connect
 from universe.graph_identity import (
     GRAPH_ID_CONFLICT_MESSAGE,
     GraphIdConflict,
-    subject_graph_id_for,
+    subject_graph_id_template_for,
 )
 from universe.syllabus import (
     SyllabusAlreadyExists,
@@ -1037,7 +1037,7 @@ def create_app(
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     @app.get("/api/syllabi/graph-id-proposal")
-    def syllabus_graph_id_proposal(
+    def lesson_subject_graph_id_template(
         institution_id: str = Query(...),
         name: str = Query(...),
     ) -> dict:
@@ -1052,10 +1052,11 @@ def create_app(
             raise HTTPException(status_code=422, detail="Dê um nome ao syllabus.")
         try:
             syllabus_id = validate_syllabus_id(slugify(clean_name))
-            sentinel = subject_graph_id_for(institution_id, clean_name, "subject")
+            graph_id_template = subject_graph_id_template_for(
+                institution_id, clean_name
+            )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        graph_id_template = sentinel.removesuffix("-subject") + "-<subject>"
         with connect_factory() as conn:
             exact_title = conn.execute(
                 "SELECT id, title FROM syllabus WHERE title = %s"

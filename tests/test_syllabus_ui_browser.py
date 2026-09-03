@@ -800,7 +800,7 @@ def test_lesson_description_expands_to_show_its_content_when_editing(
         browser.close()
 
 
-def test_book_code_can_be_copied_exactly_from_the_source_card(
+def test_book_resource_code_can_be_copied_from_the_source_reference(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser copy {uuid.uuid4().hex[:8]}"
@@ -835,7 +835,7 @@ def test_book_code_can_be_copied_exactly_from_the_source_card(
         browser.close()
 
 
-def test_scope_less_book_card_opens_its_scope_editor_and_enables_extraction_after_save(
+def test_scope_less_book_reference_opens_scope_editor_and_enables_extraction_after_save(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser book scope {uuid.uuid4().hex[:8]}"
@@ -857,16 +857,16 @@ def test_scope_less_book_card_opens_its_scope_editor_and_enables_extraction_afte
         second_lesson.get_by_role(
             "button", name="Expandir aula Segunda aula"
         ).click()
-        source_card = second_lesson.locator(".syl-source")
-        expect(source_card).to_contain_text(
+        source_reference = second_lesson.locator(".syl-source")
+        expect(source_reference).to_contain_text(
             "Este livro ainda não tem um escopo concreto. "
             "Informe páginas ou capítulos antes de extrair."
         )
         expect(
-            source_card.get_by_role("button", name="Complete a fonte")
+            source_reference.get_by_role("button", name="Complete a referência")
         ).to_be_disabled()
 
-        source_card.get_by_role(
+        source_reference.get_by_role(
             "button", name="Informar escopo de Livro da segunda aula"
         ).click()
 
@@ -884,17 +884,17 @@ def test_scope_less_book_card_opens_its_scope_editor_and_enables_extraction_afte
         expect(scope_kind.locator('option[value="chapters"]')).to_have_text(
             "Capítulos"
         )
-        scope_kind.select_option("pages")
+        scope_kind.select_option("chapters")
         page.locator(
             '[data-source-field="scope_value"]'
             '[data-lesson-index="1"]'
             '[data-source-index="0"]'
-        ).fill("37-38")
+        ).fill("5")
 
         page.get_by_role("button", name="Salvar nova versão").click()
         version_dialog = page.get_by_role("dialog", name="Registrar nova versão")
         version_dialog.get_by_label("Razão da nova versão").fill(
-            "Define as páginas concretas do livro atribuído."
+            "Define o capítulo concreto do livro atribuído."
         )
         version_dialog.get_by_role("button", name="Criar versão").click()
         expect(page.locator("[data-status]")).to_contain_text("Versão 2 salva")
@@ -904,10 +904,12 @@ def test_scope_less_book_card_opens_its_scope_editor_and_enables_extraction_afte
         second_lesson.get_by_role(
             "button", name="Expandir aula Segunda aula"
         ).click()
-        source_card = second_lesson.locator(".syl-source")
-        expect(source_card).to_contain_text("Páginas 37-38")
+        source_reference = second_lesson.locator(".syl-source")
+        expect(source_reference).to_contain_text("Capítulos 5")
         expect(
-            source_card.get_by_role("button", name="Extrair Markdown", exact=True)
+            source_reference.get_by_role(
+                "button", name="Extrair Markdown", exact=True
+            )
         ).to_be_enabled()
         browser.close()
 
@@ -1007,7 +1009,70 @@ def test_validated_source_publication_starts_a_lesson_build_from_the_lesson_dial
         browser.close()
 
 
-def test_source_card_polls_live_stage_and_shows_failure_reason(
+def test_successful_acquisition_without_a_publication_cannot_enter_a_lesson_build(
+    test_database_url, applied_migrations, tmp_path
+):
+    marker = uuid.uuid4().hex[:8]
+    name = f"Browser unpublished source {marker}"
+    with psycopg.connect(test_database_url) as conn:
+        imported = import_workbook(
+            conn,
+            _subject_workbook(tmp_path / "unpublished-source-browser.xlsx"),
+            name,
+            require_syllabus_metadata=False,
+        )
+        detail = get_syllabus_version(conn, imported["syllabus_id"])
+        lesson = detail["lessons"][0]
+        source = lesson["sources"][0]
+        _publish_reference(conn, source["reference_id"])
+        review = update_source_review(
+            conn,
+            imported["syllabus_id"],
+            source["reference_id"],
+            {"validated": True, "complexity": "simple"},
+        )
+        assert review == {"validated": True, "complexity": "simple"}
+
+    def expose_successful_job_without_publication(payload):
+        projected = payload["lessons"][0]["sources"][0]
+        projected["job"] = {"status": "succeeded"}
+        projected["pipeline"] = {}
+        projected["has_markdown"] = False
+        projected["markdown"] = {"available": False, "is_previous_version": False}
+        projected.pop("source_publication", None)
+        projected.pop("publication", None)
+        projected.pop("publication_id", None)
+
+    app = create_app(lambda: psycopg.connect(test_database_url))
+    with _serve(app) as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _route_detail(
+            page,
+            imported["syllabus_id"],
+            expose_successful_job_without_publication,
+        )
+        page.goto(f"{base_url}/syllabi?id={imported['syllabus_id']}")
+
+        lesson_reference = page.locator(".syl-lesson").first
+        lesson_reference.get_by_role(
+            "button", name=f"Expandir aula {lesson['title']}"
+        ).click()
+        source_choice = lesson_reference.locator(
+            f'[data-build-source][data-reference-id="{source["reference_id"]}"]'
+        )
+        expect(source_choice).to_be_disabled()
+        expect(source_choice).not_to_be_checked()
+        expect(lesson_reference.locator(".syl-source")).to_have_attribute(
+            "data-source-status", "attention"
+        )
+        expect(lesson_reference.locator(".syl-lesson-build-copy")).to_contain_text(
+            "0/0 Source Publications selecionadas"
+        )
+        browser.close()
+
+
+def test_source_reference_polls_live_stage_and_shows_failure_reason(
     test_database_url, applied_migrations, tmp_path
 ):
     name = f"Browser live source {uuid.uuid4().hex[:8]}"
@@ -1031,11 +1096,11 @@ def test_source_card_polls_live_stage_and_shows_failure_reason(
         first_lesson.get_by_role(
             "button", name="Expandir aula Primeira aula"
         ).click()
-        source_card = first_lesson.locator(".syl-source").first
-        source_card.get_by_role("button", name="Extrair Markdown").click()
+        source_reference = first_lesson.locator(".syl-source").first
+        source_reference.get_by_role("button", name="Extrair Markdown").click()
 
-        expect(source_card).to_have_attribute("data-source-status", "queued")
-        expect(source_card).to_contain_text("Na fila")
+        expect(source_reference).to_have_attribute("data-source-status", "queued")
+        expect(source_reference).to_contain_text("Na fila")
 
         with psycopg.connect(test_database_url) as conn:
             job_id, = conn.execute(
@@ -1052,10 +1117,10 @@ def test_source_card_polls_live_stage_and_shows_failure_reason(
             )
             conn.commit()
 
-        expect(source_card).to_have_attribute(
+        expect(source_reference).to_have_attribute(
             "data-source-status", "running", timeout=7_000
         )
-        expect(source_card).to_contain_text("Extraindo fonte")
+        expect(source_reference).to_contain_text("Extraindo fonte")
 
         with psycopg.connect(test_database_url) as conn:
             conn.execute(
@@ -1068,11 +1133,11 @@ def test_source_card_polls_live_stage_and_shows_failure_reason(
             )
             conn.commit()
 
-        expect(source_card).to_have_attribute(
+        expect(source_reference).to_have_attribute(
             "data-source-status", "failed", timeout=7_000
         )
-        expect(source_card).to_contain_text("Precisa de atenção")
-        expect(source_card).to_contain_text(
+        expect(source_reference).to_contain_text("Precisa de atenção")
+        expect(source_reference).to_contain_text(
             "O domínio da fonte não pôde ser localizado."
         )
         browser.close()

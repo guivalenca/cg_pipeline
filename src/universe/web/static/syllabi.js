@@ -134,21 +134,40 @@ function safeAssetUrl(value) {
   return /^\/api\/source-assets\/[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(path) ? path : null;
 }
 
+const MEDIA_DETAILS = [
+  {
+    key: 'article', aliases: ['article', 'artigo'], label: 'Artigo',
+    capability: { supported: true, adapter: 'firecrawl', label: 'Firecrawl' },
+  },
+  {
+    key: 'video', aliases: ['video', 'vídeo'], label: 'Vídeo',
+    capability: { supported: true, adapter: 'youtube', label: 'YouTube' },
+  },
+  {
+    key: 'book', aliases: ['book', 'livro'], label: 'Livro',
+    capability: {
+      supported: true,
+      adapter: 'browserbase-book',
+      label: 'Browserbase + reconstrução ordenada',
+    },
+  },
+  { key: 'pdf', aliases: ['pdf'], label: 'PDF' },
+];
+
+function mediaDetails(source) {
+  const raw = String(source.media_type || source.type || '').toLowerCase();
+  return MEDIA_DETAILS.find((details) => (
+    details.aliases.some((alias) => raw.includes(alias))
+  )) || null;
+}
+
 function mediaLabel(source) {
-  const kind = String(source.media_type || source.type || '').toLowerCase();
-  if (kind.includes('video')) return 'Vídeo';
-  if (kind.includes('book') || kind.includes('livro')) return 'Livro';
-  if (kind.includes('pdf')) return 'PDF';
-  if (kind.includes('article') || kind.includes('artigo')) return 'Artigo';
-  return source.media_type || source.type || 'Material';
+  return mediaDetails(source)?.label || source.media_type || source.type || 'Material';
 }
 
 function mediaKey(source) {
-  const kind = String(source.media_type || source.type || '').toLowerCase();
-  if (kind.includes('video') || kind.includes('vídeo')) return 'video';
-  if (kind.includes('book') || kind.includes('livro')) return 'book';
-  if (kind.includes('article') || kind.includes('artigo')) return 'article';
-  return kind;
+  return mediaDetails(source)?.key
+    || String(source.media_type || source.type || '').toLowerCase();
 }
 
 function acquisitionCapability(source) {
@@ -157,20 +176,8 @@ function acquisitionCapability(source) {
   }
   // Conservative fallback for a cached/older API response: only the Adapter
   // that exists today may expose an enabled queue action.
-  const kind = String(source.media_type || source.type || '').toLowerCase();
-  if (kind === 'article' || kind === 'artigo') {
-    return { supported: true, adapter: 'firecrawl', label: 'Firecrawl' };
-  }
-  if (kind === 'video' || kind === 'vídeo') {
-    return { supported: true, adapter: 'youtube', label: 'YouTube' };
-  }
-  if (kind === 'book' || kind === 'livro') {
-    return {
-      supported: true,
-      adapter: 'browserbase-book',
-      label: 'Browserbase + reconstrução ordenada',
-    };
-  }
+  const capability = mediaDetails(source)?.capability;
+  if (capability) return capability;
   return {
     supported: false,
     adapter: null,
@@ -179,13 +186,12 @@ function acquisitionCapability(source) {
   };
 }
 
-function isScopeLessBook(source) {
-  const kind = String(source.media_type || source.type || '').toLowerCase();
+function isBookReferenceMissingScope(source) {
   const resourceCode = String(source.resource_code || '').trim();
   const scope = source.scope && typeof source.scope === 'object' ? source.scope : null;
   const scopeKind = String(scope?.kind || source.scope_kind || '').trim();
   const scopeValue = String(scope?.value || source.scope_value || '').trim();
-  return kind === 'book'
+  return mediaKey(source) === 'book'
     && !source.source_id
     && !source.id
     && Boolean(resourceCode)
@@ -194,9 +200,9 @@ function isScopeLessBook(source) {
 
 function sourceStatus(source) {
   if (!source.source_id && !source.id) {
-    return isScopeLessBook(source)
+    return isBookReferenceMissingScope(source)
       ? { key: 'attention', label: 'Informe o escopo' }
-      : { key: 'attention', label: 'Fonte incompleta' };
+      : { key: 'attention', label: 'Referência incompleta' };
   }
   const videoStage = String(source.video_progress?.stage || '').toLowerCase();
   const videoStages = {
@@ -210,6 +216,9 @@ function sourceStatus(source) {
     ready: { key: 'ready', label: 'Fonte pronta' },
     attention: { key: 'failed', label: 'Precisa de atenção' },
   };
+  if (videoStage === 'ready' && !hasSourcePublication(source)) {
+    return { key: 'attention', label: 'Publicação ausente' };
+  }
   if (videoStages[videoStage]) return videoStages[videoStage];
   const pipeline = String(source.pipeline?.status || '').toLowerCase();
   const pipelineStates = {
@@ -221,14 +230,20 @@ function sourceStatus(source) {
     attention: { key: 'failed', label: 'Evidência incompleta' },
     ready: { key: 'ready', label: 'Markdown limpo' },
   };
+  if (pipeline === 'ready' && !hasSourcePublication(source)) {
+    return { key: 'attention', label: 'Publicação ausente' };
+  }
   if (pipelineStates[pipeline]) return pipelineStates[pipeline];
   const job = source.job || source.acquisition || {};
   const raw = String(job.status || source.acquisition_status || source.source_status || '').toLowerCase();
   if (['queued', 'pending'].includes(raw)) return { key: 'queued', label: 'Na fila' };
   if (['running', 'processing', 'started'].includes(raw)) return { key: 'running', label: 'Extraindo' };
   if (['failed', 'error', 'needs_attention'].includes(raw)) return { key: 'failed', label: 'Precisa de atenção' };
-  if (source.has_markdown || source.markdown?.available || ['done', 'succeeded', 'ready', 'ingested'].includes(raw)) {
+  if (hasSourcePublication(source)) {
     return { key: 'ready', label: 'Markdown pronto' };
+  }
+  if (['done', 'succeeded', 'ready', 'ingested'].includes(raw)) {
+    return { key: 'attention', label: 'Publicação ausente' };
   }
   if (!acquisitionCapability(source).supported) {
     return { key: 'unavailable', label: 'Adapter indisponível' };
@@ -543,7 +558,7 @@ function filteredLessons(detail) {
 function sourceStatusMarkup(source) {
   const status = sourceStatus(source);
   const images = source.image_branch || {};
-  const isVideo = String(source.media_type || source.type || '').toLowerCase().includes('video');
+  const isVideo = mediaKey(source) === 'video';
   const visualNoun = isVideo ? 'quadro' : 'imagem';
   const visualNounPlural = isVideo ? 'quadros' : 'imagens';
   const analyzedAdjective = isVideo ? 'analisados' : 'analisadas';
@@ -568,15 +583,7 @@ function sourceStatusMarkup(source) {
 }
 
 function hasSourcePublication(source) {
-  const status = sourceStatus(source);
-  return Boolean(
-    source.source_publication
-    || source.publication
-    || source.publication_id
-    || source.has_markdown
-    || source.markdown?.available
-    || status.key === 'ready'
-  );
+  return Boolean(source.has_markdown && source.markdown?.available);
 }
 
 function hasCurrentSourcePublication(source) {
@@ -590,12 +597,12 @@ function sourceActions(source) {
   const sourceId = source.source_id || source.id;
   const capability = acquisitionCapability(source);
   const unavailableLabel = `Adapter de ${mediaLabel(source).toLowerCase()} indisponível`;
-  const isVideo = String(source.media_type || source.type || '').toLowerCase().includes('video');
+  const isVideo = mediaKey(source) === 'video';
   const preflight = source.video_preflight || null;
   const needsPreflight = isVideo && (!preflight || preflight.status === 'failed');
   const needsAuthorization = isVideo && preflight?.route === 'approval_required';
   const canSetBookScope = isLatestVersion()
-    && isScopeLessBook(source)
+    && isBookReferenceMissingScope(source)
     && Boolean(source.reference_id);
   return `<div class="syl-source__actions">
     ${markdownReady ? `<button class="button syl-action-button" type="button" data-markdown-source="${esc(sourceId)}" data-markdown-title="${esc(source.title)}">${ICON.eye}Visualizar</button>` : ''}
@@ -607,7 +614,7 @@ function sourceActions(source) {
         ? `<button class="button syl-queue-button" type="button" data-authorize-video="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>${ICON.queue}Processar vídeo longo</button>`
         : (capability.supported
       ? `<button class="button syl-queue-button" type="button" data-queue-source="${esc(sourceId || '')}"${busy || !sourceId ? ' disabled' : ''}>
-          ${ICON.queue}${!sourceId ? 'Complete a fonte' : (busy ? `${esc(status.label)}…` : (markdownReady ? 'Reprocessar fonte' : (isVideo ? 'Processar vídeo' : 'Extrair Markdown')))}
+          ${ICON.queue}${!sourceId ? 'Complete a referência' : (busy ? `${esc(status.label)}…` : (markdownReady ? 'Reprocessar fonte' : (isVideo ? 'Processar vídeo' : 'Extrair Markdown')))}
         </button>`
       : (markdownReady
         ? ''
@@ -616,8 +623,7 @@ function sourceActions(source) {
 }
 
 function videoReadinessMarkup(source) {
-  const kind = String(source.media_type || source.type || '').toLowerCase();
-  if (!kind.includes('video')) return '';
+  if (mediaKey(source) !== 'video') return '';
   const preflight = source.video_preflight;
   if (!preflight) return '<div class="syl-video-readiness">Metadados do vídeo ainda não verificados.</div>';
   if (preflight.status === 'failed') {
@@ -641,7 +647,7 @@ function videoReadinessMarkup(source) {
 }
 
 function sourceEditorMarkup(source, lessonIndex, sourceIndex) {
-  const kind = String(source.media_type || 'article').toLowerCase();
+  const kind = mediaKey(source) || 'article';
   return `<article class="syl-source syl-source--editor${source.hidden ? ' is-hidden-source' : ''}" data-editor-source="${lessonIndex}:${sourceIndex}">
     <div class="syl-editor-source__heading">
       <span class="syl-media syl-media--${esc(kind)}">${esc(mediaLabel(source))}</span>
@@ -756,13 +762,13 @@ function sourceMarkup(source, lessonId) {
     </article>`;
   }
   const missingInput = !source.source_id && !source.id
-    ? (isScopeLessBook(source)
+    ? (isBookReferenceMissingScope(source)
       ? 'Este livro ainda não tem um escopo concreto. Informe páginas ou capítulos antes de extrair.'
       : 'Esta referência ainda não possui identidade suficiente para ser extraída.')
     : null;
   const failure = source.job?.error || source.acquisition?.error || source.failure_note || source.error || missingInput;
   const capability = acquisitionCapability(source);
-  const markdownReady = source.has_markdown || source.markdown?.available || status.key === 'ready';
+  const markdownReady = hasSourcePublication(source);
   // Once a manual PDF/image path produced Markdown, the missing native adapter
   // is no longer an actionable problem for this source. Keep the fallback
   // upload action visible, but do not contradict the successful outcome.
@@ -772,7 +778,7 @@ function sourceMarkup(source, lessonId) {
   return `<article class="syl-source${source.hidden ? ' is-hidden-source' : ''}" data-source-id="${esc(sourceId)}" data-reference-id="${esc(source.reference_id || '')}" data-source-status="${status.key}">
     <div class="syl-source__main">
       <div class="syl-source__topline">
-        <span class="syl-media syl-media--${esc(String(source.media_type || 'material').toLowerCase())}">${esc(mediaLabel(source))}</span>
+        <span class="syl-media syl-media--${esc(mediaKey(source) || 'material')}">${esc(mediaLabel(source))}</span>
         <span class="syl-source__states">${sourceStatusMarkup(source)}</span>
         ${source.reference_id ? sourceReviewMarkup(source, lessonId) : ''}
       </div>
@@ -1807,7 +1813,7 @@ function replaceSourceState(sourceId, payload) {
     const jobStatus = String(source.job?.status || '').toLowerCase();
     if (['queued', 'running'].includes(jobStatus)) {
       source.pipeline = { status: jobStatus === 'queued' ? 'queued' : 'extracting' };
-      if (String(source.media_type || source.type || '').toLowerCase().includes('video')) {
+      if (mediaKey(source) === 'video') {
         source.video_progress = {
           stage: jobStatus,
           speech: source.video_progress?.speech || null,

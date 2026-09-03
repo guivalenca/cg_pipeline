@@ -57,6 +57,15 @@ def subject_graph_id_for(
     return candidate
 
 
+def subject_graph_id_template_for(
+    institution_slug: str,
+    curriculum_name: str,
+) -> str:
+    """Preview the Graph ID shape before a Lesson Subject is known."""
+    sentinel = subject_graph_id_for(institution_slug, curriculum_name, "subject")
+    return sentinel.removesuffix("-subject") + "-<subject>"
+
+
 def validate_graph_id(value: str) -> str:
     graph_id = str(value or "").strip()
     if GRAPH_ID.fullmatch(graph_id) is None:

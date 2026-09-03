@@ -1,6 +1,10 @@
 import pytest
 
-from universe.graph_identity import subject_graph_id_for, validate_graph_id
+from universe.graph_identity import (
+    subject_graph_id_for,
+    subject_graph_id_template_for,
+    validate_graph_id,
+)
 
 
 def test_graph_id_is_generated_from_institution_curriculum_and_lesson_subject():
@@ -18,6 +22,12 @@ def test_long_graph_id_is_deterministically_bounded():
     assert first == second
     assert len(first) <= 128
     assert validate_graph_id(first) == first
+
+
+def test_subject_graph_id_template_preserves_the_unknown_subject_component():
+    assert subject_graph_id_template_for(
+        "inteli", "Engenharia de Software"
+    ) == "graph-inteli-engenharia-de-software-<subject>"
 
 
 @pytest.mark.parametrize("value", ["", "Bad ID", "1graph", "a" * 129])

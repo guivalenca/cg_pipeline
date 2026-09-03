@@ -14,6 +14,7 @@ from universe.acquisition.book_acquisition import (
 from universe.acquisition.browserbase_book_adapter import (
     BrowserbaseBookAdapter,
     BrowserbasePageCapture,
+    _PlaywrightBookReader,
     _capture_complete_page,
     _ensure_not_clipped,
     _layout_fits,
@@ -104,6 +105,164 @@ def test_book_adapter_holds_context_lock_skips_completed_prefix_and_releases_ses
     assert summary.final_url == "https://reader.example/books/isbn/pageid/212"
     assert summary.original_library_url == "https://library.example/catalog"
     assert "must-not-be-persisted" not in str(summary.diagnostics)
+
+
+def test_book_adapter_resolves_chapter_scope_before_resuming_page_capture():
+    requested_chapters = []
+    captured_labels = []
+    persisted = []
+
+    class Session:
+        browser = object()
+
+        def release(self):
+            pass
+
+    class Reader:
+        final_url = "https://reader.example/books/isbn/pageid/302"
+
+        def resolve_chapter_page_labels(self, value):
+            requested_chapters.append(value)
+            return ("101", "102")
+
+        def capture_page(
+            self, *, ordinal, printed_page_label, preferred_reader_page_id
+        ):
+            captured_labels.append(printed_page_label)
+            assert ordinal == 2
+            assert preferred_reader_page_id == "302"
+            return BrowserbasePageCapture(
+                reader_page_id="302",
+                image_body=b"page-102",
+                exact_text="Exact text for printed page 102. " + "word " * 20,
+            )
+
+    adapter = BrowserbaseBookAdapter(
+        api_key="test-api-key",
+        context_id="persistent-context",
+        session_opener=lambda _config, _sink: Session(),
+        reader_opener=lambda _session, _request, _credentials, _sink: Reader(),
+        lock_factory=lambda _identity: _null_context(),
+    )
+    request = BookCaptureRequest(
+        source_id="source-chapter",
+        title="Chapter-scoped book",
+        resource_code="isbn",
+        scope_kind="chapters",
+        scope_value="5",
+    )
+
+    summary = adapter.capture(
+        request,
+        completed_pages=[_completed(1, "101", "301")],
+        persist_page=lambda page: persisted.append(page) or _completed(
+            page.ordinal, page.printed_page_label, page.reader_page_id
+        ),
+    )
+
+    assert requested_chapters == ["5"]
+    assert captured_labels == ["102"]
+    assert "5" not in captured_labels
+    assert [page.printed_page_label for page in persisted] == ["102"]
+    assert summary.resolved_page_labels == ("101", "102")
+
+
+def test_playwright_reader_resolves_chapter_through_the_visible_toc():
+    toc_text = """
+    Expandir tudo
+    Chapter 5 Foundations 101
+    5.1 First principles 101
+    Chapter 6 Applications 103
+    """
+
+    class Locator:
+        def __init__(self, page, *, body=False, action=None):
+            self.page = page
+            self.body = body
+            self.action = action
+
+        @property
+        def first(self):
+            return self
+
+        def count(self):
+            return 1 if self.body or self.action else 0
+
+        def inner_text(self, **_kwargs):
+            return self.page.body
+
+        def click(self, **_kwargs):
+            if self.action == "open-toc":
+                self.page.body = toc_text
+
+    class Page:
+        url = "https://integrada.minhabiblioteca.com.br/reader/books/isbn"
+
+        def __init__(self):
+            self.body = "Reader shell with Sumário control"
+
+        def locator(self, selector):
+            return Locator(self, body=selector == "body")
+
+        def get_by_role(self, _role, *, name):
+            pattern = str(getattr(name, "pattern", name))
+            action = "open-toc" if "Contents" in pattern else None
+            return Locator(self, action=action)
+
+        def get_by_text(self, _name):
+            return Locator(self)
+
+        def wait_for_timeout(self, _milliseconds):
+            pass
+
+    reader = _PlaywrightBookReader(
+        Page(),
+        BookCaptureRequest(
+            "source-chapter", "Book", "isbn", "chapters", "5"
+        ),
+        lambda _event: None,
+    )
+
+    assert reader.resolve_chapter_page_labels("5") == ("101", "102")
+
+
+def test_playwright_reader_retries_until_the_requested_toc_boundary_is_visible(
+    monkeypatch,
+):
+    snapshots = iter(
+        (
+            "Expandir tudo\nChapter 1 Introduction 1\nChapter 2 Basics 10",
+            "Expandir tudo\nChapter 5 Foundations 101\nChapter 6 Applications 103",
+        )
+    )
+    reads = []
+
+    def next_snapshot(_page):
+        snapshot = next(snapshots)
+        reads.append(snapshot)
+        return snapshot
+
+    monkeypatch.setattr(
+        "universe.acquisition.browserbase_book_adapter._reader_table_of_contents_text",
+        next_snapshot,
+    )
+
+    class Page:
+        url = "https://integrada.minhabiblioteca.com.br/reader/books/isbn"
+
+        def wait_for_timeout(self, _milliseconds):
+            pass
+
+    reader = _PlaywrightBookReader(
+        Page(),
+        BookCaptureRequest(
+            "source-chapter", "Book", "isbn", "chapters", "5"
+        ),
+        lambda _event: None,
+    )
+
+    assert reader.resolve_chapter_page_labels("5") == ("101", "102")
+    assert len(reads) == 2
 
 
 def test_book_adapter_releases_session_and_sanitizes_transient_browser_failure():

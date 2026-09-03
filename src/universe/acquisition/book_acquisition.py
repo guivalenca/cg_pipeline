@@ -18,6 +18,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from universe.assets import AssetStore, asset_store_from_env
+from universe.acquisition.book_toc import parse_chapter_selector
 from universe.acquisition.ordered_reconstruction import (
     ORDERED_RECONSTRUCTION_TOOL,
     ORDERED_RECONSTRUCTION_VERSION,
@@ -42,6 +43,7 @@ BOOK_TEXT_TOOL_VERSION = "reader-accessibility-text.v1"
 IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 MAX_PAGE_BYTES = 30 * 1024 * 1024
 MAX_PAGE_COUNT = 50
+BOOK_SCOPE_KINDS = {"pages", "chapters"}
 
 
 @dataclass(frozen=True)
@@ -78,6 +80,7 @@ class BookCaptureSummary:
     final_url: str
     original_library_url: str
     capture_version: str
+    resolved_page_labels: tuple[str, ...]
     diagnostics: Mapping[str, Any]
 
 
@@ -100,6 +103,8 @@ class BookOutcome:
 
 
 class BookCaptureAdapter(Protocol):
+    """Resolve the requested page or chapter scope into ordered captured pages."""
+
     def capture(
         self,
         request: BookCaptureRequest,
@@ -184,7 +189,7 @@ def book_capture_outcome(
                 "book_capture_invalid_summary", "invalid_adapter_result"
             )
         completed = _completed_pages(conn, str(claimed_job["id"]))
-        _validate_completion(request, completed)
+        _validate_completion(request, completed, summary)
         rows = _page_rows(conn, str(claimed_job["id"]), store)
         conn.commit()
     except BookAcquisitionError as exc:
@@ -292,7 +297,11 @@ def _request(*, source_id: str, title: str, identity: Mapping[str, Any]) -> Book
         raise BookAcquisitionError("book_scope_required", "missing_concrete_scope")
     scope_kind = _required_text(scope.get("kind"), "scope.kind")
     scope_value = _required_text(scope.get("value"), "scope.value")
-    if scope_kind != "pages" or book_page_labels(scope_value) is None:
+    if scope_kind not in BOOK_SCOPE_KINDS:
+        raise BookAcquisitionError("book_scope_invalid", "missing_concrete_scope")
+    if scope_kind == "pages" and book_page_labels(scope_value) is None:
+        raise BookAcquisitionError("book_scope_invalid", "missing_concrete_scope")
+    if scope_kind == "chapters" and parse_chapter_selector(scope_value) is None:
         raise BookAcquisitionError("book_scope_invalid", "missing_concrete_scope")
     return BookCaptureRequest(
         source_id=source_id,
@@ -464,16 +473,32 @@ def _page_rows(
 
 
 def _validate_completion(
-    request: BookCaptureRequest, pages: Sequence[CompletedBookPage]
+    request: BookCaptureRequest,
+    pages: Sequence[CompletedBookPage],
+    summary: BookCaptureSummary,
 ) -> None:
-    labels = book_page_labels(request.scope_value)
-    if labels is None:
-        raise BookAcquisitionError("book_scope_invalid", "missing_concrete_scope")
-    expected_ordinals = list(range(1, len(labels) + 1))
+    plan = tuple(str(label or "").strip() for label in summary.resolved_page_labels)
+    if (
+        not plan
+        or len(plan) > MAX_PAGE_COUNT
+        or any(not label for label in plan)
+        or len(set(plan)) != len(plan)
+    ):
+        raise BookAcquisitionError(
+            "book_capture_invalid_summary", "invalid_adapter_result"
+        )
+    expected_ordinals = list(range(1, len(plan) + 1))
     if [page.ordinal for page in pages] != expected_ordinals:
         raise BookAcquisitionError("book_capture_incomplete", "missing_page")
-    if tuple(page.printed_page_label for page in pages) != labels:
+    captured_labels = tuple(page.printed_page_label for page in pages)
+    if captured_labels != plan:
         raise BookAcquisitionError("book_capture_scope_mismatch", "scope_mismatch")
+    if request.scope_kind == "pages":
+        labels = book_page_labels(request.scope_value)
+        if labels is None:
+            raise BookAcquisitionError("book_scope_invalid", "missing_concrete_scope")
+        if plan != labels:
+            raise BookAcquisitionError("book_capture_scope_mismatch", "scope_mismatch")
 
 
 def book_page_labels(value: str) -> tuple[str, ...] | None:

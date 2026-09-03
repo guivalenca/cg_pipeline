@@ -1,4 +1,4 @@
-"""Public contracts for completing a scope-less authenticated book source."""
+"""Public contracts for completing a scope-less authenticated book reference."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ from universe.web.app import create_app
 INSTITUTION_ID = "book-scope-test"
 RESOURCE_CODE = "9780000000001"
 SAVED_SCOPE = "37-38"
+SAVED_CHAPTER = "5"
 
 
 def _app(database_url: str):
@@ -76,10 +77,13 @@ def _upload(client: TestClient, workbook_path: Path, syllabus_name: str) -> dict
     return response.json()
 
 
-def _save_page_scope(
+def _save_book_scope(
     client: TestClient,
     workbook_path: Path,
     syllabus_name: str,
+    *,
+    scope_kind: str = "pages",
+    scope_value: str = SAVED_SCOPE,
 ) -> tuple[dict, dict, dict]:
     uploaded = _upload(client, workbook_path, syllabus_name)
     syllabus_id = uploaded["syllabus_id"]
@@ -92,8 +96,8 @@ def _save_page_scope(
     assert source["scope"] is None
     assert source["source_id"] is None
 
-    source["scope_kind"] = "pages"
-    source["scope_value"] = SAVED_SCOPE
+    source["scope_kind"] = scope_kind
+    source["scope_value"] = scope_value
     curated_response = client.post(
         f"/api/syllabi/{syllabus_id}/curate",
         json={
@@ -144,7 +148,7 @@ def test_operator_curation_adds_missing_book_scope_as_a_new_audited_version(
     workbook_path = _scope_less_book_workbook(tmp_path / "scope-less-book.xlsx")
 
     with TestClient(_app(test_database_url)) as client:
-        before, curated, reloaded = _save_page_scope(
+        before, curated, reloaded = _save_book_scope(
             client,
             workbook_path,
             "Scope-less book curation",
@@ -212,11 +216,12 @@ def test_saved_book_page_scope_reaches_the_authenticated_capture_adapter(
                 ),
                 original_library_url="https://philos.sophia.com.br/terminal/9418",
                 capture_version="fake-browserbase-v1",
+                resolved_page_labels=("37", "38"),
                 diagnostics={"session_restarts": 0},
             )
 
     with TestClient(_app(test_database_url)) as client:
-        _, _, reloaded = _save_page_scope(
+        _, _, reloaded = _save_book_scope(
             client,
             workbook_path,
             "Saved scope acquisition",
@@ -243,3 +248,126 @@ def test_saved_book_page_scope_reaches_the_authenticated_capture_adapter(
     assert captured_requests[0].resource_code == RESOURCE_CODE
     assert captured_requests[0].scope_kind == "pages"
     assert captured_requests[0].scope_value == SAVED_SCOPE
+
+
+def test_saved_book_chapter_scope_reaches_the_capture_adapter(
+    test_database_url,
+    tmp_path,
+):
+    workbook_path = _scope_less_book_workbook(tmp_path / "chapter-book.xlsx")
+    captured_requests = []
+
+    class ChapterRecordingAdapter:
+        def capture(self, request, *, completed_pages, persist_page):
+            captured_requests.append(request)
+            assert completed_pages == ()
+            for ordinal, label in enumerate(("101", "102"), 1):
+                persist_page(
+                    CapturedBookPage(
+                        ordinal=ordinal,
+                        printed_page_label=label,
+                        reader_page_id=str(300 + ordinal),
+                        image_body=_png(f"chapter page {label}"),
+                        mime_type="image/png",
+                        exact_text=f"Exact text for chapter page {label}.",
+                    )
+                )
+            return BookCaptureSummary(
+                final_url=(
+                    "https://integrada.minhabiblioteca.com.br/reader/books/"
+                    f"{RESOURCE_CODE}/pageid/302"
+                ),
+                original_library_url="https://philos.sophia.com.br/terminal/9418",
+                capture_version="fake-chapter-browserbase-v1",
+                resolved_page_labels=("101", "102"),
+                diagnostics={"resolved_chapter": SAVED_CHAPTER},
+            )
+
+    with TestClient(_app(test_database_url)) as client:
+        _, _, reloaded = _save_book_scope(
+            client,
+            workbook_path,
+            "Saved chapter acquisition",
+            scope_kind="chapters",
+            scope_value=SAVED_CHAPTER,
+        )
+        saved_source = reloaded["lessons"][0]["sources"][0]
+        assert saved_source["scope"] == {
+            "kind": "chapters",
+            "value": SAVED_CHAPTER,
+        }
+        source_id = saved_source["source_id"]
+        queued_response = client.post(f"/api/sources/{source_id}/queue")
+
+    assert queued_response.status_code == 202, queued_response.text
+    queued = queued_response.json()["job"]
+    with psycopg.connect(test_database_url) as conn:
+        completed = process_next_job(
+            conn,
+            job_id=queued["id"],
+            asset_store=LocalAssetStore(tmp_path / "chapter-book-assets"),
+            book_adapter=ChapterRecordingAdapter(),
+            book_document_parser=_parse_document,
+            book_figure_locator=_locate_no_figures,
+        )
+
+    assert completed["status"] == "succeeded"
+    assert len(captured_requests) == 1
+    assert captured_requests[0].source_id == source_id
+    assert captured_requests[0].scope_kind == "chapters"
+    assert captured_requests[0].scope_value == SAVED_CHAPTER
+
+
+def test_chapter_capture_rejects_pages_outside_the_declared_resolution_plan(
+    test_database_url,
+    tmp_path,
+):
+    workbook_path = _scope_less_book_workbook(tmp_path / "mismatched-chapter.xlsx")
+
+    class MismatchedChapterAdapter:
+        def capture(self, request, *, completed_pages, persist_page):
+            persist_page(
+                CapturedBookPage(
+                    ordinal=1,
+                    printed_page_label="101",
+                    reader_page_id="301",
+                    image_body=_png("captured page 101"),
+                    mime_type="image/png",
+                    exact_text="Exact text for the wrong resolved page.",
+                )
+            )
+            return BookCaptureSummary(
+                final_url=(
+                    "https://integrada.minhabiblioteca.com.br/reader/books/"
+                    f"{RESOURCE_CODE}/pageid/301"
+                ),
+                original_library_url="https://philos.sophia.com.br/terminal/9418",
+                capture_version="fake-mismatched-chapter-v1",
+                resolved_page_labels=("102",),
+                diagnostics={"resolved_chapter": "6"},
+            )
+
+    with TestClient(_app(test_database_url)) as client:
+        _, _, reloaded = _save_book_scope(
+            client,
+            workbook_path,
+            "Mismatched chapter acquisition",
+            scope_kind="chapters",
+            scope_value="6",
+        )
+        source_id = reloaded["lessons"][0]["sources"][0]["source_id"]
+        queued_response = client.post(f"/api/sources/{source_id}/queue")
+
+    assert queued_response.status_code == 202, queued_response.text
+    with psycopg.connect(test_database_url) as conn:
+        completed = process_next_job(
+            conn,
+            job_id=queued_response.json()["job"]["id"],
+            asset_store=LocalAssetStore(tmp_path / "mismatched-chapter-assets"),
+            book_adapter=MismatchedChapterAdapter(),
+            book_document_parser=_parse_document,
+            book_figure_locator=_locate_no_figures,
+        )
+
+    assert completed["status"] == "failed"
+    assert completed["failure_code"] == "book_capture_scope_mismatch"

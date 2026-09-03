@@ -216,6 +216,7 @@ def test_book_adapter_feeds_the_same_module_and_preserves_exact_reader_text(
                 ),
                 original_library_url="https://philos.sophia.com.br/terminal/9418",
                 capture_version="fake-browserbase-v1",
+                resolved_page_labels=("198", "199"),
                 diagnostics={"session_restarts": 0},
             )
 
@@ -329,6 +330,7 @@ def test_transient_book_capture_resumes_the_committed_page_prefix(db, tmp_path):
                 final_url="https://reader.example/books/book-42/pageid/111",
                 original_library_url="https://library.example/catalog",
                 capture_version="fake-browserbase-v1",
+                resolved_page_labels=("10", "11"),
                 diagnostics={},
             )
 
@@ -393,6 +395,7 @@ def test_transient_firecrawl_failure_retries_book_without_recapturing_pages(
                 final_url="https://reader.example/books/book-retry/pageid/110",
                 original_library_url="https://library.example/catalog",
                 capture_version="fake-browserbase-v1",
+                resolved_page_labels=("10",),
                 diagnostics={},
             )
 

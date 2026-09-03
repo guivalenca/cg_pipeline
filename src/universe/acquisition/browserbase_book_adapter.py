@@ -16,12 +16,19 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from PIL import Image, UnidentifiedImageError
 
 from universe.acquisition.book_acquisition import (
+    BOOK_SCOPE_KINDS,
+    MAX_PAGE_COUNT,
     BookAcquisitionError,
     BookCaptureRequest,
     BookCaptureSummary,
     CapturedBookPage,
     CompletedBookPage,
     book_page_labels,
+)
+from universe.acquisition.book_toc import (
+    BookTocError,
+    resolve_chapter_scope_to_page_labels,
+    toc_entries_from_text,
 )
 from universe.acquisition.browserbase_lock import (
     BrowserbaseContextLock,
@@ -35,7 +42,7 @@ from universe.acquisition.browserbase_session import (
 )
 
 
-CAPTURE_VERSION = "browserbase-book-capture.v5"
+CAPTURE_VERSION = "browserbase-book-capture.v6"
 DEFAULT_TERMINAL_URL = "https://philos.sophia.com.br/terminal/9418"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONTEXT_FILE = PROJECT_ROOT / ".data" / "browserbase_context.json"
@@ -122,12 +129,17 @@ class BrowserbaseBookAdapter:
             raise BookAcquisitionError(
                 "browserbase_not_configured", "configuration"
             )
-        labels = book_page_labels(request.scope_value)
-        if labels is None:
+        labels = (
+            book_page_labels(request.scope_value)
+            if request.scope_kind == "pages"
+            else None
+        )
+        if request.scope_kind not in BOOK_SCOPE_KINDS or (
+            request.scope_kind == "pages" and labels is None
+        ):
             raise BookAcquisitionError(
                 "book_scope_invalid", "missing_concrete_scope"
             )
-        _validate_completed_prefix(completed_pages, labels)
         lock_identity = self.context_id or f"context-file:{self.context_file}"
         events: list[dict[str, Any]] = []
 
@@ -173,6 +185,18 @@ class BrowserbaseBookAdapter:
                     reader = self._reader_opener(
                         session, request, self.credentials, emit
                     )
+                    if request.scope_kind == "chapters":
+                        resolver = getattr(reader, "resolve_chapter_page_labels", None)
+                        if not callable(resolver):
+                            raise BookAcquisitionError(
+                                "book_reader_toc_unavailable", "invalid_reader_result"
+                            )
+                        labels = tuple(resolver(request.scope_value))
+                    if not labels or len(labels) > MAX_PAGE_COUNT:
+                        raise BookAcquisitionError(
+                            "book_scope_invalid", "missing_concrete_scope"
+                        )
+                    _validate_completed_prefix(completed_pages, labels)
                     previous_reader_id = (
                         completed_pages[-1].reader_page_id if completed_pages else ""
                     )
@@ -234,10 +258,15 @@ class BrowserbaseBookAdapter:
             final_url=final_url,
             original_library_url=_public_url(self.terminal_url),
             capture_version=CAPTURE_VERSION,
+            resolved_page_labels=tuple(labels),
             diagnostics={
                 "session_restarts": 0,
                 "page_attempts": len(labels) - len(completed_pages),
                 "reader_kind": "minha-biblioteca",
+                "scope_resolution": (
+                    "reader_toc" if request.scope_kind == "chapters" else "pages"
+                ),
+                "resolved_page_labels": list(labels),
                 "warnings": [
                     event["kind"]
                     for event in events
@@ -278,6 +307,34 @@ class _PlaywrightBookReader:
     @property
     def final_url(self) -> str:
         return str(getattr(self.page, "url", ""))
+
+    def resolve_chapter_page_labels(self, value: str) -> tuple[str, ...]:
+        last_error: BookTocError | None = None
+        for attempt in range(6):
+            toc_text = _reader_table_of_contents_text(self.page)
+            if toc_text:
+                try:
+                    return resolve_chapter_scope_to_page_labels(
+                        value,
+                        toc_text,
+                        max_page_count=MAX_PAGE_COUNT,
+                    )
+                except BookTocError as exc:
+                    last_error = exc
+                    if exc.code not in {
+                        "toc_scope_not_found",
+                        "toc_scope_end_boundary_missing",
+                    }:
+                        break
+            if attempt < 5:
+                self.page.wait_for_timeout(1000)
+        if last_error is not None:
+            raise BookAcquisitionError(
+                last_error.code, "manual_intervention"
+            ) from last_error
+        raise BookAcquisitionError(
+            "book_reader_toc_entries_missing", "manual_intervention"
+        )
 
     def capture_page(
         self,
@@ -771,6 +828,71 @@ def _fit_height(page: Any) -> bool:
     except Exception:
         pass
     return False
+
+
+def _reader_table_of_contents_text(page: Any) -> str:
+    _assert_reader_access(page)
+    _open_reader_table_of_contents(page)
+    body = _reader_body_text(page)
+    if not _toc_panel_appears_open(body) or not toc_entries_from_text(body):
+        return ""
+    return body
+
+
+def _open_reader_table_of_contents(page: Any) -> None:
+    if not _toc_panel_appears_open(_reader_body_text(page)):
+        controls = [
+            page.get_by_role(
+                "button",
+                name=re.compile(
+                    "Sum[aá]rio|[ÍI]ndice|Contents|Table of contents", re.I
+                ),
+            ).first,
+            page.locator(
+                '[aria-label*="Sumário"], [aria-label*="sumário"], '
+                '[title*="Sumário"], [title*="sumário"]'
+            ).first,
+        ]
+        for control in controls:
+            try:
+                if control.count():
+                    control.click(timeout=5000)
+                    page.wait_for_timeout(1000)
+                    break
+            except Exception:
+                continue
+    expanders = [
+        page.get_by_role(
+            "button", name=re.compile("Expandir tudo|Expand all", re.I)
+        ).first,
+        page.get_by_text(re.compile("Expandir tudo|Expand all", re.I)).first,
+    ]
+    for control in expanders:
+        try:
+            if control.count():
+                control.click(timeout=5000)
+                page.wait_for_timeout(1000)
+                break
+        except Exception:
+            continue
+
+
+def _reader_body_text(page: Any) -> str:
+    try:
+        return _normalize_text(page.locator("body").inner_text(timeout=10_000))
+    except Exception:
+        return ""
+
+
+def _toc_panel_appears_open(body_text: str) -> bool:
+    return bool(
+        re.search(
+            r"Expandir tudo|Recolher tudo|Expand all|Collapse all|"
+            r"Se[cç][oõ]es do [ií]ndice",
+            body_text,
+            re.I,
+        )
+    )
 
 
 def _reader_ready(page: Any) -> bool:
