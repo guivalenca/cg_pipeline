@@ -25,6 +25,17 @@ Classes and their Self-studies, ignores Orientations and their children, and
 preserves Deliverables and Evaluations as curricular records. The exporter is
 [`tools/adalove_observer_export.js`](tools/adalove_observer_export.js).
 
+## Pilot branch
+
+All pilot work starts from and merges into `pilot`; `main` is not used for
+pilot work. Check out the maintained pilot and run the complete local stack:
+
+```sh
+git fetch origin
+git switch pilot
+docker compose up --build
+```
+
 ## Boot the complete local stack
 
 Docker Compose starts PostgreSQL 16, applies pending migrations, then starts

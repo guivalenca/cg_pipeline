@@ -18,6 +18,16 @@ Source Publication. Syllabus import/versioning/reconciliation, Source
 acquisition and cleanup, content-addressed local assets, usage accounting,
 PostgreSQL scheduling, producer publication, and claim leases are retained.
 
+`pilot` is the maintained integration branch for this fork. Every pilot ticket
+starts from `pilot` and merges back into `pilot`; `main` is not used for pilot
+work. The initial five completed ticket increments contained by `pilot` are:
+
+- DEV-76 at `dae3fe54d` (`codex/dev-76-source-publication-pilot`);
+- DEV-77 at `015874953` (`codex/dev-77-creation-stages`);
+- DEV-78 at `b124211d3` (continued on the DEV-77 branch line);
+- DEV-79 at `b0a7a5114` (continued on the DEV-77 branch line); and
+- DEV-80 at `c631d308a` (`codex/dev-80-package-download`).
+
 All post-publication generation, selection, reconciliation, judging, task and
 embedding code, migrations, prompts, tests, and web assets are removed. The
 generic per-Lesson build request and fair worker remain, but their stage
